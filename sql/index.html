@@ -164,6 +164,8 @@ textarea.sql{width:100%;background:var(--code);border:1px solid var(--border);bo
 .footnote{color:var(--muted);font-size:12px;margin-top:26px;text-align:center;line-height:1.6}
 a{color:var(--accent)}
 .theme-btn{margin-left:auto!important;font-size:15px;padding:7px 11px!important;background:var(--surf)!important;border:1px solid var(--border)!important;border-radius:10px;cursor:pointer;transition:.15s;line-height:1;color:var(--muted)!important;font-family:var(--ui)!important}
+.settings-btn{font-size:15px;padding:7px 10px!important;background:var(--surf)!important;border:1px solid var(--border)!important;border-radius:10px;cursor:pointer;transition:.15s;line-height:1;color:var(--muted)!important;font-family:var(--ui)!important;margin-left:6px}
+.settings-btn:hover{color:var(--text)!important;border-color:var(--accent)!important}
 </style>
 </head>
 <body>
@@ -307,6 +309,9 @@ function render(){
   const tb=$(`<button class="theme-btn" title="Toggle theme">${theme==='dark'?'☀️':'🌙'}</button>`);
   tb.onclick=()=>{theme=theme==='dark'?'light':'dark';store.setItem('theme',theme);document.documentElement.setAttribute('data-theme',theme);render();};
   nav.appendChild(tb);
+  const sb=$(`<button class="settings-btn" title="Settings">⚙️</button>`);
+  sb.onclick=()=>openSettings();
+  nav.appendChild(sb);
   const app=document.getElementById('app'); app.innerHTML='';
   const v=$('<div class="view"></div>');
   ({home:H,learn:L,practice:P,cards:C,terms:T}[view])(v);
@@ -945,6 +950,55 @@ function fillTerms(list){
 }
 
 render();
+</script>
+<div id="settingsModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);align-items:center;justify-content:center" onclick="if(event.target===this)closeSettings()">
+  <div style="background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:28px;min-width:300px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <span style="font-weight:700;font-size:.95rem">Settings</span>
+      <button onclick="closeSettings()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.3rem;line-height:1;padding:0 4px">&times;</button>
+    </div>
+    <p style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Reset Progress</p>
+    <button id="resetKitBtn" onclick="handleResetKit(this)" style="display:block;width:100%;text-align:left;padding:11px 14px;background:var(--surf2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:.88rem;font-family:var(--ui);margin-bottom:6px;transition:all .2s">↺ Reset this kit</button>
+    <p style="font-size:.75rem;color:var(--muted);margin-bottom:18px;padding:0 2px">Clears progress for this kit only. Other kits stay intact.</p>
+    <button id="resetAllBtn" onclick="handleResetAll(this)" style="display:block;width:100%;text-align:left;padding:11px 14px;background:var(--surf2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:.88rem;font-family:var(--ui);margin-bottom:6px;transition:all .2s">↺ Reset all kits</button>
+    <p style="font-size:.75rem;color:var(--muted);padding:0 2px">Wipes progress across all 5 kits. Full clean slate.</p>
+  </div>
+</div>
+<script>
+function openSettings(){
+  var m=document.getElementById('settingsModal');
+  m.style.display='flex';
+  var kb=document.getElementById('resetKitBtn');
+  var ab=document.getElementById('resetAllBtn');
+  kb.textContent='↺ Reset this kit';kb.style.color='';kb.style.borderColor='';
+  ab.textContent='↺ Reset all kits';ab.style.color='';ab.style.borderColor='';
+  _kitConfirm=false;_allConfirm=false;
+}
+function closeSettings(){document.getElementById('settingsModal').style.display='none';}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeSettings();});
+var _kitConfirm=false,_allConfirm=false;
+function handleResetKit(btn){
+  if(!_kitConfirm){
+    _kitConfirm=true;
+    btn.textContent='Confirm? Click again to reset ↺';
+    btn.style.color='#e07c7c';btn.style.borderColor='#e07c7c';
+    setTimeout(function(){if(_kitConfirm){_kitConfirm=false;btn.textContent='↺ Reset this kit';btn.style.color='';btn.style.borderColor='';}},4000);
+  } else {
+    store.removeItem('sqlprepkit_v1');
+    location.reload();
+  }
+}
+function handleResetAll(btn){
+  if(!_allConfirm){
+    _allConfirm=true;
+    btn.textContent='Confirm? Click again to reset all ↺';
+    btn.style.color='#e07c7c';btn.style.borderColor='#e07c7c';
+    setTimeout(function(){if(_allConfirm){_allConfirm=false;btn.textContent='↺ Reset all kits';btn.style.color='';btn.style.borderColor='';}},4000);
+  } else {
+    ['sqlprepkit_v1','epk','ppk','tpk','spk'].forEach(function(k){localStorage.removeItem(k);});
+    location.reload();
+  }
+}
 </script>
 </body>
 </html>

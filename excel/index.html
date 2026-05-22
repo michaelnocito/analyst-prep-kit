@@ -204,6 +204,7 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
   <button class="nav-btn" onclick="show('cards')">Cards</button>
   <button class="nav-btn" onclick="show('glossary')">Glossary</button>
   <div class="spacer"></div>
+    <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
   <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️ Light</button>
 </nav>
 
@@ -1296,6 +1297,55 @@ function filterGlossary(q){
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 renderHome();
+</script>
+<div id="settingsModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);align-items:center;justify-content:center" onclick="if(event.target===this)closeSettings()">
+  <div style="background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:28px;min-width:300px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <span style="font-weight:700;font-size:.95rem">Settings</span>
+      <button onclick="closeSettings()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:1.3rem;line-height:1;padding:0 4px">&times;</button>
+    </div>
+    <p style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:12px">Reset Progress</p>
+    <button id="resetKitBtn" onclick="handleResetKit(this)" style="display:block;width:100%;text-align:left;padding:11px 14px;background:var(--surf2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:.88rem;font-family:inherit;margin-bottom:6px;transition:all .2s">↺ Reset this kit</button>
+    <p style="font-size:.75rem;color:var(--dim);margin-bottom:18px;padding:0 2px">Clears progress for this kit only. Other kits stay intact.</p>
+    <button id="resetAllBtn" onclick="handleResetAll(this)" style="display:block;width:100%;text-align:left;padding:11px 14px;background:var(--surf2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:.88rem;font-family:inherit;margin-bottom:6px;transition:all .2s">↺ Reset all kits</button>
+    <p style="font-size:.75rem;color:var(--dim);padding:0 2px">Wipes progress across all 5 kits. Full clean slate.</p>
+  </div>
+</div>
+<script>
+function openSettings(){
+  var m=document.getElementById('settingsModal');
+  m.style.display='flex';
+  var kb=document.getElementById('resetKitBtn');
+  var ab=document.getElementById('resetAllBtn');
+  kb.textContent='↺ Reset this kit';kb.style.color='';kb.style.borderColor='';
+  ab.textContent='↺ Reset all kits';ab.style.color='';ab.style.borderColor='';
+  _kitConfirm=false;_allConfirm=false;
+}
+function closeSettings(){document.getElementById('settingsModal').style.display='none';}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeSettings();});
+var _kitConfirm=false,_allConfirm=false;
+function handleResetKit(btn){
+  if(!_kitConfirm){
+    _kitConfirm=true;
+    btn.textContent='Confirm? Click again to reset ↺';
+    btn.style.color='#e07c7c';btn.style.borderColor='#e07c7c';
+    setTimeout(function(){if(_kitConfirm){_kitConfirm=false;btn.textContent='↺ Reset this kit';btn.style.color='';btn.style.borderColor='';}  },4000);
+  } else {
+    localStorage.removeItem('epk');
+    location.reload();
+  }
+}
+function handleResetAll(btn){
+  if(!_allConfirm){
+    _allConfirm=true;
+    btn.textContent='Confirm? Click again to reset all ↺';
+    btn.style.color='#e07c7c';btn.style.borderColor='#e07c7c';
+    setTimeout(function(){if(_allConfirm){_allConfirm=false;btn.textContent='↺ Reset all kits';btn.style.color='';btn.style.borderColor='';}  },4000);
+  } else {
+    ['sqlprepkit_v1','epk','ppk','tpk','spk'].forEach(function(k){localStorage.removeItem(k);});
+    location.reload();
+  }
+}
 </script>
 </body>
 </html>
