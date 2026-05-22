@@ -1,1 +1,1447 @@
-CONTENT_PLACEHOLDER
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tableau Prep Kit</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#171513;--surf:#201d1a;--surf2:#292520;--accent:#58aaa2;--accent2:#3d7a74;
+  --text:#e8e0d5;--dim:#9a8f84;--border:#3a342e;--success:#4caf78;--err:#e05c5c;
+  --warn:#d4a843;--radius:8px;--font:'Segoe UI',system-ui,sans-serif;--mono:'Consolas',monospace;
+  --dim-blue:#7bb3f0;--meas-green:#6dbf8b;
+}
+[data-theme="light"]{
+  --bg:#ddd6c8;--surf:#ffffff;--surf2:#f5f0e9;--accent:#116d69;--accent2:#0d5551;
+  --text:#1a1410;--dim:#6b5f52;--border:#c8bfb4;--success:#2d7a4a;--err:#c0392b;--warn:#b07d20;
+  --dim-blue:#2563a8;--meas-green:#1a6b3a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+a{color:var(--accent);text-decoration:none}
+
+nav{background:var(--surf);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:4px;height:52px;position:sticky;top:0;z-index:100;flex-wrap:wrap}
+.nav-logo{font-weight:700;font-size:16px;margin-right:12px;color:var(--accent);white-space:nowrap}
+.nav-logo span{color:var(--text)}
+.nav-btn{background:none;border:none;color:var(--dim);cursor:pointer;padding:6px 10px;border-radius:6px;font-size:14px;font-family:var(--font);transition:all .15s}
+.nav-btn:hover,.nav-btn.active{color:var(--text);background:var(--surf2)}
+.nav-btn.active{color:var(--accent)}
+.spacer{flex:1}
+.theme-btn{background:none;border:1px solid var(--border);color:var(--dim);cursor:pointer;padding:4px 10px;border-radius:6px;font-size:13px;font-family:var(--font)}
+.settings-btn{background:none;border:1px solid var(--border);color:var(--dim);cursor:pointer;padding:4px 9px;border-radius:6px;font-size:13px;font-family:var(--font);margin-left:6px}
+.settings-btn:hover{color:var(--text);border-color:var(--accent)}
+.theme-btn:hover{color:var(--text);border-color:var(--accent)}
+
+.view{display:none;max-width:900px;margin:0 auto;padding:28px 20px}
+.view.active{display:block}
+
+.card{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;background:var(--surf2);color:var(--dim);border:1px solid var(--border)}
+.tag.accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+h1{font-size:24px;font-weight:700;margin-bottom:6px}
+h2{font-size:19px;font-weight:700;margin-bottom:12px}
+h3{font-size:15px;font-weight:600;margin-bottom:8px}
+p{line-height:1.6;color:var(--dim);margin-bottom:10px}
+.lead{color:var(--text);font-size:15px}
+
+.btn{display:inline-block;padding:9px 18px;border-radius:6px;border:none;cursor:pointer;font-size:14px;font-family:var(--font);font-weight:600;transition:all .15s}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-ghost{background:none;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.9)}.btn-ghost:hover{background:rgba(255,255,255,.1)}
+.btn-sm{padding:5px 12px;font-size:13px}
+
+.resume-card{background:var(--accent);border-radius:var(--radius);padding:24px 28px;margin-bottom:16px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer}
+.resume-card-watermark{position:absolute;right:-10px;top:-10px;font-size:100px;font-weight:900;color:rgba(0,0,0,.1);font-family:var(--mono);line-height:1;user-select:none}
+.resume-card h2{color:#fff;margin-bottom:4px}
+.resume-card p{color:rgba(255,255,255,.8);margin:0}
+.path-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.path-tile{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .15s}
+.path-tile:hover{border-color:var(--accent);transform:translateY(-1px)}
+.path-tile h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);margin-bottom:6px}
+.path-tile .count{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text)}
+.path-tile .sub{font-size:12px;color:var(--dim);margin-top:2px}
+.prog-bar{height:4px;background:var(--surf2);border-radius:2px;margin-top:8px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s}
+
+.readiness-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)}
+.readiness-row:last-child{border:none}
+.readiness-label{width:180px;font-size:13px;flex-shrink:0}
+.readiness-bar-wrap{flex:1;height:6px;background:var(--surf2);border-radius:3px;overflow:hidden}
+.readiness-bar{height:100%;background:var(--accent);border-radius:3px;transition:width .5s}
+.readiness-pct{width:36px;text-align:right;font-size:13px;font-family:var(--mono);color:var(--dim)}
+
+/* READ-IT-ALOUD */
+.ral-block{background:var(--surf2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin:12px 0}
+.ral-shelf{font-family:var(--mono);font-size:13px;margin-bottom:10px;padding:8px 12px;background:var(--bg);border-radius:4px;border-left:3px solid var(--accent);line-height:1.8}
+.ral-line{display:flex;gap:10px;align-items:baseline;padding:4px 0;font-size:13px}
+.ral-chunk{font-family:var(--mono);color:var(--accent);flex-shrink:0;min-width:200px}
+.ral-desc{color:var(--dim)}
+.ral-arrow{color:var(--border);flex-shrink:0}
+
+/* LESSON */
+.lesson-header{margin-bottom:20px}
+.lesson-progress{font-size:13px;color:var(--dim);margin-bottom:8px}
+.gotcha{background:var(--surf2);border-left:3px solid var(--warn);padding:10px 14px;border-radius:0 6px 6px 0;margin:10px 0;font-size:13px}
+.gotcha strong{color:var(--warn)}
+.tip{background:var(--surf2);border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 6px 6px 0;margin:10px 0;font-size:13px}
+.tip strong{color:var(--accent)}
+
+/* QUIZ */
+.quiz-q{font-size:15px;font-weight:600;margin-bottom:14px;line-height:1.5}
+.quiz-opts{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:11px 14px;cursor:pointer;font-size:14px;text-align:left;color:var(--text);font-family:var(--font);transition:all .15s}
+.quiz-opt:hover{border-color:var(--accent)}
+.quiz-opt.correct{border-color:var(--success);background:rgba(76,175,120,.1);color:var(--success)}
+.quiz-opt.wrong{border-color:var(--err);background:rgba(224,92,92,.1);color:var(--err)}
+.quiz-feedback{margin-top:12px;padding:10px 14px;border-radius:6px;font-size:14px;line-height:1.5}
+.quiz-feedback.ok{background:rgba(76,175,120,.1);border:1px solid var(--success);color:var(--success)}
+.quiz-feedback.bad{background:rgba(224,92,92,.1);border:1px solid var(--err);color:var(--err)}
+
+/* DRILLS */
+.drill-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;resize:vertical;min-height:44px}
+.drill-input:focus{border-color:var(--accent)}
+.drill-input.ok{border-color:var(--success)}
+.drill-input.bad{border-color:var(--err)}
+.check-row{display:flex;gap:8px;margin-top:8px;align-items:center}
+.result-msg{font-size:13px;padding:8px 12px;border-radius:6px;margin-top:8px}
+.result-msg.ok{background:rgba(76,175,120,.12);border:1px solid var(--success);color:var(--success)}
+.result-msg.bad{background:rgba(224,92,92,.12);border:1px solid var(--err);color:var(--err)}
+.solution-toggle{background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;font-family:var(--font);padding:0;text-decoration:underline}
+.solution-box{display:none;background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:8px;font-family:var(--mono);font-size:13px;color:var(--accent);white-space:pre-wrap}
+
+/* PARSONS */
+.parsons-pool,.parsons-answer{min-height:44px;border:2px dashed var(--border);border-radius:6px;padding:8px;display:flex;flex-wrap:wrap;gap:6px}
+.parsons-answer{border-color:var(--accent2);min-height:52px}
+.parsons-chip{background:var(--surf2);border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-family:var(--mono);font-size:12px;cursor:pointer;user-select:none;transition:all .15s}
+.parsons-chip:hover{border-color:var(--accent)}
+.parsons-chip.placed{background:var(--accent);color:#fff;border-color:var(--accent)}
+.parsons-label{font-size:12px;color:var(--dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+
+/* FLASHCARDS */
+.fc-scene{perspective:600px;width:100%;max-width:500px;margin:0 auto 20px;height:220px;cursor:pointer}
+.fc-inner{width:100%;height:100%;transform-style:preserve-3d;transition:transform .4s;position:relative}
+.fc-inner.flipped{transform:rotateY(180deg)}
+.fc-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
+.fc-front{background:var(--surf);border:2px solid var(--accent);font-size:17px;font-weight:700;color:var(--accent)}
+.fc-back{background:var(--accent);transform:rotateY(180deg);font-size:13px;color:#fff;line-height:1.6;flex-direction:column;gap:8px}
+.fc-nav{display:flex;align-items:center;justify-content:center;gap:16px}
+.fc-count{font-size:13px;color:var(--dim)}
+
+/* GLOSSARY */
+.gloss-search{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:9px 14px;color:var(--text);font-size:14px;outline:none;margin-bottom:16px}
+.gloss-search:focus{border-color:var(--accent)}
+.gloss-item{padding:12px 0;border-bottom:1px solid var(--border)}
+.gloss-item:last-child{border:none}
+.gloss-term{font-weight:700;font-size:14px;color:var(--accent);margin-bottom:3px}
+.gloss-def{font-size:13px;color:var(--dim);line-height:1.5}
+
+/* VIZ BUILDER */
+.vb-layout{display:grid;grid-template-columns:160px 1fr;gap:16px;margin-top:16px}
+.vb-fields{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.vb-fields h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:6px}
+.vb-section{margin-bottom:14px}
+.vb-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);margin-bottom:5px;padding:2px 0;border-bottom:1px solid var(--border)}
+.field-chip{border-radius:4px;padding:5px 9px;font-size:12px;cursor:grab;margin-bottom:4px;user-select:none;display:flex;align-items:center;gap:6px;transition:all .15s;border:1px solid transparent}
+.field-chip:hover{border-color:var(--border)}
+.field-chip:active{cursor:grabbing}
+.field-chip.dim{color:var(--dim-blue);background:rgba(123,179,240,.08)}
+.field-chip.meas{color:var(--meas-green);background:rgba(109,191,139,.08)}
+.field-chip .pill{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.field-chip.dim .pill{background:var(--dim-blue)}
+.field-chip.meas .pill{background:var(--meas-green)}
+
+.vb-right{display:flex;flex-direction:column;gap:10px}
+.vb-shelves{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.shelf{background:var(--surf);border:2px dashed var(--border);border-radius:var(--radius);padding:10px;min-height:60px;transition:border-color .15s}
+.shelf.drag-over{border-color:var(--accent);background:rgba(88,170,162,.06)}
+.shelf h4{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:7px}
+.shelf-chip{display:inline-flex;align-items:center;gap:4px;border-radius:4px;padding:3px 8px;font-size:12px;margin:2px;cursor:default}
+.shelf-chip.dim{background:rgba(123,179,240,.15);color:var(--dim-blue);border:1px solid rgba(123,179,240,.3)}
+.shelf-chip.meas{background:rgba(109,191,139,.15);color:var(--meas-green);border:1px solid rgba(109,191,139,.3)}
+.shelf-chip .remove{cursor:pointer;opacity:.7;font-size:11px;margin-left:2px}.shelf-chip .remove:hover{opacity:1}
+
+.vb-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.mark-btn{background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;color:var(--dim);font-family:var(--font);transition:all .15s}
+.mark-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.mark-btn:hover:not(.active){border-color:var(--accent);color:var(--text)}
+
+.chart-wrap{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius);padding:16px;position:relative;min-height:280px;display:flex;align-items:center;justify-content:center}
+.chart-empty{text-align:center;color:var(--dim);font-size:13px;padding:40px}
+.chart-empty .icon{font-size:32px;margin-bottom:8px}
+canvas#vizCanvas{max-width:100%;max-height:320px}
+
+/* CALC FIELD */
+.calc-dialog{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-top:12px}
+.calc-dialog h4{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em}
+.calc-name-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;margin-bottom:8px}
+.calc-name-input:focus{border-color:var(--accent)}
+.calc-editor{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--accent);font-family:var(--mono);font-size:13px;outline:none;resize:vertical;min-height:80px;line-height:1.6}
+.calc-editor:focus{border-color:var(--accent)}
+.calc-preview{background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-top:8px;font-size:13px}
+.calc-preview-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);margin-bottom:4px}
+
+/* TOAST / FLASH */
+.toast{position:fixed;top:64px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--success);color:#fff;padding:10px 22px;border-radius:20px;font-weight:600;font-size:14px;z-index:9999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.gold{background:var(--warn)}
+.flash{position:fixed;inset:0;pointer-events:none;z-index:9998;opacity:0;transition:opacity .1s}
+.flash.show{opacity:.08;background:var(--accent)}
+
+.flex{display:flex;gap:12px;align-items:center}
+.flex-between{display:flex;justify-content:space-between;align-items:center}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}
+.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}
+.mono{font-family:var(--mono)}.dim{color:var(--dim)}.accent{color:var(--accent)}
+.hidden{display:none!important}
+@media(max-width:600px){.path-grid{grid-template-columns:1fr 1fr}.vb-layout{grid-template-columns:1fr}.vb-shelves{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">Tableau<span>PrepKit</span></div>
+  <button class="nav-btn active" onclick="show('home')">Home</button>
+  <button class="nav-btn" onclick="show('lessons')">Lessons</button>
+  <button class="nav-btn" onclick="show('practice')">Practice</button>
+  <button class="nav-btn" onclick="show('vizbuilder')">Viz Builder</button>
+  <button class="nav-btn" onclick="show('cards')">Cards</button>
+  <button class="nav-btn" onclick="show('glossary')">Glossary</button>
+  <div class="spacer"></div>
+  <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️ Light</button>
+</nav>
+<div id="flash" class="flash"></div>
+<div id="toast" class="toast"></div>
+
+<!-- HOME -->
+<div id="view-home" class="view active">
+  <div class="resume-card" onclick="resumeLesson()">
+    <div>
+      <div class="tag accent" style="margin-bottom:8px">LESSON <span id="resumeNum">1</span></div>
+      <h2 id="resumeTitle">The Tableau Interface</h2>
+      <p id="resumeSub">Shelves, marks, and the data pane — orientation.</p>
+    </div>
+    <button class="btn btn-ghost" id="resumeBtn">Start →</button>
+    <div class="resume-card-watermark" id="resumeWM">1</div>
+  </div>
+  <div class="path-grid">
+    <div class="path-tile" onclick="show('lessons')">
+      <h3>Learn</h3>
+      <div class="count" id="lessonsCount">0/12</div>
+      <div class="sub">lessons done</div>
+      <div class="prog-bar"><div class="prog-fill" id="lessonsFill" style="width:0%"></div></div>
+    </div>
+    <div class="path-tile" onclick="show('practice')">
+      <h3>Practice</h3>
+      <div class="count" id="practiceCount">0/60</div>
+      <div class="sub">drills done</div>
+      <div class="prog-bar"><div class="prog-fill" id="practiceFill" style="width:0%"></div></div>
+    </div>
+    <div class="path-tile" onclick="show('cards')">
+      <h3>Cards</h3>
+      <div class="count" id="cardsCount">0/30</div>
+      <div class="sub">cards reviewed</div>
+      <div class="prog-bar"><div class="prog-fill" id="cardsFill" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="flex-between mb12">
+      <h2 style="margin:0">Skill Readiness</h2>
+      <span class="mono accent" id="readinessPct">0%</span>
+    </div>
+    <div id="readinessList"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:8px">Read It Aloud — how every lesson works</h3>
+    <p>Every shelf configuration maps argument by argument to plain English. Say it out loud — if you can explain it, you own it.</p>
+    <div class="ral-block">
+      <div class="ral-shelf">Columns: MONTH(Order Date)
+Rows: SUM(Revenue)
+Color: Category</div>
+      <div class="ral-line"><span class="ral-chunk">MONTH(Order Date)</span><span class="ral-arrow">→</span><span class="ral-desc">truncate each date to its month — one tick per month on the x-axis</span></div>
+      <div class="ral-line"><span class="ral-chunk">SUM(Revenue)</span><span class="ral-arrow">→</span><span class="ral-desc">aggregate all revenue within each month — sets the bar/line height</span></div>
+      <div class="ral-line"><span class="ral-chunk">Color: Category</span><span class="ral-arrow">→</span><span class="ral-desc">split into separate series — one color per unique category value</span></div>
+    </div>
+  </div>
+  <div class="card" style="border-color:var(--accent);background:var(--surf2)">
+    <div class="flex-between">
+      <div>
+        <h3 style="margin-bottom:4px">Also in the Analyst Prep Kit</h3>
+        <p style="margin:0;font-size:13px">SQL, Excel, Python — same learning rhythm.</p>
+      </div>
+      <div class="flex" style="gap:6px;flex-wrap:wrap">
+        <a href="https://michaelnocito.github.io/analyst-prep-kit/sql/" target="_blank" class="btn btn-outline btn-sm">SQL →</a>
+        <a href="https://michaelnocito.github.io/analyst-prep-kit/excel/" target="_blank" class="btn btn-outline btn-sm">Excel →</a>
+        <a href="https://michaelnocito.github.io/analyst-prep-kit/python/" target="_blank" class="btn btn-outline btn-sm">Python →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LESSONS LIST -->
+<div id="view-lessons" class="view">
+  <h1>Lessons</h1>
+  <p>12 lessons across three units. Each ends with a quiz, then drills.</p>
+  <div id="lessonList" class="mt16"></div>
+</div>
+
+<!-- LESSON DETAIL -->
+<div id="view-lesson" class="view"><div id="lessonContent"></div></div>
+
+<!-- PRACTICE -->
+<div id="view-practice" class="view">
+  <h1>Practice Drills</h1>
+  <p>Five drill types. Mix them up or focus on a weak spot.</p>
+  <div id="drillList" class="mt16"></div>
+</div>
+
+<!-- DRILL DETAIL -->
+<div id="view-drill" class="view"><div id="drillContent"></div></div>
+
+<!-- VIZ BUILDER -->
+<div id="view-vizbuilder" class="view">
+  <h1>Viz Builder</h1>
+  <p>Drag fields onto the shelves. Pick a mark type. The chart updates live — same mental model as Tableau's actual interface.</p>
+  <div class="vb-layout">
+    <div class="vb-fields">
+      <div class="vb-section">
+        <div class="vb-section-label">Dimensions</div>
+        <div id="dimFields"></div>
+      </div>
+      <div class="vb-section">
+        <div class="vb-section-label">Measures</div>
+        <div id="measFields"></div>
+      </div>
+    </div>
+    <div class="vb-right">
+      <div class="vb-controls">
+        <span class="dim" style="font-size:12px;color:var(--dim)">Mark type:</span>
+        <button class="mark-btn active" data-type="bar" onclick="setMarkType('bar')">Bar</button>
+        <button class="mark-btn" data-type="line" onclick="setMarkType('line')">Line</button>
+        <button class="mark-btn" data-type="scatter" onclick="setMarkType('scatter')">Scatter</button>
+        <button class="btn btn-outline btn-sm" onclick="clearViz()">Clear</button>
+        <button class="btn btn-outline btn-sm" onclick="loadSampleViz()">Example</button>
+      </div>
+      <div class="vb-shelves">
+        <div class="shelf" id="shelf-cols" data-shelf="cols" ondragover="shelfOver(event)" ondragleave="shelfLeave(event)" ondrop="shelfDrop(event)">
+          <h4>Columns</h4><div id="chips-cols"></div>
+        </div>
+        <div class="shelf" id="shelf-rows" data-shelf="rows" ondragover="shelfOver(event)" ondragleave="shelfLeave(event)" ondrop="shelfDrop(event)">
+          <h4>Rows</h4><div id="chips-rows"></div>
+        </div>
+        <div class="shelf" id="shelf-color" data-shelf="color" ondragover="shelfOver(event)" ondragleave="shelfLeave(event)" ondrop="shelfDrop(event)">
+          <h4>Color</h4><div id="chips-color"></div>
+        </div>
+        <div class="shelf" id="shelf-filter" data-shelf="filter" ondragover="shelfOver(event)" ondragleave="shelfLeave(event)" ondrop="shelfDrop(event)">
+          <h4>Filters</h4><div id="chips-filter"></div>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-empty" id="chartEmpty">
+          <div class="icon">📊</div>
+          Drop a dimension on Columns and a measure on Rows to build your chart.
+        </div>
+        <canvas id="vizCanvas" style="display:none"></canvas>
+      </div>
+      <!-- Calculated Field Dialog -->
+      <div class="calc-dialog">
+        <h4>Calculated Field</h4>
+        <input class="calc-name-input" id="calcName" placeholder="Field name (e.g. Profit Margin)">
+        <textarea class="calc-editor" id="calcEditor" placeholder="SUM([Revenue]) / SUM([Units])"></textarea>
+        <div class="check-row mt8">
+          <button class="btn btn-primary btn-sm" onclick="previewCalc()">Preview</button>
+          <button class="solution-toggle" onclick="toggleSol('calcHelp')">formula reference</button>
+        </div>
+        <div class="solution-box" id="calcHelp">Common Tableau formulas:
+SUM([Revenue])
+AVG([Units])
+IF [Region] = "West" THEN "West" ELSE "Other" END
+[Revenue] / [Units]
+DATEDIFF('month', [Hire Date], TODAY())</div>
+        <div class="calc-preview" id="calcPreview" style="display:none">
+          <div class="calc-preview-label">Preview</div>
+          <div id="calcPreviewResult"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CARDS -->
+<div id="view-cards" class="view">
+  <h1>Flashcards</h1>
+  <p>Tap to flip. Arrow through the deck.</p>
+  <div class="mt16" id="cardView"></div>
+</div>
+
+<!-- GLOSSARY -->
+<div id="view-glossary" class="view">
+  <h1>Glossary</h1>
+  <input class="gloss-search" placeholder="Search terms…" oninput="filterGlossary(this.value)">
+  <div id="glossaryList"></div>
+</div>
+
+<script>
+const DATA = {
+LESSONS:[
+{id:1,unit:"Unit 1: Tableau Fundamentals",title:"The Tableau Interface",slug:"interface",
+ intro:"Before you build anything, you need to know what you're looking at. Tableau's interface is shelf-based — you drag fields onto shelves and the view updates immediately.",
+ ral:[
+  {shelf:"Key interface areas",lines:[
+   ["Data pane (left)","your fields — split into Dimensions (blue) and Measures (green)"],
+   ["Shelves (top)","Columns and Rows — drag fields here to build the view"],
+   ["Marks card","Color, Size, Label, Detail, Tooltip — controls visual encoding"],
+   ["Canvas (center)","the live view — updates every time you change a shelf"],
+   ["Show Me (top right)","suggests chart types based on what's on your shelves"]
+  ]}
+ ],
+ notes:"Tableau auto-aggregates measures. When you drag Revenue to Rows, it becomes SUM(Revenue) automatically. That's a feature — but it means you should always check which aggregation is applied.",
+ quiz:{q:"Where do you drag a field to make it the X-axis of a chart?",opts:["Marks card","Columns shelf","Rows shelf","Data pane"],ans:1,exp:"The Columns shelf controls the X-axis. Rows controls the Y-axis. Think of it as: Columns goes across (horizontal), Rows goes up (vertical)."}
+},
+{id:2,unit:"Unit 1: Tableau Fundamentals",title:"Dimensions vs. Measures",slug:"dim-vs-meas",
+ intro:"This is the most important distinction in Tableau. Dimensions are categories — they split your data. Measures are numbers — they get aggregated. Blue pills are dimensions, green pills are measures.",
+ ral:[
+  {shelf:"Dimensions (blue) vs Measures (green)",lines:[
+   ["Dimension: Region","a category — West, East, North, South"],
+   ["Dimension: Product","a category — splits data into groups"],
+   ["Measure: Revenue","a number — Tableau will SUM, AVG, COUNT it"],
+   ["Measure: Units","a number — aggregated within each dimension group"],
+   ["Continuous (solid)","forms a continuous axis — range of values"],
+   ["Discrete (striped)","forms headers — distinct buckets"]
+  ]}
+ ],
+ notes:"Dates default to dimensions in Tableau but can act as either. A discrete date (blue) creates separate headers per year/month. A continuous date (green) creates a continuous axis. Right-click a date pill to switch.",
+ quiz:{q:"You drag 'Region' to the Color shelf. What happens?",opts:["Revenue is split by color","Each region gets a different color in the view","The chart turns blue","Nothing — Color only works with measures"],ans:1,exp:"Region is a dimension. Dragging it to Color assigns a distinct color to each unique value — West gets one color, East another, etc. This is one of the most powerful quick-analysis moves in Tableau."}
+},
+{id:3,unit:"Unit 1: Tableau Fundamentals",title:"Your First Bar Chart",slug:"bar-chart",
+ intro:"A bar chart is dimension on one axis, measure on the other. In Tableau: dimension on Columns, measure on Rows. Then sort. That's most of what you'll do in your first month.",
+ ral:[
+  {shelf:"Revenue by Region (bar chart)",lines:[
+   ["Columns: Region","one bar per region — the x-axis categories"],
+   ["Rows: SUM(Revenue)","bar height = total revenue for that region"],
+   ["Sort: Descending","largest bar on the left — always sort a bar chart"],
+   ["Color: Region","optional — adds color per bar, reinforces the dimension"]
+  ]}
+ ],
+ notes:"Always sort your bar charts. An unsorted bar chart forces the reader to scan for the biggest/smallest bar. Sort descending by the measure and the story is immediately obvious.",
+ quiz:{q:"You have Region on Columns and SUM(Revenue) on Rows. What chart type does Tableau create by default?",opts:["Line chart","Scatter plot","Bar chart","Pie chart"],ans:2,exp:"One discrete dimension on Columns + one measure on Rows = bar chart. Tableau's Show Me logic picks bar chart automatically. The bars represent each region, and their height is the total revenue."}
+},
+{id:4,unit:"Unit 1: Tableau Fundamentals",title:"Line Charts & Time",slug:"line-charts",
+ intro:"Line charts are for trends over time. In Tableau, date fields have a hierarchy (Year > Quarter > Month > Day). Drilling down is as simple as clicking the + on a date pill.",
+ ral:[
+  {shelf:"Revenue trend over time",lines:[
+   ["Columns: MONTH(Date)","continuous month — one point per month on x-axis"],
+   ["Rows: SUM(Revenue)","total revenue per month — the line's y-values"],
+   ["Color: Category","separate line per category — Hot vs Cold trend comparison"],
+   ["Mark type: Line","connect the dots — shows trend, not individual bars"]
+  ]}
+ ],
+ notes:"Use MONTH(Date) (continuous, green) for a trend line. Use MONTH(Date) as discrete (blue) for separate year columns. If your line looks jagged, you may be at too fine a granularity — try zooming out to Quarter or Year.",
+ quiz:{q:"When should you use a line chart instead of a bar chart?",opts:["When you have more than 5 categories","When showing change over time or a continuous trend","When the values are very large","When you have only two data points"],ans:1,exp:"Line charts are for trends — change over time or a continuous variable. Bar charts are for comparing discrete categories. The choice is almost always: does time or order matter? If yes, line chart."}
+},
+{id:5,unit:"Unit 2: Building Better Vizzes",title:"Filters & Sorting",slug:"filters",
+ intro:"Filters narrow the data shown in a view. Tableau has three main filter types: dimension filters (keep/exclude categories), measure filters (range), and top N filters (rank-based). Sorting is separate but equally important.",
+ ral:[
+  {shelf:"Filtering to West region, top 5 products by revenue",lines:[
+   ["Drag Region to Filters","opens the filter dialog — check/uncheck values to include"],
+   ["Select 'West'","view now shows only West region data"],
+   ["Right-click Product → Sort","sort by field → SUM(Revenue) → Descending"],
+   ["Top N filter","drag Product to Filters → Top tab → Top 5 by SUM(Revenue)"]
+  ]}
+ ],
+ notes:"Context filters run before other filters. If you have a Top N filter, add your dimension filter as a context filter first (right-click → Add to Context) or the Top N will calculate before filtering — giving you wrong results.",
+ quiz:{q:"You add a 'Top 10 Products by Revenue' filter. But the results look wrong — you're seeing products from regions you already filtered out. What's likely the issue?",opts:["Top N filters don't work with bar charts","The Top N is calculating before your dimension filter — add the dimension filter to Context","Top N only works on measures","You need to sort before filtering"],ans:1,exp:"Top N filters evaluate after other filters by default. If your region filter runs after the Top N, the Top N sees all regions and picks the global top 10. Right-click your region filter → 'Add to Context' to make it run first."}
+},
+{id:6,unit:"Unit 2: Building Better Vizzes",title:"Color, Size & Labels",slug:"marks",
+ intro:"The Marks card is where charts become insights. Color encodes a dimension or measure. Size encodes a measure. Labels add values directly to marks. Each one adds a layer of meaning without adding complexity.",
+ ral:[
+  {shelf:"Encoded bubble chart",lines:[
+   ["Columns: SUM(Revenue)","x-axis — total revenue per product"],
+   ["Rows: SUM(Units)","y-axis — total units per product"],
+   ["Mark type: Circle","each mark is a dot/bubble"],
+   ["Color: Category","Hot = one color, Cold = another"],
+   ["Size: SUM(Revenue)","bigger bubble = more revenue — double-encodes the message"],
+   ["Label: Product","name each bubble — no legend-hunting needed"]
+  ]}
+ ],
+ notes:"Don't encode the same thing twice unless it reinforces a key insight. Size + Color both showing Revenue = redundant. Use Size for one variable, Color for another — that's two dimensions of information in one chart.",
+ quiz:{q:"You put a measure on the Color shelf. What happens?",opts:["The view gets a categorical color legend","The view gets a continuous color gradient (e.g. light to dark green)","Nothing — Color only accepts dimensions","All marks turn the same color"],ans:1,exp:"Measures on Color create a continuous color gradient — from low values (light) to high values (dark), usually in a single hue. Dimensions on Color create distinct, categorical colors. Both are valid — the choice depends on the data type."}
+},
+{id:7,unit:"Unit 2: Building Better Vizzes",title:"Calculated Fields",slug:"calc-fields",
+ intro:"Calculated fields let you create new data from existing fields — math, logic, string operations, date calculations. They live in your Data pane alongside real fields and work on every row of your data.",
+ ral:[
+  {shelf:"Profit Margin calculated field",lines:[
+   ["Field name","Profit Margin — shows up in your Data pane as a new measure"],
+   ["Formula","SUM([Revenue] - [Cost]) / SUM([Revenue])"],
+   ["SUM([Revenue] - [Cost])","row-level subtraction, then aggregated"],
+   ["/ SUM([Revenue])","divide total profit by total revenue"],
+   ["Result","a new % measure you can drag anywhere"]
+  ]}
+ ],
+ notes:"Tableau calculated fields use LOD (Level of Detail) expressions for advanced aggregation control: {FIXED [Region] : SUM([Revenue])} computes revenue per region regardless of what's in your view. This is advanced — master basic calcs first.",
+ quiz:{q:"You create a calculated field: [Revenue] / [Units]. What does this give you?",opts:["Total revenue","Revenue per unit (average selling price)","Unit count","A percentage"],ans:1,exp:"Dividing Revenue by Units gives you revenue per unit — effectively the average selling price per transaction row. This is a row-level calculation that Tableau will then aggregate (SUM or AVG) based on your view's granularity."}
+},
+{id:8,unit:"Unit 2: Building Better Vizzes",title:"Aggregation in Tableau",slug:"aggregation",
+ intro:"Tableau aggregates automatically — but you control which aggregation. SUM, AVG, COUNT, MIN, MAX. Choosing the right one is an analytical decision, not just a technical one.",
+ ral:[
+  {shelf:"Changing aggregation",lines:[
+   ["SUM(Revenue)","add up all revenue — total sold"],
+   ["AVG(Revenue)","average transaction value — typical sale size"],
+   ["COUNT(Revenue)","count rows — number of transactions"],
+   ["COUNTD(Rep)","count distinct reps — how many unique reps sold"],
+   ["Right-click pill → Measure → change","how to switch aggregation in the interface"]
+  ]}
+ ],
+ notes:"SUM is Tableau's default — but it's wrong more often than people think. SUM(Units) across reps tells you total volume. AVG(Units) tells you typical order size. Those answer different questions. Always ask: what am I actually measuring?",
+ quiz:{q:"You want to know how many unique products were sold (not total units). Which aggregation do you use on the Product field?",opts:["SUM(Product)","AVG(Product)","COUNTD(Product)","COUNT(Product)"],ans:2,exp:"COUNTD = Count Distinct. It counts unique values — so COUNTD(Product) gives you the number of different products sold, not the total number of rows. COUNT would count total rows including duplicates."}
+},
+{id:9,unit:"Unit 3: Dashboards & Best Practices",title:"Building a Dashboard",slug:"dashboards",
+ intro:"A dashboard is a collection of views arranged on a single canvas. In Tableau: Dashboard menu → New Dashboard → drag sheets from the Sheets panel. Layout containers control arrangement.",
+ ral:[
+  {shelf:"Dashboard layout",lines:[
+   ["Tiled layout","views snap to a grid — easier to align, cleaner look"],
+   ["Floating layout","views placed freely — flexible but harder to maintain"],
+   ["Vertical container","stacks views top-to-bottom — good for related charts"],
+   ["Horizontal container","places views side-by-side — good for comparisons"],
+   ["Text object","add titles, labels, or context anywhere on the canvas"]
+  ]}
+ ],
+ notes:"Start with tiled layout. Floating sounds flexible but becomes a maintenance nightmare — resizing the dashboard breaks everything. Lock your containers once you're happy with the layout.",
+ quiz:{q:"What's the difference between tiled and floating layout?",opts:["Tiled is for bar charts, floating is for scatter plots","Tiled snaps to a grid and resizes together; floating is free-placed and doesn't auto-resize","Floating is faster to render","Tiled only works with one sheet"],ans:1,exp:"Tiled layouts keep views in a grid structure — resizing the dashboard resizes everything proportionally. Floating views have fixed positions and sizes. Tiled is almost always the better default for maintainable dashboards."}
+},
+{id:10,unit:"Unit 3: Dashboards & Best Practices",title:"Tooltips & Annotations",slug:"tooltips",
+ intro:"Tooltips appear on hover. Annotations mark specific data points or reference lines. Both add context without cluttering the view — they're the analyst's way of answering 'what does this mean?' without adding text boxes.",
+ ral:[
+  {shelf:"Adding context",lines:[
+   ["Edit Tooltip","Worksheet menu → Tooltip — customize what appears on hover"],
+   ["Reference line","Analytics pane → drag Reference Line to the view — add avg, median, constant"],
+   ["Annotation: Mark","right-click a data point → Annotate → Mark — labels a specific point"],
+   ["Annotation: Area","right-click blank canvas → Annotate → Area — calls out a region"]
+  ]}
+ ],
+ notes:"Tooltips can include other sheets — 'Viz in Tooltip'. Hover over a bar and a small sparkline appears. This is one of Tableau's most impressive features for executive dashboards, but don't overdo it — it adds load time.",
+ quiz:{q:"Where do you add a reference line showing the average revenue?",opts:["Marks card","Analytics pane → Reference Line","Format menu → Reference Lines","Calculated field"],ans:1,exp:"The Analytics pane (next to the Data pane) has drag-and-drop analytics objects: Reference Lines, Trend Lines, Forecasts, Box Plots. Drag 'Reference Line' onto the view and set it to Average of SUM(Revenue)."}
+},
+{id:11,unit:"Unit 3: Dashboards & Best Practices",title:"Chart Choice",slug:"chart-choice",
+ intro:"The chart type is an analytical decision. The wrong chart makes the right data unreadable. Three rules: match the chart to the data type, show comparison over distribution, never use pie charts for more than 3 slices.",
+ ral:[
+  {shelf:"Chart type decision guide",lines:[
+   ["Comparing categories","→ Bar chart (sorted, horizontal if many categories)"],
+   ["Trend over time","→ Line chart (one line per series)"],
+   ["Correlation / distribution","→ Scatter plot (two measures, one per axis)"],
+   ["Part-to-whole (≤3 slices)","→ Pie or donut — only when proportions are the story"],
+   ["Geographic data","→ Map — but only if location is actually relevant"]
+  ]}
+ ],
+ notes:"3D charts, exploding pie charts, dual-axis charts with incompatible scales — all of these distort data and erode trust. When in doubt, a sorted bar chart is almost always the right answer.",
+ quiz:{q:"You want to show whether revenue and units sold are correlated across products. Best chart type?",opts:["Bar chart","Line chart","Scatter plot","Treemap"],ans:2,exp:"A scatter plot puts one measure on the X-axis and another on the Y-axis — each dot is a product. Correlation (or lack of it) is immediately visible from the pattern. That's the scatter plot's job: show relationships between two continuous variables."}
+},
+{id:12,unit:"Unit 3: Dashboards & Best Practices",title:"Telling a Story",slug:"story",
+ intro:"A Tableau Story is a sequence of dashboard or sheet views with narrative context — like a slide deck, but live and interactive. Story Points let you guide a viewer through your analysis step by step.",
+ ral:[
+  {shelf:"Story structure",lines:[
+   ["Story Point 1","the setup — what question are we answering?"],
+   ["Story Point 2","the finding — the chart that shows the answer"],
+   ["Story Point 3","the detail — drill-down or supporting evidence"],
+   ["Story Point 4","the recommendation — what should happen next?"],
+   ["Caption box","text above each story point — your narration"]
+  ]}
+ ],
+ notes:"A dashboard is not a story. A dashboard shows everything at once. A story controls the sequence — you decide what the audience sees first, second, third. Use Story Points when you have a specific narrative, not just an exploration tool.",
+ quiz:{q:"What's the key difference between a Dashboard and a Story in Tableau?",opts:["Dashboards are interactive; Stories are not","A Story controls sequence and narrative; a Dashboard shows everything at once","Stories can only show one chart","Dashboards require more data"],ans:1,exp:"A Dashboard is a canvas with multiple views — great for exploration and monitoring. A Story sequences those views with narrative context — great for presenting findings to an audience. Both are valuable; the choice depends on whether you're exploring or communicating."}
+}
+],
+
+FILLS:[
+ {id:1,q:"Which shelf controls the X-axis of a chart in Tableau?",partial:"Drag the field to the ___ shelf.",ans:"Columns",hint:"Columns = horizontal = X-axis."},
+ {id:2,q:"Dimensions are shown in ___ in the Data pane.",partial:"Dimensions are shown in ___.",ans:"blue",hint:"Blue = dimensions (categories). Green = measures (numbers)."},
+ {id:3,q:"Complete the shelf config for a bar chart showing revenue by region.",partial:"Columns: ___\nRows: SUM(Revenue)",ans:"Columns: Region",hint:"The dimension goes on Columns for a bar chart."},
+ {id:4,q:"To show a trend over time, use this mark type.",partial:"Mark type: ___",ans:"Line",hint:"Connects data points — shows trend direction."},
+ {id:5,q:"Which Tableau pane contains Reference Lines and Trend Lines?",partial:"The ___ pane.",ans:"Analytics",hint:"Not the Data pane — the other one next to it."},
+ {id:6,q:"To add a calculated field, go to:",partial:"Analysis menu → ___",ans:"Create Calculated Field",hint:"Or right-click in the Data pane."},
+ {id:7,q:"The aggregation that counts unique values (not total rows) is:",partial:"___([Product])",ans:"COUNTD",hint:"Count Distinct — D for Distinct."},
+ {id:8,q:"To make a dimension filter run before a Top N filter, right-click it and choose:",partial:"Right-click filter → ___",ans:"Add to Context",hint:"Context filters run first."},
+ {id:9,q:"In a dashboard, ___ layout snaps views to a grid and resizes proportionally.",partial:"___ layout",ans:"Tiled",hint:"The opposite of Floating."},
+ {id:10,q:"To customize what appears when a user hovers over a mark:",partial:"Worksheet → ___",ans:"Tooltip",hint:"The hover-text editor."},
+ {id:11,q:"A bar chart is best for comparing ___. A line chart is best for showing ___ over time.",partial:"Bar: ___ | Line: ___",ans:"Bar: categories | Line: trends",hint:"Categories vs trends."},
+ {id:12,q:"Tableau Story Points are used to:",partial:"Story Points control the ___ of an analysis presentation.",ans:"sequence",hint:"What makes a Story different from a Dashboard."}
+],
+
+BUGS:[
+ {id:1,config:"Columns: SUM(Revenue)\nRows: Region",broken:"Rows and Columns are swapped — SUM(Revenue) on Columns makes a horizontal bar chart, which is fine, but the conventional setup puts the dimension on Columns.",fix:"Columns: Region\nRows: SUM(Revenue)",hint:"Dimension on Columns, measure on Rows = standard vertical bar chart."},
+ {id:2,config:"Mark type: Line\nColumns: Region\nRows: SUM(Revenue)",broken:"Line charts require a continuous field on Columns (like a date). Region is a discrete dimension — this creates disconnected lines, not a trend.",fix:"Mark type: Bar\nColumns: Region\nRows: SUM(Revenue)",hint:"Region is categorical — use Bar. Line charts need time or a continuous axis."},
+ {id:3,config:"Color: SUM(Revenue)\nExpected: each region a different color",broken:"SUM(Revenue) is a measure — it creates a continuous color gradient, not distinct colors per region.",fix:"Color: Region",hint:"Use a dimension on Color for distinct categorical colors."},
+ {id:4,config:"Filter: Top 10 Products by Revenue\nFilter: Region = 'West'\n(Top 10 showing global products, not West products)",broken:"The Top N filter runs before the Region filter. The Region filter must be added to Context first.",fix:"Right-click Region filter → Add to Context\nThen: Filter: Top 10 Products by Revenue",hint:"Context filters run before other filters — put dimension filters in Context when using Top N."},
+ {id:5,config:"Calculated field: [Revenue] / [Units]",broken:"This gives revenue per row divided by units per row — not the overall average. For a meaningful ratio, aggregate first.",fix:"SUM([Revenue]) / SUM([Units])",hint:"Aggregate both sides before dividing for a meaningful measure."},
+ {id:6,config:"Columns: YEAR(Date)\nRows: SUM(Revenue)\nMark type: Line",broken:"A line chart with only YEAR on Columns has very few points — typically 1-4 years. Not enough for a meaningful trend line.",fix:"Columns: MONTH(Date)\nRows: SUM(Revenue)\nMark type: Line",hint:"Use MONTH or QUARTER for a richer trend line."},
+ {id:7,config:"Size: Region\nColor: Revenue",broken:"Size should encode a measure (numeric), not a dimension. Encoding Region on Size is misleading — what does 'bigger region' mean?",fix:"Size: SUM(Revenue)\nColor: Region",hint:"Size encodes magnitude (measures). Color encodes categories (dimensions)."},
+ {id:8,config:"Dashboard layout: Floating\nExpected: clean, resizable layout",broken:"Floating layout breaks when the dashboard is resized — views stay at fixed pixel positions.",fix:"Dashboard layout: Tiled",hint:"Use Tiled for maintainable, responsive dashboards."},
+ {id:9,config:"Aggregation: SUM(Units)\nQuestion: What is the typical order size?",broken:"SUM gives total units sold — not a typical order size. You want the average transaction.",fix:"Aggregation: AVG(Units)",hint:"SUM = total. AVG = typical. Pick the aggregation that matches the question."},
+ {id:10,config:"Chart type: Pie chart\n7 product categories",broken:"Pie charts are unreadable with more than 3-4 slices. 7 slices will be too small to compare.",fix:"Chart type: Bar chart (sorted descending by SUM(Revenue))",hint:"Sorted bar charts are almost always better than pie charts for more than 3 categories."},
+ {id:11,config:"Story Point caption: 'Chart 1'\nStory Point caption: 'Chart 2'",broken:"Caption boxes with generic titles waste the narrative opportunity — they don't tell the viewer what to see.",fix:"Story Point caption: 'West revenue dropped 18% in Q3'\nStory Point caption: 'Cold drinks drove the recovery in Q4'",hint:"Captions should state the insight, not describe the chart."},
+ {id:12,config:"Reference Line: Average of COUNT(Date)",broken:"Averaging a count of dates is meaningless. Reference lines should anchor to a meaningful measure.",fix:"Reference Line: Average of SUM(Revenue)",hint:"Reference lines make sense on your primary measure — the one plotted on the axis."}
+],
+
+WRONG:[
+ {id:1,q:"You drag Revenue to Rows. It becomes SUM(Revenue) automatically. Why?",opts:["Tableau defaults to SUM for all fields","Revenue is a measure — Tableau must aggregate it to display it at the view's level of detail","You accidentally changed a setting","Revenue is formatted as currency"],ans:1,exp:"Measures must be aggregated to display — raw row-level numbers make no sense in a summary view. Tableau defaults to SUM, but you can right-click the pill to change to AVG, COUNT, etc."},
+ {id:2,q:"Your bar chart has Region on Columns and SUM(Revenue) on Rows, but all bars are the same height. Most likely cause?",opts:["Tableau is broken","A filter is excluding most data, leaving one row per region with identical values","Bar charts don't work with Revenue","You need to sort first"],ans:1,exp:"Identical bars usually mean a filter is leaving very few rows, or the data has been pre-aggregated — so every row IS the total. Check your active filters and data source."},
+ {id:3,q:"You drag Date to Columns and get a single bar for the whole year instead of monthly bars. Why?",opts:["Tableau doesn't support date fields on Columns","Date defaulted to YEAR level — click the + on the pill to drill down to Month","Line charts don't work with dates","You need to format the date field first"],ans:1,exp:"Date fields default to the highest level (YEAR). Click the + symbol on the date pill to drill down to Quarter, Month, or Day. Or right-click the pill and choose the date truncation level you want."},
+ {id:4,q:"Your calculated field shows an error: 'Cannot mix aggregate and non-aggregate arguments.' What's wrong?",opts:["Calculated fields don't support aggregation","You mixed a row-level field with an aggregated field — e.g. [Revenue] + SUM([Units])","The field name has a space in it","You need to use LOD syntax"],ans:1,exp:"Tableau won't mix aggregated (SUM[Revenue]) and non-aggregated ([Revenue]) values in the same expression. Either aggregate everything or use neither — be consistent."},
+ {id:5,q:"You add Region to the Color shelf and see only one color. Why?",opts:["Color only works with measures","Region has only one unique value in the current filtered view","You need to change the color palette first","Color doesn't work on bar charts"],ans:1,exp:"If your current filter shows only one region (e.g. West), there's nothing to distinguish by color — Tableau shows one color. Remove or widen your filter to see multiple regions."},
+ {id:6,q:"Your Top N filter shows 10 products, but they're not the top 10 in the filtered region. Why?",opts:["Top N is broken for large datasets","The dimension filter needs to be added to Context so it runs before Top N","Top N only works with SUM","You need to sort after filtering"],ans:1,exp:"Top N filters evaluate against the unfiltered data by default. Your region filter runs after, cutting down the 'top 10' to only matching rows. Fix: right-click the region filter → Add to Context."},
+ {id:7,q:"A viewer says your line chart is misleading because the Y-axis starts at 800 instead of 0. Why does this matter?",opts:["It doesn't matter — Tableau always picks the best range","Truncating the Y-axis exaggerates the visual difference between values","Line charts require Y-axis to start at 0","This is a Tableau bug"],ans:1,exp:"When the Y-axis doesn't start at 0, small differences look dramatic. A 5% change looks like a 50% change visually. For bar charts this is especially misleading. Right-click the axis → Edit Axis → Fixed → set minimum to 0."},
+ {id:8,q:"You add 5 different measures to the Color shelf. What happens?",opts:["Each measure gets its own color","Tableau only keeps the last measure on Color","Only one field can be on Color at a time — the last one dropped replaces the previous","All marks turn grey"],ans:2,exp:"Color accepts one field at a time. Dropping a second field onto Color replaces the first. If you need to encode multiple measures, use Size for a second one, or create a calculated field that combines the values."},
+ {id:9,q:"Your scatter plot shows all points stacked on top of each other. Most likely cause?",opts:["Scatter plots don't work in Tableau","Both axes have the same field","The data has only one row","The aggregation is too high — try adding a dimension to Detail to disaggregate"],ans:3,exp:"By default, Tableau aggregates to the view level. If you have SUM(Revenue) vs SUM(Units) with no dimension to split by, there's one aggregated point. Drag a dimension (like Product) to the Detail shelf to show one point per product."},
+ {id:10,q:"You publish a dashboard to Tableau Server, but the data is 3 days old. Why?",opts:["Publishing always shows old data","The extract hasn't been refreshed — live connections update in real time, extracts need a scheduled refresh","Server caches all dashboards for 3 days","The data source is too large"],ans:1,exp:"Tableau works with two connection types: Live (queries the database every time, always current) and Extract (a snapshot saved to Tableau's format). Extracts are faster but need manual or scheduled refreshes. Check your data source type."},
+ {id:11,q:"Your calculated field [Revenue] / [Units] returns NULL for some rows. Why?",opts:["Division always returns NULL","Units is 0 or NULL for those rows — division by zero or NULL = NULL","The field name has special characters","You need to use SUM() first"],ans:1,exp:"NULL divided by anything is NULL. Anything divided by 0 or NULL is NULL. Wrap it: IF [Units] = 0 OR ISNULL([Units]) THEN NULL ELSE [Revenue] / [Units] END — or use ZN([Units]) to turn NULLs to 0 first."},
+ {id:12,q:"Your Story has 5 points but the viewer clicks through them in random order. What's the issue?",opts:["Stories don't control sequence","The viewer is using the navigator to jump around — you can restrict navigation","Story Points must be numbered","Stories only work in Tableau Desktop"],ans:1,exp:"Tableau Stories have a navigator at the bottom by default — viewers can click any point. You can customize the navigator style or set it to arrows-only to encourage linear progression. You can't fully lock the order, but you can guide it."}
+],
+
+PARSONS:[
+ {id:1,q:"Order the shelf config for a basic bar chart:",pieces:["Rows: SUM(Revenue)","Columns: Region"],ans:["Columns: Region","Rows: SUM(Revenue)"],formula:"Columns: Region\nRows: SUM(Revenue)"},
+ {id:2,q:"Order the steps to create a sorted bar chart:",pieces:["Drag Region to Columns","Sort descending by SUM(Revenue)","Drag Revenue to Rows"],ans:["Drag Region to Columns","Drag Revenue to Rows","Sort descending by SUM(Revenue)"],formula:"Drag Region to Columns\nDrag Revenue to Rows\nSort descending by SUM(Revenue)"},
+ {id:3,q:"Order the steps to add a Top N filter correctly:",pieces:["Add to Context","Drag Region to Filters","Drag Product to Filters → Top 5 by Revenue"],ans:["Drag Region to Filters","Add to Context","Drag Product to Filters → Top 5 by Revenue"],formula:"Drag Region to Filters\nAdd to Context\nDrag Product to Filters → Top 5 by Revenue"},
+ {id:4,q:"Order the Marks card shelf config for a color-encoded scatter plot:",pieces:["Color: Category","Rows: SUM(Units)","Columns: SUM(Revenue)"],ans:["Columns: SUM(Revenue)","Rows: SUM(Units)","Color: Category"],formula:"Columns: SUM(Revenue)\nRows: SUM(Units)\nColor: Category"},
+ {id:5,q:"Order the steps to create a calculated field:",pieces:["Enter the formula","Name the field","Analysis → Create Calculated Field","Click OK"],ans:["Analysis → Create Calculated Field","Name the field","Enter the formula","Click OK"],formula:"Analysis → Create Calculated Field\nName the field\nEnter the formula\nClick OK"},
+ {id:6,q:"Order the shelf config for a monthly revenue trend line:",pieces:["Mark type: Line","Color: Category","Columns: MONTH(Date)","Rows: SUM(Revenue)"],ans:["Columns: MONTH(Date)","Rows: SUM(Revenue)","Color: Category","Mark type: Line"],formula:"Columns: MONTH(Date)\nRows: SUM(Revenue)\nColor: Category\nMark type: Line"},
+ {id:7,q:"Order steps to add a reference line for average revenue:",pieces:["Drag 'Reference Line' onto the view","Open Analytics pane","Set to Average of SUM(Revenue)"],ans:["Open Analytics pane","Drag 'Reference Line' onto the view","Set to Average of SUM(Revenue)"],formula:"Open Analytics pane\nDrag 'Reference Line' onto the view\nSet to Average of SUM(Revenue)"},
+ {id:8,q:"Order the steps to build a dashboard:",pieces:["Arrange views using containers","Dashboard menu → New Dashboard","Drag sheets from the Sheets panel"],ans:["Dashboard menu → New Dashboard","Drag sheets from the Sheets panel","Arrange views using containers"],formula:"Dashboard menu → New Dashboard\nDrag sheets from the Sheets panel\nArrange views using containers"},
+ {id:9,q:"Order the Marks card config for a bubble chart:",pieces:["Size: SUM(Revenue)","Mark type: Circle","Color: Category","Label: Product"],ans:["Mark type: Circle","Color: Category","Size: SUM(Revenue)","Label: Product"],formula:"Mark type: Circle\nColor: Category\nSize: SUM(Revenue)\nLabel: Product"},
+ {id:10,q:"Order: change aggregation from SUM to AVG on a pill",pieces:["Choose AVG","Right-click the green pill","Hover over 'Measure'"],ans:["Right-click the green pill","Hover over 'Measure'","Choose AVG"],formula:"Right-click the green pill\nHover over 'Measure'\nChoose AVG"},
+ {id:11,q:"Order the Story structure:",pieces:["Recommendation","Finding — the chart","Setup — the question","Supporting detail"],ans:["Setup — the question","Finding — the chart","Supporting detail","Recommendation"],formula:"Setup — the question\nFinding — the chart\nSupporting detail\nRecommendation"},
+ {id:12,q:"Order the steps to disaggregate a scatter plot:",pieces:["Drag a dimension to Detail","See one dot per dimension member","Notice all points stacked"],ans:["Notice all points stacked","Drag a dimension to Detail","See one dot per dimension member"],formula:"Notice all points stacked\nDrag a dimension to Detail\nSee one dot per dimension member"}
+],
+
+ESQL:[
+ {id:1,q:"Which shelf do you put Region on to make it the X-axis of a bar chart?",ans:"Columns",hint:"Columns = horizontal = X-axis."},
+ {id:2,q:"What color are dimension pills in Tableau's Data pane?",ans:"Blue",hint:"Blue = dimensions. Green = measures."},
+ {id:3,q:"Write the aggregation function that counts distinct products.",ans:"COUNTD([Product])",hint:"Count Distinct — COUNTD."},
+ {id:4,q:"To show a revenue trend by month, what goes on the Columns shelf?",ans:"MONTH(Date)",hint:"Truncate dates to the month level for a trend line."},
+ {id:5,q:"Name the Tableau pane where you add Reference Lines and Trend Lines.",ans:"Analytics pane",hint:"The pane next to the Data pane."},
+ {id:6,q:"Write a basic IF calculated field that returns 'High' if Revenue > 200, else 'Low'.",ans:"IF [Revenue] > 200 THEN \"High\" ELSE \"Low\" END",hint:"Tableau IF syntax: IF condition THEN value ELSE other END"},
+ {id:7,q:"To make a dimension filter run before a Top N filter, what do you do to it?",ans:"Add to Context",hint:"Right-click the filter in the Filters shelf."},
+ {id:8,q:"What dashboard layout should you use for a clean, resizable dashboard?",ans:"Tiled",hint:"Snaps to grid, resizes proportionally."},
+ {id:9,q:"To show one dot per product in a scatter plot (not one aggregated dot), drag a dimension to which shelf on the Marks card?",ans:"Detail",hint:"Detail disaggregates without adding color or size."},
+ {id:10,q:"What's the Tableau term for a sequence of dashboard views with narrative captions?",ans:"Story",hint:"Built with Story Points."},
+ {id:11,q:"Name the two connection types in Tableau (real-time vs snapshot).",ans:"Live and Extract",hint:"One always queries the database; one is a cached snapshot."},
+ {id:12,q:"Write the aggregation for average revenue per unit (revenue divided by units, both aggregated).",ans:"SUM([Revenue]) / SUM([Units])",hint:"Aggregate both sides before dividing."}
+],
+
+CARDS:[
+ {front:"Columns shelf",back:"Controls the X-axis / column headers.\nDrag a dimension → discrete categories.\nDrag a measure → continuous axis.\nMost common: dimension on Columns, measure on Rows."},
+ {front:"Rows shelf",back:"Controls the Y-axis / row headers.\nSUM(Revenue) on Rows → bar heights.\nMultiple fields → nested rows.\nSwap rows and columns with Ctrl+W."},
+ {front:"Dimension (blue)",back:"A categorical field — splits data into groups.\nRep, Region, Product, Category.\nCreates headers, not aggregations.\nBlue pill = discrete by default."},
+ {front:"Measure (green)",back:"A numeric field — gets aggregated.\nRevenue, Units, Profit.\nTableau auto-applies SUM.\nGreen pill = continuous by default."},
+ {front:"Marks card",back:"Controls visual encoding of marks.\nColor, Size, Label, Detail, Tooltip, Shape.\nDrag any field to any property.\nMark type (bar/line/circle) at the top."},
+ {front:"Color shelf",back:"Dimension on Color → distinct categorical colors.\nMeasure on Color → continuous gradient.\nOne field at a time.\nDouble-click the legend to edit colors."},
+ {front:"Detail shelf",back:"Disaggregates the view without adding Color or Size.\nDrag a dimension to Detail → one mark per member.\nEssential for scatter plots with too much aggregation."},
+ {front:"SUM vs AVG",back:"SUM = total (add everything up).\nAVG = typical value (total / count).\nSame data, different questions.\nRight-click pill → Measure to change."},
+ {front:"COUNTD()",back:"Count Distinct — counts unique values.\nCOUNTD([Product]) = how many different products.\nCOUNT() counts rows including duplicates.\nUse COUNTD for 'how many unique X' questions."},
+ {front:"Calculated Field",back:"A new field defined by a formula.\nLives in the Data pane.\nRow-level or aggregate.\nAnalysis → Create Calculated Field (or right-click Data pane)."},
+ {front:"LOD Expression",back:"Level of Detail — controls aggregation scope.\n{FIXED [Region] : SUM([Revenue])}\nFIXED: ignores the view level of detail.\nINCLUDE / EXCLUDE also available. Advanced feature."},
+ {front:"Context Filter",back:"Runs before all other filters.\nRight-click filter → Add to Context.\nRequired for Top N to work correctly after dimension filters.\nShown with grey background in Filters shelf."},
+ {front:"Top N Filter",back:"Keep only the top (or bottom) N members.\nFilters shelf → Top tab → By field.\nAlways pair with a Context filter if other filters exist.\nOr use Sets for more control."},
+ {front:"Reference Line",back:"A line drawn across the view at a specific value.\nAnalytics pane → Reference Line → drag to view.\nOptions: constant, average, median, percentile.\nGreat for showing targets or benchmarks."},
+ {front:"Trend Line",back:"Statistical line through data points.\nAnalytics pane → Trend Line.\nTypes: Linear, Logarithmic, Exponential, Polynomial.\nRight-click → Describe Trend Line for R² and p-value."},
+ {front:"Dashboard",back:"Multiple views on one canvas.\nDashboard menu → New Dashboard.\nTiled (recommended) or Floating layout.\nViews are live — interact with one and others can filter."},
+ {front:"Dashboard Action",back:"Interactivity between sheets on a dashboard.\nDashboard menu → Actions.\nTypes: Filter, Highlight, URL, Go to Sheet.\nFilter action: clicking one chart filters others."},
+ {front:"Tiled vs Floating",back:"Tiled: snaps to grid, resizes with dashboard.\nFloating: fixed pixel position, breaks on resize.\nUse Tiled for production dashboards.\nFloating for logos, custom overlays only."},
+ {front:"Story",back:"A sequence of views with narrative captions.\nStory menu → New Story.\nStory Points = individual slides.\nUse when presenting findings, not exploring."},
+ {front:"Story Point",back:"One 'slide' in a Story.\nCan be a sheet or a dashboard.\nEach has a caption box for narrative text.\nAdd a blank point to add text-only context slides."},
+ {front:"Extract",back:"A snapshot of data saved in Tableau's format (.hyper).\nFaster than Live for large datasets.\nNeeds scheduled refresh to stay current.\nData Source → Extract → Create Extract."},
+ {front:"Live Connection",back:"Queries the database in real time — always current.\nSlower than Extract for large datasets.\nBest for small data or frequently updated sources.\nNo refresh needed."},
+ {front:"Tooltip",back:"Text shown when hovering over a mark.\nWorksheet → Tooltip to edit.\nCan include field values, custom text, or other sheets.\n'Viz in Tooltip' embeds a mini-chart on hover."},
+ {front:"Aggregation",back:"How Tableau collapses multiple rows into one value.\nDefault: SUM for measures.\nOptions: SUM, AVG, COUNT, COUNTD, MIN, MAX, MEDIAN.\nRight-click green pill → Measure → choose."},
+ {front:"Disaggregation",back:"Showing row-level data instead of aggregated.\nAnalysis → Aggregate Measures (uncheck).\nOr drag a dimension to Detail shelf.\nUse for scatter plots, distribution views."},
+ {front:"Discrete vs Continuous",back:"Discrete (blue): separate headers/buckets.\nContinuous (green): a single axis with a range.\nDates can be either — right-click to switch.\nDiscrete date = year labels. Continuous date = timeline."},
+ {front:"Show Me",back:"Top-right button that suggests chart types.\nSelects based on fields on shelves.\nGood for exploration; learn the manual way too.\nHighlighted options = valid for current selection."},
+ {front:"Dual Axis",back:"Two measures sharing one axis.\nRight-click second measure pill → Dual Axis.\nSynchronize axes (right-click) if comparing same scale.\nUse carefully — mismatched scales mislead readers."},
+ {front:"Set",back:"A named subset of dimension members.\nRight-click a dimension → Create → Set.\nCondition-based, top N, or manual.\nDrag to Filters or Color — more flexible than filters."},
+ {front:"Parameter",back:"A user-controlled variable in Tableau.\nCreate: right-click Data pane → Create Parameter.\nUsed in calculated fields: IF [Region] = [Param] THEN...\nAdds interactivity without changing the data source."}
+],
+
+GLOSSARY:[
+ {term:"Aggregation",def:"How Tableau collapses multiple row values into a single number for display. Default is SUM. Options include AVG, COUNT, COUNTD, MIN, MAX, MEDIAN."},
+ {term:"Calculated Field",def:"A new field you define using a formula. Lives in the Data pane and works like any real field. Created via Analysis → Create Calculated Field."},
+ {term:"Columns shelf",def:"Controls the X-axis or column headers. Discrete fields create separate columns; continuous fields create a single axis."},
+ {term:"Context Filter",def:"A filter that runs before all other filters. Required when using Top N filters with dimension filters. Add via right-click → Add to Context."},
+ {term:"COUNTD",def:"Count Distinct. Returns the number of unique values in a field. Different from COUNT, which counts all rows including duplicates."},
+ {term:"Dashboard",def:"A canvas containing multiple views, text, and images. Views are live and can interact with each other via Dashboard Actions."},
+ {term:"Dashboard Action",def:"Interactivity between views on a dashboard. Types: Filter (clicking filters other views), Highlight, URL, Go to Sheet."},
+ {term:"Detail shelf",def:"A Marks card shelf that disaggregates the view without adding color or size. Drag a dimension here to show one mark per dimension member."},
+ {term:"Dimension",def:"A categorical field — Region, Product, Rep. Splits data into groups. Shown in blue in the Data pane. Creates headers rather than aggregations."},
+ {term:"Disaggregation",def:"Showing row-level values instead of aggregated ones. Achieved by unchecking Analysis → Aggregate Measures, or by adding a granular dimension to Detail."},
+ {term:"Discrete",def:"A field type that creates separate, distinct headers or buckets. Shown as a blue pill. Dates as discrete create year/month labels."},
+ {term:"Continuous",def:"A field type that creates a single axis with a range of values. Shown as a green pill. Dates as continuous create a timeline axis."},
+ {term:"Extract",def:"A snapshot of data saved in Tableau's .hyper format. Faster than Live connections for large data, but requires scheduled refreshes to stay current."},
+ {term:"Level of Detail (LOD)",def:"Advanced calculated field syntax that controls aggregation scope independent of the view. FIXED, INCLUDE, and EXCLUDE are the three types."},
+ {term:"Live connection",def:"Queries the data source in real time — always current. Slower than Extract for large datasets. Best for small or frequently updated data."},
+ {term:"Marks card",def:"Controls how data is visually encoded: Color, Size, Label, Detail, Tooltip, Shape. The mark type (bar, line, circle) is also set here."},
+ {term:"Measure",def:"A numeric field that gets aggregated — Revenue, Units, Profit. Shown in green in the Data pane. Tableau auto-applies SUM when dragged to a shelf."},
+ {term:"Parameter",def:"A user-controlled input variable in Tableau. Used in calculated fields to create interactive filters or dynamic thresholds without changing the data source."},
+ {term:"Reference Line",def:"A horizontal or vertical line drawn at a specific value. Added via the Analytics pane. Common uses: average, target, threshold."},
+ {term:"Rows shelf",def:"Controls the Y-axis or row headers. SUM(Revenue) on Rows sets bar heights. Multiple fields create nested rows."},
+ {term:"Set",def:"A named subset of dimension members. More flexible than filters — can be condition-based, top N, or manual. Used in calculations and as a filter."},
+ {term:"Show Me",def:"The chart-type suggester in the top-right corner of Tableau Desktop. Highlights valid chart types based on the fields currently on your shelves."},
+ {term:"Story",def:"A presentation format in Tableau — a sequence of views with narrative captions (Story Points). Used for communicating findings, not exploration."},
+ {term:"Tooltip",def:"Text shown when hovering over a mark. Customized via Worksheet → Tooltip. Can include field values or embedded mini-charts ('Viz in Tooltip')."},
+ {term:"Trend Line",def:"A statistical line through scatter or line chart data points. Added via the Analytics pane. Right-click to see R² and p-value."}
+]
+};
+
+// ─── CONTOSO DATASET (for Viz Builder) ────────────────────────────────────────
+const CONTOSO = [
+ {rep:"Maya Chen",region:"West",product:"Espresso Shot",category:"Hot",month:"Jan",units:12,revenue:144},
+ {rep:"Jordan Lee",region:"East",product:"Latte",category:"Hot",month:"Jan",units:8,revenue:152},
+ {rep:"Sam Rivera",region:"South",product:"Cold Brew",category:"Cold",month:"Jan",units:15,revenue:195},
+ {rep:"Maya Chen",region:"West",product:"Cappuccino",category:"Hot",month:"Jan",units:10,revenue:160},
+ {rep:"Alex Kim",region:"North",product:"Iced Latte",category:"Cold",month:"Jan",units:6,revenue:108},
+ {rep:"Jordan Lee",region:"East",product:"Espresso Shot",category:"Hot",month:"Feb",units:20,revenue:240},
+ {rep:"Taylor Brooks",region:"West",product:"Cold Brew",category:"Cold",month:"Feb",units:18,revenue:234},
+ {rep:"Sam Rivera",region:"South",product:"Latte",category:"Hot",month:"Feb",units:9,revenue:171},
+ {rep:"Maya Chen",region:"West",product:"Mocha",category:"Hot",month:"Feb",units:7,revenue:133},
+ {rep:"Alex Kim",region:"North",product:"Iced Latte",category:"Cold",month:"Feb",units:11,revenue:198},
+ {rep:"Jordan Lee",region:"East",product:"Cappuccino",category:"Hot",month:"Mar",units:14,revenue:224},
+ {rep:"Taylor Brooks",region:"West",product:"Espresso Shot",category:"Hot",month:"Mar",units:22,revenue:264},
+ {rep:"Sam Rivera",region:"South",product:"Cold Brew",category:"Cold",month:"Mar",units:13,revenue:169},
+ {rep:"Maya Chen",region:"West",product:"Latte",category:"Hot",month:"Mar",units:16,revenue:304},
+ {rep:"Alex Kim",region:"North",product:"Mocha",category:"Hot",month:"Mar",units:5,revenue:95},
+ {rep:"Jordan Lee",region:"East",product:"Cold Brew",category:"Cold",month:"Mar",units:19,revenue:247},
+ {rep:"Taylor Brooks",region:"West",product:"Iced Latte",category:"Cold",month:"Mar",units:8,revenue:144},
+ {rep:"Sam Rivera",region:"South",product:"Cappuccino",category:"Hot",month:"Apr",units:11,revenue:176},
+ {rep:"Maya Chen",region:"West",product:"Cold Brew",category:"Cold",month:"Apr",units:14,revenue:182},
+ {rep:"Alex Kim",region:"North",product:"Latte",category:"Hot",month:"Apr",units:9,revenue:171},
+ {rep:"Jordan Lee",region:"East",product:"Mocha",category:"Hot",month:"Apr",units:6,revenue:114},
+ {rep:"Taylor Brooks",region:"West",product:"Latte",category:"Hot",month:"Apr",units:12,revenue:228},
+ {rep:"Sam Rivera",region:"South",product:"Iced Latte",category:"Cold",month:"Apr",units:8,revenue:144},
+ {rep:"Maya Chen",region:"West",product:"Espresso Shot",category:"Hot",month:"Apr",units:17,revenue:204},
+ {rep:"Alex Kim",region:"North",product:"Cold Brew",category:"Cold",month:"Apr",units:10,revenue:130}
+];
+
+/* ── STATE ── */
+let S = {done:{}, theme:'dark', lastLesson:null, lastDrill:null, cardIdx:0};
+function loadState(){try{const r=JSON.parse(localStorage.getItem('tpk'));if(r)S=Object.assign(S,r);}catch(e){}}
+function save(){localStorage.setItem('tpk',JSON.stringify(S));}
+
+/* ── THEME ── */
+function applyTheme(){document.documentElement.setAttribute('data-theme',S.theme);document.getElementById('themeIcon').textContent=S.theme==='dark'?'☀️':'🌙';}
+function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';applyTheme();save();}
+
+/* ── NAVIGATE ── */
+function show(v){
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  const link=document.querySelector(`.nav-link[onclick*="'${v}'"]`);
+  if(link)link.classList.add('active');
+  const view=document.getElementById('view-'+v);
+  if(view)view.classList.add('active');
+  if(v==='home')renderHome();
+  else if(v==='lessons')renderLessonList();
+  else if(v==='practice')renderDrillList();
+  else if(v==='vizbuilder')renderVizBuilder();
+  else if(v==='cards'){renderCards();}
+  else if(v==='glossary')renderGlossary();
+}
+
+/* ── CELEBRATE ── */
+function celebrate(gold,msg){
+  try{const ac=new AudioContext();const o=ac.createOscillator();const g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.setValueAtTime(gold?880:523,ac.currentTime);o.frequency.setValueAtTime(gold?1100:659,ac.currentTime+0.1);g.gain.setValueAtTime(0.25,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.5);o.start();o.stop(ac.currentTime+0.5);}catch(e){}
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');if(gold){document.body.classList.add('flash');setTimeout(()=>document.body.classList.remove('flash'),600);}
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+/* ── HOME ── */
+function renderHome(){
+  const lessonsTotal=DATA.LESSONS.length;
+  const drillTotal=(DATA.FILLS.length+DATA.BUGS.length+DATA.WRONG.length+DATA.PARSONS.length+DATA.ESQL.length);
+  const cardsTotal=DATA.CARDS.length;
+  const lessonsDone=Object.keys(S.done).filter(k=>k.startsWith('lesson')).length;
+  const drillDone=Object.keys(S.done).filter(k=>!k.startsWith('lesson')&&!k.startsWith('card')).length;
+  const cardsDone=Object.keys(S.done).filter(k=>k.startsWith('card')).length;
+
+  const skills=['Connect & Load','Build Views','Filters & Sorting','Aggregation & LOD','Dashboard Design'];
+  const skillScores=skills.map((_,i)=>{
+    const keys=[`lesson${i*2+1}`,`lesson${i*2+2}`];
+    const done=keys.filter(k=>S.done[k]).length;
+    return Math.round((done/keys.length)*100);
+  });
+  const overall=Math.round(skillScores.reduce((a,b)=>a+b,0)/skills.length);
+
+  document.getElementById('view-home').innerHTML=`
+    <h2 style="margin-bottom:8px">Tableau Prep Kit</h2>
+    <p style="color:var(--txt2);margin-bottom:24px">Build real analyst skills — connect data, build views, tell stories.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px">
+      <div class="card" style="text-align:center">
+        <div style="font-size:2rem;font-weight:700;color:var(--accent)">${lessonsDone}/${lessonsTotal}</div>
+        <div style="color:var(--txt2);font-size:.85rem">Lessons</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:2rem;font-weight:700;color:var(--accent)">${drillDone}/${drillTotal}</div>
+        <div style="color:var(--txt2);font-size:.85rem">Drills</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:2rem;font-weight:700;color:var(--accent)">${cardsDone}/${cardsTotal}</div>
+        <div style="color:var(--txt2);font-size:.85rem">Flashcards</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong>Skill Readiness</strong>
+        <span style="font-size:1.4rem;font-weight:700;color:var(--accent)">${overall}%</span>
+      </div>
+      ${skills.map((s,i)=>`
+        <div style="margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:3px"><span>${s}</span><span style="color:var(--txt2)">${skillScores[i]}%</span></div>
+          <div style="background:var(--surf2);border-radius:4px;height:6px"><div style="background:var(--accent);border-radius:4px;height:6px;width:${skillScores[i]}%;transition:width .4s"></div></div>
+        </div>`).join('')}
+    </div>
+    ${S.lastLesson?`<button class="btn" onclick="openLesson(${S.lastLesson})">▶ Resume Lesson ${S.lastLesson}</button>`:''}
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--bord);display:flex;gap:12px;flex-wrap:wrap">
+      <a href="https://michaelnocito.github.io/analyst-prep-kit/sql/" target="_blank" style="color:var(--accent);font-size:.85rem">SQL Kit ↗</a>
+      <a href="https://michaelnocito.github.io/analyst-prep-kit/excel/" target="_blank" style="color:var(--accent);font-size:.85rem">Excel Kit ↗</a>
+      <a href="https://michaelnocito.github.io/analyst-prep-kit/python/" target="_blank" style="color:var(--accent);font-size:.85rem">Python Kit ↗</a>
+      <a href="https://michaelnocito.github.io/analyst-prep-kit/stats/" target="_blank" style="color:var(--accent);font-size:.85rem">Stats Kit ↗</a>
+    </div>
+  `;
+}
+
+/* ── LESSONS ── */
+function renderLessonList(){
+  const units={1:[],2:[],3:[]};
+  DATA.LESSONS.forEach(l=>units[l.unit].push(l));
+  const unitNames={1:'Unit 1: Tableau Fundamentals',2:'Unit 2: Building Views',3:'Unit 3: Dashboards & Analytics'};
+  document.getElementById('view-lessons').innerHTML=Object.keys(units).map(u=>`
+    <div style="margin-bottom:24px">
+      <h3 style="margin-bottom:12px;color:var(--txt2);font-size:.9rem;text-transform:uppercase;letter-spacing:.05em">${unitNames[u]}</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${units[u].map(l=>{
+          const done=S.done[`lesson${l.id}`];
+          return `<div class="card" style="display:flex;align-items:center;gap:12px;cursor:pointer;${done?'border-color:var(--accent)':''}" onclick="openLesson(${l.id})">
+            <span style="font-size:1.2rem">${done?'✅':'📖'}</span>
+            <div><strong>${l.title}</strong><div style="color:var(--txt2);font-size:.82rem">${l.subtitle||''}</div></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+}
+
+let lessonState={id:null,qIdx:0};
+function openLesson(id){
+  S.lastLesson=id;save();
+  lessonState={id,qIdx:0};
+  renderLesson();
+  document.getElementById('view-lessons').innerHTML='';
+  document.getElementById('view-lessons').classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>{if(v.id!=='view-lessons')v.classList.remove('active');});
+}
+function renderLesson(){
+  const l=DATA.LESSONS.find(x=>x.id===lessonState.id);
+  if(!l)return;
+  const el=document.getElementById('view-lessons');
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <button class="btn" style="padding:4px 10px;font-size:.8rem" onclick="renderLessonList()">← All Lessons</button>
+      <span style="color:var(--txt2);font-size:.85rem">Lesson ${l.id} of ${DATA.LESSONS.length}</span>
+    </div>
+    <h2 style="margin-bottom:4px">${l.title}</h2>
+    <p style="color:var(--txt2);margin-bottom:20px">${l.subtitle||''}</p>
+    ${l.sections.map(sec=>`
+      <div class="card" style="margin-bottom:16px">
+        <h4 style="margin-bottom:8px;color:var(--accent)">${sec.heading}</h4>
+        ${sec.body?`<p style="margin-bottom:${sec.code?'10px':'0'}">${sec.body}</p>`:''}
+        ${sec.code?`
+          <div style="position:relative">
+            <pre class="code-block">${sec.code}</pre>
+            <button class="btn" style="position:absolute;top:8px;right:8px;padding:3px 8px;font-size:.75rem;opacity:.7" onclick="toggleRead(this)" data-steps='${JSON.stringify(sec.steps||[])}'>🔊 Read It</button>
+          </div>
+          ${sec.steps&&sec.steps.length?`<div class="read-panel" style="display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem">${sec.steps.map((s,i)=>`<div style="margin-bottom:6px"><span style="color:var(--accent);font-weight:600">Step ${i+1}:</span> ${s}</div>`).join('')}</div>`:''}
+        `:''}
+      </div>`).join('')}
+    ${l.quiz?`
+      <div class="card" id="quizCard">
+        <h4 style="margin-bottom:12px">Quick Check</h4>
+        <p style="margin-bottom:12px">${l.quiz.q}</p>
+        <div id="quizOpts" style="display:flex;flex-direction:column;gap:8px">
+          ${l.quiz.opts.map((o,i)=>`<button class="btn" style="text-align:left;justify-content:flex-start" onclick="checkQuiz(${i})">${o}</button>`).join('')}
+        </div>
+        <div id="quizFb" style="margin-top:10px;display:none"></div>
+      </div>`:''}
+    ${!l.quiz?`<button class="btn" style="margin-top:8px" onclick="finishLesson(${l.id})">Mark Complete ✓</button>`:''}
+  `;
+}
+function toggleRead(btn){
+  const pre=btn.closest('div').querySelector('pre');
+  const panel=btn.closest('.card').querySelector('.read-panel');
+  if(!panel)return;
+  const open=panel.style.display!=='none';
+  panel.style.display=open?'none':'block';
+  btn.textContent=open?'🔊 Read It':'🔕 Close';
+}
+function checkQuiz(i){
+  const l=DATA.LESSONS.find(x=>x.id===lessonState.id);
+  const fb=document.getElementById('quizFb');
+  const btns=document.querySelectorAll('#quizOpts .btn');
+  btns.forEach(b=>b.disabled=true);
+  if(i===l.quiz.ans){
+    btns[i].style.background='var(--accent)';btns[i].style.color='#fff';
+    fb.innerHTML=`<span style="color:var(--accent)">✓ Correct! ${l.quiz.explain}</span>`;
+    fb.style.display='block';
+    celebrate(true,'Correct! 🎉');
+    setTimeout(()=>finishLesson(l.id),1200);
+  } else {
+    btns[i].style.background='#c0392b';btns[i].style.color='#fff';
+    fb.innerHTML=`<span style="color:#e74c3c">Not quite. ${l.quiz.explain}</span>`;
+    fb.style.display='block';
+    celebrate(false,'Keep going 💪');
+    setTimeout(()=>{btns.forEach(b=>{b.disabled=false;b.style.background='';b.style.color='';});fb.style.display='none';},1800);
+  }
+}
+function finishLesson(id){
+  S.done[`lesson${id}`]=true;save();
+  renderLessonList();
+  celebrate(true,`Lesson ${id} complete! 🌟`);
+}
+
+/* ── DRILLS ── */
+const DRILL_TYPES=[
+  {key:'fills',label:'Fill in the Blank',icon:'✏️',data:'FILLS'},
+  {key:'bugs',label:'Fix the Code',icon:'🐛',data:'BUGS'},
+  {key:'wrong',label:"What's Wrong?",icon:'🔍',data:'WRONG'},
+  {key:'parsons',label:'Parsons Puzzle',icon:'🧩',data:'PARSONS'},
+  {key:'esql',label:'English → Tableau',icon:'💬',data:'ESQL'},
+];
+let drillState={type:null,idx:null,parsPlaced:[],parsBank:[]};
+function renderDrillList(){
+  document.getElementById('view-practice').innerHTML=`
+    <h2 style="margin-bottom:16px">Practice Drills</h2>
+    ${DRILL_TYPES.map(dt=>{
+      const items=DATA[dt.data];
+      const done=items.filter((_,i)=>S.done[`${dt.key}${i}`]).length;
+      return `<div class="card" style="margin-bottom:10px;cursor:pointer" onclick="openDrill('${dt.key}',0)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:1.4rem">${dt.icon}</span>
+          <div style="flex:1"><strong>${dt.label}</strong><div style="color:var(--txt2);font-size:.82rem">${done}/${items.length} complete</div></div>
+          <div style="background:var(--surf2);border-radius:4px;height:6px;width:80px"><div style="background:var(--accent);border-radius:4px;height:6px;width:${Math.round(done/items.length*100)}%;transition:width .4s"></div></div>
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+function openDrill(type,idx){
+  drillState={type,idx,parsPlaced:[],parsBank:[]};
+  renderDrill();
+}
+function renderDrill(){
+  const dt=DRILL_TYPES.find(d=>d.key===drillState.type);
+  const items=DATA[dt.data];
+  const item=items[drillState.idx];
+  const done=S.done[`${drillState.type}${drillState.idx}`];
+  const el=document.getElementById('view-practice');
+  let nav=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+    <button class="btn" style="padding:4px 10px;font-size:.8rem" onclick="renderDrillList()">← Drills</button>
+    <span style="color:var(--txt2);font-size:.85rem">${dt.icon} ${dt.label} — ${drillState.idx+1}/${items.length}</span>
+    ${done?'<span style="color:var(--accent);font-size:.85rem">✓ Done</span>':''}
+  </div>`;
+  let navBtns=`<div style="display:flex;gap:8px;margin-top:16px">
+    ${drillState.idx>0?`<button class="btn" onclick="openDrill('${drillState.type}',${drillState.idx-1})">← Prev</button>`:''}
+    ${drillState.idx<items.length-1?`<button class="btn" onclick="openDrill('${drillState.type}',${drillState.idx+1})">Next →</button>`:'<button class="btn" onclick="renderDrillList()">All Done 🎯</button>'}
+  </div>`;
+  let body='';
+  if(drillState.type==='fills')body=renderFill(item,done);
+  else if(drillState.type==='bugs')body=renderBug(item,done);
+  else if(drillState.type==='wrong')body=renderWrong(item,done);
+  else if(drillState.type==='parsons')body=renderParsons(item,done);
+  else if(drillState.type==='esql')body=renderEsql(item,done);
+  el.innerHTML=nav+body+navBtns;
+  if(drillState.type==='parsons'&&!done)initParsons(item);
+}
+function markDone(key,idx){S.done[`${key}${idx}`]=true;save();}
+function toggleSol(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+
+/* FILL */
+function renderFill(item,done){
+  return `<div class="card">
+    <p style="margin-bottom:14px">${item.prompt}</p>
+    <pre class="code-block" style="margin-bottom:14px">${item.code}</pre>
+    <input id="fillAns" class="inp" placeholder="Type your answer…" value="${done?item.answer:''}" ${done?'disabled':''}>
+    ${!done?`<button class="btn" style="margin-top:10px" onclick="checkFill()">Check</button>`:''}
+    <div id="fillFb" style="margin-top:10px;display:none"></div>
+    <div id="fillSol" style="display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem"><strong>Answer:</strong> ${item.answer}<br>${item.explain}</div>
+    <button class="btn" style="margin-top:8px;opacity:.6;font-size:.78rem" onclick="toggleSol('fillSol')">Show/Hide Answer</button>
+  </div>`;
+}
+function checkFill(){
+  const item=DATA.FILLS[drillState.idx];
+  const ans=document.getElementById('fillAns').value.trim();
+  const fb=document.getElementById('fillFb');
+  if(ans.toLowerCase()===item.answer.toLowerCase()){
+    fb.innerHTML=`<span style="color:var(--accent)">✓ Correct! ${item.explain}</span>`;
+    fb.style.display='block';
+    markDone('fills',drillState.idx);
+    celebrate(true,'Correct! ✨');
+  } else {
+    fb.innerHTML=`<span style="color:#e74c3c">Not quite — try again.</span>`;
+    fb.style.display='block';
+    celebrate(false,'Try again 🤔');
+  }
+}
+
+/* BUG */
+function renderBug(item,done){
+  return `<div class="card">
+    <p style="margin-bottom:10px">${item.prompt}</p>
+    <pre class="code-block" style="margin-bottom:14px">${item.buggy}</pre>
+    <p style="font-size:.85rem;color:var(--txt2);margin-bottom:8px">What's the fix?</p>
+    <input id="bugAns" class="inp" placeholder="Type the corrected code or the fix…" ${done?'disabled':''}>
+    ${!done?`<button class="btn" style="margin-top:10px" onclick="checkBug()">Check</button>`:''}
+    <div id="bugFb" style="margin-top:10px;display:none"></div>
+    <div id="bugSol" style="display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem"><strong>Fix:</strong> ${item.fix}<br>${item.explain}</div>
+    <button class="btn" style="margin-top:8px;opacity:.6;font-size:.78rem" onclick="toggleSol('bugSol')">Show/Hide Fix</button>
+  </div>`;
+}
+function checkBug(){
+  const item=DATA.BUGS[drillState.idx];
+  const ans=document.getElementById('bugAns').value.trim().toLowerCase();
+  const fb=document.getElementById('bugFb');
+  const accept=item.accept?item.accept.map(a=>a.toLowerCase()):[item.fix.toLowerCase()];
+  if(accept.some(a=>ans.includes(a)||a.includes(ans))){
+    fb.innerHTML=`<span style="color:var(--accent)">✓ ${item.explain}</span>`;
+    fb.style.display='block';
+    markDone('bugs',drillState.idx);
+    celebrate(true,'Bug squashed! 🐛✓');
+  } else {
+    fb.innerHTML=`<span style="color:#e74c3c">Not quite — check the fix hint.</span>`;
+    fb.style.display='block';
+  }
+}
+
+/* WRONG */
+function renderWrong(item,done){
+  return `<div class="card">
+    <p style="margin-bottom:10px">${item.prompt}</p>
+    <pre class="code-block" style="margin-bottom:14px">${item.code}</pre>
+    <div id="wrongOpts" style="display:flex;flex-direction:column;gap:8px">
+      ${item.opts.map((o,i)=>`<button class="btn" style="text-align:left" onclick="checkWrong(${i})" ${done?'disabled':''}>${o}</button>`).join('')}
+    </div>
+    <div id="wrongFb" style="margin-top:10px;display:none"></div>
+  </div>`;
+}
+function checkWrong(i){
+  const item=DATA.WRONG[drillState.idx];
+  const fb=document.getElementById('wrongFb');
+  const btns=document.querySelectorAll('#wrongOpts .btn');
+  btns.forEach(b=>b.disabled=true);
+  if(i===item.ans){
+    btns[i].style.background='var(--accent)';btns[i].style.color='#fff';
+    fb.innerHTML=`<span style="color:var(--accent)">✓ ${item.explain}</span>`;
+    fb.style.display='block';
+    markDone('wrong',drillState.idx);
+    celebrate(true,'Spotted it! 🔍');
+  } else {
+    btns[i].style.background='#c0392b';btns[i].style.color='#fff';
+    btns[item.ans].style.background='var(--accent)';btns[item.ans].style.color='#fff';
+    fb.innerHTML=`<span style="color:#e74c3c">${item.explain}</span>`;
+    fb.style.display='block';
+  }
+}
+
+/* PARSONS */
+function renderParsons(item,done){
+  if(done){
+    return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p>
+      <div style="background:var(--surf2);border-radius:6px;padding:12px;font-family:monospace;font-size:.88rem">${item.solution.map(s=>`<div style="padding:4px 0">${s}</div>`).join('')}</div>
+      <div style="margin-top:10px;color:var(--accent)">✓ Complete</div></div>`;
+  }
+  const bankId='parsBank';const placedId='parsPlaced';
+  return `<div class="card">
+    <p style="margin-bottom:12px">${item.prompt}</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <div style="font-size:.78rem;color:var(--txt2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Bank</div>
+        <div id="${bankId}" style="min-height:80px;background:var(--surf2);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+      <div>
+        <div style="font-size:.78rem;color:var(--txt2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Your Order</div>
+        <div id="${placedId}" style="min-height:80px;background:var(--surf2);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn" onclick="checkParsons()">Check Order</button>
+      <button class="btn" style="opacity:.6" onclick="resetParsons()">Reset</button>
+    </div>
+    <div id="parsFb" style="margin-top:10px;display:none"></div>
+  </div>`;
+}
+function initParsons(item){
+  const pieces=[...item.solution];
+  drillState.parsBank=pieces.map((_,i)=>i).sort(()=>Math.random()-0.5);
+  drillState.parsPlaced=[];
+  renderParsonsUI(item);
+}
+function renderParsonsUI(item){
+  const bank=document.getElementById('parsBank');
+  const placed=document.getElementById('parsPlaced');
+  if(!bank||!placed)return;
+  bank.innerHTML=drillState.parsBank.map(i=>`<div class="pars-piece" draggable="true" data-idx="${i}" data-from="bank" ondragstart="parsMove(event)">${item.solution[i]}</div>`).join('');
+  placed.innerHTML=drillState.parsPlaced.map(i=>`<div class="pars-piece placed" draggable="true" data-idx="${i}" data-from="placed" ondragstart="parsMove(event)">${item.solution[i]}</div>`).join('');
+  [bank,placed].forEach(z=>{
+    z.ondragover=e=>{e.preventDefault();z.style.outline='2px dashed var(--accent)';};
+    z.ondragleave=()=>{z.style.outline='';};
+    z.ondrop=e=>{
+      e.preventDefault();z.style.outline='';
+      const idx=parseInt(e.dataTransfer.getData('idx'));
+      const from=e.dataTransfer.getData('from');
+      const to=z.id==='parsBank'?'bank':'placed';
+      if(from===to)return;
+      if(from==='bank'){drillState.parsBank=drillState.parsBank.filter(x=>x!==idx);drillState.parsPlaced.push(idx);}
+      else{drillState.parsPlaced=drillState.parsPlaced.filter(x=>x!==idx);drillState.parsBank.push(idx);}
+      renderParsonsUI(DATA.PARSONS[drillState.idx]);
+    };
+  });
+}
+function parsMove(e){e.dataTransfer.setData('idx',e.target.dataset.idx);e.dataTransfer.setData('from',e.target.dataset.from);}
+function resetParsons(){const item=DATA.PARSONS[drillState.idx];initParsons(item);}
+function checkParsons(){
+  const item=DATA.PARSONS[drillState.idx];
+  const fb=document.getElementById('parsFb');
+  const correct=drillState.parsPlaced.join(',')===item.solution.map((_,i)=>i).join(',');
+  if(correct){
+    fb.innerHTML=`<span style="color:var(--accent)">✓ Perfect order! ${item.explain||''}</span>`;
+    fb.style.display='block';
+    markDone('parsons',drillState.idx);
+    celebrate(true,'Puzzle solved! 🧩');
+  } else {
+    fb.innerHTML=`<span style="color:#e74c3c">Order isn't right yet — rearrange and try again.</span>`;
+    fb.style.display='block';
+  }
+}
+
+/* ESQL (English → Tableau) */
+function renderEsql(item,done){
+  return `<div class="card">
+    <p style="font-size:.85rem;color:var(--txt2);margin-bottom:6px">Translate to Tableau steps:</p>
+    <p style="font-size:1rem;font-weight:600;margin-bottom:14px">"${item.english}"</p>
+    <textarea id="esqlAns" class="inp" rows="3" style="resize:vertical" placeholder="Describe the steps or write the calculated field…" ${done?'disabled':''}></textarea>
+    ${!done?`<button class="btn" style="margin-top:10px" onclick="checkEsql()">Check</button>`:''}
+    <div id="esqlFb" style="margin-top:10px;display:none"></div>
+    <div id="esqlSol" style="display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem"><strong>Model Answer:</strong> ${item.answer}<br><em>${item.explain}</em></div>
+    <button class="btn" style="margin-top:8px;opacity:.6;font-size:.78rem" onclick="toggleSol('esqlSol')">Show Answer</button>
+  </div>`;
+}
+function checkEsql(){
+  const item=DATA.ESQL[drillState.idx];
+  const ans=document.getElementById('esqlAns').value.trim().toLowerCase();
+  const fb=document.getElementById('esqlFb');
+  const hits=item.keywords.filter(k=>ans.includes(k.toLowerCase()));
+  if(hits.length>=Math.ceil(item.keywords.length*0.6)){
+    fb.innerHTML=`<span style="color:var(--accent)">✓ Good answer! ${item.explain}</span>`;
+    fb.style.display='block';
+    markDone('esql',drillState.idx);
+    celebrate(true,'Translated! 💬✓');
+  } else {
+    fb.innerHTML=`<span style="color:#e74c3c">Missing key terms — check the model answer.</span>`;
+    fb.style.display='block';
+  }
+}
+
+/* ── VIZ BUILDER ── */
+const VIZ_FIELDS=[
+  {name:'rep',type:'dim',label:'Rep'},
+  {name:'region',type:'dim',label:'Region'},
+  {name:'product',type:'dim',label:'Product'},
+  {name:'category',type:'dim',label:'Category'},
+  {name:'month',type:'dim',label:'Month'},
+  {name:'units',type:'meas',label:'Units (SUM)'},
+  {name:'revenue',type:'meas',label:'Revenue (SUM)'},
+];
+let vizState={cols:null,rows:null,color:null,filter:null,markType:'bar'};
+let vizChart=null;
+
+function renderVizBuilder(){
+  const el=document.getElementById('view-vizbuilder');
+  el.innerHTML=`
+    <h2 style="margin-bottom:6px">Viz Builder</h2>
+    <p style="color:var(--txt2);font-size:.85rem;margin-bottom:18px">Drag fields onto shelves to build a chart — just like Tableau Desktop.</p>
+    <div style="display:grid;grid-template-columns:180px 1fr;gap:16px;align-items:start">
+      <!-- Field List -->
+      <div>
+        <div style="font-size:.75rem;color:var(--txt2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Fields</div>
+        <div style="font-size:.72rem;color:var(--dim-blue);margin-bottom:4px">DIMENSIONS</div>
+        <div id="dimFields" style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px">
+          ${VIZ_FIELDS.filter(f=>f.type==='dim').map(f=>`
+            <div class="field-chip dim" draggable="true" data-field="${f.name}" ondragstart="fieldDragStart(event)">
+              <span style="margin-right:4px">Abc</span>${f.label}
+            </div>`).join('')}
+        </div>
+        <div style="font-size:.72rem;color:var(--meas-green);margin-bottom:4px">MEASURES</div>
+        <div id="measFields" style="display:flex;flex-direction:column;gap:4px">
+          ${VIZ_FIELDS.filter(f=>f.type==='meas').map(f=>`
+            <div class="field-chip meas" draggable="true" data-field="${f.name}" ondragstart="fieldDragStart(event)">
+              <span style="margin-right:4px">#</span>${f.label}
+            </div>`).join('')}
+        </div>
+      </div>
+      <!-- Canvas area -->
+      <div>
+        <!-- Shelves -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div>
+            <div style="font-size:.72rem;color:var(--txt2);text-transform:uppercase;margin-bottom:4px">Columns (X-Axis)</div>
+            <div id="shelf-cols" class="shelf" ondragover="shelfOver(event)" ondragleave="shelfLeave(event)" ondrop="shelfDrop(event,'cols')" data-shelf="cols">
+              ${vizState.cols?`<div class="shelf-chip ${getFieldType(vizState.cols)}">${vizState.cols} <span onclick="removeFromShelf('cols')" style="cursor:pointer;margin-left:4px;opacity:.7">✕</span></div>`:'<span style="color:var(--txt2);font-size:.8rem">Drop field here</span>'}
+            </div>
+          </div>
+          <div>
+            <div style="font-size:.72rem;color:var(--txt2);text-transform:uppercase;margin-bottom:4px">Rows (Y-Axis)</div>
+            <div id="shelf-rows" class="shelf" ondragover="shelfOver(event)" ondragleave="shelfLeave(event)" ondrop="shelfDrop(event,'rows')" data-shelf="rows">
+              ${vizState.rows?`<div class="shelf-chip ${getFieldType(vizState.rows)}">${vizState.rows} <span onclick="removeFromShelf('rows')" style="cursor:pointer;margin-left:4px;opacity:.7">✕</span></div>`:'<span style="color:var(--txt2);font-size:.8rem">Drop field here</span>'}
+            </div>
+          </div>
+          <div>
+            <div style="font-size:.72rem;color:var(--txt2);text-transform:uppercase;margin-bottom:4px">Color</div>
+            <div id="shelf-color" class="shelf" ondragover="shelfOver(event)" ondragleave="shelfLeave(event)" ondrop="shelfDrop(event,'color')" data-shelf="color">
+              ${vizState.color?`<div class="shelf-chip ${getFieldType(vizState.color)}">${vizState.color} <span onclick="removeFromShelf('color')" style="cursor:pointer;margin-left:4px;opacity:.7">✕</span></div>`:'<span style="color:var(--txt2);font-size:.8rem">Drop field here</span>'}
+            </div>
+          </div>
+          <div>
+            <div style="font-size:.72rem;color:var(--txt2);text-transform:uppercase;margin-bottom:4px">Filter</div>
+            <div id="shelf-filter" class="shelf" ondragover="shelfOver(event)" ondragleave="shelfLeave(event)" ondrop="shelfDrop(event,'filter')" data-shelf="filter">
+              ${vizState.filter?`<div class="shelf-chip ${getFieldType(vizState.filter)}">${vizState.filter} <span onclick="removeFromShelf('filter')" style="cursor:pointer;margin-left:4px;opacity:.7">✕</span></div>`:'<span style="color:var(--txt2);font-size:.8rem">Drop field here</span>'}
+            </div>
+          </div>
+        </div>
+        <!-- Mark type + actions -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <span style="font-size:.78rem;color:var(--txt2)">Mark:</span>
+          <button class="mark-btn${vizState.markType==='bar'?' active':''}" onclick="setMarkType('bar')">Bar</button>
+          <button class="mark-btn${vizState.markType==='line'?' active':''}" onclick="setMarkType('line')">Line</button>
+          <button class="mark-btn${vizState.markType==='scatter'?' active':''}" onclick="setMarkType('scatter')">Scatter</button>
+          <div style="margin-left:auto;display:flex;gap:6px">
+            <button class="btn" style="font-size:.78rem;padding:4px 10px" onclick="loadSampleViz()">Load Sample</button>
+            <button class="btn" style="font-size:.78rem;padding:4px 10px;opacity:.6" onclick="clearViz()">Clear</button>
+          </div>
+        </div>
+        <!-- Chart -->
+        <div style="background:var(--surf2);border-radius:8px;padding:14px;min-height:300px;display:flex;align-items:center;justify-content:center">
+          <div id="chartEmpty" style="${(vizState.cols||vizState.rows)?'display:none':''}color:var(--txt2);text-align:center;font-size:.9rem">
+            <div style="font-size:2.5rem;margin-bottom:8px">📊</div>
+            Drop a dimension on Columns and a measure on Rows to build your chart.
+          </div>
+          <div id="chartWrap" style="width:100%;${(vizState.cols||vizState.rows)?'':'display:none'}">
+            <canvas id="vizCanvas"></canvas>
+          </div>
+        </div>
+        <!-- Calc field -->
+        <div style="margin-top:14px">
+          <div style="font-size:.78rem;color:var(--txt2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Calculated Field</div>
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <input id="calcName" class="inp" style="width:130px;flex:none" placeholder="Field name">
+            <input id="calcEditor" class="inp" style="flex:1" placeholder='e.g. [revenue] / [units]' oninput="previewCalc()">
+          </div>
+          <div id="calcPreview" style="margin-top:6px;font-size:.82rem;color:var(--txt2)"></div>
+        </div>
+      </div>
+    </div>
+  `;
+  if(vizState.cols||vizState.rows)buildChart();
+}
+
+function getFieldType(name){
+  const f=VIZ_FIELDS.find(x=>x.name===name);
+  return f?f.type:'dim';
+}
+function fieldDragStart(e){e.dataTransfer.setData('field',e.target.dataset.field);}
+function shelfOver(e){e.preventDefault();e.currentTarget.style.outline='2px dashed var(--accent)';}
+function shelfLeave(e){e.currentTarget.style.outline='';}
+function shelfDrop(e,shelf){
+  e.preventDefault();e.currentTarget.style.outline='';
+  const field=e.dataTransfer.getData('field');
+  if(!field)return;
+  vizState[shelf]=field;
+  renderVizBuilder();
+  if(vizState.cols||vizState.rows)buildChart();
+}
+function removeFromShelf(shelf){vizState[shelf]=null;renderVizBuilder();}
+function setMarkType(t){vizState.markType=t;renderVizBuilder();if(vizState.cols||vizState.rows)buildChart();}
+function clearViz(){vizState={cols:null,rows:null,color:null,filter:null,markType:'bar'};renderVizBuilder();}
+function loadSampleViz(){vizState={cols:'region',rows:'revenue',color:'category',filter:null,markType:'bar'};renderVizBuilder();buildChart();}
+
+function buildChart(){
+  const wrap=document.getElementById('chartWrap');
+  const empty=document.getElementById('chartEmpty');
+  if(!vizState.cols&&!vizState.rows){if(empty)empty.style.display='';if(wrap)wrap.style.display='none';return;}
+  if(empty)empty.style.display='none';
+  if(wrap)wrap.style.display='';
+
+  // Destroy previous chart
+  if(vizChart){vizChart.destroy();vizChart=null;}
+
+  let data=CONTOSO;
+  // Apply filter (show only top value if filter field set — simple demo)
+  // For demo: filter field is used as color grouping instead of actual filter
+
+  const xField=vizState.cols||'region';
+  const yField=vizState.rows||'revenue';
+  const colorField=vizState.color||null;
+
+  // Aggregate data by xField
+  const isMeasure=f=>VIZ_FIELDS.find(x=>x.name===f&&x.type==='meas');
+
+  // Get unique x values
+  const xVals=[...new Set(data.map(r=>r[xField]))].sort();
+
+  let datasets=[];
+  const palette=['#58aaa2','#7bb3f0','#6dbf8b','#e8a84c','#e07c7c','#b07cf0','#f07cb0'];
+
+  if(colorField&&colorField!==xField){
+    const colorVals=[...new Set(data.map(r=>r[colorField]))].sort();
+    datasets=colorVals.map((cv,ci)=>({
+      label:String(cv),
+      data:xVals.map(xv=>{
+        const rows=data.filter(r=>r[xField]===xv&&r[colorField]===cv);
+        return isMeasure(yField)?rows.reduce((s,r)=>s+(r[yField]||0),0):rows.length;
+      }),
+      backgroundColor:palette[ci%palette.length]+'bb',
+      borderColor:palette[ci%palette.length],
+      borderWidth:1,
+      fill:vizState.markType==='line'?false:undefined,
+      tension:.3,
+    }));
+  } else {
+    datasets=[{
+      label:yField,
+      data:xVals.map(xv=>{
+        const rows=data.filter(r=>r[xField]===xv);
+        return isMeasure(yField)?rows.reduce((s,r)=>s+(r[yField]||0),0):rows.length;
+      }),
+      backgroundColor:xVals.map((_,i)=>palette[i%palette.length]+'bb'),
+      borderColor:xVals.map((_,i)=>palette[i%palette.length]),
+      borderWidth:1,
+      fill:false,
+      tension:.3,
+    }];
+  }
+
+  const isDark=S.theme==='dark';
+  const gridColor=isDark?'rgba(255,255,255,.07)':'rgba(0,0,0,.08)';
+  const tickColor=isDark?'#a09880':'#5a5040';
+
+  const chartType=vizState.markType==='scatter'?'scatter':vizState.markType==='line'?'line':'bar';
+
+  let chartData={labels:xVals,datasets};
+  // Scatter: convert to {x,y} format
+  if(chartType==='scatter'){
+    chartData={datasets:datasets.map((ds,di)=>({
+      ...ds,
+      data:xVals.map((xv,xi)=>({x:xi,y:ds.data[xi]})),
+      pointRadius:6,
+    }))};
+  }
+
+  const canvas=document.getElementById('vizCanvas');
+  vizChart=new Chart(canvas,{
+    type:chartType,
+    data:chartData,
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{labels:{color:tickColor,font:{size:11}}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${typeof ctx.raw==='object'?ctx.raw.y:ctx.raw}`}},
+      },
+      scales:{
+        x:{
+          ticks:{color:tickColor,font:{size:10}},
+          grid:{color:gridColor},
+          ...(chartType==='scatter'?{ticks:{callback:(_,i)=>xVals[i]||''}}:{}),
+        },
+        y:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor}},
+      },
+    },
+  });
+}
+
+function previewCalc(){
+  const expr=document.getElementById('calcEditor').value.trim();
+  const preview=document.getElementById('calcPreview');
+  if(!expr){preview.textContent='';return;}
+  // Replace [field] refs and evaluate on first row for preview
+  try{
+    const row=CONTOSO[0];
+    const evalExpr=expr.replace(/\[(\w+)\]/g,(_,f)=>row[f]!==undefined?row[f]:0);
+    const result=Function('"use strict";return ('+evalExpr+')')();
+    preview.textContent=`Preview (row 1): ${typeof result==='number'?result.toFixed(2):result}`;
+    preview.style.color='var(--accent)';
+  } catch(e){
+    preview.textContent='Invalid expression';
+    preview.style.color='#e74c3c';
+  }
+}
+
+/* ── FLASHCARDS ── */
+function renderCards(){
+  const el=document.getElementById('view-cards');
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h2>Flashcards</h2>
+      <span style="color:var(--txt2);font-size:.85rem">${S.cardIdx+1} / ${DATA.CARDS.length}</span>
+    </div>
+    <div id="cardWrap" style="perspective:800px;margin-bottom:16px">
+      ${renderCard()}
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn" onclick="prevCard()">← Prev</button>
+      <button class="btn" onclick="flipCard()">Flip</button>
+      <button class="btn" onclick="nextCard()">Next →</button>
+    </div>
+    <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(28px,1fr));gap:4px">
+      ${DATA.CARDS.map((_,i)=>`<div style="height:8px;border-radius:4px;background:${S.done['card'+i]?'var(--accent)':'var(--surf2)'}"></div>`).join('')}
+    </div>
+  `;
+}
+let cardFlipped=false;
+function renderCard(){
+  const c=DATA.CARDS[S.cardIdx];
+  return `<div id="flashcard" onclick="flipCard()" style="cursor:pointer;background:var(--surf);border:1px solid var(--bord);border-radius:10px;padding:32px 24px;min-height:160px;display:flex;align-items:center;justify-content:center;text-align:center;transition:transform .4s;transform-style:preserve-3d">
+    <div style="font-size:1.05rem;line-height:1.5">${cardFlipped?c.back:c.front}</div>
+  </div>`;
+}
+function flipCard(){
+  cardFlipped=!cardFlipped;
+  if(cardFlipped)markDone('card',S.cardIdx);
+  renderCards();
+}
+function nextCard(){
+  cardFlipped=false;
+  S.cardIdx=Math.min(S.cardIdx+1,DATA.CARDS.length-1);
+  save();renderCards();
+}
+function prevCard(){
+  cardFlipped=false;
+  S.cardIdx=Math.max(S.cardIdx-1,0);
+  save();renderCards();
+}
+
+/* ── GLOSSARY ── */
+function renderGlossary(){
+  const el=document.getElementById('view-glossary');
+  el.innerHTML=`
+    <h2 style="margin-bottom:12px">Glossary</h2>
+    <input class="inp" id="glossSearch" placeholder="Search terms…" oninput="filterGlossary(this.value)" style="margin-bottom:14px">
+    <div id="glossList"></div>
+  `;
+  filterGlossary('');
+}
+function filterGlossary(q){
+  const list=document.getElementById('glossList');
+  const items=DATA.GLOSSARY.filter(g=>!q||g.term.toLowerCase().includes(q.toLowerCase())||g.def.toLowerCase().includes(q.toLowerCase()));
+  list.innerHTML=items.map(g=>`<div class="card" style="margin-bottom:8px"><strong style="color:var(--accent)">${g.term}</strong><p style="margin:4px 0 0;color:var(--txt2);font-size:.88rem">${g.def}</p></div>`).join('');
+}
+
+/* ── BOOT ── */
+loadState();
+applyTheme();
+show('home');
+</script>
+</body>
+</html>
+
+
