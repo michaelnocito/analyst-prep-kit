@@ -1,0 +1,1200 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stats Prep Kit</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#171513;--surf:#201d1a;--surf2:#292520;--accent:#58aaa2;--accdim:#2d6b65;
+  --txt:#e8e0d5;--txt2:#9a8f84;--bord:#3a342e;--ok:#4caf78;--err:#e05c5c;
+}
+[data-theme="light"]{
+  --bg:#ddd6c8;--surf:#ffffff;--surf2:#f5f0e9;--accent:#116d69;--accdim:#c8e6e4;
+  --txt:#1a1410;--txt2:#6b5f52;--bord:#c8bfb4;--ok:#2d7a4a;--err:#c0392b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;font-size:15px}
+a{color:var(--accent);text-decoration:none}
+nav{background:var(--surf);border-bottom:1px solid var(--bord);padding:0 16px;display:flex;align-items:center;gap:2px;height:52px;position:sticky;top:0;z-index:100;flex-wrap:wrap}
+.logo{font-weight:700;font-size:15px;color:var(--accent);margin-right:8px;white-space:nowrap}
+.logo span{color:var(--txt)}
+.nav-link{background:none;border:none;color:var(--txt2);cursor:pointer;padding:6px 9px;border-radius:6px;font-size:13px;font-family:inherit;transition:all .15s}
+.nav-link:hover,.nav-link.active{color:var(--txt);background:var(--surf2)}
+.nav-link.active{color:var(--accent)}
+.spacer{flex:1}
+.theme-btn{background:none;border:1px solid var(--bord);color:var(--txt2);cursor:pointer;padding:4px 9px;border-radius:6px;font-size:13px;font-family:inherit}
+.theme-btn:hover{color:var(--txt);border-color:var(--accent)}
+main{max-width:860px;margin:0 auto;padding:24px 16px}
+.view{display:none}.view.active{display:block}
+.card{background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:16px}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;font-size:14px;font-family:inherit;transition:opacity .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{opacity:.85}
+.btn-sm{padding:4px 10px;font-size:.8rem}
+.btn-outline{background:none;border:1px solid var(--accent);color:var(--accent)}
+.btn-outline:hover{background:var(--accent);color:#fff}
+.inp{background:var(--surf2);border:1px solid var(--bord);border-radius:6px;padding:8px 12px;color:var(--txt);font-size:14px;font-family:inherit;width:100%}
+.inp:focus{outline:none;border-color:var(--accent)}
+.code-block{background:var(--surf2);border:1px solid var(--bord);border-radius:6px;padding:12px;font-family:'Consolas',monospace;font-size:.83rem;white-space:pre;overflow-x:auto;line-height:1.55}
+#toast{position:fixed;bottom:24px;right:24px;background:var(--accent);color:#fff;padding:10px 18px;border-radius:8px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .3s;z-index:999}
+#toast.show{opacity:1}
+body.flash::after{content:'';position:fixed;inset:0;background:var(--accent);opacity:.12;pointer-events:none;z-index:9999}
+.pars-piece{background:var(--surf2);border:1px solid var(--bord);border-radius:5px;padding:7px 10px;font-size:.84rem;cursor:grab;user-select:none}
+.pars-piece.placed{border-color:var(--accent);background:var(--surf)}
+.dist-btn{background:var(--surf2);border:1px solid var(--bord);color:var(--txt2);padding:5px 12px;border-radius:6px;cursor:pointer;font-size:.82rem;font-family:inherit;transition:all .15s}
+.dist-btn:hover{border-color:var(--accent);color:var(--txt)}
+.dist-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.stat-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:.82rem;font-weight:600;border:1px solid}
+input[type=range]{accent-color:var(--accent);width:150px;cursor:pointer}
+.read-panel{display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem}
+</style>
+</head>
+<body>
+<nav>
+  <a href="../" style="font-size:11px;color:var(--txt2);text-decoration:none;margin-right:4px;white-space:nowrap;font-family:inherit" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--txt2)'">← All Kits</a><span class="logo">Stats<span> Prep Kit</span></span>
+  <button class="nav-link active" onclick="show('home')">Home</button>
+  <button class="nav-link" onclick="show('lessons')">Lessons</button>
+  <button class="nav-link" onclick="show('practice')">Practice</button>
+  <button class="nav-link" onclick="show('distlab')">Distribution Lab</button>
+  <button class="nav-link" onclick="show('cards')">Cards</button>
+  <button class="nav-link" onclick="show('glossary')">Glossary</button>
+  <div class="spacer"></div>
+  <button class="theme-btn" onclick="toggleTheme()"><span id="themeIcon">â˜€ï¸</span></button>
+</nav>
+<main>
+  <div id="view-home" class="view active"></div>
+  <div id="view-lessons" class="view"></div>
+  <div id="view-practice" class="view"></div>
+  <div id="view-distlab" class="view">
+    <h2 style="margin-bottom:6px">Distribution Lab</h2>
+    <p style="color:var(--txt2);font-size:.85rem;margin-bottom:16px">Visualize how data is shaped â€” watch mean, median, and mode shift as the distribution changes.</p>
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end">
+        <div>
+          <div style="font-size:.72rem;color:var(--txt2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Field</div>
+          <div style="display:flex;gap:6px">
+            <button class="dist-btn active" id="btn-field-revenue" onclick="setDistField('revenue')">Revenue</button>
+            <button class="dist-btn" id="btn-field-units" onclick="setDistField('units')">Units</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.72rem;color:var(--txt2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Shape</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="dist-btn active" id="btn-shape-actual" onclick="setDistShape('actual')">Actual Data</button>
+            <button class="dist-btn" id="btn-shape-normal" onclick="setDistShape('normal')">Normal</button>
+            <button class="dist-btn" id="btn-shape-rskew" onclick="setDistShape('rskew')">Right Skew</button>
+            <button class="dist-btn" id="btn-shape-lskew" onclick="setDistShape('lskew')">Left Skew</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.72rem;color:var(--txt2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Spread: <span id="sliderVal" style="color:var(--accent);font-weight:600">1.0Ã—</span></div>
+          <input type="range" id="spreadSlider" min="0.5" max="2.5" step="0.1" value="1" oninput="updateSpread(this.value)">
+        </div>
+      </div>
+    </div>
+    <div id="statPills" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+    <div style="background:var(--surf2);border-radius:8px;padding:16px;margin-bottom:10px">
+      <canvas id="distCanvas" height="240"></canvas>
+    </div>
+    <div style="display:flex;gap:16px;font-size:.8rem;flex-wrap:wrap;margin-bottom:12px">
+      <span><span style="color:#58aaa2;font-weight:700">â”â”</span> Mean</span>
+      <span><span style="color:#f0c040;font-weight:700">â”â”</span> Median</span>
+      <span><span style="color:#e07c7c;font-weight:700">â”â”</span> Mode</span>
+    </div>
+    <div id="distInsight" class="card" style="font-size:.88rem;line-height:1.7;color:var(--txt2)"></div>
+  </div>
+  <div id="view-cards" class="view"></div>
+  <div id="view-glossary" class="view"></div>
+</main>
+<div id="toast"></div>
+<script>
+const DATA = {
+LESSONS:[
+ {id:1,unit:1,title:"Mean, Median & Mode",subtitle:"The three measures of center â€” and when each one lies to you.",
+  sections:[
+   {heading:"What are measures of center?",
+    body:"When you have a column of numbers, you want one number that represents the typical value. There are three options â€” and they give very different answers when data is skewed.",
+    code:`revenues = [120, 150, 130, 2000, 140]
+
+# Mean: sum / count
+mean = sum(revenues) / len(revenues)   # 508 â€” pulled by 2000
+
+# Median: middle value when sorted
+sorted_r = sorted(revenues)            # [120, 130, 140, 150, 2000]
+median = sorted_r[len(sorted_r)//2]   # 140 â€” not affected
+
+# Mode: most frequent value
+from collections import Counter
+data = [1, 2, 2, 3, 3, 3]
+mode = Counter(data).most_common(1)[0][0]  # 3`,
+    steps:[
+      "revenues = [120, 150, 130, 2000, 140] â€” five values, one extreme outlier (2000)",
+      "mean = sum / count = 2540 / 5 = 508. The outlier dragged it way above every other value.",
+      "sorted_r â€” sort the list so we can find the middle",
+      "median = index //2 = index 2 = 140. Not affected by the 2000 outlier at all.",
+      "Counter(data).most_common(1) â€” counts frequency of each value, returns the top one",
+      "mode = 3, which appears 3 times â€” useful for categorical or discrete data"
+    ]},
+   {heading:"When to use which",
+    body:"<strong>Mean:</strong> best for symmetric data with no outliers (test scores, heights). <strong>Median:</strong> best for skewed data or when outliers exist (salaries, house prices, revenue). <strong>Mode:</strong> best for categorical data (most popular product, most common support issue)."}
+  ],
+  quiz:{q:"A company reports average salary of $95K. One executive earns $2M. Which measure better represents the typical employee?",
+        opts:["Mean â€” it accounts for all values","Median â€” it is not pulled by the outlier","Mode â€” the most common salary","Standard deviation"],
+        ans:1,explain:"The executive's $2M salary inflates the mean far above what most employees earn. Median is resistant to outliers and better represents the typical worker."}},
+
+ {id:2,unit:1,title:"Variance & Standard Deviation",subtitle:"How spread out is your data?",
+  sections:[
+   {heading:"Why spread matters",
+    body:"Two datasets can have the same mean but look completely different. Team A scores: [48, 50, 52]. Team B scores: [10, 50, 90]. Both average 50 â€” but B is wildly inconsistent. Variance and std dev capture that difference."},
+   {heading:"Calculating spread",
+    code:`import statistics
+
+scores_a = [48, 50, 52]
+scores_b = [10, 50, 90]
+
+# Variance = average squared deviation from the mean
+var_a = statistics.variance(scores_a)   # 4
+var_b = statistics.variance(scores_b)   # 1600
+
+# Std dev = sqrt(variance) â€” same units as the data
+std_a = statistics.stdev(scores_a)      # 2.0
+std_b = statistics.stdev(scores_b)      # 40.0`,
+    steps:[
+      "Both lists have mean = 50 â€” identical centers, but very different spreads",
+      "variance: for each value, compute (value - mean)Â², then average those squared differences",
+      "var_a = 4 â€” Team A barely deviates from 50",
+      "var_b = 1600 â€” Team B deviates massively",
+      "stdev = sqrt(variance) â€” converts back to original units (points, not pointsÂ²)",
+      "std_a = 2 vs std_b = 40 â€” one number tells the whole story about consistency"
+    ]}
+  ],
+  quiz:{q:"Dataset A has std dev = 2. Dataset B has std dev = 40. Both have mean = 50. Which is more consistent?",
+        opts:["Dataset A â€” smaller std dev means values cluster near the mean","Dataset B â€” larger std dev means more data points","They are equally consistent since means match","Cannot tell without knowing the median"],
+        ans:0,explain:"Smaller std dev = tighter cluster around the mean = more consistent. Std dev measures spread, not volume of data."}},
+
+ {id:3,unit:1,title:"Percentiles, Quartiles & IQR",subtitle:"Where does a value rank in the full distribution?",
+  sections:[
+   {heading:"Percentiles and quartiles",
+    body:"A percentile tells you what percentage of values fall <em>below</em> a given point. If your revenue is at the 80th percentile, 80% of revenues are lower. Quartiles are the 25th (Q1), 50th (Q2 = median), and 75th (Q3) percentiles."},
+   {heading:"IQR and outlier detection",
+    code:`import numpy as np
+
+rev = [90, 110, 120, 130, 140, 150, 160, 170, 200, 500]
+
+q1 = np.percentile(rev, 25)    # 120
+q3 = np.percentile(rev, 75)    # 170
+iqr = q3 - q1                  # 50
+
+# Outlier fences
+lower = q1 - 1.5 * iqr         # 45
+upper = q3 + 1.5 * iqr         # 245
+
+# 500 > 245 â€” flagged as outlier`,
+    steps:[
+      "np.percentile(rev, 25) = 120 â€” 25% of values fall below 120",
+      "np.percentile(rev, 75) = 170 â€” 75% of values fall below 170",
+      "iqr = Q3 - Q1 = 50 â€” the middle 50% of data spans 50 units",
+      "lower fence = Q1 - 1.5Ã—IQR = 120 - 75 = 45",
+      "upper fence = Q3 + 1.5Ã—IQR = 170 + 75 = 245",
+      "500 exceeds 245 â€” it is a statistical outlier by the IQR rule"
+    ]}
+  ],
+  quiz:{q:"Q1 = 100, Q3 = 200, IQR = 100. What is the upper outlier fence?",
+        opts:["250","350","150","300"],
+        ans:1,explain:"Upper fence = Q3 + 1.5 Ã— IQR = 200 + 1.5 Ã— 100 = 200 + 150 = 350."}},
+
+ {id:4,unit:1,title:"Shape of Data â€” Skew & Outliers",subtitle:"A histogram tells you more than the mean ever could.",
+  sections:[
+   {heading:"Distribution shapes",
+    body:"<strong>Symmetric / Normal:</strong> mean â‰ˆ median, bell-shaped. <strong>Right-skewed (positive):</strong> long tail to the right, mean > median â€” common for income and revenue. <strong>Left-skewed (negative):</strong> long tail to the left, mean < median â€” common for test scores near 100%."},
+   {heading:"Detecting skew in pandas",
+    code:`import pandas as pd
+
+df = pd.DataFrame({'revenue': [90,100,110,120,130,140,150,500]})
+
+mean   = df['revenue'].mean()    # 167.5
+median = df['revenue'].median()  # 125.0
+skew   = df['revenue'].skew()    # 2.8 â€” strongly right-skewed
+
+# Rule: mean >> median â†’ right skew
+#       mean << median â†’ left skew`,
+    steps:[
+      "mean = 167.5 â€” inflated by the 500 outlier",
+      "median = 125.0 â€” the true middle, unaffected by the outlier",
+      "mean > median confirms right skew â€” the high-value tail pulls the mean rightward",
+      "skew() = 2.8 â€” positive value confirms right skew; values above 1 are considered strongly skewed",
+      "Takeaway: when mean >> median, report the median as your center measure"
+    ]}
+  ],
+  quiz:{q:"A dataset has mean = 250 and median = 140. What can you conclude?",
+        opts:["The data is left-skewed","The data is right-skewed â€” high values pull the mean up","The data is normally distributed","Mode equals the median"],
+        ans:1,explain:"Mean > median is the signature of right skew. High-value outliers drag the mean above the median."}},
+
+ {id:5,unit:2,title:"Probability Basics",subtitle:"How likely is it? Quantifying uncertainty.",
+  sections:[
+   {heading:"What is probability?",
+    body:"Probability is a number from 0 to 1 measuring how likely an event is. P = 0 means impossible, P = 1 means certain. As an analyst, you use probability every time you interpret a conversion rate, make a forecast, or evaluate a test result."},
+   {heading:"Core rules",
+    code:`# P(A) = favorable outcomes / total outcomes
+p_hot = 15 / 25           # 0.60 â€” 15 of 25 sales are Hot category
+
+# Complement: P(not A) = 1 - P(A)
+p_cold = 1 - p_hot        # 0.40
+
+# Multiplication rule (independent events)
+p_jan = 5 / 25            # 0.20
+p_hot_and_jan = p_hot * p_jan   # 0.12
+
+# Addition rule: P(A or B) = P(A) + P(B) - P(A and B)
+p_hot_or_jan = p_hot + p_jan - p_hot_and_jan  # 0.68`,
+    steps:[
+      "p_hot = 15/25 = 0.60 â€” 60% of sales are Hot category",
+      "Complement: P(Cold) = 1 - 0.60 = 0.40 â€” everything that is not Hot",
+      "Multiplication rule for independent events: P(Hot AND Jan) = 0.60 Ã— 0.20 = 0.12",
+      "Addition rule: P(A OR B) subtracts P(A AND B) to avoid counting the overlap twice",
+      "P(Hot OR Jan) = 0.60 + 0.20 - 0.12 = 0.68"
+    ]}
+  ],
+  quiz:{q:"P(A) = 0.3, P(B) = 0.5. A and B are independent. What is P(A and B)?",
+        opts:["0.80","0.15","0.20","0.35"],
+        ans:1,explain:"For independent events: P(A and B) = P(A) Ã— P(B) = 0.3 Ã— 0.5 = 0.15."}},
+
+ {id:6,unit:2,title:"Normal Distribution & Z-Scores",subtitle:"The bell curve â€” and where any value sits on it.",
+  sections:[
+   {heading:"The normal distribution",
+    body:"Many real-world measures approximate a bell curve: symmetric, peak at the mean, tails that fall off evenly. The <strong>68-95-99.7 rule:</strong> 68% of data within 1 std dev of the mean, 95% within 2 std devs, 99.7% within 3 std devs."},
+   {heading:"Z-scores â€” standardizing any value",
+    code:`# z = (value - mean) / std_dev
+mean_rev = 160
+std_rev  = 45
+
+# How unusual is a $280 sale?
+z = (280 - mean_rev) / std_rev    # 2.67
+# 2.67 std devs above the mean
+# Only ~0.4% of values exceed this
+
+# Below average
+z_low = (90 - mean_rev) / std_rev  # -1.56`,
+    steps:[
+      "z-score formula: subtract the mean (center at 0), then divide by std dev (scale to std dev units)",
+      "z = (280 - 160) / 45 = 120 / 45 = 2.67",
+      "This sale is 2.67 standard deviations above average",
+      "By 68-95-99.7: only ~0.4% of values exceed z = 2.67 â€” a genuinely unusual sale",
+      "z = -1.56 means the $90 sale is 1.56 std devs below the mean (below average but not extreme)"
+    ]}
+  ],
+  quiz:{q:"A sale has a z-score of -2.1. What does this mean?",
+        opts:["The value is 2.1 times the mean","The value is 2.1 standard deviations below the mean","The value is a positive outlier","Z-scores cannot be negative"],
+        ans:1,explain:"Negative z-score = below the mean. z = -2.1 means the value sits 2.1 standard deviations below the average."}},
+
+ {id:7,unit:2,title:"Sampling & Bias",subtitle:"Your data is only as good as how it was collected.",
+  sections:[
+   {heading:"Populations vs samples",
+    body:"A <strong>population</strong> is every member of the group you care about (all customers). A <strong>sample</strong> is the subset you actually measure. Statistics from a sample estimate the population â€” but only if the sample is representative."},
+   {heading:"Types of bias",
+    body:"<strong>Selection bias:</strong> some groups are more likely to end up in your sample (surveying only email subscribers). <strong>Survivorship bias:</strong> you only see entities that survived (analyzing only successful products). <strong>Confirmation bias:</strong> cherry-picking data that supports a conclusion you already believe.",
+    code:`# Good: random sample
+import random
+population = list(range(10000))
+sample = random.sample(population, 500)   # every person equal chance
+
+# Biased: only engaged customers
+biased = [c for c in customers if c['opened_email']]
+# Excludes disengaged customers â€” overstates satisfaction`,
+    steps:[
+      "random.sample â€” each of 10,000 people has equal probability of selection",
+      "c['opened_email'] filter â€” only includes customers who engaged with your email",
+      "This is selection bias: disengaged customers are excluded from the survey",
+      "Their opinions are probably more negative â€” your results will be overly optimistic",
+      "Rule: if some groups are systematically excluded, results will not generalize to the full population"
+    ]}
+  ],
+  quiz:{q:"You survey customers who called your support line to measure overall satisfaction. What bias is this?",
+        opts:["No bias â€” customers are customers","Selection bias â€” callers skew toward dissatisfied customers","Survivorship bias","Confirmation bias"],
+        ans:1,explain:"Support callers are not representative of all customers â€” they are disproportionately unhappy. This is selection bias."}},
+
+ {id:8,unit:2,title:"Correlation vs Causation",subtitle:"The most important distinction in all of analytics.",
+  sections:[
+   {heading:"What is correlation?",
+    body:"Correlation (r) measures how strongly two numeric variables move together. r ranges from -1 (perfect negative) to +1 (perfect positive). r â‰ˆ 0 means no linear relationship. It is purely descriptive â€” it says nothing about why."},
+   {heading:"Correlation does not imply causation",
+    code:`import pandas as pd
+
+df = pd.DataFrame({
+  'ice_cream_sales': [200, 350, 500, 420, 180],
+  'drowning_rates':  [  3,   5,   7,   6,   2]
+})
+
+r = df['ice_cream_sales'].corr(df['drowning_rates'])
+# r = 0.99 â€” nearly perfect!
+# But ice cream does not cause drowning.
+# Confounding variable: hot weather drives both.`,
+    steps:[
+      ".corr() computes Pearson correlation coefficient between two columns",
+      "r = 0.99 â€” almost perfect positive correlation",
+      "Tempting conclusion: ice cream sales cause drowning rates to rise",
+      "But both are driven by a third variable: hot weather â†’ more swimming AND more ice cream",
+      "The confounding variable creates a spurious correlation between the two",
+      "Rule: always ask â€” is there a third factor that could explain both variables?"
+    ]}
+  ],
+  quiz:{q:"Revenue and ad spend have r = 0.88. A manager says 'ad spend causes revenue.' What is the best response?",
+        opts:["Agree â€” r = 0.88 is near-perfect proof","Strong correlation does not prove causation â€” reverse causality or a confounder are possible","Disagree â€” r must equal 1.0 for causation","r = 0.88 is too weak to be meaningful"],
+        ans:1,explain:"More revenue â†’ more ad budget is equally plausible. Or seasonality could drive both. Correlation shows association only."}},
+
+ {id:9,unit:3,title:"Hypothesis Testing Concepts",subtitle:"A structured framework for making data-driven decisions.",
+  sections:[
+   {heading:"The setup",
+    body:"Every hypothesis test starts with two competing claims. <strong>Hâ‚€ (null hypothesis):</strong> no effect, no difference â€” the boring default we assume until proven otherwise. <strong>Hâ‚ (alternative hypothesis):</strong> there IS a real effect â€” what you are trying to support with data."},
+   {heading:"The logic",
+    code:`# Did the new checkout flow increase conversions?
+
+# H0: new rate = old rate (0.05) â€” no change
+# H1: new rate > 0.05 â€” improvement
+
+control_conv = 50   # 50 / 1000 = 5.0%
+test_conv    = 68   # 68 / 1000 = 6.8%
+
+# Is that 1.8% lift real â€” or just random noise?
+# A hypothesis test gives us a p-value to decide.`,
+    steps:[
+      "H0: conversion rate = 0.05 â€” assume nothing changed until data proves otherwise",
+      "H1: conversion rate > 0.05 â€” the claim we want data to support",
+      "control: 50/1000 = 5.0% | test: 68/1000 = 6.8% â€” looks better, but is it real?",
+      "The test asks: if H0 were true (no real difference), how likely is a gap this large by chance?",
+      "That probability is the p-value â€” the lower it is, the stronger the evidence against H0"
+    ]}
+  ],
+  quiz:{q:"The null hypothesis (Hâ‚€) always states that...",
+        opts:["The experiment worked","There is no effect or no difference","The alternative is true","The p-value is significant"],
+        ans:1,explain:"Hâ‚€ is the default 'no effect' assumption. We only reject it when data provides strong enough evidence against it."}},
+
+ {id:10,unit:3,title:"P-Values in Plain English",subtitle:"The most misunderstood number in data analysis.",
+  sections:[
+   {heading:"What is a p-value?",
+    body:"The p-value answers: <em>\"If there were truly no effect (Hâ‚€ is true), how likely is it that I would see results at least this extreme just by random chance?\"</em> A small p means the data is very unlikely under Hâ‚€ â€” evidence to reject it. A large p means the result could easily be noise."},
+   {heading:"The Î± = 0.05 threshold",
+    code:`from scipy import stats
+
+control = [0,0,1,0,0,1,0,0,0,1]   # 3/10 converted
+test    = [1,1,0,1,1,0,1,0,1,1]   # 8/10 converted
+
+_, p_value = stats.ttest_ind(control, test)
+# p_value â‰ˆ 0.021
+
+# p < 0.05 â†’ reject H0
+# This gap would appear by chance only 2.1% of the time`,
+    steps:[
+      "stats.ttest_ind â€” independent samples t-test comparing means of two groups",
+      "p_value â‰ˆ 0.021 â€” if H0 were true, we'd see a difference this large only 2.1% of the time",
+      "Our threshold Î± = 0.05 â€” we accept up to 5% risk of a false positive",
+      "0.021 < 0.05 â†’ reject H0 â†’ statistically significant result",
+      "Important: statistical significance does NOT mean the effect is large or practically important"
+    ]}
+  ],
+  quiz:{q:"A test returns p = 0.23 with Î± = 0.05. What do you conclude?",
+        opts:["Reject Hâ‚€ â€” significant result","Fail to reject Hâ‚€ â€” insufficient evidence of a real effect","The experiment failed","p = 0.23 means 23% chance the effect is real"],
+        ans:1,explain:"p = 0.23 > 0.05: we fail to reject Hâ‚€. Not enough evidence to claim a real effect. This is NOT proof Hâ‚€ is true â€” just insufficient evidence against it."}},
+
+ {id:11,unit:3,title:"A/B Testing for Analysts",subtitle:"The gold standard for measuring the impact of any change.",
+  sections:[
+   {heading:"What is an A/B test?",
+    body:"An A/B test randomly splits users into two groups: <strong>Control (A):</strong> current version. <strong>Treatment (B):</strong> new version. Random assignment means any difference in outcomes can be attributed to the change â€” not to who the users are."},
+   {heading:"Running and interpreting a test",
+    code:`from statsmodels.stats.proportion import proportions_ztest
+
+# 500 users each, randomly assigned
+control_conv   = 25   # 25/500 = 5%
+treatment_conv = 35   # 35/500 = 7%
+
+counts = [treatment_conv, control_conv]
+nobs   = [500, 500]
+z, p   = proportions_ztest(counts, nobs)
+# p = 0.098 â†’ not significant at Î± = 0.05 yet
+# Run longer to collect more data`,
+    steps:[
+      "500 users randomly assigned to each group â€” randomization eliminates selection bias",
+      "control: 5% | treatment: 7% â€” a 2 percentage-point lift",
+      "proportions_ztest tests whether the difference in rates is statistically significant",
+      "p = 0.098 > 0.05 â€” fail to reject H0 â€” result not yet significant",
+      "Action: run longer. More data reduces sampling error and may reveal a real signal"
+    ]}
+  ],
+  quiz:{q:"Why does random assignment matter in an A/B test?",
+        opts:["It makes tests run faster","Both groups become comparable â€” differences in outcomes come from the change, not who's in the group","It guarantees significance","It removes the need for a p-value"],
+        ans:1,explain:"Without randomization, the groups could differ in ways unrelated to the change (e.g., one group is more engaged). Randomization balances those factors."}},
+
+ {id:12,unit:3,title:"Confidence Intervals & Margin of Error",subtitle:"A range is more honest than a single number.",
+  sections:[
+   {heading:"What is a confidence interval?",
+    body:"A confidence interval (CI) gives a range of plausible values for a population parameter based on your sample. A 95% CI means: if you ran the study 100 times, about 95 of the resulting intervals would contain the true value. It is NOT a 95% probability that this specific interval contains the truth."},
+   {heading:"Computing a CI",
+    code:`import numpy as np
+from scipy import stats
+
+revenues = [120,135,148,162,155,143,170,128,145,160]
+
+mean = np.mean(revenues)          # 146.6
+se   = stats.sem(revenues)        # 5.1 â€” standard error
+
+# 95% confidence interval
+ci = stats.t.interval(0.95,
+                       df=len(revenues)-1,
+                       loc=mean,
+                       scale=se)
+# ci â‰ˆ (135.1, 158.1)`,
+    steps:[
+      "mean = 146.6 â€” our best single estimate of the true average",
+      "stats.sem = std dev / âˆšn â€” measures how much the sample mean varies across samples",
+      "stats.t.interval(0.95, ...) â€” uses the t-distribution (better for small samples)",
+      "df = n - 1 = 9 degrees of freedom",
+      "Result: ($135.1, $158.1) â€” we are 95% confident the true mean lies in this range",
+      "Wider CI = less precision. To narrow it: collect a larger sample"
+    ]}
+  ],
+  quiz:{q:"A 95% CI for average order value is ($42, $58). What does this mean?",
+        opts:["95% of orders are between $42 and $58","We are 95% confident the true mean order value is between $42 and $58","There is a 5% chance the mean is exactly $50","The median is $50"],
+        ans:1,explain:"A CI estimates where the population parameter lies â€” not where individual values fall. 95% confidence refers to the long-run reliability of the method."}}
+],
+
+FILLS:[
+ {prompt:"The _____ is calculated by dividing the sum of all values by the count.",code:"total = sum(values)\nresult = total / len(values)",answer:"mean",explain:"Mean = sum / count. It is the arithmetic average."},
+ {prompt:"The _____ is the middle value in a sorted dataset.",code:"sorted_data = sorted(values)\nmiddle = sorted_data[len(sorted_data) // 2]",answer:"median",explain:"Median is the middle value when sorted â€” resistant to outliers."},
+ {prompt:"The _____ is the most frequently occurring value in a dataset.",code:"from collections import Counter\nresult = Counter(data).most_common(1)[0][0]",answer:"mode",explain:"Mode is the most common value â€” useful for categorical data."},
+ {prompt:"Standard deviation is the square root of the _____.",code:"import math\nstd_dev = math.sqrt(variance)",answer:"variance",explain:"Variance averages squared deviations; std dev takes the square root to return to original units."},
+ {prompt:"IQR equals Q3 minus _____.",code:"iqr = np.percentile(data, 75) - np.percentile(data, ___)",answer:"Q1",explain:"IQR = Q3 - Q1. It measures the spread of the middle 50% of the data."},
+ {prompt:"A z-score of 0 means the value is exactly at the _____ of the distribution.",code:"z = (value - mean) / std_dev\n# z = 0 when value == _____",answer:"mean",explain:"z = (value - mean) / std_dev. When value equals the mean, z = 0."},
+ {prompt:"In a normal distribution, approximately _____% of data falls within 1 standard deviation of the mean.",code:"# The 68-95-99.7 rule:\n# 1 std dev â†’ _____%\n# 2 std devs â†’ 95%\n# 3 std devs â†’ 99.7%",answer:"68",explain:"68-95-99.7: 68% within 1Ïƒ, 95% within 2Ïƒ, 99.7% within 3Ïƒ."},
+ {prompt:"A _____ variable is a hidden third factor that makes two variables appear correlated.",code:"# hot weather â†’ ice cream sales AND drowning rates\n# 'hot weather' is the _____ variable",answer:"confounding",explain:"A confounding variable drives both measurements, creating a spurious correlation."},
+ {prompt:"The _____ hypothesis assumes there is no effect and is what we try to disprove.",code:"# H_____: conversion rate A = conversion rate B\n# We need evidence to reject it",answer:"null",explain:"Hâ‚€ (null hypothesis) is the default 'no difference' claim. We only reject it with sufficient statistical evidence."},
+ {prompt:"A p-value below significance level _____ is the conventional threshold for rejecting the null hypothesis.",code:"p_value = 0.03\nalpha = _____\nif p_value < alpha:\n    print('Reject H0')",answer:"0.05",explain:"Î± = 0.05 is the conventional threshold. p < 0.05 = statistically significant result."},
+ {prompt:"In an A/B test, the group that sees no change is called the _____ group.",code:"group_a = _____   # no change\ngroup_b = treatment  # new version",answer:"control",explain:"The control group sees the current version; the treatment group sees the change. Comparing them isolates the effect."},
+ {prompt:"A 95% confidence interval means _____ out of 100 repeated intervals would contain the true value.",code:"ci = stats.t.interval(0.95, ...)\n# Interpretation: _____ of 100 intervals contain the truth",answer:"95",explain:"95% CI = 95% of intervals constructed this way will capture the true parameter. It is a statement about the procedure, not this specific interval."},
+],
+
+BUGS:[
+ {prompt:"This mean function will crash on an empty list.",
+  buggy:"def mean(values):\n    return sum(values) / len(values)",
+  fix:"add a guard: if not values: return None",accept:["if not values","len(values) == 0","if len(values)"],
+  explain:"Dividing by len([]) raises ZeroDivisionError. Always guard against empty inputs."},
+ {prompt:"The analyst claims the mean represents the typical value, but the data has an extreme outlier.",
+  buggy:"# data = [1, 1, 1, 1, 246]  mean = 50\nprint('The typical value is around 50')",
+  fix:"print('The median (1) is more representative â€” the mean is skewed by the outlier 246')",
+  accept:["median","outlier","skewed"],explain:"Mean is pulled by outliers. Pair mean with median and std dev to understand skewed data."},
+ {prompt:"This IQR outlier fence formula has a bug â€” it uses + instead of *.",
+  buggy:"upper_fence = q3 + 1.5 + iqr",
+  fix:"upper_fence = q3 + 1.5 * iqr",accept:["* iqr","1.5 * iqr"],
+  explain:"The IQR rule multiplies 1.5 by IQR, then adds to Q3. Using + gives the wrong fence value."},
+ {prompt:"This z-score formula has the numerator reversed.",
+  buggy:"z = (mean - value) / std_dev",
+  fix:"z = (value - mean) / std_dev",accept:["value - mean","(value - mean)"],
+  explain:"z-score = (value - mean) / std_dev. Reversing to (mean - value) flips the sign of every z-score."},
+ {prompt:"The analyst claims correlation proves causation. Fix the conclusion.",
+  buggy:"r = df['ad_spend'].corr(df['sales'])  # r = 0.91\nprint('Ad spend causes sales')",
+  fix:"print('Ad spend is strongly correlated with sales, but causation is not established')",
+  accept:["correlated","not proven","does not prove","causation is not"],
+  explain:"r = 0.91 shows a strong association. A confounder like seasonality may drive both."},
+ {prompt:"The confidence level argument should be 0.95 (a proportion), not 95.",
+  buggy:"ci = stats.t.interval(95, df=n-1, loc=mean, scale=se)",
+  fix:"ci = stats.t.interval(0.95, df=n-1, loc=mean, scale=se)",
+  accept:["0.95"],explain:"stats.t.interval takes a proportion (0.95), not a percentage (95). Passing 95 returns nonsense bounds."},
+ {prompt:"The analyst says p = 0.04 means '96% chance the result is real.' Fix this interpretation.",
+  buggy:"# p = 0.04\nprint('96% chance the effect is real')",
+  fix:"print('If H0 were true, there is only a 4% chance of seeing results this extreme')",
+  accept:["H0","null","4%","extreme","chance of seeing"],
+  explain:"p-value is the probability of the data given Hâ‚€ is true â€” NOT the probability that Hâ‚ is true."},
+ {prompt:"This uses population variance (n) but should use sample variance (n-1).",
+  buggy:"variance = sum((x - mean)**2 for x in data) / len(data)",
+  fix:"variance = sum((x - mean)**2 for x in data) / (len(data) - 1)",
+  accept:["len(data) - 1","n - 1","n-1"],
+  explain:"Sample variance uses n-1 (Bessel's correction) to correct for the bias of estimating from a sample."},
+ {prompt:"The null and alternative hypotheses are swapped.",
+  buggy:"# H0: the new feature increases clicks\n# H1: the new feature has no effect",
+  fix:"# H0: the new feature has no effect\n# H1: the new feature increases clicks",
+  accept:["H0: no effect","H0: the new feature has no effect"],
+  explain:"Hâ‚€ is always the 'no effect' baseline. Hâ‚ is the claim you are trying to support with data."},
+ {prompt:"This sample introduces selection bias by only surveying 5-star reviewers.",
+  buggy:"survey = [c for c in customers if c['rating'] == 5]",
+  fix:"survey = random.sample(customers, 200)  # random sample",
+  accept:["random","random.sample","all customers"],
+  explain:"Surveying only 5-star reviewers creates selection bias â€” you only hear from your happiest customers."},
+ {prompt:"The standard error formula divides by n instead of sqrt(n).",
+  buggy:"se = std_dev / len(data)",
+  fix:"import math\nse = std_dev / math.sqrt(len(data))",
+  accept:["sqrt","math.sqrt","** 0.5"],
+  explain:"SE = std_dev / âˆšn. Dividing by n (not âˆšn) dramatically underestimates the true uncertainty."},
+ {prompt:"Q1 and Q3 percentile arguments are swapped.",
+  buggy:"q1 = np.percentile(data, 75)\nq3 = np.percentile(data, 25)",
+  fix:"q1 = np.percentile(data, 25)\nq3 = np.percentile(data, 75)",
+  accept:["percentile(data, 25)","25","swap"],
+  explain:"Q1 = 25th percentile, Q3 = 75th. Swapping makes IQR negative and outlier fences backwards."},
+],
+
+WRONG:[
+ {prompt:"A dataset has mean = $200 and median = $95. Which statement is most accurate?",
+  code:"values = [80, 90, 95, 100, 110, 2000]",
+  opts:["The typical value is around $200","The data is right-skewed â€” median better represents the center","The data is left-skewed","Mean and median always agree"],
+  ans:1,explain:"Mean > median is the signature of right skew. The $2,000 outlier inflates the mean far above the median."},
+ {prompt:"Which statement about standard deviation is correct?",
+  code:"std_a = 5\nstd_b = 50",
+  opts:["Higher std dev means more accurate data","Higher std dev means data points spread further from the mean","Std dev and variance are always equal","Std dev cannot exceed the mean"],
+  ans:1,explain:"Std dev measures spread. Larger = further from the mean on average. No relation to accuracy."},
+ {prompt:"A z-score of -1.5 means:",
+  code:"z = (value - mean) / std_dev  # = -1.5",
+  opts:["The value is 1.5 times the mean","The value is 1.5 standard deviations below the mean","The value must be negative","The value is a confirmed outlier"],
+  ans:1,explain:"Z-score measures distance from the mean in std dev units. Negative = below the mean. -1.5 is not typically an outlier (threshold is usually |z| > 3)."},
+ {prompt:"Two variables have r = 0.95. Which conclusion is valid?",
+  code:"r = df['x'].corr(df['y'])  # 0.95",
+  opts:["x causes y","y causes x","x and y are strongly linearly associated","The relationship is perfectly causal"],
+  ans:2,explain:"r = 0.95 shows strong correlation â€” not causation. Either could cause the other, both could share a cause, or it could be coincidence."},
+ {prompt:"What does 'fail to reject Hâ‚€' mean?",
+  code:"p_value = 0.18\nalpha = 0.05\n# p > alpha",
+  opts:["Hâ‚€ is proven true","We have insufficient evidence to reject Hâ‚€","The experiment failed","Hâ‚ is definitely false"],
+  ans:1,explain:"Failing to reject Hâ‚€ is NOT proof it is true â€” just that data does not provide enough evidence against it. Absence of evidence â‰  evidence of absence."},
+ {prompt:"By the 68-95-99.7 rule, what % of data falls within 2 std devs of the mean?",
+  code:"# Normal distribution\n# 1Ïƒ â†’ ___%   2Ïƒ â†’ ___%   3Ïƒ â†’ ___%",
+  opts:["68%","75%","95%","99.7%"],
+  ans:2,explain:"68-95-99.7: 1Ïƒ = 68%, 2Ïƒ = 95%, 3Ïƒ = 99.7%. This is the empirical rule for normal distributions."},
+ {prompt:"You survey only customers who complained this month. What type of bias is this?",
+  code:"sample = [c for c in customers if c['complained']]",
+  opts:["Random sampling","Stratified sampling","Selection bias","Survivorship bias"],
+  ans:2,explain:"Only complainers are included. This is selection bias â€” results will skew toward negative sentiment and not represent all customers."},
+ {prompt:"A 95% CI is ($100, $150). What does this mean?",
+  code:"ci = stats.t.interval(0.95, ...)\n# = (100, 150)",
+  opts:["95% of individual values are between $100 and $150","We are 95% confident the true mean is between $100 and $150","The mean is definitely $125","There is a 5% chance the mean is $0"],
+  ans:1,explain:"A CI estimates where the population parameter lies â€” not where individual values fall. 95% confidence refers to the long-run reliability of the procedure."},
+ {prompt:"Which best describes a p-value of 0.03?",
+  code:"p_value = 0.03",
+  opts:["3% chance Hâ‚ is true","97% chance the result is real","If Hâ‚€ were true, 3% chance of seeing results this extreme","The effect size is 3%"],
+  ans:2,explain:"p-value = probability of observing results this extreme if Hâ‚€ is true. It is NOT the probability that Hâ‚ or Hâ‚€ is true."},
+ {prompt:"IQR = 40, Q3 = 120. What is the upper outlier fence?",
+  code:"# Upper fence = Q3 + 1.5 Ã— IQR",
+  opts:["160","180","240","140"],
+  ans:1,explain:"Upper fence = Q3 + 1.5 Ã— IQR = 120 + 60 = 180."},
+ {prompt:"Which sampling method is least likely to introduce bias?",
+  code:"# A: every 10th customer alphabetically\n# B: online customers only\n# C: simple random sample\n# D: email opt-in customers",
+  opts:["Every 10th alphabetically","Online customers only","Simple random sample from all customers","Email opt-in customers"],
+  ans:2,explain:"Simple random sampling gives every member an equal chance of selection, minimizing selection bias."},
+ {prompt:"Treatment converts 8% vs control 6%. p = 0.12. What should you do?",
+  code:"treatment_rate = 0.08\ncontrol_rate   = 0.06\np_value = 0.12\nalpha   = 0.05",
+  opts:["Ship it â€” 8% > 6%","Fail to reject Hâ‚€ â€” difference not statistically significant yet","Reject Hâ‚€ immediately","Declare the test failed"],
+  ans:1,explain:"p = 0.12 > 0.05: fail to reject Hâ‚€. The observed lift could be random noise. Run longer to collect more data."},
+],
+
+PARSONS:[
+ {prompt:"Put the steps to calculate standard deviation in order.",
+  solution:["Calculate the mean of the dataset","Subtract the mean from each value to get deviations","Square each deviation","Average the squared deviations â€” this is variance","Take the square root of the variance"],
+  explain:"Each step builds on the previous. Squaring removes negatives; sqrt brings units back."},
+ {prompt:"Order the steps of an A/B test correctly.",
+  solution:["Define the metric you want to improve (e.g., conversion rate)","State Hâ‚€ and Hâ‚ before collecting data","Randomly assign users to control and treatment groups","Run the test until reaching the required sample size","Compute the p-value and compare to Î±"],
+  explain:"Defining hypotheses before looking at data prevents p-hacking."},
+ {prompt:"Put the IQR outlier detection steps in order.",
+  solution:["Sort the data and find Q1 (25th percentile) and Q3 (75th percentile)","Calculate IQR = Q3 âˆ’ Q1","Compute lower fence = Q1 âˆ’ 1.5 Ã— IQR","Compute upper fence = Q3 + 1.5 Ã— IQR","Flag any values outside the fences as potential outliers"],
+  explain:"IQR uses Q1 and Q3 (not the mean) so the fences are themselves resistant to outliers."},
+ {prompt:"Order the general steps of hypothesis testing.",
+  solution:["State Hâ‚€ (null) and Hâ‚ (alternative)","Choose significance level Î± (typically 0.05)","Collect data and calculate the test statistic","Compute the p-value from the test statistic","If p < Î± reject Hâ‚€; otherwise fail to reject Hâ‚€"],
+  explain:"Always define hypotheses before collecting data to avoid confirmation bias."},
+ {prompt:"Put the steps to compute a z-score in order.",
+  solution:["Find the mean of the distribution","Find the standard deviation","Subtract the mean from the value: (value âˆ’ mean)","Divide the result by the standard deviation"],
+  explain:"z = (value âˆ’ mean) / std dev. The result is the number of standard deviations from the mean."},
+ {prompt:"Order the steps to correctly interpret a p-value.",
+  solution:["State Hâ‚€ and Hâ‚ before the test","Run the test and obtain the p-value","Compare p to the chosen Î±","If p < Î±, reject Hâ‚€ and report the effect size","If p â‰¥ Î±, fail to reject Hâ‚€ â€” do not claim the null is true"],
+  explain:"The final step is critical: failing to reject Hâ‚€ is not proof it is true."},
+ {prompt:"Put the steps to compute a confidence interval in order.",
+  solution:["Collect a random sample of size n","Compute the sample mean and standard deviation","Calculate standard error = std dev / âˆšn","Choose your confidence level (e.g., 95%)","Use stats.t.interval to compute (lower, upper) bounds"],
+  explain:"Larger n â†’ smaller SE â†’ narrower CI â†’ more precision."},
+ {prompt:"Order the steps to detect outliers using z-scores.",
+  solution:["Compute the mean and standard deviation of the dataset","For each value, calculate z = (value âˆ’ mean) / std dev","Flag values where |z| > 3 as potential outliers","Investigate flagged values â€” are they data errors or genuine extremes?"],
+  explain:"|z| > 3 means the value is more than 3 std devs from the mean â€” extremely rare in a normal distribution (~0.3%)."},
+ {prompt:"Order the steps to assess whether data is normally distributed.",
+  solution:["Plot a histogram to visually inspect the shape","Check if mean â‰ˆ median (equal in a normal distribution)","Calculate skewness â€” values near 0 indicate symmetry","Run a Shapiro-Wilk test if statistical confirmation is needed"],
+  explain:"Visual inspection first, then quantitative checks. Most analyst work stops at skewness."},
+ {prompt:"Put the steps for a correlation analysis in the correct order.",
+  solution:["Choose two numeric variables to compare","Compute r = .corr() between the two columns","Assess strength: |r| > 0.7 strong, 0.3â€“0.7 moderate, < 0.3 weak","Assess direction: positive r = both increase together","Remind yourself: correlation does not imply causation"],
+  explain:"Always end with the causation reminder â€” it is the most common mistake analysts make."},
+ {prompt:"Put the steps to read a box plot in order.",
+  solution:["Identify the median line inside the box (Q2)","The left edge of the box is Q1, the right edge is Q3","The box width equals the IQR","The whiskers extend to Q1 âˆ’ 1.5Ã—IQR and Q3 + 1.5Ã—IQR","Individual dots beyond the whiskers are potential outliers"],
+  explain:"Box plots are dense with information: center, spread, skew, and outliers â€” all in one chart."},
+ {prompt:"Order the steps for a sound sampling strategy.",
+  solution:["Define the population you want to draw conclusions about","Determine the required sample size (power analysis)","Use random selection so every member has equal chance","Collect the data without allowing self-selection","Validate the sample is representative before drawing conclusions"],
+  explain:"Self-selection (like opt-in surveys) is a common source of bias that invalidates conclusions."},
+],
+
+ESQL:[
+ {english:'"Give me the mean, median, and mode of the Revenue column."',
+  answer:'mean = df["revenue"].mean()\nmedian = df["revenue"].median()\nmode = df["revenue"].mode()[0]',
+  keywords:["mean","median","mode"],explain:".mode() returns a Series; [0] picks the first (or only) mode."},
+ {english:'"How spread out is the data? Give me variance and standard deviation of units."',
+  answer:'var = df["units"].var()\nstd = df["units"].std()',
+  keywords:["var","std"],explain:".var() gives variance, .std() gives standard deviation. Both measure spread around the mean."},
+ {english:'"Find Q1, Q2, Q3, and IQR for revenue."',
+  answer:'q1 = df["revenue"].quantile(0.25)\nq2 = df["revenue"].quantile(0.50)\nq3 = df["revenue"].quantile(0.75)\niqr = q3 - q1',
+  keywords:["quantile","0.25","0.75","iqr"],explain:".quantile() accepts 0â€“1. IQR = Q3 âˆ’ Q1."},
+ {english:'"Flag any revenue values that are outliers using the IQR method."',
+  answer:'q1=df["revenue"].quantile(0.25)\nq3=df["revenue"].quantile(0.75)\niqr=q3-q1\noutliers=df[(df["revenue"]<q1-1.5*iqr)|(df["revenue"]>q3+1.5*iqr)]',
+  keywords:["quantile","iqr","1.5","outliers"],explain:"Filter rows outside Q1âˆ’1.5Ã—IQR and Q3+1.5Ã—IQR."},
+ {english:'"Compute the correlation between units and revenue."',
+  answer:'r = df["units"].corr(df["revenue"])',
+  keywords:["corr"],explain:".corr() computes Pearson r. Values near Â±1 indicate strong linear association."},
+ {english:'"Standardize revenue â€” express every value as a z-score."',
+  answer:'df["revenue_z"] = (df["revenue"] - df["revenue"].mean()) / df["revenue"].std()',
+  keywords:["mean","std","z","standardize"],explain:"z = (value âˆ’ mean) / std dev. After this, revenue_z has mean = 0 and std = 1."},
+ {english:'"Is the revenue distribution skewed? Show me the skewness value."',
+  answer:'skew = df["revenue"].skew()\nprint(f"Skewness: {skew:.2f}")\n# >1 right-skewed, <-1 left-skewed',
+  keywords:["skew"],explain:".skew() returns Pearson skewness. Positive = right tail, negative = left tail."},
+ {english:'"Run a t-test to check if revenue differs between North and South regions."',
+  answer:'from scipy import stats\nnorth = df[df["region"]=="North"]["revenue"]\nsouth = df[df["region"]=="South"]["revenue"]\nt, p = stats.ttest_ind(north, south)',
+  keywords:["ttest_ind","stats","north","south","p"],explain:"ttest_ind compares means of two independent groups and returns t-stat and p-value."},
+ {english:'"What is the 95% confidence interval for mean revenue?"',
+  answer:'from scipy import stats\nimport numpy as np\nmean=df["revenue"].mean()\nse=stats.sem(df["revenue"])\nci=stats.t.interval(0.95,df=len(df)-1,loc=mean,scale=se)',
+  keywords:["t.interval","0.95","sem","mean","ci"],explain:"stats.t.interval builds the CI. Use stats.sem as scale (standard error of the mean)."},
+ {english:'"Should I report mean or median for this column? Check the skewness."',
+  answer:'skew=df["revenue"].skew()\nif abs(skew)>1:\n    print("Skewed â€” report median:", df["revenue"].median())\nelse:\n    print("Symmetric â€” report mean:", df["revenue"].mean())',
+  keywords:["skew","median","mean","abs"],explain:"|skew| > 1 = substantially skewed = report median."},
+ {english:'"Compute the standard error of the mean for the revenue column."',
+  answer:'from scipy import stats\nse = stats.sem(df["revenue"])\n# or: se = df["revenue"].std() / len(df)**0.5',
+  keywords:["sem","std","sqrt","0.5"],explain:"SE = std dev / âˆšn. Smaller SE = more precise estimate of the true mean."},
+ {english:'"Show a full descriptive summary: count, mean, std, min, quartiles, max."',
+  answer:'summary = df["revenue"].describe()',
+  keywords:["describe"],explain:".describe() returns count, mean, std, min, Q1, median, Q3, max â€” the full picture in one line."},
+],
+
+CARDS:[
+ {front:"Mean",back:"Sum of all values divided by count. Sensitive to outliers. Best for symmetric distributions."},
+ {front:"Median",back:"Middle value when data is sorted. Resistant to outliers. Best for skewed distributions."},
+ {front:"Mode",back:"Most frequently occurring value. Most useful for categorical data."},
+ {front:"Variance",back:"Average of squared deviations from the mean. Measures spread in squared units."},
+ {front:"Standard Deviation",back:"Square root of variance. Same units as the data. The most common spread measure."},
+ {front:"IQR (Interquartile Range)",back:"Q3 âˆ’ Q1. Spread of the middle 50% of data. Used in the 1.5Ã—IQR outlier rule."},
+ {front:"Q1 (First Quartile)",back:"25th percentile â€” 25% of values fall below this point."},
+ {front:"Q3 (Third Quartile)",back:"75th percentile â€” 75% of values fall below this point."},
+ {front:"Percentile",back:"The value below which a given % of observations fall. 90th percentile = 90% of values are lower."},
+ {front:"Z-Score",back:"(value âˆ’ mean) / std dev. Measures how many standard deviations a value is from the mean."},
+ {front:"Normal Distribution",back:"Symmetric bell curve. Mean = median = mode. Described fully by mean and std dev."},
+ {front:"68-95-99.7 Rule",back:"In a normal distribution: 68% within 1Ïƒ, 95% within 2Ïƒ, 99.7% within 3Ïƒ."},
+ {front:"Right Skew (Positive Skew)",back:"Long tail to the right. Mean > median. Common for income, revenue, and prices."},
+ {front:"Left Skew (Negative Skew)",back:"Long tail to the left. Mean < median. Common for test scores near the maximum."},
+ {front:"Outlier",back:"A value far from the rest of the data. IQR rule: below Q1 âˆ’ 1.5Ã—IQR or above Q3 + 1.5Ã—IQR."},
+ {front:"Probability",back:"A number 0â€“1 measuring how likely an event is. P=0 impossible, P=1 certain."},
+ {front:"Complement Rule",back:"P(not A) = 1 âˆ’ P(A). The probability that an event does not occur."},
+ {front:"Independent Events",back:"Two events are independent if P(A and B) = P(A) Ã— P(B)."},
+ {front:"Correlation (r)",back:"Measures strength and direction of a linear relationship. Ranges from âˆ’1 to +1."},
+ {front:"Causation",back:"One variable directly causes a change in another. Requires a controlled experiment â€” correlation alone is not enough."},
+ {front:"Confounding Variable",back:"A hidden third variable that drives both measured variables, creating a spurious correlation."},
+ {front:"Null Hypothesis (Hâ‚€)",back:"The default 'no effect' claim in hypothesis testing. We try to disprove it."},
+ {front:"Alternative Hypothesis (Hâ‚)",back:"The claim we are trying to support â€” that there IS a real effect or difference."},
+ {front:"p-Value",back:"Probability of observing results this extreme if Hâ‚€ were true. Small p = strong evidence against Hâ‚€."},
+ {front:"Statistical Significance",back:"p < Î± (usually 0.05). Result is unlikely to be due to chance. Does not mean the effect is large."},
+ {front:"Type I Error (False Positive)",back:"Rejecting Hâ‚€ when it is actually true. Probability = Î±. Example: concluding a change works when it does not."},
+ {front:"Type II Error (False Negative)",back:"Failing to reject Hâ‚€ when Hâ‚ is actually true. Missing a real effect."},
+ {front:"A/B Test",back:"Randomized experiment comparing control (A) vs treatment (B). Random assignment enables causal conclusions."},
+ {front:"Confidence Interval",back:"A range likely to contain the true population parameter. 95% CI: 95 of 100 such intervals contain the true value."},
+ {front:"Standard Error",back:"Std dev / âˆšn. Measures precision of the sample mean as an estimate of the population mean. Decreases with larger n."},
+],
+
+GLOSSARY:[
+ {term:"Mean",def:"Arithmetic average: sum of values divided by count. Sensitive to outliers."},
+ {term:"Median",def:"Middle value in sorted data. Resistant to outliers and skew."},
+ {term:"Mode",def:"Most frequently occurring value. Can be used with categorical data."},
+ {term:"Variance",def:"Average of squared deviations from the mean. Units are originalÂ² (e.g., $Â²)."},
+ {term:"Standard Deviation",def:"Square root of variance. Same units as the data. Most common spread measure."},
+ {term:"IQR",def:"Interquartile range = Q3 âˆ’ Q1. Measures spread of the middle 50%."},
+ {term:"Percentile",def:"The value below which P% of observations fall. Median = 50th percentile."},
+ {term:"Z-Score",def:"(value âˆ’ mean) / std dev. Standardizes any value to standard deviation units from the mean."},
+ {term:"Normal Distribution",def:"Symmetric bell curve characterized by mean and std dev. Many real measures approximate it."},
+ {term:"Skewness",def:"Measure of distribution asymmetry. Positive = right tail, Negative = left tail. Near 0 = symmetric."},
+ {term:"Outlier",def:"A value far from the bulk of the data. Commonly defined as beyond 1.5Ã—IQR from Q1/Q3."},
+ {term:"Probability",def:"A value 0â€“1 quantifying the likelihood of an event occurring."},
+ {term:"Population",def:"The entire group you want to draw conclusions about."},
+ {term:"Sample",def:"A subset of the population used to estimate population characteristics."},
+ {term:"Sampling Bias",def:"Systematic over- or under-representation of certain groups in a sample."},
+ {term:"Correlation",def:"Statistical measure of how strongly two variables move together (r from âˆ’1 to +1)."},
+ {term:"Causation",def:"A direct mechanism by which one variable changes another. Requires experimental evidence."},
+ {term:"Confounding Variable",def:"A third variable influencing both measured variables, creating spurious correlation."},
+ {term:"Null Hypothesis (Hâ‚€)",def:"The default 'no effect' assumption in hypothesis testing."},
+ {term:"p-Value",def:"Probability of observing the data (or more extreme) if Hâ‚€ is true. Low p = evidence against Hâ‚€."},
+ {term:"Statistical Significance",def:"p < Î± â€” the result is unlikely under Hâ‚€. Does not imply practical importance."},
+ {term:"A/B Test",def:"Randomized experiment comparing control and treatment groups on a single metric."},
+ {term:"Confidence Interval",def:"A range of values likely to contain the true population parameter at a stated confidence level."},
+ {term:"Standard Error",def:"Std dev / âˆšn â€” measures precision of the sample mean as an estimate of the population mean."},
+ {term:"Type I Error",def:"Falsely rejecting Hâ‚€ (false positive). Probability is controlled by Î±."},
+]};
+
+const CONTOSO=[
+ {rep:"Jordan Lee",region:"East",product:"Latte",category:"Hot",month:"Jan",units:12,revenue:228},
+ {rep:"Taylor Brooks",region:"West",product:"Cold Brew",category:"Cold",month:"Jan",units:9,revenue:117},
+ {rep:"Sam Rivera",region:"South",product:"Espresso Shot",category:"Hot",month:"Jan",units:18,revenue:216},
+ {rep:"Maya Chen",region:"West",product:"Latte",category:"Hot",month:"Jan",units:16,revenue:304},
+ {rep:"Alex Kim",region:"North",product:"Cappuccino",category:"Hot",month:"Jan",units:7,revenue:112},
+ {rep:"Jordan Lee",region:"East",product:"Cold Brew",category:"Cold",month:"Feb",units:10,revenue:130},
+ {rep:"Taylor Brooks",region:"West",product:"Mocha",category:"Hot",month:"Feb",units:14,revenue:252},
+ {rep:"Sam Rivera",region:"South",product:"Latte",category:"Hot",month:"Feb",units:20,revenue:380},
+ {rep:"Maya Chen",region:"West",product:"Mocha",category:"Hot",month:"Feb",units:7,revenue:133},
+ {rep:"Alex Kim",region:"North",product:"Iced Latte",category:"Cold",month:"Feb",units:11,revenue:198},
+ {rep:"Jordan Lee",region:"East",product:"Cappuccino",category:"Hot",month:"Mar",units:14,revenue:224},
+ {rep:"Taylor Brooks",region:"West",product:"Espresso Shot",category:"Hot",month:"Mar",units:22,revenue:264},
+ {rep:"Sam Rivera",region:"South",product:"Cold Brew",category:"Cold",month:"Mar",units:13,revenue:169},
+ {rep:"Maya Chen",region:"West",product:"Latte",category:"Hot",month:"Mar",units:16,revenue:304},
+ {rep:"Alex Kim",region:"North",product:"Mocha",category:"Hot",month:"Mar",units:5,revenue:95},
+ {rep:"Jordan Lee",region:"East",product:"Cold Brew",category:"Cold",month:"Mar",units:19,revenue:247},
+ {rep:"Taylor Brooks",region:"West",product:"Iced Latte",category:"Cold",month:"Mar",units:8,revenue:144},
+ {rep:"Sam Rivera",region:"South",product:"Cappuccino",category:"Hot",month:"Apr",units:11,revenue:176},
+ {rep:"Maya Chen",region:"West",product:"Cold Brew",category:"Cold",month:"Apr",units:14,revenue:182},
+ {rep:"Alex Kim",region:"North",product:"Latte",category:"Hot",month:"Apr",units:9,revenue:171},
+ {rep:"Jordan Lee",region:"East",product:"Mocha",category:"Hot",month:"Apr",units:6,revenue:114},
+ {rep:"Taylor Brooks",region:"West",product:"Latte",category:"Hot",month:"Apr",units:12,revenue:228},
+ {rep:"Sam Rivera",region:"South",product:"Iced Latte",category:"Cold",month:"Apr",units:8,revenue:144},
+ {rep:"Maya Chen",region:"West",product:"Espresso Shot",category:"Hot",month:"Apr",units:17,revenue:204},
+ {rep:"Alex Kim",region:"North",product:"Cold Brew",category:"Cold",month:"Apr",units:10,revenue:130}
+];
+
+/* â”€â”€ STATE â”€â”€ */
+let S={done:{},theme:'dark',lastLesson:null,cardIdx:0};
+function loadState(){try{const r=JSON.parse(localStorage.getItem('spk'));if(r)S=Object.assign(S,r);}catch(e){}}
+function save(){localStorage.setItem('spk',JSON.stringify(S));}
+
+/* â”€â”€ THEME â”€â”€ */
+function applyTheme(){document.documentElement.setAttribute('data-theme',S.theme);document.getElementById('themeIcon').textContent=S.theme==='dark'?'â˜€ï¸':'ðŸŒ™';}
+function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';applyTheme();save();}
+
+/* â”€â”€ NAV â”€â”€ */
+function show(v){
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  const link=document.querySelector(`.nav-link[onclick*="'${v}'"]`);
+  if(link)link.classList.add('active');
+  const view=document.getElementById('view-'+v);
+  if(view)view.classList.add('active');
+  if(v==='home')renderHome();
+  else if(v==='lessons')renderLessonList();
+  else if(v==='practice')renderDrillList();
+  else if(v==='distlab')initDistLab();
+  else if(v==='cards')renderCards();
+  else if(v==='glossary')renderGlossary();
+}
+
+/* â”€â”€ CELEBRATE â”€â”€ */
+function celebrate(gold,msg){
+  try{const ac=new AudioContext();const o=ac.createOscillator();const g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.setValueAtTime(gold?880:523,ac.currentTime);o.frequency.setValueAtTime(gold?1100:659,ac.currentTime+0.1);g.gain.setValueAtTime(0.25,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.5);o.start();o.stop(ac.currentTime+0.5);}catch(e){}
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  if(gold){document.body.classList.add('flash');setTimeout(()=>document.body.classList.remove('flash'),600);}
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+/* â”€â”€ HOME â”€â”€ */
+function renderHome(){
+  const total=DATA.LESSONS.length;
+  const drillTotal=DATA.FILLS.length+DATA.BUGS.length+DATA.WRONG.length+DATA.PARSONS.length+DATA.ESQL.length;
+  const lessDone=Object.keys(S.done).filter(k=>k.startsWith('lesson')).length;
+  const drillDone=Object.keys(S.done).filter(k=>!k.startsWith('lesson')&&!k.startsWith('card')).length;
+  const cardsDone=Object.keys(S.done).filter(k=>k.startsWith('card')).length;
+  const skills=['Measures of Center','Spread & Shape','Probability','Sampling & Correlation','Inference & Testing'];
+  const skillScores=skills.map((_,i)=>{
+    const keys=[`lesson${i*2+1}`,`lesson${i*2+2}`];
+    return Math.round(keys.filter(k=>S.done[k]).length/keys.length*100);
+  });
+  const overall=Math.round(skillScores.reduce((a,b)=>a+b,0)/skills.length);
+  document.getElementById('view-home').innerHTML=`
+    <h2 style="margin-bottom:8px">Stats Prep Kit</h2>
+    <p style="color:var(--txt2);margin-bottom:24px">Master the statistics every data analyst interview tests â€” from mean/median to A/B testing.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px">
+      <div class="card" style="text-align:center"><div style="font-size:2rem;font-weight:700;color:var(--accent)">${lessDone}/${total}</div><div style="color:var(--txt2);font-size:.85rem">Lessons</div></div>
+      <div class="card" style="text-align:center"><div style="font-size:2rem;font-weight:700;color:var(--accent)">${drillDone}/${drillTotal}</div><div style="color:var(--txt2);font-size:.85rem">Drills</div></div>
+      <div class="card" style="text-align:center"><div style="font-size:2rem;font-weight:700;color:var(--accent)">${cardsDone}/${DATA.CARDS.length}</div><div style="color:var(--txt2);font-size:.85rem">Flashcards</div></div>
+    </div>
+    <div class="card" style="margin-bottom:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><strong>Skill Readiness</strong><span style="font-size:1.4rem;font-weight:700;color:var(--accent)">${overall}%</span></div>
+      ${skills.map((s,i)=>`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:3px"><span>${s}</span><span style="color:var(--txt2)">${skillScores[i]}%</span></div><div style="background:var(--surf2);border-radius:4px;height:6px"><div style="background:var(--accent);border-radius:4px;height:6px;width:${skillScores[i]}%;transition:width .4s"></div></div></div>`).join('')}
+    </div>
+    ${S.lastLesson?`<button class="btn" onclick="openLesson(${S.lastLesson})">â–¶ Resume Lesson ${S.lastLesson}</button>`:''}
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--bord);display:flex;gap:12px;flex-wrap:wrap">
+      <a href="https://michaelnocito.github.io/analyst-prep-kit/sql/" target="_blank" style="color:var(--accent);font-size:.85rem">SQL Kit â†—</a>
+      <a href="https://michaelnocito.github.io/analyst-prep-kit/excel/" target="_blank" style="color:var(--accent);font-size:.85rem">Excel Kit â†—</a>
+      <a href="https://michaelnocito.github.io/analyst-prep-kit/python/" target="_blank" style="color:var(--accent);font-size:.85rem">Python Kit â†—</a>
+      <a href="https://michaelnocito.github.io/analyst-prep-kit/tableau/" target="_blank" style="color:var(--accent);font-size:.85rem">Tableau Kit â†—</a>
+    </div>
+  `;
+}
+
+/* â”€â”€ LESSONS â”€â”€ */
+function renderLessonList(){
+  const units={1:[],2:[],3:[]};
+  DATA.LESSONS.forEach(l=>units[l.unit].push(l));
+  const unames={1:'Unit 1: Describing Data',2:'Unit 2: Probability & Distributions',3:'Unit 3: Inference & Testing'};
+  document.getElementById('view-lessons').innerHTML=Object.keys(units).map(u=>`
+    <div style="margin-bottom:24px">
+      <h3 style="margin-bottom:12px;color:var(--txt2);font-size:.9rem;text-transform:uppercase;letter-spacing:.05em">${unames[u]}</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${units[u].map(l=>{const done=S.done[`lesson${l.id}`];return `<div class="card" style="display:flex;align-items:center;gap:12px;cursor:pointer;${done?'border-color:var(--accent)':''}" onclick="openLesson(${l.id})"><span style="font-size:1.2rem">${done?'âœ…':'ðŸ“–'}</span><div><strong>${l.title}</strong><div style="color:var(--txt2);font-size:.82rem">${l.subtitle}</div></div></div>`;}).join('')}
+      </div>
+    </div>`).join('');
+}
+
+let lessonState={id:null};
+function openLesson(id){
+  S.lastLesson=id;save();
+  lessonState={id};
+  renderLesson();
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-lessons').classList.add('active');
+}
+function renderLesson(){
+  const l=DATA.LESSONS.find(x=>x.id===lessonState.id);
+  if(!l)return;
+  document.getElementById('view-lessons').innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <button class="btn btn-sm" onclick="renderLessonList()">â† All Lessons</button>
+      <span style="color:var(--txt2);font-size:.85rem">Lesson ${l.id} of ${DATA.LESSONS.length}</span>
+    </div>
+    <h2 style="margin-bottom:4px">${l.title}</h2>
+    <p style="color:var(--txt2);margin-bottom:20px">${l.subtitle}</p>
+    ${l.sections.map(sec=>`
+      <div class="card" style="margin-bottom:16px">
+        <h4 style="margin-bottom:8px;color:var(--accent)">${sec.heading}</h4>
+        ${sec.body?`<p style="margin-bottom:${sec.code?'10px':'0'};line-height:1.6">${sec.body}</p>`:''}
+        ${sec.code?`<div style="position:relative"><pre class="code-block">${sec.code}</pre><button class="btn btn-sm" style="position:absolute;top:8px;right:8px;opacity:.7" onclick="toggleRead(this)">ðŸ”Š Read It</button></div>${sec.steps&&sec.steps.length?`<div class="read-panel">${sec.steps.map((s,i)=>`<div style="margin-bottom:6px"><span style="color:var(--accent);font-weight:600">Step ${i+1}:</span> ${s}</div>`).join('')}</div>`:''}`:''}
+      </div>`).join('')}
+    ${l.quiz?`<div class="card" id="quizCard"><h4 style="margin-bottom:12px">Quick Check</h4><p style="margin-bottom:12px">${l.quiz.q}</p><div id="quizOpts" style="display:flex;flex-direction:column;gap:8px">${l.quiz.opts.map((o,i)=>`<button class="btn btn-outline" style="text-align:left;justify-content:flex-start" onclick="checkQuiz(${i})">${o}</button>`).join('')}</div><div id="quizFb" style="margin-top:10px;display:none"></div></div>`:''}
+    ${!l.quiz?`<button class="btn" style="margin-top:8px" onclick="finishLesson(${l.id})">Mark Complete âœ“</button>`:''}
+  `;
+}
+function toggleRead(btn){
+  const panel=btn.closest('.card').querySelector('.read-panel');
+  if(!panel)return;
+  const open=panel.style.display==='block';
+  panel.style.display=open?'none':'block';
+  btn.textContent=open?'ðŸ”Š Read It':'ðŸ”• Close';
+}
+function checkQuiz(i){
+  const l=DATA.LESSONS.find(x=>x.id===lessonState.id);
+  const fb=document.getElementById('quizFb');
+  const btns=document.querySelectorAll('#quizOpts .btn');
+  btns.forEach(b=>b.disabled=true);
+  if(i===l.quiz.ans){
+    btns[i].style.background='var(--accent)';btns[i].style.color='#fff';
+    fb.innerHTML=`<span style="color:var(--accent)">âœ“ Correct! ${l.quiz.explain}</span>`;fb.style.display='block';
+    celebrate(true,'Correct! ðŸŽ‰');
+    setTimeout(()=>finishLesson(l.id),1200);
+  } else {
+    btns[i].style.background='#c0392b';btns[i].style.color='#fff';
+    fb.innerHTML=`<span style="color:var(--err)">Not quite. ${l.quiz.explain}</span>`;fb.style.display='block';
+    celebrate(false,'Keep going ðŸ’ª');
+    setTimeout(()=>{btns.forEach(b=>{b.disabled=false;b.style.background='';b.style.color='';});fb.style.display='none';},1800);
+  }
+}
+function finishLesson(id){S.done[`lesson${id}`]=true;save();renderLessonList();celebrate(true,`Lesson ${id} complete! ðŸŒŸ`);}
+
+/* â”€â”€ DRILLS â”€â”€ */
+const DRILL_TYPES=[
+  {key:'fills',label:'Fill in the Blank',icon:'âœï¸',data:'FILLS'},
+  {key:'bugs',label:'Fix the Code',icon:'ðŸ›',data:'BUGS'},
+  {key:'wrong',label:"What's Wrong?",icon:'ðŸ”',data:'WRONG'},
+  {key:'parsons',label:'Parsons Puzzle',icon:'ðŸ§©',data:'PARSONS'},
+  {key:'esql',label:'English â†’ Stats',icon:'ðŸ’¬',data:'ESQL'},
+];
+let drillState={type:null,idx:null,parsPlaced:[],parsBank:[]};
+function renderDrillList(){
+  document.getElementById('view-practice').innerHTML=`<h2 style="margin-bottom:16px">Practice Drills</h2>`+DRILL_TYPES.map(dt=>{
+    const items=DATA[dt.data];const done=items.filter((_,i)=>S.done[`${dt.key}${i}`]).length;
+    return `<div class="card" style="margin-bottom:10px;cursor:pointer" onclick="openDrill('${dt.key}',0)"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.4rem">${dt.icon}</span><div style="flex:1"><strong>${dt.label}</strong><div style="color:var(--txt2);font-size:.82rem">${done}/${items.length} complete</div></div><div style="background:var(--surf2);border-radius:4px;height:6px;width:80px"><div style="background:var(--accent);border-radius:4px;height:6px;width:${Math.round(done/items.length*100)}%"></div></div></div></div>`;
+  }).join('');
+}
+function openDrill(type,idx){drillState={type,idx,parsPlaced:[],parsBank:[]};renderDrill();}
+function renderDrill(){
+  const dt=DRILL_TYPES.find(d=>d.key===drillState.type);
+  const items=DATA[dt.data];const item=items[drillState.idx];const done=S.done[`${drillState.type}${drillState.idx}`];
+  const el=document.getElementById('view-practice');
+  const nav=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><button class="btn btn-sm" onclick="renderDrillList()">â† Drills</button><span style="color:var(--txt2);font-size:.85rem">${dt.icon} ${dt.label} â€” ${drillState.idx+1}/${items.length}</span>${done?'<span style="color:var(--accent);font-size:.85rem">âœ“ Done</span>':''}</div>`;
+  const navBtns=`<div style="display:flex;gap:8px;margin-top:16px">${drillState.idx>0?`<button class="btn" onclick="openDrill('${drillState.type}',${drillState.idx-1})">â† Prev</button>`:''}${drillState.idx<items.length-1?`<button class="btn" onclick="openDrill('${drillState.type}',${drillState.idx+1})">Next â†’</button>`:`<button class="btn" onclick="renderDrillList()">All Done ðŸŽ¯</button>`}</div>`;
+  let body='';
+  if(drillState.type==='fills')body=renderFill(item,done);
+  else if(drillState.type==='bugs')body=renderBug(item,done);
+  else if(drillState.type==='wrong')body=renderWrong(item,done);
+  else if(drillState.type==='parsons')body=renderParsons(item,done);
+  else if(drillState.type==='esql')body=renderEsql(item,done);
+  el.innerHTML=nav+body+navBtns;
+  if(drillState.type==='parsons'&&!done)initParsons(item);
+}
+function markDone(key,idx){S.done[`${key}${idx}`]=true;save();}
+function toggleSol(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+
+/* FILL */
+function renderFill(item,done){
+  return `<div class="card"><p style="margin-bottom:14px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.code}</pre><input id="fillAns" class="inp" placeholder="Your answerâ€¦" value="${done?item.answer:''}" ${done?'disabled':''}>${!done?`<button class="btn" style="margin-top:10px" onclick="checkFill()">Check</button>`:''}<div id="fillFb" style="margin-top:10px;display:none"></div><div id="fillSol" style="display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem"><strong>Answer:</strong> ${item.answer}<br>${item.explain}</div><button class="btn btn-sm" style="margin-top:8px;opacity:.6" onclick="toggleSol('fillSol')">Show/Hide Answer</button></div>`;
+}
+function checkFill(){
+  const item=DATA.FILLS[drillState.idx];const ans=document.getElementById('fillAns').value.trim();const fb=document.getElementById('fillFb');
+  if(ans.toLowerCase()===item.answer.toLowerCase()){fb.innerHTML=`<span style="color:var(--accent)">âœ“ Correct! ${item.explain}</span>`;fb.style.display='block';markDone('fills',drillState.idx);celebrate(true,'Correct! âœ¨');}
+  else{fb.innerHTML=`<span style="color:var(--err)">Not quite â€” try again.</span>`;fb.style.display='block';celebrate(false,'Try again ðŸ¤”');}
+}
+
+/* BUG */
+function renderBug(item,done){
+  return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.buggy}</pre><p style="font-size:.85rem;color:var(--txt2);margin-bottom:8px">What is the fix?</p><input id="bugAns" class="inp" placeholder="Describe or write the fixâ€¦" ${done?'disabled':''}>${!done?`<button class="btn" style="margin-top:10px" onclick="checkBug()">Check</button>`:''}<div id="bugFb" style="margin-top:10px;display:none"></div><div id="bugSol" style="display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem"><strong>Fix:</strong> ${item.fix}<br>${item.explain}</div><button class="btn btn-sm" style="margin-top:8px;opacity:.6" onclick="toggleSol('bugSol')">Show/Hide Fix</button></div>`;
+}
+function checkBug(){
+  const item=DATA.BUGS[drillState.idx];const ans=document.getElementById('bugAns').value.trim().toLowerCase();const fb=document.getElementById('bugFb');
+  const accept=item.accept?item.accept.map(a=>a.toLowerCase()):[item.fix.toLowerCase()];
+  if(accept.some(a=>ans.includes(a)||a.includes(ans))){fb.innerHTML=`<span style="color:var(--accent)">âœ“ ${item.explain}</span>`;fb.style.display='block';markDone('bugs',drillState.idx);celebrate(true,'Bug squashed! ðŸ›âœ“');}
+  else{fb.innerHTML=`<span style="color:var(--err)">Not quite â€” check the hint.</span>`;fb.style.display='block';}
+}
+
+/* WRONG */
+function renderWrong(item,done){
+  return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.code}</pre><div id="wrongOpts" style="display:flex;flex-direction:column;gap:8px">${item.opts.map((o,i)=>`<button class="btn btn-outline" style="text-align:left;justify-content:flex-start" onclick="checkWrong(${i})" ${done?'disabled':''}>${o}</button>`).join('')}</div><div id="wrongFb" style="margin-top:10px;display:none"></div></div>`;
+}
+function checkWrong(i){
+  const item=DATA.WRONG[drillState.idx];const fb=document.getElementById('wrongFb');const btns=document.querySelectorAll('#wrongOpts .btn');
+  btns.forEach(b=>b.disabled=true);
+  if(i===item.ans){btns[i].style.background='var(--accent)';btns[i].style.color='#fff';fb.innerHTML=`<span style="color:var(--accent)">âœ“ ${item.explain}</span>`;fb.style.display='block';markDone('wrong',drillState.idx);celebrate(true,'Spotted it! ðŸ”');}
+  else{btns[i].style.background='#c0392b';btns[i].style.color='#fff';btns[item.ans].style.background='var(--accent)';btns[item.ans].style.color='#fff';fb.innerHTML=`<span style="color:var(--err)">${item.explain}</span>`;fb.style.display='block';}
+}
+
+/* PARSONS */
+function renderParsons(item,done){
+  if(done)return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p><div style="background:var(--surf2);border-radius:6px;padding:12px;font-size:.85rem">${item.solution.map(s=>`<div style="padding:4px 0">${s}</div>`).join('')}</div><div style="margin-top:10px;color:var(--accent)">âœ“ Complete. ${item.explain}</div></div>`;
+  return `<div class="card"><p style="margin-bottom:12px">${item.prompt}</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div style="font-size:.72rem;color:var(--txt2);margin-bottom:6px;text-transform:uppercase">Bank</div><div id="parsBank" style="min-height:80px;background:var(--surf2);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:6px"></div></div><div><div style="font-size:.72rem;color:var(--txt2);margin-bottom:6px;text-transform:uppercase">Your Order</div><div id="parsPlaced" style="min-height:80px;background:var(--surf2);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:6px"></div></div></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn" onclick="checkParsons()">Check Order</button><button class="btn btn-sm" style="opacity:.6" onclick="resetParsons()">Reset</button></div><div id="parsFb" style="margin-top:10px;display:none"></div></div>`;
+}
+function initParsons(item){
+  drillState.parsBank=[...item.solution.map((_,i)=>i)].sort(()=>Math.random()-0.5);
+  drillState.parsPlaced=[];renderParsonsUI(item);
+}
+function renderParsonsUI(item){
+  const bank=document.getElementById('parsBank');const placed=document.getElementById('parsPlaced');
+  if(!bank||!placed)return;
+  bank.innerHTML=drillState.parsBank.map(i=>`<div class="pars-piece" draggable="true" data-idx="${i}" data-from="bank" ondragstart="parsMove(event)">${item.solution[i]}</div>`).join('');
+  placed.innerHTML=drillState.parsPlaced.map(i=>`<div class="pars-piece placed" draggable="true" data-idx="${i}" data-from="placed" ondragstart="parsMove(event)">${item.solution[i]}</div>`).join('');
+  [bank,placed].forEach(z=>{
+    z.ondragover=e=>{e.preventDefault();z.style.outline='2px dashed var(--accent)';};
+    z.ondragleave=()=>{z.style.outline='';};
+    z.ondrop=e=>{e.preventDefault();z.style.outline='';const idx=parseInt(e.dataTransfer.getData('idx'));const from=e.dataTransfer.getData('from');const to=z.id==='parsBank'?'bank':'placed';if(from===to)return;if(from==='bank'){drillState.parsBank=drillState.parsBank.filter(x=>x!==idx);drillState.parsPlaced.push(idx);}else{drillState.parsPlaced=drillState.parsPlaced.filter(x=>x!==idx);drillState.parsBank.push(idx);}renderParsonsUI(DATA.PARSONS[drillState.idx]);};
+  });
+}
+function parsMove(e){e.dataTransfer.setData('idx',e.target.dataset.idx);e.dataTransfer.setData('from',e.target.dataset.from);}
+function resetParsons(){initParsons(DATA.PARSONS[drillState.idx]);}
+function checkParsons(){
+  const item=DATA.PARSONS[drillState.idx];const fb=document.getElementById('parsFb');
+  const correct=drillState.parsPlaced.join(',')===item.solution.map((_,i)=>i).join(',');
+  if(correct){fb.innerHTML=`<span style="color:var(--accent)">âœ“ Perfect! ${item.explain}</span>`;fb.style.display='block';markDone('parsons',drillState.idx);celebrate(true,'Puzzle solved! ðŸ§©');}
+  else{fb.innerHTML=`<span style="color:var(--err)">Not quite â€” rearrange and try again.</span>`;fb.style.display='block';}
+}
+
+/* ESQL */
+function renderEsql(item,done){
+  return `<div class="card"><p style="font-size:.85rem;color:var(--txt2);margin-bottom:6px">Translate to pandas / stats code:</p><p style="font-size:1rem;font-weight:600;margin-bottom:14px">${item.english}</p><textarea id="esqlAns" class="inp" rows="3" style="resize:vertical" placeholder="Write the code or describe the stepsâ€¦" ${done?'disabled':''}></textarea>${!done?`<button class="btn" style="margin-top:10px" onclick="checkEsql()">Check</button>`:''}<div id="esqlFb" style="margin-top:10px;display:none"></div><div id="esqlSol" style="display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem"><strong>Model Answer:</strong><pre style="margin-top:6px;white-space:pre-wrap">${item.answer}</pre><em>${item.explain}</em></div><button class="btn btn-sm" style="margin-top:8px;opacity:.6" onclick="toggleSol('esqlSol')">Show Answer</button></div>`;
+}
+function checkEsql(){
+  const item=DATA.ESQL[drillState.idx];const ans=document.getElementById('esqlAns').value.trim().toLowerCase();const fb=document.getElementById('esqlFb');
+  const hits=item.keywords.filter(k=>ans.includes(k.toLowerCase()));
+  if(hits.length>=Math.ceil(item.keywords.length*0.6)){fb.innerHTML=`<span style="color:var(--accent)">âœ“ Good answer! ${item.explain}</span>`;fb.style.display='block';markDone('esql',drillState.idx);celebrate(true,'Translated! ðŸ’¬âœ“');}
+  else{fb.innerHTML=`<span style="color:var(--err)">Missing key terms â€” check the model answer.</span>`;fb.style.display='block';}
+}
+
+/* â”€â”€ DISTRIBUTION LAB â”€â”€ */
+let distState={field:'revenue',shape:'actual',spread:1.0};
+let distChart=null;
+
+// Register vertical-line plugin
+const vertLinesPlugin={
+  id:'vertLines',
+  afterDatasetsDraw(chart){
+    if(!chart.config.options.vertLines)return;
+    const {ctx,scales:{x,y}}=chart;
+    chart.config.options.vertLines.forEach(({value,color,label})=>{
+      const xp=x.getPixelForValue(value);
+      ctx.save();
+      ctx.beginPath();ctx.moveTo(xp,y.top);ctx.lineTo(xp,y.bottom);
+      ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.setLineDash([5,4]);ctx.stroke();
+      ctx.setLineDash([]);ctx.fillStyle=color;ctx.font='bold 11px sans-serif';
+      ctx.textAlign='left';
+      const labelX=xp+4>x.right-50?xp-6:xp+4;
+      ctx.textAlign=xp+4>x.right-50?'right':'left';
+      ctx.fillText(label,labelX,y.top+14);
+      ctx.restore();
+    });
+  }
+};
+Chart.register(vertLinesPlugin);
+
+function statMean(arr){return arr.reduce((s,v)=>s+v,0)/arr.length;}
+function statMedian(arr){const s=[...arr].sort((a,b)=>a-b);const n=s.length;return n%2===0?(s[n/2-1]+s[n/2])/2:s[Math.floor(n/2)];}
+function statMode(arr,bins){
+  // find the bin midpoint with the highest count as mode estimate
+  let maxI=0;bins.forEach((c,i)=>{if(c>bins[maxI])maxI=i;});return maxI;
+}
+function statStd(arr){const m=statMean(arr);return Math.sqrt(arr.reduce((s,v)=>s+(v-m)**2,0)/arr.length);}
+
+function makeHistogram(values,nBins=8){
+  const mn=Math.min(...values),mx=Math.max(...values);
+  const w=(mx-mn)/nBins;
+  const counts=Array(nBins).fill(0);
+  const mids=Array.from({length:nBins},(_,i)=>Math.round(mn+(i+0.5)*w));
+  values.forEach(v=>{let b=Math.floor((v-mn)/w);if(b>=nBins)b=nBins-1;counts[b]++;});
+  return {labels:Array.from({length:nBins},(_,i)=>Math.round(mn+i*w)+'-'+Math.round(mn+(i+1)*w)),counts,mids,w,mn};
+}
+
+function boxMuller(){
+  const u1=Math.random()||1e-10,u2=Math.random();
+  return Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2);
+}
+function genNormal(mean,std,n=300){return Array.from({length:n},()=>mean+boxMuller()*std);}
+function genRightSkew(mean,std,n=300){
+  const lm=Math.log(mean**2/Math.sqrt(std**2+mean**2));
+  const ls=Math.sqrt(Math.log(1+(std/mean)**2));
+  return Array.from({length:n},()=>Math.exp(lm+boxMuller()*ls));
+}
+function genLeftSkew(mean,std,n=300){
+  const rs=genRightSkew(mean,std,n);
+  const mx=Math.max(...rs),mn=Math.min(...rs);
+  return rs.map(v=>mx+mn-v);
+}
+
+function initDistLab(){
+  // only rebuild if not already built or shape changed
+  buildDistChart();
+}
+
+function setDistField(f){
+  distState.field=f;
+  document.querySelectorAll('[id^="btn-field-"]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('btn-field-'+f).classList.add('active');
+  buildDistChart();
+}
+function setDistShape(s){
+  distState.shape=s;
+  document.querySelectorAll('[id^="btn-shape-"]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('btn-shape-'+s).classList.add('active');
+  buildDistChart();
+}
+function updateSpread(v){
+  distState.spread=parseFloat(v);
+  document.getElementById('sliderVal').textContent=parseFloat(v).toFixed(1)+'Ã—';
+  buildDistChart();
+}
+
+function buildDistChart(){
+  const raw=CONTOSO.map(r=>r[distState.field]);
+  const mean=statMean(raw),std=statStd(raw)*distState.spread;
+  let values;
+  if(distState.shape==='actual')values=raw;
+  else if(distState.shape==='normal')values=genNormal(mean,std);
+  else if(distState.shape==='rskew')values=genRightSkew(mean,Math.max(std,1));
+  else values=genLeftSkew(mean,Math.max(std,1));
+
+  const hist=makeHistogram(values,8);
+  const vmean=statMean(values);
+  const vmedian=statMedian(values);
+  // mode = midpoint of tallest bin
+  let maxBin=0;hist.counts.forEach((c,i)=>{if(c>hist.counts[maxBin])maxBin=i;});
+  const vmode=hist.mids[maxBin];
+
+  // Update stat pills
+  const pct=document.getElementById('statPills');
+  if(pct){pct.innerHTML=[
+    {label:'Mean',val:vmean.toFixed(1),color:'#58aaa2',border:'#58aaa2'},
+    {label:'Median',val:vmedian.toFixed(1),color:'#f0c040',border:'#f0c040'},
+    {label:'Mode (bin)',val:vmode,color:'#e07c7c',border:'#e07c7c'},
+    {label:'Std Dev',val:statStd(values).toFixed(1),color:'var(--txt2)',border:'var(--bord)'},
+  ].map(p=>`<span class="stat-pill" style="color:${p.color};border-color:${p.border}">${p.label}: <strong>${p.val}</strong></span>`).join('');}
+
+  // Insight text
+  const skewDir=vmean>vmedian+2?'right-skewed (mean > median â€” a high-value tail)':vmean<vmedian-2?'left-skewed (mean < median â€” a low-value tail)':'approximately symmetric (mean â‰ˆ median)';
+  const insight=document.getElementById('distInsight');
+  if(insight)insight.innerHTML=`<strong>Insight:</strong> This distribution is <strong>${skewDir}</strong>. The median (${vmedian.toFixed(1)}) ${Math.abs(vmean-vmedian)>5?`differs from the mean (${vmean.toFixed(1)}) â€” for this data, the median is a more representative center measure.`:`closely matches the mean (${vmean.toFixed(1)}) â€” either is a reasonable center measure.`}`;
+
+  if(distChart){distChart.destroy();distChart=null;}
+  const isDark=S.theme==='dark';
+  const gridColor=isDark?'rgba(255,255,255,.07)':'rgba(0,0,0,.08)';
+  const tickColor=isDark?'#a09880':'#5a5040';
+
+  distChart=new Chart(document.getElementById('distCanvas'),{
+    type:'bar',
+    data:{
+      labels:hist.labels,
+      datasets:[{
+        label:distState.field==='revenue'?'Revenue ($)':'Units Sold',
+        data:hist.counts,
+        backgroundColor:'rgba(88,170,162,0.55)',
+        borderColor:'rgba(88,170,162,0.9)',
+        borderWidth:1,
+        borderRadius:3,
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>`Count: ${ctx.raw}`}},
+      },
+      scales:{
+        x:{ticks:{color:tickColor,font:{size:10},maxRotation:40},grid:{color:gridColor}},
+        y:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor},title:{display:true,text:'Frequency',color:tickColor,font:{size:11}}},
+      },
+      vertLines:[
+        {value:hist.mids.findIndex(m=>Math.abs(m-vmean)<hist.w||true)&&vmean,color:'#58aaa2',label:`Î¼=${vmean.toFixed(0)}`},
+        {value:vmedian,color:'#f0c040',label:`med=${vmedian.toFixed(0)}`},
+        {value:vmode,color:'#e07c7c',label:`modeâ‰ˆ${vmode}`},
+      ],
+    },
+  });
+
+  // Vertical lines use label positions â€” remap to bin index scale
+  // Override: use afterDatasetsDraw with bin-index x-axis values
+  const binIndexOf=val=>{
+    // find which bin index this value falls into
+    const b=Math.floor((val-hist.mn)/hist.w);
+    return Math.max(0,Math.min(hist.counts.length-1,b))+0.5;
+  };
+  distChart.config.options.vertLines=[
+    {value:binIndexOf(vmean),color:'#58aaa2',label:`Î¼=${vmean.toFixed(0)}`},
+    {value:binIndexOf(vmedian),color:'#f0c040',label:`med=${vmedian.toFixed(0)}`},
+    {value:binIndexOf(vmode),color:'#e07c7c',label:`modeâ‰ˆ${vmode}`},
+  ];
+  distChart.update('none');
+}
+
+/* â”€â”€ FLASHCARDS â”€â”€ */
+let cardFlipped=false;
+function renderCards(){
+  const el=document.getElementById('view-cards');
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h2>Flashcards</h2><span style="color:var(--txt2);font-size:.85rem">${S.cardIdx+1} / ${DATA.CARDS.length}</span>
+    </div>
+    <div id="cardWrap" style="perspective:800px;margin-bottom:16px">${renderCardHTML()}</div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn" onclick="prevCard()">â† Prev</button>
+      <button class="btn" onclick="flipCard()">Flip</button>
+      <button class="btn" onclick="nextCard()">Next â†’</button>
+    </div>
+    <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(26px,1fr));gap:4px">
+      ${DATA.CARDS.map((_,i)=>`<div style="height:8px;border-radius:4px;background:${S.done['card'+i]?'var(--accent)':'var(--surf2)'}"></div>`).join('')}
+    </div>`;
+}
+function renderCardHTML(){
+  const c=DATA.CARDS[S.cardIdx];
+  return `<div id="flashcard" onclick="flipCard()" style="cursor:pointer;background:var(--surf);border:1px solid var(--bord);border-radius:10px;padding:32px 24px;min-height:160px;display:flex;align-items:center;justify-content:center;text-align:center"><div style="font-size:1.05rem;line-height:1.6">${cardFlipped?c.back:`<strong style="font-size:1.15rem;color:var(--accent)">${c.front}</strong>`}</div></div>`;
+}
+function flipCard(){cardFlipped=!cardFlipped;if(cardFlipped)markDone('card',S.cardIdx);renderCards();}
+function nextCard(){cardFlipped=false;S.cardIdx=Math.min(S.cardIdx+1,DATA.CARDS.length-1);save();renderCards();}
+function prevCard(){cardFlipped=false;S.cardIdx=Math.max(S.cardIdx-1,0);save();renderCards();}
+
+/* â”€â”€ GLOSSARY â”€â”€ */
+function renderGlossary(){
+  document.getElementById('view-glossary').innerHTML=`<h2 style="margin-bottom:12px">Glossary</h2><input class="inp" id="glossSearch" placeholder="Search termsâ€¦" oninput="filterGlossary(this.value)" style="margin-bottom:14px"><div id="glossList"></div>`;
+  filterGlossary('');
+}
+function filterGlossary(q){
+  const list=document.getElementById('glossList');
+  const items=DATA.GLOSSARY.filter(g=>!q||g.term.toLowerCase().includes(q.toLowerCase())||g.def.toLowerCase().includes(q.toLowerCase()));
+  list.innerHTML=items.map(g=>`<div class="card" style="margin-bottom:8px"><strong style="color:var(--accent)">${g.term}</strong><p style="margin:4px 0 0;color:var(--txt2);font-size:.88rem;line-height:1.5">${g.def}</p></div>`).join('');
+}
+
+/* â”€â”€ BOOT â”€â”€ */
+loadState();applyTheme();show('home');
+</script>
+</body>
+</html>
+
+
