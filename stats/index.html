@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
@@ -54,6 +54,7 @@ input[type=range]{accent-color:var(--accent);width:150px;cursor:pointer}
 .read-panel{display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem}
 
 /* -- Sprint Bar ---------------------------------------- */
+body{font-size:17px;line-height:1.65}
 #sprint-bar{position:sticky;top:52px;z-index:99;font-family:inherit;font-size:13px;line-height:1}
 #sprint-bar .sb-inner{display:flex;align-items:center;gap:12px;padding:0 20px;height:44px;background:rgba(88,170,162,.08);border-bottom:1px solid rgba(88,170,162,.2);transition:background .2s}
 body.sprint-on #sprint-bar .sb-inner{background:rgba(88,170,162,.16);border-bottom-color:rgba(88,170,162,.55)}
@@ -87,7 +88,20 @@ body.sprint-on .sc-core{box-shadow:inset 3px 0 0 var(--accent,#58aaa2)}
 body.sprint-on .sc-supporting{opacity:.45}
 body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 /* -- End Sprint Bar ------------------------------------ */</style>
-</head>
+<style>
+/* -- Hint System ---- */
+.hint-cycle-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(88,170,162,.13);border:1.5px solid rgba(88,170,162,.42);color:var(--accent,#58aaa2);padding:9px 20px;border-radius:7px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s;margin-top:14px}
+.hint-cycle-btn:hover{background:rgba(88,170,162,.24)}
+.hint-panel{display:none;margin-top:13px;padding:14px 17px;background:rgba(88,170,162,.07);border:1px solid rgba(88,170,162,.24);border-radius:7px;font-size:14.5px;line-height:1.65;color:rgba(220,220,220,.92)}
+[data-theme="light"] .hint-panel{color:rgba(30,30,30,.85)}
+.hint-panel.show{display:block}
+.answer-panel{display:none;margin-top:11px;padding:14px 17px;background:var(--surf2,#292520);border:1.5px solid rgba(88,170,162,.35);border-radius:7px}
+.answer-panel.show{display:flex;flex-direction:column;gap:10px}
+.answer-code{font-family:var(--mono,monospace);font-size:14px;color:var(--accent,#58aaa2);white-space:pre-wrap;word-break:break-all;margin:0;line-height:1.55}
+.copy-btn{align-self:flex-start;display:inline-flex;align-items:center;gap:5px;background:rgba(88,170,162,.16);border:1.5px solid rgba(88,170,162,.38);color:var(--accent,#58aaa2);padding:6px 16px;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s}
+.copy-btn:hover{background:rgba(88,170,162,.28)}
+/* -- End Hint System ---- */
+</style></head>
 <body>
 <nav>
   <span class="logo">Stats Kit</span>
@@ -110,7 +124,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
     <ul>
       <li><strong>Core lessons are highlighted</strong> with a teal left bar and a <b>Core</b> badge. Do these first &mdash; they cover what interviewers actually test.</li>
       <li><strong>Quiz yourself, don&rsquo;t just re-read</strong> &mdash; retrieve the answer before looking it up. That&rsquo;s what builds durable memory, not passive review.</li>
-      <li><strong>Break every 45 minutes</strong> &mdash; your brain consolidates during rest, not during studying. 10 minutes away beats 10 minutes of tired re-reading.</li>
+      <li><strong>Break every 45 minutes</strong> &mdash; rest means <em>away from screens</em>, not just away from this tab. Scrolling, YouTube, or group chats use the same cognitive systems you just trained. A short walk or staring out a window lets your brain replay and compress what you studied.</li>
       <li><strong>Move on when you can self-quiz from memory</strong> &mdash; &ldquo;good enough now&rdquo; beats &ldquo;perfect too late.&rdquo; You can come back after the sprint.</li>
     </ul>
     <button class="st-dismiss" onclick="stToggle()">Got it &#x2713;</button>
@@ -876,10 +890,14 @@ function renderHome(){
 
 /* ── LESSONS ── */
 function renderLessonList(){
+  const sprintOn=localStorage.getItem('apk-sprint')==='1';
+  const coreLessons=DATA.LESSONS.filter(l=>l.core);
+  const coreDoneCount=coreLessons.filter(l=>S.done[`lesson${l.id}`]).length;
+  const sprintChip=sprintOn?`<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(88,170,162,.12);border:1px solid rgba(88,170,162,.35);border-radius:20px;padding:5px 14px;font-size:13px;font-weight:600;color:var(--accent);margin-bottom:16px">&#x26A1; Sprint: ${coreDoneCount} of ${coreLessons.length} core lessons done</div>`:'';
   const units={1:[],2:[],3:[]};
   DATA.LESSONS.forEach(l=>units[l.unit].push(l));
   const unames={1:'Unit 1: Describing Data',2:'Unit 2: Probability & Distributions',3:'Unit 3: Inference & Testing'};
-  document.getElementById('view-lessons').innerHTML=Object.keys(units).map(u=>`
+  document.getElementById('view-lessons').innerHTML=sprintChip+Object.keys(units).map(u=>`
     <div style="margin-bottom:24px">
       <h3 style="margin-bottom:12px;color:var(--txt2);font-size:.9rem;text-transform:uppercase;letter-spacing:.05em">${unames[u]}</h3>
       <div style="display:flex;flex-direction:column;gap:8px">
@@ -935,12 +953,46 @@ function checkQuiz(i){
     setTimeout(()=>finishLesson(l.id),1200);
   } else {
     btns[i].style.background='#c0392b';btns[i].style.color='#fff';
-    fb.innerHTML=`<span style="color:var(--err)">Not quite. ${l.quiz.explain}</span>`;fb.style.display='block';
-    celebrate(false,'Keep going 💪');
-    setTimeout(()=>{btns.forEach(b=>{b.disabled=false;b.style.background='';b.style.color='';});fb.style.display='none';},1800);
+    btns[l.quiz.ans].style.background='var(--accent)';btns[l.quiz.ans].style.color='#fff';
+    fb.innerHTML=`<span style="color:var(--err)">Not quite. ${l.quiz.explain}</span><div style="display:flex;gap:10px;margin-top:12px"><button class="btn" onclick="retryQuiz(${l.id})">Try Again</button><button class="btn btn-sm" style="opacity:.7" onclick="finishLesson(${l.id})">Continue anyway</button></div>`;
+    fb.style.display='block';
   }
 }
-function finishLesson(id){S.done[`lesson${id}`]=true;save();renderLessonList();celebrate(true,`Lesson ${id} complete! 🌟`);}
+function retryQuiz(lid){
+  const l=DATA.LESSONS.find(x=>x.id===lid);
+  const qc=document.getElementById('quizCard');
+  if(!qc)return;
+  qc.innerHTML=`<h4 style="margin-bottom:12px">Quick Check</h4><p style="margin-bottom:12px">${l.quiz.q}</p><div id="quizOpts" style="display:flex;flex-direction:column;gap:8px">${l.quiz.opts.map((o,i)=>`<button class="btn btn-outline" style="text-align:left;justify-content:flex-start" onclick="checkQuiz(${i})">${o}</button>`).join('')}</div><div id="quizFb" style="margin-top:10px;display:none"></div>`;
+}
+function finishLesson(id){
+  S.done[`lesson${id}`]=true;save();celebrate(true,`Lesson ${id} complete! 🌟`);
+  const sprintOn=localStorage.getItem('apk-sprint')==='1';
+  const coreLessons=DATA.LESSONS.filter(l=>l.core);
+  const doneLessons=DATA.LESSONS.filter(l=>S.done[`lesson${l.id}`]);
+  const coreDone=coreLessons.every(l=>S.done[`lesson${l.id}`]);
+  const nextCore=DATA.LESSONS.find(l=>l.core&&!S.done[`lesson${l.id}`]);
+  const nextLesson=DATA.LESSONS.find(l=>!S.done[`lesson${l.id}`]);
+  let primaryBtn;
+  if(sprintOn&&coreDone){
+    primaryBtn=`<a href="../interview/" class="btn" style="text-decoration:none;background:var(--accent);color:#0e1f1e">&#x26A1; Sprint Step &#x2713; &mdash; Move to Interview &rarr;</a>`;
+  } else if(sprintOn&&nextCore){
+    primaryBtn=`<button class="btn" style="background:var(--accent);color:#0e1f1e" onclick="openLesson(${nextCore.id})">Next Core: ${nextCore.title} &rarr;</button>`;
+  } else if(nextLesson){
+    primaryBtn=`<button class="btn" onclick="openLesson(${nextLesson.id})">Next: ${nextLesson.title} &rarr;</button>`;
+  } else {
+    primaryBtn=`<button class="btn" onclick="renderLessonList()">All Lessons</button>`;
+  }
+  document.getElementById('view-lessons').innerHTML=`
+    <div class="card" style="text-align:center;padding:32px 24px">
+      <div style="font-size:36px;margin-bottom:10px">&#x2713;</div>
+      <h2 style="margin-bottom:8px">Lesson ${id} complete</h2>
+      <p style="color:var(--txt2);margin-bottom:20px">Keep the momentum going.</p>
+      <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">
+        ${primaryBtn}
+        <button class="btn btn-sm" style="opacity:.7" onclick="renderLessonList()">All Lessons</button>
+      </div>
+    </div>`;
+}
 
 /* ── DRILLS ── */
 const DRILL_TYPES=[
@@ -978,7 +1030,8 @@ function toggleSol(id){const el=document.getElementById(id);if(el)el.style.displ
 
 /* FILL */
 function renderFill(item,done){
-  return `<div class="card"><p style="margin-bottom:14px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.code}</pre><input id="fillAns" class="inp" placeholder="Your answer…" value="${done?item.answer:''}" ${done?'disabled':''}>${!done?`<button class="btn" style="margin-top:10px" onclick="checkFill()">Check</button>`:''}<div id="fillFb" style="margin-top:10px;display:none"></div><div id="fillSol" style="display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem"><strong>Answer:</strong> ${item.answer}<br>${item.explain}</div><button class="btn btn-sm" style="margin-top:8px;opacity:.6" onclick="toggleSol('fillSol')">Show/Hide Answer</button></div>`;
+  _hd={hint:item.explain||'',ans:item.answer||'',state:0};
+  return `<div class="card"><p style="margin-bottom:14px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.code}</pre><input id="fillAns" class="inp" placeholder="Your answer…" value="${done?item.answer:''}" ${done?'disabled':''}>${!done?`<button class="btn" style="margin-top:10px" onclick="checkFill()">Check</button>`:''}<div id="fillFb" style="margin-top:10px;display:none"></div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
 }
 function checkFill(){
   const item=DATA.FILLS[drillState.idx];const ans=document.getElementById('fillAns').value.trim();const fb=document.getElementById('fillFb');
@@ -988,7 +1041,8 @@ function checkFill(){
 
 /* BUG */
 function renderBug(item,done){
-  return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.buggy}</pre><p style="font-size:.85rem;color:var(--txt2);margin-bottom:8px">What is the fix?</p><input id="bugAns" class="inp" placeholder="Describe or write the fix…" ${done?'disabled':''}>${!done?`<button class="btn" style="margin-top:10px" onclick="checkBug()">Check</button>`:''}<div id="bugFb" style="margin-top:10px;display:none"></div><div id="bugSol" style="display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem"><strong>Fix:</strong> ${item.fix}<br>${item.explain}</div><button class="btn btn-sm" style="margin-top:8px;opacity:.6" onclick="toggleSol('bugSol')">Show/Hide Fix</button></div>`;
+  _hd={hint:item.explain||'',ans:item.fix||'',state:0};
+  return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.buggy}</pre><p style="font-size:.85rem;color:var(--txt2);margin-bottom:8px">What is the fix?</p><input id="bugAns" class="inp" placeholder="Describe or write the fix…" ${done?'disabled':''}>${!done?`<button class="btn" style="margin-top:10px" onclick="checkBug()">Check</button>`:''}<div id="bugFb" style="margin-top:10px;display:none"></div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
 }
 function checkBug(){
   const item=DATA.BUGS[drillState.idx];const ans=document.getElementById('bugAns').value.trim().toLowerCase();const fb=document.getElementById('bugFb');
@@ -1310,7 +1364,7 @@ function handleResetAll(btn){
     var on=localStorage.getItem(KEY)==='1';
     document.body.classList.toggle('sprint-on',on);
     if(on){
-      bar.innerHTML='<div class="sb-inner"><span class="sb-icon">&#x26A1;</span><span class="sb-text"><b>&#x26A1; Interview Sprint</b> &middot; Step 3 of 4 &middot; next: <a href="../interview/" style="color:var(--accent,#58aaa2);font-weight:700">Interview &rarr;</a></span><button class="sb-btn" onclick="sbHubBack()">&#8592; Hub</button><button class="sb-btn sb-exit" onclick="sbExit()">Exit &#xD7;</button></div>';
+      bar.innerHTML='<div class="sb-inner"><span class="sb-icon">&#x26A1;</span><span class="sb-text"><b>&#x26A1; Interview Sprint</b> &middot; Step 3 of 4 &middot; next: <a href="../interview/" style="color:var(--accent,#58aaa2);font-weight:700">Interview &rarr;</a></span><button class="sb-btn" onclick="sbHubBack()">&#8592; Hub</button><button class="sb-btn sb-exit" onclick="sbExit()">Exit Sprint</button></div>';
     } else {
       bar.innerHTML='<div class="sb-inner"><span class="sb-icon">&#x26A1;</span><span class="sb-text">&#x26A1; Interview Sprint &mdash; focused path through the 4 kits interviewers test most</span><button class="sb-btn sb-start" onclick="sbStart()">Start Sprint &#x2192;</button></div>';
     }

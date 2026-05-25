@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -220,6 +220,7 @@ p strong{color:var(--text)}
 }
 
 /* -- Sprint Bar ---------------------------------------- */
+body{font-size:17px;line-height:1.65}
 #sprint-bar{position:sticky;top:52px;z-index:99;font-family:inherit;font-size:13px;line-height:1}
 #sprint-bar .sb-inner{display:flex;align-items:center;gap:12px;padding:0 20px;height:44px;background:rgba(88,170,162,.08);border-bottom:1px solid rgba(88,170,162,.2);transition:background .2s}
 body.sprint-on #sprint-bar .sb-inner{background:rgba(88,170,162,.16);border-bottom-color:rgba(88,170,162,.55)}
@@ -253,7 +254,20 @@ body.sprint-on .sc-core{box-shadow:inset 3px 0 0 var(--accent,#58aaa2)}
 body.sprint-on .sc-supporting{opacity:.45}
 body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 /* -- End Sprint Bar ------------------------------------ */</style>
-</head>
+<style>
+/* -- Hint System ---- */
+.hint-cycle-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(88,170,162,.13);border:1.5px solid rgba(88,170,162,.42);color:var(--accent,#58aaa2);padding:9px 20px;border-radius:7px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s;margin-top:14px}
+.hint-cycle-btn:hover{background:rgba(88,170,162,.24)}
+.hint-panel{display:none;margin-top:13px;padding:14px 17px;background:rgba(88,170,162,.07);border:1px solid rgba(88,170,162,.24);border-radius:7px;font-size:14.5px;line-height:1.65;color:rgba(220,220,220,.92)}
+[data-theme="light"] .hint-panel{color:rgba(30,30,30,.85)}
+.hint-panel.show{display:block}
+.answer-panel{display:none;margin-top:11px;padding:14px 17px;background:var(--surf2,#292520);border:1.5px solid rgba(88,170,162,.35);border-radius:7px}
+.answer-panel.show{display:flex;flex-direction:column;gap:10px}
+.answer-code{font-family:var(--mono,monospace);font-size:14px;color:var(--accent,#58aaa2);white-space:pre-wrap;word-break:break-all;margin:0;line-height:1.55}
+.copy-btn{align-self:flex-start;display:inline-flex;align-items:center;gap:5px;background:rgba(88,170,162,.16);border:1.5px solid rgba(88,170,162,.38);color:var(--accent,#58aaa2);padding:6px 16px;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s}
+.copy-btn:hover{background:rgba(88,170,162,.28)}
+/* -- End Hint System ---- */
+</style></head>
 <body>
 
 <nav id="nav">
@@ -1024,6 +1038,7 @@ function renderPractice(){
 function renderFill(idx){
   const f = DATA.FILLS[idx];
   if(!f) return navigate('practice');
+  _hd={hint:f.hint,ans:f.ans,state:0};
   const done = state.doneFills.includes(f.id);
   document.getElementById('main').innerHTML = `
     <div class="row mb">
@@ -1038,9 +1053,10 @@ function renderFill(idx){
       <input class="fill-input" id="fill-in" placeholder="Type your answer…" onkeydown="if(event.key==='Enter')checkFill(${idx})">
       <div class="row mt">
         <button class="btn btn-primary btn-sm" onclick="checkFill(${idx})">Check</button>
-        <button class="hint-btn" onclick="showFillHint()">show hint</button>
       </div>
-      <div class="hint-text" id="fill-hint">💡 ${f.hint}</div>
+      <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button>
+      <div class="hint-panel" id="drill-hint"></div>
+      <div class="answer-panel" id="drill-answer"></div>
       <div id="fill-result" class="mt"></div>
     </div>`;
   document.getElementById('fill-in').focus();
@@ -1063,12 +1079,11 @@ function checkFill(idx){
     res.innerHTML = `<span style="color:var(--red)">✗ Try again. Answer: <code style="font-family:var(--mono)">${f.ans}</code></span>`;
   }
 }
-function showFillHint(){ document.getElementById('fill-hint').classList.add('show'); }
-
 // ─── BUG DRILL ─────────────────────────────────────────────────────────────
 function renderBug(idx){
   const b = DATA.BUGS[idx];
   if(!b) return navigate('practice');
+  _hd={hint:b.hint,ans:b.fix,state:0};
   const done = state.doneBugs.includes(b.id);
   document.getElementById('main').innerHTML = `
     <div class="row mb">
@@ -1084,9 +1099,10 @@ function renderBug(idx){
       <div class="bug-issue">⚠️ ${b.issue}</div>
       <div class="row mt">
         <button class="btn btn-primary btn-sm" onclick="revealFix(${idx})">Reveal Fix</button>
-        <button class="hint-btn" onclick="showBugHint(${idx})">show hint</button>
       </div>
-      <div class="hint-text" id="bug-hint">💡 ${b.hint}</div>
+      <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button>
+      <div class="hint-panel" id="drill-hint"></div>
+      <div class="answer-panel" id="drill-answer"></div>
       <div class="code-fixed" id="bug-fix">${b.fix}</div>
       <div id="bug-next" class="mt"></div>
     </div>`;
@@ -1101,7 +1117,6 @@ function revealFix(idx){
     ? `<button class="btn btn-primary btn-sm" onclick="navigate('bug',${idx+1})">Next Bug →</button>`
     : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">All Done →</button>`;
 }
-function showBugHint(idx){ document.getElementById('bug-hint').classList.add('show'); }
 
 // ─── PARSONS DRILL ─────────────────────────────────────────────────────────
 function renderParsons(idx){
@@ -1310,7 +1325,7 @@ navigate('home');
     var on=localStorage.getItem(KEY)==='1';
     document.body.classList.toggle('sprint-on',on);
     if(on){
-      bar.innerHTML='<div class="sb-inner"><span class="sb-icon">&#x26A1;</span><span class="sb-text"><b>&#x26A1; Interview Sprint</b> &middot; Bonus kit &mdash; explore freely</span><button class="sb-btn" onclick="sbHubBack()">&#8592; Hub</button><button class="sb-btn sb-exit" onclick="sbExit()">Exit &#xD7;</button></div>';
+      bar.innerHTML='<div class="sb-inner"><span class="sb-icon">&#x26A1;</span><span class="sb-text"><b>&#x26A1; Interview Sprint</b> &middot; Bonus kit &mdash; explore freely</span><button class="sb-btn" onclick="sbHubBack()">&#8592; Hub</button><button class="sb-btn sb-exit" onclick="sbExit()">Exit Sprint</button></div>';
     } else {
       bar.innerHTML='<div class="sb-inner"><span class="sb-icon">&#x26A1;</span><span class="sb-text">&#x26A1; Interview Sprint &mdash; focused path through the 4 kits interviewers test most</span><button class="sb-btn sb-start" onclick="sbStart()">Start Sprint &#x2192;</button></div>';
     }

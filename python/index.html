@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
@@ -168,6 +168,7 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 @media(max-width:600px){.path-grid{grid-template-columns:1fr 1fr}}
 
 /* -- Sprint Bar ---------------------------------------- */
+body{font-size:17px;line-height:1.65}
 #sprint-bar{position:sticky;top:52px;z-index:99;font-family:inherit;font-size:13px;line-height:1}
 #sprint-bar .sb-inner{display:flex;align-items:center;gap:12px;padding:0 20px;height:44px;background:rgba(88,170,162,.08);border-bottom:1px solid rgba(88,170,162,.2);transition:background .2s}
 body.sprint-on #sprint-bar .sb-inner{background:rgba(88,170,162,.16);border-bottom-color:rgba(88,170,162,.55)}
@@ -201,7 +202,20 @@ body.sprint-on .sc-core{box-shadow:inset 3px 0 0 var(--accent,#58aaa2)}
 body.sprint-on .sc-supporting{opacity:.45}
 body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 /* -- End Sprint Bar ------------------------------------ */</style>
-</head>
+<style>
+/* -- Hint System ---- */
+.hint-cycle-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(88,170,162,.13);border:1.5px solid rgba(88,170,162,.42);color:var(--accent,#58aaa2);padding:9px 20px;border-radius:7px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s;margin-top:14px}
+.hint-cycle-btn:hover{background:rgba(88,170,162,.24)}
+.hint-panel{display:none;margin-top:13px;padding:14px 17px;background:rgba(88,170,162,.07);border:1px solid rgba(88,170,162,.24);border-radius:7px;font-size:14.5px;line-height:1.65;color:rgba(220,220,220,.92)}
+[data-theme="light"] .hint-panel{color:rgba(30,30,30,.85)}
+.hint-panel.show{display:block}
+.answer-panel{display:none;margin-top:11px;padding:14px 17px;background:var(--surf2,#292520);border:1.5px solid rgba(88,170,162,.35);border-radius:7px}
+.answer-panel.show{display:flex;flex-direction:column;gap:10px}
+.answer-code{font-family:var(--mono,monospace);font-size:14px;color:var(--accent,#58aaa2);white-space:pre-wrap;word-break:break-all;margin:0;line-height:1.55}
+.copy-btn{align-self:flex-start;display:inline-flex;align-items:center;gap:5px;background:rgba(88,170,162,.16);border:1.5px solid rgba(88,170,162,.38);color:var(--accent,#58aaa2);padding:6px 16px;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s}
+.copy-btn:hover{background:rgba(88,170,162,.28)}
+/* -- End Hint System ---- */
+</style></head>
 <body>
 
 <nav>
@@ -930,14 +944,16 @@ function renderDrill(){
 }
 
 function renderFill(item,idx,isDone){
+  _hd={hint:item.hint,ans:item.ans,state:0};
   return `<div class="card"><h2>Fill in the Blank</h2><p>${item.q}</p>
     <div class="code-block">${item.partial}</div>
     <input class="drill-input mt8 ${isDone?'ok':''}" id="fillInput" placeholder="Type the answer…" value="${isDone?item.ans:''}">
     <div class="check-row">
       <button class="btn btn-primary btn-sm" onclick="checkFill(${idx})">Check</button>
-      <button class="solution-toggle" onclick="toggleSol('fillSol')">show solution</button>
     </div>
-    <div class="solution-box" id="fillSol">${item.ans}</div>
+    <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button>
+    <div class="hint-panel" id="drill-hint"></div>
+    <div class="answer-panel" id="drill-answer"></div>
     <div id="fillResult"></div></div>`;
 }
 function checkFill(idx){
@@ -950,15 +966,17 @@ function checkFill(idx){
 }
 
 function renderBug(item,idx,isDone){
+  _hd={hint:item.hint,ans:item.fix,state:0};
   return `<div class="card"><h2>Fix the Code</h2>
     <p>${item.broken}</p>
     <div class="code-block" style="border-left:3px solid var(--err)">${item.code}</div>
     <textarea class="drill-input mt8 ${isDone?'ok':''}" id="bugInput" rows="3" placeholder="Write the corrected code…">${isDone?item.fix:''}</textarea>
     <div class="check-row">
       <button class="btn btn-primary btn-sm" onclick="checkBug(${idx})">Check</button>
-      <button class="solution-toggle" onclick="toggleSol('bugSol')">show fix</button>
     </div>
-    <div class="solution-box" id="bugSol">${item.fix}\n\nHint: ${item.hint}</div>
+    <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button>
+    <div class="hint-panel" id="drill-hint"></div>
+    <div class="answer-panel" id="drill-answer"></div>
     <div id="bugResult"></div></div>`;
 }
 function checkBug(idx){
@@ -1232,7 +1250,7 @@ function handleResetAll(btn){
     var on=localStorage.getItem(KEY)==='1';
     document.body.classList.toggle('sprint-on',on);
     if(on){
-      bar.innerHTML='<div class="sb-inner"><span class="sb-icon">&#x26A1;</span><span class="sb-text"><b>&#x26A1; Interview Sprint</b> &middot; Bonus kit &mdash; explore freely</span><button class="sb-btn" onclick="sbHubBack()">&#8592; Hub</button><button class="sb-btn sb-exit" onclick="sbExit()">Exit &#xD7;</button></div>';
+      bar.innerHTML='<div class="sb-inner"><span class="sb-icon">&#x26A1;</span><span class="sb-text"><b>&#x26A1; Interview Sprint</b> &middot; Bonus kit &mdash; explore freely</span><button class="sb-btn" onclick="sbHubBack()">&#8592; Hub</button><button class="sb-btn sb-exit" onclick="sbExit()">Exit Sprint</button></div>';
     } else {
       bar.innerHTML='<div class="sb-inner"><span class="sb-icon">&#x26A1;</span><span class="sb-text">&#x26A1; Interview Sprint &mdash; focused path through the 4 kits interviewers test most</span><button class="sb-btn sb-start" onclick="sbStart()">Start Sprint &#x2192;</button></div>';
     }

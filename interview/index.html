@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
@@ -182,6 +182,7 @@ nav{display:flex;align-items:center;gap:8px;padding:12px 20px;background:var(--s
 .celebrating{animation:flash .4s 3}
 
 /* -- Sprint Bar ---------------------------------------- */
+body{font-size:17px;line-height:1.65}
 #sprint-bar{position:sticky;top:52px;z-index:99;font-family:inherit;font-size:13px;line-height:1}
 #sprint-bar .sb-inner{display:flex;align-items:center;gap:12px;padding:0 20px;height:44px;background:rgba(88,170,162,.08);border-bottom:1px solid rgba(88,170,162,.2);transition:background .2s}
 body.sprint-on #sprint-bar .sb-inner{background:rgba(88,170,162,.16);border-bottom-color:rgba(88,170,162,.55)}
@@ -239,7 +240,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
     <ul>
       <li><strong>Core lessons are highlighted</strong> with a teal left bar and a <b>Core</b> badge. Do these first &mdash; they cover what interviewers actually test.</li>
       <li><strong>Quiz yourself, don&rsquo;t just re-read</strong> &mdash; retrieve the answer before looking it up. That&rsquo;s what builds durable memory, not passive review.</li>
-      <li><strong>Break every 45 minutes</strong> &mdash; your brain consolidates during rest, not during studying. 10 minutes away beats 10 minutes of tired re-reading.</li>
+      <li><strong>Break every 45 minutes</strong> &mdash; rest means <em>away from screens</em>, not just away from this tab. Scrolling, YouTube, or group chats use the same cognitive systems you just trained. A short walk or staring out a window lets your brain replay and compress what you studied.</li>
       <li><strong>Move on when you can self-quiz from memory</strong> &mdash; &ldquo;good enough now&rdquo; beats &ldquo;perfect too late.&rdquo; You can come back after the sprint.</li>
     </ul>
     <button class="st-dismiss" onclick="stToggle()">Got it &#x2713;</button>
@@ -820,6 +821,15 @@ let currentLesson=0;
 function renderLessons(){
   const sidebar=document.getElementById('lessonSidebar');
   sidebar.innerHTML='';
+  const sprintOn=localStorage.getItem('apk-sprint')==='1';
+  if(sprintOn){
+    const coreLessons=LESSONS.filter(l=>l.core);
+    const coreDoneCount=coreLessons.filter((_,i)=>state.lessonsComplete[LESSONS.indexOf(coreLessons[i])]).length;
+    const chip=document.createElement('div');
+    chip.style.cssText='display:inline-flex;align-items:center;gap:6px;background:rgba(88,170,162,.12);border:1px solid rgba(88,170,162,.35);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:var(--accent);margin-bottom:12px';
+    chip.textContent=`⚡ Sprint: ${coreDoneCount} of ${coreLessons.length} core lessons done`;
+    sidebar.appendChild(chip);
+  }
   let lastUnit='';
   LESSONS.forEach((l,i)=>{
     if(l.unit!==lastUnit){
@@ -951,11 +961,22 @@ function pickChoice(i){
   });
   const fb=document.getElementById('drillFb');
   const ok=i===d.correct;
-  fb.innerHTML=`<div class="fb-label ${ok?'good':'bad'}">${ok?'Correct ✓':'Incorrect'}</div>${d.fb}`;
+  const retryBtn=ok?'':` <button class="btn-ghost" style="margin-top:10px;font-size:13px" onclick="retryDrill()">Try Again</button>`;
+  fb.innerHTML=`<div class="fb-label ${ok?'good':'bad'}">${ok?'Correct ✓':'Incorrect'}</div>${d.fb}${retryBtn}`;
   fb.classList.add('show');
   state.drillsAnswered=(state.drillsAnswered||0)+1;
   saveState(state);
   if(ok) celebrate();
+}
+function retryDrill(){
+  drillAnswered=false;
+  const d=DRILLS[currentDrillType][currentDrillIdx];
+  const area=document.getElementById('choicesArea');
+  const fb=document.getElementById('drillFb');
+  if(!area||!fb) return;
+  area.innerHTML=d.choices.map((c,i)=>`<button class="choice" onclick="pickChoice(${i})">${c}</button>`).join('');
+  fb.innerHTML='';
+  fb.classList.remove('show');
 }
 
 function confirmSayIt(){
@@ -1203,7 +1224,7 @@ renderBuilder();
     var on=localStorage.getItem(KEY)==='1';
     document.body.classList.toggle('sprint-on',on);
     if(on){
-      bar.innerHTML='<div class="sb-inner"><span class="sb-icon">&#x26A1;</span><span class="sb-text"><b>&#x26A1; Interview Sprint</b> &middot; Step 4 of 4 &mdash; final kit, you&rsquo;re almost there!</span><button class="sb-btn" onclick="sbHubBack()">&#8592; Hub</button><button class="sb-btn sb-exit" onclick="sbExit()">Exit &#xD7;</button></div>';
+      bar.innerHTML='<div class="sb-inner"><span class="sb-icon">&#x26A1;</span><span class="sb-text"><b>&#x26A1; Interview Sprint</b> &middot; Step 4 of 4 &mdash; final kit, you&rsquo;re almost there!</span><button class="sb-btn" onclick="sbHubBack()">&#8592; Hub</button><button class="sb-btn sb-exit" onclick="sbExit()">Exit Sprint</button></div>';
     } else {
       bar.innerHTML='<div class="sb-inner"><span class="sb-icon">&#x26A1;</span><span class="sb-text">&#x26A1; Interview Sprint &mdash; focused path through the 4 kits interviewers test most</span><button class="sb-btn sb-start" onclick="sbStart()">Start Sprint &#x2192;</button></div>';
     }
