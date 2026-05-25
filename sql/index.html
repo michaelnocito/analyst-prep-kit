@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -221,8 +221,8 @@ p strong{color:var(--text)}
 /* -- Sprint Bar ---------------------------------------- */
 body{font-size:17px;line-height:1.65}
 #sprint-bar{position:sticky;top:52px;z-index:99;font-family:inherit;font-size:13px;line-height:1}
-#sprint-bar .sb-inner{display:flex;align-items:center;gap:12px;padding:0 20px;height:44px;background:rgba(88,170,162,.08);border-bottom:1px solid rgba(88,170,162,.2);transition:background .2s}
-body.sprint-on #sprint-bar .sb-inner{background:rgba(88,170,162,.16);border-bottom-color:rgba(88,170,162,.55)}
+#sprint-bar .sb-inner{display:flex;align-items:center;gap:12px;padding:0 20px;height:44px;background:var(--surf,#152622);border-bottom:1px solid rgba(88,170,162,.25);transition:background .2s;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+body.sprint-on #sprint-bar .sb-inner{background:var(--surf2,var(--surf,#1a302c));border-bottom-color:rgba(88,170,162,.55);box-shadow:0 2px 10px rgba(0,0,0,.25)}
 #sprint-bar .sb-icon{color:var(--accent,#58aaa2);flex-shrink:0;font-size:15px}
 #sprint-bar .sb-text{flex:1;color:rgba(200,200,200,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 [data-theme="light"] #sprint-bar .sb-text{color:rgba(60,60,60,.65)}
@@ -265,6 +265,8 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .answer-code{font-family:var(--mono,monospace);font-size:14px;color:var(--accent,#58aaa2);white-space:pre-wrap;word-break:break-all;margin:0;line-height:1.55}
 .copy-btn{align-self:flex-start;display:inline-flex;align-items:center;gap:5px;background:rgba(88,170,162,.16);border:1.5px solid rgba(88,170,162,.38);color:var(--accent,#58aaa2);padding:6px 16px;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s}
 .copy-btn:hover{background:rgba(88,170,162,.28)}
+.learn-more-link{display:inline-flex;align-items:center;gap:5px;background:rgba(88,170,162,.1);border:1.5px solid rgba(88,170,162,.3);color:var(--accent,#58aaa2);padding:6px 14px;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s}
+.learn-more-link:hover{background:rgba(88,170,162,.22)}
 /* -- End Hint System ---- */
 </style></head>
 <body>
@@ -764,6 +766,7 @@ function navigate(view, ...args){
   if(map[view] !== undefined) btns[map[view]].classList.add('active');
   const main = document.getElementById('main');
   main.innerHTML = '';
+  window.scrollTo(0,0);
   if(view==='home') renderHome();
   else if(view==='lessons') renderLessons();
   else if(view==='lesson') renderLesson(args[0]);
@@ -1345,6 +1348,47 @@ function showToast(msg){
 loadState();
 navigate('home');
 
+/* -- Hint System JS ---- */
+var _hd={hint:'',ans:'',state:0};
+function cycleHint(){
+  _hd.state++;
+  var hp=document.getElementById('drill-hint');
+  var ap=document.getElementById('drill-answer');
+  var btn=document.getElementById('hint-cycle-btn');
+  if(_hd.state===1){
+    hp.textContent='\u{1F4A1} '+_hd.hint;
+    hp.classList.add('show');
+    if(btn)btn.textContent='Show Answer';
+  } else {
+    var esc=(_hd.ans+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var match=findGlossaryTerm(_hd.ans+'');
+    var learnHtml=match?'<button class="learn-more-link" onclick="openGlossaryFor(\''+match[0].replace(/'/g,"\\'")+'\')">&#x1F4D6; '+match[0]+'</button>':'';
+    ap.innerHTML='<pre class="answer-code">'+esc+'</pre><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="copy-btn" onclick="doCopy(event)">&#x1F4CB; Copy</button>'+learnHtml+'</div>';
+    ap.classList.add('show');
+    if(btn)btn.style.display='none';
+  }
+}
+function findGlossaryTerm(ansText){
+  if(typeof DATA==='undefined'||!DATA.GLOSSARY)return null;
+  var lower=(ansText+'').toLowerCase();
+  return DATA.GLOSSARY.find(function(e){var t=e[0].toLowerCase();return t.length>2&&lower.indexOf(t)!==-1;});
+}
+function openGlossaryFor(term){
+  if(typeof navigate==='function')navigate('glossary');
+  else if(typeof show==='function')show('glossary');
+  setTimeout(function(){
+    var s=document.getElementById('gloss-search')||document.getElementById('glossSearch');
+    if(s){s.value=term;try{filterGlossary(term);}catch(e){try{filterGlossary();}catch(e2){}}}
+  },80);
+}
+function doCopy(e){
+  var btn=e.currentTarget||e.target,orig=btn.textContent;
+  function done(){btn.textContent='✓ Copied!';setTimeout(function(){btn.textContent=orig;},1500);}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(_hd.ans).then(done).catch(function(){_fbCopy(_hd.ans);done();});}
+  else{_fbCopy(_hd.ans);done();}
+}
+function _fbCopy(t){var a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.top='-9999px';document.body.appendChild(a);a.focus();a.select();try{document.execCommand('copy');}catch(_){}document.body.removeChild(a);}
+/* -- End Hint System JS ---- */
 /* -- Sprint Bar IIFE ----------------------------------- */
 (function(){
   var KEY='apk-sprint';
