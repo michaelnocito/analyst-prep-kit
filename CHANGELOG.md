@@ -41,6 +41,9 @@ as Excel-only data edits; this is that ship.
 
 ## [1.2.0] — 2026-05-27 — Hub deduplicated: one entry point per kit
 
+_Verified pass on all three checks at May 27, 2026 — 2:31 PM ET
+(retroactively logged 7:42 PM ET during v1.2.1 testing)._
+
 Closes GR-2 from feedback batch #2 (May 27, 2026 — 5:43 PM ET). Serves
 the "simplicity beats completeness" sub-rule of the Vision Principles.
 

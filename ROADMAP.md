@@ -140,6 +140,15 @@ engagement ROI that don't bloat the core experience. Batched into
 planned cycles._
 _Response time: next planned cycle._
 
+- **GR-A: Bare Basics needs cross-kit handoff flow** _(added May 27, 2026 — 7:42 PM ET; Mike suggested parking lot but I'm overriding to Medium — see reason below)_
+  - _What:_ Bare Basics mode currently highlights must-know lessons within a kit, but when the user finishes the last must-know lesson in (say) SQL, there's no "Next: Excel bare basics →" prompt. Need:
+    1. End-of-last-basics CTA inside each kit: when the user completes their final core lesson with Bare Basics on, the lesson-complete view shows "Next bare basics: [Kit Name] →" pointing to the next kit in learning order.
+    2. Hub indicator: the Bare Basics entry card could show "X of 7 subjects complete in Bare Basics" so the user sees a cross-kit progress signal at the hub.
+  - _Why it's here:_ Vision Principle #2 ("always know what to do next"). The mode we just shipped actively contradicts this principle at the moment of biggest engagement opportunity — when someone finishes a kit's must-knows and is most ready to continue.
+  - _Why not Parking Lot:_ Doesn't match Parking Lot criteria. Not speculative (ROI is direct on a mode we just shipped). Not a big overhaul (per-kit small JS edit). Not low impact (active mode currently has a continuity gap). Promoted to Medium.
+  - _Definition of Done:_ With Bare Basics ON: finishing the last must-know lesson in a kit shows a primary CTA pointing to the next kit's bare basics (or "Final Exam →" after Interview). The hub's Bare Basics card shows cumulative progress across kits. Tested by walking through SQL → Excel handoff manually.
+  - _Est. effort:_ Small-Medium (1 cycle).
+
 - **"Say It Out Loud": add literal spoken-aloud reading above every RAL block** _(added May 27, 2026 — 4:52 PM ET, refined May 27, 2026 — 6:25 PM ET)_
   - _What:_ Above each formula/query, render a one-line spoken-aloud version of how a person would actually pronounce it word-by-word. **NOT** a paraphrase of what it does — the literal speech. Examples:
     - `=SUM(A4:A10)` → "Give me the sum of A4 to A10."
@@ -202,6 +211,19 @@ all other buckets are empty.
 - **Cleanup of orphaned sprint CSS** in each kit's stylesheet (see
   CHANGELOG "Known orphans"). _Reason parked:_ low impact, purely
   cosmetic, no DOM hits.
+
+- **GR-B: "Living a workday" mindset expansion across all kits** _(parked May 27, 2026 — 7:42 PM ET)_ —
+  The "On the job" framing currently in some Excel lessons is great
+  and Mike wants the whole product to feel that way: more on-the-job
+  sidebars, persistent "what your manager would ask" thread, scenario
+  framing throughout, eventually a "live a workday" arc the user can
+  walk through. _Reason parked:_ big-overhaul AND speculative-ROI per
+  criteria. Content authoring across every kit + possible structural
+  shift (sidebars, scenario threads, workday flow integration). Needs
+  its own planning cycle, not a single-bucket fix. Promote when:
+  (a) GR-A ships and the cross-kit flow exposes whether users want
+  more job framing in transitions, OR (b) a small scoped slice
+  surfaces that we can pilot in one kit as proof-of-concept.
 
 ---
 
