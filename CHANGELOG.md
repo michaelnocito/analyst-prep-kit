@@ -9,6 +9,36 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.1.0] — 2026-05-27 — Hub progress + Continue card
+
+Feedback batch #1 (May 27, 2026 — 4:05 PM ET) High-bucket items shipped.
+Serves Vision Principles #1 (see your progress) and #2 (always know
+what to do next).
+
+### Added
+- **Per-kit progress on every hub kit card.** Each card now shows
+  "X of Y lessons" (or tasks / questions, depending on the kit) plus a
+  thin teal progress bar that reads from the kit's existing localStorage
+  state. Completed kits get a ✓ marker. Brand-new visitors see
+  "Not started" placeholders so the layout doesn't shift. No new state
+  storage — adapters read each kit's existing shape (epk, sqlkit-v1,
+  ppk, tpk, spk, pbikt-v1, ipk, sim2, apk-final).
+- **"Continue where you left off" hero card** at the top of the hub.
+  Shows the kit name + which lesson/task you're on. Picks based on
+  (1) the most recently clicked kit if it still has work to do,
+  (2) otherwise the first incomplete kit with any progress,
+  (3) hidden entirely if nothing has been started yet (no friction for
+  first-time visitors). Click-stamps the chosen kit so the suggestion
+  follows the user.
+
+### Why this shipped
+Returning users used to land on a hub that looked identical to a
+first-time visitor's hub — no progress, no "what's next" cue. v1.1.0
+makes those answers visible without an extra click, which was the
+biggest cognitive-load gap in v1.0.
+
+---
+
 ## [1.0.0] — 2026-05-27 — First stable release
 
 Tentative stable: structure locked, content complete, no known blockers.

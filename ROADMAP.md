@@ -1,8 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.0.0` (tentatively stable, in testing)
-**Last cycle closed:** May 27, 2026 — first stable release
-**Currently working:** _awaiting triage approval for feedback batch #1_
+**Current version:** `v1.1.0` (shipped May 27, 2026)
+**Last cycle closed:** May 27, 2026 — feedback batch #1 High items
+**Currently working:** _nothing — awaiting testing on v1.1.0_
 
 ---
 
@@ -82,17 +82,7 @@ _Definition: visible bug or UX miss that hurts trust or learning, OR
 a feature that directly serves a Vision Principle and has clear ROI._
 _Response time: current cycle. Clear before accepting new feedback._
 
-- **Per-kit progress on the hub kit cards** _(added May 27, 2026 — 4:05 PM ET)_
-  - _What:_ Each kit card on the hub shows live progress (e.g. "Excel · 5 of 12 lessons" with a thin progress bar) by reading each kit's existing localStorage key.
-  - _Why it's here:_ Vision #1 ("see your progress at a glance"). Right now the hub is identical for a returning user and a first-time visitor — that's the biggest cognitive-load gap in v1.0.
-  - _Definition of Done:_ Every kit card on the hub displays current progress without an extra click; works in both dark and light mode; gracefully shows "Not started" when localStorage is empty.
-  - _Est. effort:_ Medium (1 cycle).
-
-- **"Continue where you left off" card at top of hub** _(added May 27, 2026 — 4:05 PM ET)_
-  - _What:_ When any kit has saved progress, the hub shows a single pinned card at the top: "Continue: [last lesson title] in [kit name] →". First-time users get "Start here: Excel" instead.
-  - _Why it's here:_ Vision #2 ("always know what to do next"). Removes the "where was I?" moment that happens every time you come back to the site.
-  - _Definition of Done:_ Card appears on every hub visit; the link goes directly to the last-active lesson or task (not just the kit home); falls back gracefully if localStorage is empty.
-  - _Est. effort:_ Medium (1 cycle, depends partly on the data-reading work in the item above).
+(empty — last cycle shipped May 27, 2026; see CHANGELOG v1.1.0)
 
 ### 🟡 Medium
 _Definition: polish, batched improvements, OR features with good
