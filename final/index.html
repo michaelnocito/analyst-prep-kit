@@ -484,13 +484,39 @@ function render(){
   attachFooter(app);
 }
 
-function setView(v){
+function setView(v, opts){
   if(v === 'results' && !state.submitted){ toast('Submit the exam first to see your results.'); return; }
   state.view = v;
   save();
   render();
+  if(opts && opts.scrollToSection){
+    const el = document.getElementById('study-' + opts.scrollToSection);
+    if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); return; }
+  }
   window.scrollTo({top:0,behavior:'smooth'});
 }
+
+/* Deep-link routing — supports /final/#study and /final/#study-<section> */
+function handleHash(){
+  const h = location.hash.replace(/^#/, '');
+  if(!h) return;
+  if(h === 'study'){
+    setView('study');
+    return;
+  }
+  if(h.startsWith('study-')){
+    const key = h.slice('study-'.length);
+    if(SECTION_INFO[key]){
+      state.openSections[key] = true;
+      save();
+      setView('study', {scrollToSection: key});
+    }
+    return;
+  }
+  if(h === 'exam') setView('exam');
+  else if(h === 'home') setView('home');
+}
+window.addEventListener('hashchange', handleHash);
 
 function renderHome(){
   const answered = Object.keys(state.answers).length;
@@ -839,6 +865,7 @@ function toast(msg){
 }
 
 render();
+handleHash();
 </script>
 </body>
 </html>
