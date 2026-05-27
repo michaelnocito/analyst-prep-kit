@@ -1,8 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.2.2` (shipped May 27, 2026 — awaiting test)
-**Last cycle closed:** May 27, 2026 — Excel RAL plain-English leading sentences
-**Currently working:** _testing v1.2.2_
+**Current version:** `v1.2.3` (shipped May 27, 2026 — awaiting test)
+**Last cycle closed:** May 27, 2026 — GR-1 (Final Exam defaults to Home)
+**Currently working:** _testing v1.2.3_
 
 ---
 
@@ -142,11 +142,7 @@ _Response time: current cycle. Clear before accepting new feedback._
 
 _(RAL Excel reading-order shipped May 27, 2026 — see CHANGELOG v1.2.1)_
 
-- **GR-1: Final Exam should default to Home on fresh entry** _(added May 27, 2026 — 5:43 PM ET)_
-  - _What:_ Clicking the Final Exam kit card from the hub currently lands the user wherever they last were in that kit (e.g. Study Guide if they previously visited via a `#study` link). That's confusing — they can't find how to start the exam. Fix: when the kit is entered without an explicit hash, force the view to Home; honor hash routing only when present.
-  - _Why it's here:_ Vision #2 — discoverability of a core action. Reported during v1.1.0 testing: Mike clicked Final Exam and landed on the Study Guide ("looked like a glossary"), took a moment to figure out how to start the exam.
-  - _Definition of Done:_ Fresh entry to `/final/` always lands on Home with the two big CTAs ("Here's what you should know" and "Take the Exam"). Deep links like `/final/#study` and `/final/#exam` still work as before. View state still persists within a session for back-button behavior, but doesn't carry over across fresh entries.
-  - _Est. effort:_ Small (1 cycle, single-file change).
+_(GR-1 shipped May 27, 2026 — see CHANGELOG v1.2.3)_
 
 _(GR-2 shipped May 27, 2026 — see CHANGELOG v1.2.0)_
 

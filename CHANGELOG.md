@@ -9,7 +9,28 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.2.3] — 2026-05-27 — Final Exam: cold entry lands on Home (GR-1)
+
+Closes GR-1 from feedback batch #3 (May 27, 5:43 PM ET).
+
+### Fixed
+- Clicking the Final Exam kit card from the hub previously dropped
+  the user wherever they had last navigated inside the Final Exam —
+  often the Study Guide if they had ever followed a `#study` deep
+  link. That made the "Take the Exam" CTA invisible on entry.
+- Now: any cold entry to `/final/` (URL has no hash) always lands on
+  Home with the two big CTAs. Saved `state.view` is still honored
+  within a session for back-button behavior, but does not carry over
+  across cold visits. URL deep links (`#study`, `#study-sql`, `#exam`,
+  etc.) still work as before.
+
+Single-line state-hydration change. Patch release.
+
+---
+
 ## [1.2.2] — 2026-05-27 — Excel RAL plain-English leading sentence
+
+_Verified pass on all three checks at May 27, 2026 — 8:03 PM ET._
 
 Closes the second half of the RAL feedback (May 27, 4:52 PM ET → 6:25 PM
 ET refinement → 7:42 PM ET re-clarification). v1.2.1 fixed the line
