@@ -1,0 +1,62 @@
+# Analyst Prep Kit
+
+A free, browser-based learning suite for breaking into data analytics. Eight self-contained apps, no install, no login, no telemetry.
+
+**Live:** https://michaelnocito.github.io/analyst-prep-kit/
+
+## What's in the kit
+
+| Kit | What it teaches | Signature feature |
+|---|---|---|
+| [SQL](sql/) | Joins, aggregation, window functions, CTEs — against a real in-browser SQLite database | Live `sql.js` query runner |
+| [Excel](excel/) | Formulas, PivotTables, lookup logic, data cleaning | Drag-and-drop Pivot Lab |
+| [Python](python/) | pandas, basic scripting, file validation, data cleaning | Live Pyodide terminal (real CPython in the browser) |
+| [Tableau](tableau/) | Chart selection, dashboard design, visual hierarchy | Drag-and-drop Viz Builder (Chart.js) |
+| [Statistics](stats/) | Distributions, A/B testing, p-values, regression intuition | Interactive Distribution Lab |
+| [Power BI](powerbi/) | DAX, time intelligence, dashboard design, the Microsoft stack | Lesson-driven walkthroughs |
+| [Interview](interview/) | STAR, behavioral prep, the hard moments that decide the offer | Answer Builder with self-scoring |
+| [Jr Data Pro Simulator](simulator/) | A simulated first week as a junior analyst — 10 real assignments with AI manager review | Live Claude-API manager feedback per task |
+
+## How every lesson works — "Say It Out Loud"
+
+Every query, formula, or chart in this kit is broken down piece by piece into plain language. Read it back to yourself — in whatever language you think in — and if you can explain what each part is doing, you own it. The method works the same whether English is your first language or your fifth.
+
+Example:
+
+```sql
+SELECT name FROM customers WHERE status = 'active';
+```
+
+- `SELECT name` → get the name column
+- `FROM customers` → from the customers table
+- `WHERE status = 'active'` → only rows where status is active
+
+That's the whole methodology. Each lesson follows the same shape: see the code → read the breakdown → say it back → drill it.
+
+## Tech
+
+- One self-contained `index.html` per kit. No build step, no dependencies bundled in source.
+- Dark default with a light toggle. Theme is shared across kits (`localStorage` key `apk-theme`).
+- Per-kit progress is saved in `localStorage` so you can leave and come back.
+- The simulator's "manager review" uses the Claude API directly from your browser. Paste your own API key in the simulator's nav — it's stored only on your machine.
+
+## Suggested order
+
+If you're prepping for a junior analyst role from scratch:
+
+1. **SQL** — the most-tested skill in analyst interviews
+2. **Excel** — universally assumed
+3. **Statistics** — A/B testing and distributions come up in nearly every technical panel
+4. **Interview Kit** — the non-technical round that decides whether you get the offer
+5. **Jr Data Pro Simulator** — once you have the tools, this is where you practice using them like a real analyst
+6. **Python**, **Tableau**, **Power BI** — depth in whichever the role you're targeting actually uses
+
+There's also a one-click **Interview Sprint** on the hub page that filters the kit down to the four tools that move the needle most, sequenced in the right order.
+
+## Status
+
+Actively in development. Content and layout may change between sessions. All progress is local — it won't be wiped by updates.
+
+## License & credits
+
+Built by [Michael Nocito](https://michaelnocito.github.io). All content is free to use. The CONTOSO and DataBridge Analytics datasets are fictional.

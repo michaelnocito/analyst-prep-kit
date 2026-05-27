@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Arcade — Analyst Prep Kit</title>
+<style>
+:root{--bg:#171513;--surf:#201d1a;--surf2:#292520;--accent:#58aaa2;--text:#e8e0d5;--dim:#9a8f84;--border:#3a3530;--font:'Segoe UI',system-ui,sans-serif;--radius:10px;--red:#e05555;--gold:#d4a843}
+[data-theme="light"]{--bg:#ddd6c8;--surf:#ffffff;--surf2:#f5f0e9;--accent:#116d69;--text:#1a1410;--dim:#6b5f54;--border:#c8bfb4;--red:#c0392b;--gold:#b8860b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;line-height:1.6}
+a{color:var(--accent);text-decoration:none}
+button{cursor:pointer;font-family:var(--font)}
+
+nav{display:flex;align-items:center;gap:10px;padding:12px 20px;background:var(--surf);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.back-link{font-size:13px;color:var(--dim)}
+.back-link:hover{color:var(--accent)}
+.nav-title{font-size:15px;font-weight:700;color:var(--accent)}
+.nav-spacer{flex:1}
+.theme-btn{background:var(--surf2);border:1px solid var(--border);color:var(--dim);padding:7px 10px;border-radius:10px;font-size:14px;transition:.15s}
+.theme-btn:hover{border-color:var(--accent)}
+
+main{max-width:860px;margin:0 auto;padding:32px 20px 60px}
+
+/* ARCADE HERO */
+.arcade-hero{text-align:center;padding:32px 0 28px}
+.arcade-hero h1{font-size:32px;font-weight:800;margin-bottom:8px}
+.arcade-hero p{font-size:15px;color:var(--dim);max-width:460px;margin:0 auto}
+
+/* GAME CARDS ROW */
+.game-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:40px}
+@media(max-width:640px){.game-grid{grid-template-columns:1fr}}
+.game-card{background:var(--surf);border:1px solid var(--border);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:12px;transition:.15s}
+.game-card.live{border-color:var(--accent)}
+.game-card.coming{opacity:.6}
+.game-icon{font-size:28px}
+.game-card h3{font-size:15px;font-weight:700;margin-bottom:4px}
+.game-card p{font-size:13px;color:var(--dim);line-height:1.5;margin-bottom:8px}
+.play-btn{background:var(--accent);color:#fff;border:none;padding:10px 18px;border-radius:9px;font-size:14px;font-weight:700;transition:.15s;width:100%}
+.play-btn:hover{opacity:.88}
+.soon-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);border:1px solid var(--border);border-radius:6px;padding:4px 10px}
+
+/* ═══ GAME AREA ═══ */
+#gameArea{min-height:400px}
+
+/* LOBBY */
+.lobby{text-align:center}
+.lobby-title{font-size:22px;font-weight:800;margin-bottom:8px}
+.lobby-sub{font-size:14px;color:var(--dim);margin-bottom:28px}
+.kit-filter{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:24px}
+.kf-btn{background:var(--surf2);border:1px solid var(--border);color:var(--dim);padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;transition:.15s}
+.kf-btn:hover{border-color:var(--accent);color:var(--text)}
+.kf-btn.active{background:rgba(88,170,162,.15);color:var(--accent);border-color:var(--accent)}
+.high-score-row{display:flex;gap:20px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.hs-box{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 22px;text-align:center}
+.hs-num{font-size:24px;font-weight:800;color:var(--accent)}
+.hs-lbl{font-size:11px;color:var(--dim);margin-top:2px}
+.start-btn{background:var(--accent);color:#fff;border:none;padding:14px 40px;border-radius:12px;font-size:16px;font-weight:800;letter-spacing:.02em;transition:.15s}
+.start-btn:hover{opacity:.88;transform:scale(1.02)}
+.rules-list{font-size:13px;color:var(--dim);list-style:none;display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.rules-list li::before{content:'·  '}
+
+/* GAME PLAYING */
+.game-hud{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;margin-bottom:20px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 20px}
+.hud-lives{font-size:18px;letter-spacing:3px}
+.hud-score{text-align:center}
+.hud-score-num{font-size:24px;font-weight:800;color:var(--accent)}
+.hud-score-lbl{font-size:11px;color:var(--dim)}
+.hud-combo{text-align:right;font-size:13px;font-weight:700;color:var(--dim)}
+.hud-combo.hot{color:var(--gold)}
+.hud-combo span{font-size:18px;font-weight:800}
+
+.q-card{background:var(--surf);border:1px solid var(--border);border-radius:14px;padding:28px;position:relative;overflow:hidden;transition:.2s}
+.q-card.flash-good{border-color:var(--accent);background:rgba(88,170,162,.08)}
+.q-card.flash-bad{border-color:var(--red);background:rgba(224,85,85,.06)}
+.timer-track{height:4px;background:var(--border);border-radius:2px;margin-bottom:20px;overflow:hidden}
+.timer-fill{height:4px;border-radius:2px;background:var(--accent);transition:width .1s linear;width:100%}
+.timer-fill.warn{background:var(--gold)}
+.timer-fill.danger{background:var(--red)}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.q-num{font-size:12px;color:var(--dim)}
+.kit-chip{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(88,170,162,.12);color:var(--accent);border:1px solid rgba(88,170,162,.3);border-radius:20px;padding:3px 10px;text-decoration:none;transition:.15s}
+.kit-chip:hover{background:rgba(88,170,162,.22)}
+.q-text{font-size:17px;font-weight:600;line-height:1.5;margin-bottom:22px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.choices{grid-template-columns:1fr}}
+.choices.two-col{grid-template-columns:1fr 1fr}
+.choice-btn{background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:13px 16px;font-size:14px;text-align:left;color:var(--text);transition:.12s;line-height:1.4}
+.choice-btn:hover:not(:disabled){border-color:var(--accent);background:rgba(88,170,162,.08)}
+.choice-btn.correct{background:rgba(88,170,162,.18);border-color:var(--accent);color:var(--accent);font-weight:600}
+.choice-btn.wrong{background:rgba(224,85,85,.14);border-color:var(--red);color:var(--red)}
+.choice-btn.reveal{opacity:.55}
+
+.reaction-bar{display:flex;align-items:center;gap:12px;margin-top:16px;min-height:52px}
+.reaction-emoji{font-size:26px;transition:.2s}
+.reaction-msg{font-size:14px;font-weight:600}
+.reaction-msg.good{color:var(--accent)}
+.reaction-msg.bad{color:var(--red)}
+.reaction-msg.combo{color:var(--gold)}
+.explain-text{font-size:13px;color:var(--dim);line-height:1.55;margin-top:6px}
+
+/* SCORE POP */
+.score-pop{position:absolute;top:16px;right:20px;font-size:18px;font-weight:800;color:var(--accent);opacity:0;pointer-events:none;transition:none}
+.score-pop.show{animation:popUp .7s ease-out forwards}
+@keyframes popUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-32px)}}
+
+/* COMBO BANNER */
+.combo-banner{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:var(--gold);color:#1a1410;font-size:14px;font-weight:800;padding:8px 20px;border-radius:20px;z-index:200;opacity:0;pointer-events:none;white-space:nowrap}
+.combo-banner.show{animation:bannerIn .9s ease-out forwards}
+@keyframes bannerIn{0%{opacity:0;transform:translateX(-50%) scale(.8)}15%{opacity:1;transform:translateX(-50%) scale(1.05)}85%{opacity:1;transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translateX(-50%) scale(1)}}
+
+/* RESULT */
+.result-screen{text-align:center;padding:20px 0}
+.grade-badge{font-size:72px;font-weight:900;margin:8px 0;line-height:1}
+.grade-label{font-size:14px;color:var(--dim);margin-bottom:20px}
+.result-score{font-size:36px;font-weight:800;color:var(--accent);margin-bottom:4px}
+.result-sub{font-size:14px;color:var(--dim);margin-bottom:28px}
+.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:440px;margin:0 auto 28px}
+.r-box{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.r-num{font-size:22px;font-weight:800;color:var(--accent)}
+.r-lbl{font-size:11px;color:var(--dim);margin-top:3px}
+.result-roast{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:16px 20px;max-width:440px;margin:0 auto 24px;font-size:14px;line-height:1.6;color:var(--text)}
+.result-roast em{color:var(--accent);font-style:normal;font-weight:600}
+.kit-breakdown{max-width:440px;margin:0 auto 28px;text-align:left}
+.kb-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);margin-bottom:10px}
+.kb-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:8px;font-size:13px;margin-bottom:6px;background:var(--surf)}
+.kb-kit{font-weight:600}
+.kb-score{color:var(--dim)}
+.kb-score.perfect{color:var(--accent);font-weight:700}
+.kb-link{font-size:12px;color:var(--accent)}
+.result-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{background:var(--accent);color:#fff;border:none;padding:11px 24px;border-radius:9px;font-size:14px;font-weight:700;transition:.15s}
+.btn:hover{opacity:.88}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--dim);padding:11px 24px;border-radius:9px;font-size:14px;transition:.15s}
+.btn-ghost:hover{border-color:var(--accent);color:var(--text)}
+
+/* SCREEN SHAKE */
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.shaking{animation:shake .35s ease}
+
+/* TOAST */
+#toast{position:fixed;bottom:28px;right:24px;background:var(--accent);color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;z-index:9998;opacity:0;transform:translateY(10px);transition:.3s;pointer-events:none}
+#toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../" class="back-link">← All Kits</a>
+  <span style="color:var(--dim);font-size:13px">·</span>
+  <span class="nav-title">🕹️ The Arcade</span>
+  <span class="nav-spacer"></span>
+  <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">🌓</button>
+</nav>
+
+<main>
+  <div class="arcade-hero">
+    <h1>🕹️ The Arcade</h1>
+    <p>Three games. One goal: separate the signal from the noise.</p>
+  </div>
+
+  <div class="game-grid">
+    <div class="game-card live">
+      <div class="game-icon">📡</div>
+      <div>
+        <h3>Signal vs. Noise</h3>
+        <p>72 questions. 3 lives. Combo multipliers. Can you tell signal from noise under pressure?</p>
+      </div>
+      <button class="play-btn" onclick="showLobby()">▶ Play Now</button>
+    </div>
+    <div class="game-card coming">
+      <div class="game-icon">🌪️</div>
+      <div>
+        <h3>Term Tornado</h3>
+        <p>Terms rain from the sky. Match the definition before they hit the ground.</p>
+      </div>
+      <span class="soon-badge">Coming Soon</span>
+    </div>
+    <div class="game-card coming">
+      <div class="game-icon">🤜</div>
+      <div>
+        <h3>Analyst vs. Stakeholder</h3>
+        <p>Swipe true or myth at speed. The cartoon stakeholder is watching. And judging.</p>
+      </div>
+      <span class="soon-badge">Coming Soon</span>
+    </div>
+  </div>
+
+  <div id="gameArea"></div>
+</main>
+
+<div id="comboBanner" class="combo-banner"></div>
+<div id="toast"></div>
+
+<script>
+// ─── QUESTIONS ──────────────────────────────────────────────────────────────
+const ALL_QUESTIONS = [
+  // ── SQL ──
+  {q:"Which JOIN returns only rows that match in BOTH tables?",ch:["LEFT JOIN","INNER JOIN","FULL OUTER JOIN","CROSS JOIN"],c:1,kit:"SQL",link:"../sql/",ex:"INNER JOIN is the intersection — only rows with a matching key in both tables appear in results."},
+  {q:"Which SQL clause filters rows AFTER aggregation?",ch:["WHERE","HAVING","FILTER","GROUP FILTER"],c:1,kit:"SQL",link:"../sql/",ex:"HAVING runs after GROUP BY. WHERE runs before — it can't reference aggregate functions like SUM() or COUNT()."},
+  {q:"What does COUNT(*) count?",ch:["Non-NULL values only","All rows including NULLs","Distinct values only","Numeric columns only"],c:1,kit:"SQL",link:"../sql/",ex:"COUNT(*) counts every row regardless of NULLs. COUNT(column) skips NULLs. Always know which you're using."},
+  {q:"LEFT JOIN — when there's no match in the right table, right-side columns return…",ch:["They drop the row","NULL","Zero","An error"],c:1,kit:"SQL",link:"../sql/",ex:"LEFT JOIN keeps all left-table rows. Where no right-table match exists, right columns return NULL."},
+  {q:"Logical processing order: which runs first?",ch:["SELECT","WHERE","GROUP BY","FROM"],c:3,kit:"SQL",link:"../sql/",ex:"FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY. SELECT is written first but processed near last."},
+  {q:"Which window function assigns sequential numbers with NO gaps for ties?",ch:["ROW_NUMBER()","RANK()","DENSE_RANK()","NTILE()"],c:2,kit:"SQL",link:"../sql/",ex:"DENSE_RANK() has no gaps. RANK() skips numbers after ties (1,1,3). ROW_NUMBER() is always unique regardless of ties."},
+  {q:"TRUE or FALSE: NULL = NULL evaluates to TRUE in SQL.",ch:["True","False"],c:1,kit:"SQL",link:"../sql/",ex:"False. NULL = NULL returns NULL (unknown). Use IS NULL or IS NOT NULL to check for nulls — this breaks a lot of WHERE clauses."},
+  {q:"COALESCE(a, b, c) returns…",ch:["The average of the values","The first non-NULL value","The maximum value","NULL if any input is NULL"],c:1,kit:"SQL",link:"../sql/",ex:"COALESCE returns the first non-NULL in the list. Great for fallback logic: COALESCE(discount_price, regular_price)."},
+  {q:"What does UNION do differently from UNION ALL?",ch:["UNION keeps duplicates","UNION removes duplicates; UNION ALL keeps them","UNION is faster","UNION requires matching column names"],c:1,kit:"SQL",link:"../sql/",ex:"UNION deduplicates — slower. UNION ALL keeps everything — faster. Use UNION ALL unless you specifically need deduplication."},
+  {q:"A self-join…",ch:["Joins a table to itself","Joins on identical column names","Creates a recursive CTE","Joins without a condition"],c:0,kit:"SQL",link:"../sql/",ex:"A self-join uses aliases to join a table to itself. Classic use: employee-manager hierarchy where both IDs live in the same table."},
+  {q:"What does DISTINCT do in SELECT DISTINCT?",ch:["Sorts results alphabetically","Removes duplicate rows from results","Filters NULL values","Returns numeric rows only"],c:1,kit:"SQL",link:"../sql/",ex:"DISTINCT removes duplicate rows considering ALL selected columns. SELECT DISTINCT a, b — two rows must match on both a AND b to be deduplicated."},
+  {q:"Where does a CTE (WITH clause) appear in a query?",ch:["After the SELECT","Before the main SELECT","Inside the WHERE clause","After ORDER BY"],c:1,kit:"SQL",link:"../sql/",ex:"CTEs are defined with WITH cte_name AS (...) before the main query. They improve readability and can be referenced multiple times."},
+
+  // ── EXCEL ──
+  {q:"VLOOKUP 4th argument = FALSE means…",ch:["Return FALSE if not found","Exact match lookup","Sort the lookup column","Case-insensitive search"],c:1,kit:"Excel",link:"../excel/",ex:"FALSE = exact match. TRUE = approximate match (requires sorted data). Almost always use FALSE unless you're doing range lookups like tax brackets."},
+  {q:"Which function counts cells meeting one condition?",ch:["SUMIF","COUNTA","COUNTIF","IF"],c:2,kit:"Excel",link:"../excel/",ex:"COUNTIF(range, criteria). COUNTIFS handles multiple conditions. COUNTA counts non-empty cells regardless of value."},
+  {q:"What does $ do in cell reference $A$1?",ch:["References another sheet","Makes the reference absolute","Denotes a named range","Formats as currency"],c:1,kit:"Excel",link:"../excel/",ex:"$ locks the reference. $A$1 = absolute (won't move when copied). $A1 = column locked. A$1 = row locked."},
+  {q:"INDEX-MATCH's main advantage over VLOOKUP?",ch:["Faster to type","Can look left AND right","Better with dates","No need for exact match"],c:1,kit:"Excel",link:"../excel/",ex:"VLOOKUP can only return values to the right. INDEX-MATCH has no directional restriction — place your lookup column anywhere."},
+  {q:"What does IFERROR(formula, value) do?",ch:["Returns TRUE if formula errors","Returns fallback value when formula errors, otherwise returns formula result","Converts errors to zero","Highlights error cells"],c:1,kit:"Excel",link:"../excel/",ex:"IFERROR catches any error (#N/A, #DIV/0!, #VALUE! etc.) and returns your fallback. Wrap VLOOKUPs to return blank instead of #N/A."},
+  {q:"Ctrl+T in Excel…",ch:["Opens Format Cells","Creates a structured Table","Adds a total row","Starts a formula"],c:1,kit:"Excel",link:"../excel/",ex:"Ctrl+T converts a range to a structured Table — auto-expands, enables structured references, makes pivot tables easier to refresh."},
+  {q:"SUMIFS vs SUMIF — the key difference is…",ch:["SUMIFS sums text","SUMIFS allows multiple criteria ranges","SUMIFS works across sheets","SUMIFS handles arrays automatically"],c:1,kit:"Excel",link:"../excel/",ex:"SUMIFS(sum_range, range1, crit1, range2, crit2, ...) — unlimited criteria pairs. SUMIF handles only one condition."},
+  {q:"In mixed reference A$1, what is locked?",ch:["The column (A)","The row (1)","Both column and row","Neither"],c:1,kit:"Excel",link:"../excel/",ex:"A$1 locks row 1 but not the column. Copy right → A becomes B, C… Copy down → row stays at 1. Useful for fixed header row references."},
+  {q:"The Pivot Table VALUES area contains…",ch:["Row labels","Filter fields","Aggregated numeric data","Column headers"],c:2,kit:"Excel",link:"../excel/",ex:"Values = the numbers being summarized (SUM, COUNT, AVERAGE). Rows and Columns define grouping dimensions. Filters restrict what's included."},
+  {q:"LEFT('Analytics', 4) returns…",ch:["'ytics'","'Anal'","'Analytics'","Error"],c:1,kit:"Excel",link:"../excel/",ex:"LEFT extracts N characters from the start. LEFT('Analytics', 4) = 'Anal'. Pair with FIND() to extract text up to a delimiter dynamically."},
+  {q:"TRUE or FALSE: Conditional formatting rules can reference values in other cells.",ch:["True","False"],c:0,kit:"Excel",link:"../excel/",ex:"True. Use a custom formula like =$B2>100 to format a whole row based on column B. Lock the column with $ so each row checks its own B value."},
+  {q:"What is XLOOKUP's main advantage over VLOOKUP?",ch:["Only works in Excel 365","Searches any direction and returns arrays","Auto-sorts data","Works with merged cells"],c:1,kit:"Excel",link:"../excel/",ex:"XLOOKUP: any direction, returns multiple columns, handles not-found natively, no column index number needed. The modern replacement for VLOOKUP."},
+
+  // ── PYTHON ──
+  {q:"df.describe() returns…",ch:["Column data types","Summary stats (count, mean, std, quartiles)","First 5 rows","Null value counts"],c:1,kit:"Python",link:"../python/",ex:"describe() gives count, mean, std, min, 25%, 50%, 75%, max for numeric columns. Add include='all' to include non-numeric."},
+  {q:".loc vs .iloc — the difference is…",ch:[".loc is faster, .iloc is readable",".loc is label-based, .iloc is integer position-based",".loc handles NaN, .iloc doesn't",".loc is rows only, .iloc is columns only"],c:1,kit:"Python",link:"../python/",ex:".loc['label'] uses index labels. .iloc[0] uses 0-based integer positions. With .iloc, slicing end is exclusive."},
+  {q:"df.dropna() — what does it drop by default?",ch:["Columns with any NaN","Rows with any NaN","All NaN values","Rows where ALL values are NaN"],c:1,kit:"Python",link:"../python/",ex:"axis=0, how='any' — drops any row with at least one NaN. Use how='all' to only drop rows where every value is NaN."},
+  {q:"series.value_counts() returns…",ch:["Number of columns","Frequency count of each unique value, sorted descending","Mean of each value","Sorted unique values"],c:1,kit:"Python",link:"../python/",ex:"Returns unique values and their counts, descending. Add normalize=True to get proportions. Add dropna=False to count NaN too."},
+  {q:"[x**2 for x in range(5)] is called a…",ch:["Generator expression","List comprehension","Dictionary comprehension","Lambda function"],c:1,kit:"Python",link:"../python/",ex:"List comprehension — concise way to create a list from an iterable. Equivalent to a for loop with append. () instead of [] makes it a generator."},
+  {q:"df.merge(df2, on='id', how='left') — this is SQL's equivalent of…",ch:["INNER JOIN","LEFT JOIN","UNION","CROSS JOIN"],c:1,kit:"Python",link:"../python/",ex:"how='left' keeps all rows from the left DataFrame, NaN where right has no match. how='inner' is INNER JOIN, how='outer' is FULL OUTER JOIN."},
+  {q:"lambda x: x * 2 is…",ch:["A function that runs asynchronously","An anonymous single-expression function","A method defined inside a class","A recursive function"],c:1,kit:"Python",link:"../python/",ex:"Lambdas are anonymous, one-expression functions. Common in df.apply(lambda x: ...). For anything complex, define a named function instead."},
+  {q:"df['col'].fillna(method='ffill') — what does ffill mean?",ch:["Fill with column mean","Fill with 0","Forward fill — carry previous non-NaN value forward","Fill with next valid value"],c:2,kit:"Python",link:"../python/",ex:"ffill (forward fill) propagates the last known value into NaN cells below it. bfill fills backward. Common for time series gaps."},
+  {q:"5 // 2 in Python equals…",ch:["2.5","2","3","2.0"],c:1,kit:"Python",link:"../python/",ex:"// is floor division — divides and rounds down. 5 // 2 = 2. 7 // 2 = 3. Useful for bins, pagination, and avoiding unintended floats."},
+  {q:"TRUE or FALSE: Without .copy(), slicing a DataFrame may modify the original.",ch:["True","False"],c:0,kit:"Python",link:"../python/",ex:"True. A slice may be a view, not a copy. Changes to df2 = df[mask] can affect df. Always use df[mask].copy() for independent DataFrames."},
+  {q:"What does groupby().agg({'sales': ['sum','mean']}) return?",ch:["Error — only one function allowed","DataFrame with sum and mean columns per group","Series of group keys","Same as groupby().mean()"],c:1,kit:"Python",link:"../python/",ex:"Dict passed to agg() applies multiple functions per column. Result has MultiIndex columns. Use .reset_index() and flatten columns afterward."},
+  {q:"What does pd.to_datetime() do?",ch:["Converts a column to string","Parses a column into datetime objects","Extracts the year from a date","Formats dates for display"],c:1,kit:"Python",link:"../python/",ex:"pd.to_datetime(df['date']) parses strings like '2024-01-15' into datetime64 objects, enabling .dt.year, .dt.month, date arithmetic, and resampling."},
+
+  // ── TABLEAU ──
+  {q:"Dimensions vs. Measures in Tableau — the key difference?",ch:["Dimensions are numbers, Measures are categories","Dimensions are categorical, Measures are quantitative","Dimensions go on rows only","Dimensions are continuous, Measures are discrete"],c:1,kit:"Tableau",link:"../tableau/",ex:"Dimensions = categorical (country, product, date). Measures = numeric aggregates (sales, profit). Blue pill = discrete (headers). Green = continuous (axis)."},
+  {q:"{ FIXED [Region] : SUM([Sales]) } computes…",ch:["Only when Region is in the view","Sum of sales per region regardless of view dimensions","Sum of sales for the entire table","Sum filtered by current dashboard filters"],c:1,kit:"Tableau",link:"../tableau/",ex:"FIXED LOD computes at specified dimensions regardless of what's in the view. Great for % of total and comparing against a fixed benchmark."},
+  {q:"The Filters shelf…",ch:["Changes the color of marks","Limits which data appears in the view","Controls the aggregation method","Defines the sort order"],c:1,kit:"Tableau",link:"../tableau/",ex:"Dimension filters exclude rows. Measure filters exclude based on aggregated values. Context filters run first, reducing data for downstream filters."},
+  {q:"A Calculated Field in Tableau is…",ch:["A field imported from CSV","A field created using Tableau's formula language","A parameter with a fixed value","A field from a web connector"],c:1,kit:"Tableau",link:"../tableau/",ex:"Calculated fields are formulas written in Tableau's syntax. They live in the data pane and can be used like any other dimension or measure."},
+  {q:"Dual axis allows…",ch:["Two data sources on one sheet","Two mark types and two y-axes on the same chart","Filtering two views simultaneously","Showing two time periods side by side"],c:1,kit:"Tableau",link:"../tableau/",ex:"Dual axis = two independent axes. Right-click a pill → Dual Axis. Synchronize axes so scales match. Combine bars + lines on the same view."},
+  {q:"A Parameter in Tableau is…",ch:["A filter applied to all sheets","A user-controlled input value that can change calculations","A connection to an external source","A calculated field referencing a dimension"],c:1,kit:"Tableau",link:"../tableau/",ex:"Parameters are user-controlled variables (number, string, date) referenced in calculations, filters, and reference lines — making views dynamic."},
+  {q:"'Show Me' in Tableau…",ch:["Reveals hidden fields","Recommends chart types based on field types selected","Displays underlying data","Opens the calculated field editor"],c:1,kit:"Tableau",link:"../tableau/",ex:"Show Me suggests chart types based on your selected fields' types and cardinality. Use it as a starting point, then customize from there."},
+  {q:"TRUE or FALSE: A continuous (green) pill creates an axis; a discrete (blue) pill creates headers.",ch:["True","False"],c:0,kit:"Tableau",link:"../tableau/",ex:"True. Green = axis with a range. Blue = column/row headers. Right-click any pill to toggle — this changes the visualization significantly."},
+  {q:"{ INCLUDE [Customer] : AVG([Sales]) } — what does INCLUDE do?",ch:["Ignores view dimensions","Adds [Customer] to the computation beyond what's in the view","Computes at a higher level than the view","Locks to the data source level"],c:1,kit:"Tableau",link:"../tableau/",ex:"INCLUDE adds dimensions to the computation even if they're not in the view. Useful for avg-of-avg patterns where you need a finer granularity than the view level."},
+  {q:"A Dashboard Action triggers on…",ch:["A scheduled data refresh","User interaction (click, hover, select) to filter, highlight, or navigate","An animation between views","A data blending rule"],c:1,kit:"Tableau",link:"../tableau/",ex:"Dashboard Actions make dashboards interactive. User clicks a mark → filter another sheet, highlight related marks, open a URL. Set in Dashboard → Actions."},
+  {q:"Data blending in Tableau…",ch:["Creates a physical join in the database","Combines data from different sources at the worksheet level","Imports data from Salesforce only","Merges extracts into one"],c:1,kit:"Tableau",link:"../tableau/",ex:"Blending aggregates and links data from different sources at the view level — not in the database. Primary source drives the view; secondary is linked by a shared dimension."},
+  {q:"What does 'Synchronize Axis' do on a dual axis chart?",ch:["Merges both axes into one","Makes both y-axes use the same scale","Swaps the primary and secondary axes","Removes the secondary axis"],c:1,kit:"Tableau",link:"../tableau/",ex:"Without synchronizing, each axis auto-scales independently — visually misleading. Right-click the secondary axis → Synchronize Axis to align scales."},
+
+  // ── STATS ──
+  {q:"A p-value of 0.03 means…",ch:["3% chance null hypothesis is true","97% chance result is real","If H₀ were true, results this extreme occur 3% of the time by chance","Effect size is 3%"],c:2,kit:"Stats",link:"../stats/",ex:"p-value = P(data | H₀). It says nothing about P(H₀ | data). Don't say 'there's a 3% chance we're wrong' — that's a different (and wrong) interpretation."},
+  {q:"Type I error is…",ch:["Missing a real effect","Rejecting a true null hypothesis (false positive)","Accepting a false null hypothesis","An error in data collection"],c:1,kit:"Stats",link:"../stats/",ex:"Type I = false positive. Alpha (your significance level) is the Type I error rate you accept. Type II = false negative (missing a real effect). Beta."},
+  {q:"Standard deviation measures…",ch:["The middle value in a dataset","Average distance of values from the mean","The range of the dataset","Skewness of the distribution"],c:1,kit:"Stats",link:"../stats/",ex:"SD = average spread around the mean. Low SD = tightly clustered. High SD = widely spread. It's the square root of variance."},
+  {q:"R² = 0.72 means…",ch:["Correlation is 0.72","72% of variance in Y is explained by the model","The model is 72% accurate","p-value is 0.72"],c:1,kit:"Stats",link:"../stats/",ex:"R² = proportion of variance in the dependent variable explained by your model. Higher isn't always better — a perfectly overfit model has R²=1 but predicts nothing new."},
+  {q:"The Central Limit Theorem states…",ch:["All populations are normal","Sample means approach normality as n increases, regardless of population shape","Mean = median in symmetric distributions","Large samples have smaller standard deviations"],c:1,kit:"Stats",link:"../stats/",ex:"CLT lets us use normal-based inference on real non-normal data when n is large enough. It's why t-tests and z-tests work in practice."},
+  {q:"A 95% confidence interval does NOT mean…",ch:["The estimate has a plausible range","95% of future samples will fall in this specific interval","The interval reflects precision of the estimate","A range consistent with your observed data"],c:1,kit:"Stats",link:"../stats/",ex:"A 95% CI means: 95% of intervals constructed this way will contain the true parameter. It does NOT mean 'there's a 95% chance this interval contains the true value.'"},
+  {q:"Multicollinearity occurs when…",ch:["Residuals are correlated over time","Independent variables in a model are highly correlated with each other","The dependent variable has multiple modes","Variance is unequal across X values"],c:1,kit:"Stats",link:"../stats/",ex:"Multicollinearity inflates standard errors, making individual coefficient interpretation unreliable. Doesn't bias estimates but destroys interpretability. Detect with VIF."},
+  {q:"Right-skewed distribution — which is true?",ch:["Left tail is longer","Right tail is longer, mean > median","Distribution is symmetric","Both tails are equal"],c:1,kit:"Stats",link:"../stats/",ex:"Right (positive) skew = long right tail. Mean gets pulled toward outliers, so mean > median. Income is classically right-skewed — a few high earners pull the mean up."},
+  {q:"Correlation ≠ causation because…",ch:["Correlations above 0.8 imply causation","Correlation measures relationship strength; causation requires ruling out confounders","Causation requires r = 1.0","Correlation needs a controlled experiment"],c:1,kit:"Stats",link:"../stats/",ex:"Correlation only says variables move together. Causation needs: correlation + temporal precedence + eliminated confounders. Ice cream sales and drowning correlate — summer is the confounder."},
+  {q:"What does a box plot show that a bar chart doesn't?",ch:["The mean","Distribution spread, median, and outliers","Category comparisons","Trend over time"],c:1,kit:"Stats",link:"../stats/",ex:"Box plots show: median, IQR (box), whiskers, outliers. Two groups can have identical means but completely different distributions — the box plot reveals this."},
+  {q:"TRUE or FALSE: Larger sample size always increases statistical power.",ch:["True","False"],c:0,kit:"Stats",link:"../stats/",ex:"True. Power = probability of detecting a real effect. Larger n reduces standard error, making it easier to detect smaller true effects. Run a power analysis before collecting data."},
+  {q:"Heteroscedasticity means…",ch:["Residuals are normally distributed","Variance of residuals is unequal across X values","Two variables have zero correlation","Model has too many predictors"],c:1,kit:"Stats",link:"../stats/",ex:"Non-constant residual variance — residuals fan out as X increases. Violates OLS assumptions. Detected with residual plots; addressed with robust SEs or data transformation."},
+
+  // ── INTERVIEW ──
+  {q:"STAR stands for…",ch:["Story, Task, Achievement, Result","Situation, Task, Action, Result","Scenario, Thinking, Action, Review","Situation, Topic, Analysis, Resolution"],c:1,kit:"Interview",link:"../interview/",ex:"Situation (context), Task (your responsibility), Action (what YOU did), Result (quantified outcome). Action deserves ~60% of your answer."},
+  {q:"The 'I' discipline in STAR means…",ch:["Always open with 'I believe'","Use first-person singular for your contributions, not 'we'","Italicize key achievements","Lead with impact"],c:1,kit:"Interview",link:"../interview/",ex:"Interviewers evaluate YOU. 'I analyzed,' 'I built,' not 'we decided.' If collaborative: 'I led the analysis while the team handled delivery.'"},
+  {q:"An implementation intention is…",ch:["A salary negotiation plan","A 'When X happens, I will Y' commitment that increases follow-through 2–3×","A strategy for technical questions","A reminder for interview prep"],c:1,kit:"Interview",link:"../interview/",ex:"Gollwitzer's research: specific if-then plans dramatically increase follow-through vs. vague intentions. Used in the Answer Builder to lock in your response strategy."},
+  {q:"Reappraisal for interview anxiety means…",ch:["Re-reading your resume","Relabeling anxiety as excitement to redirect physiological arousal","Deep breathing to calm down","Reconsidering whether to attend"],c:1,kit:"Interview",link:"../interview/",ex:"Alison Wood Brooks (Harvard 2014): 'I am excited' outperforms trying to calm down. Anxiety and excitement are physiologically identical — redirect the narrative, don't suppress the arousal."},
+  {q:"~60% of a STAR answer should cover…",ch:["Situation and Task","Action and Result","Background and Context","Your qualifications"],c:1,kit:"Interview",link:"../interview/",ex:"Most candidates over-invest in Situation/Task and rush Action/Result. Flip it: 1–2 sentences of context, then dig into what YOU specifically did and what changed."},
+  {q:"Gap response formula — correct order?",ch:["Apologize, Explain, Move On","Acknowledge, Contextualize, Show Initiative","Deny, Redirect, Pivot","Minimize, Compare, Deflect"],c:1,kit:"Interview",link:"../interview/",ex:"(1) Acknowledge honestly, (2) Contextualize with adjacent experience, (3) Show Initiative — what you're actively doing. Transforms a liability into a growth signal."},
+  {q:"Calibrated confidence means…",ch:["Confidence that grows with experience","Acknowledging uncertainty while showing how you'd resolve it","Matching the interviewer's energy","Practicing until answers feel automatic"],c:1,kit:"Interview",link:"../interview/",ex:"Not fake confidence — calibrated. 'I'm not sure, but here's how I'd approach finding out.' More trustworthy than bluffing, more impressive than freezing."},
+  {q:"Blank-mind recovery: what do you do first?",ch:["Apologize and skip","Laugh and ask for a hint","Pause and say 'Let me think about that for a moment'","Repeat the question back"],c:2,kit:"Interview",link:"../interview/",ex:"Silence feels longer to you than to the interviewer. A deliberate pause + 'let me think' reads as competence, not weakness. Never apologize for thinking."},
+  {q:"The 'failure question' is best treated as…",ch:["A trap to minimize","A gift — shows self-awareness, accountability, and growth if handled well","Only relevant for senior roles","A question where you minimize the failure's impact"],c:1,kit:"Interview",link:"../interview/",ex:"Failure stories handled well are more credible than polished success stories. Formula: what happened → what YOU did wrong → what you learned → what you CHANGED."},
+  {q:"The 'research floor' for a final-round interview is…",ch:["Reading the job description once","Minimum: 2 blog posts, 1 press release, 3 team member LinkedIn profiles","Memorizing revenue and headcount","Following the company on LinkedIn the day before"],c:1,kit:"Interview",link:"../interview/",ex:"The floor is what makes 'Why this company?' credible. Without it you give the generic enthusiasm answer interviewers have heard 40 times that day."},
+  {q:"TRUE or FALSE: 'I'm a fast learner' is a strong response to a skill gap question.",ch:["True","False"],c:1,kit:"Interview",link:"../interview/",ex:"False. It's a claim without evidence. Every candidate says it. Instead demonstrate it: 'Last year I needed to learn dbt in two weeks. Here's how I approached it.'"},
+  {q:"A strong closing question in 'Do you have questions?' shows…",ch:["You researched salary ranges","You researched the company and are genuinely evaluating the role","You confirmed job description details","You want to know how many people applied"],c:1,kit:"Interview",link:"../interview/",ex:"Strong closing questions treat the conversation as mutual evaluation. 'What does success look like at 90 days?' 'How does data influence decisions here?' These signal analytical seriousness."}
+];
+
+// ─── REACTIONS ──────────────────────────────────────────────────────────────
+const CORRECT_MSGS = [
+  ["🎯","Signal locked."],["⚡","Clean read."],["📡","Transmission received."],
+  ["🔬","Sharp."],["✅","Extracted."],["🧠","Solid."],["📊","Calibrated."],
+  ["🟢","Signal confirmed."],["💡","There it is."],["🎯","Precise."]
+];
+const WRONG_MSGS = [
+  ["📉","That's noise."],["❌","Signal lost."],["🔴","Interference detected."],
+  ["😬","Static."],["📡","…no signal."],["🙈","That one got away."],
+  ["💀","Dropped."],["🚫","Noise."],["📻","…just static."],["❓","Recalibrate."]
+];
+const TIMEOUT_MSGS = [
+  ["⏱️","Time's up — noise wins."],["🕐","Too slow, analyst."],["⌛","Signal faded."],
+  ["🐌","The data moved on."],["⏰","Clock beat you."]
+];
+const COMBO_MSGS = {3:"🔥 COMBO ×2 — heating up!",6:"⚡ COMBO ×3 — locked in!",10:"🚀 COMBO ×5 — UNSTOPPABLE!",15:"💥 ×5 — ARE YOU EVEN HUMAN?!"};
+
+// ─── GRADE SYSTEM ────────────────────────────────────────────────────────────
+function getGrade(score,total){
+  const pct=score/(total*100*5); // max possible (all ×5 combo)
+  const rawPct=(score/(total*100));
+  if(rawPct>=.9) return{g:'S',lbl:'Signal Master',color:'#d4a843'};
+  if(rawPct>=.75) return{g:'A',lbl:'Clean Signal',color:'#58aaa2'};
+  if(rawPct>=.55) return{g:'B',lbl:'Mostly Signal',color:'#7ec8c2'};
+  if(rawPct>=.35) return{g:'C',lbl:'Noisy Channel',color:'#9a8f84'};
+  return{g:'D',lbl:'Pure Noise',color:'#e05555'};
+}
+
+const ROASTS = {
+  S:["You didn't just find the signal — you ARE the signal. Unreasonable.","Perfect score energy. The data has never felt so understood.","Your future stakeholders have no idea what's coming for them."],
+  A:["Strong. A few rogue noise particles got through, but nothing career-threatening.","Solid analyst energy. The gaps are tiny. Study them, then come back.","This is a 'you're getting the offer' performance. Close, but polish those edges."],
+  B:["Decent signal-to-noise ratio. Not quite crisp enough to trust with production.","Some of that noise snuck in. Which kit keeps tripping you up?","Passing grade. The kits are waiting. Go patch the leaks."],
+  C:["The noise is winning. But at least you showed up.","A few lucky guesses in there. The signal is buried — go find it.","The data isn't impressed. Study. Come back. Redeem yourself."],
+  D:["Bold of you to play this with zero preparation.","The stakeholders are confused. So is the data. So are we.","Technically you finished. Spiritually? You did not finish."]
+};
+
+// ─── GAME STATE ──────────────────────────────────────────────────────────────
+let G = {
+  lives:3, score:0, combo:1, streak:0,
+  qIdx:0, questions:[], correct:0, wrong:0,
+  timer:null, timeLeft:8, answered:false,
+  kitFilter:'All', phase:'idle',
+  kitResults:{} // kit → {correct, total}
+};
+
+// ─── STORE ───────────────────────────────────────────────────────────────────
+function getHS(){try{return JSON.parse(localStorage.getItem('apk-svn-hs'))||{};}catch{return{};}}
+function setHS(o){try{localStorage.setItem('apk-svn-hs',JSON.stringify(o));}catch{}}
+
+// ─── THEME ───────────────────────────────────────────────────────────────────
+function toggleTheme(){
+  const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('apk-theme',t);
+}
+(()=>{const t=localStorage.getItem('apk-theme');if(t)document.documentElement.setAttribute('data-theme',t);})();
+
+// ─── LOBBY ───────────────────────────────────────────────────────────────────
+function showLobby(){
+  G.phase='lobby'; G.kitFilter='All';
+  const hs=getHS();
+  const area=document.getElementById('gameArea');
+  const kits=['All','SQL','Excel','Python','Tableau','Stats','Interview'];
+  area.innerHTML=`
+    <div class="lobby">
+      <div style="font-size:40px;margin-bottom:8px">📡</div>
+      <div class="lobby-title">Signal vs. Noise</div>
+      <div class="lobby-sub">72 questions across all 6 kits. 3 lives. No mercy.<br>Streak combos multiply your score. Don't let the noise in.</div>
+      <div class="kit-filter" id="kitFilter">
+        ${kits.map(k=>`<button class="kf-btn${k==='All'?' active':''}" onclick="setFilter('${k}')" data-kit="${k}">${k==='All'?'🎲 All Kits':k}</button>`).join('')}
+      </div>
+      <div class="high-score-row">
+        <div class="hs-box"><div class="hs-num" id="hsDisplay">${hs['All']||0}</div><div class="hs-lbl">Best Score</div></div>
+        <div class="hs-box"><div class="hs-num" id="hsQDisplay">${ALL_QUESTIONS.length}</div><div class="hs-lbl">Questions in Pool</div></div>
+      </div>
+      <button class="start-btn" onclick="startGame()">▶ Start Game</button>
+      <ul class="rules-list">
+        <li>3 lives</li><li>8 sec per question</li><li>3-streak = ×2 combo</li><li>6-streak = ×3</li><li>10-streak = ×5</li>
+      </ul>
+    </div>`;
+  area.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function setFilter(kit){
+  G.kitFilter=kit;
+  document.querySelectorAll('.kf-btn').forEach(b=>{
+    b.classList.toggle('active',b.dataset.kit===kit);
+  });
+  const hs=getHS();
+  document.getElementById('hsDisplay').textContent=hs[kit]||0;
+  const count=kit==='All'?ALL_QUESTIONS.length:ALL_QUESTIONS.filter(q=>q.kit===kit).length;
+  document.getElementById('hsQDisplay').textContent=count;
+}
+
+// ─── START GAME ──────────────────────────────────────────────────────────────
+function startGame(){
+  const pool = G.kitFilter==='All' ? [...ALL_QUESTIONS]
+    : ALL_QUESTIONS.filter(q=>q.kit===G.kitFilter);
+  // shuffle
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+  G = {
+    lives:3,score:0,combo:1,streak:0,
+    qIdx:0,questions:pool,correct:0,wrong:0,
+    timer:null,timeLeft:8,answered:false,
+    kitFilter:G.kitFilter,phase:'playing',
+    kitResults:{}
+  };
+  renderGame();
+  showQuestion();
+}
+
+// ─── RENDER GAME HUD ─────────────────────────────────────────────────────────
+function renderGame(){
+  document.getElementById('gameArea').innerHTML=`
+    <div class="game-hud">
+      <div class="hud-lives" id="hudLives">❤️❤️❤️</div>
+      <div class="hud-score">
+        <div class="hud-score-num" id="hudScore">0</div>
+        <div class="hud-score-lbl">score</div>
+      </div>
+      <div class="hud-combo" id="hudCombo">×1</div>
+    </div>
+    <div class="q-card" id="qCard">
+      <div class="timer-track"><div class="timer-fill" id="timerBar"></div></div>
+      <div class="q-meta">
+        <span class="q-num" id="qNum"></span>
+        <a class="kit-chip" id="kitChip" href="#" target="_blank"></a>
+      </div>
+      <div class="q-text" id="qText"></div>
+      <div class="choices" id="choices"></div>
+      <div class="reaction-bar">
+        <div class="reaction-emoji" id="reactEmoji"></div>
+        <div>
+          <div class="reaction-msg" id="reactMsg"></div>
+          <div class="explain-text" id="explainText"></div>
+        </div>
+      </div>
+      <div class="score-pop" id="scorePop"></div>
+    </div>`;
+}
+
+// ─── SHOW QUESTION ───────────────────────────────────────────────────────────
+function showQuestion(){
+  if(G.qIdx>=G.questions.length){endGame('complete');return;}
+  const d=G.questions[G.qIdx];
+  G.answered=false;
+  G.timeLeft=8;
+
+  // init kit tracking
+  if(!G.kitResults[d.kit]) G.kitResults[d.kit]={correct:0,total:0};
+  G.kitResults[d.kit].total++;
+
+  // update meta
+  document.getElementById('qNum').textContent=`Q${G.qIdx+1} / ${G.questions.length}`;
+  document.getElementById('kitChip').textContent=d.kit+' Kit →';
+  document.getElementById('kitChip').href=d.link;
+  document.getElementById('qText').textContent=d.q;
+  document.getElementById('reactEmoji').textContent='';
+  document.getElementById('reactMsg').textContent='';
+  document.getElementById('explainText').textContent='';
+  document.getElementById('qCard').className='q-card';
+
+  // render choices
+  const isTF=d.ch.length===2;
+  const choicesDiv=document.getElementById('choices');
+  choicesDiv.className='choices'+(isTF?' two-col':'');
+  choicesDiv.innerHTML=d.ch.map((c,i)=>
+    `<button class="choice-btn" onclick="pickAnswer(${i})">${c}</button>`
+  ).join('');
+
+  // start timer
+  startTimer();
+}
+
+// ─── TIMER ───────────────────────────────────────────────────────────────────
+function startTimer(){
+  clearInterval(G.timer);
+  G.timeLeft=8;
+  updateTimerBar();
+  G.timer=setInterval(()=>{
+    G.timeLeft-=.1;
+    if(G.timeLeft<=0){G.timeLeft=0;clearInterval(G.timer);handleTimeout();}
+    updateTimerBar();
+  },100);
+}
+
+function updateTimerBar(){
+  const bar=document.getElementById('timerBar');
+  if(!bar) return;
+  const pct=(G.timeLeft/8)*100;
+  bar.style.width=pct+'%';
+  bar.className='timer-fill'+(G.timeLeft<2?' danger':G.timeLeft<4?' warn':'');
+}
+
+// ─── PICK ANSWER ─────────────────────────────────────────────────────────────
+function pickAnswer(i){
+  if(G.answered) return;
+  G.answered=true;
+  clearInterval(G.timer);
+  const d=G.questions[G.qIdx];
+  const btns=document.querySelectorAll('.choice-btn');
+  btns.forEach((b,idx)=>{
+    b.disabled=true;
+    if(idx===d.c) b.classList.add('correct');
+    else if(idx===i&&i!==d.c) b.classList.add('wrong');
+    else b.classList.add('reveal');
+  });
+  if(i===d.c) handleCorrect(d);
+  else handleWrong(d,false);
+}
+
+function handleTimeout(){
+  if(G.answered) return;
+  G.answered=true;
+  const d=G.questions[G.qIdx];
+  const btns=document.querySelectorAll('.choice-btn');
+  btns.forEach((b,idx)=>{
+    b.disabled=true;
+    if(idx===d.c) b.classList.add('correct');
+    else b.classList.add('reveal');
+  });
+  handleWrong(d,true);
+}
+
+// ─── CORRECT ─────────────────────────────────────────────────────────────────
+function handleCorrect(d){
+  G.correct++;
+  G.streak++;
+  G.kitResults[d.kit].correct++;
+
+  // combo
+  let newCombo=G.combo;
+  if(G.streak>=10) newCombo=5;
+  else if(G.streak>=6) newCombo=3;
+  else if(G.streak>=3) newCombo=2;
+  else newCombo=1;
+
+  if(newCombo>G.combo){
+    G.combo=newCombo;
+    showComboBanner(COMBO_MSGS[G.streak]||`🔥 ×${G.combo} COMBO!`);
+  }
+
+  const pts=100*G.combo;
+  G.score+=pts;
+  updateHUD();
+
+  // score pop
+  const pop=document.getElementById('scorePop');
+  pop.textContent='+'+pts+(G.combo>1?` ×${G.combo}`:'');
+  pop.className='score-pop';
+  void pop.offsetWidth;
+  pop.className='score-pop show';
+
+  // flash
+  document.getElementById('qCard').classList.add('flash-good');
+
+  // reaction
+  const r=CORRECT_MSGS[Math.floor(Math.random()*CORRECT_MSGS.length)];
+  document.getElementById('reactEmoji').textContent=r[0];
+  const rm=document.getElementById('reactMsg');
+  rm.textContent=r[1];
+  rm.className='reaction-msg good';
+  document.getElementById('explainText').textContent=d.ex;
+
+  // chime
+  playChime(true);
+  setTimeout(advanceQuestion,1600);
+}
+
+// ─── WRONG / TIMEOUT ─────────────────────────────────────────────────────────
+function handleWrong(d,isTimeout){
+  G.wrong++;
+  G.streak=0;
+  G.combo=1;
+  G.lives--;
+  updateHUD();
+
+  document.getElementById('qCard').classList.add('flash-bad');
+  const card=document.getElementById('qCard');
+  card.classList.remove('shaking');
+  void card.offsetWidth;
+  card.classList.add('shaking');
+
+  const msgs=isTimeout?TIMEOUT_MSGS:WRONG_MSGS;
+  const r=msgs[Math.floor(Math.random()*msgs.length)];
+  document.getElementById('reactEmoji').textContent=r[0];
+  const rm=document.getElementById('reactMsg');
+  rm.textContent=r[1];
+  rm.className='reaction-msg bad';
+  document.getElementById('explainText').textContent=d.ex;
+
+  playChime(false);
+
+  if(G.lives<=0){
+    setTimeout(()=>endGame('dead'),1800);
+  } else {
+    setTimeout(advanceQuestion,2000);
+  }
+}
+
+// ─── ADVANCE ─────────────────────────────────────────────────────────────────
+function advanceQuestion(){
+  G.qIdx++;
+  if(G.qIdx>=G.questions.length) endGame('complete');
+  else showQuestion();
+}
+
+// ─── UPDATE HUD ──────────────────────────────────────────────────────────────
+function updateHUD(){
+  document.getElementById('hudScore').textContent=G.score.toLocaleString();
+  const lh=document.getElementById('hudLives');
+  lh.textContent='❤️'.repeat(G.lives)+'🖤'.repeat(3-G.lives);
+  const hc=document.getElementById('hudCombo');
+  hc.textContent=`×${G.combo}`;
+  hc.className='hud-combo'+(G.combo>=3?' hot':'');
+}
+
+// ─── COMBO BANNER ────────────────────────────────────────────────────────────
+function showComboBanner(msg){
+  const b=document.getElementById('comboBanner');
+  b.textContent=msg;
+  b.className='combo-banner';
+  void b.offsetWidth;
+  b.className='combo-banner show';
+}
+
+// ─── END GAME ────────────────────────────────────────────────────────────────
+function endGame(reason){
+  clearInterval(G.timer);
+  G.phase='result';
+
+  // save HS
+  const hs=getHS();
+  if(G.score>(hs[G.kitFilter]||0)){
+    hs[G.kitFilter]=G.score;
+    setHS(hs);
+  }
+
+  const total=G.correct+G.wrong;
+  const grade=getGrade(G.score,total);
+  const roastPool=ROASTS[grade.g];
+  const roast=roastPool[Math.floor(Math.random()*roastPool.length)];
+
+  // kit breakdown
+  const kbRows=Object.entries(G.kitResults).map(([kit,r])=>{
+    const pct=r.total>0?Math.round((r.correct/r.total)*100):0;
+    const link=ALL_QUESTIONS.find(q=>q.kit===kit)?.link||'../';
+    return `<div class="kb-row">
+      <span class="kb-kit">${kit}</span>
+      <span class="kb-score${pct===100?' perfect':''}">${r.correct}/${r.total} (${pct}%)</span>
+      <a class="kb-link" href="${link}" target="_blank">Study →</a>
+    </div>`;
+  }).join('');
+
+  document.getElementById('gameArea').innerHTML=`
+    <div class="result-screen">
+      <div class="grade-badge" style="color:${grade.color}">${grade.g}</div>
+      <div class="grade-label">${grade.lbl}</div>
+      <div class="result-score">${G.score.toLocaleString()}</div>
+      <div class="result-sub">${G.correct} correct · ${G.wrong} wrong · ${reason==='dead'?'<span style="color:var(--red)">Game over</span>':'Completed'}</div>
+      <div class="result-grid">
+        <div class="r-box"><div class="r-num">${G.correct}</div><div class="r-lbl">Correct</div></div>
+        <div class="r-box"><div class="r-num">${G.questions.length>0?Math.round((G.correct/G.questions.length)*100):0}%</div><div class="r-lbl">Accuracy</div></div>
+        <div class="r-box"><div class="r-num" style="color:var(--gold)">${hs[G.kitFilter]||G.score}</div><div class="r-lbl">Best Score</div></div>
+      </div>
+      <div class="result-roast">${roast}</div>
+      ${kbRows?`<div class="kit-breakdown"><div class="kb-title">Kit Breakdown</div>${kbRows}</div>`:''}
+      <div class="result-actions">
+        <button class="btn" onclick="startGame()">▶ Play Again</button>
+        <button class="btn-ghost" onclick="showLobby()">Change Kit Filter</button>
+      </div>
+    </div>`;
+
+  playResult(grade.g);
+}
+
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+function playChime(correct){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    if(correct){
+      [523,659].forEach((f,i)=>{
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);
+        o.frequency.value=f;o.type='sine';
+        g.gain.setValueAtTime(.1,ctx.currentTime+i*.1);
+        g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.1+.25);
+        o.start(ctx.currentTime+i*.1);o.stop(ctx.currentTime+i*.1+.3);
+      });
+    } else {
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=180;o.type='sawtooth';
+      g.gain.setValueAtTime(.08,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.35);
+      o.start(ctx.currentTime);o.stop(ctx.currentTime+.4);
+    }
+  }catch{}
+}
+
+function playResult(grade){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const freqs=grade==='S'||grade==='A'?[523,659,784,1046]:[330,294,262];
+    freqs.forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=f;o.type='sine';
+      g.gain.setValueAtTime(.09,ctx.currentTime+i*.15);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.15+.4);
+      o.start(ctx.currentTime+i*.15);o.stop(ctx.currentTime+i*.15+.45);
+    });
+  }catch{}
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+</script>
+</body>
+</html>
