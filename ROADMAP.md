@@ -1,8 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.1.0` (shipped May 27, 2026)
-**Last cycle closed:** May 27, 2026 — feedback batch #1 High items
-**Currently working:** _nothing — awaiting testing on v1.1.0_
+**Current version:** `v1.1.0` (shipped & fully tested May 27, 2026)
+**Last cycle closed:** May 27, 2026 — feedback batch #1 High items (both verified)
+**Currently working:** _nothing — 4 High items queued, awaiting Mike's pick_
 
 ---
 
@@ -55,6 +55,14 @@ component and splitting them would force the same code to be touched
 twice. (Lesson learned from v1.1.0 — shipped two items together;
 should have split them so testing was one-at-a-time from the start.)
 
+### "GR" — General Feedback
+When Mike spots something during a test round that isn't directly
+about the active test target, he tags it `GR:` (General Remarks).
+GR items are NOT folded into the active test result — they get
+triaged into the buckets as their own items (with the Eastern Time
+timestamp from when they were reported) and wait their turn. The
+active test continues uninterrupted.
+
 ### Why this works for a solo team
 
 - **One bucket at a time** prevents the half-done multi-front problem.
@@ -104,6 +112,18 @@ _Response time: current cycle. Clear before accepting new feedback._
   - _Why it's here:_ Vision Principle #2. This is the signature pedagogy of the product — getting reading direction wrong actively confuses learners. Small fix, large ROI.
   - _Definition of Done:_ Every RAL block in every kit (Excel, SQL, Python, Tableau, Stats, Power BI, Interview where applicable) renders the breakdown in the same order the formula reads: function → arguments, top → bottom. Manually verified by opening one lesson per kit. No content data edits required — render-only change.
   - _Est. effort:_ Small (1 cycle).
+
+- **GR-1: Final Exam should default to Home on fresh entry** _(added May 27, 2026 — 5:43 PM ET)_
+  - _What:_ Clicking the Final Exam kit card from the hub currently lands the user wherever they last were in that kit (e.g. Study Guide if they previously visited via a `#study` link). That's confusing — they can't find how to start the exam. Fix: when the kit is entered without an explicit hash, force the view to Home; honor hash routing only when present.
+  - _Why it's here:_ Vision #2 — discoverability of a core action. Reported during v1.1.0 testing: Mike clicked Final Exam and landed on the Study Guide ("looked like a glossary"), took a moment to figure out how to start the exam.
+  - _Definition of Done:_ Fresh entry to `/final/` always lands on Home with the two big CTAs ("Here's what you should know" and "Take the Exam"). Deep links like `/final/#study` and `/final/#exam` still work as before. View state still persists within a session for back-button behavior, but doesn't carry over across fresh entries.
+  - _Est. effort:_ Small (1 cycle, single-file change).
+
+- **GR-2: Merge "What's here" tool grid into the kit cards; remove the duplicate entry point** _(added May 27, 2026 — 5:43 PM ET)_
+  - _What:_ The hub currently has two clickable rows of the same kits: the small "What's here — in the order to learn them" tool grid at the top, and the big kit cards (with progress bars) below. Two entry points for the same thing. Fix: merge the top grid's short "why it matters" copy into the kit cards as a small subtitle, then delete the top grid entirely.
+  - _Why it's here:_ Sub-rule: simplicity beats completeness. Reported during v1.1.0 testing — Mike noticed two entry points competing for clicks; the bottom cards have progress so they're the right entry point.
+  - _Definition of Done:_ Hub shows one row of clickable entry points (the existing kit cards), each with both the "what's in it" copy (current) and a short "why it matters" subtitle (merged in from the deleted grid). Visual hierarchy stays clean; layout doesn't shift on first load.
+  - _Est. effort:_ Small-Medium (1 cycle).
 
 ### 🟡 Medium
 _Definition: polish, batched improvements, OR features with good
