@@ -15,7 +15,7 @@ A free, browser-based learning suite for breaking into data analytics. Eight sel
 | [Statistics](stats/) | Distributions, A/B testing, p-values, regression intuition | Interactive Distribution Lab |
 | [Power BI](powerbi/) | DAX, time intelligence, dashboard design, the Microsoft stack | Lesson-driven walkthroughs |
 | [Interview](interview/) | STAR, behavioral prep, the hard moments that decide the offer | Answer Builder with self-scoring |
-| [Jr Data Pro Simulator](simulator/) | A simulated first week as a junior analyst — 10 real assignments with AI manager review | Live Claude-API manager feedback per task |
+| [Associate Data Analyst Simulator](simulator/) | A simulated first week as an associate analyst — 10 real assignments with AI manager review | Live Claude-API manager feedback per task |
 
 ## How every lesson works — "Say It Out Loud"
 
@@ -42,13 +42,13 @@ That's the whole methodology. Each lesson follows the same shape: see the code �
 
 ## Suggested order
 
-If you're prepping for a junior analyst role from scratch:
+If you're prepping for an entry-level / associate analyst role from scratch:
 
 1. **SQL** — the most-tested skill in analyst interviews
 2. **Excel** — universally assumed
 3. **Statistics** — A/B testing and distributions come up in nearly every technical panel
 4. **Interview Kit** — the non-technical round that decides whether you get the offer
-5. **Jr Data Pro Simulator** — once you have the tools, this is where you practice using them like a real analyst
+5. **Associate Data Analyst Simulator** — once you have the tools, this is where you practice using them like a real analyst
 6. **Python**, **Tableau**, **Power BI** — depth in whichever the role you're targeting actually uses
 
 There's also a one-click **Interview Sprint** on the hub page that filters the kit down to the four tools that move the needle most, sequenced in the right order.
