@@ -9,6 +9,36 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.2.1] — 2026-05-27 — Excel "Say It Out Loud" lines in reading order
+
+Closes the High-bucket RAL order item from feedback batch #2
+(May 27, 2026 — 4:52 PM ET). Direct response to Mike's screenshot
+showing the Excel L1 breakdown reading argument-first, function-last.
+
+### Fixed
+- Excel single-argument lessons (`=SUM`, `=AVERAGE`, `=COUNT`, `=TRIM`,
+  `=PROPER`, `=LEN`, `=YEAR`, `=MONTH`) had their RAL `lines` arrays
+  authored inside-out — argument explained first, function name last.
+  Reordered each to match reading order: function name → arguments.
+- Two lessons that didn't have a function-name line (`=LEFT`, `=TEXT`)
+  now do, so the reading-order is consistent across the kit.
+
+### Not touched
+- SQL, Python, Power BI: data was already authored in reading order.
+- Tableau, Stats: use a different render path (sections-based, not
+  the RAL chunk breakdown).
+- Excel multi-argument lessons (`=IF`, `=VLOOKUP`, `=XLOOKUP`,
+  `=COUNTIF`, `=SUMIF`, `=COUNTIFS`, `=IFERROR`): already in
+  param-order, no change.
+
+### Cycle history note
+First attempt at this fix (May 27, 7:00–7:35 PM ET) tried a
+render-side reverse and was aborted before shipping when investigation
+revealed the data was mixed across kits and within Excel. Re-spec'd
+as Excel-only data edits; this is that ship.
+
+---
+
 ## [1.2.0] — 2026-05-27 — Hub deduplicated: one entry point per kit
 
 Closes GR-2 from feedback batch #2 (May 27, 2026 — 5:43 PM ET). Serves
