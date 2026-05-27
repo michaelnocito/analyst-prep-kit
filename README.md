@@ -16,6 +16,7 @@ A free, browser-based learning suite for breaking into data analytics. Eight sel
 | [Power BI](powerbi/) | DAX, time intelligence, dashboard design, the Microsoft stack | Lesson-driven walkthroughs |
 | [Interview](interview/) | STAR, behavioral prep, the hard moments that decide the offer | Answer Builder with self-scoring |
 | [Associate Data Analyst Simulator](simulator/) | A simulated first week as an associate analyst — 10 real assignments with AI manager review | Live Claude-API manager feedback per task |
+| [Final Exam Kit](final/) | A 28-question final exam across all 7 subjects, plus a bare-basics study guide for each | Per-section score breakdown that points back to the kit you should revisit |
 
 ## How every lesson works — "Say It Out Loud"
 
@@ -49,7 +50,8 @@ If you're prepping for an entry-level / associate analyst role from scratch:
 3. **Statistics** — A/B testing and distributions come up in nearly every technical panel
 4. **Interview Kit** — the non-technical round that decides whether you get the offer
 5. **Associate Data Analyst Simulator** — once you have the tools, this is where you practice using them like a real analyst
-6. **Python**, **Tableau**, **Power BI** — depth in whichever the role you're targeting actually uses
+6. **Final Exam Kit** — pressure-test your knowledge end-to-end; the per-section score tells you exactly which kit to revisit
+7. **Python**, **Tableau**, **Power BI** — depth in whichever the role you're targeting actually uses
 
 There's also a one-click **Interview Sprint** on the hub page that filters the kit down to the four tools that move the needle most, sequenced in the right order.
 
