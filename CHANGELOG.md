@@ -9,6 +9,29 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.2.0] — 2026-05-27 — Hub deduplicated: one entry point per kit
+
+Closes GR-2 from feedback batch #2 (May 27, 2026 — 5:43 PM ET). Serves
+the "simplicity beats completeness" sub-rule of the Vision Principles.
+
+### Changed
+- **Removed the duplicate "What's here" tool grid** that sat above the
+  kit cards. Two clickable rows for the same kits was a cognitive-load
+  problem and the bottom row (with progress bars from v1.1.0) was
+  always going to be the right entry point.
+- **Merged the deleted grid's "why it matters" copy into the kit cards
+  as a small accent-colored subtitle line** below each kit name.
+  Each card now carries both the sales pitch (why this kit matters)
+  and the feature list (what's inside) without forcing the user to
+  scan two sections.
+
+### Why this shipped
+Hub is now one column: kit name → why it matters → what's in it →
+your progress. Single entry point per kit, all the information
+preserved, less scrolling.
+
+---
+
 ## [1.1.0] — 2026-05-27 — Hub progress + Continue card
 
 Feedback batch #1 (May 27, 2026 — 4:05 PM ET) High-bucket items shipped.

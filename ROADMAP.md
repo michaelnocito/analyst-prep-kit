@@ -1,8 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.1.0` (shipped & fully tested May 27, 2026)
-**Last cycle closed:** May 27, 2026 — feedback batch #1 High items (both verified)
-**Currently working:** _nothing — 4 High items queued, awaiting Mike's pick_
+**Current version:** `v1.2.0` (shipped May 27, 2026 — awaiting test)
+**Last cycle closed:** May 27, 2026 — GR-2 (hub deduplication)
+**Currently working:** _testing v1.2.0_
 
 ---
 
@@ -119,11 +119,7 @@ _Response time: current cycle. Clear before accepting new feedback._
   - _Definition of Done:_ Fresh entry to `/final/` always lands on Home with the two big CTAs ("Here's what you should know" and "Take the Exam"). Deep links like `/final/#study` and `/final/#exam` still work as before. View state still persists within a session for back-button behavior, but doesn't carry over across fresh entries.
   - _Est. effort:_ Small (1 cycle, single-file change).
 
-- **GR-2: Merge "What's here" tool grid into the kit cards; remove the duplicate entry point** _(added May 27, 2026 — 5:43 PM ET)_
-  - _What:_ The hub currently has two clickable rows of the same kits: the small "What's here — in the order to learn them" tool grid at the top, and the big kit cards (with progress bars) below. Two entry points for the same thing. Fix: merge the top grid's short "why it matters" copy into the kit cards as a small subtitle, then delete the top grid entirely.
-  - _Why it's here:_ Sub-rule: simplicity beats completeness. Reported during v1.1.0 testing — Mike noticed two entry points competing for clicks; the bottom cards have progress so they're the right entry point.
-  - _Definition of Done:_ Hub shows one row of clickable entry points (the existing kit cards), each with both the "what's in it" copy (current) and a short "why it matters" subtitle (merged in from the deleted grid). Visual hierarchy stays clean; layout doesn't shift on first load.
-  - _Est. effort:_ Small-Medium (1 cycle).
+_(GR-2 shipped May 27, 2026 — see CHANGELOG v1.2.0)_
 
 ### 🟡 Medium
 _Definition: polish, batched improvements, OR features with good
