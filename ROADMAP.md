@@ -1,8 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.2.0` (shipped May 27, 2026 — awaiting test)
+**Current version:** `v1.2.0` (shipped & fully tested May 27, 2026)
 **Last cycle closed:** May 27, 2026 — GR-2 (hub deduplication)
-**Currently working:** _testing v1.2.0_
+**Currently working:** _nothing — 3 High items + 2 Medium items queued, awaiting Mike's pick_
 
 ---
 
@@ -62,6 +62,23 @@ GR items are NOT folded into the active test result — they get
 triaged into the buckets as their own items (with the Eastern Time
 timestamp from when they were reported) and wait their turn. The
 active test continues uninterrupted.
+
+### Testing-checklist format
+Every testing target is presented as a 3-row table, not a paragraph:
+
+```
+| # | Do this              | Expect to see                          |
+|---|----------------------|----------------------------------------|
+| 1 | <action, lead verb>  | <expected outcome, **bold** the key>   |
+```
+
+- Lead each "Do" cell with a verb (Open, Click, Complete, Toggle).
+- Bold the key part of the "Expect" outcome — the thing the user is
+  actually scanning for.
+- Optional one-line "why this matters" preface above the table, no
+  longer than two sentences.
+- No bonus or extra checks below the table — three rows, that's it.
+  Anything beyond three becomes a separate test cycle.
 
 ### Why this works for a solo team
 
@@ -127,10 +144,15 @@ engagement ROI that don't bloat the core experience. Batched into
 planned cycles._
 _Response time: next planned cycle._
 
-- **"Say It Out Loud": add plain-English leading sentence to every RAL block** _(added May 27, 2026 — 4:52 PM ET)_
-  - _What:_ On top of the reverse-order fix in High, lead every RAL block with one conversational sentence that reads the whole formula as you'd say it out loud (e.g. for `=AVERAGE(C2:C20)`: "Get the average of the values in C2 to C20."). Then the breakdown follows.
-  - _Why it's here:_ Same Vision Principle #2. The sentence primes the brain with the whole concept before the parts. Suggested by Mike alongside the order fix. Medium because every RAL block in every kit needs an authored sentence — that's a sizeable content-authoring pass.
-  - _Definition of Done:_ Every RAL block opens with a one-line plain-English sentence. Tone is conversational, not instructional. Verified across all 7 tool kits.
+- **"Say It Out Loud": add literal spoken-aloud reading above every RAL block** _(added May 27, 2026 — 4:52 PM ET, refined May 27, 2026 — 6:25 PM ET)_
+  - _What:_ Above each formula/query, render a one-line spoken-aloud version of how a person would actually pronounce it word-by-word. **NOT** a paraphrase of what it does — the literal speech. Examples:
+    - `=SUM(A4:A10)` → "Give me the sum of A4 to A10."
+    - `=AVERAGE(C2:C20)` → "Give me the average of C2 to C20."
+    - `revenue = 144.50` → "Revenue equals one hundred forty-four dot fifty."
+    - `SELECT name FROM customers WHERE status = 'active'` → "Select name from customers where status equals 'active.'"
+    The breakdown lines (function → arguments, per the order fix) follow below.
+  - _Why it's here:_ The methodology is literally called "Say It Out Loud." The leading line should be exactly what you'd say. Refined per Mike's feedback (May 27, 6:25 PM ET) — the original spec said "paraphrase" which is wrong for the methodology.
+  - _Definition of Done:_ Every RAL block in every kit (Excel, SQL, Python, Tableau, Stats, Power BI, Interview, and the Say-It-Out-Loud demo on the hub) has a literal spoken-aloud line above the breakdown. Tone is conversational ("Give me…", "Get the…"), not instructional ("Find the…"). Verified by reading one example per kit aloud — if it doesn't sound like normal speech, rewrite.
   - _Est. effort:_ Medium-Large (1–2 cycles, mostly content authoring).
   - _Depends on:_ High item "Say It Out Loud breakdown reads in wrong order" shipping first.
 
