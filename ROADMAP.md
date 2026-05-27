@@ -127,6 +127,13 @@ _Definition: visible bug or UX miss that hurts trust or learning, OR
 a feature that directly serves a Vision Principle and has clear ROI._
 _Response time: current cycle. Clear before accepting new feedback._
 
+- **GR-C: Final Exam — per-section submit + cumulative overall grade** _(added May 27, 2026 — 8:00 PM ET)_
+  - _What:_ The Final Exam currently requires answering all 28 questions and submitting once. Restructure so each subject section (Excel, SQL, Python, Tableau, Stats, Power BI, Interview) can be submitted independently. On per-section submit, that section locks and shows its immediate grade. When every section is submitted, the Results page shows an overall grade plus the existing per-section breakdown.
+  - _Why it's here:_ Vision #2. Mike hit this during normal Bare Basics flow — finished Excel, got the "try the Final Exam" CTA, landed in the Final Exam, answered just the SQL questions, and had no way to submit and check his understanding without committing to the full 28. The "checkpoint as I go" pattern is what users actually do.
+  - _Synergy:_ When this ships, the existing Medium item "per-kit mini exam" may simplify to "launch the Final Exam's [subject] section in standalone mode from inside the kit" rather than building separate mini-exam kits. Revisit the mini-exam scope after GR-C ships.
+  - _Definition of Done:_ In `final/index.html`, each section header gets its own "Submit this section" button. State model adds `submittedSections` (set of section keys). On per-section submit, that section locks (answers become read-only), shows that section's score inline. Results page renders only-submitted sections plus a partial overall, with a "complete the remaining sections" hint. Full-overall grade displays once all 7 sections are submitted.
+  - _Est. effort:_ Medium (1 cycle, mostly state-model + render changes in one file).
+
 - **Bare Basics: make the highlight visually unambiguous** _(added May 27, 2026 — 4:52 PM ET)_
   - _What:_ When Bare Basics mode is on, the visual treatment on highlighted lessons currently looks like a default teal accent — users can't tell the highlight has meaning vs. it's just the design. Needs a treatment that's obviously NOT the default style. Options: a persistent visible "★ Bare Basics" label that's always rendered (not behind a pill), a left-border accent stripe, a distinct icon/marker, or a different color entirely (yellow/amber would contrast against the teal accent).
   - _Why it's here:_ Vision Principles #1 and #3 — the user must be able to read the state of the UI at a glance, and explore without confusion about why elements look the way they do. Reported via screenshot from the live site.
@@ -148,6 +155,13 @@ _Definition: polish, batched improvements, OR features with good
 engagement ROI that don't bloat the core experience. Batched into
 planned cycles._
 _Response time: next planned cycle._
+
+- **GR-D: Real-world non-tech analogies in every help/explanation** _(added May 27, 2026 — 8:00 PM ET)_
+  - _What:_ Every "intro" / "Think of it as" / "On the job" / "Watch out" / `say` / quiz-explanation / glossary block should anchor on a concrete real-world non-tech analogy, not just a clearer technical paraphrase. Example: instead of *"VLOOKUP pulls a value from another table by matching a key. Think of it as: find this ID in that list, then bring back the value from a specific column,"* something like *"VLOOKUP is like a phone book — you look up someone's name, and it brings back their phone number."*
+  - _Why it's here:_ Direct serve of the product's pedagogy promise (plain language for beginners). High impact for the target audience. Mike asked for this across "all the help areas" — pattern applies across all kits.
+  - _Approach:_ Slice by kit. Excel first (where Mike is testing). Each kit gets a content pass: rewrite intros and key explanations to lead with a real-world analogy. Keep the technical detail beneath, but the FIRST sentence in every helper block is the analogy.
+  - _Definition of Done:_ Excel pass complete = every intro, every "on the job" sidebar, every quiz explanation, and every `say` line either contains a real-world analogy or is a literal pronunciation of a formula (which doesn't need one). Spot-check by reading any random help block — if the FIRST sentence doesn't include a non-tech comparison or concrete scenario, rewrite. After Excel ships, repeat for SQL, Python, Tableau, Stats, Power BI, Interview. Sim and Final Exam already use scenarios, so they need a lighter pass.
+  - _Est. effort:_ Medium per kit-slice (≈1 cycle per kit, 7 kits to fully complete).
 
 - **GR-A: Bare Basics needs cross-kit handoff flow** _(added May 27, 2026 — 7:42 PM ET; Mike suggested parking lot but I'm overriding to Medium — see reason below)_
   - _What:_ Bare Basics mode currently highlights must-know lessons within a kit, but when the user finishes the last must-know lesson in (say) SQL, there's no "Next: Excel bare basics →" prompt. Need:
