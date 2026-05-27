@@ -29,20 +29,31 @@ seven dashboards.
 
 ## The workflow (one-man team, lightweight)
 
-This is the loop. Keep it tight.
+This is the loop. Keep it tight. **One item in flight at a time.**
 
-1. **Test** — Mike runs through the live site as a real user would,
-   collecting issues in plain language.
-2. **Triage** — every item is sorted into one of the four priority
-   buckets below. Each item gets a one-line "Definition of Done."
-3. **Work the top occupied bucket to completion** before accepting more
-   feedback. The only exception is feedback _about an item already in
-   flight_ (e.g. "the fix you just shipped didn't take, here's a
-   repro").
-4. **Tag a new version** when the bucket clears. PATCH for bug-only
-   work, MINOR for visible features. Commit messages reference the
-   roadmap item.
-5. **Resume testing.** Repeat.
+1. **Mike says "what's next" or "ready"** — Claude picks the single
+   highest-priority unshipped item (Blocker > High > Medium > Low),
+   OR the next untested shipped item if a cycle just landed.
+2. **Claude gives 3 specific things to check** for that one item.
+   Format: short, actionable, observable on the live site. No more,
+   no less — three.
+3. **Mike tests just that one item** against those three checks.
+4. **Mike reports back** — pass, partial, or fail (with notes).
+5. **If pass:** move to the next item, repeat from step 1.
+   **If partial / fail:** the issue becomes its own roadmap item,
+   triaged into a bucket, and worked before continuing.
+6. **Triage of new feedback** still goes through the standard
+   bucket process (with Eastern Time timestamp) — but new feedback
+   waits its turn unless it's a Blocker.
+7. **Tag a new version when items ship.** PATCH for bug-only work,
+   MINOR for visible features. Items move from ROADMAP to CHANGELOG.
+
+### Cycle scoping rule
+Each cycle ships **one** roadmap item by default. Bundling two items
+into a single ship is only OK when they share the same data layer or
+component and splitting them would force the same code to be touched
+twice. (Lesson learned from v1.1.0 — shipped two items together;
+should have split them so testing was one-at-a-time from the start.)
 
 ### Why this works for a solo team
 
