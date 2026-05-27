@@ -124,11 +124,12 @@ _Response time: current cycle. Clear before accepting new feedback._
   - _Definition of Done:_ A returning user in Bare Basics mode can tell — in under 2 seconds and without reading labels — that something is being highlighted intentionally. Test: open any tool kit's Lessons screen with the mode on; the must-know lessons should look visibly "marked," not just "differently shaded."
   - _Est. effort:_ Small (1 cycle).
 
-- **"Say It Out Loud" breakdown reads in wrong order** _(added May 27, 2026 — 4:52 PM ET)_
-  - _What:_ Each RAL block currently shows the breakdown in execution order (innermost argument first, function name last). Should match the order a human reads the formula: function name first, then arguments. Single render-side fix: reverse the `lines` array before rendering, in every kit's RAL block.
-  - _Why it's here:_ Vision Principle #2. This is the signature pedagogy of the product — getting reading direction wrong actively confuses learners. Small fix, large ROI.
-  - _Definition of Done:_ Every RAL block in every kit (Excel, SQL, Python, Tableau, Stats, Power BI, Interview where applicable) renders the breakdown in the same order the formula reads: function → arguments, top → bottom. Manually verified by opening one lesson per kit. No content data edits required — render-only change.
-  - _Est. effort:_ Small (1 cycle).
+- **"Say It Out Loud" breakdown reads in wrong order (Excel-only data fix)** _(added May 27, 2026 — 4:52 PM ET, re-spec'd May 27, 2026 — 7:35 PM ET after aborted implementation cycle)_
+  - _What:_ Originally framed as "render-side reverse, every kit." Investigation showed that's wrong — only **Excel** has the problem, and only in the **single-argument function lessons** (SUM, AVERAGE, COUNT, TRIM, PROPER, LEN, YEAR, MONTH, etc., where the `lines` array is authored arg-first, function-name last). Multi-arg lessons in Excel (IF, VLOOKUP, XLOOKUP, COUNTIF, SUMIF, COUNTIFS) are already in param-order. SQL, Python, and Power BI data is already authored in reading order. Tableau and Stats use a different render path (no RAL chunks). Fix: edit the `lines` arrays in the affected Excel lessons so the function-name pair comes first.
+  - _Why it's here:_ Vision Principle #2 and the signature pedagogy. User's original feedback came from screenshotting Excel's L1, which is the worst offender.
+  - _Definition of Done:_ Every Excel RAL block with a single-arg formula has its `lines` reordered so the function name appears first (matching reading order). Spot-check one lesson per Unit (L1, L4 or another VLOOKUP-class, L9–L12 cleaning kit) to confirm reading order is consistent across the kit. No other kits touched.
+  - _Est. effort:_ Small (content edits in one file — roughly 6–10 RAL blocks across 4–6 Excel lessons).
+  - _Aborted cycle note:_ First attempt (May 27, 7:00–7:35 PM ET) tried a render-side reverse in Excel + Python before SQL/PowerBI/Tableau/Stats investigation revealed the scope was wrong. No code shipped; repo back to v1.2.0 clean.
 
 - **GR-1: Final Exam should default to Home on fresh entry** _(added May 27, 2026 — 5:43 PM ET)_
   - _What:_ Clicking the Final Exam kit card from the hub currently lands the user wherever they last were in that kit (e.g. Study Guide if they previously visited via a `#study` link). That's confusing — they can't find how to start the exam. Fix: when the kit is entered without an explicit hash, force the view to Home; honor hash routing only when present.
