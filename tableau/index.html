@@ -101,6 +101,22 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 .quiz-feedback.ok{background:rgba(76,175,120,.1);border:1px solid var(--success);color:var(--success)}
 .quiz-feedback.bad{background:rgba(224,92,92,.1);border:1px solid var(--err);color:var(--err)}
 
+/* ── Bare Basics Mode (cross-kit shared pattern) ── */
+.basics-bar-default,.basics-bar-active{display:block;padding:9px 20px;text-align:center;font-size:13px;font-weight:600;border-bottom:1px solid var(--border,#3a342e);background:var(--surf,#201d1a);color:var(--text,#e8e0d5)}
+.basics-bar-active{display:none;background:rgba(88,170,162,.18);border-bottom-color:var(--accent);color:var(--accent)}
+body.basics-mode .basics-bar-default{display:none}
+body.basics-mode .basics-bar-active{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.basics-bar-default a,.basics-bar-default .b-link{color:var(--accent);text-decoration:none;background:none;border:none;font:inherit;font-weight:700;cursor:pointer;padding:0}
+.basics-bar-default .b-link:hover,.basics-bar-default a:hover{text-decoration:underline}
+.basics-bar-active b{font-weight:800;letter-spacing:.04em}
+.basics-bar-active .b-exit{background:transparent;border:1px solid var(--accent);color:var(--accent);padding:3px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700;font-family:inherit}
+.basics-bar-active .b-exit:hover{background:rgba(88,170,162,.12)}
+.basics-pill{display:none;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(88,170,162,.15);color:var(--accent);border:1px solid var(--accent);padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle}
+body.basics-mode .basics-pill{display:inline-block}
+body.basics-mode [data-basics="1"]{box-shadow:0 0 0 2px var(--accent),0 2px 14px rgba(88,170,162,.18)!important;position:relative}
+body.basics-mode [data-basics]:not([data-basics="1"]){opacity:.4;filter:saturate(.5);transition:opacity .15s,filter .15s}
+body.basics-mode [data-basics]:not([data-basics="1"]):hover{opacity:.85;filter:none}
+
 /* DRILLS */
 .drill-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;resize:vertical;min-height:44px}
 .drill-input:focus{border-color:var(--accent)}
@@ -264,7 +280,8 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
     <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
   <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️ Light</button>
 </nav>
-<a href="../final/#study-tableau" style="display:block;background:var(--surf,#201d1a);border-bottom:1px solid var(--border,#3a342e);padding:9px 20px;text-align:center;font-size:13px;color:var(--accent,#58aaa2);text-decoration:none;font-weight:600;transition:.15s" onmouseover="this.style.background='var(--surf2,#292520)'" onmouseout="this.style.background='var(--surf,#201d1a)'">🔖 Just want the bare basics for Tableau? →</a>
+<div class="basics-bar-default">🔖 Want just the bare basics for Tableau? <button class="b-link" onclick="activateBasics()">Turn on Bare Basics mode →</button> &nbsp;·&nbsp; <a href="../final/#study-tableau">See the study guide</a></div>
+<div class="basics-bar-active"><span>🔖 <b>BARE BASICS MODE</b> — only the highlighted lessons below are your must-knows</span><button class="b-exit" onclick="deactivateBasics()">Exit mode</button></div>
 <div id="sprint-bar"></div>
 <div id="sprint-tips" class="st-collapsed">
   <div class="st-bar" onclick="stToggle()"><span>&#x26A1; Sprint Mode &mdash; this is a bonus kit</span><span class="st-chev"></span></div>
@@ -449,6 +466,11 @@ DATEDIFF('month', [Hire Date], TODAY())</div>
 </div>
 
 <script>
+// ─── Bare Basics mode (cross-kit) ─────────────────────────────────────────
+function applyBasics(){ document.body.classList.toggle('basics-mode', localStorage.getItem('apk-basics') === '1'); }
+function activateBasics(){ localStorage.setItem('apk-basics','1'); applyBasics(); if(typeof renderLessonList==='function') renderLessonList(); }
+function deactivateBasics(){ localStorage.removeItem('apk-basics'); applyBasics(); if(typeof renderLessonList==='function') renderLessonList(); }
+applyBasics();
 const DATA = {
 LESSONS:[
 {id:1,unit:"Unit 1: Tableau Fundamentals",title:"The Tableau Interface",slug:"interface",
@@ -465,7 +487,7 @@ LESSONS:[
  notes:"Tableau auto-aggregates measures. When you drag Revenue to Rows, it becomes SUM(Revenue) automatically. That's a feature — but it means you should always check which aggregation is applied.",
  quiz:{q:"Where do you drag a field to make it the X-axis of a chart?",opts:["Marks card","Columns shelf","Rows shelf","Data pane"],ans:1,exp:"The Columns shelf controls the X-axis. Rows controls the Y-axis. Think of it as: Columns goes across (horizontal), Rows goes up (vertical)."}
 },
-{id:2,unit:"Unit 1: Tableau Fundamentals",title:"Dimensions vs. Measures",slug:"dim-vs-meas",
+{id:2,core:true,unit:"Unit 1: Tableau Fundamentals",title:"Dimensions vs. Measures",slug:"dim-vs-meas",
  intro:"This is the most important distinction in Tableau. Dimensions are categories — they split your data. Measures are numbers — they get aggregated. Blue pills are dimensions, green pills are measures.",
  ral:[
   {shelf:"Dimensions (blue) vs Measures (green)",lines:[
@@ -480,7 +502,7 @@ LESSONS:[
  notes:"Dates default to dimensions in Tableau but can act as either. A discrete date (blue) creates separate headers per year/month. A continuous date (green) creates a continuous axis. Right-click a date pill to switch.",
  quiz:{q:"You drag 'Region' to the Color shelf. What happens?",opts:["Revenue is split by color","Each region gets a different color in the view","The chart turns blue","Nothing — Color only works with measures"],ans:1,exp:"Region is a dimension. Dragging it to Color assigns a distinct color to each unique value — West gets one color, East another, etc. This is one of the most powerful quick-analysis moves in Tableau."}
 },
-{id:3,unit:"Unit 1: Tableau Fundamentals",title:"Your First Bar Chart",slug:"bar-chart",
+{id:3,core:true,unit:"Unit 1: Tableau Fundamentals",title:"Your First Bar Chart",slug:"bar-chart",
  intro:"A bar chart is dimension on one axis, measure on the other. In Tableau: dimension on Columns, measure on Rows. Then sort. That's most of what you'll do in your first month.",
  ral:[
   {shelf:"Revenue by Region (bar chart)",lines:[
@@ -493,7 +515,7 @@ LESSONS:[
  notes:"Always sort your bar charts. An unsorted bar chart forces the reader to scan for the biggest/smallest bar. Sort descending by the measure and the story is immediately obvious.",
  quiz:{q:"You have Region on Columns and SUM(Revenue) on Rows. What chart type does Tableau create by default?",opts:["Line chart","Scatter plot","Bar chart","Pie chart"],ans:2,exp:"One discrete dimension on Columns + one measure on Rows = bar chart. Tableau's Show Me logic picks bar chart automatically. The bars represent each region, and their height is the total revenue."}
 },
-{id:4,unit:"Unit 1: Tableau Fundamentals",title:"Line Charts & Time",slug:"line-charts",
+{id:4,core:true,unit:"Unit 1: Tableau Fundamentals",title:"Line Charts & Time",slug:"line-charts",
  intro:"Line charts are for trends over time. In Tableau, date fields have a hierarchy (Year > Quarter > Month > Day). Drilling down is as simple as clicking the + on a date pill.",
  ral:[
   {shelf:"Revenue trend over time",lines:[
@@ -534,7 +556,7 @@ LESSONS:[
  notes:"Don't encode the same thing twice unless it reinforces a key insight. Size + Color both showing Revenue = redundant. Use Size for one variable, Color for another — that's two dimensions of information in one chart.",
  quiz:{q:"You put a measure on the Color shelf. What happens?",opts:["The view gets a categorical color legend","The view gets a continuous color gradient (e.g. light to dark green)","Nothing — Color only accepts dimensions","All marks turn the same color"],ans:1,exp:"Measures on Color create a continuous color gradient — from low values (light) to high values (dark), usually in a single hue. Dimensions on Color create distinct, categorical colors. Both are valid — the choice depends on the data type."}
 },
-{id:7,unit:"Unit 2: Building Better Vizzes",title:"Calculated Fields",slug:"calc-fields",
+{id:7,core:true,unit:"Unit 2: Building Better Vizzes",title:"Calculated Fields",slug:"calc-fields",
  intro:"Calculated fields let you create new data from existing fields — math, logic, string operations, date calculations. They live in your Data pane alongside real fields and work on every row of your data.",
  ral:[
   {shelf:"Profit Margin calculated field",lines:[
@@ -589,7 +611,7 @@ LESSONS:[
  notes:"Tooltips can include other sheets — 'Viz in Tooltip'. Hover over a bar and a small sparkline appears. This is one of Tableau's most impressive features for executive dashboards, but don't overdo it — it adds load time.",
  quiz:{q:"Where do you add a reference line showing the average revenue?",opts:["Marks card","Analytics pane → Reference Line","Format menu → Reference Lines","Calculated field"],ans:1,exp:"The Analytics pane (next to the Data pane) has drag-and-drop analytics objects: Reference Lines, Trend Lines, Forecasts, Box Plots. Drag 'Reference Line' onto the view and set it to Average of SUM(Revenue)."}
 },
-{id:11,unit:"Unit 3: Dashboards & Best Practices",title:"Chart Choice",slug:"chart-choice",
+{id:11,core:true,unit:"Unit 3: Dashboards & Best Practices",title:"Chart Choice",slug:"chart-choice",
  intro:"The chart type is an analytical decision. The wrong chart makes the right data unreadable. Three rules: match the chart to the data type, show comparison over distribution, never use pie charts for more than 3 slices.",
  ral:[
   {shelf:"Chart type decision guide",lines:[
@@ -887,9 +909,9 @@ function renderLessonList(){
       <div style="display:flex;flex-direction:column;gap:8px">
         ${units[u].map(l=>{
           const done=S.done[`lesson${l.id}`];
-          return `<div class="card" style="display:flex;align-items:center;gap:12px;cursor:pointer;${done?'border-color:var(--accent)':''}" onclick="openLesson(${l.id})">
+          return `<div class="card" data-basics="${l.core?'1':'0'}" style="display:flex;align-items:center;gap:12px;cursor:pointer;${done?'border-color:var(--accent)':''}" onclick="openLesson(${l.id})">
             <span style="font-size:1.2rem">${done?'✅':'📖'}</span>
-            <div><strong>${l.title}</strong><div style="color:var(--txt2);font-size:.82rem">${l.subtitle||''}</div></div>
+            <div><strong>${l.title}${l.core?'<span class="basics-pill">★ Bare Basics</span>':''}</strong><div style="color:var(--txt2);font-size:.82rem">${l.subtitle||''}</div></div>
           </div>`;
         }).join('')}
       </div>

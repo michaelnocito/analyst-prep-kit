@@ -248,9 +248,22 @@ body.sprint-on #sprint-tips{display:block}
 #sprint-tips .st-dismiss{background:none;border:1px solid rgba(88,170,162,.3);color:rgba(200,200,200,.6);padding:4px 12px;border-radius:5px;font-size:11.5px;font-family:inherit;cursor:pointer;transition:.15s}
 [data-theme="light"] #sprint-tips .st-dismiss{color:rgba(60,60,60,.55)}
 #sprint-tips .st-dismiss:hover{border-color:var(--accent,#58aaa2);color:var(--accent,#58aaa2)}
-.sc-badge{display:none;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:var(--accent,#58aaa2);color:#0e1f1e;padding:1px 7px;border-radius:3px;margin-left:8px;vertical-align:middle;position:relative;top:-1px}
-body.sprint-on .sc-badge{display:inline}
-body.sprint-on .sc-core{box-shadow:inset 3px 0 0 var(--accent,#58aaa2)}
+.sc-badge{display:none}
+/* ── Bare Basics Mode (cross-kit shared pattern) ── */
+.basics-bar-default,.basics-bar-active{display:block;padding:9px 20px;text-align:center;font-size:13px;font-weight:600;border-bottom:1px solid var(--border,#363028);background:var(--surf,#201d1a);color:var(--text,#e8e0d4)}
+.basics-bar-active{display:none;background:rgba(88,170,162,.18);border-bottom-color:var(--accent);color:var(--accent)}
+body.basics-mode .basics-bar-default{display:none}
+body.basics-mode .basics-bar-active{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.basics-bar-default a,.basics-bar-default .b-link{color:var(--accent);text-decoration:none;background:none;border:none;font:inherit;font-weight:700;cursor:pointer;padding:0}
+.basics-bar-default .b-link:hover,.basics-bar-default a:hover{text-decoration:underline}
+.basics-bar-active b{font-weight:800;letter-spacing:.04em}
+.basics-bar-active .b-exit{background:transparent;border:1px solid var(--accent);color:var(--accent);padding:3px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700;font-family:inherit}
+.basics-bar-active .b-exit:hover{background:rgba(88,170,162,.12)}
+.basics-pill{display:none;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(88,170,162,.15);color:var(--accent);border:1px solid var(--accent);padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle}
+body.basics-mode .basics-pill{display:inline-block}
+body.basics-mode [data-basics="1"]{box-shadow:0 0 0 2px var(--accent),0 2px 14px rgba(88,170,162,.18)!important;position:relative}
+body.basics-mode [data-basics]:not([data-basics="1"]){opacity:.4;filter:saturate(.5);transition:opacity .15s,filter .15s}
+body.basics-mode [data-basics]:not([data-basics="1"]):hover{opacity:.85;filter:none}
 body.sprint-on .sc-supporting{opacity:.45}
 body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 /* -- End Sprint Bar ------------------------------------ */</style>
@@ -285,7 +298,8 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
   <button class="nav-btn nav-icon" onclick="navigate('settings')" title="Settings">⚙️</button>
   <button class="nav-btn" id="theme-btn" onclick="toggleTheme()">☀️ Light</button>
 </nav>
-<a href="../final/#study-powerbi" style="display:block;background:var(--surf,#201d1a);border-bottom:1px solid var(--border,#3a342e);padding:9px 20px;text-align:center;font-size:13px;color:var(--accent,#58aaa2);text-decoration:none;font-weight:600;transition:.15s" onmouseover="this.style.background='var(--surf2,#292520)'" onmouseout="this.style.background='var(--surf,#201d1a)'">🔖 Just want the bare basics for Power BI? →</a>
+<div class="basics-bar-default">🔖 Want just the bare basics for Power BI? <button class="b-link" onclick="activateBasics()">Turn on Bare Basics mode →</button> &nbsp;·&nbsp; <a href="../final/#study-powerbi">See the study guide</a></div>
+<div class="basics-bar-active"><span>🔖 <b>BARE BASICS MODE</b> — only the highlighted lessons below are your must-knows</span><button class="b-exit" onclick="deactivateBasics()">Exit mode</button></div>
 <div id="sprint-bar"></div>
 <div id="sprint-tips" class="st-collapsed">
   <div class="st-bar" onclick="stToggle()"><span>&#x26A1; Sprint Mode &mdash; this is a bonus kit</span><span class="st-chev"></span></div>
@@ -303,6 +317,11 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 <div id="toast"></div>
 
 <script>
+// ─── Bare Basics mode (cross-kit) ─────────────────────────────────────────
+function applyBasics(){ document.body.classList.toggle('basics-mode', localStorage.getItem('apk-basics') === '1'); }
+function activateBasics(){ localStorage.setItem('apk-basics','1'); applyBasics(); if(typeof renderLessons==='function') renderLessons(); }
+function deactivateBasics(){ localStorage.removeItem('apk-basics'); applyBasics(); if(typeof renderLessons==='function') renderLessons(); }
+applyBasics();
 // ─── DATA ──────────────────────────────────────────────────────────────────
 const DATA = {
 
@@ -323,7 +342,7 @@ LESSONS: [
    notes:"The Filters pane (right side) has three levels: visual, page, and report. A filter applied at report level affects every page. Start with report-level filters for your date range.",
    quiz:{q:"Which Power BI Desktop view lets you see and manage how tables are related to each other?",opts:["Report View","Data View","Model View","Filters Pane"],ans:2,exp:"Model View displays the relationship diagram. You drag between key columns here to create or edit relationships."}
   },
-  {id:2, unit:"Unit 1: The Interface & Data", title:"Connecting to Data", sub:"Get Data and Power Query basics",
+  {id:2, core:true, unit:"Unit 1: The Interface & Data", title:"Connecting to Data", sub:"Get Data and Power Query basics",
    intro:"Power BI reads data from almost anywhere. The Get Data workflow loads it in; Power Query Editor is where you clean it before it enters the model.",
    ral:{
      code:"Home → Get Data → Excel / SQL Server / Web / ...\n↓\nPower Query Editor (Transform Data)\n↓\nClose & Apply  →  data enters the model",
@@ -353,7 +372,7 @@ LESSONS: [
    notes:"If you drag a numeric column to Axis instead of Values, Power BI will try to aggregate it. Use the dropdown next to the field in the well to change aggregation (Sum, Average, Count, etc.).",
    quiz:{q:"In Power BI's field wells, which well controls the Y-axis (what gets measured)?",opts:["Axis","Values","Legend","Tooltips"],ans:1,exp:"Values is where you drop the numeric field being measured. Power BI automatically aggregates it (Sum by default). Axis controls grouping (the X-axis)."}
   },
-  {id:4, unit:"Unit 1: The Interface & Data", title:"Relationships & the Data Model", sub:"Star schema and how Power BI joins tables",
+  {id:4, core:true, unit:"Unit 1: The Interface & Data", title:"Relationships & the Data Model", sub:"Star schema and how Power BI joins tables",
    intro:"A data model is multiple tables connected by keys. Power BI uses a star schema — one central fact table surrounded by dimension tables. Get this right and every visual just works.",
    ral:{
      code:"Fact Table: Sales (OrderID, CustomerID, ProductID, Amount, Date)\n      │                    │                 │\n  Customers           Products           Dates\n  (CustomerID, Name)  (ProductID, Name)  (Date, Month, Year)",
@@ -369,7 +388,7 @@ LESSONS: [
    quiz:{q:"In a star schema, what is the fact table?",opts:["A lookup table with category names","The central table containing numeric transactions or events","The date dimension table","Any table with a primary key"],ans:1,exp:"The fact table holds the measurable events — sales rows, clicks, orders. Dimension tables (customers, products, dates) are connected to it via keys and used for filtering and grouping."}
   },
   // UNIT 2
-  {id:5, unit:"Unit 2: DAX & Measures", title:"Calculated Columns vs Measures", sub:"Row context vs filter context",
+  {id:5, core:true, unit:"Unit 2: DAX & Measures", title:"Calculated Columns vs Measures", sub:"Row context vs filter context",
    intro:"This is the most important conceptual distinction in DAX. Calculated columns are computed row by row when the data loads. Measures are computed at query time based on what's currently filtered.",
    ral:{
      code:"-- Calculated Column (stored in table, row by row)\nProfit = Sales[Revenue] - Sales[Cost]\n\n-- Measure (computed dynamically on filter context)\nTotal Profit = SUM(Sales[Profit])",
@@ -384,7 +403,7 @@ LESSONS: [
    notes:"Use measures for aggregations (SUM, COUNT, AVERAGE). Use calculated columns for row-level classifications or lookups you need to filter or group by. Overusing calculated columns inflates model size.",
    quiz:{q:"A measure in DAX is evaluated based on…",opts:["Each row of the table when data loads","The current filter context at query time","The primary key of the fact table","The sort order of the visual"],ans:1,exp:"Measures are dynamic — they recalculate every time a slicer, filter, or visual grouping changes. That's what makes them powerful for interactive reports."}
   },
-  {id:6, unit:"Unit 2: DAX & Measures", title:"Basic DAX Aggregations", sub:"SUM, COUNT, AVERAGE, DIVIDE",
+  {id:6, core:true, unit:"Unit 2: DAX & Measures", title:"Basic DAX Aggregations", sub:"SUM, COUNT, AVERAGE, DIVIDE",
    intro:"Most measures you'll write are simple aggregations over a column. DAX has the same building blocks as SQL aggregates — with a few important differences.",
    ral:{
      code:"Total Revenue = SUM(Sales[Revenue])\nOrder Count   = COUNTROWS(Sales)\nAvg Order     = AVERAGE(Sales[Revenue])\nMargin %      = DIVIDE([Total Revenue] - [Total Cost], [Total Revenue])",
@@ -399,7 +418,7 @@ LESSONS: [
    notes:"Use DIVIDE() instead of / for all division in DAX. If the denominator is ever zero or blank, / throws an error that breaks your visual. DIVIDE returns blank or an optional alternate result.",
    quiz:{q:"Why should you use DIVIDE() instead of / in DAX?",opts:["DIVIDE is faster","DIVIDE handles divide-by-zero gracefully instead of returning an error","/ only works in calculated columns","DIVIDE works with text columns"],ans:1,exp:"DIVIDE(numerator, denominator, [alternateResult]) returns blank (or your alternateResult) when the denominator is zero or blank. The / operator throws an error that can break your visuals."}
   },
-  {id:7, unit:"Unit 2: DAX & Measures", title:"CALCULATE & Filter Context", sub:"The most powerful function in DAX",
+  {id:7, core:true, unit:"Unit 2: DAX & Measures", title:"CALCULATE & Filter Context", sub:"The most powerful function in DAX",
    intro:"<code>CALCULATE</code> does two things: it evaluates an expression AND lets you modify the filter context it runs in. Almost every advanced DAX measure uses it.",
    ral:{
      code:"West Revenue = CALCULATE(\n    SUM(Sales[Revenue]),\n    Sales[Region] = \"West\"\n)",
@@ -946,9 +965,9 @@ function renderLessons(){
   DATA.LESSONS.forEach(l => {
     if(l.unit !== lastUnit){ html += `<div class="unit-label">${l.unit}</div>`; lastUnit = l.unit; }
     const done = state.doneLessons.includes(l.id);
-    html += `<div class="lesson-row" onclick="navigate('lesson',${l.id})">
+    html += `<div class="lesson-row" data-basics="${l.core?'1':'0'}" onclick="navigate('lesson',${l.id})">
       <div class="lesson-num ${done?'done':''}">${done ? '✓' : l.id}</div>
-      <div class="lesson-info"><div class="lesson-title">${l.title}</div><div class="lesson-sub">${l.sub}</div></div>
+      <div class="lesson-info"><div class="lesson-title">${l.title}${l.core?'<span class="basics-pill">★ Bare Basics</span>':''}</div><div class="lesson-sub">${l.sub}</div></div>
       <div class="lesson-arrow">›</div>
     </div>`;
   });

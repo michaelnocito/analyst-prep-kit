@@ -98,6 +98,22 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 .quiz-feedback.ok{background:rgba(76,175,120,.1);border:1px solid var(--success);color:var(--success)}
 .quiz-feedback.bad{background:rgba(224,92,92,.1);border:1px solid var(--err);color:var(--err)}
 
+/* ── Bare Basics Mode (cross-kit shared pattern) ── */
+.basics-bar-default,.basics-bar-active{display:block;padding:9px 20px;text-align:center;font-size:13px;font-weight:600;border-bottom:1px solid var(--border,#3a342e);background:var(--surf,#201d1a);color:var(--text,#e8e0d5)}
+.basics-bar-active{display:none;background:rgba(88,170,162,.18);border-bottom-color:var(--accent);color:var(--accent)}
+body.basics-mode .basics-bar-default{display:none}
+body.basics-mode .basics-bar-active{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.basics-bar-default a,.basics-bar-default .b-link{color:var(--accent);text-decoration:none;background:none;border:none;font:inherit;font-weight:700;cursor:pointer;padding:0}
+.basics-bar-default .b-link:hover,.basics-bar-default a:hover{text-decoration:underline}
+.basics-bar-active b{font-weight:800;letter-spacing:.04em}
+.basics-bar-active .b-exit{background:transparent;border:1px solid var(--accent);color:var(--accent);padding:3px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700;font-family:inherit}
+.basics-bar-active .b-exit:hover{background:rgba(88,170,162,.12)}
+.basics-pill{display:none;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(88,170,162,.15);color:var(--accent);border:1px solid var(--accent);padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle}
+body.basics-mode .basics-pill{display:inline-block}
+body.basics-mode [data-basics="1"]{box-shadow:0 0 0 2px var(--accent),0 2px 14px rgba(88,170,162,.18)!important;position:relative}
+body.basics-mode [data-basics]:not([data-basics="1"]){opacity:.4;filter:saturate(.5);transition:opacity .15s,filter .15s}
+body.basics-mode [data-basics]:not([data-basics="1"]):hover{opacity:.85;filter:none}
+
 .code-block{font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin:10px 0;color:var(--accent);white-space:pre;overflow-x:auto;line-height:1.6}
 .drill-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;resize:vertical;min-height:44px}
 .drill-input:focus{border-color:var(--accent)}
@@ -233,7 +249,8 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
   <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
   <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️ Light</button>
 </nav>
-<a href="../final/#study-python" style="display:block;background:var(--surf,#201d1a);border-bottom:1px solid var(--border,#3a342e);padding:9px 20px;text-align:center;font-size:13px;color:var(--accent,#58aaa2);text-decoration:none;font-weight:600;transition:.15s" onmouseover="this.style.background='var(--surf2,#292520)'" onmouseout="this.style.background='var(--surf,#201d1a)'">🔖 Just want the bare basics for Python? →</a>
+<div class="basics-bar-default">🔖 Want just the bare basics for Python? <button class="b-link" onclick="activateBasics()">Turn on Bare Basics mode →</button> &nbsp;·&nbsp; <a href="../final/#study-python">See the study guide</a></div>
+<div class="basics-bar-active"><span>🔖 <b>BARE BASICS MODE</b> — only the highlighted lessons below are your must-knows</span><button class="b-exit" onclick="deactivateBasics()">Exit mode</button></div>
 <div id="sprint-bar"></div>
 <div id="sprint-tips" class="st-collapsed">
   <div class="st-bar" onclick="stToggle()"><span>&#x26A1; Sprint Mode &mdash; this is a bonus kit</span><span class="st-chev"></span></div>
@@ -406,10 +423,15 @@ df.isnull().sum()</div>
 </div>
 
 <script>
+// ─── Bare Basics mode (cross-kit) ─────────────────────────────────────────
+function applyBasics(){ document.body.classList.toggle('basics-mode', localStorage.getItem('apk-basics') === '1'); }
+function activateBasics(){ localStorage.setItem('apk-basics','1'); applyBasics(); if(typeof renderLessonList==='function') renderLessonList(); }
+function deactivateBasics(){ localStorage.removeItem('apk-basics'); applyBasics(); if(typeof renderLessonList==='function') renderLessonList(); }
+applyBasics();
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const DATA = {
 LESSONS:[
-{id:1,unit:"Unit 1: Python Foundations",title:"Variables & Data Types",slug:"variables",
+{id:1,core:true,unit:"Unit 1: Python Foundations",title:"Variables & Data Types",slug:"variables",
  intro:"A variable is a label you stick on a piece of data. Python figures out the type automatically — you just assign and go. Four types show up constantly in data work: int, float, str, and bool.",
  ral:[
   {formula:"revenue = 144.50",lines:[["revenue","the variable name — you choose this"],["=","assign — store the value on the right into the name on the left"],["144.50","a float (decimal number)"]]},
@@ -418,7 +440,7 @@ LESSONS:[
  notes:"Python is case-sensitive. `Revenue`, `revenue`, and `REVENUE` are three different variables. And True/False must be capitalized — `true` will throw a NameError.",
  quiz:{q:"What type is the value in: price = '3.50'?",opts:["float","int","str","bool"],ans:2,exp:"The quotes make it a string, even though it looks like a number. '3.50' is text — you can't do math with it until you convert it with float(price)."}
 },
-{id:2,unit:"Unit 1: Python Foundations",title:"Lists & Dictionaries",slug:"lists-dicts",
+{id:2,core:true,unit:"Unit 1: Python Foundations",title:"Lists & Dictionaries",slug:"lists-dicts",
  intro:"Two containers you'll use every day. A list is an ordered sequence. A dictionary maps keys to values — like a row of data with column names.",
  ral:[
   {formula:"revenues = [144, 152, 195, 160, 108]",lines:[["revenues","the variable name"],["[ ]","square brackets define a list"],["144, 152, ...","comma-separated values — order is preserved"]]},
@@ -436,7 +458,7 @@ LESSONS:[
  notes:"Indentation is not optional in Python — it defines what's inside the function or loop. One wrong indent and you get an IndentationError or silent logic bugs.",
  quiz:{q:"What does 'return' do inside a function?",opts:["Prints the value to the screen","Sends the result back to whoever called the function","Ends the script","Loops back to the start"],ans:1,exp:"return sends a value out of the function. Without return, the function runs but produces None. print() displays to the screen but doesn't return anything."}
 },
-{id:4,unit:"Unit 2: pandas",title:"Your First DataFrame",slug:"dataframe-basics",
+{id:4,core:true,unit:"Unit 2: pandas",title:"Your First DataFrame",slug:"dataframe-basics",
  intro:"A DataFrame is a table in Python — rows and columns, just like a spreadsheet. pandas is the library that creates and manages them. It's the most-used tool in a data analyst's Python stack.",
  ral:[
   {formula:"import pandas as pd\ndf = pd.read_csv('sales.csv')",lines:[["import pandas as pd","load the pandas library and alias it as pd"],["pd.read_csv('sales.csv')","read a CSV file and turn it into a DataFrame"],["df","conventional variable name for a DataFrame — short for 'data frame'"]]},
@@ -456,7 +478,7 @@ LESSONS:[
  notes:"df['col'] (single brackets) returns a Series. df[['col']] (double brackets) returns a DataFrame. One bracket gives you a column, two brackets give you a table. This trips up everyone early on.",
  quiz:{q:"What's the difference between df['revenue'] and df[['revenue']]?",opts:["No difference","First returns a Series, second returns a DataFrame","First returns a DataFrame, second returns a Series","Second raises an error"],ans:1,exp:"Single brackets select one column as a Series (1D). Double brackets select columns as a DataFrame (2D). The distinction matters when passing data to functions that expect one or the other."}
 },
-{id:6,unit:"Unit 2: pandas",title:"Filtering Rows",slug:"filtering",
+{id:6,core:true,unit:"Unit 2: pandas",title:"Filtering Rows",slug:"filtering",
  intro:"Filtering is boolean indexing — you build a True/False mask, then use it to keep only the rows you want. It's the pandas equivalent of a WHERE clause.",
  ral:[
   {formula:"df[df['region'] == 'West']",lines:[["df['region'] == 'West'","compare every row — True where region is West, False otherwise"],["df[...]","pass the mask in — keep only True rows"]]},
@@ -476,7 +498,7 @@ LESSONS:[
  notes:"sort_values() doesn't modify the DataFrame in place by default. If you want to keep the sorted order, assign it back: df = df.sort_values('revenue', ascending=False). Or use inplace=True.",
  quiz:{q:"df.nlargest(3, 'revenue') returns…",opts:["The 3 rows with the lowest revenue","The 3 rows with the highest revenue","The top 3 unique revenue values","3 random rows"],ans:1,exp:"nlargest(n, column) is a shortcut for sort_values(column, ascending=False).head(n). It returns the n rows with the highest values in the specified column."}
 },
-{id:8,unit:"Unit 2: pandas",title:"GroupBy & Aggregation",slug:"groupby",
+{id:8,core:true,unit:"Unit 2: pandas",title:"GroupBy & Aggregation",slug:"groupby",
  intro:"GroupBy is the most important pandas skill for a data analyst. Split the data into groups, apply a function to each group, combine the results. It's SQL's GROUP BY, in Python.",
  ral:[
   {formula:"df.groupby('region')['revenue'].sum()",lines:[["df.groupby('region')","split into groups — one group per unique region"],["['revenue']","focus on the revenue column"],["sum()","add up revenue within each group — returns one row per region"]]},
@@ -494,7 +516,7 @@ LESSONS:[
  notes:"If the key column has different names in each table, use left_on= and right_on= instead of on=. After a left join, unmatched rows will have NaN in the columns that came from the right table.",
  quiz:{q:"pd.merge(a, b, on='id', how='left') — what happens to rows in 'a' with no match in 'b'?",opts:["They're dropped","They're kept, with NaN in b's columns","They cause an error","They're duplicated"],ans:1,exp:"A left join keeps all rows from the left DataFrame (a). For rows with no match in b, the columns that came from b are filled with NaN. Use .fillna() afterward if needed."}
 },
-{id:10,unit:"Unit 3: Data Cleaning",title:"Finding & Fixing Nulls",slug:"nulls",
+{id:10,core:true,unit:"Unit 3: Data Cleaning",title:"Finding & Fixing Nulls",slug:"nulls",
  intro:"Nulls are missing values — NaN in pandas. They'll silently skew your aggregations and break your merges if you don't handle them. Find them first, then decide: fill or drop.",
  ral:[
   {formula:"df.isnull().sum()",lines:[["df.isnull()","returns a True/False DataFrame — True where value is NaN"],["sum()","count the Trues per column — number of nulls in each"]]},
@@ -810,13 +832,17 @@ function resumeLesson(){ openLesson(S.currentLesson); }
 
 // ─── LESSONS ──────────────────────────────────────────────────────────────────
 function renderLessonList(){
+  const basicsOn = localStorage.getItem('apk-basics')==='1';
+  const coreLessons = DATA.LESSONS.filter(l=>l.core);
+  const coreDone = coreLessons.filter(l=>S.lessonsDone.includes(l.id)).length;
+  const chip = basicsOn ? `<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(88,170,162,.15);border:1px solid var(--accent);border-radius:20px;padding:5px 14px;font-size:13px;font-weight:600;color:var(--accent);margin-bottom:16px">🔖 Bare Basics: ${coreDone} of ${coreLessons.length} must-know lessons done</div>` : '';
   let lastUnit='';
-  document.getElementById('lessonList').innerHTML=DATA.LESSONS.map(l=>{
+  document.getElementById('lessonList').innerHTML = chip + DATA.LESSONS.map(l=>{
     const done=S.lessonsDone.includes(l.id);
     let hdr='';
     if(l.unit!==lastUnit){hdr=`<h3 style="color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin:${lastUnit?'20px':0} 0 8px">${l.unit}</h3>`;lastUnit=l.unit;}
-    return `${hdr}<div class="card" style="cursor:pointer;margin-bottom:8px;border-color:${done?'var(--success)':'var(--border)'}" onclick="openLesson(${l.id})">
-      <div class="flex-between"><div><span class="tag" style="margin-bottom:6px">L${l.id}</span><h3 style="margin:0">${l.title}</h3></div>
+    return `${hdr}<div class="card" data-basics="${l.core?'1':'0'}" style="cursor:pointer;margin-bottom:8px;border-color:${done?'var(--success)':'var(--border)'}" onclick="openLesson(${l.id})">
+      <div class="flex-between"><div><span class="tag" style="margin-bottom:6px">L${l.id}</span><h3 style="margin:0">${l.title}${l.core?'<span class="basics-pill">★ Bare Basics</span>':''}</h3></div>
       <span style="color:${done?'var(--success)':'var(--border)'};font-size:20px">${done?'✓':'○'}</span></div></div>`;
   }).join('');
 }
