@@ -299,19 +299,6 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 </nav>
 <div class="basics-bar-default">🔖 Want just the bare basics for SQL? <button class="b-link" onclick="activateBasics()">Turn on Bare Basics mode →</button> &nbsp;·&nbsp; <a href="../final/#study-sql">See the study guide</a></div>
 <div class="basics-bar-active"><span>🔖 <b>BARE BASICS MODE</b> — only the highlighted lessons below are your must-knows</span><button class="b-exit" onclick="deactivateBasics()">Exit mode</button></div>
-<div id="sprint-bar"></div>
-<div id="sprint-tips" class="st-collapsed">
-  <div class="st-bar" onclick="stToggle()"><span>&#x26A1; Sprint Mode &mdash; how to use it</span><span class="st-chev"></span></div>
-  <div class="st-body">
-    <ul>
-      <li><strong>Core lessons are highlighted</strong> with a teal left bar and a <b>Core</b> badge. Do these first &mdash; they cover what interviewers actually test.</li>
-      <li><strong>Quiz yourself, don&rsquo;t just re-read</strong> &mdash; retrieve the answer before looking it up. That&rsquo;s what builds durable memory, not passive review.</li>
-      <li><strong>Break every 45 minutes</strong> &mdash; rest means <em>away from screens</em>, not just away from this tab. Scrolling, YouTube, or group chats use the same cognitive systems you just trained. A short walk or staring out a window lets your brain replay and compress what you studied.</li>
-      <li><strong>Move on when you can self-quiz from memory</strong> &mdash; &ldquo;good enough now&rdquo; beats &ldquo;perfect too late.&rdquo; You can come back after the sprint.</li>
-    </ul>
-    <button class="st-dismiss" onclick="stToggle()">Got it &#x2713;</button>
-  </div>
-</div>
 
 <main id="main"></main>
 <div id="celebrate-overlay"></div>
@@ -901,11 +888,11 @@ function renderHome(){
 
 // ─── LESSONS LIST ──────────────────────────────────────────────────────────
 function renderLessons(){
-  const sprintOn = localStorage.getItem('apk-sprint') === '1';
+  const basicsOn = localStorage.getItem('apk-basics') === '1';
   const coreLessons = DATA.LESSONS.filter(l => l.core);
   const coreDoneCount = coreLessons.filter(l => state.doneLessons.includes(l.id)).length;
-  const sprintChip = sprintOn ? `<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(88,170,162,.12);border:1px solid rgba(88,170,162,.35);border-radius:20px;padding:5px 14px;font-size:13px;font-weight:600;color:var(--accent);margin-bottom:16px">&#x26A1; Sprint: ${coreDoneCount} of ${coreLessons.length} core lessons done</div>` : '';
-  let html = `<h1>Lessons</h1>${sprintChip}`;
+  const basicsChip = basicsOn ? `<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(88,170,162,.15);border:1px solid var(--accent);border-radius:20px;padding:5px 14px;font-size:13px;font-weight:600;color:var(--accent);margin-bottom:16px">🔖 Bare Basics: ${coreDoneCount} of ${coreLessons.length} must-know lessons done</div>` : '';
+  let html = `<h1>Lessons</h1>${basicsChip}`;
   let lastUnit = '';
   DATA.LESSONS.forEach(l => {
     if(l.unit !== lastUnit){
@@ -990,7 +977,7 @@ function retryQuiz(lessonId){
 
 function finishLesson(id){
   markDone('doneLessons', id);
-  const sprintOn = localStorage.getItem('apk-sprint') === '1';
+  const basicsOn = localStorage.getItem('apk-basics') === '1';
   const coreLessons = DATA.LESSONS.filter(l => l.core);
   const coreDone = coreLessons.every(l => state.doneLessons.includes(l.id));
   const nextCore = DATA.LESSONS.find(l => l.core && !state.doneLessons.includes(l.id));
@@ -998,11 +985,11 @@ function finishLesson(id){
   const qw = document.getElementById('quiz-wrap');
   if(qw){
     let primaryBtn, secondaryBtn = '';
-    if(sprintOn && coreDone){
-      primaryBtn = `<a href="../excel/" class="btn btn-primary" style="text-decoration:none">&#x26A1; Sprint Step &#x2713; &mdash; Move to Excel &rarr;</a>`;
+    if(basicsOn && coreDone){
+      primaryBtn = `<a href="../final/" class="btn btn-primary" style="text-decoration:none">🔖 SQL bare basics done — try the Final Exam &rarr;</a>`;
       secondaryBtn = next ? `<button class="btn btn-ghost btn-sm" onclick="navigate('lesson',${next.id})">Next lesson</button>` : '';
-    } else if(sprintOn && nextCore){
-      primaryBtn = `<button class="btn btn-primary" onclick="navigate('lesson',${nextCore.id})">Next Core: ${nextCore.title} &rarr;</button>`;
+    } else if(basicsOn && nextCore){
+      primaryBtn = `<button class="btn btn-primary" onclick="navigate('lesson',${nextCore.id})">Next Bare Basic: ${nextCore.title} &rarr;</button>`;
       secondaryBtn = `<button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">All Lessons</button>`;
     } else if(next){
       primaryBtn = `<button class="btn btn-primary" onclick="navigate('lesson',${next.id})">Next: ${next.title} &rarr;</button>`;
@@ -1411,29 +1398,7 @@ function doCopy(e){
 }
 function _fbCopy(t){var a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.top='-9999px';document.body.appendChild(a);a.focus();a.select();try{document.execCommand('copy');}catch(_){}document.body.removeChild(a);}
 /* -- End Hint System JS ---- */
-/* -- Sprint Bar IIFE ----------------------------------- */
-(function(){
-  var KEY='apk-sprint';
-  var TK='apk-tips-sql';
-  var bar=document.getElementById('sprint-bar');
-  var tips=document.getElementById('sprint-tips');
-  function render(){
-    var on=localStorage.getItem(KEY)==='1';
-    document.body.classList.toggle('sprint-on',on);
-    if(on){
-      bar.innerHTML='<div class="sb-inner"><span class="sb-icon">&#x26A1;</span><span class="sb-text"><b>&#x26A1; Interview Sprint</b> &middot; Step 1 of 4 &middot; next: <a href="../excel/" style="color:var(--accent,#58aaa2);font-weight:700">Excel &rarr;</a></span><button class="sb-btn" onclick="sbHubBack()">&#8592; Hub</button><button class="sb-btn sb-exit" onclick="sbExit()">Exit Sprint</button></div>';
-    } else {
-      bar.innerHTML='<div class="sb-inner"><span class="sb-icon">&#x26A1;</span><span class="sb-text">&#x26A1; Interview Sprint &mdash; focused path through the 4 kits interviewers test most</span><button class="sb-btn sb-start" onclick="sbStart()">Start Sprint &#x2192;</button></div>';
-    }
-    if(tips && on && !localStorage.getItem(TK)) tips.classList.remove('st-collapsed');
-  }
-  window.sbStart=function(){localStorage.setItem(KEY,'1');render();};
-  window.sbExit=function(){localStorage.removeItem(KEY);render();};
-  window.sbHubBack=function(){window.location.href='../';};
-  window.stToggle=function(){if(tips){tips.classList.toggle('st-collapsed');localStorage.setItem(TK,'1');}};
-  render();
-})();
-/* -- End Sprint Bar ------------------------------------ */
+/* Sprint mode removed — see Bare Basics mode (apk-basics flag) for the replacement. */
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
 </body>
