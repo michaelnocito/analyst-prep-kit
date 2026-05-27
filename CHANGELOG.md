@@ -9,6 +9,44 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.2.2] — 2026-05-27 — Excel RAL plain-English leading sentence
+
+Closes the second half of the RAL feedback (May 27, 4:52 PM ET → 6:25 PM
+ET refinement → 7:42 PM ET re-clarification). v1.2.1 fixed the line
+order; this ships the plain-English sentence that should have been
+included in the same cycle.
+
+### Added
+- A `say` field on every formula RAL block in Excel — a conversational
+  sentence that reads the formula's intent in plain English, using the
+  actual cell refs from the formula. Examples:
+  - `=SUM(B2:B10)` → "Give me the sum of everything in B2 to B10."
+  - `=VLOOKUP(A2, products!A:D, 3, FALSE)` → "Find A2 in the products
+    table and return the value from column 3 — exact match only."
+  - `=IFERROR(D2/E2, 0)` → "Divide D2 by E2; if that errors (like
+    dividing by zero), return 0 instead."
+- Rendered as a new `.ral-say` block between the formula and the
+  chunk-by-chunk breakdown. Italic body text on a faint accent tint,
+  prefixed with 🗣️ to tie back to the Say-It-Out-Loud methodology
+  card on the hub.
+
+### Not touched (yet)
+- SQL, Python, Power BI, and the hub's SIOL demo card: same pattern
+  applies but content authoring is its own cycle. Tracked as the
+  Medium-bucket follow-up item.
+- Excel conceptual RAL blocks (PivotTable zones, build steps, slicer
+  workflow, dirty-data checklist): not formulas, so no sentence added.
+
+### Cycle history
+v1.2.2's content was originally split off into a future Medium item.
+Should have shipped with v1.2.1 — Mike flagged it both at 4:52 PM ET
+("partial 2" with the leading-sentence request) and again at 7:42 PM
+ET ("you did not put it in"). Process improvement: when a partial
+test result references a known roadmap item, ask whether that item
+is the current-cycle blocker before deferring it.
+
+---
+
 ## [1.2.1] — 2026-05-27 — Excel "Say It Out Loud" lines in reading order
 
 Closes the High-bucket RAL order item from feedback batch #2

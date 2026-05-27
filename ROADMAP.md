@@ -1,8 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.2.1` (shipped May 27, 2026 — awaiting test)
-**Last cycle closed:** May 27, 2026 — Excel RAL reading order
-**Currently working:** _testing v1.2.1_
+**Current version:** `v1.2.2` (shipped May 27, 2026 — awaiting test)
+**Last cycle closed:** May 27, 2026 — Excel RAL plain-English leading sentences
+**Currently working:** _testing v1.2.2_
 
 ---
 
@@ -72,13 +72,22 @@ Every testing target is presented as a 3-row table, not a paragraph:
 | 1 | <action, lead verb>  | <expected outcome, **bold** the key>   |
 ```
 
-- Lead each "Do" cell with a verb (Open, Click, Complete, Toggle).
-- Bold the key part of the "Expect" outcome — the thing the user is
-  actually scanning for.
-- Optional one-line "why this matters" preface above the table, no
-  longer than two sentences.
-- No bonus or extra checks below the table — three rows, that's it.
-  Anything beyond three becomes a separate test cycle.
+**"Do this" cell rules** (sharper after May 27, 7:42 PM ET feedback):
+- Name the specific kit, lesson **number**, and lesson **title** —
+  not the category. Bad: "Open the text-cleaning lesson." Good:
+  "Open Excel Lesson 10 — 'Text Cleaning'."
+- Name the section to scroll to ("Read It Aloud", "Quick Check").
+- Lead with a verb (Open, Click, Complete, Toggle).
+
+**"Expect to see" cell rules:**
+- Show literal expected text in the order it should appear.
+  Bad: "leads with the function name." Good: "Reads TRIM on top,
+  then A2 underneath."
+- **Bold** the exact strings the user is verifying.
+- Never use "no regression" or "looks right" — those put the work
+  on Mike. Spell out what "right" means.
+
+**Three checks max.** Anything beyond three is a separate test cycle.
 
 ### Why this works for a solo team
 
@@ -149,17 +158,11 @@ _Response time: next planned cycle._
   - _Definition of Done:_ With Bare Basics ON: finishing the last must-know lesson in a kit shows a primary CTA pointing to the next kit's bare basics (or "Final Exam →" after Interview). The hub's Bare Basics card shows cumulative progress across kits. Tested by walking through SQL → Excel handoff manually.
   - _Est. effort:_ Small-Medium (1 cycle).
 
-- **"Say It Out Loud": add literal spoken-aloud reading above every RAL block** _(added May 27, 2026 — 4:52 PM ET, refined May 27, 2026 — 6:25 PM ET)_
-  - _What:_ Above each formula/query, render a one-line spoken-aloud version of how a person would actually pronounce it word-by-word. **NOT** a paraphrase of what it does — the literal speech. Examples:
-    - `=SUM(A4:A10)` → "Give me the sum of A4 to A10."
-    - `=AVERAGE(C2:C20)` → "Give me the average of C2 to C20."
-    - `revenue = 144.50` → "Revenue equals one hundred forty-four dot fifty."
-    - `SELECT name FROM customers WHERE status = 'active'` → "Select name from customers where status equals 'active.'"
-    The breakdown lines (function → arguments, per the order fix) follow below.
-  - _Why it's here:_ The methodology is literally called "Say It Out Loud." The leading line should be exactly what you'd say. Refined per Mike's feedback (May 27, 6:25 PM ET) — the original spec said "paraphrase" which is wrong for the methodology.
-  - _Definition of Done:_ Every RAL block in every kit (Excel, SQL, Python, Tableau, Stats, Power BI, Interview, and the Say-It-Out-Loud demo on the hub) has a literal spoken-aloud line above the breakdown. Tone is conversational ("Give me…", "Get the…"), not instructional ("Find the…"). Verified by reading one example per kit aloud — if it doesn't sound like normal speech, rewrite.
-  - _Est. effort:_ Medium-Large (1–2 cycles, mostly content authoring).
-  - _Depends on:_ High item "Say It Out Loud breakdown reads in wrong order" shipping first.
+- **"Say It Out Loud": add plain-English leading sentence to RAL blocks in remaining kits** _(added May 27, 2026 — 4:52 PM ET, re-spec'd 6:25 PM ET, Excel shipped 7:55 PM ET in v1.2.2)_
+  - _What:_ Excel done in v1.2.2 — every formula RAL block now has a conversational sentence above the breakdown (e.g. for `=SUM(B2:B10)`: "Give me the sum of everything in B2 to B10."). The pattern is descriptive natural-language that uses the actual cell refs from the formula, NOT character-by-character pronunciation. Apply the same pattern to: SQL, Python, Power BI, and the hub's Say-It-Out-Loud demo card. (Tableau and Stats use a different render path — different decision required.)
+  - _Why it's here:_ Vision Principle #2 + signature pedagogy. Excel shipped first because that's where the bug was reported; other kits still benefit from the same treatment.
+  - _Definition of Done:_ Every formula RAL block in SQL, Python, Power BI, and the hub demo has a `say` field rendered between the formula and the breakdown, using the same conversational pattern Excel ships with.
+  - _Est. effort:_ Medium (1 cycle, content authoring across 3 kits + hub).
 
 - **Per-kit mini exam at the end of each subject** _(added May 27, 2026 — 4:05 PM ET)_
   - _What:_ Each tool kit (Excel/SQL/Python/Tableau/Stats/Power BI/Interview) gets its own short closing exam — ~6–8 questions, the same MC + fill-in pattern as the Final Exam Kit. Lives as a new tab inside each kit (e.g. "Exam") so the user finishes a kit with a clear win condition. Reuses and extends the question pool already in `final/index.html`.
