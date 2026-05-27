@@ -93,13 +93,30 @@ _Definition: visible bug or UX miss that hurts trust or learning, OR
 a feature that directly serves a Vision Principle and has clear ROI._
 _Response time: current cycle. Clear before accepting new feedback._
 
-(empty — last cycle shipped May 27, 2026; see CHANGELOG v1.1.0)
+- **Bare Basics: make the highlight visually unambiguous** _(added May 27, 2026 — 4:52 PM ET)_
+  - _What:_ When Bare Basics mode is on, the visual treatment on highlighted lessons currently looks like a default teal accent — users can't tell the highlight has meaning vs. it's just the design. Needs a treatment that's obviously NOT the default style. Options: a persistent visible "★ Bare Basics" label that's always rendered (not behind a pill), a left-border accent stripe, a distinct icon/marker, or a different color entirely (yellow/amber would contrast against the teal accent).
+  - _Why it's here:_ Vision Principles #1 and #3 — the user must be able to read the state of the UI at a glance, and explore without confusion about why elements look the way they do. Reported via screenshot from the live site.
+  - _Definition of Done:_ A returning user in Bare Basics mode can tell — in under 2 seconds and without reading labels — that something is being highlighted intentionally. Test: open any tool kit's Lessons screen with the mode on; the must-know lessons should look visibly "marked," not just "differently shaded."
+  - _Est. effort:_ Small (1 cycle).
+
+- **"Say It Out Loud" breakdown reads in wrong order** _(added May 27, 2026 — 4:52 PM ET)_
+  - _What:_ Each RAL block currently shows the breakdown in execution order (innermost argument first, function name last). Should match the order a human reads the formula: function name first, then arguments. Single render-side fix: reverse the `lines` array before rendering, in every kit's RAL block.
+  - _Why it's here:_ Vision Principle #2. This is the signature pedagogy of the product — getting reading direction wrong actively confuses learners. Small fix, large ROI.
+  - _Definition of Done:_ Every RAL block in every kit (Excel, SQL, Python, Tableau, Stats, Power BI, Interview where applicable) renders the breakdown in the same order the formula reads: function → arguments, top → bottom. Manually verified by opening one lesson per kit. No content data edits required — render-only change.
+  - _Est. effort:_ Small (1 cycle).
 
 ### 🟡 Medium
 _Definition: polish, batched improvements, OR features with good
 engagement ROI that don't bloat the core experience. Batched into
 planned cycles._
 _Response time: next planned cycle._
+
+- **"Say It Out Loud": add plain-English leading sentence to every RAL block** _(added May 27, 2026 — 4:52 PM ET)_
+  - _What:_ On top of the reverse-order fix in High, lead every RAL block with one conversational sentence that reads the whole formula as you'd say it out loud (e.g. for `=AVERAGE(C2:C20)`: "Get the average of the values in C2 to C20."). Then the breakdown follows.
+  - _Why it's here:_ Same Vision Principle #2. The sentence primes the brain with the whole concept before the parts. Suggested by Mike alongside the order fix. Medium because every RAL block in every kit needs an authored sentence — that's a sizeable content-authoring pass.
+  - _Definition of Done:_ Every RAL block opens with a one-line plain-English sentence. Tone is conversational, not instructional. Verified across all 7 tool kits.
+  - _Est. effort:_ Medium-Large (1–2 cycles, mostly content authoring).
+  - _Depends on:_ High item "Say It Out Loud breakdown reads in wrong order" shipping first.
 
 - **Per-kit mini exam at the end of each subject** _(added May 27, 2026 — 4:05 PM ET)_
   - _What:_ Each tool kit (Excel/SQL/Python/Tableau/Stats/Power BI/Interview) gets its own short closing exam — ~6–8 questions, the same MC + fill-in pattern as the Final Exam Kit. Lives as a new tab inside each kit (e.g. "Exam") so the user finishes a kit with a clear win condition. Reuses and extends the question pool already in `final/index.html`.
