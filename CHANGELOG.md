@@ -9,6 +9,49 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.4.1] — 2026-05-28 — Pedagogy fixes (SQL HAVING, Power BI prerequisites, Python types/imports)
+
+Closes GR-F-1, GR-F-2, and GR-F-3 from the May 28 10:46 PM ET pedagogy
+audit. All three are content-only fixes that close knowledge-building
+gaps where lessons/drills referenced concepts before they were
+formally introduced.
+
+### Fixed
+
+**SQL (GR-F-1)** — Bug-hunt drill #4 ("HAVING used instead of WHERE")
+forced users to engage with HAVING before Lesson 7 formally teaches
+it. Replaced with a NULL-handling bug ("Using = with NULL") which
+fits the WHERE territory that's already been covered. Also removed
+the `HAVING` mention from drill #3's clause-order hint. Lesson 7's
+intro updated to acknowledge "you've already used WHERE" so the
+transition to HAVING feels like a build-on rather than a cold-start.
+
+**Power BI (GR-F-2)** — Added a prominent amber prerequisite banner on
+the Power BI home view: "Heads up — Power BI assumes some background.
+The DAX unit (Lessons 5–8) borrows syntax from Excel formulas and
+concepts from SQL filtering and aggregation. New to both? Work through
+the Excel Kit or SQL Kit first." Banner links to both kits directly.
+Lesson 5's intro updated with a soft prerequisite reminder.
+
+**Python (GR-F-3)** — Lesson 1's intro previously listed the four types
+by abbreviation only (int / float / str / bool). Quiz asked about
+"string" — a word the user hadn't seen yet. Intro now bolds each type
+and gives its full name in parens: int (whole number), float (decimal),
+**str (string — text in quotes)**, bool (boolean — True or False).
+Lesson 4 now explains what `import` is on its first appearance:
+"Think of it like clicking 'Open' on a toolbox before you can use the
+tools inside."
+
+### Audit grades (May 28, 2026 — 10:46 PM ET)
+- Excel A−, Tableau A, Stats A, Interview A
+- Python B+ (now fixed)
+- Power BI B (now fixed)
+- SQL C+ (now fixed)
+
+Patch release (1.4.1) — content edits only, no UX or render changes.
+
+---
+
 ## [1.4.0] — 2026-05-28 — Bare Basics mode now visually unambiguous (amber)
 
 Closes the oldest open High item (May 27, 4:52 PM ET): Bare Basics
