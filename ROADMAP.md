@@ -127,6 +127,27 @@ _Definition: visible bug or UX miss that hurts trust or learning, OR
 a feature that directly serves a Vision Principle and has clear ROI._
 _Response time: current cycle. Clear before accepting new feedback._
 
+- **GR-F-1: SQL — fix HAVING leak in L5 bug drill** _(added May 28, 2026 — 10:46 PM ET; from pedagogy audit)_
+  - _What:_ Lesson 5 (COUNT, SUM & GROUP BY) has a bug-hunt drill that flags "HAVING used instead of WHERE" — but HAVING isn't taught until Lesson 7. Users hit the drill without context.
+  - _Why it's here:_ Direct violation of the "knowledge builds on itself" principle Mike flagged. Highest-severity violation found in the audit.
+  - _Approach:_ Rewrite the offending bug drill to use only WHERE concepts. Add a one-line note to L5's notes/gotcha: "Filter groups (not rows) with HAVING — covered in Lesson 7."
+  - _Definition of Done:_ No drill, quiz, or notes in SQL Lessons 1–6 mentions HAVING. L7 is the first appearance. Verified by grep.
+  - _Est. effort:_ Small (content edits in one file).
+
+- **GR-F-2: Power BI — surface the implicit Excel/SQL prerequisite** _(added May 28, 2026 — 10:46 PM ET; from pedagogy audit)_
+  - _What:_ Power BI's DAX unit (L5–L8) assumes the user knows Excel formulas or SQL filtering. Nowhere does the kit say so. Cold-start users hit "CALCULATE & Filter Context" lost.
+  - _Why it's here:_ Vision Principle #2 — users should know what to do next. If their next step requires unstated background, that's a discoverability bug.
+  - _Approach:_ Add a "Heads up — this kit assumes Excel-formula or SQL background" banner on the Power BI home view. Add one line to L5's intro: "DAX borrows from Excel and SQL conventions — review either of those kits first if any of this looks unfamiliar."
+  - _Definition of Done:_ Power BI home shows the prerequisite banner. L5 intro mentions the Excel/SQL parallel. Both link back to the relevant kits.
+  - _Est. effort:_ Small (content edits in one file).
+
+- **GR-F-3: Python — name the four types in L1 intro; explain imports before L4** _(added May 28, 2026 — 10:46 PM ET; from pedagogy audit)_
+  - _What:_ L1's intro paragraph doesn't name the four types (int, float, str, bool) before the quiz asks about them — they're only in the Read-Aloud section. And L4 uses `import pandas as pd` without ever having introduced the import keyword.
+  - _Why it's here:_ Mike's original observation. Even though strings ARE technically in L1, the intro vagueness creates the "I was tested on something I didn't see" feeling.
+  - _Approach:_ Add 1–2 sentences to L1's intro explicitly listing the four types. Add a one-line callout to L4's intro: "import just tells Python to load a library — pandas, in this case."
+  - _Definition of Done:_ Reading only the L1 intro (not the RAL section) tells you the four types exist. Reading L4's intro tells you what `import` does.
+  - _Est. effort:_ Small (content edits in one file).
+
 - **GR-E: Bug Hunt drills need a "type your fix" input + validation** _(added May 28, 2026 — 12:39 AM ET)_
   - _What:_ The Bug Hunt drill in SQL Practice (and the equivalents in Excel and Python) shows the broken query and an error message, but the only actions are "Reveal Fix" and "Show Hint." There's no input field for the user to try their fix first. Add a textarea (or input) where the user types their proposed corrected query/formula/code; on submit, validate against the expected fix; show pass/fail feedback; and only THEN make "Reveal Fix" available as a fallback.
   - _Why it's here:_ Practice surfaces are supposed to let users practice. Right now Bug Hunt is read-only — the user can't make a real attempt before being given the answer. Vision Principle #3 ("free to explore") and the broader "retrieval beats re-reading" learning-science principle that the rest of the kit honors.
