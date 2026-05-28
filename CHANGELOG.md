@@ -9,6 +9,53 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.3.0] — 2026-05-28 — "Say It Out Loud" plain-English sentence rolls out to SQL, Python, Power BI, and the hub demo
+
+Closes the Medium-bucket follow-up to v1.2.2. Mike hit the gap in the
+wild (May 28, 12:08 AM ET) — opened the SQL kit, saw the line-by-line
+breakdown was still missing the plain-English leader sentence. Promoted
+from Medium to High and shipped same-cycle.
+
+### Added
+- **SQL Kit** — every Read-Aloud block in all 12 lessons now leads with
+  a conversational sentence above the chunk-by-chunk breakdown.
+  Examples:
+  - `SELECT name FROM customers WHERE status = 'active';` → *"Give me
+    the names of customers whose status is 'active'."*
+  - `SELECT a.id FROM customers_old a LEFT JOIN customers b ON a.id =
+    b.id WHERE b.id IS NULL;` → *"Find the IDs from customers_old that
+    don't exist in the customers table — useful for spotting rows
+    that were dropped between versions."*
+- **Python Kit** — every formula RAL block across all 12 lessons gets
+  the same treatment (30+ formulas authored). Tone matches the
+  conversational style established in v1.2.2's Excel pass.
+- **Power BI Kit** — every Read-Aloud block in all 12 lessons gets the
+  leader sentence (interface tour, Power Query, DAX measures, time
+  intelligence, dashboard design, publishing).
+- **Hub Say-It-Out-Loud demo card** — the SQL example on the home
+  page now leads with *"Give me the names of customers whose status
+  is 'active'."* before the chunk breakdown, matching what users will
+  see inside every kit.
+
+All four updates use the same `.ral-say` / `.method-say` CSS pattern
+established in v1.2.2: italic body text, faint accent tint, left
+accent border, 🗣️ prefix. Visually distinct from both the formula
+above and the breakdown lines below.
+
+### Render changes
+- SQL render: injects `${l.ral.say}` between `ral-sql` and the chunk
+  lines.
+- Python render: injects `${r.say}` per RAL block, inside the same
+  `forEach` that renders the formula and lines.
+- Power BI render: injects `${l.ral.say}` between `ral-code` and the
+  chunk lines.
+- Hub demo: static `<div class="method-say">` between the `<code>`
+  block and the method-line breakdown.
+
+Minor version (1.3.0) — visible content addition across multiple kits.
+
+---
+
 ## [1.2.3] — 2026-05-27 — Final Exam: cold entry lands on Home (GR-1)
 
 Closes GR-1 from feedback batch #3 (May 27, 5:43 PM ET).

@@ -1,8 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.2.3` (shipped May 27, 2026 — awaiting test)
-**Last cycle closed:** May 27, 2026 — GR-1 (Final Exam defaults to Home)
-**Currently working:** _testing v1.2.3_
+**Current version:** `v1.3.0` (shipped May 28, 2026 — awaiting test)
+**Last cycle closed:** May 28, 2026 — "Say It Out Loud" rollout to SQL / Python / Power BI / hub
+**Currently working:** _testing v1.3.0 (v1.2.3 test still queued from earlier)_
 
 ---
 
@@ -168,11 +168,7 @@ _Response time: next planned cycle._
   - _Definition of Done:_ With Bare Basics ON: finishing the last must-know lesson in a kit shows a primary CTA pointing to the next kit's bare basics (or "Final Exam →" after Interview). The hub's Bare Basics card shows cumulative progress across kits. Tested by walking through SQL → Excel handoff manually.
   - _Est. effort:_ Small-Medium (1 cycle).
 
-- **"Say It Out Loud": add plain-English leading sentence to RAL blocks in remaining kits** _(added May 27, 2026 — 4:52 PM ET, re-spec'd 6:25 PM ET, Excel shipped 7:55 PM ET in v1.2.2)_
-  - _What:_ Excel done in v1.2.2 — every formula RAL block now has a conversational sentence above the breakdown (e.g. for `=SUM(B2:B10)`: "Give me the sum of everything in B2 to B10."). The pattern is descriptive natural-language that uses the actual cell refs from the formula, NOT character-by-character pronunciation. Apply the same pattern to: SQL, Python, Power BI, and the hub's Say-It-Out-Loud demo card. (Tableau and Stats use a different render path — different decision required.)
-  - _Why it's here:_ Vision Principle #2 + signature pedagogy. Excel shipped first because that's where the bug was reported; other kits still benefit from the same treatment.
-  - _Definition of Done:_ Every formula RAL block in SQL, Python, Power BI, and the hub demo has a `say` field rendered between the formula and the breakdown, using the same conversational pattern Excel ships with.
-  - _Est. effort:_ Medium (1 cycle, content authoring across 3 kits + hub).
+_(SIOL rollout shipped May 28, 2026 — see CHANGELOG v1.3.0. Tableau and Stats use a sections-based render rather than the RAL chunk pattern; deferred — see new Parking Lot entry.)_
 
 - **Per-kit mini exam at the end of each subject** _(added May 27, 2026 — 4:05 PM ET)_
   - _What:_ Each tool kit (Excel/SQL/Python/Tableau/Stats/Power BI/Interview) gets its own short closing exam — ~6–8 questions, the same MC + fill-in pattern as the Final Exam Kit. Lives as a new tab inside each kit (e.g. "Exam") so the user finishes a kit with a clear win condition. Reuses and extends the question pool already in `final/index.html`.
@@ -224,6 +220,9 @@ all other buckets are empty.
 - **Cleanup of orphaned sprint CSS** in each kit's stylesheet (see
   CHANGELOG "Known orphans"). _Reason parked:_ low impact, purely
   cosmetic, no DOM hits.
+
+- **Tableau and Stats: equivalent of "Say It Out Loud" sentences** _(parked May 28, 2026 — 12:30 AM ET)_ —
+  Tableau and Stats use a sections-based lesson render (`l.sections.map`) instead of the RAL chunk pattern that Excel/SQL/Python/Power BI use. To bring them in line with the v1.3.0 SIOL leader-sentence treatment, they'd need a different design pass: either add a `sec.say` field per section, or rewrite sections into the RAL pattern. _Reason parked:_ big-overhaul work (structural change to two kits) for a benefit that's smaller than the original pass — those kits' content is already mostly conceptual prose, not formula-heavy. Promote when (a) Mike calls it out in testing, or (b) a kit-by-kit content rewrite is scheduled anyway.
 
 - **GR-B: "Living a workday" mindset expansion across all kits** _(parked May 27, 2026 — 7:42 PM ET)_ —
   The "On the job" framing currently in some Excel lessons is great

@@ -100,6 +100,8 @@ p strong{color:var(--text)}
 /* READ-ALOUD */
 .ral-block{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;margin:14px 0}
 .ral-sql{font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:14px;white-space:pre;overflow-x:auto;color:var(--text)}
+.ral-say{font-size:14px;font-style:italic;color:var(--text);background:rgba(88,170,162,.07);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:9px 13px;margin-bottom:14px;line-height:1.55}
+.ral-say::before{content:'🗣️ ';opacity:.85;font-style:normal;margin-right:4px}
 .ral-line{display:flex;align-items:baseline;gap:10px;padding:5px 0;border-bottom:1px solid var(--border)}
 .ral-line:last-child{border:none}
 .ral-chunk{font-family:var(--mono);font-size:13px;color:var(--accent);min-width:200px;flex-shrink:0}
@@ -319,6 +321,7 @@ LESSONS: [
    intro:"Every SQL query starts with <code>SELECT</code> to choose columns and <code>FROM</code> to name the table. Think of it as: &ldquo;Give me <em>these columns</em> from <em>this table</em>.&rdquo;",
    ral:{
      sql:"SELECT name, email\nFROM customers;",
+     say:"Give me the name and email columns from the customers table.",
      lines:[
        ["SELECT","starts the query — list the columns you want"],
        ["name, email","two columns separated by a comma"],
@@ -334,6 +337,7 @@ LESSONS: [
    intro:"<code>WHERE</code> filters which rows come back. Only rows where the condition is TRUE are returned.",
    ral:{
      sql:"SELECT name\nFROM customers\nWHERE status = 'active';",
+     say:"Give me the names of customers whose status is 'active'.",
      lines:[
        ["WHERE","filter clause — only keep rows that match"],
        ["status = 'active'","the condition: status column must equal the string 'active'"],
@@ -347,6 +351,7 @@ LESSONS: [
    intro:"<code>ORDER BY</code> sorts results. <code>LIMIT</code> caps how many rows come back — essential for large tables.",
    ral:{
      sql:"SELECT name, order_date\nFROM orders\nORDER BY order_date DESC\nLIMIT 5;",
+     say:"Give me the name and order date from orders, sorted by most recent first, and just the top 5 results.",
      lines:[
        ["ORDER BY","sort the results by this column"],
        ["order_date DESC","sort by order_date, newest first (DESC = descending)"],
@@ -360,6 +365,7 @@ LESSONS: [
    intro:"<code>INNER JOIN</code> links two tables on a shared column. Only rows with a match in both tables appear.",
    ral:{
      sql:"SELECT c.name, o.order_date\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id;",
+     say:"Give me each customer's name alongside their order dates by matching customers to their orders. Drop rows that don't have a match on both sides.",
      lines:[
        ["FROM customers c","start with customers, alias it c"],
        ["INNER JOIN orders o","bring in orders, alias it o"],
@@ -375,6 +381,7 @@ LESSONS: [
    intro:"Aggregate functions collapse many rows into one number. <code>GROUP BY</code> tells SQL which column to group on before aggregating.",
    ral:{
      sql:"SELECT status, COUNT(*) AS total\nFROM customers\nGROUP BY status;",
+     say:"For each distinct status, count how many customers have it — and label that count 'total'.",
      lines:[
        ["COUNT(*)","count every row in the group"],
        ["AS total","alias — name this column 'total' in the output"],
@@ -389,6 +396,7 @@ LESSONS: [
    intro:"<code>LEFT JOIN</code> keeps every row from the left table. If there's no match on the right, you get NULLs.",
    ral:{
      sql:"SELECT c.name, o.order_date\nFROM customers c\nLEFT JOIN orders o ON c.id = o.customer_id;",
+     say:"Give me every customer's name and any matching order dates — keep customers even if they've never placed an order (their order_date will just be empty).",
      lines:[
        ["LEFT JOIN","keep all rows from the left (customers), match from right"],
        ["ON c.id = o.customer_id","the join condition"],
@@ -402,6 +410,7 @@ LESSONS: [
    intro:"<code>HAVING</code> filters after grouping (like WHERE, but for aggregates). <code>DISTINCT</code> removes duplicate rows.",
    ral:{
      sql:"SELECT status, COUNT(*) AS n\nFROM customers\nGROUP BY status\nHAVING COUNT(*) > 2;",
+     say:"For each status, count the customers — but only show statuses that have more than 2 customers.",
      lines:[
        ["HAVING COUNT(*) > 2","keep only groups where the count is greater than 2"],
        ["HAVING vs WHERE","WHERE filters rows before grouping; HAVING filters after"]
@@ -414,6 +423,7 @@ LESSONS: [
    intro:"<code>CASE</code> is SQL's if/else. <code>COALESCE</code> returns the first non-NULL value from a list.",
    ral:{
      sql:"SELECT name,\n  CASE WHEN status='active' THEN 'Yes' ELSE 'No' END AS is_active\nFROM customers;",
+     say:"Give me each customer's name and a 'Yes' or 'No' label — 'Yes' if their status is 'active', otherwise 'No'. Label that column 'is_active'.",
      lines:[
        ["CASE WHEN","start a conditional expression"],
        ["status='active' THEN 'Yes'","if this condition is true, return 'Yes'"],
@@ -429,6 +439,7 @@ LESSONS: [
    intro:"A subquery is a SELECT inside another SELECT (or WHERE). The inner query runs first and its result is used by the outer query.",
    ral:{
      sql:"SELECT name\nFROM customers\nWHERE id IN (\n  SELECT customer_id FROM orders\n);",
+     say:"Give me the names of customers whose ID appears in the orders table — in other words, customers who have placed at least one order.",
      lines:[
        ["WHERE id IN (...)","filter: only rows where id appears in the subquery result"],
        ["SELECT customer_id FROM orders","inner query runs first — returns all customer IDs that have orders"],
@@ -442,6 +453,7 @@ LESSONS: [
    intro:"Window functions compute a value across a set of rows (a 'window') without collapsing them like GROUP BY does.",
    ral:{
      sql:"SELECT name,\n  ROW_NUMBER() OVER (ORDER BY order_date) AS rn\nFROM orders;",
+     say:"Give me each order's name and a sequential row number — numbered in the order the order dates occurred. Label the number column 'rn'.",
      lines:[
        ["ROW_NUMBER()","assign a sequential number to each row"],
        ["OVER (...)","defines the window — which rows to consider and how to sort them"],
@@ -456,6 +468,7 @@ LESSONS: [
    intro:"A Common Table Expression (CTE) names a subquery so you can reference it like a table. It makes complex queries readable.",
    ral:{
      sql:"WITH active AS (\n  SELECT * FROM customers WHERE status = 'active'\n)\nSELECT name FROM active;",
+     say:"First, build a temporary set called 'active' that holds only the customers whose status is 'active'. Then give me the names from that set.",
      lines:[
        ["WITH active AS (...)","define a named result set — the CTE"],
        ["SELECT * FROM customers WHERE status='active'","the CTE's query — runs first"],
@@ -469,6 +482,7 @@ LESSONS: [
    intro:"Reconciliation means checking that data is complete, consistent, and correct. These are the patterns analysts use to QA datasets.",
    ral:{
      sql:"SELECT a.id\nFROM customers_old a\nLEFT JOIN customers b ON a.id = b.id\nWHERE b.id IS NULL;",
+     say:"Find the IDs from customers_old that don't exist in the customers table — useful for spotting rows that were dropped between versions.",
      lines:[
        ["FROM customers_old a","the 'source' table — what we expect to exist"],
        ["LEFT JOIN customers b","try to match each row in the new table"],
@@ -934,6 +948,7 @@ function renderLesson(id){
       <h3>Read-Aloud</h3>
       <div class="ral-block">
         <div class="ral-sql">${l.ral.sql}</div>
+        ${l.ral.say ? `<div class="ral-say">${l.ral.say}</div>` : ''}
         ${ralLines}
       </div>
     </div>
