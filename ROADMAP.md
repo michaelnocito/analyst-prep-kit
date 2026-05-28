@@ -127,6 +127,13 @@ _Definition: visible bug or UX miss that hurts trust or learning, OR
 a feature that directly serves a Vision Principle and has clear ROI._
 _Response time: current cycle. Clear before accepting new feedback._
 
+- **GR-E: Bug Hunt drills need a "type your fix" input + validation** _(added May 28, 2026 — 12:39 AM ET)_
+  - _What:_ The Bug Hunt drill in SQL Practice (and the equivalents in Excel and Python) shows the broken query and an error message, but the only actions are "Reveal Fix" and "Show Hint." There's no input field for the user to try their fix first. Add a textarea (or input) where the user types their proposed corrected query/formula/code; on submit, validate against the expected fix; show pass/fail feedback; and only THEN make "Reveal Fix" available as a fallback.
+  - _Why it's here:_ Practice surfaces are supposed to let users practice. Right now Bug Hunt is read-only — the user can't make a real attempt before being given the answer. Vision Principle #3 ("free to explore") and the broader "retrieval beats re-reading" learning-science principle that the rest of the kit honors.
+  - _Approach:_ Start with SQL (where Mike hit it). Add input field + validate-answer + pass/fail UI to the bug-hunt drill component. Validation can be string-compare against the data's `fix` field, with some normalization (whitespace, casing on keywords). Reveal/Hint buttons stay available. After SQL ships, replicate in Excel and Python (same drill pattern, same data shape).
+  - _Definition of Done (SQL slice):_ Each SQL bug-hunt drill shows a textarea pre-populated with the broken query (or empty), a "Check My Fix" button, a pass/fail message, and the existing Reveal/Hint buttons available throughout. Tested across the 12 SQL bug-hunt drills.
+  - _Est. effort:_ Medium per kit slice. SQL first (1 cycle), then Excel + Python (1 cycle each, or bundled if patterns are identical).
+
 - **GR-C: Final Exam — per-section submit + cumulative overall grade** _(added May 27, 2026 — 8:00 PM ET)_
   - _What:_ The Final Exam currently requires answering all 28 questions and submitting once. Restructure so each subject section (Excel, SQL, Python, Tableau, Stats, Power BI, Interview) can be submitted independently. On per-section submit, that section locks and shows its immediate grade. When every section is submitted, the Results page shows an overall grade plus the existing per-section breakdown.
   - _Why it's here:_ Vision #2. Mike hit this during normal Bare Basics flow — finished Excel, got the "try the Final Exam" CTA, landed in the Final Exam, answered just the SQL questions, and had no way to submit and check his understanding without committing to the full 28. The "checkpoint as I go" pattern is what users actually do.
