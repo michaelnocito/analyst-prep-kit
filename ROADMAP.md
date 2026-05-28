@@ -1,8 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.3.0` (shipped May 28, 2026 — awaiting test)
-**Last cycle closed:** May 28, 2026 — "Say It Out Loud" rollout to SQL / Python / Power BI / hub
-**Currently working:** _testing v1.3.0 (v1.2.3 test still queued from earlier)_
+**Current version:** `v1.4.0` (shipped May 28, 2026 — awaiting test)
+**Last cycle closed:** May 28, 2026 — Bare Basics highlight goes amber (visual unambiguity)
+**Currently working:** _testing v1.4.0 (v1.2.3 and v1.3.0 still queued from earlier)_
 
 ---
 
@@ -141,11 +141,7 @@ _Response time: current cycle. Clear before accepting new feedback._
   - _Definition of Done:_ In `final/index.html`, each section header gets its own "Submit this section" button. State model adds `submittedSections` (set of section keys). On per-section submit, that section locks (answers become read-only), shows that section's score inline. Results page renders only-submitted sections plus a partial overall, with a "complete the remaining sections" hint. Full-overall grade displays once all 7 sections are submitted.
   - _Est. effort:_ Medium (1 cycle, mostly state-model + render changes in one file).
 
-- **Bare Basics: make the highlight visually unambiguous** _(added May 27, 2026 — 4:52 PM ET)_
-  - _What:_ When Bare Basics mode is on, the visual treatment on highlighted lessons currently looks like a default teal accent — users can't tell the highlight has meaning vs. it's just the design. Needs a treatment that's obviously NOT the default style. Options: a persistent visible "★ Bare Basics" label that's always rendered (not behind a pill), a left-border accent stripe, a distinct icon/marker, or a different color entirely (yellow/amber would contrast against the teal accent).
-  - _Why it's here:_ Vision Principles #1 and #3 — the user must be able to read the state of the UI at a glance, and explore without confusion about why elements look the way they do. Reported via screenshot from the live site.
-  - _Definition of Done:_ A returning user in Bare Basics mode can tell — in under 2 seconds and without reading labels — that something is being highlighted intentionally. Test: open any tool kit's Lessons screen with the mode on; the must-know lessons should look visibly "marked," not just "differently shaded."
-  - _Est. effort:_ Small (1 cycle).
+_(Bare Basics highlight visual unambiguity shipped May 28, 2026 — see CHANGELOG v1.4.0)_
 
 _(RAL Excel reading-order shipped May 27, 2026 — see CHANGELOG v1.2.1)_
 

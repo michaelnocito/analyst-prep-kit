@@ -9,6 +9,49 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.4.0] — 2026-05-28 — Bare Basics mode now visually unambiguous (amber)
+
+Closes the oldest open High item (May 27, 4:52 PM ET): Bare Basics
+highlight used the same teal accent as the rest of the site, so users
+couldn't tell that the highlight had meaning — it just looked like
+default styling.
+
+### Changed
+- **Highlight color swapped from teal to amber** (`#e0b84a`) across
+  every part of the Bare Basics visual language. Teal is the site's
+  default accent and was reading as "just design." Amber is clearly
+  not the default — it signals **"this is intentional, mode is on."**
+- **Pill restyled as a sticker, not a chip.** The `★ BARE BASICS`
+  pill next to highlighted lessons now has a solid amber background,
+  dark text, a subtle drop shadow, and a 4px (sticker-style) radius
+  instead of the previous 20px (pill-style). Looks like a label
+  someone stuck on the item, not a design accent.
+- **Active banner under the kit nav** (the `🔖 BARE BASICS MODE` row)
+  is now amber-tinted with an amber 2px bottom border. Same on the
+  Exit Mode button — amber border, amber text.
+- **Card highlight ring** (the glow around must-know lessons) is now
+  amber with an amber-tinted box-shadow. Non-basics lessons keep the
+  existing dim treatment.
+- **Hub "● Bare Basics is ON" pill** also flipped to amber + sticker
+  shape, matching what users see inside each kit.
+
+### Touched files
+All 7 tool kits (excel, sql, python, tableau, stats, powerbi,
+interview) — same 4-rule CSS swap in each — plus the hub
+(`index.html`).
+
+### Why amber
+Teal is the site's accent everywhere — buttons, links, headings,
+icons. Using it for the basics highlight made the highlight invisible
+as a special state. Amber is in the palette already (`--warn` in
+several kits used a similar value), so it doesn't introduce a new
+brand color, but it contrasts strongly enough that a user in Bare
+Basics mode instantly sees what's marked and what's dimmed.
+
+Minor version (1.4.0) — visible UX change, no breaking behavior.
+
+---
+
 ## [1.3.0] — 2026-05-28 — "Say It Out Loud" plain-English sentence rolls out to SQL, Python, Power BI, and the hub demo
 
 Closes the Medium-bucket follow-up to v1.2.2. Mike hit the gap in the
