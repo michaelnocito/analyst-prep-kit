@@ -9,6 +9,47 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.6.0] — 2026-05-31 — Calm-analyst re-skin rolled out to all 9 module kits
+
+Extends the v1.5.0 hub re-skin to every module page (excel, sql, python,
+tableau, stats, powerbi, interview, simulator, final). The whole suite now
+shares one look: the light calm-analyst theme, system fonts, blue accent
+(`#2f6df0`). Mike: "lets do each kit to look the same as this now, i love it."
+
+**Look-and-feel only.** No saved-progress keys, lesson/quiz/drill data, kit
+URLs, or JS behavior changed. The kits already supported light mode, so this
+is a recolor of the light palette + a default flip, not a rebuild.
+
+### Changed (every kit)
+
+- **Light default** with the calm-analyst palette (soft cool-gray bg, white
+  cards, blue accent). The old teal `:root` became a restrained dark variant,
+  so the per-kit theme toggle still works and still honors the cross-kit
+  `apk-theme` flag.
+- **System-font stack** everywhere — dropped the Google Fonts (`Hanken
+  Grotesk` / `JetBrains Mono`) from the 6 kits that loaded them; now instant
+  and offline-capable. Mono is Consolas/ui-monospace.
+- **Top-bar logo chip** (▦) added to each kit's nav to echo the hub.
+- All hard-coded teal (`#58aaa2`, `rgba(88,170,162,…)`, light `#116d69`) and
+  dark-text-on-accent buttons recolored; contrast fixed to white-on-blue.
+
+### Per-kit notes
+
+- **Tableau / Stats** — recolored the teal chart/curve series (Viz Builder
+  palette, Distribution Lab histogram + mean line) to the blue accent family.
+  No chart/stats logic touched.
+- **Power BI** — uses a class-based (`.light`) theme rather than the
+  `data-theme` attribute; handled accordingly. Prereq banner amber preserved.
+- **Final** — per-subject color block (`--c-excel`, `--c-sql`, …) left intact;
+  added light-mode `--good/--warn/--bad` so semantics stay correct.
+- **Amber Bare Basics** highlight (`#e0b84a`) preserved across all kits.
+
+Verified: zero teal in any rendering path, zero Google Fonts, light default +
+nav chip present in all 9, file integrity intact (no truncation, all JS
+preserved).
+
+---
+
 ## [1.5.0] — 2026-05-31 — Hub re-skin to the Nocito calm-analyst design system
 
 Applies the shared **Nocito Web Design System**
