@@ -9,6 +9,50 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.5.0] — 2026-05-31 — Hub re-skin to the Nocito calm-analyst design system
+
+Applies the shared **Nocito Web Design System**
+(`spreadsheet-archaeology/DESIGN_SYSTEM.md`) to the hub page only
+(`index.html`). The nine module apps keep their teal aesthetic for now —
+this was a deliberate scope call (Mike: "hub page only, now") to avoid a
+big-bang change across the complex interactive kits and to respect the
+strict one-item-at-a-time workflow. Accent switched from teal to the
+system's blue (`#2f6df0`) for cross-portfolio consistency with the
+landing page (Mike: "switch to system blue").
+
+This is look-and-feel only. No saved-progress keys, kit URLs, or JS
+behavior changed — all progress adapters, the Continue card, Bare Basics
+cross-kit mode, and the theme toggle work exactly as before.
+
+### Changed
+
+- **Light calm-analyst theme** is now the hub default: soft cool-gray
+  background, white cards, system-font stack (drops the Google Fonts
+  Hanken Grotesk + JetBrains Mono — instant, offline-capable),
+  Consolas/ui-monospace for code + progress readouts.
+- **Top orientation bar** — logo + brand ("Analyst Prep Kit" /
+  "Break into data analytics") + a "Free · No login" phase chip + the
+  theme toggle, styled as the system's sticky top bar.
+- **Welcome card hero**, **Say It Out Loud** restyled as the system's
+  voice/card, **Continue** + **Bare Basics** + **beta banner** restyled
+  as accent-rail cards. Kit cards adopt the generic-card look with calm,
+  semantic per-kit left rails (green/blue/warm/purple).
+- **Theme toggle preserved.** The toggle still writes the cross-kit
+  `apk-theme` flag; the hub now ships a restrained dark variant of the
+  same design tokens (not the old teal), so dark mode still works and
+  still carries into the kits. Default flipped dark → light to showcase
+  the calm-analyst look.
+
+### Note
+
+The 9 module pages (excel / sql / python / tableau / stats / powerbi /
+interview / simulator / final) are unchanged and still use the teal
+theme. Re-skinning them is a separate, larger cycle — they're complex
+interactive apps and the design system's own rule is "never assume the
+same render fix works in every kit."
+
+---
+
 ## [1.4.1] — 2026-05-28 — Pedagogy fixes (SQL HAVING, Power BI prerequisites, Python types/imports)
 
 Closes GR-F-1, GR-F-2, and GR-F-3 from the May 28 10:46 PM ET pedagogy

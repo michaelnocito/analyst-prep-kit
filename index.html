@@ -1,152 +1,270 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Analyst Prep Kit</title>
 <meta name="description" content="A free browser-based prep suite for breaking into data analytics — SQL, Excel, Python, Tableau, Statistics, and Interview. No install, no login.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+/* ===========================================================================
+   Analyst Prep Kit — hub
+   Re-skinned to the Nocito calm-analyst design system (light theme, system
+   fonts, blue accent). A restrained dark variant keeps the existing theme
+   toggle + cross-kit `apk-theme` contract working. The 9 module apps keep
+   their own teal aesthetic for now.
+   =========================================================================== */
 :root{
-  --bg:#171513;--surf:#201d1a;--surf2:#292520;--accent:#58aaa2;--accdim:#2d6b65;
-  --txt:#e8e0d5;--txt2:#9a8f84;--bord:#3a342e;
+  /* Surfaces */
+  --bg:#eef1f5; --panel:#ffffff; --line:#d6dce4;
+  --shadow:0 1px 2px rgba(20,30,50,.06), 0 6px 20px rgba(20,30,50,.06);
+  /* Text */
+  --ink:#1f2328; --dim:#5b6470;
+  /* Accent */
+  --accent:#2f6df0; --accent-d:#1f4fc4;
+  /* Semantic */
+  --good:#1a7f37; --good-bg:#e7f6ec; --bad:#cf222e; --bad-bg:#fdecee; --warm:#9a6700;
+  --phase-2:#6639ba; --phase-2-bg:#f3eefb; --phase-2-bd:#ddccf3;
+  /* Tints */
+  --tint:#f7faff; --tint-bd:#dde6f5;
+  --accent-soft:#eef4ff; --accent-soft-bd:#d4e1ff;
+  --warm-soft:#fbf7ec; --warm-soft-bd:#e3d7a5;
+  --track:#e8edf4;
+  /* Legacy aliases — referenced by inline JS / progress markup */
+  --txt:var(--ink); --txt2:var(--dim); --surf:var(--panel); --surf2:var(--track);
 }
-[data-theme="light"]{
-  --bg:#ddd6c8;--surf:#ffffff;--surf2:#f5f0e9;--accent:#116d69;--accdim:#c8e6e4;
-  --txt:#1a1410;--txt2:#6b5f52;--bord:#c8bfb4;
+[data-theme="dark"]{
+  --bg:#0f141b; --panel:#161c26; --line:#28303c;
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.4);
+  --ink:#e6edf3; --dim:#98a3b2;
+  --accent:#5b8cf5; --accent-d:#84a8f8;
+  --good:#3fb950; --good-bg:#16301f; --bad:#f47984; --bad-bg:#3a1d22; --warm:#d2a24a;
+  --phase-2:#b08cf0; --phase-2-bg:#241b38; --phase-2-bd:#3a2d57;
+  --tint:#1c2430; --tint-bd:#2c3644;
+  --accent-soft:#1a2740; --accent-soft-bd:#2f4a7a;
+  --warm-soft:#2a2415; --warm-soft-bd:#4a3f1f;
+  --track:#222b38;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Hanken Grotesk',system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;font-size:15px}
-a{color:var(--accent);text-decoration:none}
+html{scroll-behavior:smooth}
+body{
+  font:15px/1.55 -apple-system,"Segoe UI",Roboto,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  background:var(--bg); color:var(--ink); min-height:100vh;
+}
+a{color:var(--accent); text-decoration:none}
+code,.mono{font-family:"Consolas",ui-monospace,monospace}
 
-/* ── Nav ── */
-nav{background:var(--surf);border-bottom:1px solid var(--bord);padding:0 20px;display:flex;align-items:center;height:52px;position:sticky;top:0;z-index:100}
-.logo{font-weight:700;font-size:16px;color:var(--accent)}
-.logo span{color:var(--txt)}
-.spacer{flex:1}
-.theme-btn{background:none;border:1px solid var(--bord);color:var(--txt2);cursor:pointer;padding:4px 10px;border-radius:6px;font-size:13px;font-family:inherit}
-.theme-btn:hover{color:var(--txt);border-color:var(--accent)}
+/* ── Top orientation bar ── */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:10px 18px; background:var(--panel); border-bottom:1px solid var(--line);
+  position:sticky; top:0; z-index:100;
+}
+.brand{display:flex; align-items:center; gap:12px}
+.brand .logo{
+  font-size:22px; color:var(--accent);
+  background:linear-gradient(135deg,var(--accent-soft),var(--accent-soft-bd));
+  width:38px; height:38px; display:grid; place-items:center; border-radius:9px;
+}
+.brand-text{display:flex; flex-direction:column; line-height:1.2}
+.brand-text strong{font-size:15px; color:var(--ink)}
+.brand-text .sub{font-size:12px; color:var(--dim)}
+.orient{display:flex; align-items:center; gap:14px}
+.phase-chip{
+  font-size:11px; font-weight:800; letter-spacing:.07em; text-transform:uppercase;
+  padding:5px 10px; border-radius:6px; white-space:nowrap;
+  background:var(--accent-soft); color:var(--accent-d); border:1px solid var(--accent-soft-bd);
+}
+.icon-btn{
+  background:transparent; border:1px solid var(--line); color:var(--dim);
+  cursor:pointer; padding:6px 10px; border-radius:8px; font-size:14px;
+}
+.icon-btn:hover{border-color:var(--accent); color:var(--accent)}
 
 /* ── Layout ── */
-main{max-width:700px;margin:0 auto;padding:48px 20px}
+main{max-width:760px; margin:0 auto; padding:28px 18px 0}
 
-/* ── Hero ── */
-.hero{text-align:center;margin-bottom:48px}
-.eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
-h1{font-size:clamp(2rem,5vw,2.8rem);font-weight:800;line-height:1.1;margin-bottom:16px;letter-spacing:-.02em}
-h1 span{color:var(--accent)}
-.sub{font-size:1rem;color:var(--txt2);line-height:1.7;max-width:480px;margin:0 auto 32px}
+/* ── Welcome / hero card ── */
+.welcome-card{
+  background:var(--panel); border:1px solid var(--line); border-radius:16px;
+  box-shadow:var(--shadow); padding:28px 32px; margin-bottom:18px;
+}
+.welcome-eyebrow{
+  font-size:10.5px; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--accent-d); margin-bottom:10px;
+}
+.welcome-card h1{
+  font-size:clamp(26px,5vw,38px); font-weight:700; line-height:1.14;
+  letter-spacing:-.01em; color:var(--ink); margin-bottom:12px;
+}
+.welcome-card h1 span{color:var(--accent)}
+.welcome-sub{font-size:15.5px; color:var(--dim); line-height:1.65; max-width:560px}
 
-/* ── Tool grid (what's here + why you need it) ── */
-.tool-grid-label{font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--txt2);margin-bottom:12px}
-.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:9px;margin-bottom:0;text-align:left}
-.tool-card{background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:11px 13px;display:flex;flex-direction:column;gap:5px;text-decoration:none;transition:.15s;color:inherit}
-.tool-card:hover{border-color:var(--accent);background:var(--surf2)}
-.tool-card:hover .tool-card-name{color:var(--accent)}
-.tool-card-top{display:flex;align-items:center;gap:7px}
-.tool-card-icon{font-size:1rem;flex-shrink:0}
-.tool-card-name{font-weight:700;font-size:.83rem;color:var(--txt);transition:.15s}
-.tool-card-why{font-size:.74rem;color:var(--txt2);line-height:1.4}
+/* ── Generic card ── */
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  box-shadow:var(--shadow); padding:18px 20px;
+}
 
-/* ── Bare Basics entry card ── */
-.basics-entry{display:flex;align-items:flex-start;gap:14px;background:linear-gradient(135deg,var(--surf) 0%,rgba(88,170,162,.06) 100%);border:1px solid rgba(88,170,162,.35);border-left:3px solid var(--accent);border-radius:10px;padding:18px 20px;margin-top:28px;margin-bottom:24px;text-decoration:none;color:inherit;transition:.2s}
-.basics-entry:hover{transform:translateX(2px);border-color:var(--accent);box-shadow:0 4px 18px rgba(88,170,162,.1)}
-.basics-icon{font-size:1.6rem;flex-shrink:0;margin-top:1px}
-.basics-body{flex:1}
-.basics-title{font-weight:700;font-size:1rem;margin-bottom:5px;color:var(--txt)}
-.basics-desc{font-size:.85rem;color:var(--txt2);line-height:1.6;margin-bottom:10px}
-.basics-cta{font-size:.78rem;font-weight:700;color:var(--accent);letter-spacing:.03em;font-family:'JetBrains Mono',monospace}
+/* ── "Continue where you left off" ── */
+.continue-card{
+  display:none; align-items:center; gap:14px; text-decoration:none; color:inherit;
+  background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent);
+  border-radius:14px; box-shadow:var(--shadow); padding:14px 18px; margin-bottom:14px;
+  transition:transform .18s, box-shadow .18s;
+}
+.continue-card.show{display:flex}
+.continue-card:hover{transform:translateX(3px); box-shadow:0 2px 4px rgba(20,30,50,.07),0 10px 28px rgba(20,30,50,.10)}
+.continue-icon{font-size:1.4rem; flex-shrink:0; color:var(--accent)}
+.continue-body{flex:1; min-width:0}
+.continue-eyebrow{font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--accent-d); margin-bottom:3px}
+.continue-title{font-weight:700; font-size:15px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.continue-meta{font-size:12.5px; color:var(--dim); font-family:"Consolas",ui-monospace,monospace; margin-top:2px}
+.continue-arrow{flex-shrink:0; color:var(--accent); font-size:1.2rem; font-weight:700}
 
-/* (Sprint mode removed — replaced by the global Bare Basics mode.) */
-
-/* ── Basics-entry: active-state controls ── */
-body.basics-mode .basics-entry{border-color:var(--accent);background:linear-gradient(135deg,var(--surf) 0%,rgba(88,170,162,.12) 100%);box-shadow:0 4px 18px rgba(88,170,162,.15)}
-body.basics-mode .basics-entry .basics-title::before{content:'✓ ';color:var(--accent)}
-.basics-active-row{display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+/* ── Bare Basics entry ── */
+.basics-entry{
+  display:flex; align-items:flex-start; gap:14px;
+  background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--warm);
+  border-radius:14px; box-shadow:var(--shadow); padding:18px 20px; margin-bottom:18px;
+}
+.basics-icon{font-size:1.5rem; flex-shrink:0; margin-top:1px}
+.basics-body{flex:1; min-width:0}
+.basics-title{font-weight:700; font-size:15.5px; margin-bottom:5px; color:var(--ink)}
+.basics-desc{font-size:13.5px; color:var(--dim); line-height:1.6; margin-bottom:12px}
+.basics-default-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.basics-active-row{display:none; align-items:center; gap:10px; flex-wrap:wrap}
 body.basics-mode .basics-active-row{display:flex}
 body.basics-mode .basics-default-row{display:none}
-.basics-default-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px}
-.basics-btn{background:var(--accent);color:var(--bg);border:none;border-radius:6px;padding:7px 16px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:.15s}
-.basics-btn:hover{opacity:.88}
-.basics-btn-ghost{background:transparent;border:1px solid var(--bord);color:var(--txt2);border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:.15s}
-.basics-btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
-.basics-on-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:4px;background:#e0b84a;color:#1a1410;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+body.basics-mode .basics-entry .basics-title::before{content:'✓ '; color:var(--warm)}
+.basics-btn{
+  background:var(--accent); color:#fff; border:0; border-radius:10px;
+  padding:9px 16px; font-size:13.5px; font-weight:700; font-family:inherit; cursor:pointer;
+  box-shadow:0 2px 8px rgba(47,109,240,.35); transition:background .15s, transform .05s;
+}
+.basics-btn:hover{background:var(--accent-d)}
+.basics-btn:active{transform:translateY(1px)}
+.basics-btn-ghost{
+  background:transparent; border:1px solid var(--line); color:var(--dim);
+  border-radius:8px; padding:8px 14px; font-size:13px; font-weight:600;
+  font-family:inherit; cursor:pointer; transition:border-color .15s, color .15s;
+}
+.basics-btn-ghost:hover{border-color:var(--accent); color:var(--accent)}
+.basics-on-pill{
+  display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:999px;
+  background:var(--warm-soft); color:var(--warm); border:1px solid var(--warm-soft-bd);
+  font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+}
 
 /* ── Beta banner ── */
-.beta-banner{background:var(--surf2);border:1px solid var(--bord);border-left:3px solid var(--accdim);border-radius:8px;padding:11px 15px;margin-bottom:24px;font-size:.8rem;color:var(--txt2);line-height:1.6}
-.beta-banner strong{color:var(--txt)}
+.beta-banner{
+  background:var(--tint); border:1px solid var(--tint-bd); border-radius:12px;
+  padding:11px 15px; margin-bottom:18px; font-size:13px; color:var(--dim); line-height:1.6;
+}
+.beta-banner strong{color:var(--ink)}
 
-/* ── Method card (Say It Out Loud) ── */
-.method-card{background:var(--surf);border:1px solid var(--bord);border-left:3px solid var(--accent);border-radius:10px;padding:18px 20px;margin-bottom:24px;display:flex;gap:16px;align-items:flex-start}
-.method-icon{font-size:1.6rem;flex-shrink:0;margin-top:2px}
-.method-body{flex:1;min-width:0}
-.method-eyebrow{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
-.method-title{font-weight:700;font-size:1rem;margin-bottom:8px;color:var(--txt)}
-.method-desc{font-size:.85rem;color:var(--txt2);line-height:1.65;margin-bottom:12px}
-.method-demo{background:var(--surf2);border:1px solid var(--bord);border-radius:8px;padding:12px 14px;font-size:.78rem}
-.method-demo code{display:block;color:var(--accent);font-family:'JetBrains Mono','Consolas',monospace;font-size:.82rem;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--bord)}
-.method-say{font-style:italic;color:var(--txt);background:rgba(88,170,162,.07);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:7px 11px;margin-bottom:8px;line-height:1.5;font-size:.82rem}
-.method-say::before{content:'🗣️ ';opacity:.85;font-style:normal;margin-right:4px}
-.method-line{color:var(--txt2);line-height:1.7}
-.method-chunk{color:var(--accent);font-family:'JetBrains Mono','Consolas',monospace;font-size:.78rem;background:rgba(88,170,162,.08);padding:1px 6px;border-radius:4px}
+/* ── Method card (Say It Out Loud) — voice/card pattern ── */
+.method-card{
+  background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent);
+  border-radius:14px; box-shadow:var(--shadow); padding:18px 20px; margin-bottom:24px;
+  display:flex; gap:16px; align-items:flex-start;
+}
+.method-icon{font-size:1.5rem; flex-shrink:0; margin-top:2px}
+.method-body{flex:1; min-width:0}
+.method-eyebrow{font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--accent-d); margin-bottom:4px}
+.method-title{font-weight:700; font-size:15.5px; margin-bottom:8px; color:var(--ink)}
+.method-desc{font-size:13.5px; color:var(--dim); line-height:1.65; margin-bottom:12px}
+.method-demo{background:var(--tint); border:1px solid var(--tint-bd); border-radius:10px; padding:12px 14px; font-size:13px}
+.method-demo code{display:block; color:var(--accent-d); font-family:"Consolas",ui-monospace,monospace; font-size:13px; margin-bottom:8px; padding-bottom:8px; border-bottom:1px dashed var(--tint-bd)}
+.method-say{font-style:italic; color:var(--ink); background:var(--accent-soft); border-left:3px solid var(--accent); border-radius:0 6px 6px 0; padding:7px 11px; margin-bottom:8px; line-height:1.5; font-size:13px}
+.method-say::before{content:'🗣️ '; opacity:.85; font-style:normal; margin-right:4px}
+.method-line{color:var(--dim); line-height:1.7}
+.method-chunk{color:var(--accent-d); font-family:"Consolas",ui-monospace,monospace; font-size:12.5px; background:var(--accent-soft); padding:1px 6px; border-radius:4px}
+
+/* ── Section label ── */
+.section-label{
+  font-size:11px; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--dim); margin:8px 0 14px; display:flex; align-items:center; gap:12px;
+}
+.section-label::after{content:''; flex:1; height:1px; background:var(--line)}
 
 /* ── Kit cards ── */
-.kits{display:flex;flex-direction:column;gap:12px}
-.kit-card{background:var(--surf);border:1px solid var(--bord);border-radius:10px;padding:20px 22px;display:flex;align-items:center;gap:18px;cursor:pointer;transition:all .2s;text-decoration:none;position:relative;overflow:hidden}
-.kit-card::before{content:'';position:absolute;left:0;top:0;width:3px;height:100%;background:var(--accent);transform:scaleY(0);transform-origin:bottom;transition:transform .2s}
-.kit-card:hover{border-color:var(--accent);transform:translateX(4px)}
-.kit-card:hover::before{transform:scaleY(1)}
-.kit-icon{font-size:1.8rem;flex-shrink:0;width:44px;text-align:center}
-.kit-body{flex:1}
-.kit-name{font-weight:700;font-size:1rem;margin-bottom:3px}
-.kit-why{font-size:.78rem;color:var(--accent);font-weight:600;line-height:1.45;margin-bottom:6px;letter-spacing:.005em}
-.kit-desc{font-size:.82rem;color:var(--txt2);line-height:1.5}
-.kit-meta{font-size:.75rem;color:var(--accent);font-family:'JetBrains Mono',monospace;flex-shrink:0}
-/* normal badge (e.g. "Start Here") */
-.badge{display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:rgba(88,170,162,.12);color:var(--accent);border:1px solid rgba(88,170,162,.3);padding:2px 9px;border-radius:20px;margin-bottom:6px}
+.kits{display:flex; flex-direction:column; gap:14px}
+.kit-card{
+  background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--accent);
+  border-radius:14px; box-shadow:var(--shadow); padding:18px 20px;
+  display:flex; align-items:flex-start; gap:16px; cursor:pointer; text-decoration:none;
+  color:inherit; transition:transform .18s, box-shadow .18s, border-color .18s;
+}
+.kit-card:hover{transform:translateX(3px); box-shadow:0 2px 4px rgba(20,30,50,.07),0 10px 28px rgba(20,30,50,.10)}
+/* Per-kit accent rails — calm, semantic */
+.kit-card[data-kit="excel"]{border-left-color:var(--good)}
+.kit-card[data-kit="sql"]{border-left-color:var(--accent)}
+.kit-card[data-kit="python"]{border-left-color:var(--warm)}
+.kit-card[data-kit="tableau"]{border-left-color:var(--phase-2)}
+.kit-card[data-kit="stats"]{border-left-color:var(--accent)}
+.kit-card[data-kit="powerbi"]{border-left-color:var(--good)}
+.kit-card[data-kit="interview"]{border-left-color:var(--warm)}
+.kit-card[data-kit="simulator"]{border-left-color:var(--phase-2)}
+.kit-card[data-kit="final"]{border-left-color:var(--accent)}
+.kit-icon{font-size:1.7rem; flex-shrink:0; width:42px; text-align:center; margin-top:2px}
+.kit-body{flex:1; min-width:0}
+.kit-name{font-weight:700; font-size:16px; color:var(--ink); margin-bottom:3px}
+.kit-why{font-size:13px; color:var(--accent-d); font-weight:600; line-height:1.45; margin-bottom:6px}
+.kit-desc{font-size:13px; color:var(--dim); line-height:1.55}
+.kit-meta{font-size:12px; color:var(--accent-d); font-weight:600; font-family:"Consolas",ui-monospace,monospace; flex-shrink:0; margin-top:2px}
+.badge{
+  display:inline-block; font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+  background:var(--accent-soft); color:var(--accent-d); border:1px solid var(--accent-soft-bd);
+  padding:3px 9px; border-radius:999px; margin-bottom:6px;
+}
 
-/* ── Per-kit progress (on each kit card) ── */
-.kit-progress{margin-top:8px;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--txt2)}
-.kit-progress-bar{flex:1;height:3px;background:var(--surf2);border-radius:2px;overflow:hidden;max-width:140px}
-.kit-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s}
-.kit-progress-text{white-space:nowrap;letter-spacing:.02em}
-.kit-progress.done{color:var(--accent)}
+/* ── Per-kit progress ── */
+.kit-progress{margin-top:9px; display:flex; align-items:center; gap:8px; font-family:"Consolas",ui-monospace,monospace; font-size:11px; color:var(--dim)}
+.kit-progress-bar{flex:1; height:4px; background:var(--track); border-radius:2px; overflow:hidden; max-width:150px}
+.kit-progress-fill{height:100%; background:var(--accent); border-radius:2px; transition:width .4s}
+.kit-progress-text{white-space:nowrap; letter-spacing:.02em}
+.kit-progress.done{color:var(--good)}
+.kit-progress.done .kit-progress-fill{background:var(--good)}
 .kit-progress.done .kit-progress-text::before{content:'✓ '}
 
-/* ── "Continue where you left off" card (hub hero) ── */
-.continue-card{display:none;background:linear-gradient(135deg,var(--surf) 0%,rgba(88,170,162,.1) 100%);border:1px solid var(--accent);border-left:3px solid var(--accent);border-radius:10px;padding:16px 20px;margin-top:28px;margin-bottom:8px;text-decoration:none;color:inherit;transition:.2s;align-items:center;gap:14px}
-.continue-card.show{display:flex}
-.continue-card:hover{transform:translateX(2px);box-shadow:0 4px 18px rgba(88,170,162,.18)}
-.continue-icon{font-size:1.6rem;flex-shrink:0}
-.continue-body{flex:1;min-width:0}
-.continue-eyebrow{font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
-.continue-title{font-weight:700;font-size:.95rem;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.continue-meta{font-size:.78rem;color:var(--txt2);font-family:'JetBrains Mono',monospace;margin-top:3px}
-.continue-arrow{flex-shrink:0;color:var(--accent);font-size:1.2rem;font-weight:700}
-
 /* ── Footer ── */
-footer{text-align:center;padding:40px 20px;color:var(--txt2);font-size:.8rem;border-top:1px solid var(--bord);margin-top:60px}
-footer a{color:var(--txt2)}
-footer a:hover{color:var(--accent)}
+footer{text-align:center; padding:36px 18px; color:var(--dim); font-size:12.5px; border-top:1px solid var(--line); margin-top:48px}
+footer a{color:var(--dim)}
+footer a:hover{color:var(--accent-d)}
+
+/* ── Responsive ── */
+@media (max-width:720px){
+  .welcome-card{padding:24px 20px}
+  .kit-card{flex-wrap:wrap}
+  .kit-meta{margin-top:0}
+}
 </style>
 </head>
 <body>
-<nav>
-  <span class="logo">Analyst<span> Prep Kit</span></span>
-  <div class="spacer"></div>
-  <button class="theme-btn" onclick="toggleTheme()"><span id="themeIcon">☀️</span></button>
-</nav>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">▦</span>
+    <span class="brand-text">
+      <strong>Analyst Prep Kit</strong>
+      <span class="sub">Break into data analytics</span>
+    </span>
+  </div>
+  <div class="orient">
+    <span class="phase-chip">Free · No login</span>
+    <button class="icon-btn" onclick="toggleTheme()" title="Toggle light/dark"><span id="themeIcon">🌙</span></button>
+  </div>
+</header>
 
 <main>
-  <div class="hero">
-    <div class="eyebrow">Free · No install · No login</div>
+  <div class="welcome-card">
+    <div class="welcome-eyebrow">Free · No install · No login</div>
     <h1>Break into <span>data analytics</span>.<br>One skill at a time.</h1>
-    <p class="sub">Nine hands-on learning apps — sequenced in the order an analyst actually learns them. Real practice, not slides.</p>
-
+    <p class="welcome-sub">Nine hands-on learning apps — sequenced in the order an analyst actually learns them. Real practice, not slides.</p>
   </div>
 
-  <!-- ── "Continue where you left off" hero — shown only when there's progress ── -->
+  <!-- ── "Continue where you left off" — shown only when there's progress ── -->
   <a class="continue-card" id="continueCard" href="#">
     <div class="continue-icon">▶</div>
     <div class="continue-body">
@@ -197,6 +315,7 @@ footer a:hover{color:var(--accent)}
   </div>
 
   <!-- ── Kit cards (learning order) ── -->
+  <div class="section-label">The kits — in learning order</div>
   <div class="kits">
 
     <a class="kit-card" href="excel/" data-kit="excel">
@@ -304,7 +423,6 @@ footer a:hover{color:var(--accent)}
 
   </div>
 
-
 </main>
 
 <footer>
@@ -314,7 +432,7 @@ footer a:hover{color:var(--accent)}
 
 <script>
 // ── Theme ──
-let theme = localStorage.getItem('apk-theme') || 'dark';
+let theme = localStorage.getItem('apk-theme') || 'light';
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', theme);
   document.getElementById('themeIcon').textContent = theme === 'dark' ? '☀️' : '🌙';
