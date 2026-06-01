@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tableau Prep Kit</title>
+<script>try{var _s=localStorage.getItem('tpk');if(_s){var _t=JSON.parse(_s).theme;if(_t)document.documentElement.setAttribute('data-theme',_t);}}catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 /* Calm-analyst design system. :root = restrained dark variant;
@@ -890,12 +891,11 @@ function renderHome(){
 
 /* ── LESSONS ── */
 function renderLessonList(){
-  const units={1:[],2:[],3:[]};
-  DATA.LESSONS.forEach(l=>units[l.unit].push(l));
-  const unitNames={1:'Unit 1: Tableau Fundamentals',2:'Unit 2: Building Views',3:'Unit 3: Dashboards & Analytics'};
+  const units={};
+  DATA.LESSONS.forEach(l=>{(units[l.unit]=units[l.unit]||[]).push(l);});
   document.getElementById('view-lessons').innerHTML=Object.keys(units).map(u=>`
     <div style="margin-bottom:24px">
-      <h3 style="margin-bottom:12px;color:var(--txt2);font-size:.9rem;text-transform:uppercase;letter-spacing:.05em">${unitNames[u]}</h3>
+      <h3 style="margin-bottom:12px;color:var(--txt2);font-size:.9rem;text-transform:uppercase;letter-spacing:.05em">${u}</h3>
       <div style="display:flex;flex-direction:column;gap:8px">
         ${units[u].map(l=>{
           const done=S.done[`lesson${l.id}`];
@@ -912,10 +912,9 @@ let lessonState={id:null,qIdx:0};
 function openLesson(id){
   S.lastLesson=id;save();
   lessonState={id,qIdx:0};
-  renderLesson();
-  document.getElementById('view-lessons').innerHTML='';
   document.getElementById('view-lessons').classList.add('active');
   document.querySelectorAll('.view').forEach(v=>{if(v.id!=='view-lessons')v.classList.remove('active');});
+  renderLesson();
 }
 function renderLesson(){
   const l=DATA.LESSONS.find(x=>x.id===lessonState.id);
@@ -927,19 +926,15 @@ function renderLesson(){
       <span style="color:var(--txt2);font-size:.85rem">Lesson ${l.id} of ${DATA.LESSONS.length}</span>
     </div>
     <h2 style="margin-bottom:4px">${l.title}</h2>
-    <p style="color:var(--txt2);margin-bottom:20px">${l.subtitle||''}</p>
-    ${l.sections.map(sec=>`
+    ${l.intro?`<p style="color:var(--txt2);margin-bottom:20px">${l.intro}</p>`:''}
+    ${(l.ral||[]).map(block=>`
       <div class="card" style="margin-bottom:16px">
-        <h4 style="margin-bottom:8px;color:var(--accent)">${sec.heading}</h4>
-        ${sec.body?`<p style="margin-bottom:${sec.code?'10px':'0'}">${sec.body}</p>`:''}
-        ${sec.code?`
-          <div style="position:relative">
-            <pre class="code-block">${sec.code}</pre>
-            <button class="btn" style="position:absolute;top:8px;right:8px;padding:3px 8px;font-size:.75rem;opacity:.7" onclick="toggleRead(this)" data-steps='${JSON.stringify(sec.steps||[])}'>🔊 Read It</button>
-          </div>
-          ${sec.steps&&sec.steps.length?`<div class="read-panel" style="display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem">${sec.steps.map((s,i)=>`<div style="margin-bottom:6px"><span style="color:var(--accent);font-weight:600">Step ${i+1}:</span> ${s}</div>`).join('')}</div>`:''}
-        `:''}
+        <h4 style="margin-bottom:10px;color:var(--accent)">${block.shelf}</h4>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${(block.lines||[]).map(row=>`<div style="display:flex;gap:12px;flex-wrap:wrap"><span style="font-weight:600;min-width:170px">${row[0]}</span><span style="color:var(--txt2)">${row[1]}</span></div>`).join('')}
+        </div>
       </div>`).join('')}
+    ${l.notes?`<div class="card" style="margin-bottom:16px;background:var(--surf2)"><strong style="color:var(--accent)">📝 Note</strong><p style="margin-top:6px">${l.notes}</p></div>`:''}
     ${l.quiz?`
       <div class="card" id="quizCard">
         <h4 style="margin-bottom:12px">Quick Check</h4>
@@ -967,13 +962,13 @@ function checkQuiz(i){
   btns.forEach(b=>b.disabled=true);
   if(i===l.quiz.ans){
     btns[i].style.background='var(--accent)';btns[i].style.color='#fff';
-    fb.innerHTML=`<span style="color:var(--accent)">✓ Correct! ${l.quiz.explain}</span>`;
+    fb.innerHTML=`<span style="color:var(--accent)">✓ Correct! ${l.quiz.exp}</span>`;
     fb.style.display='block';
     celebrate(true,'Correct! 🎉');
     setTimeout(()=>finishLesson(l.id),1200);
   } else {
     btns[i].style.background='#c0392b';btns[i].style.color='#fff';
-    fb.innerHTML=`<span style="color:#e74c3c">Not quite. ${l.quiz.explain}</span>`;
+    fb.innerHTML=`<span style="color:#e74c3c">Not quite. ${l.quiz.exp}</span>`;
     fb.style.display='block';
     celebrate(false,'Keep going 💪');
     setTimeout(()=>{btns.forEach(b=>{b.disabled=false;b.style.background='';b.style.color='';});fb.style.display='none';},1800);
@@ -1042,11 +1037,11 @@ function toggleSol(id){const el=document.getElementById(id);if(el)el.style.displ
 
 /* FILL */
 function renderFill(item,done){
-  _hd={hint:item.explain||'',ans:item.answer||'',state:0};
+  _hd={hint:item.hint||'',ans:item.ans||'',state:0};
   return `<div class="card">
-    <p style="margin-bottom:14px">${item.prompt}</p>
-    <pre class="code-block" style="margin-bottom:14px">${item.code}</pre>
-    <input id="fillAns" class="inp" placeholder="Type your answer…" value="${done?item.answer:''}" ${done?'disabled':''}>
+    <p style="margin-bottom:14px">${item.q}</p>
+    <pre class="code-block" style="margin-bottom:14px">${item.partial}</pre>
+    <input id="fillAns" class="inp" placeholder="Type your answer…" value="${done?item.ans:''}" ${done?'disabled':''}>
     ${!done?`<button class="btn" style="margin-top:10px" onclick="checkFill()">Check</button>`:''}
     <div id="fillFb" style="margin-top:10px;display:none"></div>
     <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button>
@@ -1058,8 +1053,8 @@ function checkFill(){
   const item=DATA.FILLS[drillState.idx];
   const ans=document.getElementById('fillAns').value.trim();
   const fb=document.getElementById('fillFb');
-  if(ans.toLowerCase()===item.answer.toLowerCase()){
-    fb.innerHTML=`<span style="color:var(--accent)">✓ Correct! ${item.explain}</span>`;
+  if(ans.toLowerCase()===item.ans.toLowerCase()){
+    fb.innerHTML=`<span style="color:var(--accent)">✓ Correct! ${item.hint}</span>`;
     fb.style.display='block';
     markDone('fills',drillState.idx);
     celebrate(true,'Correct! ✨');
@@ -1072,10 +1067,10 @@ function checkFill(){
 
 /* BUG */
 function renderBug(item,done){
-  _hd={hint:item.explain||'',ans:item.fix||'',state:0};
+  _hd={hint:item.hint||'',ans:item.fix||'',state:0};
   return `<div class="card">
-    <p style="margin-bottom:10px">${item.prompt}</p>
-    <pre class="code-block" style="margin-bottom:14px">${item.buggy}</pre>
+    <p style="margin-bottom:10px">This configuration is broken. What's the correct fix?</p>
+    <pre class="code-block" style="margin-bottom:14px">${item.config}</pre>
     <p style="font-size:.85rem;color:var(--txt2);margin-bottom:8px">What's the fix?</p>
     <input id="bugAns" class="inp" placeholder="Type the corrected code or the fix…" ${done?'disabled':''}>
     ${!done?`<button class="btn" style="margin-top:10px" onclick="checkBug()">Check</button>`:''}
@@ -1091,7 +1086,7 @@ function checkBug(){
   const fb=document.getElementById('bugFb');
   const accept=item.accept?item.accept.map(a=>a.toLowerCase()):[item.fix.toLowerCase()];
   if(accept.some(a=>ans.includes(a)||a.includes(ans))){
-    fb.innerHTML=`<span style="color:var(--accent)">✓ ${item.explain}</span>`;
+    fb.innerHTML=`<span style="color:var(--accent)">✓ ${item.broken}</span>`;
     fb.style.display='block';
     markDone('bugs',drillState.idx);
     celebrate(true,'Bug squashed! 🐛✓');
@@ -1104,8 +1099,8 @@ function checkBug(){
 /* WRONG */
 function renderWrong(item,done){
   return `<div class="card">
-    <p style="margin-bottom:10px">${item.prompt}</p>
-    <pre class="code-block" style="margin-bottom:14px">${item.code}</pre>
+    <p style="margin-bottom:10px">${item.q}</p>
+    ${item.code?`<pre class="code-block" style="margin-bottom:14px">${item.code}</pre>`:''}
     <div id="wrongOpts" style="display:flex;flex-direction:column;gap:8px">
       ${item.opts.map((o,i)=>`<button class="btn" style="text-align:left" onclick="checkWrong(${i})" ${done?'disabled':''}>${o}</button>`).join('')}
     </div>
@@ -1119,14 +1114,14 @@ function checkWrong(i){
   btns.forEach(b=>b.disabled=true);
   if(i===item.ans){
     btns[i].style.background='var(--accent)';btns[i].style.color='#fff';
-    fb.innerHTML=`<span style="color:var(--accent)">✓ ${item.explain}</span>`;
+    fb.innerHTML=`<span style="color:var(--accent)">✓ ${item.exp}</span>`;
     fb.style.display='block';
     markDone('wrong',drillState.idx);
     celebrate(true,'Spotted it! 🔍');
   } else {
     btns[i].style.background='#c0392b';btns[i].style.color='#fff';
     btns[item.ans].style.background='var(--accent)';btns[item.ans].style.color='#fff';
-    fb.innerHTML=`<span style="color:#e74c3c">${item.explain}</span>`;
+    fb.innerHTML=`<span style="color:#e74c3c">${item.exp}</span>`;
     fb.style.display='block';
   }
 }
@@ -1134,13 +1129,13 @@ function checkWrong(i){
 /* PARSONS */
 function renderParsons(item,done){
   if(done){
-    return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p>
-      <div style="background:var(--surf2);border-radius:6px;padding:12px;font-family:monospace;font-size:.88rem">${item.solution.map(s=>`<div style="padding:4px 0">${s}</div>`).join('')}</div>
+    return `<div class="card"><p style="margin-bottom:10px">${item.q}</p>
+      <div style="background:var(--surf2);border-radius:6px;padding:12px;font-family:monospace;font-size:.88rem">${item.ans.map(s=>`<div style="padding:4px 0">${s}</div>`).join('')}</div>
       <div style="margin-top:10px;color:var(--accent)">✓ Complete</div></div>`;
   }
   const bankId='parsBank';const placedId='parsPlaced';
   return `<div class="card">
-    <p style="margin-bottom:12px">${item.prompt}</p>
+    <p style="margin-bottom:12px">${item.q}</p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div>
         <div style="font-size:.78rem;color:var(--txt2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Bank</div>
@@ -1159,7 +1154,7 @@ function renderParsons(item,done){
   </div>`;
 }
 function initParsons(item){
-  const pieces=[...item.solution];
+  const pieces=[...item.ans];
   drillState.parsBank=pieces.map((_,i)=>i).sort(()=>Math.random()-0.5);
   drillState.parsPlaced=[];
   renderParsonsUI(item);
@@ -1168,8 +1163,8 @@ function renderParsonsUI(item){
   const bank=document.getElementById('parsBank');
   const placed=document.getElementById('parsPlaced');
   if(!bank||!placed)return;
-  bank.innerHTML=drillState.parsBank.map(i=>`<div class="pars-piece" draggable="true" data-idx="${i}" data-from="bank" ondragstart="parsMove(event)">${item.solution[i]}</div>`).join('');
-  placed.innerHTML=drillState.parsPlaced.map(i=>`<div class="pars-piece placed" draggable="true" data-idx="${i}" data-from="placed" ondragstart="parsMove(event)">${item.solution[i]}</div>`).join('');
+  bank.innerHTML=drillState.parsBank.map(i=>`<div class="pars-piece" draggable="true" data-idx="${i}" data-from="bank" ondragstart="parsMove(event)">${item.ans[i]}</div>`).join('');
+  placed.innerHTML=drillState.parsPlaced.map(i=>`<div class="pars-piece placed" draggable="true" data-idx="${i}" data-from="placed" ondragstart="parsMove(event)">${item.ans[i]}</div>`).join('');
   [bank,placed].forEach(z=>{
     z.ondragover=e=>{e.preventDefault();z.style.outline='2px dashed var(--accent)';};
     z.ondragleave=()=>{z.style.outline='';};
@@ -1190,7 +1185,7 @@ function resetParsons(){const item=DATA.PARSONS[drillState.idx];initParsons(item
 function checkParsons(){
   const item=DATA.PARSONS[drillState.idx];
   const fb=document.getElementById('parsFb');
-  const correct=drillState.parsPlaced.join(',')===item.solution.map((_,i)=>i).join(',');
+  const correct=drillState.parsPlaced.join(',')===item.ans.map((_,i)=>i).join(',');
   if(correct){
     fb.innerHTML=`<span style="color:var(--accent)">✓ Perfect order! ${item.explain||''}</span>`;
     fb.style.display='block';
@@ -1206,11 +1201,11 @@ function checkParsons(){
 function renderEsql(item,done){
   return `<div class="card">
     <p style="font-size:.85rem;color:var(--txt2);margin-bottom:6px">Translate to Tableau steps:</p>
-    <p style="font-size:1rem;font-weight:600;margin-bottom:14px">"${item.english}"</p>
+    <p style="font-size:1rem;font-weight:600;margin-bottom:14px">"${item.q}"</p>
     <textarea id="esqlAns" class="inp" rows="3" style="resize:vertical" placeholder="Describe the steps or write the calculated field…" ${done?'disabled':''}></textarea>
     ${!done?`<button class="btn" style="margin-top:10px" onclick="checkEsql()">Check</button>`:''}
     <div id="esqlFb" style="margin-top:10px;display:none"></div>
-    <div id="esqlSol" style="display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem"><strong>Model Answer:</strong> ${item.answer}<br><em>${item.explain}</em></div>
+    <div id="esqlSol" style="display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem"><strong>Model Answer:</strong> ${item.ans}<br><em>${item.hint}</em></div>
     <button class="btn" style="margin-top:8px;opacity:.6;font-size:.78rem" onclick="toggleSol('esqlSol')">Show Answer</button>
   </div>`;
 }
@@ -1218,9 +1213,10 @@ function checkEsql(){
   const item=DATA.ESQL[drillState.idx];
   const ans=document.getElementById('esqlAns').value.trim().toLowerCase();
   const fb=document.getElementById('esqlFb');
-  const hits=item.keywords.filter(k=>ans.includes(k.toLowerCase()));
-  if(hits.length>=Math.ceil(item.keywords.length*0.6)){
-    fb.innerHTML=`<span style="color:var(--accent)">✓ Good answer! ${item.explain}</span>`;
+  const kw=item.keywords||(item.ans+'').toLowerCase().split(/[^a-z0-9()]+/).filter(w=>w.length>3);
+  const hits=kw.filter(k=>ans.includes(k.toLowerCase()));
+  if(hits.length>=Math.ceil(kw.length*0.6)){
+    fb.innerHTML=`<span style="color:var(--accent)">✓ Good answer! ${item.hint}</span>`;
     fb.style.display='block';
     markDone('esql',drillState.idx);
     celebrate(true,'Translated! 💬✓');
