@@ -9,6 +9,36 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.8.0] — 2026-06-01 — Guided Path on Excel (lessons flow into their drills)
+
+Excel prototype for the GR-G "Guided Path" epic. Each lesson now flows straight
+into its OWN practice drills before moving on — guided-primary, but free jumping
+is preserved.
+
+### Added / Changed (Excel kit only)
+- **Merged guided flow:** after a lesson's Quick Check the CTA is now
+  **"Practice this →"** (not "Next lesson"). It walks that lesson's relevant
+  drills one at a time — fill-in-the-blank, Fix the Formula, Parsons,
+  Describe→Excel, What's Wrong, plus a Pivot Lab step for the pivot lessons —
+  then advances to the next lesson. New `LESSON_DRILLS` map ties each lesson to
+  its drills by topic.
+- **Free exploration preserved:** Lessons / Practice / Cards nav still works; the
+  complete card also offers "Skip to next lesson" and "All lessons."
+- **Simplified home:** dropped the 3-tile Learn/Practice/Cards grid; leads with
+  the Resume card + a prominent Pivot Lab card; Skill Readiness stays.
+- **Bare Basics toned down:** the full-width banner is now a quiet link; toggle
+  still works.
+
+### Notes
+- Verified the full loop headlessly (lesson → its drills → next lesson; fill &
+  Parsons checks work inside the flow; home renders clean), zero console errors.
+  No saved-progress keys or drill data changed.
+- Excel-only prototype — once approved, the pattern rolls to the other kits.
+- GR-G thread 4 (deeper visual reskin to "match the newer kits") still open: the
+  home restructure modernizes it, but a full layout reskin wants Mike's eye.
+
+---
+
 ## [1.7.0] — 2026-06-01 — Per-lesson reset across every lesson kit
 
 Adds a **"↺ Reset this lesson"** control to the individual lesson view in every
