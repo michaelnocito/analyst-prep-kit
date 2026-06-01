@@ -100,8 +100,8 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 .quiz-feedback.bad{background:rgba(224,92,92,.1);border:1px solid var(--err);color:var(--err)}
 
 /* ── Bare Basics Mode (cross-kit shared pattern) ── */
-.basics-bar-default,.basics-bar-active{display:block;padding:9px 20px;text-align:center;font-size:13px;font-weight:600;border-bottom:1px solid var(--border,#3a342e);background:var(--surf,#201d1a);color:var(--text,#e8e0d5)}
-.basics-bar-active{display:none;background:rgba(224,184,74,.18);border-bottom:2px solid #e0b84a;color:#e0b84a}
+.basics-bar-active{display:none;padding:9px 20px;text-align:center;font-size:13px;font-weight:600;background:rgba(224,184,74,.18);border-bottom:2px solid #e0b84a;color:#e0b84a}
+.basics-bar-default{display:block;padding:5px 20px;text-align:right;font-size:11.5px;font-weight:500;background:none;border:none;color:var(--dim,#8a8a8a)}
 body.basics-mode .basics-bar-default{display:none}
 body.basics-mode .basics-bar-active{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
 .basics-bar-default a,.basics-bar-default .b-link{color:var(--accent);text-decoration:none;background:none;border:none;font:inherit;font-weight:700;cursor:pointer;padding:0}
@@ -268,24 +268,13 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
     <div class="resume-card-watermark" id="resumeWM">1</div>
   </div>
 
-  <div class="path-grid">
-    <div class="path-tile" onclick="show('lessons')">
-      <h3>Learn</h3>
-      <div class="count" id="lessonsCount">0/12</div>
-      <div class="sub">lessons done</div>
-      <div class="prog-bar"><div class="prog-fill" id="lessonsFill" style="width:0%"></div></div>
-    </div>
-    <div class="path-tile" onclick="show('practice')">
-      <h3>Practice</h3>
-      <div class="count" id="practiceCount">0/60</div>
-      <div class="sub">drills done</div>
-      <div class="prog-bar"><div class="prog-fill" id="practiceFill" style="width:0%"></div></div>
-    </div>
-    <div class="path-tile" onclick="show('cards')">
-      <h3>Cards</h3>
-      <div class="count" id="cardsCount">0/30</div>
-      <div class="sub">cards reviewed</div>
-      <div class="prog-bar"><div class="prog-fill" id="cardsFill" style="width:0%"></div></div>
+  <div class="card" style="border-color:var(--accent);cursor:pointer;margin-bottom:16px" onclick="show('terminal')">
+    <div class="flex-between">
+      <div>
+        <h3 style="margin-bottom:4px">🐍 Python Terminal</h3>
+        <p style="margin:0;font-size:13px">Run real pandas against the dataset live — the real muscle memory.</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();show('terminal')">Open →</button>
     </div>
   </div>
 
@@ -788,17 +777,6 @@ function renderHome(){
   document.getElementById('resumeBtn').textContent=S.lessonsDone.includes(cur.id)?'Review →':(done===0?'Start →':'Resume →');
   document.getElementById('resumeSub').textContent=cur.intro.split('.')[0]+'.';
 
-  document.getElementById('lessonsCount').textContent=done+'/'+total;
-  document.getElementById('lessonsFill').style.width=(done/total*100)+'%';
-
-  const drillDone=S.fillsDone.length+S.bugsDone.length+S.wrongDone.length+S.parsDone.length+S.esqlDone.length;
-  document.getElementById('practiceCount').textContent=drillDone+'/60';
-  document.getElementById('practiceFill').style.width=(drillDone/60*100)+'%';
-
-  const cr=S.cardsReviewed.length;
-  document.getElementById('cardsCount').textContent=cr+'/'+DATA.CARDS.length;
-  document.getElementById('cardsFill').style.width=(cr/DATA.CARDS.length*100)+'%';
-
   const skills=[
     {label:'Python Basics', done:[1,2,3].filter(id=>S.lessonsDone.includes(id)).length, total:3},
     {label:'DataFrames', done:[4,5].filter(id=>S.lessonsDone.includes(id)).length, total:2},
@@ -883,13 +861,16 @@ function renderLesson(){
       <div class="quiz-opts">${l.quiz.opts.map((o,i)=>`<button class="quiz-opt" onclick="checkQuiz(${l.id},${i})">${o}</button>`).join('')}</div>
       <div id="quizFeedback"></div></div>`;
   } else {
+    const isLast=l.id>=DATA.LESSONS.length;
+    const drillCount=(LESSON_DRILLS[l.id]||[]).length;
     html+=`<div class="card" style="border-color:var(--success);text-align:center;padding:28px">
       <div style="font-size:32px;margin-bottom:8px">✓</div>
       <h2 style="color:var(--success);margin-bottom:6px">Lesson ${l.id} complete</h2>
-      <p>Try the Terminal to run real pandas code against the dataset.</p>
-      <div class="flex" style="justify-content:center;gap:10px;margin-top:16px">
-        ${l.id<DATA.LESSONS.length?`<button class="btn btn-primary" onclick="openLesson(${l.id+1})">Next Lesson →</button>`:'<span class="tag accent">All done!</span>'}
-        <button class="btn btn-outline" onclick="show('terminal')">Open Terminal</button>
+      <p>Now lock it in — practice this lesson's drills before moving on${drillCount?` (${drillCount} quick exercises)`:''}.</p>
+      <div class="flex" style="justify-content:center;gap:10px;margin-top:16px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="startGuided(${l.id})">Practice this →</button>
+        ${isLast?`<a href="../final/" class="btn btn-outline" style="text-decoration:none">Try the Final Exam →</a>`:`<button class="btn btn-ghost" onclick="openLesson(${l.id+1})">Skip to next lesson →</button>`}
+        <button class="btn btn-ghost btn-sm" onclick="show('lessons')">All lessons</button>
       </div></div>`;
   }
   document.getElementById('lessonContent').innerHTML=html;
@@ -923,6 +904,62 @@ const DRILL_TYPES=[
   {key:'parsons',label:'Parsons Problems',desc:'Tap to arrange code parts in order.',data:'PARSONS',done:'parsDone'},
   {key:'esql',label:'Describe → Python',desc:'Translate a plain-language description into code.',data:'ESQL',done:'esqlDone'},
 ];
+
+// Guided Path: which drills belong to each lesson (by topic). 0-based indices
+// into each DATA drill array. 'terminal' is a pseudo-step pointing at the
+// pandas Terminal for hands-on practice.
+const LESSON_DRILLS = {
+  1:  [['fills',0],['esql',0],['bugs',0],['wrong',0]],
+  2:  [['fills',1],['bugs',1],['wrong',1]],
+  3:  [['fills',2],['terminal',0]],
+  4:  [['fills',3],['esql',1],['bugs',2],['parsons',0]],
+  5:  [['fills',4],['esql',2],['esql',5],['wrong',2]],
+  6:  [['fills',5],['esql',3],['esql',4],['parsons',1],['bugs',4],['wrong',3]],
+  7:  [['fills',6],['esql',10],['bugs',3],['bugs',5],['parsons',2],['parsons',7],['wrong',8]],
+  8:  [['fills',7],['esql',6],['bugs',6],['parsons',3],['wrong',4],['wrong',11]],
+  9:  [['fills',8],['esql',7],['bugs',7],['parsons',6],['wrong',6]],
+  10: [['fills',9],['esql',8],['bugs',8],['parsons',4],['parsons',8],['wrong',9]],
+  11: [['fills',10],['esql',9],['bugs',9],['parsons',5],['wrong',5]],
+  12: [['fills',11],['esql',11],['bugs',10],['bugs',11],['parsons',9],['parsons',10],['wrong',7],['wrong',10]]
+};
+
+// ─── GUIDED PATH (lesson → its drills → next lesson) ────────────────────────
+let guided = null;
+function startGuided(lessonId){
+  const seq=(LESSON_DRILLS[lessonId]||[]).filter(s=>{
+    if(s[0]==='terminal')return true;
+    const dt=DRILL_TYPES.find(d=>d.key===s[0]);
+    return dt&&DATA[dt.data]&&DATA[dt.data][s[1]];
+  });
+  if(!seq.length){ gotoNextLesson(lessonId); return; }
+  guided={lessonId,seq,pos:0}; show('drill'); renderGuidedStep();
+}
+function renderGuidedStep(){
+  if(!guided)return;
+  const {seq,pos,lessonId}=guided; const step=seq[pos];
+  const lesson=DATA.LESSONS.find(l=>l.id===lessonId); const isLast=pos===seq.length-1;
+  const dots=seq.map((_,i)=>`<div style="width:24px;height:6px;border-radius:3px;background:${i<pos?'var(--success)':i===pos?'var(--accent)':'var(--surf2)'}"></div>`).join('');
+  const header=`<div class="flex-between mb12"><button class="btn btn-outline btn-sm" onclick="openLesson(${lessonId})">← Back to lesson</button><span class="tag accent">Practice ${pos+1}/${seq.length} · ${lesson.title}</span></div><div class="flex" style="gap:8px;margin-bottom:16px">${dots}</div>`;
+  let body;
+  if(step[0]==='terminal'){
+    body=`<div class="card"><h2>Try it in the Terminal</h2><p>Run real pandas against the dataset to lock this in, then come back and continue.</p><button class="btn btn-primary" onclick="show('terminal')">Open Terminal →</button></div>`;
+  } else {
+    const dt=DRILL_TYPES.find(d=>d.key===step[0]); const idx=step[1]; const item=DATA[dt.data][idx]; const isDone=S[dt.done].includes(idx);
+    drillState={type:step[0],idx,showSol:false,parsPlaced:[]};
+    if(step[0]==='fills')body=renderFill(item,idx,isDone);
+    else if(step[0]==='bugs')body=renderBug(item,idx,isDone);
+    else if(step[0]==='wrong')body=renderWrong(item,idx);
+    else if(step[0]==='parsons')body=renderParsons(item,idx,isDone);
+    else if(step[0]==='esql')body=renderEsql(item,idx,isDone);
+  }
+  const nav=`<div class="flex mt20" style="justify-content:space-between;gap:10px"><button class="btn btn-ghost btn-sm" onclick="${pos>0?'guidedPrev()':'openLesson('+lessonId+')'}">${pos>0?'← Back':'← Lesson'}</button><button class="btn btn-primary" onclick="guidedNext()">${isLast?'Finish — next lesson →':'Next drill →'}</button></div>`;
+  document.getElementById('drillContent').innerHTML=header+body+nav;
+  if(step[0]==='parsons')initParsons(DATA.PARSONS[step[1]],step[1]);
+  window.scrollTo(0,0);
+}
+function guidedNext(){ if(!guided)return; if(guided.pos<guided.seq.length-1){guided.pos++;renderGuidedStep();} else {const lid=guided.lessonId;guided=null;gotoNextLesson(lid);} }
+function guidedPrev(){ if(guided&&guided.pos>0){guided.pos--;renderGuidedStep();} }
+function gotoNextLesson(lid){ if(lid<DATA.LESSONS.length){openLesson(lid+1);} else {show('home');celebrate(true,'🎉 You finished every Python lesson!');} }
 
 function renderDrillList(){
   document.getElementById('drillList').innerHTML=DRILL_TYPES.map(dt=>{

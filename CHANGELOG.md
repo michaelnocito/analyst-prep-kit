@@ -9,6 +9,21 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.9.0] — 2026-06-01 — Guided Path rolled out to Python
+
+Same Guided Path pattern from v1.8.0 (Excel), now on the **Python** kit. After a
+lesson's Quick Check the CTA is **"Practice this →"** and walks that lesson's own
+drills (fill / fix-the-code / Parsons / describe→Python / what's-wrong, plus a
+Terminal step) before advancing to the next lesson. Topical `LESSON_DRILLS` map.
+Home simplified (3-tile grid → prominent Python Terminal card + Resume hero).
+Bare Basics banner toned down to a quiet link. Free jumping preserved.
+
+Verified the full loop headlessly (lesson → its drills → next lesson; drill
+checks work inside the flow), zero console errors. Rollout continues next:
+SQL, Power BI, Tableau, Stats, Interview.
+
+---
+
 ## [1.8.0] — 2026-06-01 — Guided Path on Excel (lessons flow into their drills)
 
 Excel prototype for the GR-G "Guided Path" epic. Each lesson now flows straight
