@@ -9,6 +9,21 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.10.0] — 2026-06-01 — Guided Path rolled out to Tableau
+
+Guided Path now on the **Tableau** kit. After a lesson's Quick Check a complete
+card offers **"Practice this →"** which walks that lesson's own drills (fill /
+fix / Parsons / describe→Tableau / what's-wrong) then advances to the next
+lesson. Topical `LESSON_DRILLS` map. Home gains a prominent **"Start/Continue
+learning"** CTA + **"Open Viz Builder"**. Bare Basics banner toned to a quiet
+link. Free jumping preserved (Lessons/Practice nav + Skip/All-lessons).
+
+Verified headlessly (lesson → its drills → next lesson; fill/Parsons/what's-wrong
+render & check inside the flow), zero console errors. Rollout remaining: SQL,
+Power BI, Stats, Interview.
+
+---
+
 ## [1.9.0] — 2026-06-01 — Guided Path rolled out to Python
 
 Same Guided Path pattern from v1.8.0 (Excel), now on the **Python** kit. After a

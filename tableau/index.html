@@ -104,8 +104,8 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 .quiz-feedback.bad{background:rgba(224,92,92,.1);border:1px solid var(--err);color:var(--err)}
 
 /* ── Bare Basics Mode (cross-kit shared pattern) ── */
-.basics-bar-default,.basics-bar-active{display:block;padding:9px 20px;text-align:center;font-size:13px;font-weight:600;border-bottom:1px solid var(--border,#3a342e);background:var(--surf,#201d1a);color:var(--text,#e8e0d5)}
-.basics-bar-active{display:none;background:rgba(224,184,74,.18);border-bottom:2px solid #e0b84a;color:#e0b84a}
+.basics-bar-active{display:none;padding:9px 20px;text-align:center;font-size:13px;font-weight:600;background:rgba(224,184,74,.18);border-bottom:2px solid #e0b84a;color:#e0b84a}
+.basics-bar-default{display:block;padding:5px 20px;text-align:right;font-size:11.5px;font-weight:500;background:none;border:none;color:var(--txt2,#8a8a8a)}
 body.basics-mode .basics-bar-default{display:none}
 body.basics-mode .basics-bar-active{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
 .basics-bar-default a,.basics-bar-default .b-link{color:var(--accent);text-decoration:none;background:none;border:none;font:inherit;font-weight:700;cursor:pointer;padding:0}
@@ -876,7 +876,10 @@ function renderHome(){
           <div style="background:var(--surf2);border-radius:4px;height:6px"><div style="background:var(--accent);border-radius:4px;height:6px;width:${skillScores[i]}%;transition:width .4s"></div></div>
         </div>`).join('')}
     </div>
-    ${S.lastLesson?`<button class="btn" onclick="openLesson(${S.lastLesson})">▶ Resume Lesson ${S.lastLesson}</button>`:''}
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <button class="btn" style="background:var(--accent);color:#fff" onclick="startLearning()">${S.lastLesson?`▶ Continue — Lesson ${S.lastLesson}`:'▶ Start learning'}</button>
+      <button class="btn" onclick="show('vizbuilder')">🧪 Open Viz Builder</button>
+    </div>
     <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:12px;flex-wrap:wrap">
       <a href="../sql/" style="color:var(--accent);font-size:.85rem">SQL Kit ↗</a>
       <a href="../excel/" style="color:var(--accent);font-size:.85rem">Excel Kit ↗</a>
@@ -984,8 +987,24 @@ function checkQuiz(i){
 }
 function finishLesson(id){
   S.done[`lesson${id}`]=true;save();
-  renderLessonList();
   celebrate(true,`Lesson ${id} complete! 🌟`);
+  renderLessonComplete(id);
+}
+// Guided-primary complete card: reinforce THIS lesson's drills before moving on.
+function renderLessonComplete(id){
+  const isLast=id>=DATA.LESSONS.length;
+  const drillCount=(LESSON_DRILLS[id]||[]).length;
+  document.getElementById('view-lessons').innerHTML=`
+    <div class="card" style="text-align:center;padding:28px;border-color:var(--accent)">
+      <div style="font-size:2rem;margin-bottom:8px">✓</div>
+      <h2 style="margin-bottom:6px">Lesson ${id} complete</h2>
+      <p style="color:var(--txt2)">Now lock it in — practice this lesson's drills before moving on${drillCount?` (${drillCount} quick exercises)`:''}.</p>
+      <div style="display:flex;justify-content:center;gap:10px;margin-top:18px;flex-wrap:wrap">
+        <button class="btn" style="background:var(--accent);color:#fff" onclick="startGuided(${id})">Practice this →</button>
+        ${isLast?`<a href="../final/" class="btn" style="text-decoration:none">Try the Final Exam →</a>`:`<button class="btn" onclick="openLesson(${id+1})">Skip to next lesson →</button>`}
+        <button class="btn" style="font-size:.85rem" onclick="renderLessonList()">All lessons</button>
+      </div>
+    </div>`;
 }
 
 /* ── DRILLS ── */
@@ -996,7 +1015,73 @@ const DRILL_TYPES=[
   {key:'parsons',label:'Parsons Puzzle',icon:'🧩',data:'PARSONS'},
   {key:'esql',label:'Describe → Tableau',icon:'💬',data:'ESQL'},
 ];
+
+// Guided Path: which drills belong to each lesson (by topic). 0-based indices
+// into each DATA drill array.
+const LESSON_DRILLS = {
+  1:  [['fills',0],['esql',0],['esql',10]],
+  2:  [['fills',1],['esql',1],['bugs',2],['wrong',0]],
+  3:  [['fills',2],['parsons',0],['bugs',0],['wrong',1]],
+  4:  [['fills',3],['esql',3],['parsons',5],['bugs',1],['bugs',5],['wrong',2]],
+  5:  [['fills',7],['esql',6],['parsons',1],['parsons',2],['bugs',3],['wrong',5]],
+  6:  [['parsons',3],['parsons',8],['bugs',6],['wrong',4],['wrong',7]],
+  7:  [['fills',5],['esql',5],['parsons',4],['bugs',4],['wrong',3],['wrong',10]],
+  8:  [['fills',6],['esql',11],['parsons',9],['bugs',8],['wrong',8]],
+  9:  [['fills',8],['esql',7],['parsons',7],['bugs',7],['wrong',9]],
+  10: [['fills',9],['bugs',10]],
+  11: [['fills',10],['bugs',9],['wrong',6]],
+  12: [['fills',11],['esql',9],['parsons',10],['wrong',11]]
+};
+
 let drillState={type:null,idx:null,parsPlaced:[],parsBank:[]};
+
+// ─── GUIDED PATH (lesson → its drills → next lesson) ────────────────────────
+let guided=null;
+function activateView(id){
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>{if(v.id!==id)v.classList.remove('active');});
+}
+function startLearning(){
+  const next=DATA.LESSONS.find(l=>!S.done['lesson'+l.id]);
+  openLesson(S.lastLesson || (next?next.id:1));
+}
+function startGuided(lessonId){
+  const seq=(LESSON_DRILLS[lessonId]||[]).filter(s=>{ const dt=DRILL_TYPES.find(d=>d.key===s[0]); return dt&&DATA[dt.data]&&DATA[dt.data][s[1]]; });
+  if(!seq.length){ gotoNextLesson(lessonId); return; }
+  guided={lessonId,seq,pos:0};
+  activateView('view-practice');
+  renderGuidedStep();
+}
+function renderGuidedStep(){
+  if(!guided)return;
+  const {seq,pos,lessonId}=guided; const step=seq[pos];
+  const lesson=DATA.LESSONS.find(l=>l.id===lessonId); const isLast=pos===seq.length-1;
+  const dt=DRILL_TYPES.find(d=>d.key===step[0]); const idx=step[1]; const item=DATA[dt.data][idx];
+  drillState={type:step[0],idx,parsPlaced:[],parsBank:[]};
+  const done=S.done[`${step[0]}${idx}`];
+  const dots=seq.map((_,i)=>`<span style="width:22px;height:6px;border-radius:3px;display:inline-block;background:${i===pos?'var(--accent)':i<pos?'var(--accent)':'var(--surf2)'};opacity:${i<=pos?1:.4}"></span>`).join(' ');
+  const header=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <button class="btn" style="padding:4px 10px;font-size:.8rem" onclick="openLesson(${lessonId})">← Back to lesson</button>
+      <span style="color:var(--txt2);font-size:.85rem">Practice ${pos+1}/${seq.length} · ${lesson.title}</span>
+    </div>
+    <div style="margin-bottom:16px">${dots}</div>`;
+  let body='';
+  if(step[0]==='fills')body=renderFill(item,done);
+  else if(step[0]==='bugs')body=renderBug(item,done);
+  else if(step[0]==='wrong')body=renderWrong(item,done);
+  else if(step[0]==='parsons')body=renderParsons(item,done);
+  else if(step[0]==='esql')body=renderEsql(item,done);
+  const nav=`<div style="display:flex;justify-content:space-between;gap:10px;margin-top:16px">
+      <button class="btn" style="font-size:.85rem" onclick="${pos>0?'guidedPrev()':'openLesson('+lessonId+')'}">${pos>0?'← Back':'← Lesson'}</button>
+      <button class="btn" style="background:var(--accent);color:#fff" onclick="guidedNext()">${isLast?'Finish — next lesson →':'Next drill →'}</button>
+    </div>`;
+  document.getElementById('view-practice').innerHTML=header+body+nav;
+  if(step[0]==='parsons'&&!done)initParsons(item);
+  window.scrollTo(0,0);
+}
+function guidedNext(){ if(!guided)return; if(guided.pos<guided.seq.length-1){guided.pos++;renderGuidedStep();} else {const lid=guided.lessonId;guided=null;gotoNextLesson(lid);} }
+function guidedPrev(){ if(guided&&guided.pos>0){guided.pos--;renderGuidedStep();} }
+function gotoNextLesson(lid){ if(lid<DATA.LESSONS.length){openLesson(lid+1);} else {activateView('view-home');renderHome();celebrate(true,'🎉 You finished every Tableau lesson!');} }
 function renderDrillList(){
   document.getElementById('view-practice').innerHTML=`
     <h2 style="margin-bottom:16px">Practice Drills</h2>
