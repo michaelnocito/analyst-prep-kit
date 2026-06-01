@@ -9,6 +9,35 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.7.0] — 2026-06-01 — Per-lesson reset across every lesson kit
+
+Adds a **"↺ Reset this lesson"** control to the individual lesson view in every
+lesson-based kit, so a learner can clear just one lesson's completion (and reopen
+its Quick Check) without wiping the whole kit. Complements the kit-wide reset
+that already exists in every kit.
+
+Mike: "i need a lesson and a global reset for each kit."
+
+### Added
+- **Per-lesson reset**, shown on the lesson header only once that lesson is done:
+  - **SQL, Power BI** — clears the lesson id from `doneLessons`, reopens the lesson.
+  - **Excel, Python** — clears the lesson id from `lessonsDone`, reopens its Quick Check.
+  - **Tableau, Stats** — clears `done['lesson'+id]`, re-renders the lesson.
+  - **Interview** — marks that lesson incomplete again (`lessonsComplete[i]`).
+
+### Notes
+- **No global-reset change needed** — every kit already had a reachable kit-wide
+  reset (SQL/Power BI: ⚙️ Settings → Reset Progress; Excel/Python/Tableau/Stats/
+  Interview: ⚙️ Settings → Reset this kit; Simulator/Final: nav ↺ Reset).
+- **Simulator & Final intentionally excluded** from per-unit reset: the Simulator
+  is a continuous narrative week and the Final is an atomic exam — both already
+  have the correct whole-unit reset ("Reset" / "Retake exam").
+- Verified all 7 lesson kits headlessly (button appears when done → clears the
+  lesson → button disappears), zero console errors. No saved-progress keys,
+  lesson/quiz data, or URLs changed.
+
+---
+
 ## [1.6.0] — 2026-05-31 — Calm-analyst re-skin rolled out to all 9 module kits
 
 Extends the v1.5.0 hub re-skin to every module page (excel, sql, python,

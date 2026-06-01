@@ -860,6 +860,15 @@ function renderLessonList(){
   }).join('');
 }
 
+// Per-lesson reset: clears just THIS lesson's completion and reopens the quiz.
+function resetLessonProgress(){
+  const id = S.currentLesson;
+  const i = S.lessonsDone.indexOf(id);
+  if(i > -1) S.lessonsDone.splice(i,1);
+  S.lessonStage = 'intro';
+  save();
+  renderLesson();
+}
 function openLesson(id){
   S.currentLesson = id;
   S.lessonStage = 'intro';
@@ -872,12 +881,14 @@ function renderLesson(){
   const l = DATA.LESSONS.find(x=>x.id===S.currentLesson);
   if(!l) return;
   const pct = Math.round((S.currentLesson-1)/DATA.LESSONS.length*100);
+  const done = S.lessonsDone.includes(l.id);
   let html = `
     <div class="lesson-header">
       <div class="flex-between mb8">
         <button class="btn btn-outline btn-sm" onclick="show('lessons')">← Lessons</button>
         <span class="tag">${l.unit}</span>
       </div>
+      ${done?`<div class="mb8"><button class="btn btn-outline btn-sm" onclick="resetLessonProgress()" title="Clear this lesson's progress and quiz">↺ Reset this lesson</button></div>`:''}
       <div class="lesson-progress">Lesson ${l.id} of ${DATA.LESSONS.length}</div>
       <div class="prog-bar mb12"><div class="prog-fill" style="width:${pct}%"></div></div>
       <h1>${l.title}</h1>
