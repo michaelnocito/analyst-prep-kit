@@ -186,6 +186,7 @@ const state = JSON.parse(localStorage.getItem(STORE) || '{}');
 state.answers = state.answers || {};
 state.submitted = state.submitted || false;
 state.submittedSections = state.submittedSections || {}; // {sectionKey:true} — per-section submit (GR-C)
+state.sectionScores = state.sectionScores || {}; // {sectionKey:{correct,total}} — persisted so the hub can show "Exam ✓"
 state.openSections = state.openSections || {};
 // On a cold entry (no URL hash deep-link), always start on Home so the
 // user finds the two big CTAs ("Here's what you should know" + "Take
@@ -770,6 +771,7 @@ function sectionScoreFor(k){ const qs=QUESTIONS.filter(q=>q.section===k); return
 function submitSection(k){
   if(!sectionAnswered(k) || isSectionSubmitted(k)) return;
   state.submittedSections[k] = true;
+  state.sectionScores[k] = sectionScoreFor(k);
   if(allSubmitted()) state.submitted = true;
   save();
   render();
@@ -777,7 +779,7 @@ function submitSection(k){
 }
 
 function submitExam(){
-  for(const k of SECTION_ORDER){ if(sectionAnswered(k)) state.submittedSections[k] = true; }
+  for(const k of SECTION_ORDER){ if(sectionAnswered(k)){ state.submittedSections[k] = true; state.sectionScores[k] = sectionScoreFor(k); } }
   state.submitted = allSubmitted();
   save();
   setView('results');
@@ -862,6 +864,7 @@ function retake(){
   state.answers = {};
   state.submitted = false;
   state.submittedSections = {};
+  state.sectionScores = {};
   state.view = 'exam';
   save();
   render();

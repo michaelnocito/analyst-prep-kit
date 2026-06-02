@@ -281,6 +281,7 @@ footer a:hover{color:var(--accent-d)}
     <div class="basics-body">
       <div class="basics-title">Just want the bare basics?</div>
       <div class="basics-desc">Turn on Bare Basics mode and every kit will highlight only the must-know lessons — clearly labeled — and dim the rest. Click into any kit and you'll see exactly which lessons to focus on. Pair it with the study guide for a 15-minute end-to-end refresher.</div>
+      <div id="basicsProgress" style="margin-bottom:12px"></div>
       <div class="basics-default-row">
         <button class="basics-btn" onclick="activateBasics()">Turn on Bare Basics →</button>
         <a class="basics-btn-ghost" href="final/#study">Open the study guide</a>
@@ -470,29 +471,29 @@ localStorage.removeItem('apk-sprint');
 // The hub reads them all through small adapters that return a normalized
 // { done, total, last, label } shape.
 const KITS = [
-  { id:'excel',     name:'Excel Kit',                            path:'excel/',     unit:'lessons', total:12,
-    read: () => { const s = JSON.parse(localStorage.getItem('epk')||'{}');
-      return { done:(s.lessonsDone||[]).length, last:s.currentLesson||null }; } },
-  { id:'sql',       name:'SQL Kit',                              path:'sql/',       unit:'lessons', total:12,
+  { id:'excel',     name:'Excel Kit',                            path:'excel/',     unit:'lessons', total:12, coreIds:[1,2,3,5,6,7,9],
+    read: () => { const s = JSON.parse(localStorage.getItem('epk')||'{}'); const ids=s.lessonsDone||[];
+      return { done:ids.length, doneIds:ids, last:s.currentLesson||null }; } },
+  { id:'sql',       name:'SQL Kit',                              path:'sql/',       unit:'lessons', total:12, coreIds:[1,2,4,5,6,7],
     read: () => { const s = JSON.parse(localStorage.getItem('sqlkit-v1')||'{}');
-      const done = (s.doneLessons||[]).length;
+      const ids = s.doneLessons||[]; const done = ids.length;
       // SQL has no explicit cursor — last = next unfinished
-      return { done, last: done < 12 ? done + 1 : 12 }; } },
-  { id:'python',    name:'Python Kit',                           path:'python/',    unit:'lessons', total:12,
-    read: () => { const s = JSON.parse(localStorage.getItem('ppk')||'{}');
-      return { done:(s.lessonsDone||[]).length, last:s.currentLesson||null }; } },
-  { id:'tableau',   name:'Tableau Kit',                          path:'tableau/',   unit:'lessons', total:12,
+      return { done, doneIds:ids, last: done < 12 ? done + 1 : 12 }; } },
+  { id:'python',    name:'Python Kit',                           path:'python/',    unit:'lessons', total:12, coreIds:[1,2,4,6,8,10],
+    read: () => { const s = JSON.parse(localStorage.getItem('ppk')||'{}'); const ids=s.lessonsDone||[];
+      return { done:ids.length, doneIds:ids, last:s.currentLesson||null }; } },
+  { id:'tableau',   name:'Tableau Kit',                          path:'tableau/',   unit:'lessons', total:12, coreIds:[2,3,4,7,11],
     read: () => { const s = JSON.parse(localStorage.getItem('tpk')||'{}');
-      const done = Object.keys(s.done||{}).filter(k=>k.startsWith('lesson')).length;
-      return { done, last:s.lastLesson||null }; } },
-  { id:'stats',     name:'Stats Kit',                            path:'stats/',     unit:'lessons', total:12,
+      const ids = Object.keys(s.done||{}).filter(k=>/^lesson\d+$/.test(k)).map(k=>+k.slice(6));
+      return { done:ids.length, doneIds:ids, last:s.lastLesson||null }; } },
+  { id:'stats',     name:'Stats Kit',                            path:'stats/',     unit:'lessons', total:12, coreIds:[1,2,3,4,6,7,8,11],
     read: () => { const s = JSON.parse(localStorage.getItem('spk')||'{}');
-      const done = Object.keys(s.done||{}).filter(k=>k.startsWith('lesson')).length;
-      return { done, last:s.lastLesson||null }; } },
-  { id:'powerbi',   name:'Power BI Kit',                         path:'powerbi/',   unit:'lessons', total:12,
+      const ids = Object.keys(s.done||{}).filter(k=>/^lesson\d+$/.test(k)).map(k=>+k.slice(6));
+      return { done:ids.length, doneIds:ids, last:s.lastLesson||null }; } },
+  { id:'powerbi',   name:'Power BI Kit',                         path:'powerbi/',   unit:'lessons', total:12, coreIds:[2,4,5,6,7],
     read: () => { const s = JSON.parse(localStorage.getItem('pbikt-v1')||'{}');
-      const done = (s.doneLessons||[]).length;
-      return { done, last: done < 12 ? done + 1 : 12 }; } },
+      const ids = s.doneLessons||[]; const done = ids.length;
+      return { done, doneIds:ids, last: done < 12 ? done + 1 : 12 }; } },
   { id:'interview', name:'Interview Kit',                        path:'interview/', unit:'lessons', total:12,
     read: () => { const s = JSON.parse(localStorage.getItem('ipk')||'{}');
       const done = Object.keys(s.lessonsComplete||{}).length;
@@ -508,6 +509,8 @@ const KITS = [
 ];
 
 function renderKitProgress(){
+  // Mini-exam scores the Final Exam persists per subject (apk-final.sectionScores).
+  const examScores = (JSON.parse(localStorage.getItem('apk-final')||'{}').sectionScores) || {};
   KITS.forEach(kit => {
     const card = document.querySelector(`.kit-card[data-kit="${kit.id}"]`);
     if(!card) return;
@@ -528,7 +531,24 @@ function renderKitProgress(){
         <span class="kit-progress-text">${done} / ${kit.total} ${kit.unit}</span>
       `;
     }
+    // Mini-exam badge — shows the subject's Final Exam section score, once taken.
+    const es = examScores[kit.id];
+    if(es && es.total){
+      const passed = es.correct >= Math.ceil(es.total * 0.75);
+      slot.innerHTML += `<span title="Your ${kit.name} mini-exam score" style="display:inline-block;margin-left:8px;font-size:11px;font-weight:700;border-radius:5px;padding:1px 7px;color:${passed?'var(--good,#1a7f37)':'var(--dim,#5b6470)'};background:${passed?'rgba(26,127,55,.1)':'rgba(120,120,120,.1)'};border:1px solid ${passed?'var(--good,#1a7f37)':'var(--dim,#9aa4b2)'}">${passed?'✓ Exam':'📝 Exam'} ${es.correct}/${es.total}</span>`;
+    }
   });
+}
+
+function renderBasicsProgress(){
+  const el = document.getElementById('basicsProgress');
+  if(!el) return;
+  const lessonKits = KITS.filter(k => Array.isArray(k.coreIds));
+  let doneCount = 0;
+  lessonKits.forEach(k => { try { const ids = (k.read().doneIds)||[]; if(k.coreIds.every(id => ids.includes(id))) doneCount++; } catch(e){} });
+  el.innerHTML = doneCount > 0
+    ? `<span style="display:inline-block;font-size:12.5px;font-weight:600;color:var(--accent);background:rgba(47,109,240,.1);border:1px solid var(--accent);border-radius:20px;padding:4px 12px">🔖 Bare basics: ${doneCount} of ${lessonKits.length} subjects complete</span>`
+    : '';
 }
 
 function renderContinueCard(){
@@ -574,6 +594,7 @@ document.querySelectorAll('.kit-card[data-kit]').forEach(a => {
 });
 
 renderKitProgress();
+renderBasicsProgress();
 renderContinueCard();
 </script>
 </body>
