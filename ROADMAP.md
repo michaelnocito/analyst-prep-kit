@@ -1,7 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.16.0` (shipped June 2, 2026 — awaiting test)
-**Last cycle closed:** June 2, 2026 — "See it on screen" visuals now on ALL 72 lessons across all 6 kits (filled the 15 skipped concept lessons)
+**Current version:** `v1.17.0` (shipped June 2, 2026 — awaiting test)
+**Last cycle closed:** June 2, 2026 — Backlog sweep GR-C / GR-E / GR-A (per-section Final Exam submit, Bug Hunt input on SQL+PBI, Bare Basics cross-kit handoff)
+**Remaining active items:** per-kit mini exams · GR-D analogy sweep · GR-G home-simplify + Excel-makeover (the last needs Mike's design eye). GR-G Guided Path core + "See it on screen" visuals (all 72 lessons) already shipped (v1.10–v1.16).
 **Currently working:** _GR-G epic Guided Path now LIVE on all six code-drill kits (Excel, Python, Tableau, SQL, Stats, Power BI), each with full drill coverage (every drill linked to the first lesson it applies to). Interview kit deferred — its rate-the-answer / multiple-choice structure needs its own design (Mike's call, June 2). Also shipped: Tableau tap-the-word fills + persistent Quick Check feedback (v1.11.0)._
 
 ---
@@ -130,6 +131,7 @@ _Response time: current cycle. Clear before accepting new feedback._
 _(GR-F-1, GR-F-2, GR-F-3 shipped May 28, 2026 — see CHANGELOG v1.4.1)_
 
 - **GR-G (EPIC): "Guided Path" — merge Learn + Practice into one linear flow, simplify home, tone down Bare Basics, Excel makeover** _(added June 1, 2026 — 12:40 AM ET — TOP PRIORITY per Mike; prototype on Excel first)_
+  - _STATUS (June 2, 2026):_ Thread 1 (merged guided flow) **SHIPPED on all 6 lesson kits** (v1.10–v1.13). Thread 3 (tone down Bare Basics) effectively done — kits already show a quiet one-line "Turn on Bare Basics" link, not a full-width banner. **Remaining: Thread 2 (simplified home — drop the 3-tile grid, lead with one Start-learning entry) and Thread 4 (Excel layout makeover).** Both are visible redesigns — get Mike's design direction before executing.
   - _What:_ Collapse the currently-segmented Lessons / Practice / Cards into a single guided route. One prominent "Start learning" entry walks the user straight through: lesson content → Quick Check → **that lesson's practice drills** (fill-in-the-blank, Bug Hunt, put-in-order, relevant cards/lab) → next lesson. After the Quick Check the CTA becomes "Practice this," NOT "Next lesson" — reinforce the lesson's content immediately, no skip-ahead within the flow. Four threads:
     1. **Merged guided flow** (core) — lesson → check → that lesson's drills → next.
     2. **Simplified home** — keep the live interactive surface prominent (Excel = Pivot Lab; SQL = query terminal), drop the 3-tile Learn/Practice/Cards grid, lead with one "Click here to learn — straight path through all content."
@@ -140,19 +142,9 @@ _(GR-F-1, GR-F-2, GR-F-3 shipped May 28, 2026 — see CHANGELOG v1.4.1)_
   - _Definition of Done (Excel prototype — locked June 1, 2026):_ Scope = **whole Excel kit (all 12 lessons) in one pass**. Model = **guided-primary, browse stays** (straight path is the hero/default; no skip past a lesson's drills to the next lesson; Lessons/Practice list still reachable for free exploration per Vision #3). (1) Home leads with one prominent "Start/Continue learning" entry + Pivot Lab kept prominent; 3-tile Learn/Practice/Cards grid removed. (2) Guided flow: each lesson runs content → Quick Check → that lesson's drills (fill-in-blank / Bug Hunt / put-in-order / relevant cards) → next lesson; post-Quick-Check CTA reads "Practice this," not "Next lesson." (3) Bare Basics: toggle survives but full-width banner removed, callout minimized to a quiet link. (4) Excel layout reskinned to match the newer kits. Verified on live URL, dark + light. Then roll pattern to other kits (separate cycles).
   - _Est. effort:_ Large (multi-cycle epic; Excel prototype is cycle 1).
 
-- **GR-E: Bug Hunt drills need a "type your fix" input + validation** _(added May 28, 2026 — 12:39 AM ET)_
-  - _What:_ The Bug Hunt drill in SQL Practice (and the equivalents in Excel and Python) shows the broken query and an error message, but the only actions are "Reveal Fix" and "Show Hint." There's no input field for the user to try their fix first. Add a textarea (or input) where the user types their proposed corrected query/formula/code; on submit, validate against the expected fix; show pass/fail feedback; and only THEN make "Reveal Fix" available as a fallback.
-  - _Why it's here:_ Practice surfaces are supposed to let users practice. Right now Bug Hunt is read-only — the user can't make a real attempt before being given the answer. Vision Principle #3 ("free to explore") and the broader "retrieval beats re-reading" learning-science principle that the rest of the kit honors.
-  - _Approach:_ Start with SQL (where Mike hit it). Add input field + validate-answer + pass/fail UI to the bug-hunt drill component. Validation can be string-compare against the data's `fix` field, with some normalization (whitespace, casing on keywords). Reveal/Hint buttons stay available. After SQL ships, replicate in Excel and Python (same drill pattern, same data shape).
-  - _Definition of Done (SQL slice):_ Each SQL bug-hunt drill shows a textarea pre-populated with the broken query (or empty), a "Check My Fix" button, a pass/fail message, and the existing Reveal/Hint buttons available throughout. Tested across the 12 SQL bug-hunt drills.
-  - _Est. effort:_ Medium per kit slice. SQL first (1 cycle), then Excel + Python (1 cycle each, or bundled if patterns are identical).
+_(GR-E shipped June 2, 2026 — Bug Hunt "Check My Fix" input on SQL + Power BI — see CHANGELOG v1.17.0)_
 
-- **GR-C: Final Exam — per-section submit + cumulative overall grade** _(added May 27, 2026 — 8:00 PM ET)_
-  - _What:_ The Final Exam currently requires answering all 28 questions and submitting once. Restructure so each subject section (Excel, SQL, Python, Tableau, Stats, Power BI, Interview) can be submitted independently. On per-section submit, that section locks and shows its immediate grade. When every section is submitted, the Results page shows an overall grade plus the existing per-section breakdown.
-  - _Why it's here:_ Vision #2. Mike hit this during normal Bare Basics flow — finished Excel, got the "try the Final Exam" CTA, landed in the Final Exam, answered just the SQL questions, and had no way to submit and check his understanding without committing to the full 28. The "checkpoint as I go" pattern is what users actually do.
-  - _Synergy:_ When this ships, the existing Medium item "per-kit mini exam" may simplify to "launch the Final Exam's [subject] section in standalone mode from inside the kit" rather than building separate mini-exam kits. Revisit the mini-exam scope after GR-C ships.
-  - _Definition of Done:_ In `final/index.html`, each section header gets its own "Submit this section" button. State model adds `submittedSections` (set of section keys). On per-section submit, that section locks (answers become read-only), shows that section's score inline. Results page renders only-submitted sections plus a partial overall, with a "complete the remaining sections" hint. Full-overall grade displays once all 7 sections are submitted.
-  - _Est. effort:_ Medium (1 cycle, mostly state-model + render changes in one file).
+_(GR-C shipped June 2, 2026 — Final Exam per-section submit + partial cumulative grade — see CHANGELOG v1.17.0. Note: the "per-kit mini exam" Medium item could now reuse this per-section logic.)_
 
 _(Bare Basics highlight visual unambiguity shipped May 28, 2026 — see CHANGELOG v1.4.0)_
 
@@ -175,14 +167,7 @@ _Response time: next planned cycle._
   - _Definition of Done:_ Excel pass complete = every intro, every "on the job" sidebar, every quiz explanation, and every `say` line either contains a real-world analogy or is a literal pronunciation of a formula (which doesn't need one). Spot-check by reading any random help block — if the FIRST sentence doesn't include a non-tech comparison or concrete scenario, rewrite. After Excel ships, repeat for SQL, Python, Tableau, Stats, Power BI, Interview. Sim and Final Exam already use scenarios, so they need a lighter pass.
   - _Est. effort:_ Medium per kit-slice (≈1 cycle per kit, 7 kits to fully complete).
 
-- **GR-A: Bare Basics needs cross-kit handoff flow** _(added May 27, 2026 — 7:42 PM ET; Mike suggested parking lot but I'm overriding to Medium — see reason below)_
-  - _What:_ Bare Basics mode currently highlights must-know lessons within a kit, but when the user finishes the last must-know lesson in (say) SQL, there's no "Next: Excel bare basics →" prompt. Need:
-    1. End-of-last-basics CTA inside each kit: when the user completes their final core lesson with Bare Basics on, the lesson-complete view shows "Next bare basics: [Kit Name] →" pointing to the next kit in learning order.
-    2. Hub indicator: the Bare Basics entry card could show "X of 7 subjects complete in Bare Basics" so the user sees a cross-kit progress signal at the hub.
-  - _Why it's here:_ Vision Principle #2 ("always know what to do next"). The mode we just shipped actively contradicts this principle at the moment of biggest engagement opportunity — when someone finishes a kit's must-knows and is most ready to continue.
-  - _Why not Parking Lot:_ Doesn't match Parking Lot criteria. Not speculative (ROI is direct on a mode we just shipped). Not a big overhaul (per-kit small JS edit). Not low impact (active mode currently has a continuity gap). Promoted to Medium.
-  - _Definition of Done:_ With Bare Basics ON: finishing the last must-know lesson in a kit shows a primary CTA pointing to the next kit's bare basics (or "Final Exam →" after Interview). The hub's Bare Basics card shows cumulative progress across kits. Tested by walking through SQL → Excel handoff manually.
-  - _Est. effort:_ Small-Medium (1 cycle).
+_(GR-A shipped June 2, 2026 — Bare Basics cross-kit handoff CTA across all 6 lesson kits — see CHANGELOG v1.17.0. The optional hub "X of 7 subjects" indicator was NOT done — promote if Mike wants it.)_
 
 _(SIOL rollout shipped May 28, 2026 — see CHANGELOG v1.3.0. Tableau and Stats use a sections-based render rather than the RAL chunk pattern; deferred — see new Parking Lot entry.)_
 

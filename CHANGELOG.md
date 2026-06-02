@@ -9,6 +9,34 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.17.0] — 2026-06-02 — Backlog sweep: GR-C, GR-E, GR-A (Mike: "go for all")
+
+Three High-priority roadmap items, shipped together at Mike's request and each
+smoke-tested live (June 2, 2026 — 11:05 PM ET):
+
+- **GR-C — Final Exam per-section submit + cumulative grade.** Each subject now
+  has its own "Submit this section" button; submitting locks + grades just that
+  section. The top bar offers "Submit all & finish" once everything's answered.
+  Results show your score across only the submitted sections (partial, "in
+  progress") with a "finish the rest" prompt, and the full grade once all 7 are in.
+- **GR-E — Bug Hunt "Check My Fix" input** on **SQL & Power BI** (they were
+  Reveal-Fix-only). A textarea + "Check My Fix" validates the attempt against the
+  fix (whitespace/case-tolerant, 80% token match) before Reveal stays as fallback.
+  Works inside the guided flow too.
+- **GR-A — Bare Basics cross-kit handoff.** Finishing a kit's last must-know
+  lesson with Bare Basics on now shows "🔖 [Kit] bare basics done — Next: [next
+  kit] bare basics →" (Excel→SQL→Python→Tableau→Stats→Power BI→Interview→Final),
+  instead of dead-ending at the Final Exam. Hidden when Bare Basics is off.
+
+Verified: headless parse (all touched kits green) + live browser smoke
+(per-section lock/partial-score; fix-checker pass/fail incl. loose whitespace;
+handoff shows only with basics-on + all-core-done and links to the right kit).
+
+_Still open (large / needs design input): per-kit mini exams, GR-D analogy
+sweep, and the GR-G home-simplify + Excel-makeover threads._
+
+---
+
 ## [1.16.0] — 2026-06-02 — Lesson visuals now on EVERY lesson (full coverage)
 
 Mike asked to fill the ~15 concept lessons skipped in v1.15.0. Done — all **72
