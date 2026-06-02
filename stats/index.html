@@ -313,6 +313,7 @@ skew   = df['revenue'].skew()    # 2.8 — strongly right-skewed
         ans:1,explain:"Mean > median is the signature of right skew. High-value outliers drag the mean above the median."}},
 
  {id:5,unit:2,title:"Probability Basics",subtitle:"How likely is it? Quantifying uncertainty.",
+  viz:{type:'bar',labels:["P(Hot)","P(Cold)"],data:[0.6,0.4],colors:["#5b8cf5","#e8a84c"],ylabel:"probability (0–1)",caption:"Probability is just a number from 0 to 1. With 15 of 25 sales Hot, P(Hot)=0.60 and its complement P(Cold)=0.40 — the two always sum to 1."},
   sections:[
    {heading:"What is probability?",
     body:"Probability is a number from 0 to 1 measuring how likely an event is. P = 0 means impossible, P = 1 means certain. As an analyst, you use probability every time you interpret a conversion rate, make a forecast, or evaluate a test result."},
@@ -371,6 +372,7 @@ z_low = (90 - mean_rev) / std_rev  # -1.56`,
         ans:1,explain:"Negative z-score = below the mean. z = -2.1 means the value sits 2.1 standard deviations below the average."}},
 
  {id:7,core:true,unit:2,title:"Sampling & Bias",subtitle:"Your data is only as good as how it was collected.",
+  viz:{type:'bar',labels:["Detractors","Neutral","Promoters"],datasets:[{label:"True population",data:[20,50,30]},{label:"Support-line sample",data:[68,27,5]}],ylabel:"% of customers",caption:"Surveying only people who called support badly over-represents unhappy customers (blue = reality, orange = the biased sample). The sample's story isn't the population's."},
   sections:[
    {heading:"Populations vs samples",
     body:"A <strong>population</strong> is every member of the group you care about (all customers). A <strong>sample</strong> is the subset you actually measure. Statistics from a sample estimate the population — but only if the sample is representative."},
@@ -427,6 +429,7 @@ r = df['ice_cream_sales'].corr(df['drowning_rates'])
         ans:1,explain:"More revenue → more ad budget is equally plausible. Or seasonality could drive both. Correlation shows association only."}},
 
  {id:9,unit:3,title:"Hypothesis Testing Concepts",subtitle:"A structured framework for making data-driven decisions.",
+  viz:{type:'line',labels:["-3","-2.5","-2","-1.5","-1","-0.5","0","0.5","1","1.5","2","2.5","3"],data:[0.01,0.04,0.13,0.32,0.61,0.88,1,0.88,0.61,0.32,0.13,0.04,0.01],xlabel:"test result (if H0 is true)",caption:"If the null hypothesis (H0) were true, results would cluster near the center. The further out in the tails your observed result lands, the harder H0 is to believe — and the stronger your case to reject it."},
   sections:[
    {heading:"The setup",
     body:"Every hypothesis test starts with two competing claims. <strong>H₀ (null hypothesis):</strong> no effect, no difference — the boring default we assume until proven otherwise. <strong>H₁ (alternative hypothesis):</strong> there IS a real effect — what you are trying to support with data."},
@@ -454,6 +457,7 @@ test_conv    = 68   # 68 / 1000 = 6.8%
         ans:1,explain:"Hâ'€ is the default 'no effect' assumption. We only reject it when data provides strong enough evidence against it."}},
 
  {id:10,unit:3,title:"P-Values, in Plain Language",subtitle:"The most misunderstood number in data analysis.",
+  viz:{type:'bar',labels:["p-value","α threshold"],data:[0.03,0.05],colors:["#5b8cf5","#9aa4b2"],ylabel:"probability",caption:"A p-value is the chance of seeing your result if H0 were true. Compare it to α (0.05): here p=0.03 sits below the line, so the result is statistically significant — you reject H0."},
   sections:[
    {heading:"What is a p-value?",
     body:"The p-value answers: <em>\"If there were truly no effect (H₀ is true), how likely is it that I would see results at least this extreme just by random chance?\"</em> A small p means the data is very unlikely under H₀ — evidence to reject it. A large p means the result could easily be noise."},
@@ -510,6 +514,7 @@ z, p   = proportions_ztest(counts, nobs)
         ans:1,explain:"Without randomization, the groups could differ in ways unrelated to the change (e.g., one group is more engaged). Randomization balances those factors."}},
 
  {id:12,unit:3,title:"Confidence Intervals & Margin of Error",subtitle:"A range is more honest than a single number.",
+  viz:{type:'ci',lo:42,hi:58,label:"95% CI",xlabel:"average order value ($)",caption:"A 95% confidence interval ($42–$58) is a range, not a single guess. We're 95% confident the true average sits somewhere in this band — and the wider the band, the less precise the estimate."},
   sections:[
    {heading:"What is a confidence interval?",
     body:"A confidence interval (CI) gives a range of plausible values for a population parameter based on your sample. A 95% CI means: if you ran the study 100 times, about 95 of the resulting intervals would contain the true value. It is NOT a 95% probability that this specific interval contains the truth."},
@@ -995,6 +1000,10 @@ function drawStatChart(v){
   const isDark=S.theme==='dark';
   const tick=isDark?'#98a3b2':'#5b6470', grid=isDark?'rgba(255,255,255,.07)':'rgba(0,0,0,.08)';
   const A='#5b8cf5', B='#e8a84c';
+  if(v.type==='ci'){
+    statChart=new Chart(c,{type:'bar',data:{labels:[v.label||'95% CI'],datasets:[{data:[[v.lo,v.hi]],backgroundColor:A+'cc',borderColor:A,borderWidth:1,barThickness:36}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{ticks:{color:tick,font:{size:10}},grid:{color:grid},title:v.xlabel?{display:true,text:v.xlabel,color:tick}:{display:false}},y:{ticks:{color:tick,font:{size:11}},grid:{display:false}}}}});
+    return;
+  }
   let cfg;
   if(v.type==='scatter'){
     cfg={type:'scatter',data:{datasets:[{label:v.label||'',data:v.points.map(p=>({x:p[0],y:p[1]})),backgroundColor:A+'cc',borderColor:A,pointRadius:5}]},options:statOpts(tick,grid,false,v)};

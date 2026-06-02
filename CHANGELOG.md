@@ -9,6 +9,35 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.16.0] — 2026-06-02 — Lesson visuals now on EVERY lesson (full coverage)
+
+Mike asked to fill the ~15 concept lessons skipped in v1.15.0. Done — all **72
+lessons across all 6 kits** now have a "See it on screen" visual (June 2, 2026 —
+10:21 PM ET). New this round:
+
+- **Tableau** (5 added → 12/12) — a labeled **interface mockup** (Data pane /
+  shelves / Marks / canvas) for the interface lesson, a **calculated-field result
+  table** (new Avg Price column highlighted), a **tiled dashboard mockup**, a
+  **reference-line chart** (dashed line auto-drawn at the real average), and a
+  **Story Points** sequence mockup. Renderer extended with `html` (mockups),
+  `table`, and `refline` support.
+- **Stats** (5 added → 12/12) — probability bars, biased-vs-true-population
+  comparison, a null-distribution bell curve, a p-value-vs-α bar, and a
+  **confidence-interval floating bar** (new `ci` chart type).
+- **Power BI** (5 added → 12/12) — hand-built mockups: the **Desktop interface**
+  (canvas / Visualizations / Fields panes), **Power Query** Applied Steps, a
+  **star-schema** diagram (fact + dimension tables), a **report-hierarchy**
+  layout, and a **publish→workspace→share** flow. Renderer gained an `html` branch.
+
+**Verification:** headless parse of all 6 kits (green) + live browser smoke test.
+The smoke test caught + fixed a correctness bug: Tableau's reference line was
+hardcoded at 320, but the real Contoso region totals are ~10× that, so the dashed
+line sat at the floor — changed it to auto-compute the actual average (now 1,133,
+correctly between the West bar and the rest). Friction check: every visual sits
+after the explanation and before the gotcha/quick-check, so the order still guides.
+
+---
+
 ## [1.15.0] — 2026-06-02 — Lesson visuals rolled out to every kit ("See it on screen")
 
 Mike approved the prototype style and asked to roll it out across all kits, then
