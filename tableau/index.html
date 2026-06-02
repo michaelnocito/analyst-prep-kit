@@ -267,6 +267,29 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .learn-more-link{display:inline-flex;align-items:center;gap:5px;background:rgba(47,109,240,.1);border:1.5px solid rgba(47,109,240,.3);color:var(--accent,#2f6df0);padding:6px 14px;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s}
 .learn-more-link:hover{background:rgba(47,109,240,.22)}
 /* -- End Hint System ---- */
+</style>
+<style>
+/* -- 6.2.26.1: define classes the JS renderers use (were undefined → "old"
+   unstyled look) + Duolingo-style tap-the-word fill drills -- */
+:root{--txt2:#98a3b2;--bord:#28303c}
+[data-theme="light"]{--txt2:#5b6470;--bord:#d6dce4}
+.inp{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:10px 13px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;transition:border-color .15s}
+.inp:focus{border-color:var(--accent)}
+.code-block{background:var(--surf2);border:1px solid var(--border);border-radius:7px;padding:12px 14px;font-family:var(--mono);font-size:13.5px;color:var(--accent);white-space:pre-wrap;line-height:1.55;margin:0}
+.pars-piece{background:var(--surf);border:1px solid var(--border);border-radius:6px;padding:9px 13px;font-family:var(--mono);font-size:13px;cursor:grab;user-select:none;transition:.15s}
+.pars-piece:hover{border-color:var(--accent)}
+.pars-piece.placed{border-color:var(--accent);background:rgba(47,109,240,.08)}
+/* tap-the-word fill */
+.fill-lead{font-size:.85rem;color:var(--txt2);margin-bottom:12px}
+.fill-sentence{font-size:1.08rem;line-height:2.1;margin-bottom:20px}
+.fill-blank{display:inline-block;min-width:84px;border-bottom:2.5px solid var(--accent);text-align:center;padding:0 10px;margin:0 3px;font-weight:700;color:var(--accent)}
+.fill-blank.empty{color:var(--dim);border-bottom-style:dashed}
+.fill-choices{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.fill-choice{background:rgba(47,109,240,.1);border:1.5px solid rgba(47,109,240,.4);color:var(--accent);padding:10px 20px;border-radius:8px;font-size:14px;font-family:inherit;font-weight:700;cursor:pointer;transition:.15s}
+.fill-choice:hover:not(:disabled){background:rgba(47,109,240,.22)}
+.fill-choice:disabled{cursor:default}
+.fill-choice.correct{background:var(--success);border-color:var(--success);color:#fff}
+.fill-choice.wrong{background:var(--err);border-color:var(--err);color:#fff;opacity:.85}
 </style></head>
 <body>
 <nav>
@@ -632,19 +655,21 @@ LESSONS:[
 }
 ],
 
+// Tap-the-word fills: q holds the sentence with a single ___ blank,
+// choices are the clickable word tiles (one is ans), hint reinforces.
 FILLS:[
- {id:1,q:"Which shelf controls the X-axis of a chart in Tableau?",partial:"Drag the field to the ___ shelf.",ans:"Columns",hint:"Columns = horizontal = X-axis."},
- {id:2,q:"Dimensions are shown in ___ in the Data pane.",partial:"Dimensions are shown in ___.",ans:"blue",hint:"Blue = dimensions (categories). Green = measures (numbers)."},
- {id:3,q:"Complete the shelf config for a bar chart showing revenue by region.",partial:"Columns: ___\nRows: SUM(Revenue)",ans:"Columns: Region",hint:"The dimension goes on Columns for a bar chart."},
- {id:4,q:"To show a trend over time, use this mark type.",partial:"Mark type: ___",ans:"Line",hint:"Connects data points — shows trend direction."},
- {id:5,q:"Which Tableau pane contains Reference Lines and Trend Lines?",partial:"The ___ pane.",ans:"Analytics",hint:"Not the Data pane — the other one next to it."},
- {id:6,q:"To add a calculated field, go to:",partial:"Analysis menu → ___",ans:"Create Calculated Field",hint:"Or right-click in the Data pane."},
- {id:7,q:"The aggregation that counts unique values (not total rows) is:",partial:"___([Product])",ans:"COUNTD",hint:"Count Distinct — D for Distinct."},
- {id:8,q:"To make a dimension filter run before a Top N filter, right-click it and choose:",partial:"Right-click filter → ___",ans:"Add to Context",hint:"Context filters run first."},
- {id:9,q:"In a dashboard, ___ layout snaps views to a grid and resizes proportionally.",partial:"___ layout",ans:"Tiled",hint:"The opposite of Floating."},
- {id:10,q:"To customize what appears when a user hovers over a mark:",partial:"Worksheet → ___",ans:"Tooltip",hint:"The hover-text editor."},
- {id:11,q:"A bar chart is best for comparing ___. A line chart is best for showing ___ over time.",partial:"Bar: ___ | Line: ___",ans:"Bar: categories | Line: trends",hint:"Categories vs trends."},
- {id:12,q:"Tableau Story Points are used to:",partial:"Story Points control the ___ of an analysis presentation.",ans:"sequence",hint:"What makes a Story different from a Dashboard."}
+ {id:1,q:"Drag a field to the ___ shelf to make it the X-axis of a chart.",ans:"Columns",choices:["Columns","Rows","Marks","Filters"],hint:"Columns = horizontal = X-axis. Rows = vertical = Y-axis."},
+ {id:2,q:"Dimensions are shown in ___ in the Data pane.",ans:"blue",choices:["blue","green","red","grey"],hint:"Blue = dimensions (categories). Green = measures (numbers)."},
+ {id:3,q:"For a bar chart of revenue by region, the Columns shelf gets ___.",ans:"Region",choices:["Region","SUM(Revenue)","Category","Order Date"],hint:"The dimension goes on Columns; the measure goes on Rows."},
+ {id:4,q:"To show a trend over time, set the mark type to ___.",ans:"Line",choices:["Line","Bar","Circle","Pie"],hint:"A line connects data points — it shows trend direction."},
+ {id:5,q:"Reference Lines and Trend Lines live in the ___ pane.",ans:"Analytics",choices:["Analytics","Data","Marks","Format"],hint:"Not the Data pane — the Analytics pane right next to it."},
+ {id:6,q:"To add a calculated field: Analysis menu → ___.",ans:"Create Calculated Field",choices:["Create Calculated Field","Create Parameter","Create Set","New Dashboard"],hint:"Or right-click in the Data pane → Create Calculated Field."},
+ {id:7,q:"The aggregation that counts unique values (not total rows) is ___([Product]).",ans:"COUNTD",choices:["COUNTD","COUNT","SUM","AVG"],hint:"COUNTD = Count Distinct — D for Distinct."},
+ {id:8,q:"To make a dimension filter run before a Top N filter, right-click it → ___.",ans:"Add to Context",choices:["Add to Context","Add to Filters","Edit Filter","Apply to Worksheet"],hint:"Context filters run first, before Top N."},
+ {id:9,q:"In a dashboard, ___ layout snaps views to a grid and resizes proportionally.",ans:"Tiled",choices:["Tiled","Floating","Stacked","Grid"],hint:"Tiled is the opposite of Floating."},
+ {id:10,q:"To customize what appears when a user hovers over a mark: Worksheet → ___.",ans:"Tooltip",choices:["Tooltip","Caption","Title","Annotation"],hint:"The Tooltip editor controls hover text."},
+ {id:11,q:"A bar chart is best for comparing ___; a line chart is best for trends over time.",ans:"categories",choices:["categories","trends","totals","dates"],hint:"Bars compare categories; lines show trends."},
+ {id:12,q:"Tableau Story Points control the ___ of an analysis presentation.",ans:"sequence",choices:["sequence","color","size","layout"],hint:"Sequence is what makes a Story different from a Dashboard."}
 ],
 
 BUGS:[
@@ -973,16 +998,18 @@ function checkQuiz(i){
   btns.forEach(b=>b.disabled=true);
   if(i===l.quiz.ans){
     btns[i].style.background='var(--accent)';btns[i].style.color='#fff';
-    fb.innerHTML=`<span style="color:var(--accent)">✓ Correct! ${l.quiz.exp}</span>`;
+    // Persist the explanation — advance only when the user taps Continue.
+    fb.innerHTML=`<span style="color:var(--accent)">✓ Correct! ${l.quiz.exp}</span>
+      <div style="margin-top:12px"><button class="btn" style="background:var(--accent);color:#fff" onclick="finishLesson(${l.id})">Continue →</button></div>`;
     fb.style.display='block';
     celebrate(true,'Correct! 🎉');
-    setTimeout(()=>finishLesson(l.id),1200);
   } else {
     btns[i].style.background='#c0392b';btns[i].style.color='#fff';
+    // Keep the explanation up; re-enable the options so they can pick again.
     fb.innerHTML=`<span style="color:#e74c3c">Not quite. ${l.quiz.exp}</span>`;
     fb.style.display='block';
     celebrate(false,'Keep going 💪');
-    setTimeout(()=>{btns.forEach(b=>{b.disabled=false;b.style.background='';b.style.color='';});fb.style.display='none';},1800);
+    setTimeout(()=>{btns.forEach(b=>{b.disabled=false;b.style.background='';b.style.color='';});},2200);
   }
 }
 function finishLesson(id){
@@ -1128,31 +1155,48 @@ function renderDrill(){
 function markDone(key,idx){S.done[`${key}${idx}`]=true;save();}
 function toggleSol(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
 
-/* FILL */
+/* FILL — Duolingo-style tap-the-word */
+function fillChoices(item){
+  const c=(item.choices||[item.ans]).slice();
+  for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]];}
+  return c;
+}
 function renderFill(item,done){
   _hd={hint:item.hint||'',ans:item.ans||'',state:0};
+  const blank=done
+    ? `<span class="fill-blank">${item.ans}</span>`
+    : `<span class="fill-blank empty" id="fillBlank">?</span>`;
+  const sentence=(item.q||'').replace('___',blank);
+  const choices=fillChoices(item).map(c=>{
+    const esc=c.replace(/'/g,"\\'");
+    const isAns=c.toLowerCase()===item.ans.toLowerCase();
+    return `<button class="fill-choice${done&&isAns?' correct':''}" onclick="pickFill(this,'${esc}')" ${done?'disabled':''}>${c}</button>`;
+  }).join('');
   return `<div class="card">
-    <p style="margin-bottom:14px">${item.q}</p>
-    <pre class="code-block" style="margin-bottom:14px">${item.partial}</pre>
-    <input id="fillAns" class="inp" placeholder="Type your answer…" value="${done?item.ans:''}" ${done?'disabled':''}>
-    ${!done?`<button class="btn" style="margin-top:10px" onclick="checkFill()">Check</button>`:''}
-    <div id="fillFb" style="margin-top:10px;display:none"></div>
+    <p class="fill-lead">Tap the word that fills the blank:</p>
+    <div class="fill-sentence">${sentence}</div>
+    <div class="fill-choices" id="fillChoices">${choices}</div>
+    <div id="fillFb" style="margin-top:14px;${done?'':'display:none'}">${done?`<span style="color:var(--success)">✓ Correct! ${item.hint}</span>`:''}</div>
     <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button>
     <div class="hint-panel" id="drill-hint"></div>
     <div class="answer-panel" id="drill-answer"></div>
   </div>`;
 }
-function checkFill(){
+function pickFill(btn,choice){
   const item=DATA.FILLS[drillState.idx];
-  const ans=document.getElementById('fillAns').value.trim();
   const fb=document.getElementById('fillFb');
-  if(ans.toLowerCase()===item.ans.toLowerCase()){
-    fb.innerHTML=`<span style="color:var(--accent)">✓ Correct! ${item.hint}</span>`;
+  if(choice.toLowerCase()===item.ans.toLowerCase()){
+    btn.classList.add('correct');
+    const blank=document.getElementById('fillBlank');
+    if(blank){blank.textContent=item.ans;blank.classList.remove('empty');}
+    document.querySelectorAll('#fillChoices .fill-choice').forEach(b=>b.disabled=true);
+    fb.innerHTML=`<span style="color:var(--success)">✓ Correct! ${item.hint}</span>`;
     fb.style.display='block';
     markDone('fills',drillState.idx);
     celebrate(true,'Correct! ✨');
   } else {
-    fb.innerHTML=`<span style="color:#e74c3c">Not quite — try again.</span>`;
+    btn.classList.add('wrong');btn.disabled=true;
+    fb.innerHTML=`<span style="color:var(--err)">Not quite — try another word.</span>`;
     fb.style.display='block';
     celebrate(false,'Try again 🤔');
   }

@@ -9,6 +9,30 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.11.0] — 2026-06-02 — Tableau: tap-the-word fills + feedback that persists
+
+Two Tableau-kit fixes (reported June 2, 2026 — 7:36 PM ET):
+
+- **Fill-in drills are now Duolingo-style tap-the-word.** The old free-type
+  answer box (which used an undefined `.inp` class, so it fell back to raw,
+  "old-looking" browser styling) is gone. Each fill now shows the sentence with
+  an inline blank and a row of word tiles styled to match Check / Show Hint —
+  tap the word that belongs in the blank. Wrong tiles mark red and disable;
+  the right tile fills the blank green. Removes the "I don't know the exact
+  syntax/spelling" guesswork. All 12 fills rewritten with curated distractors.
+- **Quick Check feedback persists.** Lesson quizzes no longer auto-advance after
+  ~1.2s (correct) or hide the explanation after ~1.8s (wrong). Correct answers
+  now show the explanation with a **Continue →** button (read at your own pace);
+  wrong answers keep the explanation on screen and just re-enable the options.
+- Also defined the previously-undefined `.inp`, `.code-block`, `.pars-piece`
+  classes and `--txt2` / `--bord` vars the JS renderers reference, so other
+  Practice inputs stop looking unstyled too.
+
+Verified headlessly (all inline scripts parse; new `pickFill`/`fillChoices`
+wired; old `checkFill`/`item.partial` removed). Mike playtests on the live URL.
+
+---
+
 ## [1.10.0] — 2026-06-01 — Guided Path rolled out to Tableau
 
 Guided Path now on the **Tableau** kit. After a lesson's Quick Check a complete

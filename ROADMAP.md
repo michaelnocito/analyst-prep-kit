@@ -2,7 +2,7 @@
 
 **Current version:** `v1.4.1` (shipped May 28, 2026 — awaiting test)
 **Last cycle closed:** May 28, 2026 — Pedagogy fixes (SQL/Power BI/Python)
-**Currently working:** _testing v1.4.1 (v1.2.3, v1.3.0, v1.4.0 still queued)_
+**Currently working:** _GR-G epic — "Guided Path" redesign, prototyping on Excel first (June 1, 2026). Test queue v1.2.3 / v1.3.0 / v1.4.1 paused; v1.4.0 likely superseded by GR-G's Bare Basics tone-down._
 
 ---
 
@@ -128,6 +128,17 @@ a feature that directly serves a Vision Principle and has clear ROI._
 _Response time: current cycle. Clear before accepting new feedback._
 
 _(GR-F-1, GR-F-2, GR-F-3 shipped May 28, 2026 — see CHANGELOG v1.4.1)_
+
+- **GR-G (EPIC): "Guided Path" — merge Learn + Practice into one linear flow, simplify home, tone down Bare Basics, Excel makeover** _(added June 1, 2026 — 12:40 AM ET — TOP PRIORITY per Mike; prototype on Excel first)_
+  - _What:_ Collapse the currently-segmented Lessons / Practice / Cards into a single guided route. One prominent "Start learning" entry walks the user straight through: lesson content → Quick Check → **that lesson's practice drills** (fill-in-the-blank, Bug Hunt, put-in-order, relevant cards/lab) → next lesson. After the Quick Check the CTA becomes "Practice this," NOT "Next lesson" — reinforce the lesson's content immediately, no skip-ahead within the flow. Four threads:
+    1. **Merged guided flow** (core) — lesson → check → that lesson's drills → next.
+    2. **Simplified home** — keep the live interactive surface prominent (Excel = Pivot Lab; SQL = query terminal), drop the 3-tile Learn/Practice/Cards grid, lead with one "Click here to learn — straight path through all content."
+    3. **Tone down Bare Basics** — keep the toggle, minimize its callout/visibility (currently a full-width banner). NOTE: partially reverses v1.4.0 amber-prominence work (untested) — v1.4.0 likely superseded.
+    4. **Excel visual makeover** — bring Excel's layout in line with the newer kits (Mike: "still looks old and weird").
+  - _Why it's here:_ Vision #2 (always know what to do next — one straight path) + the retrieval/practice learning-science principle the kit already honors (drill the lesson immediately after learning it). Mike's direct direction.
+  - _Scope:_ Prototype on **Excel first**. Once Mike approves the feel, **roll the pattern to all other kits** (SQL, Python, Tableau, Stats, Power BI, Interview). ⏰ _Mike asked to be reminded after today to schedule the rollout._
+  - _Definition of Done (Excel prototype — locked June 1, 2026):_ Scope = **whole Excel kit (all 12 lessons) in one pass**. Model = **guided-primary, browse stays** (straight path is the hero/default; no skip past a lesson's drills to the next lesson; Lessons/Practice list still reachable for free exploration per Vision #3). (1) Home leads with one prominent "Start/Continue learning" entry + Pivot Lab kept prominent; 3-tile Learn/Practice/Cards grid removed. (2) Guided flow: each lesson runs content → Quick Check → that lesson's drills (fill-in-blank / Bug Hunt / put-in-order / relevant cards) → next lesson; post-Quick-Check CTA reads "Practice this," not "Next lesson." (3) Bare Basics: toggle survives but full-width banner removed, callout minimized to a quiet link. (4) Excel layout reskinned to match the newer kits. Verified on live URL, dark + light. Then roll pattern to other kits (separate cycles).
+  - _Est. effort:_ Large (multi-cycle epic; Excel prototype is cycle 1).
 
 - **GR-E: Bug Hunt drills need a "type your fix" input + validation** _(added May 28, 2026 — 12:39 AM ET)_
   - _What:_ The Bug Hunt drill in SQL Practice (and the equivalents in Excel and Python) shows the broken query and an error message, but the only actions are "Reveal Fix" and "Show Hint." There's no input field for the user to try their fix first. Add a textarea (or input) where the user types their proposed corrected query/formula/code; on submit, validate against the expected fix; show pass/fail feedback; and only THEN make "Reveal Fix" available as a fallback.
