@@ -527,6 +527,7 @@ LESSONS:[
   ]}
  ],
  notes:"Always sort your bar charts. An unsorted bar chart forces the reader to scan for the biggest/smallest bar. Sort descending by the measure and the story is immediately obvious.",
+ viz:{type:'bar',x:'region',y:'revenue',color:null,mark:'Bar',shelves:[{shelf:'Columns',pill:'Region',kind:'dim'},{shelf:'Rows',pill:'SUM(Revenue)',kind:'meas'}],caption:"One bar per region — the bar's height is that region's total revenue. This is exactly what those two shelves produce."},
  quiz:{q:"You have Region on Columns and SUM(Revenue) on Rows. What chart type does Tableau create by default?",opts:["Line chart","Scatter plot","Bar chart","Pie chart"],ans:2,exp:"One discrete dimension on Columns + one measure on Rows = bar chart. Tableau's Show Me logic picks bar chart automatically. The bars represent each region, and their height is the total revenue."}
 },
 {id:4,core:true,unit:"Unit 1: Tableau Fundamentals",title:"Line Charts & Time",slug:"line-charts",
@@ -540,6 +541,7 @@ LESSONS:[
   ]}
  ],
  notes:"Use MONTH(Date) (continuous, green) for a trend line. Use MONTH(Date) as discrete (blue) for separate year columns. If your line looks jagged, you may be at too fine a granularity — try zooming out to Quarter or Year.",
+ viz:{type:'line',x:'month',y:'revenue',color:'category',mark:'Line',shelves:[{shelf:'Columns',pill:'MONTH(Order Date)',kind:'meas'},{shelf:'Rows',pill:'SUM(Revenue)',kind:'meas'},{shelf:'Color',pill:'Category',kind:'dim'}],caption:"Each line is a category, tracing total revenue across the months — the trend you're describing, drawn on screen."},
  quiz:{q:"When should you use a line chart instead of a bar chart?",opts:["When you have more than 5 categories","When showing change over time or a continuous trend","When the values are very large","When you have only two data points"],ans:1,exp:"Line charts are for trends — change over time or a continuous variable. Bar charts are for comparing discrete categories. The choice is almost always: does time or order matter? If yes, line chart."}
 },
 {id:5,unit:"Unit 2: Building Better Vizzes",title:"Filters & Sorting",slug:"filters",
@@ -963,6 +965,7 @@ function renderLesson(){
     </div>
     <h2 style="margin-bottom:4px">${l.title}</h2>
     ${l.intro?`<p style="color:var(--txt2);margin-bottom:20px">${l.intro}</p>`:''}
+    ${l.viz?lessonVizHTML(l.viz):''}
     ${(l.ral||[]).map(block=>`
       <div class="card" style="margin-bottom:16px">
         <h4 style="margin-bottom:10px;color:var(--accent)">${block.shelf}</h4>
@@ -982,6 +985,44 @@ function renderLesson(){
       </div>`:''}
     ${!l.quiz?`<button class="btn" style="margin-top:8px" onclick="finishLesson(${l.id})">Mark Complete ✓</button>`:''}
   `;
+  if(l.viz)drawLessonChart(l.viz);
+}
+// ─── LESSON VISUAL ("See it on screen") ──────────────────────────────────────
+// Shows the shelf config as pills + the chart it actually produces, so learners
+// anchor a mental image before the breakdown. viz: {type,x,y,color,mark,shelves[],caption}
+function lessonVizHTML(v){
+  const pill=(p,kind)=>`<span style="font-family:var(--mono);font-size:12px;padding:3px 9px;border-radius:4px;white-space:nowrap;${kind==='dim'?'background:rgba(123,179,240,.15);color:var(--dim-blue);border:1px solid rgba(123,179,240,.4)':'background:rgba(109,191,139,.15);color:var(--meas-green);border:1px solid rgba(109,191,139,.4)'}">${p}</span>`;
+  const rows=(v.shelves||[]).map(s=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:11px;color:var(--dim);width:62px;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0">${s.shelf}</span>${pill(s.pill,s.kind)}</div>`).join('');
+  const markRow=v.mark?`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--dim);width:62px;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0">Mark</span><span style="font-size:12px;padding:3px 9px;border-radius:4px;background:var(--surf2);border:1px solid var(--border)">${v.mark}</span></div>`:'';
+  return `<div class="card" style="margin-bottom:16px;border-color:var(--accent)">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);font-weight:700;margin-bottom:12px">📺 See it on screen</div>
+    <div style="display:grid;grid-template-columns:minmax(150px,210px) minmax(0,1fr);gap:18px;align-items:center">
+      <div>${rows}${markRow}</div>
+      <div style="height:200px;position:relative"><canvas id="lessonViz"></canvas></div>
+    </div>
+    ${v.caption?`<p style="font-size:13px;color:var(--txt2);margin:12px 0 0">${v.caption}</p>`:''}
+  </div>`;
+}
+let lessonChart=null;
+const MONTH_ORDER=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function drawLessonChart(v){
+  const canvas=document.getElementById('lessonViz');
+  if(!canvas||typeof Chart==='undefined'||typeof CONTOSO==='undefined')return;
+  if(lessonChart){lessonChart.destroy();lessonChart=null;}
+  const xF=v.x,yF=v.y,cF=v.color;
+  let xVals=[...new Set(CONTOSO.map(r=>r[xF]))];
+  xVals = xF==='month' ? MONTH_ORDER.filter(m=>xVals.includes(m)) : xVals.sort();
+  const palette=['#5b8cf5','#6dbf8b','#e8a84c','#e07c7c','#b07cf0','#f07cb0'];
+  let datasets;
+  if(cF){
+    const cVals=[...new Set(CONTOSO.map(r=>r[cF]))].sort();
+    datasets=cVals.map((cv,ci)=>({label:String(cv),data:xVals.map(xv=>CONTOSO.filter(r=>r[xF]===xv&&r[cF]===cv).reduce((s,r)=>s+(r[yF]||0),0)),backgroundColor:v.type==='line'?palette[ci%palette.length]:palette[ci%palette.length]+'cc',borderColor:palette[ci%palette.length],borderWidth:2,tension:.3,fill:false,pointRadius:v.type==='line'?3:0}));
+  } else {
+    datasets=[{label:yF,data:xVals.map(xv=>CONTOSO.filter(r=>r[xF]===xv).reduce((s,r)=>s+(r[yF]||0),0)),backgroundColor:xVals.map((_,i)=>palette[i%palette.length]+'cc'),borderColor:xVals.map((_,i)=>palette[i%palette.length]),borderWidth:1,tension:.3,fill:false}];
+  }
+  const isDark=S.theme==='dark';
+  const tick=isDark?'#98a3b2':'#5b6470', grid=isDark?'rgba(255,255,255,.07)':'rgba(0,0,0,.08)';
+  lessonChart=new Chart(canvas,{type:v.type,data:{labels:xVals,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:!!cF,position:'bottom',labels:{color:tick,font:{size:11},boxWidth:12,padding:10}}},scales:{x:{ticks:{color:tick,font:{size:10}},grid:{color:grid}},y:{ticks:{color:tick,font:{size:10}},grid:{color:grid},beginAtZero:true}}}});
 }
 function toggleRead(btn){
   const pre=btn.closest('div').querySelector('pre');

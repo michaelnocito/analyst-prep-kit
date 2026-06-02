@@ -9,6 +9,31 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.14.0] — 2026-06-02 — Lesson visuals: "See it on screen" (Tableau prototype)
+
+Mike's note: lessons describe a config (shelves, pills, mark type) and ask the
+learner to picture the result before they have any mental image of it. Fix:
+show the thing. Added a **"📺 See it on screen"** block to a lesson that renders
+the shelf config as colored pills (blue dimensions / green measures) **next to
+the actual chart those shelves produce** (Chart.js over the kit's Contoso data).
+
+Prototype scope — **two Tableau lessons** so the style can be judged before
+rollout:
+- **Lesson 3 "Your First Bar Chart"** → Columns: Region · Rows: SUM(Revenue) →
+  renders the sorted bar chart.
+- **Lesson 4 "Line Charts & Time"** → Columns: MONTH(Order Date) · Rows:
+  SUM(Revenue) · Color: Category · Mark: Line → renders the multi-line trend.
+
+Driven by a reusable `viz` lesson field, so rolling out to more lessons/kits is
+mostly data, not code. Theme-aware (dark/light). Parse-verified.
+
+**Pending Mike's sign-off on the style** before rolling out across Tableau and
+the other kits — where the right visual differs by kit (SQL → result table,
+Excel → cell grid, Python → output/df, Stats → distribution chart, Power BI →
+visual + DAX result).
+
+---
+
 ## [1.13.0] — 2026-06-02 — Guided Path built on SQL, Stats & Power BI
 
 The Guided Path (finish a lesson → practice that lesson's own drills → next
