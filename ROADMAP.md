@@ -1,7 +1,7 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.19.0` (shipped June 2, 2026 — awaiting test)
-**Last cycle closed:** June 2, 2026 — Per-kit mini exam (Exam nav entry → Final Exam section) + Excel/Python nav overflow fix
+**Current version:** `v1.20.0` (shipped June 2, 2026 — awaiting test)
+**Last cycle closed:** June 2, 2026 — Hub follow-ons: mini-exam score badge per kit + Bare Basics "X of 6 subjects" indicator (final persists section scores)
 **Active buckets are now CLEAR** (parking lot excluded). Recently shipped: per-kit mini exam + GR-G home/Excel resolved (v1.19.0), GR-D analogy intros (v1.18.0), GR-C/E/A (v1.17.0), Guided Path + "See it on screen" visuals on all 72 lessons (v1.10–v1.16). _Follow-ons noted: GR-D sweep beyond intros (quiz explanations / glossary / `say` lines); mini-exam → mark kit "complete" on hub; optional Bare Basics hub "X of 7" indicator._
 **Currently working:** _GR-G epic Guided Path now LIVE on all six code-drill kits (Excel, Python, Tableau, SQL, Stats, Power BI), each with full drill coverage (every drill linked to the first lesson it applies to). Interview kit deferred — its rate-the-answer / multiple-choice structure needs its own design (Mike's call, June 2). Also shipped: Tableau tap-the-word fills + persistent Quick Check feedback (v1.11.0)._
 

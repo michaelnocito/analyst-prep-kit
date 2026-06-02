@@ -9,6 +9,30 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.20.0] — 2026-06-02 — Hub follow-ons: mini-exam badge + Bare Basics progress
+
+Two hub (root `index.html`) features Mike greenlit (June 2, 2026 — 11:56 PM ET):
+
+- **Mini-exam score on each kit card.** The Final Exam now persists per-section
+  scores (`apk-final.sectionScores`); the hub reads them and shows a badge on
+  each kit card — **"✓ Exam 4/4"** (green) once a subject's mini-exam is passed
+  (≥75%), or **"📝 Exam 2/4"** (grey) if taken but not yet passed.
+- **Bare Basics cross-kit progress.** The hub's Bare Basics card shows
+  **"🔖 Bare basics: X of 6 subjects complete"** — computed by checking each
+  lesson kit's core (must-know) lessons against its saved progress. Hidden until
+  at least one subject's basics are done.
+
+Also (GR-D extended, **proof slice**): added tasteful parenthetical analogies to
+4 Excel quiz explanations (e.g. "A number stored as text is a price tag written
+in crayon — looks right, won't scan"). Pending Mike's read on whether to roll the
+quiz/glossary analogy treatment across all kits — recommendation is to keep it
+sparing (intros already carry the analogy load; over-applying risks repetition).
+
+Verified: headless parse of hub + final; live check with injected state — SQL
+card showed "✓ Exam 4/4", Excel "📝 Exam 2/4", basics pill "1 of 6 subjects".
+
+---
+
 ## [1.19.0] — 2026-06-02 — Per-kit mini exam + Excel/Python nav overflow fix
 
 Closing out the active backlog (June 2, 2026 — 11:44 PM ET):
