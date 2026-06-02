@@ -1036,17 +1036,79 @@ function finishLesson(id){
   } else {
     primaryBtn=`<button class="btn" onclick="renderLessonList()">All Lessons</button>`;
   }
+  const drillCount=(LESSON_DRILLS[id]||[]).length;
   document.getElementById('view-lessons').innerHTML=`
-    <div class="card" style="text-align:center;padding:32px 24px">
+    <div class="card" style="text-align:center;padding:32px 24px;border-color:var(--accent)">
       <div style="font-size:36px;margin-bottom:10px">&#x2713;</div>
       <h2 style="margin-bottom:8px">Lesson ${id} complete</h2>
-      <p style="color:var(--txt2);margin-bottom:20px">Keep the momentum going.</p>
+      <p style="color:var(--txt2);margin-bottom:20px">${drillCount?`Now lock it in — practice this lesson's drills before moving on (${drillCount} quick exercises).`:'Keep the momentum going.'}</p>
       <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">
+        ${drillCount?`<button class="btn" style="background:var(--accent);color:#fff" onclick="startGuided(${id})">Practice this →</button>`:''}
         ${primaryBtn}
         <button class="btn btn-sm" style="opacity:.7" onclick="renderLessonList()">All Lessons</button>
       </div>
     </div>`;
 }
+
+// ─── GUIDED PATH (lesson → its drills → next lesson) ────────────────────────
+// Every drill linked to the FIRST lesson it applies to. L5 (Probability Basics)
+// has no matching drills, so the guided flow advances straight past it.
+const LESSON_DRILLS = {
+  1:  [['fills',0],['fills',1],['fills',2],['bugs',0],['bugs',1],['esql',0],['esql',11]],
+  2:  [['fills',3],['bugs',7],['wrong',1],['parsons',0],['esql',1]],
+  3:  [['fills',4],['bugs',2],['bugs',11],['wrong',9],['parsons',2],['parsons',10],['esql',2],['esql',3]],
+  4:  [['wrong',0],['parsons',8],['esql',6],['esql',9]],
+  5:  [],
+  6:  [['fills',5],['fills',6],['bugs',3],['wrong',2],['wrong',5],['parsons',4],['parsons',7],['esql',5]],
+  7:  [['bugs',9],['wrong',6],['wrong',10],['parsons',11]],
+  8:  [['fills',7],['bugs',4],['wrong',3],['parsons',9],['esql',4]],
+  9:  [['fills',8],['bugs',8],['wrong',4],['parsons',3],['esql',7]],
+  10: [['fills',9],['bugs',6],['wrong',8],['parsons',5]],
+  11: [['fills',10],['wrong',11],['parsons',1]],
+  12: [['fills',11],['bugs',5],['bugs',10],['wrong',7],['parsons',6],['esql',8],['esql',10]]
+};
+let guided=null;
+function activateView(id){
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>{if(v.id!==id)v.classList.remove('active');});
+}
+function startGuided(lessonId){
+  const seq=(LESSON_DRILLS[lessonId]||[]).filter(s=>{ const dt=DRILL_TYPES.find(d=>d.key===s[0]); return dt&&DATA[dt.data]&&DATA[dt.data][s[1]]; });
+  if(!seq.length){ gotoNextLesson(lessonId); return; }
+  guided={lessonId,seq,pos:0};
+  activateView('view-practice');
+  renderGuidedStep();
+}
+function renderGuidedStep(){
+  if(!guided)return;
+  const {seq,pos,lessonId}=guided; const step=seq[pos];
+  const lesson=DATA.LESSONS.find(l=>l.id===lessonId); const isLast=pos===seq.length-1;
+  const dt=DRILL_TYPES.find(d=>d.key===step[0]); const idx=step[1]; const item=DATA[dt.data][idx];
+  drillState={type:step[0],idx,parsPlaced:[],parsBank:[]};
+  const done=S.done[`${step[0]}${idx}`];
+  const dots=seq.map((_,i)=>`<span style="width:22px;height:6px;border-radius:3px;display:inline-block;background:${i<=pos?'var(--accent)':'var(--surf2)'};opacity:${i<=pos?1:.4}"></span>`).join(' ');
+  const header=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <button class="btn btn-sm" onclick="openLesson(${lessonId})">← Back to lesson</button>
+      <span style="color:var(--txt2);font-size:.85rem">Practice ${pos+1}/${seq.length} · ${lesson.title}</span>
+    </div>
+    <div style="margin-bottom:16px">${dots}</div>`;
+  let body='';
+  if(step[0]==='fills')body=renderFill(item,done);
+  else if(step[0]==='bugs')body=renderBug(item,done);
+  else if(step[0]==='wrong')body=renderWrong(item,done);
+  else if(step[0]==='parsons')body=renderParsons(item,done);
+  else if(step[0]==='esql')body=renderEsql(item,done);
+  const nav=`<div style="display:flex;justify-content:space-between;gap:10px;margin-top:16px">
+      <button class="btn btn-sm" onclick="${pos>0?'guidedPrev()':'openLesson('+lessonId+')'}">${pos>0?'← Back':'← Lesson'}</button>
+      <button class="btn" style="background:var(--accent);color:#fff" onclick="guidedNext()">${isLast?'Finish — next lesson →':'Next drill →'}</button>
+    </div>`;
+  document.getElementById('view-practice').innerHTML=header+body+nav;
+  if(step[0]==='parsons'&&!done)initParsons(item);
+  window.scrollTo(0,0);
+}
+function guidedNext(){ if(!guided)return; if(guided.pos<guided.seq.length-1){guided.pos++;renderGuidedStep();} else {const lid=guided.lessonId;guided=null;gotoNextLesson(lid);} }
+function guidedPrev(){ if(guided&&guided.pos>0){guided.pos--;renderGuidedStep();} }
+function gotoNextLesson(lid){ if(lid<DATA.LESSONS.length){openLesson(lid+1);} else {activateView('view-home');renderHome();celebrate(true,'🎉 You finished every Stats lesson!');} }
 
 /* ── DRILLS ── */
 const DRILL_TYPES=[

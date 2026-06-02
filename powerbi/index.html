@@ -858,6 +858,7 @@ function resetLesson(id){
 // ─── NAV ───────────────────────────────────────────────────────────────────
 let currentView = 'home';
 function navigate(view, ...args){
+  guided = null; // any normal navigation exits the guided practice flow
   currentView = view;
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const map = {home:0,lessons:1,practice:2,lab:3,cards:4,glossary:5};
@@ -1048,10 +1049,73 @@ function finishLesson(id){
   markDone('doneLessons', id);
   const next = DATA.LESSONS.find(l => !state.doneLessons.includes(l.id));
   const qw = document.getElementById('quiz-wrap');
-  if(qw) qw.innerHTML += `<div class="mt row">
-    ${next ? `<button class="btn btn-primary" onclick="navigate('lesson',${next.id})">Next: ${next.title} →</button>` : '<button class="btn btn-primary" onclick="navigate(\'practice\')">Start Practice →</button>'}
-    <button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">All Lessons</button>
-  </div>`;
+  if(qw){
+    const dc = (LESSON_DRILLS[id] || []).length;
+    const practiceBtn = dc ? `<button class="btn btn-primary" onclick="startGuided(${id})">Practice this →</button>` : '';
+    const nextCls = dc ? 'btn-ghost btn-sm' : 'btn-primary';
+    const nextBtn = next ? `<button class="btn ${nextCls}" onclick="navigate('lesson',${next.id})">Next: ${next.title} →</button>` : `<button class="btn ${nextCls}" onclick="navigate('practice')">Start Practice →</button>`;
+    qw.innerHTML += `<div class="mt row" style="gap:10px;flex-wrap:wrap">${practiceBtn}${nextBtn}<button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">All Lessons</button></div>`;
+  }
+}
+
+// ─── GUIDED PATH (lesson → its drills → next lesson) ────────────────────────
+// Every drill linked to the FIRST lesson it applies to — all 36 (FILLS/BUGS/
+// PARSONS ×12) appear exactly once. Concept lessons (1/3/11/12) have no DAX
+// drills, so the guided flow advances straight past them.
+const LESSON_DRILLS = {
+  1:  [],
+  2:  [['parsons',8]],
+  3:  [],
+  4:  [['bugs',11]],
+  5:  [['fills',8],['fills',11],['bugs',0],['bugs',2],['bugs',4],['bugs',7]],
+  6:  [['fills',0],['fills',1],['fills',2],['fills',6],['fills',7],['fills',10],['bugs',1],['bugs',6],['parsons',0],['parsons',2],['parsons',5],['parsons',10]],
+  7:  [['fills',3],['fills',9],['bugs',5],['bugs',9],['parsons',1],['parsons',7]],
+  8:  [['fills',4],['fills',5],['bugs',3],['bugs',8],['bugs',10],['parsons',3],['parsons',4],['parsons',6]],
+  9:  [['parsons',9]],
+  10: [['parsons',11]],
+  11: [],
+  12: []
+};
+let guided = null;
+function startGuided(lessonId){
+  const M = {fills:'FILLS', bugs:'BUGS', parsons:'PARSONS'};
+  const seq = (LESSON_DRILLS[lessonId] || []).filter(s => M[s[0]] && DATA[M[s[0]]] && DATA[M[s[0]]][s[1]]);
+  if(!seq.length){ gotoNextLesson(lessonId); return; }
+  guided = {lessonId, seq, pos:0};
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const pb = document.querySelectorAll('.nav-btn')[2]; if(pb) pb.classList.add('active');
+  renderGuidedStep();
+}
+function renderGuidedStep(){
+  if(!guided) return;
+  const step = guided.seq[guided.pos];
+  if(step[0]==='fills') renderFill(step[1]);
+  else if(step[0]==='bugs') renderBug(step[1]);
+  else if(step[0]==='parsons') renderParsons(step[1]);
+  injectGuidedHeader();
+}
+function injectGuidedHeader(){
+  if(!guided) return;
+  const main = document.getElementById('main');
+  const row = main.querySelector('.row.mb');
+  if(!row) return;
+  const {seq, pos, lessonId} = guided;
+  const lesson = DATA.LESSONS.find(l => l.id === lessonId);
+  row.innerHTML = `<button class="btn btn-ghost btn-sm" onclick="navigate('lesson',${lessonId})">← Back to lesson</button><span class="text-muted text-sm" style="margin-left:auto">Practice ${pos+1}/${seq.length} · ${lesson.title}</span>`;
+  const dots = document.createElement('div');
+  dots.style.cssText = 'display:flex;gap:4px;align-items:center;margin:0 0 14px';
+  dots.innerHTML = seq.map((_,i) => `<span style="width:20px;height:6px;border-radius:3px;background:${i<=pos?'var(--accent)':'rgba(127,127,127,.28)'};opacity:${i<=pos?1:.5}"></span>`).join('') + `<button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="guidedNext()">Skip →</button>`;
+  row.after(dots);
+}
+function guidedNext(){
+  if(!guided) return;
+  if(guided.pos < guided.seq.length-1){ guided.pos++; renderGuidedStep(); }
+  else { gotoNextLesson(guided.lessonId); }
+}
+function gotoNextLesson(lid){
+  guided = null;
+  if(lid < DATA.LESSONS.length) navigate('lesson', lid+1);
+  else { navigate('home'); showToast('🎉 You finished every Power BI lesson!'); }
 }
 
 // ─── PRACTICE ──────────────────────────────────────────────────────────────
@@ -1119,7 +1183,7 @@ function checkFill(idx){
     res.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Correct!</span>`;
     celebrate();
     markDone('doneFills', f.id);
-    setTimeout(() => { if(idx+1 < DATA.FILLS.length) navigate('fill', idx+1); else navigate('practice'); }, 1000);
+    setTimeout(() => { if(guided) guidedNext(); else if(idx+1 < DATA.FILLS.length) navigate('fill', idx+1); else navigate('practice'); }, 1000);
   } else {
     res.innerHTML = `<span style="color:var(--red)">✗ Try again. Answer: <code style="font-family:var(--mono)">${f.ans}</code></span>`;
   }
@@ -1158,9 +1222,11 @@ function revealFix(idx){
   document.getElementById('bug-fix').classList.add('show');
   celebrate();
   markDone('doneBugs', b.id);
-  document.getElementById('bug-next').innerHTML = idx+1 < DATA.BUGS.length
-    ? `<button class="btn btn-primary btn-sm" onclick="navigate('bug',${idx+1})">Next Bug →</button>`
-    : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">All Done →</button>`;
+  document.getElementById('bug-next').innerHTML = guided
+    ? `<button class="btn btn-primary btn-sm" onclick="guidedNext()">Next →</button>`
+    : idx+1 < DATA.BUGS.length
+      ? `<button class="btn btn-primary btn-sm" onclick="navigate('bug',${idx+1})">Next Bug →</button>`
+      : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">All Done →</button>`;
 }
 
 // ─── PARSONS DRILL ─────────────────────────────────────────────────────────
@@ -1222,7 +1288,7 @@ function checkParsons(idx){
     document.getElementById('parsons-result').innerHTML = `<span style="color:var(--green);font-weight:600">✓ Correct order!</span>`;
     celebrate();
     markDone('doneParsons', p.id);
-    setTimeout(() => { if(idx+1 < DATA.PARSONS.length) navigate('parsons', idx+1); else navigate('practice'); }, 1200);
+    setTimeout(() => { if(guided) guidedNext(); else if(idx+1 < DATA.PARSONS.length) navigate('parsons', idx+1); else navigate('practice'); }, 1200);
   } else {
     document.getElementById('parsons-result').innerHTML = `<span style="color:var(--red)">✗ Not quite — try reordering.</span>`;
   }

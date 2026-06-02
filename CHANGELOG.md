@@ -9,6 +9,34 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.13.0] — 2026-06-02 — Guided Path built on SQL, Stats & Power BI
+
+The Guided Path (finish a lesson → practice that lesson's own drills → next
+lesson) now exists on **SQL, Stats, and Power BI** — previously only Excel,
+Python, and Tableau had it. Each lesson-complete screen leads with a
+**"Practice this →"** button that walks the drills tied to that lesson, with a
+progress dot bar, a "← Back to lesson" exit, and a "Skip →" per step; finishing
+the last drill rolls into the next lesson (added June 2, 2026 — 7:59 PM ET).
+
+- **Every drill is linked to the first lesson it applies to** — full coverage,
+  each drill walked exactly once:
+  - SQL — all 36 (FILLS/BUGS/PARSONS ×12).
+  - Power BI — all 36 (FILLS/BUGS/PARSONS ×12); concept lessons 1/3/11/12 have
+    no DAX drills, so the flow advances past them.
+  - Stats — all 60 (FILLS/BUGS/WRONG/PARSONS/ESQL ×12); L5 (Probability Basics)
+    has no matching drills and is skipped.
+- Stats reused the Tableau-style guided code (same render signatures). SQL and
+  Power BI use a flag-based guided mode layered over their existing
+  `navigate()`/`#main` drill renderers — normal Practice browsing is unchanged
+  (any top-nav click exits the guided flow).
+
+Verified headlessly: every inline script parses, and a coverage script confirms
+each drill index 0–11 of every array is linked exactly once. **Interview kit
+intentionally excluded** (its rate-the-answer / multiple-choice structure needs
+its own design — Mike's call). Mike playtests the three on the live URLs.
+
+---
+
 ## [1.12.0] — 2026-06-02 — Guided Path now links EVERY drill (Tableau, Excel, Python)
 
 Mike's note: in the Guided Path kits, every practice drill should be reachable
