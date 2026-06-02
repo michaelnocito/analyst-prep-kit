@@ -1250,9 +1250,13 @@ function renderBug(idx){
       <p class="text-muted text-sm">${b.prompt}</p>
       <div class="code-broken">${b.broken}</div>
       <div class="bug-issue">⚠️ ${b.issue}</div>
-      <div class="row mt">
-        <button class="btn btn-primary btn-sm" onclick="revealFix(${idx})">Reveal Fix</button>
+      <p class="text-muted text-sm" style="margin-top:12px">Try the fix yourself first:</p>
+      <textarea id="bug-input" spellcheck="false" placeholder="Type your corrected DAX…" style="width:100%;min-height:58px;background:var(--bg,#0f141b);border:1px solid var(--border,#28303c);border-radius:6px;padding:9px 11px;color:var(--text,#e6edf3);font-family:var(--mono);font-size:13px;outline:none;resize:vertical">${done?b.fix:''}</textarea>
+      <div class="row mt" style="gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="checkBugFix(${idx})">Check My Fix</button>
+        <button class="btn btn-ghost btn-sm" onclick="revealFix(${idx})">Reveal Fix</button>
       </div>
+      <div id="bug-result" class="mt"></div>
       <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button>
       <div class="hint-panel" id="drill-hint"></div>
       <div class="answer-panel" id="drill-answer"></div>
@@ -1261,16 +1265,43 @@ function renderBug(idx){
     </div>`;
 }
 
+// GR-E: let the user attempt the fix before revealing it.
+function _bugNorm(s){ return (s||'').toLowerCase().replace(/[`;]+/g,'').replace(/\s+/g,' ').trim(); }
+function _bugPass(input, fix){
+  const a=_bugNorm(input), b=_bugNorm(fix);
+  if(!a) return false;
+  if(a===b) return true;
+  const tok=s=>s.split(/[^a-z0-9_*().'"=<>!|&+/[\]-]+/).filter(Boolean);
+  const aset=new Set(tok(a)), bt=tok(b);
+  if(!bt.length) return false;
+  return bt.filter(t=>aset.has(t)).length / bt.length >= 0.8;
+}
+function _bugAdvance(idx){
+  return guided
+    ? `<button class="btn btn-primary btn-sm" onclick="guidedNext()">Next →</button>`
+    : idx+1 < DATA.BUGS.length
+      ? `<button class="btn btn-primary btn-sm" onclick="navigate('bug',${idx+1})">Next Bug →</button>`
+      : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">All Done →</button>`;
+}
+function checkBugFix(idx){
+  const b = DATA.BUGS[idx];
+  const res = document.getElementById('bug-result');
+  if(_bugPass(document.getElementById('bug-input').value, b.fix)){
+    res.innerHTML = `<span style="color:var(--green);font-weight:600">✓ That's the fix — nicely done.</span>`;
+    celebrate();
+    markDone('doneBugs', b.id);
+    document.getElementById('bug-fix').classList.add('show');
+    document.getElementById('bug-next').innerHTML = _bugAdvance(idx);
+  } else {
+    res.innerHTML = `<span style="color:var(--red)">Not quite — tweak it and try again, or Reveal Fix to compare.</span>`;
+  }
+}
 function revealFix(idx){
   const b = DATA.BUGS[idx];
   document.getElementById('bug-fix').classList.add('show');
   celebrate();
   markDone('doneBugs', b.id);
-  document.getElementById('bug-next').innerHTML = guided
-    ? `<button class="btn btn-primary btn-sm" onclick="guidedNext()">Next →</button>`
-    : idx+1 < DATA.BUGS.length
-      ? `<button class="btn btn-primary btn-sm" onclick="navigate('bug',${idx+1})">Next Bug →</button>`
-      : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">All Done →</button>`;
+  document.getElementById('bug-next').innerHTML = _bugAdvance(idx);
 }
 
 // ─── PARSONS DRILL ─────────────────────────────────────────────────────────
