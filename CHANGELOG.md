@@ -9,6 +9,36 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.18.0] — 2026-06-02 — GR-D: every lesson opens with a real-world analogy
+
+Mike's GR-D (and his own "VLOOKUP is like a phone book" rule): lead each lesson
+with a concrete non-tech analogy before the technical detail, so beginners get a
+mental hook first. Done across **all 6 lesson kits — 72 lessons** (June 2, 2026 —
+11:22 PM ET). Examples:
+
+- Excel: IF = "a bouncer at a door"; PivotTable = "a junk drawer sorted into bins";
+  dates = "a number wearing a costume"; IFERROR = "a safety net under a trapeze."
+- SQL: WHERE = "a guest list at the door"; LEFT JOIN = "taking class attendance";
+  CTE = "prepping ingredients before you cook"; window fn = "ranking runners
+  without pulling anyone off the track."
+- Python: DataFrame = "a spreadsheet that lives inside Python"; GroupBy =
+  "split-apply-combine of a bake sale"; merge = "a coat check."
+- Tableau: dashboard = "a car's dashboard"; Story = "a slideshow that's still
+  plugged in"; aggregation = "what a town's 'income' means."
+- Power BI: star schema = "a hub airport"; CALCULATE = "changing the channel
+  before you read the guide"; publish = "moving a doc to a shared drive."
+- Stats: spread = "two pools both '4 ft deep on average'"; hypothesis test = "a
+  courtroom"; A/B test = "a taste test with two cups"; CI = "a forecast's range."
+
+The analogy is the first sentence; the existing technical explanation follows
+unchanged. (Excel/SQL/Python/Tableau/Power BI lead the lesson `intro`; Stats has
+no intro field, so the lead goes on the first section body.) Verified: headless
+parse of all 6 kits + live check that the analogy renders first in both lesson
+structures. Remaining GR-D scope (quiz explanations, glossary, every `say` line)
+not yet swept — intros were the highest-leverage pass.
+
+---
+
 ## [1.17.0] — 2026-06-02 — Backlog sweep: GR-C, GR-E, GR-A (Mike: "go for all")
 
 Three High-priority roadmap items, shipped together at Mike's request and each

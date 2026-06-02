@@ -1,8 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.17.0` (shipped June 2, 2026 — awaiting test)
-**Last cycle closed:** June 2, 2026 — Backlog sweep GR-C / GR-E / GR-A (per-section Final Exam submit, Bug Hunt input on SQL+PBI, Bare Basics cross-kit handoff)
-**Remaining active items:** per-kit mini exams · GR-D analogy sweep · GR-G home-simplify + Excel-makeover (the last needs Mike's design eye). GR-G Guided Path core + "See it on screen" visuals (all 72 lessons) already shipped (v1.10–v1.16).
+**Current version:** `v1.18.0` (shipped June 2, 2026 — awaiting test)
+**Last cycle closed:** June 2, 2026 — GR-D: every lesson (72) now opens with a real-world analogy
+**Remaining active items:** per-kit mini exams · GR-G home-simplify + Excel-makeover (needs Mike's design eye) · GR-D follow-on (quiz explanations / glossary / `say` lines — intros done). Shipped recently: GR-C/E/A (v1.17.0), GR-D intros (v1.18.0), Guided Path + "See it on screen" visuals on all 72 lessons (v1.10–v1.16).
 **Currently working:** _GR-G epic Guided Path now LIVE on all six code-drill kits (Excel, Python, Tableau, SQL, Stats, Power BI), each with full drill coverage (every drill linked to the first lesson it applies to). Interview kit deferred — its rate-the-answer / multiple-choice structure needs its own design (Mike's call, June 2). Also shipped: Tableau tap-the-word fills + persistent Quick Check feedback (v1.11.0)._
 
 ---
@@ -160,7 +160,7 @@ engagement ROI that don't bloat the core experience. Batched into
 planned cycles._
 _Response time: next planned cycle._
 
-- **GR-D: Real-world non-tech analogies in every help/explanation** _(added May 27, 2026 — 8:00 PM ET)_
+- **GR-D: Real-world non-tech analogies in every help/explanation** _(added May 27, 2026 — 8:00 PM ET)_ — _PARTIALLY SHIPPED June 2, 2026 (v1.18.0): all 72 lesson intros/openers now lead with an analogy across all 6 kits. REMAINING: quiz explanations, glossary entries, `say` lines, and "Watch out"/"On the job" blocks._
   - _What:_ Every "intro" / "Think of it as" / "On the job" / "Watch out" / `say` / quiz-explanation / glossary block should anchor on a concrete real-world non-tech analogy, not just a clearer technical paraphrase. Example: instead of *"VLOOKUP pulls a value from another table by matching a key. Think of it as: find this ID in that list, then bring back the value from a specific column,"* something like *"VLOOKUP is like a phone book — you look up someone's name, and it brings back their phone number."*
   - _Why it's here:_ Direct serve of the product's pedagogy promise (plain language for beginners). High impact for the target audience. Mike asked for this across "all the help areas" — pattern applies across all kits.
   - _Approach:_ Slice by kit. Excel first (where Mike is testing). Each kit gets a content pass: rewrite intros and key explanations to lead with a real-world analogy. Keep the technical detail beneath, but the FIRST sentence in every helper block is the analogy.
