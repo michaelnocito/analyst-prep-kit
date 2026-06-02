@@ -9,6 +9,37 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.15.0] — 2026-06-02 — Lesson visuals rolled out to every kit ("See it on screen")
+
+Mike approved the prototype style and asked to roll it out across all kits, then
+headless-test, smoke-test, and check for UI friction. Done (June 2, 2026 — 9:54 PM
+ET). **57 lessons** now show what the concept/output actually looks like, each
+placed right where it anchors the mental model (after the explanation, before the
+gotcha/quick-check) — so the order still guides the learner:
+
+- **Tableau** (7 lessons) — shelf-config pills + the live Chart.js chart they
+  produce (bar/line/scatter, value-sorted where the lesson preaches sorting).
+- **SQL** (12) — the result table each query returns, with NULLs styled.
+- **Excel** (12) — a mini spreadsheet: fx formula bar + A/B/1-2-3 grid with the
+  result cell highlighted.
+- **Python** (12) — the code's real output: a console block and/or a dataframe
+  table with the pandas index.
+- **Stats** (7) — a Chart.js visual of the concept (outlier bar, spread
+  comparison, IQR, right-skew histogram, bell curve, correlation scatter, A/B bars).
+- **Power BI** (7) — a KPI card (DAX measure result) + proportional HTML bars.
+
+All driven by a reusable per-kit `viz` lesson field. Dependency-light: pure HTML
+where possible; Chart.js only in the two kits that already loaded it.
+
+**Verification:** headless parse of every kit's inline JS (all green) + a coverage
+script confirming each `viz` is wired. **Smoke-tested live** in a local browser —
+all six distinct renderers confirmed rendering (Tableau/Stats charts, SQL table,
+Excel grid, Python output, Power BI card+bars). **Friction check** caught + fixed a
+real bug: Stats opened the lesson view *after* rendering, so its Chart.js canvas
+drew at 0×0 (blank) — reordered so the view is visible before the chart draws.
+
+---
+
 ## [1.14.0] — 2026-06-02 — Lesson visuals: "See it on screen" (Tableau prototype)
 
 Mike's note: lessons describe a config (shelves, pills, mark type) and ask the
