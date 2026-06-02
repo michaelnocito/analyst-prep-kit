@@ -1,8 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.18.0` (shipped June 2, 2026 — awaiting test)
-**Last cycle closed:** June 2, 2026 — GR-D: every lesson (72) now opens with a real-world analogy
-**Remaining active items:** per-kit mini exams · GR-G home-simplify + Excel-makeover (needs Mike's design eye) · GR-D follow-on (quiz explanations / glossary / `say` lines — intros done). Shipped recently: GR-C/E/A (v1.17.0), GR-D intros (v1.18.0), Guided Path + "See it on screen" visuals on all 72 lessons (v1.10–v1.16).
+**Current version:** `v1.19.0` (shipped June 2, 2026 — awaiting test)
+**Last cycle closed:** June 2, 2026 — Per-kit mini exam (Exam nav entry → Final Exam section) + Excel/Python nav overflow fix
+**Active buckets are now CLEAR** (parking lot excluded). Recently shipped: per-kit mini exam + GR-G home/Excel resolved (v1.19.0), GR-D analogy intros (v1.18.0), GR-C/E/A (v1.17.0), Guided Path + "See it on screen" visuals on all 72 lessons (v1.10–v1.16). _Follow-ons noted: GR-D sweep beyond intros (quiz explanations / glossary / `say` lines); mini-exam → mark kit "complete" on hub; optional Bare Basics hub "X of 7" indicator._
 **Currently working:** _GR-G epic Guided Path now LIVE on all six code-drill kits (Excel, Python, Tableau, SQL, Stats, Power BI), each with full drill coverage (every drill linked to the first lesson it applies to). Interview kit deferred — its rate-the-answer / multiple-choice structure needs its own design (Mike's call, June 2). Also shipped: Tableau tap-the-word fills + persistent Quick Check feedback (v1.11.0)._
 
 ---
@@ -171,7 +171,7 @@ _(GR-A shipped June 2, 2026 — Bare Basics cross-kit handoff CTA across all 6 l
 
 _(SIOL rollout shipped May 28, 2026 — see CHANGELOG v1.3.0. Tableau and Stats use a sections-based render rather than the RAL chunk pattern; deferred — see new Parking Lot entry.)_
 
-- **Per-kit mini exam at the end of each subject** _(added May 27, 2026 — 4:05 PM ET)_
+- **Per-kit mini exam at the end of each subject** _(added May 27, 2026 — 4:05 PM ET)_ — _SHIPPED June 2, 2026 (v1.19.0) via the reuse path: each kit's nav has an "📝 Exam" entry that deep-links to its Final Exam section (per-section submit from GR-C), no content duplication. REMAINING follow-on: mark the kit "complete" on the hub when passed._
   - _What:_ Each tool kit (Excel/SQL/Python/Tableau/Stats/Power BI/Interview) gets its own short closing exam — ~6–8 questions, the same MC + fill-in pattern as the Final Exam Kit. Lives as a new tab inside each kit (e.g. "Exam") so the user finishes a kit with a clear win condition. Reuses and extends the question pool already in `final/index.html`.
   - _Why it's here:_ User explicitly asked for this and suggested parking lot, but I'm promoting to Medium. Reasoning: it directly serves Vision #2 (after each mini exam, "what's next" is unambiguously the next kit) and reuses an existing pattern with minimal new structure. The Final Exam stays as the cross-subject capstone. Doesn't add UI clutter — slots into the existing kit tab bar.
   - _Definition of Done:_ Every tool kit has an "Exam" entry in its nav; passing the mini exam visibly marks the kit "complete" on the hub (ties to the High items above); failing points back to weak lessons. The Final Exam Kit's per-subject question pool is the source of truth — no content duplication.

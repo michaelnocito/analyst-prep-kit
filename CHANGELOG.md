@@ -9,6 +9,33 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.19.0] — 2026-06-02 — Per-kit mini exam + Excel/Python nav overflow fix
+
+Closing out the active backlog (June 2, 2026 — 11:44 PM ET):
+
+- **Per-kit mini exam.** Every lesson kit (Excel, SQL, Python, Tableau, Stats,
+  Power BI) gets a **"📝 Exam"** entry in its nav that deep-links to that
+  subject's section of the Final Exam (`final/#exam-<subject>` — new hash route
+  that opens the exam and scrolls to the section). The learner answers that
+  subject's questions and submits just that section (reusing the GR-C per-section
+  logic), getting an immediate score. **No content duplication** — the Final
+  Exam's question pool stays the single source of truth. _(Deferred: marking the
+  kit "complete" on the hub when the mini exam is passed — that's cross-kit hub
+  state for a later cycle.)_
+- **GR-G — home/Excel makeover:** investigated. Excel's home is already
+  hero-led and modern (leads with the resume/Continue card, Pivot Lab prominent,
+  no 3-tile grid), so no redesign was warranted. The one real defect was a
+  **horizontal-scroll bug**: Excel's and Python's nav bars had `flex-wrap:nowrap`,
+  so on narrower windows the buttons pushed the page ~190px wide and created a
+  sideways scrollbar. Fixed (added `flex-wrap:wrap` + `min-height`); the other 5
+  kits already wrapped. Mike confirmed the home is otherwise fine as-is.
+
+With this, every active roadmap bucket is clear (parking lot excluded). Verified:
+headless parse of all touched kits + live check that the Exam deep-link opens the
+right Final Exam section with its submit button.
+
+---
+
 ## [1.18.0] — 2026-06-02 — GR-D: every lesson opens with a real-world analogy
 
 Mike's GR-D (and his own "VLOOKUP is like a phone book" rule): lead each lesson
