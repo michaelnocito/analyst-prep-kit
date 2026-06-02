@@ -9,6 +9,30 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.12.0] — 2026-06-02 — Guided Path now links EVERY drill (Tableau, Excel, Python)
+
+Mike's note: in the Guided Path kits, every practice drill should be reachable
+from the first lesson it applies to — but the `LESSON_DRILLS` maps had gaps, so
+some drills were orphaned (never walked by the guided flow). Rebuilt the maps for
+**full coverage** (verified June 2, 2026 — 7:46 PM ET):
+
+- **Tableau** — was leaving 7 drills unlinked (fills4, esql2/4/8, bugs11,
+  parsons6/11). Now all 60 (FILLS/ESQL/PARSONS/BUGS/WRONG ×12) appear exactly once.
+- **Excel** — added the 6 orphaned drills (AVERAGE-range bug → L1; COUNTIF/COUNTIFS
+  fill/what's-wrong/Parsons → L5; LEFT Parsons + TRIM describe→Excel → L10) and
+  de-duplicated the SUMIF "what's wrong" that was double-linked. Pivot Lab pseudo-
+  steps for the concept lessons (6/7/8) preserved. All 60 covered once.
+- **Python** — added the one orphan (export-to-CSV Parsons → L12). All 60 covered.
+
+Each drill assigned to the FIRST lesson whose topic it matches. Verified by a
+coverage script (every index 0–11 of every drill array linked exactly once, no
+dupes, no out-of-bounds) and a JS parse check on all three files.
+
+Still to roll out (separate cycle): the Guided Path itself is **not yet present**
+on SQL, Stats, Power BI, or Interview.
+
+---
+
 ## [1.11.0] — 2026-06-02 — Tableau: tap-the-word fills + feedback that persists
 
 Two Tableau-kit fixes (reported June 2, 2026 — 7:36 PM ET):
