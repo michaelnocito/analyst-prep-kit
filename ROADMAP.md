@@ -1,8 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.4.1` (shipped May 28, 2026 — awaiting test)
-**Last cycle closed:** May 28, 2026 — Pedagogy fixes (SQL/Power BI/Python)
-**Currently working:** _GR-G epic — "Guided Path" redesign, prototyping on Excel first (June 1, 2026). Test queue v1.2.3 / v1.3.0 / v1.4.1 paused; v1.4.0 likely superseded by GR-G's Bare Basics tone-down._
+**Current version:** `v1.13.0` (shipped June 2, 2026 — awaiting test)
+**Last cycle closed:** June 2, 2026 — Guided Path rollout complete on all code-drill kits
+**Currently working:** _GR-G epic Guided Path now LIVE on all six code-drill kits (Excel, Python, Tableau, SQL, Stats, Power BI), each with full drill coverage (every drill linked to the first lesson it applies to). Interview kit deferred — its rate-the-answer / multiple-choice structure needs its own design (Mike's call, June 2). Also shipped: Tableau tap-the-word fills + persistent Quick Check feedback (v1.11.0)._
 
 ---
 
