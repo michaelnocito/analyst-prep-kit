@@ -28,6 +28,11 @@ a{color:var(--accent);text-decoration:none}
 nav{background:var(--surf);border-bottom:1px solid var(--border);padding:0 18px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;position:sticky;top:0;z-index:100;height:56px}
 .nav-brand{font-weight:700;font-size:14px;color:var(--text);padding:0 10px 0 0;margin-right:6px;border-right:1px solid var(--border);white-space:nowrap;display:inline-flex;align-items:center;gap:9px}
 .nav-brand::before{content:"▦";color:var(--accent);background:var(--surf2);width:30px;height:30px;display:inline-grid;place-items:center;border-radius:9px;font-size:17px}
+.ws-spot{cursor:pointer;transition:background .15s,outline .15s}
+.ws-spot:hover{outline:2px solid var(--accent);outline-offset:-2px}
+.ws-spot.lit{outline:2px solid var(--accent);outline-offset:-2px;background:rgba(47,109,240,.16)!important}
+.ws-spot.good{outline:2px solid #2e9e6b;outline-offset:-2px;background:rgba(46,158,107,.20)!important}
+.ws-spot.bad{outline:2px solid #c0392b;outline-offset:-2px;background:rgba(192,57,43,.18)!important}
 .nav-btn{background:none;border:none;color:var(--muted);font:inherit;font-size:13px;padding:14px 10px;cursor:pointer;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap}
 .nav-btn:hover{color:var(--text)}
 .nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
@@ -297,6 +302,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
   <button class="nav-btn" onclick="navigate('lab')">DAX Lab</button>
   <button class="nav-btn" onclick="navigate('cards')">Cards</button>
   <button class="nav-btn" onclick="navigate('glossary')">Glossary</button>
+  <button class="nav-btn" onclick="navigate('workspace')">🧭 Workspace</button>
   <a class="nav-btn" href="../final/#exam-powerbi" style="text-decoration:none" title="Test yourself on Power BI — the Final Exam's Power BI section">📝 Exam</a>
   <span class="nav-spacer"></span>
   <button class="nav-btn nav-icon" onclick="navigate('settings')" title="Settings">⚙️</button>
@@ -894,7 +900,7 @@ function navigate(view, ...args){
   guided = null; // any normal navigation exits the guided practice flow
   currentView = view;
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const map = {home:0,lessons:1,practice:2,lab:3,cards:4,glossary:5};
+  const map = {home:0,lessons:1,practice:2,lab:3,cards:4,glossary:5,workspace:6};
   const btns = document.querySelectorAll('.nav-btn');
   if(map[view] !== undefined) btns[map[view]].classList.add('active');
   document.getElementById('main').innerHTML = '';
@@ -903,6 +909,7 @@ function navigate(view, ...args){
   else if(view==='lessons') renderLessons();
   else if(view==='lesson') renderLesson(args[0]);
   else if(view==='practice') renderPractice();
+  else if(view==='workspace') renderWorkspace();
   else if(view==='fill') renderFill(args[0]);
   else if(view==='bug') renderBug(args[0]);
   else if(view==='parsons') renderParsons(args[0]);
@@ -910,6 +917,93 @@ function navigate(view, ...args){
   else if(view==='cards') renderCards();
   else if(view==='glossary') renderGlossary();
   else if(view==='settings') renderSettings();
+}
+
+/* ── WORKSPACE (Know Your Workspace: tour + find-it hotspots) ── */
+const WORKSPACE={
+  parts:[
+    {key:'fields',name:'Fields pane',desc:'Your tables and columns. Check a box or drag a field onto a visual to use it.'},
+    {key:'visuals',name:'Visualizations pane',desc:'Pick the chart type here — bar, line, pie, card, map, and more.'},
+    {key:'wells',name:'Field wells (Axis / Values / Legend)',desc:'Drop fields into these wells to build the selected visual — Axis = categories, Values = numbers, Legend = color split.'},
+    {key:'canvas',name:'Report canvas',desc:'Where your visuals live. Arrange and resize them on the page here.'},
+    {key:'filters',name:'Filters pane',desc:'Narrow what the visuals show — at the visual, the page, or the whole-report level.'}
+  ],
+  quiz:[
+    {prompt:'Where do you pick the chart type (bar, line, pie)?',spot:'visuals'},
+    {prompt:'Where do your tables and columns live?',spot:'fields'},
+    {prompt:"Where do you drop a field to set a visual's Axis or Values?",spot:'wells'},
+    {prompt:'Where do your visuals actually appear?',spot:'canvas'},
+    {prompt:'Where do you narrow what the whole report shows?',spot:'filters'}
+  ]
+};
+let wsState={mode:'tour',qIdx:0,qOrder:null,visited:[]};
+function wsSpot(key,inner,style){return `<div class="ws-spot" data-spot="${key}" onclick="wsClick('${key}')" style="${style}">${inner}</div>`;}
+function wsMockHTML(){
+  return `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:11px;display:flex;min-height:230px">
+    ${wsSpot('filters',`<div style="font-weight:700">Filters</div><div style="color:var(--dim);margin-top:6px">Region is West</div><div style="color:var(--dim)">Year = 2024</div>`,'width:92px;padding:9px;border-right:1px solid var(--border);background:var(--surf2)')}
+    ${wsSpot('canvas',`🖼️ Report canvas — your visuals go here`,'flex:1;padding:26px 10px;text-align:center;color:var(--dim);display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border)')}
+    <div style="width:122px;display:flex;flex-direction:column;border-right:1px solid var(--border)">
+      ${wsSpot('visuals',`<div style="font-weight:700">Visualizations</div><div style="margin-top:6px;color:var(--dim)">📊 📈 🥧 🔢</div>`,'padding:9px;border-bottom:1px solid var(--border);background:var(--surf2)')}
+      ${wsSpot('wells',`<div style="color:var(--dim);text-transform:uppercase;letter-spacing:.04em;font-size:10px;margin-bottom:4px">Build</div><div style="color:var(--dim)">Axis</div><div style="color:var(--dim)">Values</div><div style="color:var(--dim)">Legend</div>`,'flex:1;padding:9px;background:var(--surf2)')}
+    </div>
+    ${wsSpot('fields',`<div style="font-weight:700">Fields</div><div style="color:var(--dim);margin-top:6px">▸ Sales</div><div style="color:var(--dim)">▸ Customers</div><div style="color:var(--dim)">▸ Date</div>`,'width:100px;padding:9px;background:var(--surf2)')}
+  </div>`;
+}
+function renderWorkspace(){
+  const main=document.getElementById('main');if(!main)return;
+  if(wsState.mode==='quiz'&&!wsState.qOrder)wsState.qOrder=_shuf(WORKSPACE.quiz.map((_,i)=>i));
+  const isTour=wsState.mode==='tour';
+  main.innerHTML=`
+    <h1>🧭 Know Your Workspace</h1>
+    <p style="margin-bottom:16px">Tap each part of the Power BI workspace to learn what it does — then switch to <strong>Find it</strong> and tap the right spot from memory.</p>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="btn" style="${isTour?'background:var(--accent);color:#fff':''}" onclick="wsSetMode('tour')">① Tour</button>
+      <button class="btn" style="${!isTour?'background:var(--accent);color:#fff':''}" onclick="wsSetMode('quiz')">② Find it</button>
+    </div>
+    ${wsMockHTML()}
+    <div id="wsPanel" style="margin-top:14px"></div>`;
+  if(isTour)wsTourPanel();else wsQuizPanel();
+}
+function wsSetMode(m){wsState.mode=m;wsState.qIdx=0;if(m==='quiz')wsState.qOrder=_shuf(WORKSPACE.quiz.map((_,i)=>i));renderWorkspace();}
+function wsClearSpots(){document.querySelectorAll('#main .ws-spot').forEach(s=>s.classList.remove('lit','good','bad'));}
+function wsTourPanel(){
+  document.getElementById('wsPanel').innerHTML=`<div class="card" style="background:var(--surf2)"><p>👆 Tap any part of the workspace above to see what it does.</p><p style="margin-top:8px;color:var(--dim);font-size:.85rem">Explored ${wsState.visited.length}/${WORKSPACE.parts.length}</p></div>`;
+}
+function wsQuizPanel(){
+  const i=wsState.qIdx;const q=WORKSPACE.quiz[wsState.qOrder[i]];
+  const dots=wsState.qOrder.map((_,k)=>`<span style="width:20px;height:6px;border-radius:3px;display:inline-block;background:${k<=i?'var(--accent)':'var(--surf2)'};opacity:${k<=i?1:.4}"></span>`).join(' ');
+  document.getElementById('wsPanel').innerHTML=`<div class="card"><div style="margin-bottom:10px">${dots}</div><p style="font-weight:600">${q.prompt}</p><p style="color:var(--dim);font-size:.85rem;margin-top:6px">Tap the spot on the workspace above.</p><div id="wsQfb" style="margin-top:10px"></div></div>`;
+}
+function wsClick(key){
+  if(wsState.mode==='tour'){
+    wsClearSpots();
+    const el=document.querySelector(`#main .ws-spot[data-spot="${key}"]`);if(el)el.classList.add('lit');
+    const p=WORKSPACE.parts.find(x=>x.key===key);
+    if(!wsState.visited.includes(key))wsState.visited.push(key);
+    const done=wsState.visited.length===WORKSPACE.parts.length;
+    document.getElementById('wsPanel').innerHTML=`<div class="card"><strong style="color:var(--accent)">${p.name}</strong><p style="margin-top:6px">${p.desc}</p><p style="margin-top:10px;color:var(--dim);font-size:.85rem">Explored ${wsState.visited.length}/${WORKSPACE.parts.length}${done?' — nice! Ready to test yourself?':''}</p>${done?`<button class="btn" style="margin-top:8px;background:var(--accent);color:#fff" onclick="wsSetMode('quiz')">② Find it →</button>`:''}</div>`;
+    return;
+  }
+  const q=WORKSPACE.quiz[wsState.qOrder[wsState.qIdx]];
+  const el=document.querySelector(`#main .ws-spot[data-spot="${key}"]`);
+  const fb=document.getElementById('wsQfb');
+  if(key===q.spot){
+    if(el)el.classList.add('good');
+    celebrate();
+    const last=wsState.qIdx>=WORKSPACE.quiz.length-1;
+    fb.innerHTML=`<span style="color:var(--accent)">✓ Yes — that's the ${WORKSPACE.parts.find(p=>p.key===key).name}.</span> <button class="btn" style="margin-left:8px;background:var(--accent);color:#fff" onclick="wsNextQ()">${last?'Finish 🎉':'Next →'}</button>`;
+  } else {
+    if(el){el.classList.add('bad');setTimeout(()=>{if(el)el.classList.remove('bad');},900);}
+    if(fb)fb.innerHTML=`<span style="color:#e74c3c">Not there — try again.</span>`;
+  }
+}
+function wsNextQ(){
+  if(wsState.qIdx>=WORKSPACE.quiz.length-1){
+    wsClearSpots();
+    document.getElementById('wsPanel').innerHTML=`<div class="card" style="text-align:center;border-color:var(--accent)"><div style="font-size:1.6rem">🎉</div><strong>You know the workspace!</strong><p style="margin-top:6px">You found all ${WORKSPACE.quiz.length} spots.</p><div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="wsSetMode('quiz')">Try again</button><button class="btn" onclick="navigate('lessons')">Start the lessons →</button></div></div>`;
+    celebrate();return;
+  }
+  wsState.qIdx++;wsClearSpots();wsQuizPanel();
 }
 
 function toggleTheme(){
@@ -1049,6 +1143,7 @@ function renderLesson(id){
       </div>
     </div>
     ${l.viz?lessonPbiHTML(l.viz):''}
+    ${(l.title&&l.title.toLowerCase().includes('interface'))?`<button class="btn" style="margin:0 0 16px;background:var(--accent);color:#fff" onclick="navigate('workspace')">🧭 New here? Tour the workspace interactively →</button>`:''}
     <div class="card">
       <h3>💡 Gotcha</h3>
       <p style="margin:0">${l.notes}</p>

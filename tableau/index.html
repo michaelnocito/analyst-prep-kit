@@ -30,6 +30,11 @@ nav{background:var(--surf);border-bottom:1px solid var(--border);padding:0 18px;
 .nav-btn{background:none;border:none;color:var(--dim);cursor:pointer;padding:14px 10px;font-size:13px;font-family:var(--font);border-bottom:2px solid transparent;transition:.15s;white-space:nowrap}
 .nav-btn:hover{color:var(--text)}
 .nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.ws-spot{cursor:pointer;transition:background .15s,outline .15s}
+.ws-spot:hover{outline:2px solid var(--accent);outline-offset:-2px}
+.ws-spot.lit{outline:2px solid var(--accent);outline-offset:-2px;background:rgba(88,170,162,.14)!important}
+.ws-spot.good{outline:2px solid #2e9e6b;outline-offset:-2px;background:rgba(46,158,107,.20)!important}
+.ws-spot.bad{outline:2px solid #c0392b;outline-offset:-2px;background:rgba(192,57,43,.18)!important}
 .nav-sep{width:1px;height:20px;background:var(--border);margin:0 4px}
 .spacer{flex:1}
 .theme-btn{background:none;border:1px solid var(--border);color:var(--dim);cursor:pointer;padding:4px 10px;border-radius:6px;font-size:13px;font-family:var(--font)}
@@ -298,6 +303,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
   <button class="nav-btn active" onclick="show('home')">Home</button>
   <button class="nav-btn" onclick="show('lessons')">Lessons</button>
   <button class="nav-btn" onclick="show('practice')">Practice</button>
+  <button class="nav-btn" onclick="show('workspace')">🧭 Workspace</button>
   <button class="nav-btn" onclick="show('vizbuilder')">Viz Builder</button>
   <button class="nav-btn" onclick="show('cards')">Cards</button>
   <button class="nav-btn" onclick="show('glossary')">Glossary</button>
@@ -396,6 +402,8 @@ Color: Category</div>
 
 <!-- DRILL DETAIL -->
 <div id="view-drill" class="view"><div id="drillContent"></div></div>
+
+<div id="view-workspace" class="view"></div>
 
 <!-- VIZ BUILDER -->
 <div id="view-vizbuilder" class="view">
@@ -1008,10 +1016,104 @@ function show(v){
   if(v==='home')renderHome();
   else if(v==='lessons')renderLessonList();
   else if(v==='practice')renderDrillList();
+  else if(v==='workspace')renderWorkspace();
   else if(v==='vizbuilder')renderVizBuilder();
   else if(v==='cards'){renderCards();}
   else if(v==='glossary')renderGlossary();
   window.scrollTo(0,0);
+}
+
+/* ── WORKSPACE (Know Your Workspace: tour + find-it hotspots) ── */
+const WORKSPACE={
+  parts:[
+    {key:'data',name:'Data pane',desc:'All your fields live here — blue Dimensions (categories) and green Measures (numbers). You drag from here onto the shelves.'},
+    {key:'columns',name:'Columns shelf',desc:'Sets the X-axis (horizontal). Drop a field here to spread it across the top of the view.'},
+    {key:'rows',name:'Rows shelf',desc:'Sets the Y-axis (vertical). A measure here becomes the bar height.'},
+    {key:'marks',name:'Marks card',desc:'Controls how marks look — Color, Size, Label, Detail, Tooltip — plus the mark type (bar / line / circle).'},
+    {key:'canvas',name:'Canvas',desc:'The live view. Your chart redraws here every time you change a shelf.'},
+    {key:'showme',name:'Show Me',desc:'Suggests chart types based on the fields currently on your shelves.'}
+  ],
+  quiz:[
+    {prompt:'Where do you drop a field to set the X-axis?',spot:'columns'},
+    {prompt:'Where do all your fields (dimensions & measures) live?',spot:'data'},
+    {prompt:'Where do you control color, size, and labels?',spot:'marks'},
+    {prompt:'Where does your finished chart appear?',spot:'canvas'},
+    {prompt:'Where do you set the Y-axis (bar height)?',spot:'rows'},
+    {prompt:'Which button suggests chart types for you?',spot:'showme'}
+  ]
+};
+let wsState={mode:'tour',qIdx:0,qOrder:null,visited:[]};
+function wsSpot(key,inner,style){return `<div class="ws-spot" data-spot="${key}" onclick="wsClick('${key}')" style="${style}">${inner}</div>`;}
+function wsMockHTML(){
+  return `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:11px;display:flex;min-height:230px">
+    ${wsSpot('data',`<div style="font-weight:700;color:var(--txt2);margin-bottom:6px">Data pane</div><div style="color:var(--dim-blue)">▦ Region</div><div style="color:var(--dim-blue)">▦ Category</div><div style="color:var(--meas-green);margin-top:5px"># Revenue</div><div style="color:var(--meas-green)"># Units</div>`,'width:120px;padding:9px;border-right:1px solid var(--border);background:var(--surf2)')}
+    <div style="flex:1;display:flex;flex-direction:column">
+      ${wsSpot('columns',`<span style="color:var(--dim);text-transform:uppercase;letter-spacing:.04em">Columns</span> &nbsp;<span style="font-family:var(--mono);color:var(--dim-blue)">Region</span>`,'padding:9px;border-bottom:1px solid var(--border)')}
+      ${wsSpot('rows',`<span style="color:var(--dim);text-transform:uppercase;letter-spacing:.04em">Rows</span> &nbsp;<span style="font-family:var(--mono);color:var(--meas-green)">SUM(Revenue)</span>`,'padding:9px;border-bottom:1px solid var(--border)')}
+      ${wsSpot('canvas',`📊&nbsp; Canvas — your live chart appears here`,'flex:1;padding:26px 10px;text-align:center;color:var(--dim);display:flex;align-items:center;justify-content:center')}
+    </div>
+    <div style="width:100px;display:flex;flex-direction:column;border-left:1px solid var(--border)">
+      ${wsSpot('showme',`Show Me ▾`,'padding:9px;text-align:right;border-bottom:1px solid var(--border);background:var(--surf2);color:var(--accent);font-weight:700')}
+      ${wsSpot('marks',`<div style="font-weight:700;color:var(--txt2);margin-bottom:6px">Marks</div><div style="color:var(--dim)">Color</div><div style="color:var(--dim)">Size</div><div style="color:var(--dim)">Label</div><div style="color:var(--dim)">Tooltip</div>`,'flex:1;padding:9px;background:var(--surf2)')}
+    </div>
+  </div>`;
+}
+function renderWorkspace(){
+  const v=document.getElementById('view-workspace');if(!v)return;
+  if(wsState.mode==='quiz'&&!wsState.qOrder)wsState.qOrder=_shuf(WORKSPACE.quiz.map((_,i)=>i));
+  const isTour=wsState.mode==='tour';
+  v.innerHTML=`
+    <h2 style="margin-bottom:4px">🧭 Know Your Workspace</h2>
+    <p style="color:var(--txt2);margin-bottom:14px">Tap each part of the Tableau workspace to learn what it does — then switch to <strong>Find it</strong> and tap the right spot from memory.</p>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="btn" style="${isTour?'background:var(--accent);color:#fff':''}" onclick="wsSetMode('tour')">① Tour</button>
+      <button class="btn" style="${!isTour?'background:var(--accent);color:#fff':''}" onclick="wsSetMode('quiz')">② Find it</button>
+    </div>
+    ${wsMockHTML()}
+    <div id="wsPanel" style="margin-top:14px"></div>`;
+  if(isTour)wsTourPanel();else wsQuizPanel();
+}
+function wsSetMode(m){wsState.mode=m;wsState.qIdx=0;if(m==='quiz')wsState.qOrder=_shuf(WORKSPACE.quiz.map((_,i)=>i));renderWorkspace();}
+function wsClearSpots(){document.querySelectorAll('#view-workspace .ws-spot').forEach(s=>s.classList.remove('lit','good','bad'));}
+function wsTourPanel(){
+  document.getElementById('wsPanel').innerHTML=`<div class="card" style="background:var(--surf2)"><p style="color:var(--txt2)">👆 Tap any part of the workspace above to see what it does.</p><p style="margin-top:8px;color:var(--dim);font-size:.85rem">Explored ${wsState.visited.length}/${WORKSPACE.parts.length}</p></div>`;
+}
+function wsQuizPanel(){
+  const i=wsState.qIdx;const q=WORKSPACE.quiz[wsState.qOrder[i]];
+  const dots=wsState.qOrder.map((_,k)=>`<span style="width:20px;height:6px;border-radius:3px;display:inline-block;background:${k<=i?'var(--accent)':'var(--surf2)'};opacity:${k<=i?1:.4}"></span>`).join(' ');
+  document.getElementById('wsPanel').innerHTML=`<div class="card"><div style="margin-bottom:10px">${dots}</div><p style="font-weight:600">${q.prompt}</p><p style="color:var(--dim);font-size:.85rem;margin-top:6px">Tap the spot on the workspace above.</p><div id="wsQfb" style="margin-top:10px"></div></div>`;
+}
+function wsClick(key){
+  if(wsState.mode==='tour'){
+    wsClearSpots();
+    const el=document.querySelector(`#view-workspace .ws-spot[data-spot="${key}"]`);if(el)el.classList.add('lit');
+    const p=WORKSPACE.parts.find(x=>x.key===key);
+    if(!wsState.visited.includes(key))wsState.visited.push(key);
+    const done=wsState.visited.length===WORKSPACE.parts.length;
+    document.getElementById('wsPanel').innerHTML=`<div class="card"><strong style="color:var(--accent)">${p.name}</strong><p style="margin-top:6px">${p.desc}</p><p style="margin-top:10px;color:var(--dim);font-size:.85rem">Explored ${wsState.visited.length}/${WORKSPACE.parts.length}${done?' — nice! Ready to test yourself?':''}</p>${done?`<button class="btn" style="margin-top:8px;background:var(--accent);color:#fff" onclick="wsSetMode('quiz')">② Find it →</button>`:''}</div>`;
+    return;
+  }
+  const q=WORKSPACE.quiz[wsState.qOrder[wsState.qIdx]];
+  const el=document.querySelector(`#view-workspace .ws-spot[data-spot="${key}"]`);
+  const fb=document.getElementById('wsQfb');
+  if(key===q.spot){
+    if(el)el.classList.add('good');
+    celebrate(true,'Correct! 🎯');
+    const last=wsState.qIdx>=WORKSPACE.quiz.length-1;
+    fb.innerHTML=`<span style="color:var(--accent)">✓ Yes — that's the ${WORKSPACE.parts.find(p=>p.key===key).name}.</span> <button class="btn" style="margin-left:8px;background:var(--accent);color:#fff" onclick="wsNextQ()">${last?'Finish 🎉':'Next →'}</button>`;
+  } else {
+    if(el){el.classList.add('bad');setTimeout(()=>{if(el)el.classList.remove('bad');},900);}
+    celebrate(false,'Not there 🤔');
+    if(fb)fb.innerHTML=`<span style="color:#e74c3c">Not there — try again.</span>`;
+  }
+}
+function wsNextQ(){
+  if(wsState.qIdx>=WORKSPACE.quiz.length-1){
+    wsClearSpots();
+    document.getElementById('wsPanel').innerHTML=`<div class="card" style="text-align:center;border-color:var(--accent)"><div style="font-size:1.6rem">🎉</div><strong>You know the workspace!</strong><p style="color:var(--txt2);margin-top:6px">You found all ${WORKSPACE.quiz.length} spots.</p><div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="wsSetMode('quiz')">Try again</button><button class="btn" onclick="show('lessons')">Start the lessons →</button></div></div>`;
+    celebrate(true,'Workspace mastered! 🧭');return;
+  }
+  wsState.qIdx++;wsClearSpots();wsQuizPanel();
 }
 
 /* ── CELEBRATE ── */
@@ -1129,6 +1231,7 @@ function renderLesson(){
     <h2 style="margin-bottom:4px">${l.title}</h2>
     ${l.intro?`<p style="color:var(--txt2);margin-bottom:20px">${l.intro}</p>`:''}
     ${l.viz?lessonVizHTML(l.viz):''}
+    ${l.slug==='interface'?`<button class="btn" style="margin-bottom:16px;background:var(--accent);color:#fff" onclick="show('workspace')">🧭 New here? Tour the workspace interactively →</button>`:''}
     ${(l.ral||[]).map(block=>`
       <div class="card" style="margin-bottom:16px">
         <h4 style="margin-bottom:10px;color:var(--accent)">${block.shelf}</h4>

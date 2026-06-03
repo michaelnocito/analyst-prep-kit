@@ -9,6 +9,30 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.27.0] — 2026-06-03 — "Know Your Workspace" UI module (Tableau, Power BI, Excel)
+
+New feature addressing the UI-learning wall (separate from the knowledge wall):
+learners struggle with "where is that button," not just concepts. Researched the
+best fit for our setup (labeled-graphic + hotspot quiz win for UI learning at low
+cognitive load) and built it across the three GUI-tool kits. June 3, 2026 —
+12:54 PM ET.
+
+- **New 🧭 Workspace module** (nav entry in Tableau, Power BI, Excel) with two
+  phases on one interface mockup: **① Tour** (tap a panel → it explains itself)
+  and **② Find it** (a hotspot drill — prompt asks "where would you…", you tap
+  the correct region; green/right, red/wrong, same feedback as tap-the-choice).
+- **Accessible from anywhere** via the nav, AND woven into the lesson flow:
+  a "🧭 New here? Tour the workspace" CTA on each kit's interface/first lesson
+  (Tableau L1 & Power BI L1 "Interface"; Excel L1, since Excel has no interface
+  lesson — built a fresh Excel mockup: ribbon, name box, formula bar, column
+  headers, grid, sheet tabs).
+- Per-kit wiring respected: Tableau/Excel use `show()` + `#view-workspace`;
+  Power BI uses `navigate('workspace')` into `#main` (+ nav active-map entry).
+  New `.ws-spot` hotspot CSS (hover/lit/good/bad) in each kit.
+
+Headless-verified: all three kits' inline scripts syntax-clean; module + nav +
+hotspot styles present in each.
+
 ## [1.26.0] — 2026-06-03 — Tableau cert beef-up, Cycle 2: Joins/Unions/Relationships (L15)
 
 Cycle 2/7 of the Desktop Specialist push (exam Domain 1.2). June 3, 2026 — 12:33 PM ET.

@@ -28,6 +28,11 @@ nav{background:var(--surf);border-bottom:1px solid var(--border);padding:0 18px;
 .nav-btn{background:var(--surf2);border:1px solid var(--border);color:var(--dim);cursor:pointer;padding:8px 14px;border-radius:10px;font-size:13px;font-family:var(--font);transition:.15s}
 .nav-btn:hover{color:var(--text);border-color:var(--accent)}
 .nav-btn.active{background:rgba(47,109,240,.15);color:var(--accent);border-color:var(--accent)}
+.ws-spot{cursor:pointer;transition:background .15s,outline .15s}
+.ws-spot:hover{outline:2px solid var(--accent);outline-offset:-2px}
+.ws-spot.lit{outline:2px solid var(--accent);outline-offset:-2px;background:rgba(91,140,245,.16)!important}
+.ws-spot.good{outline:2px solid #2e9e6b;outline-offset:-2px;background:rgba(46,158,107,.20)!important}
+.ws-spot.bad{outline:2px solid #c0392b;outline-offset:-2px;background:rgba(192,57,43,.18)!important}
 .spacer{flex:1}
 .theme-btn{background:none;border:1px solid var(--border);color:var(--dim);cursor:pointer;padding:4px 10px;border-radius:6px;font-size:13px;font-family:var(--font)}
 .settings-btn{background:none;border:1px solid var(--border);color:var(--dim);cursor:pointer;padding:4px 9px;border-radius:6px;font-size:13px;font-family:var(--font);margin-left:6px}
@@ -269,6 +274,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
   <button class="nav-btn active" onclick="show('home')">Home</button>
   <button class="nav-btn" onclick="show('lessons')">Lessons</button>
   <button class="nav-btn" onclick="show('practice')">Practice</button>
+  <button class="nav-btn" onclick="show('workspace')">🧭 Workspace</button>
   <button class="nav-btn" onclick="show('pivot')">Pivot Lab</button>
   <button class="nav-btn" onclick="show('cards')">Cards</button>
   <button class="nav-btn" onclick="show('glossary')">Glossary</button>
@@ -368,6 +374,8 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 </div>
 
 <!-- DRILL DETAIL -->
+<div id="view-workspace" class="view"></div>
+
 <div id="view-drill" class="view">
   <div id="drillContent"></div>
 </div>
@@ -762,10 +770,103 @@ function show(v){
   if(v==='home') renderHome();
   if(v==='lessons') renderLessonList();
   if(v==='practice') renderDrillList();
+  if(v==='workspace') renderWorkspace();
   if(v==='pivot') renderPivotLab();
   if(v==='cards') renderCards();
   if(v==='glossary') renderGlossary();
   window.scrollTo(0,0);
+}
+
+// ─── WORKSPACE (Know Your Workspace: tour + find-it hotspots) ───────────────
+const WORKSPACE={
+  parts:[
+    {key:'ribbon',name:'The Ribbon',desc:'The tabbed toolbar across the top — Home, Insert, Data, Formulas, View. Every button you click lives on one of these tabs.'},
+    {key:'namebox',name:'Name Box',desc:'Shows the address of the selected cell (like B2). Type an address here to jump straight to that cell.'},
+    {key:'formulabar',name:'Formula Bar',desc:"Shows and lets you edit what's really in the selected cell — a value, or a formula like =SUM(B2:B5)."},
+    {key:'columns',name:'Column headers',desc:'The A, B, C… letters. Together with the row numbers they give every cell its address (column + row = B2).'},
+    {key:'grid',name:'The cells / grid',desc:'Where your data lives. Click any cell to select it; each one has an address like B2.'},
+    {key:'tabs',name:'Sheet tabs',desc:'Switch between worksheets in the workbook, or add a new one with the ＋.'}
+  ],
+  quiz:[
+    {prompt:"Where does a cell's contents or formula show up for editing?",spot:'formulabar'},
+    {prompt:'Where do you find the Insert, Data, and Formulas buttons?',spot:'ribbon'},
+    {prompt:'Where does the address of the selected cell (like B2) appear?',spot:'namebox'},
+    {prompt:'Where do you switch to another worksheet?',spot:'tabs'},
+    {prompt:'What gives each cell its column letter (A, B, C…)?',spot:'columns'},
+    {prompt:'Where does your actual data live?',spot:'grid'}
+  ]
+};
+let wsState={mode:'tour',qIdx:0,qOrder:null,visited:[]};
+function wsSpot(key,inner,style){return `<div class="ws-spot" data-spot="${key}" onclick="wsClick('${key}')" style="${style}">${inner}</div>`;}
+function wsMockHTML(){
+  const grid=[['1','Region','Revenue'],['2','West','120'],['3','East','95'],['4','South','140']].map(r=>`<div style="display:flex;border-bottom:1px solid var(--border)"><span style="width:32px;text-align:center;color:var(--dim);background:var(--surf2);border-right:1px solid var(--border)">${r[0]}</span><span style="flex:1;padding:4px 8px;border-right:1px solid var(--border)">${r[1]}</span><span style="flex:1;padding:4px 8px;border-right:1px solid var(--border)">${r[2]}</span><span style="flex:1;border-right:1px solid var(--border)"></span><span style="flex:1"></span></div>`).join('');
+  return `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:11px">
+    ${wsSpot('ribbon',`<span style="font-weight:700;color:var(--text)">Home</span> &nbsp;<span style="color:var(--dim)">Insert &nbsp; Data &nbsp; Formulas &nbsp; View</span> &nbsp;&nbsp;<span style="color:var(--dim)">[ Σ AutoSum &nbsp; % &nbsp; 🎨 ]</span>`,'padding:8px 10px;border-bottom:1px solid var(--border);background:var(--surf2)')}
+    <div style="display:flex;border-bottom:1px solid var(--border)">
+      ${wsSpot('namebox',`<span style="font-family:var(--mono)">B2</span>`,'width:58px;padding:6px 8px;border-right:1px solid var(--border);background:var(--surf2);text-align:center')}
+      ${wsSpot('formulabar',`<span style="color:var(--dim)">fx</span> &nbsp;<span style="font-family:var(--mono);color:var(--accent)">=SUM(B2:B5)</span>`,'flex:1;padding:6px 10px')}
+    </div>
+    ${wsSpot('columns',`<div style="display:flex"><span style="width:32px"></span><span style="flex:1;text-align:center;border-left:1px solid var(--border)">A</span><span style="flex:1;text-align:center;border-left:1px solid var(--border)">B</span><span style="flex:1;text-align:center;border-left:1px solid var(--border)">C</span><span style="flex:1;text-align:center;border-left:1px solid var(--border)">D</span></div>`,'padding:5px 0;border-bottom:1px solid var(--border);background:var(--surf2);color:var(--dim);font-weight:700')}
+    ${wsSpot('grid',grid,'padding:0')}
+    ${wsSpot('tabs',`<span style="border:1px solid var(--border);border-bottom:none;border-radius:4px 4px 0 0;padding:3px 10px;background:var(--surf2);color:var(--accent);font-weight:700">Sheet1</span> <span style="color:var(--dim);padding:3px 8px">Sheet2</span> <span style="color:var(--dim)">＋</span>`,'padding:7px 8px;border-top:1px solid var(--border)')}
+  </div>`;
+}
+function renderWorkspace(){
+  const v=document.getElementById('view-workspace');if(!v)return;
+  if(wsState.mode==='quiz'&&!wsState.qOrder)wsState.qOrder=_shuf(WORKSPACE.quiz.map((_,i)=>i));
+  const isTour=wsState.mode==='tour';
+  v.innerHTML=`
+    <h1 style="margin-bottom:4px">🧭 Know Your Workspace</h1>
+    <p style="margin-bottom:14px">Tap each part of the Excel window to learn what it does — then switch to <strong>Find it</strong> and tap the right spot from memory.</p>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="btn ${isTour?'btn-primary':'btn-outline'}" onclick="wsSetMode('tour')">① Tour</button>
+      <button class="btn ${!isTour?'btn-primary':'btn-outline'}" onclick="wsSetMode('quiz')">② Find it</button>
+    </div>
+    ${wsMockHTML()}
+    <div id="wsPanel" style="margin-top:14px"></div>`;
+  if(isTour)wsTourPanel();else wsQuizPanel();
+}
+function wsSetMode(m){wsState.mode=m;wsState.qIdx=0;if(m==='quiz')wsState.qOrder=_shuf(WORKSPACE.quiz.map((_,i)=>i));renderWorkspace();}
+function wsClearSpots(){document.querySelectorAll('#view-workspace .ws-spot').forEach(s=>s.classList.remove('lit','good','bad'));}
+function wsTourPanel(){
+  document.getElementById('wsPanel').innerHTML=`<div class="card"><p>👆 Tap any part of the Excel window above to see what it does.</p><p style="margin-top:8px;color:var(--dim);font-size:.85rem">Explored ${wsState.visited.length}/${WORKSPACE.parts.length}</p></div>`;
+}
+function wsQuizPanel(){
+  const i=wsState.qIdx;const q=WORKSPACE.quiz[wsState.qOrder[i]];
+  const dots=wsState.qOrder.map((_,k)=>`<span style="width:20px;height:6px;border-radius:3px;display:inline-block;background:${k<=i?'var(--accent)':'var(--surf2)'};opacity:${k<=i?1:.4}"></span>`).join(' ');
+  document.getElementById('wsPanel').innerHTML=`<div class="card"><div style="margin-bottom:10px">${dots}</div><p style="font-weight:600;color:var(--text)">${q.prompt}</p><p style="color:var(--dim);font-size:.85rem;margin-top:6px">Tap the spot on the Excel window above.</p><div id="wsQfb" style="margin-top:10px"></div></div>`;
+}
+function wsClick(key){
+  if(wsState.mode==='tour'){
+    wsClearSpots();
+    const el=document.querySelector(`#view-workspace .ws-spot[data-spot="${key}"]`);if(el)el.classList.add('lit');
+    const p=WORKSPACE.parts.find(x=>x.key===key);
+    if(!wsState.visited.includes(key))wsState.visited.push(key);
+    const done=wsState.visited.length===WORKSPACE.parts.length;
+    document.getElementById('wsPanel').innerHTML=`<div class="card"><strong style="color:var(--accent)">${p.name}</strong><p style="margin-top:6px">${p.desc}</p><p style="margin-top:10px;color:var(--dim);font-size:.85rem">Explored ${wsState.visited.length}/${WORKSPACE.parts.length}${done?' — nice! Ready to test yourself?':''}</p>${done?`<button class="btn btn-primary" style="margin-top:8px" onclick="wsSetMode('quiz')">② Find it →</button>`:''}</div>`;
+    return;
+  }
+  const q=WORKSPACE.quiz[wsState.qOrder[wsState.qIdx]];
+  const el=document.querySelector(`#view-workspace .ws-spot[data-spot="${key}"]`);
+  const fb=document.getElementById('wsQfb');
+  if(key===q.spot){
+    if(el)el.classList.add('good');
+    celebrate(true,'Correct! 🎯');
+    const last=wsState.qIdx>=WORKSPACE.quiz.length-1;
+    fb.innerHTML=`<span style="color:var(--success)">✓ Yes — that's the ${WORKSPACE.parts.find(p=>p.key===key).name}.</span> <button class="btn btn-primary" style="margin-left:8px" onclick="wsNextQ()">${last?'Finish 🎉':'Next →'}</button>`;
+  } else {
+    if(el){el.classList.add('bad');setTimeout(()=>{if(el)el.classList.remove('bad');},900);}
+    celebrate(false,'Not there 🤔');
+    if(fb)fb.innerHTML=`<span style="color:var(--err)">Not there — try again.</span>`;
+  }
+}
+function wsNextQ(){
+  if(wsState.qIdx>=WORKSPACE.quiz.length-1){
+    wsClearSpots();
+    document.getElementById('wsPanel').innerHTML=`<div class="card" style="text-align:center;border-color:var(--accent)"><div style="font-size:1.6rem">🎉</div><strong>You know the workspace!</strong><p style="margin-top:6px">You found all ${WORKSPACE.quiz.length} spots.</p><div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn btn-outline" onclick="wsSetMode('quiz')">Try again</button><button class="btn btn-primary" onclick="show('lessons')">Start the lessons →</button></div></div>`;
+    celebrate(true,'Workspace mastered! 🧭');return;
+  }
+  wsState.qIdx++;wsClearSpots();wsQuizPanel();
 }
 
 // ─── CELEBRATE ───────────────────────────────────────────────────────────────
@@ -923,6 +1024,9 @@ function renderLesson(){
 
   // See-it-on-screen visual
   if(l.viz) html += lessonGridHTML(l.viz);
+
+  // Workspace tour CTA on the very first lesson (no dedicated interface lesson in Excel)
+  if(l.id===1) html += `<button class="btn btn-primary" style="margin-bottom:12px" onclick="show('workspace')">🧭 New to Excel? Tour the workspace first →</button>`;
 
   // Gotcha note
   html += `<div class="gotcha"><strong>Watch out: </strong>${l.notes}</div>`;
