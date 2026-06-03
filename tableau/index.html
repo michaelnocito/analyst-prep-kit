@@ -574,7 +574,19 @@ LESSONS:[
   ]}
  ],
  notes:"Context filters run before other filters. If you have a Top N filter, add your dimension filter as a context filter first (right-click → Add to Context) or the Top N will calculate before filtering — giving you wrong results.",
- viz:{type:'bar',x:'product',y:'revenue',color:null,sort:'desc',mark:'Bar',shelves:[{shelf:'Columns',pill:'Product',kind:'dim'},{shelf:'Rows',pill:'SUM(Revenue)',kind:'meas'},{shelf:'Sort',pill:'Revenue ↓',kind:'meas'}],caption:"Every product by revenue, sorted descending. With this many bars you'd reach for a filter (e.g. Top 5) or this sort to surface the leaders instantly."},
+ viz:{html:`<div style="display:flex;flex-direction:column;gap:10px;font-size:12px">
+   <div style="display:flex;gap:8px;flex-wrap:wrap">
+     <span style="padding:4px 9px;border-radius:5px;background:var(--surf2);border:1px solid var(--border)">🔎 <b>Dimension filter</b> · keep Region = West</span>
+     <span style="padding:4px 9px;border-radius:5px;background:var(--surf2);border:1px solid var(--border)">📏 <b>Measure filter</b> · Revenue ≥ 150</span>
+     <span style="padding:4px 9px;border-radius:5px;background:var(--surf2);border:1px solid var(--border)">🏆 <b>Top N filter</b> · Top 5 products</span>
+   </div>
+   <div style="color:var(--dim);font-size:11px">↓ then <b>sort</b> descending on what's left</div>
+   <div style="display:flex;flex-direction:column;gap:4px;max-width:280px">
+     <div style="display:flex;align-items:center;gap:8px"><span style="width:74px">Latte</span><div style="height:12px;width:74%;background:var(--accent);border-radius:3px"></div></div>
+     <div style="display:flex;align-items:center;gap:8px"><span style="width:74px">Cappuccino</span><div style="height:12px;width:55%;background:var(--accent);border-radius:3px"></div></div>
+     <div style="display:flex;align-items:center;gap:8px"><span style="width:74px">Cold Brew</span><div style="height:12px;width:48%;background:var(--accent);border-radius:3px"></div></div>
+   </div>
+ </div>`,caption:"Three kinds of filter narrow the rows — keep/exclude a category, set a numeric range, or rank Top N — and sorting then orders what's left. The lesson names all three filter types, so all three are shown."},
  quiz:{q:"You add a 'Top 10 Products by Revenue' filter. But the results look wrong — you're seeing products from regions you already filtered out. What's likely the issue?",opts:["Top N filters don't work with bar charts","The Top N is calculating before your dimension filter — add the dimension filter to Context","Top N only works on measures","You need to sort before filtering"],ans:1,exp:"Top N filters evaluate after other filters by default. If your region filter runs after the Top N, the Top N sees all regions and picks the global top 10. Right-click your region filter → 'Add to Context' to make it run first."}
 },
 {id:6,unit:"Unit 2: Building Better Vizzes",title:"Color, Size & Labels",slug:"marks",
@@ -590,7 +602,18 @@ LESSONS:[
   ]}
  ],
  notes:"Don't encode the same thing twice unless it reinforces a key insight. Size + Color both showing Revenue = redundant. Use Size for one variable, Color for another — that's two dimensions of information in one chart.",
- viz:{type:'bar',x:'product',y:'revenue',color:'category',mark:'Bar',shelves:[{shelf:'Columns',pill:'Product',kind:'dim'},{shelf:'Rows',pill:'SUM(Revenue)',kind:'meas'},{shelf:'Color',pill:'Category',kind:'dim'}],caption:"Color encodes Category — every Hot product shares one color, every Cold another. That's a second layer of meaning added to the same bars, no extra chart needed."},
+ viz:{html:`<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;font-size:12px">
+   <div style="position:relative;width:124px;height:88px;border:1px solid var(--border);border-radius:8px;background:var(--surf2);flex-shrink:0">
+     <div style="position:absolute;left:16px;top:30px;width:36px;height:36px;border-radius:50%;background:#5b8cf5cc"></div>
+     <div style="position:absolute;left:66px;top:20px;width:20px;height:20px;border-radius:50%;background:#6dbf8bcc"></div>
+     <div style="position:absolute;left:60px;bottom:5px;font-size:9px;color:var(--dim)">🏷️ Latte</div>
+   </div>
+   <div style="display:flex;flex-direction:column;gap:7px">
+     <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#5b8cf5;vertical-align:middle"></span> <b>Color</b> = Category (a hue per group)</span>
+     <span><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--dim);vertical-align:middle"></span> <b>Size</b> = Revenue (bigger = more)</span>
+     <span>🏷️ <b>Label</b> = Product (names the mark)</span>
+   </div>
+ </div>`,caption:"One mark, three encodings at once: Color shows the category, Size shows the revenue, and the Label names it — the three Marks-card tools this lesson describes, all on screen."},
  quiz:{q:"You put a measure on the Color shelf. What happens?",opts:["The view gets a categorical color legend","The view gets a continuous color gradient (e.g. light to dark green)","Nothing — Color only accepts dimensions","All marks turn the same color"],ans:1,exp:"Measures on Color create a continuous color gradient — from low values (light) to high values (dark), usually in a single hue. Dimensions on Color create distinct, categorical colors. Both are valid — the choice depends on the data type."}
 },
 {id:7,core:true,unit:"Unit 2: Building Better Vizzes",title:"Calculated Fields",slug:"calc-fields",
@@ -620,7 +643,7 @@ LESSONS:[
   ]}
  ],
  notes:"SUM is Tableau's default — but it's wrong more often than people think. SUM(Units) across reps tells you total volume. AVG(Units) tells you typical order size. Those answer different questions. Always ask: what am I actually measuring?",
- viz:{type:'bar',x:'rep',y:'units',color:null,sort:'desc',mark:'Bar',shelves:[{shelf:'Columns',pill:'Rep',kind:'dim'},{shelf:'Rows',pill:'SUM(Units)',kind:'meas'}],caption:"SUM(Units) per rep — total volume sold. Right-click the green pill and switch to AVG, and the same chart answers a different question: typical order size."},
+ viz:{table:{columns:["Aggregation","Result","What it answers"],rows:[["SUM(Units)","132","total volume sold"],["AVG(Units)","11","typical order size"],["COUNT(*)","12","number of transactions"],["COUNTD(Rep)","5","how many unique reps"]],hl:0},caption:"Same Units column, four different questions — SUM, AVG, COUNT, and COUNTD each aggregate it a different way. Right-click the green pill → Measure to switch between them."},
  quiz:{q:"You want to know how many unique products were sold (not total units). Which aggregation do you use on the Product field?",opts:["SUM(Product)","AVG(Product)","COUNTD(Product)","COUNT(Product)"],ans:2,exp:"COUNTD = Count Distinct. It counts unique values — so COUNTD(Product) gives you the number of different products sold, not the total number of rows. COUNT would count total rows including duplicates."}
 },
 {id:9,unit:"Unit 2: Building Better Vizzes",title:"Grouping",slug:"grouping",
@@ -735,7 +758,13 @@ LESSONS:[
   ]}
  ],
  notes:"3D charts, exploding pie charts, dual-axis charts with incompatible scales — all of these distort data and erode trust. When in doubt, a sorted bar chart is almost always the right answer.",
- viz:{type:'scatter',entity:'product',x:'revenue',y:'units',mark:'Circle',shelves:[{shelf:'Columns',pill:'SUM(Revenue)',kind:'meas'},{shelf:'Rows',pill:'SUM(Units)',kind:'meas'},{shelf:'Detail',pill:'Product',kind:'dim'}],caption:"Two measures, one dot per product — a scatter plot makes the revenue-vs-units relationship jump out. That's the right chart for showing correlation; a bar or pie would hide it."},
+ viz:{html:`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px;font-size:11px;text-align:center">
+   <div style="border:1px solid var(--border);border-radius:6px;padding:9px;background:var(--surf2)"><div style="font-size:18px">📊</div><b>Bar</b><div style="color:var(--dim)">compare categories</div></div>
+   <div style="border:1px solid var(--border);border-radius:6px;padding:9px;background:var(--surf2)"><div style="font-size:18px">📈</div><b>Line</b><div style="color:var(--dim)">trend over time</div></div>
+   <div style="border:1px solid var(--accent);border-radius:6px;padding:9px;background:var(--surf2)"><div style="font-size:18px">⚬</div><b>Scatter</b><div style="color:var(--dim)">correlation</div></div>
+   <div style="border:1px solid var(--border);border-radius:6px;padding:9px;background:var(--surf2)"><div style="font-size:18px">🥧</div><b>Pie</b><div style="color:var(--dim)">part-to-whole (≤3)</div></div>
+   <div style="border:1px solid var(--border);border-radius:6px;padding:9px;background:var(--surf2)"><div style="font-size:18px">🗺️</div><b>Map</b><div style="color:var(--dim)">geographic</div></div>
+ </div>`,caption:"The chart type is an analytical decision — match it to the question: bar for comparison, line for trend, scatter for correlation, pie for a small part-to-whole, map for geography. (Scatter is highlighted as this lesson's worked example.)"},
  quiz:{q:"You want to show whether revenue and units sold are correlated across products. Best chart type?",opts:["Bar chart","Line chart","Scatter plot","Treemap"],ans:2,exp:"A scatter plot puts one measure on the X-axis and another on the Y-axis — each dot is a product. Correlation (or lack of it) is immediately visible from the pattern. That's the scatter plot's job: show relationships between two continuous variables."}
 },
 {id:13,unit:"Unit 3: Dashboards & Best Practices",title:"Telling a Story",slug:"story",

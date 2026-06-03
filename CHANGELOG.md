@@ -9,6 +9,24 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.33.0] — 2026-06-03 — Visual-parity sweep, Tableau kit complete
+
+Per Mike's "sweep all kits" — audited every kit's "See it" visuals (found ~26
+gaps total; tracked in `VISUAL_PARITY_SWEEP.md`). This cycle fixes the remaining
+Tableau gaps. June 3, 2026 — 6:20 PM ET.
+
+- **L8 Aggregation:** now a table showing **SUM / AVG / COUNT / COUNTD** with each
+  one's result + "what it answers" (was a single SUM bar).
+- **L5 Filters & Sorting:** now shows the **three filter types** (dimension /
+  measure / Top N) as chips plus a sorted result (was a sorted bar, no filter).
+- **L12 Chart Choice:** now a **5-chart-type grid** (bar / line / scatter / pie /
+  map), scatter highlighted as the example (was scatter only).
+- **L6 Color, Size & Labels:** now one mark showing **all three encodings**
+  (Color + Size + Label) (was a color-only bar).
+
+Tableau kit fully swept (L5, L6, L8, L12, L15, L20). Next kits: Excel → SQL →
+Python → Power BI → Stats. Headless-verified: 3 scripts clean.
+
 ## [1.32.0] — 2026-06-03 — Visual parity sweep: show every concept the text names
 
 Mike (playtest): L15's "See it on screen" showed a nice JOIN but the text names
