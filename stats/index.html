@@ -217,7 +217,7 @@ mode = Counter(data).most_common(1)[0][0]  # 3`,
    {heading:"When to use which",
     body:"<strong>Mean:</strong> best for symmetric data with no outliers (test scores, heights). <strong>Median:</strong> best for skewed data or when outliers exist (salaries, house prices, revenue). <strong>Mode:</strong> best for categorical data (most popular product, most common support issue)."}
   ],
-  viz:{type:'bar',labels:["A","B","C","D","E"],data:[120,150,130,2000,140],colors:["#5b8cf5","#5b8cf5","#5b8cf5","#e8a84c","#5b8cf5"],caption:"Five revenues — that one orange spike (2000) drags the mean up to 508, while the median holds at 140. That's why analysts reach for the median on skewed data."},
+  viz:{type:'bar',labels:["Mean","Median","Mode"],data:[40,20,10],colors:["#e8a84c","#5b8cf5","#6dbf8b"],ylabel:"value",caption:"Three measures of center on the same data (10, 10, 20, 30, 130): the Mode is the most frequent value (10), the Median is the middle one (20), and the Mean is the average (40) — dragged up by the 130. They split apart on skewed data."},
   quiz:{q:"A company reports average salary of $95K. One executive earns $2M. Which measure better represents the typical employee?",
         opts:["Mean — it accounts for all values","Median — it is not pulled by the outlier","Mode — the most common salary","Standard deviation"],
         ans:1,explain:"The executive's $2M salary inflates the mean far above what most employees earn. Median is resistant to outliers and better represents the typical worker."}},
@@ -308,7 +308,23 @@ skew   = df['revenue'].skew()    # 2.8 — strongly right-skewed
       "Takeaway: when mean >> median, report the median as your center measure"
     ]}
   ],
-  viz:{type:'bar',labels:["$0-1k","$1-2k","$2-3k","$3-4k","$4-5k","$5k+"],data:[9,7,4,2,1,1],xlabel:"revenue bucket",ylabel:"count",caption:"A right-skewed distribution: most values bunch on the left, a long tail stretches right. That tail is what pulls the mean above the median."},
+  viz:{html:`<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;text-align:center">
+    <div style="flex:1;min-width:108px">
+      <div style="font-weight:700;margin-bottom:6px">Symmetric</div>
+      <div style="display:flex;align-items:flex-end;justify-content:center;gap:3px;height:54px">${[2,4,7,9,7,4,2].map(h=>`<div style="width:11px;height:${h*5}px;background:#5b8cf5;opacity:.6;border-radius:2px 2px 0 0"></div>`).join('')}</div>
+      <div style="color:var(--txt2);margin-top:5px">mean ≈ median</div>
+    </div>
+    <div style="flex:1;min-width:108px">
+      <div style="font-weight:700;margin-bottom:6px">Right-skewed</div>
+      <div style="display:flex;align-items:flex-end;justify-content:center;gap:3px;height:54px">${[9,7,5,3,2,1,1].map(h=>`<div style="width:11px;height:${h*5}px;background:#e8a84c;opacity:.6;border-radius:2px 2px 0 0"></div>`).join('')}</div>
+      <div style="color:var(--txt2);margin-top:5px">tail right · mean &gt; median</div>
+    </div>
+    <div style="flex:1;min-width:108px">
+      <div style="font-weight:700;margin-bottom:6px">Left-skewed</div>
+      <div style="display:flex;align-items:flex-end;justify-content:center;gap:3px;height:54px">${[1,1,2,3,5,7,9].map(h=>`<div style="width:11px;height:${h*5}px;background:#6dbf8b;opacity:.6;border-radius:2px 2px 0 0"></div>`).join('')}</div>
+      <div style="color:var(--txt2);margin-top:5px">tail left · mean &lt; median</div>
+    </div>
+  </div>`,caption:"Three distribution shapes side by side: Symmetric (bell — mean ≈ median), Right-skewed (long tail right — mean > median), and Left-skewed (long tail left — mean < median)."},
   quiz:{q:"A dataset has mean = 250 and median = 140. What can you conclude?",
         opts:["The data is left-skewed","The data is right-skewed — high values pull the mean up","The data is normally distributed","Mode equals the median"],
         ans:1,explain:"Mean > median is the signature of right skew. High-value outliers drag the mean above the median."}},
@@ -984,10 +1000,12 @@ function resetLesson(){
 }
 // "See it on screen" — a chart that illustrates the lesson's concept.
 function lessonStatHTML(v){
-  return `<div class="card" style="border-color:var(--accent)">
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);font-weight:700;margin-bottom:10px">📺 See it on screen</div>
+  const head=`<div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);font-weight:700;margin-bottom:10px">📺 See it on screen</div>`;
+  const cap=v.caption?`<p style="font-size:.9rem;color:var(--txt2);margin:12px 0 0;line-height:1.6">${v.caption}</p>`:'';
+  if(v.html) return `<div class="card" style="border-color:var(--accent)">${head}${v.html}${cap}</div>`;
+  return `<div class="card" style="border-color:var(--accent)">${head}
     <div style="height:215px;position:relative"><canvas id="lessonStatViz"></canvas></div>
-    ${v.caption?`<p style="font-size:.9rem;color:var(--txt2);margin:12px 0 0;line-height:1.6">${v.caption}</p>`:''}
+    ${cap}
   </div>`;
 }
 let statChart=null;

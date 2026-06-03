@@ -9,6 +9,25 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.35.0] — 2026-06-03 — Visual-parity sweep COMPLETE (SQL, Python, Power BI, Stats)
+
+Finished the all-kits sweep ("do them all"). Every "See it" visual now shows
+every co-equal concept its lesson names. June 3, 2026 — 6:48 PM ET.
+
+- **SQL (4):** L5 aggregates (COUNT/SUM/AVG/MAX/MIN columns), L7 HAVING+DISTINCT
+  comparison, L8 CASE+COALESCE columns, L12 three recon patterns (gaps/dupes/mismatch).
+- **Python (7):** L1 int/float/str/bool, L3 function+loop, L5 describe/select/value_counts,
+  L6 ==/&/isin, L7 sort_values/nlargest/value_counts, L10 isnull/fillna/dropna,
+  L11 strip/lower/replace/contains — multi-statement code + output.
+- **Power BI (4):** L5 calc-column table + measure card, L8 TOTALYTD/SAMEPERIODLASTYEAR/
+  DIVIDE table, L9 slicer + filter-pane (3 levels), L10 drill-through + cross-filtering.
+- **Stats (2):** L1 mean/median/mode 3-bar chart; L4 symmetric/right/left skew sparklines
+  (added optional `html` support to `lessonStatHTML` since `drawStatChart` is single-series).
+
+**All 6 kits swept** (Tableau, Excel, SQL, Python, Power BI, Stats). Borderline
+"menu-style" cases (SQL L10, PBI L6, Stats L9) intentionally left as single worked
+examples. Headless-verified: all kits' inline scripts syntax-clean.
+
 ## [1.34.0] — 2026-06-03 — Visual-parity sweep, Excel kit complete
 
 Kit 2 of 6 in the sweep. June 3, 2026 — 6:28 PM ET.

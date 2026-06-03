@@ -22,33 +22,33 @@ Fix kit-by-kit; check off as shipped. Each kit's viz helper differs.
 - [x] L11 Dates and Numbers — YEAR / MONTH / TEXT rows
 - [x] L8 Slicers, Sorting & Grouping — slicer chip + sorted + grouped grid
 
-## SQL (`lessonResultHTML` — result table)
-- [ ] L5 COUNT, SUM & GROUP BY — COUNT / SUM / AVG / MAX / MIN (shows COUNT only)
-- [ ] L7 HAVING & Duplicates — HAVING / DISTINCT (shows HAVING only)
-- [ ] L8 CASE & COALESCE — CASE / COALESCE (shows CASE only)
-- [ ] L12 Reconciliation Queries — gaps / dupes / mismatches (shows gaps only)
-- [ ] (L10 Window Functions — borderline; defer)
+## SQL (`lessonResultHTML` — result table)  — DONE (v1.35.0)
+- [x] L5 COUNT, SUM & GROUP BY — COUNT/SUM/AVG/MAX/MIN columns
+- [x] L7 HAVING & Duplicates — HAVING + DISTINCT comparison table
+- [x] L8 CASE & COALESCE — CASE + COALESCE columns
+- [x] L12 Reconciliation Queries — gaps + dupes + mismatches table
+- (L10 Window Functions — borderline, left as-is)
 
-## Python (`lessonOutputHTML` — output block)
-- [ ] L1 Variables & Data Types — int / float / str / bool (shows float+str)
-- [ ] L11 String Cleaning — strip / lower / replace / contains (shows lower only)
-- [ ] L10 Finding & Fixing Nulls — isnull / fillna / dropna (shows isnull only)
-- [ ] L5 Exploring Data — describe / col-select / value_counts (shows value_counts only)
-- [ ] L6 Filtering Rows — == / & AND / isin (shows == only)
-- [ ] L7 Sorting & Selecting — sort_values / nlargest / value_counts (shows nlargest only)
-- [ ] L3 Functions & Loops — function / loop (shows function only)
+## Python (`lessonOutputHTML` — output block)  — DONE (v1.35.0)
+- [x] L1 Variables & Data Types — int/float/str/bool
+- [x] L11 String Cleaning — strip/lower/replace/contains
+- [x] L10 Finding & Fixing Nulls — isnull/fillna/dropna
+- [x] L5 Exploring Data — describe/col-select/value_counts
+- [x] L6 Filtering Rows — == / & / isin
+- [x] L7 Sorting & Selecting — sort_values/nlargest/value_counts
+- [x] L3 Functions & Loops — function + loop
 
-## Power BI (`lessonPbiHTML` / `lessonResultHTML` — table)
-- [ ] L5 Calculated Columns vs Measures (shows measure only)
-- [ ] L8 Time Intelligence — TOTALYTD / SAMEPERIODLASTYEAR / DIVIDE (shows YTD only)
-- [ ] L9 Slicers & Filters — slicer / filter pane / 3 levels (shows slicer result only)
-- [ ] L10 Drill-Through & Cross-Filtering (shows drill-through only)
-- [ ] (L6 Basic DAX Aggregations — borderline; caption asserts coverage)
+## Power BI (`lessonPbiHTML` — html/measure/bars)  — DONE (v1.35.0)
+- [x] L5 Calculated Columns vs Measures — column table + measure card
+- [x] L8 Time Intelligence — TOTALYTD/SAMEPERIODLASTYEAR/DIVIDE table
+- [x] L9 Slicers & Filters — slicer + filter-pane (3 levels)
+- [x] L10 Drill-Through & Cross-Filtering — both panels
+- (L6 Basic DAX Aggregations — borderline, left as-is)
 
-## Stats (`lessonStatHTML` / `drawStatChart` — Chart.js)
-- [ ] L1 Mean, Median & Mode — show all 3 measures of center (shows one series)
-- [ ] L4 Shape of Data — symmetric / right-skew / left-skew (shows right-skew only)
-- [ ] (L9 Hypothesis Testing — borderline H₀/H₁; defer)
+## Stats (`lessonStatHTML` / `drawStatChart` — Chart.js)  — DONE (v1.35.0)
+- [x] L1 Mean, Median & Mode — 3-bar chart (all three values)
+- [x] L4 Shape of Data — symmetric/right/left skew sparklines (added `html` support to the helper)
+- (L9 Hypothesis Testing — borderline, left as-is)
 
-**Total strong gaps: ~26.** Order of fixing: Tableau → Excel → SQL → Python →
-Power BI → Stats (Stats last; Chart.js multi-series is the most involved).
+**SWEEP COMPLETE — all 6 kits.** Tableau → Excel → SQL → Python → Power BI → Stats.
+Borderline/menu cases noted above were intentionally left as single worked examples.

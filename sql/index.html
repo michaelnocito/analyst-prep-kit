@@ -398,7 +398,7 @@ LESSONS: [
      ]
    },
    notes:"<code>SUM(col)</code> adds values. <code>AVG(col)</code> averages. <code>MAX / MIN</code> find extremes. Every non-aggregate column in SELECT must appear in GROUP BY.",
-   viz:{columns:["status","total"],rows:[["active","3"],["inactive","1"],["pending","1"]],caption:"One row per status group — COUNT(*) collapses each group down to a single total."},
+   viz:{columns:["status","COUNT(*)","SUM(amt)","AVG(amt)","MAX(amt)","MIN(amt)"],rows:[["active","3","540","180","260","95"],["inactive","1","120","120","120","120"],["pending","1","80","80","80","80"]],caption:"GROUP BY collapses each status to one row — and the same grouping feeds every aggregate at once: COUNT, SUM, AVG, MAX, and MIN."},
    quiz:{q:"Which column must appear in GROUP BY if it's in SELECT without an aggregate?",opts:["The primary key","Any column used in WHERE","Every non-aggregate column in SELECT","Only text columns"],ans:2,exp:"Non-aggregate columns in SELECT must be in GROUP BY so SQL knows how to group the rows."}
   },
   {id:6, core:true, unit:"Unit 2: Aggregates & Joins", title:"LEFT JOIN & NULLs", sub:"Keep all rows from the left table",
@@ -427,7 +427,7 @@ LESSONS: [
      ]
    },
    notes:"<code>SELECT DISTINCT col</code> deduplicates by that column. To find duplicate rows: GROUP BY all columns + HAVING COUNT(*) > 1.",
-   viz:{columns:["status","n"],rows:[["active","3"]],caption:"Only 'active' has more than 2 customers, so HAVING removes the smaller groups — after the grouping, not before."},
+   viz:{columns:["Technique","What it does","Result"],rows:[["HAVING COUNT(*) > 2","filters GROUPS after aggregating","active (3) — others dropped"],["SELECT DISTINCT status","removes DUPLICATE rows","active, inactive, pending"]],caption:"Two different jobs: HAVING filters groups after GROUP BY (keeps only 'active'), while DISTINCT removes duplicate rows from the result."},
    quiz:{q:"What is the key difference between WHERE and HAVING?",opts:["WHERE is faster","WHERE filters before grouping; HAVING filters after","HAVING works with any column","They are interchangeable"],ans:1,exp:"WHERE runs before GROUP BY; HAVING runs after. Use HAVING to filter on aggregate results."}
   },
   {id:8, unit:"Unit 2: Aggregates & Joins", title:"CASE & COALESCE", sub:"Conditional logic in SQL",
@@ -443,7 +443,7 @@ LESSONS: [
      ]
    },
    notes:"<code>COALESCE(email, phone, 'no contact')</code> — returns the first non-NULL. Useful for fallback values when data is incomplete.",
-   viz:{columns:["name","is_active"],rows:[["Maya Chen","Yes"],["Jordan Lee","Yes"],["Sam Rivera","No"],["Alex Kim","Yes"],["Taylor Brooks","No"]],caption:"CASE builds a brand-new column: 'Yes' when status is active, 'No' for everyone else."},
+   viz:{columns:["name","is_active (CASE)","contact (COALESCE)"],rows:[["Maya Chen","Yes","maya@co.com"],["Jordan Lee","Yes","555-0182"],["Sam Rivera","No","no contact"],["Alex Kim","Yes","alex@co.com"]],caption:"Two conditional tools side by side: CASE builds the Yes/No column from status, while COALESCE(email, phone, 'no contact') fills the contact column with the first value that isn't NULL."},
    quiz:{q:"What does COALESCE(a, b, c) return?",opts:["The sum of a, b, c","The last non-NULL value","The first non-NULL value","Always returns a"],ans:2,exp:"COALESCE returns the first non-NULL value in the list. Great for providing fallbacks."}
   },
   // UNIT 3
@@ -505,7 +505,7 @@ LESSONS: [
      ]
    },
    notes:"Core recon patterns: missing rows (LEFT JOIN + IS NULL), duplicate keys (GROUP BY id HAVING COUNT > 1), value mismatches (JOIN + WHERE a.col != b.col), row counts (SELECT COUNT(*)).",
-   viz:{columns:["id"],rows:[["107"],["112"],["118"]],caption:"These IDs exist in customers_old but have no match in customers — the rows that went missing between versions."},
+   viz:{columns:["Recon pattern","SQL shape","What it finds"],rows:[["Missing rows","LEFT JOIN … WHERE b.id IS NULL","IDs 107, 112, 118"],["Duplicate keys","GROUP BY id HAVING COUNT(*) > 1","ID 104 (appears twice)"],["Value mismatch","JOIN … WHERE a.amt <> b.amt","ID 109: 90 vs 95"]],caption:"The three core reconciliation patterns at a glance — find missing rows, duplicate keys, and value mismatches — each a different join/filter shape."},
    quiz:{q:"To find rows in table A that are missing from table B, you use:",opts:["INNER JOIN + WHERE b.id IS NULL","LEFT JOIN + WHERE b.id IS NULL","RIGHT JOIN + GROUP BY","FULL OUTER JOIN"],ans:1,exp:"LEFT JOIN keeps all of A. WHERE b.id IS NULL isolates rows that had no match in B — those are the missing ones."}
   }
 ],
