@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.20.1] — 2026-06-03 — Fix: land on the action buttons after finishing a lesson
+
+Mike: answering a lesson's Quick Check correctly bounced the page to the top (or
+left you scrolled at the now-gone quiz), so you had to hunt/scroll for the
+"Practice this / Next" buttons. Fixed across all 6 lesson kits — on completion
+the lesson-complete card's action buttons are now smoothly scrolled into view
+(Stats/Tableau scroll to the top where the short complete card sits; Excel/Python
+center the complete card in the re-rendered lesson; SQL/Power BI scroll the
+newly-appended button row into view). Verified live: buttons land within the
+viewport in every kit (June 3, 2026 — 12:08 AM ET).
+
+---
+
 ## [1.20.0] — 2026-06-02 — Hub follow-ons: mini-exam badge + Bare Basics progress
 
 Two hub (root `index.html`) features Mike greenlit (June 2, 2026 — 11:56 PM ET):
