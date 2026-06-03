@@ -9,6 +9,20 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.23.1] — 2026-06-03 — Grouping lesson: methods + Group/Set/Hierarchy
+
+Mike asked to make sure the new Grouping lesson covers **how to choose the best
+grouping method** (June 3, 2026 — 11:48 AM ET):
+
+- Added a second breakdown block, **"Ways to make a group — pick the method that
+  fits"**: Visual (select marks → paperclip), Header select, Data-pane dialog
+  (best for long lists), Group-by-another-field, and Hierarchy (noted as a
+  separate drill-down tool, not a merge).
+- Expanded the note to **"Choosing the method"** + a clear **Group vs. Set vs.
+  Hierarchy** distinction with a quick decision cue (Electronics-as-one-bar →
+  Group; top performers that update → Set; expand Category into products →
+  Hierarchy).
+
 ## [1.23.0] — 2026-06-03 — Tableau: new Grouping lesson
 
 Mike's class is covering Tableau **Groups**, and the kit had no section on it
