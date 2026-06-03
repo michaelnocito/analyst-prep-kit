@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** May 28, 2026
-**Current version:** `v1.4.1` (4 versions awaiting test — see end of file)
+**Last session ended:** June 3, 2026
+**Current version:** `v1.22.0` (all active roadmap buckets clear; awaiting Mike's playtest — see "Current state" below)
 **You are continuing an established collaboration with Mike Nocito.**
 
 Read this entire file before doing anything. It is the source of truth
@@ -202,52 +202,125 @@ These are things we got wrong in the last session and corrected:
 
 ---
 
-## Current state at handoff (May 28, 2026)
+## Current state at handoff (June 3, 2026)
+
+A long marathon session took the suite from v1.4.1 → **v1.22.0**.
+Every active roadmap bucket is now empty (only the Parking Lot
+remains). Below is what shipped and what's awaiting Mike's playtest.
+
+### What shipped this session (v1.5 → v1.22)
+
+Four big themes, all rolled across the 6 *lesson* kits
+(Excel, SQL, Python, Tableau, Stats, Power BI). **The Interview kit,
+the Simulator, and the Final Exam Kit were intentionally NOT swept** —
+they're structurally different (see per-kit notes below).
+
+1. **Guided Path (v1.7–v1.13)** — every lesson now flows directly into
+   the practice drills it applies to. `LESSON_DRILLS` maps
+   `lessonId → [[drillKey, idx], …]`; `startGuided / renderGuidedStep /
+   guidedNext / gotoNextLesson` drive the flow. Per-lesson reset added.
+2. **"See it on screen" lesson visuals (v1.14–v1.16)** — all 72
+   lessons open with a rendered preview of the concept BEFORE the
+   abstract explanation. Tableau/Stats use Chart.js; SQL=result tables,
+   Excel=cell grids, Python=output blocks, Power BI=result tables.
+   (Helpers: `lessonVizHTML/drawLessonChart`, `lessonResultHTML`,
+   `lessonGridHTML`, `lessonOutputHTML`, `lessonStatHTML/drawStatChart`.)
+3. **Backlog sweep (v1.17–v1.20)** — GR-C Final Exam per-section
+   submit + partial cumulative grade; GR-E Bug Hunt "check my fix"
+   input (later superseded by tap-the-choice); GR-A Bare Basics
+   cross-kit handoff; GR-D real-world analogy opener on **every** lesson
+   (72); per-kit mini-exam ("Exam" nav entry deep-links to that kit's
+   Final-Exam section via `#exam-<section>`); hub mini-exam score badge
+   + Bare Basics "X of N subjects" pill; Excel/Python nav overflow fix.
+4. **Tap-the-choice drills (v1.20.1–v1.22)** — Mike's strongest recent
+   ask: **NO free-text answer boxes anywhere.** All Bug Hunt + Describe
+   drills across all 6 kits converted to Duolingo-style
+   tap-the-word/phrase. Also fixed lesson-complete scroll (was bouncing
+   to top with the action buttons off-screen).
 
 ### Tests awaiting Mike
 
-These versions shipped but Mike hasn't fully tested all of them yet.
-He may pick any of these to test when you return:
-
-- **v1.2.3** — Final Exam Kit cold entry always lands on Home (GR-1).
-  Single-file fix in `final/index.html`. Untested.
-- **v1.3.0** — "Say It Out Loud" plain-English leading sentence rolled
-  out to SQL (12 lessons), Python (30+ formulas), Power BI (12
-  lessons), hub demo. Untested.
-- **v1.4.0** — Bare Basics highlight changed from teal to amber
-  (`#e0b84a`) across all 7 kits + hub. Pill restyled as sticker. The
-  active-banner color, exit button, and card-glow ring all flipped to
-  amber. Untested.
-- **v1.4.1** — Pedagogy fixes: SQL HAVING leak removed from L5
-  context, Power BI prerequisite banner added on home, Python L1
-  intro now names types in full + L4 explains `import`. Untested.
+Nothing is "broken-pending" — but the whole v1.5→v1.22 arc was shipped
+faster than Mike could playtest. He last said **"so much better, love
+it!!!"** after the visuals wave. Expect him to come back with playtest
+results on the **tap-the-choice drills (v1.21/v1.22)** and/or the
+**lesson visuals**, or to say "ready" for the next thing.
 
 ### Roadmap state (as of this handoff)
 
 Open `ROADMAP.md` for the live version. Summary:
 
 - 🔴 Blocker: empty
-- 🟠 High: 2 items (Bare Basics cross-kit handoff was tagged GR-A
-  Medium — confirm priority; GR-C Final Exam per-section submit;
-  GR-E Bug Hunt input)
-- 🟡 Medium: 3-4 items (GR-A, per-kit mini exams, GR-D real-world
-  analogies across all help text)
+- 🟠 High: empty
+- 🟡 Medium: empty
 - 🟢 Low: empty
-- 🅿️ Parking Lot: 5 items (Tableau/Stats SIOL deferral, CSS var
-  unification, orphaned sprint CSS cleanup, within-lesson basics
-  highlighting, GR-B "living a workday" mindset expansion)
+- 🅿️ Parking Lot: the deferred items (CSS var unification, orphaned
+  sprint CSS cleanup, within-lesson basics highlighting, GR-B "living a
+  workday" expansion, GR-D analogy sweep into glossary/say-lines beyond
+  the proof set, extending visuals/tap-the-choice into the Interview
+  kit). **Don't start these unless Mike promotes one.**
 
 ### What Mike will likely say first
 
 One of:
-- "Ready" → he wants the next item per priority. Pick the highest
-  unshipped item OR the oldest untested-shipped version, give 3
-  checks.
-- "Test results: ..." → he's reporting on one of v1.2.3 / v1.3.0 /
-  v1.4.0 / v1.4.1. Acknowledge, update CHANGELOG with verification
-  timestamp, ask what's next.
-- New feedback → triage with timestamp, propose bucket, ask before
-  working.
+- **Playtest results on v1.21/v1.22 or the visuals** → acknowledge,
+  log any GR items with ET timestamp, fix or triage per workflow.
+- **"Ready" / "what's next"** → all active buckets are empty. Either
+  surface a Parking-Lot item for promotion (with reasoning + ROI) or
+  ask what direction he wants. Don't invent scope.
+- **New feedback** → triage with ET timestamp, propose bucket, confirm
+  before working.
+
+---
+
+## Per-kit architecture cheat-sheet (earned the hard way)
+
+**The #1 rule of this codebase: the SAME fix does NOT work in every
+kit.** Each kit has its own render signatures, state shapes, and
+helper names. Always read the specific kit's code before editing.
+Below is the map so you don't re-discover it.
+
+### Lesson-visual helpers ("See it on screen")
+| Kit | Helper | Render tech |
+|---|---|---|
+| Tableau | `lessonVizHTML` / `drawLessonChart` | Chart.js (bar/line/scatter, `refline:'avg'`, `html`, `table`) |
+| Stats | `lessonStatHTML` / `drawStatChart` | Chart.js (bar/line/scatter, `ci` floating-bar) |
+| SQL | `lessonResultHTML` | HTML result table |
+| Power BI | `lessonResultHTML` | HTML result table |
+| Excel | `lessonGridHTML` | HTML cell grid |
+| Python | `lessonOutputHTML` | HTML output block |
+
+> Chart.js is loaded ONLY in Tableau + Stats. The other kits are pure
+> HTML/CSS — don't reach for Chart.js there.
+> **Canvas timing trap (Stats):** `openLesson` must set the view
+> *active/visible* BEFORE calling `renderLesson()`, or charts render at
+> 0×0 (blank). We hit this.
+
+### Drill render signatures (they DIFFER)
+| Kit(s) | Pattern | Signature |
+|---|---|---|
+| SQL, Power BI | navigate-based | `renderBug(idx)`, lives in `#main`, advance via `navigate('bug',n)` / `_bugAdvance(idx)` |
+| Stats | item-state | `renderBug(item, done)`, `drillState.idx` |
+| Excel, Python | indexed | `renderBug(item, idx, isDone)` |
+
+### Tap-the-choice pattern (v1.21–v1.22, all 6 kits)
+Every Bug Hunt / Describe drill has a `choices:[correct, …distractors]`
+array (**correct is always index 0**). Render shuffles with `_shuf()`
+and tags each button `data-correct="${c===choices[0]?1:0}"`. Handlers:
+- SQL/Power BI: `pickBugFix(this, idx)` — reads `btn.dataset.correct`
+- Excel/Python/Stats: `pickBug(this, idx)` / `pickEsql(this, idx)`
+- On correct: green styles, disable all, `markDone('bugsDone'|'esqlDone', idx)`,
+  celebrate, advance. On wrong: red the clicked button only.
+
+> **There are NO `<textarea>` / free-text answer inputs left anywhere
+> in the 6 lesson kits.** If you add a drill, it must be tap-the-choice.
+
+### Headless verification (no browser needed)
+Extract each inline `<script>` block and syntax-check with
+`new Function(src)`. Catches the brace/paren slips that bit us
+(Tableau scatter `Chart()`, etc.). Then optionally live-smoke via the
+`preview_*` MCP tools — `preview_eval` DOM checks are reliable;
+`preview_screenshot` was flaky this session.
 
 ---
 
