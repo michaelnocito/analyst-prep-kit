@@ -581,73 +581,73 @@ BUGS: [
    broken:"Total Revenue = SUM([Revenue])",
    issue:"SUM requires Table[Column] syntax — [Revenue] alone is ambiguous",
    fix:"Total Revenue = SUM(Sales[Revenue])",
-   hint:"Always qualify column references with the table name: Table[Column]."},
+   hint:"Always qualify column references with the table name: Table[Column].",choices:["Qualify the column: SUM(Sales[Revenue])","Remove the SUM function","Use square brackets only: [Revenue]"]},
   {id:2, title:"Using / instead of DIVIDE", concept:"Safe division",
    prompt:"Calculate profit margin percentage.",
    broken:"Margin % = (SUM(Sales[Revenue]) - SUM(Sales[Cost])) / SUM(Sales[Revenue])",
    issue:"Using / will throw an error if Revenue is ever zero or blank",
    fix:"Margin % = DIVIDE(SUM(Sales[Revenue]) - SUM(Sales[Cost]), SUM(Sales[Revenue]))",
-   hint:"DIVIDE handles zero denominators gracefully — always prefer it in DAX."},
+   hint:"DIVIDE handles zero denominators gracefully — always prefer it in DAX.",choices:["Use DIVIDE() instead of /","Add an IFERROR around it","Multiply by 100 first"]},
   {id:3, title:"Calculated column used as a measure", concept:"Columns vs measures",
    prompt:"You need to show total sales on a card visual. A developer wrote this as a calculated column.",
    broken:"-- Calculated column (wrong for aggregation on a card):\nTotal Revenue = SUM(Sales[Revenue])",
    issue:"SUM in a calculated column aggregates the whole table — not filter-context-aware",
    fix:"-- Create as a Measure instead:\nTotal Revenue = SUM(Sales[Revenue])",
-   hint:"Aggregations shown on visuals should be measures, not calculated columns. Measures respond to filter context; calculated columns do not."},
+   hint:"Aggregations shown on visuals should be measures, not calculated columns. Measures respond to filter context; calculated columns do not.",choices:["Create it as a Measure, not a calculated column","Add a calculated column with AVERAGE","Move it to a new table"]},
   {id:4, title:"TOTALYTD missing Date table column", concept:"Time intelligence",
    prompt:"Calculate year-to-date revenue.",
    broken:"YTD Revenue = TOTALYTD(SUM(Sales[Revenue]), Sales[OrderDate])",
    issue:"Time intelligence should reference the Date dimension table, not the fact table date",
    fix:"YTD Revenue = TOTALYTD(SUM(Sales[Revenue]), Dates[Date])",
-   hint:"Always use your dedicated Date table for time intelligence functions."},
+   hint:"Always use your dedicated Date table for time intelligence functions.",choices:["Reference the Date table: Dates[Date]","Use Sales[OrderDate] with YEAR()","Wrap the whole thing in CALCULATE"]},
   {id:5, title:"Column reference instead of measure reference", concept:"DAX syntax",
    prompt:"Calculate the gap between revenue and a goal measure.",
    broken:"Gap = Sales[Revenue] - [Revenue Goal]",
    issue:"Sales[Revenue] is a column — you can't subtract a measure from a column directly in a measure",
    fix:"Gap = [Total Revenue] - [Revenue Goal]",
-   hint:"In measures, reference other measures with [MeasureName], not Table[Column]."},
+   hint:"In measures, reference other measures with [MeasureName], not Table[Column].",choices:["Reference the measure: [Total Revenue] - [Revenue Goal]","Use SUM(Sales[Revenue]) instead","Add the table name: Sales[Revenue Goal]"]},
   {id:6, title:"CALCULATE filter uses wrong syntax", concept:"CALCULATE",
    prompt:"Calculate revenue only for 2024.",
    broken:"Revenue 2024 = CALCULATE(SUM(Sales[Revenue]), Sales[Year] == 2024)",
    issue:"DAX uses = for equality, not ==",
    fix:"Revenue 2024 = CALCULATE(SUM(Sales[Revenue]), Sales[Year] = 2024)",
-   hint:"DAX uses a single = for equality. == is not valid DAX syntax."},
+   hint:"DAX uses a single = for equality. == is not valid DAX syntax.",choices:["Use a single = for equality","Wrap 2024 in quotes","Use FILTER instead of the condition"]},
   {id:7, title:"COUNTROWS vs COUNT confusion", concept:"Aggregation",
    prompt:"Count the total number of orders.",
    broken:"Order Count = COUNT(Orders)",
    issue:"COUNT requires a column argument, not a table name",
    fix:"Order Count = COUNTROWS(Orders)",
-   hint:"COUNTROWS(Table) counts rows. COUNT(Table[Column]) counts non-blank values in a column."},
+   hint:"COUNTROWS(Table) counts rows. COUNT(Table[Column]) counts non-blank values in a column.",choices:["Use COUNTROWS(Orders)","Use COUNT(Orders)","Use SUM(Orders)"]},
   {id:8, title:"Measure name collision with column", concept:"Naming",
    prompt:"You have a column Sales[Revenue] and create a measure.",
    broken:"Revenue = SUM(Sales[Revenue])",
    issue:"Naming a measure the same as a column in the same table causes ambiguity",
    fix:"Total Revenue = SUM(Sales[Revenue])",
-   hint:"Prefix measure names (Total, Avg, Count, %) to distinguish them from column names."},
+   hint:"Prefix measure names (Total, Avg, Count, %) to distinguish them from column names.",choices:["Rename the measure 'Total Revenue' to avoid the collision","Delete the Revenue column","Put the measure in a different table"]},
   {id:9, title:"Divide-by-zero in YoY calculation", concept:"DIVIDE",
    prompt:"Calculate year-over-year revenue growth percentage.",
    broken:"YoY % = ([Total Revenue] - [LY Revenue]) / [LY Revenue]",
    issue:"If LY Revenue is blank (no prior year data), this will error",
    fix:"YoY % = DIVIDE([Total Revenue] - [LY Revenue], [LY Revenue])",
-   hint:"Any division in DAX should use DIVIDE to handle blank or zero denominators."},
+   hint:"Any division in DAX should use DIVIDE to handle blank or zero denominators.",choices:["Use DIVIDE([Total Revenue] - [LY Revenue], [LY Revenue])","Add + 0 to the denominator","Wrap the result in ROUND()"]},
   {id:10, title:"ALL removes wrong table", concept:"CALCULATE / ALL",
    prompt:"Calculate each product's share of total revenue (all regions, all dates still filtered).",
    broken:"Product Share = DIVIDE([Total Revenue], CALCULATE([Total Revenue], ALL()))",
    issue:"ALL() with no arguments removes ALL filters from ALL tables",
    fix:"Product Share = DIVIDE([Total Revenue], CALCULATE([Total Revenue], ALL(Products)))",
-   hint:"ALL(Table) removes filters from just that table. ALL() removes filters from everything."},
+   hint:"ALL(Table) removes filters from just that table. ALL() removes filters from everything.",choices:["Use ALL(Products), not ALL()","Use ALLEXCEPT() instead","Remove the CALCULATE"]},
   {id:11, title:"Time intelligence on fact table date", concept:"Date table",
    prompt:"Get prior year revenue using SAMEPERIODLASTYEAR.",
    broken:"LY Rev = CALCULATE([Total Revenue], SAMEPERIODLASTYEAR(Sales[OrderDate]))",
    issue:"Time intelligence functions require a dedicated Date table, not the fact table date column",
    fix:"LY Rev = CALCULATE([Total Revenue], SAMEPERIODLASTYEAR(Dates[Date]))",
-   hint:"Mark a dedicated Dates table and always reference it for time intelligence."},
+   hint:"Mark a dedicated Dates table and always reference it for time intelligence.",choices:["Reference the Date table: SAMEPERIODLASTYEAR(Dates[Date])","Use DATEADD on Sales[OrderDate]","Add a GROUP BY on year"]},
   {id:12, title:"Missing relationship for cross-table filter", concept:"Data model",
    prompt:"A slicer on Customer[Region] isn't filtering the Sales visual.",
    broken:"-- No relationship defined between Customer and Sales tables",
    issue:"Without a relationship, slicers on dimension tables can't filter the fact table",
    fix:"-- In Model View: drag Customer[CustomerID] to Sales[CustomerID] to create a relationship",
-   hint:"Slicers only work across tables when there's an active relationship in the model."}
+   hint:"Slicers only work across tables when there's an active relationship in the model.",choices:["Create a relationship: Customer[CustomerID] → Sales[CustomerID]","Add a slicer to the Sales table","Use a measure with FILTER"]}
 ],
 
 PARSONS: [
@@ -1255,32 +1255,21 @@ function renderBug(idx){
       <p class="text-muted text-sm">${b.prompt}</p>
       <div class="code-broken">${b.broken}</div>
       <div class="bug-issue">⚠️ ${b.issue}</div>
-      <p class="text-muted text-sm" style="margin-top:12px">Try the fix yourself first:</p>
-      <textarea id="bug-input" spellcheck="false" placeholder="Type your corrected DAX…" style="width:100%;min-height:58px;background:var(--bg,#0f141b);border:1px solid var(--border,#28303c);border-radius:6px;padding:9px 11px;color:var(--text,#e6edf3);font-family:var(--mono);font-size:13px;outline:none;resize:vertical">${done?b.fix:''}</textarea>
-      <div class="row mt" style="gap:8px">
-        <button class="btn btn-primary btn-sm" onclick="checkBugFix(${idx})">Check My Fix</button>
-        <button class="btn btn-ghost btn-sm" onclick="revealFix(${idx})">Reveal Fix</button>
+      <p class="text-muted text-sm" style="margin-top:12px">Tap the correct fix:</p>
+      <div id="bugChoices" style="display:flex;flex-direction:column;gap:8px">
+        ${_shuf(b.choices).map(c=>`<button class="bug-choice" data-correct="${c===b.choices[0]?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:rgba(47,109,240,.08);color:var(--accent);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer" onclick="pickBugFix(this,${idx})" ${done?'disabled':''}>${c}</button>`).join('')}
       </div>
       <div id="bug-result" class="mt"></div>
       <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button>
       <div class="hint-panel" id="drill-hint"></div>
       <div class="answer-panel" id="drill-answer"></div>
-      <div class="code-fixed" id="bug-fix">${b.fix}</div>
+      <div class="code-fixed${done?' show':''}" id="bug-fix">${b.fix}</div>
       <div id="bug-next" class="mt"></div>
     </div>`;
 }
 
-// GR-E: let the user attempt the fix before revealing it.
-function _bugNorm(s){ return (s||'').toLowerCase().replace(/[`;]+/g,'').replace(/\s+/g,' ').trim(); }
-function _bugPass(input, fix){
-  const a=_bugNorm(input), b=_bugNorm(fix);
-  if(!a) return false;
-  if(a===b) return true;
-  const tok=s=>s.split(/[^a-z0-9_*().'"=<>!|&+/[\]-]+/).filter(Boolean);
-  const aset=new Set(tok(a)), bt=tok(b);
-  if(!bt.length) return false;
-  return bt.filter(t=>aset.has(t)).length / bt.length >= 0.8;
-}
+// Bug Hunt — tap the correct fix (no free typing).
+function _shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function _bugAdvance(idx){
   return guided
     ? `<button class="btn btn-primary btn-sm" onclick="guidedNext()">Next →</button>`
@@ -1288,25 +1277,21 @@ function _bugAdvance(idx){
       ? `<button class="btn btn-primary btn-sm" onclick="navigate('bug',${idx+1})">Next Bug →</button>`
       : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">All Done →</button>`;
 }
-function checkBugFix(idx){
+function pickBugFix(btn, idx){
   const b = DATA.BUGS[idx];
   const res = document.getElementById('bug-result');
-  if(_bugPass(document.getElementById('bug-input').value, b.fix)){
-    res.innerHTML = `<span style="color:var(--green);font-weight:600">✓ That's the fix — nicely done.</span>`;
+  if(btn.dataset.correct === '1'){
+    btn.style.background='var(--green,#1a7f37)'; btn.style.color='#fff'; btn.style.borderColor='var(--green,#1a7f37)';
+    document.querySelectorAll('#bugChoices .bug-choice').forEach(x=>x.disabled=true);
+    document.getElementById('bug-fix').classList.add('show');
+    res.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Fixed!</span>`;
     celebrate();
     markDone('doneBugs', b.id);
-    document.getElementById('bug-fix').classList.add('show');
     document.getElementById('bug-next').innerHTML = _bugAdvance(idx);
   } else {
-    res.innerHTML = `<span style="color:var(--red)">Not quite — tweak it and try again, or Reveal Fix to compare.</span>`;
+    btn.style.background='rgba(207,34,46,.12)'; btn.style.borderColor='var(--red,#cf222e)'; btn.style.color='var(--red,#cf222e)'; btn.style.opacity='.8'; btn.disabled=true;
+    res.innerHTML = `<span style="color:var(--red)">Not quite — try another, or use the hint.</span>`;
   }
-}
-function revealFix(idx){
-  const b = DATA.BUGS[idx];
-  document.getElementById('bug-fix').classList.add('show');
-  celebrate();
-  markDone('doneBugs', b.id);
-  document.getElementById('bug-next').innerHTML = _bugAdvance(idx);
 }
 
 // ─── PARSONS DRILL ─────────────────────────────────────────────────────────
