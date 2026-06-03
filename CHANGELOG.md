@@ -9,7 +9,25 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
-## [1.24.0] — 2026-06-03 — Tableau cert beef-up, Cycle 1: Live vs. Extract (L14)
+## [1.25.0] — 2026-06-03 — Grouping lesson: visuals for the new sections
+
+Mike (playtest): the Grouping lesson's added breakdown blocks were text-only and
+"need visuals, especially the where-did-it-go part." June 3, 2026 — 12:30 PM ET.
+
+- **Engine:** `renderLesson` now renders an optional `html` per breakdown (RAL)
+  block, so any block can carry its own inline visual (not just the one top-of-
+  lesson `viz`). Small, reusable addition.
+- **"Where did my group go?"** now shows a **mock Data pane** — Dimensions list
+  with the new **📎 Product (group)** field highlighted at the BOTTOM and an
+  "⬅ lands here" callout. Directly answers the question visually.
+- **"3 ways to group"** gets a 3-method → one-field flow diagram (in the view /
+  headers / Data pane → 📎 one grouped field).
+- **"Group vs. Set vs. Hierarchy"** gets a 3-up icon comparison
+  (📎 Group · ◐ Set IN/OUT · ▸ Hierarchy).
+
+Headless-verified: 3 scripts clean; block.html path live.
+
+## [1.24.0] — 2026-06-03 — Tableau cert beef-up, Cycle 1: Live vs. Extract (L14) ✅ playtested PASS (June 3)
 
 First lesson of the Tableau Desktop Specialist cert push (see `TABLEAU_CERT_PLAN.md`).
 Targets exam Domain 1 (Connecting & Preparing Data, 25% — previously almost
