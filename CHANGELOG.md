@@ -9,6 +9,27 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.23.2] — 2026-06-03 — Grouping lesson: deeper basics for struggling learners
+
+Mike's class is struggling with grouping-method decisions; he asked for more
+basics — how the methods are the same/different, use cases, how-to, and the
+specific "why don't view-created groups show in the Data pane?" question
+(June 3, 2026 — 12:10 PM ET). Verified the actual Tableau behavior against the
+official docs before writing (Tableau Help: Group Your Data; Organize Fields in
+the Data Pane). Rebuilt the lesson body into four breakdown blocks:
+
+- **"3 ways to group — same result, different starting point"** — in the view
+  (marks), in the view (headers), and from the Data pane (Create ▸ Group), with
+  the key point that **all three produce the same single grouped field**.
+- **"Where did my group go? (the Data-pane gotcha)"** — corrects the common
+  misconception: view-created groups **are** saved as a reusable `[Field]
+  (group)` paperclip field — they just land at the **bottom of the Dimensions
+  list** (not next to the original), and the view swaps the shelf pill, which is
+  why they look like they vanished. Data-pane method = surest path to reuse.
+- **"Group vs. Set vs. Hierarchy — when to use which"** + a quick decision cue.
+- Note rewritten to explain *why* the three get confused (static merge vs.
+  dynamic in/out vs. drill-down nesting).
+
 ## [1.23.1] — 2026-06-03 — Grouping lesson: methods + Group/Set/Hierarchy
 
 Mike asked to make sure the new Grouping lesson covers **how to choose the best
