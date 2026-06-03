@@ -9,6 +9,32 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.22.0] — 2026-06-03 — Tap-the-choice drills rolled to all kits
+
+Following the Tableau conversion, Mike asked to roll the same tap-the-choice
+treatment to the rest. Converted every remaining free-text drill (June 3, 2026 —
+11:04 AM ET):
+
+- **Bug Hunt / Fix-the-Code / Fix-the-Formula** — SQL, Power BI, Python, Stats,
+  and Excel were all "type the fix." Now each shows the broken code/formula and
+  **3 tappable fix options** (one correct + two distractors); tap the right fix,
+  wrong taps mark red and disable, hint/answer still available.
+- **Describe → X** — Stats and Excel had free textareas. Now **tap-the-phrase**:
+  the prompt plus short method/formula chips (e.g. `.mean(), .median(), .mode()`
+  for Stats; `=SUM(D2:D100)` vs `=SUM(D2,D100)` for Excel).
+
+Added a `choices` array (correct first, shuffled on render) to all converted
+drills — 36 each for Stats/Excel (bugs + describe), 12 each for SQL/Python/Power
+BI bugs. Replaced every `<textarea>`/`<input>` + answer-matching with a
+data-correct tap handler. Applies to both the Practice tab and the guided
+"Practice this" flow. **No free-text answer boxes remain in any kit's drills.**
+
+Verified live across the three render architectures: navigate-based (SQL/Power
+BI), item-state (Stats), and indexed (Excel/Python) — correct chip → ✓, wrong →
+"try another," no input fields. Headless parse of all five kits is green.
+
+---
+
 ## [1.21.0] — 2026-06-03 — Tableau drills: tap-the-choice, no more free typing
 
 Mike: the Tableau practice/"Practice this" drills still had too much free-fill
