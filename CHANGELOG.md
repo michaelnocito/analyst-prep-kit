@@ -9,6 +9,24 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.29.0] — 2026-06-03 — Tableau cert beef-up, Cycle 4: Sets (L17)
+
+Cycle 4/7 (exam Domain 2.2). Opens the new Unit 5. June 3, 2026 — 1:09 PM ET.
+
+- **New Lesson 17 — "Sets"** (Unit 5: Sets, Hierarchies, Parameters & Dual-Axis).
+  "VIP list that updates itself" analogy; introduces IN/OUT as the core idea
+  (kept light per Mike — the deeper IN/OUT-in-filters explainer stays parked);
+  create-a-set block (General / Condition / Top tabs) + what-you-do-with-a-set.
+- **Visual:** an html IN / OUT two-column split ("revenue over $200" → IN vs OUT).
+- **Misconception bust:** "a set is just a fancy filter" → it's a reusable,
+  dynamic IN/OUT membership that recomputes as data changes (vs a static group).
+- **3 guided tap-the-choice drills:** ESQL "dynamic IN/OUT = Set" (idx 16),
+  WRONG "Top-10 group went stale → use a Top-N Set" (idx 14), FILLS "drag set to
+  Filters to keep IN members" (idx 16). `LESSON_DRILLS[17]` added.
+
+Headless-verified: 3 scripts clean; 17 sequential lesson ids; FILLS/ESQL=17,
+WRONG=15; LESSON_DRILLS keys 1–17.
+
 ## [1.28.0] — 2026-06-03 — Tableau cert beef-up, Cycle 3: Managing Data Properties (L16)
 
 Cycle 3/7 of the Desktop Specialist push (exam Domain 1.3). Completes the Unit 4
