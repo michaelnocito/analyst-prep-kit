@@ -9,6 +9,31 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.23.0] — 2026-06-03 — Tableau: new Grouping lesson
+
+Mike's class is covering Tableau **Groups**, and the kit had no section on it
+(the word "group" only appeared incidentally). Added a dedicated lesson
+(June 3, 2026 — 11:33 AM ET):
+
+- **New Lesson 9 — "Grouping"** (Unit 2: Building Better Vizzes). Teaches
+  combining several dimension members into one named member, using the kit's
+  coffee dataset: group **Espresso Shot + Latte + Cappuccino + Mocha → "Espresso
+  Drinks"** and **"Group Other"** to roll the rest into a single "Other" bar —
+  i.e. the group-vs-everything-else comparison Mike described (electronics-aisle
+  analogy in the opener).
+- **"See it on screen" visual** — an HTML two-bar comparison (Espresso Drinks vs
+  Other), no Chart.js needed.
+- **Group vs. Set note** — clarifies group (static buckets) vs. set (dynamic
+  in/out, Top N, conditions).
+- **Quick check** + **3 new tap-the-choice drills** wired into the guided path:
+  a Fill-in-the-Blank (`Group`), a Describe→Tableau (`Group Other`), and a
+  Fix-the-Config bug (check "Group Other"). All at index 12 of FILLS/ESQL/BUGS.
+- Unit 3 lessons renumbered 9→10 … 12→13 (ids stay sequential for next-lesson
+  nav); `LESSON_DRILLS` rewired accordingly. Now **13 Tableau lessons**.
+
+Headless-verified: 3 inline scripts syntax-clean; 13 sequential lesson ids;
+FILLS/BUGS/ESQL at 13 items; LESSON_DRILLS keys 1–13.
+
 ## [1.22.0] — 2026-06-03 — Tap-the-choice drills rolled to all kits
 
 Following the Tableau conversion, Mike asked to roll the same tap-the-choice
