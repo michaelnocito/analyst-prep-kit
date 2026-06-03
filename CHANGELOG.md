@@ -9,6 +9,33 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.30.0] — 2026-06-03 — Tableau cert beef-up, Cycles 5–7: Hierarchies, Parameters, Dual-Axis (L18–L20)
+
+Final wave of the cert-critical subset (Mike: "keep going"). Completes Unit 5 and
+the whole cert-critical plan in `TABLEAU_CERT_PLAN.md`. June 3, 2026 — 1:15 PM ET.
+
+- **L18 — "Hierarchies"** (Domain 2.2): file-folder +/− analogy; build-a-hierarchy
+  block + when-to-use; html collapsed↔drilled-down visual (Category ▸ Product);
+  misconception bust (a hierarchy nests, it doesn't merge — that's a group).
+- **L19 — "Parameters"** (Domain 2.3): thermostat-dial analogy; create-and-wire
+  block + when-to-use; html parameter-control mock; misconception bust (a
+  parameter does nothing until a calc/filter references it).
+- **L20 — "Dual-Axis & Combined-Axis"** (Domain 2.1): duet analogy; build-a-combo
+  block + dual-vs-combined; **real Chart.js dual-axis visual** (Revenue bars on a
+  left axis, Units line on a right axis) — added a `dualaxis` branch with a
+  second `y1` scale to `drawLessonChart`; misconception bust (only synchronize
+  axes when units match).
+- **9 new guided tap-the-choice drills** across FILLS/ESQL/WRONG/BUGS/PARSONS;
+  `LESSON_DRILLS[18..20]` wired.
+
+**Cert-critical subset COMPLETE** — Tableau now 20 lessons covering exam Domain 1
+(connections/data model/data properties) and the key Domain 2 organizers
+(groups, sets, hierarchies, parameters, dual-axis).
+
+Headless-verified: 3 scripts clean; 20 sequential lesson ids; FILLS=19, ESQL=20,
+WRONG=17, BUGS=15, PARSONS=13; LESSON_DRILLS keys 1–20; dualaxis branch present.
+(Dual-axis chart renders live via Chart.js — confirm visually on the live URL.)
+
 ## [1.29.0] — 2026-06-03 — Tableau cert beef-up, Cycle 4: Sets (L17)
 
 Cycle 4/7 (exam Domain 2.2). Opens the new Unit 5. June 3, 2026 — 1:09 PM ET.
