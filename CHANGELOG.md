@@ -9,6 +9,27 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.31.0] — 2026-06-03 — Final Exam study guide: per-section "See it" visuals
+
+The Final Exam Kit's bare-basics study guide was text-only (it was never part of
+the earlier visuals sweep). Added a compact "📺 See it" diagram at the top of each
+of the 7 subject sections — making the definitions visual without bloating the
+40+ bullets. June 3, 2026 — 1:30 PM ET.
+
+- **Excel:** `$A$1` 🔒 stays put vs `A1` ↘ shifts (absolute vs relative refs).
+- **SQL:** the clause-order chain (SELECT → FROM → WHERE → GROUP BY → HAVING →
+  ORDER BY) + WHERE-before / HAVING-after note.
+- **Python:** the `df → .groupby('region') → ['revenue'].sum()` flow.
+- **Tableau:** blue dimension vs green measure pills.
+- **Statistics:** a right-skew bar sparkline with median (middle) vs mean (pulled
+  right) markers.
+- **Power BI:** a star-schema diagram (Sales fact in the center, dimensions around).
+- **Interview:** the STAR chips (Situation → Task → Action → Result).
+
+Implementation: a new `studyViz(key)` helper (pure HTML/CSS, no Chart.js) rendered
+at the top of each `study-body`, plus `.study-viz` styles. Headless-verified: inline
+script syntax-clean; helper + render hook present.
+
 ## [1.30.0] — 2026-06-03 — Tableau cert beef-up, Cycles 5–7: Hierarchies, Parameters, Dual-Axis (L18–L20)
 
 Final wave of the cert-critical subset (Mike: "keep going"). Completes Unit 5 and
