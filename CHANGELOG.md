@@ -9,6 +9,28 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.28.0] — 2026-06-03 — Tableau cert beef-up, Cycle 3: Managing Data Properties (L16)
+
+Cycle 3/7 of the Desktop Specialist push (exam Domain 1.3). Completes the Unit 4
+"Connecting & Preparing Data" mini-unit. June 3, 2026 — 1:06 PM ET.
+
+- **New Lesson 16 — "Managing Data Properties"** (Unit 4). Moving-boxes-labels
+  analogy; a "five properties" block (rename, alias, data type, geographic role,
+  default properties) + a "which one do I need?" decision aid.
+- **Visual:** a before/after `table` (raw field/value → cleaned display) showing
+  rename / alias / data type / geographic role as display-layer fixes.
+- **Misconception bust:** rename/alias are display-only (source untouched), and
+  rename ≠ alias; plus a text geo column won't map until given a Geographic Role.
+- **3 guided tap-the-choice drills:** ESQL "rename a VALUE = Alias" (idx 15),
+  FILLS "map needs Geographic Role" (idx 15), BUGS "state won't map → assign
+  geographic role" (idx 13). `LESSON_DRILLS[16]` added.
+
+Headless-verified: 3 scripts clean; 16 sequential lesson ids; FILLS/ESQL=16,
+BUGS=14; LESSON_DRILLS keys 1–16.
+
+Also: parked a Tableau **IN/OUT explanation** request (filters/categories → Sets)
+to the Parking Lot per Mike — revisit at L17 Sets once the Workspace feature is done.
+
 ## [1.27.0] — 2026-06-03 — "Know Your Workspace" UI module (Tableau, Power BI, Excel)
 
 New feature addressing the UI-learning wall (separate from the knowledge wall):
