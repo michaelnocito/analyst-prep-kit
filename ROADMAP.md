@@ -1,8 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.33.0` (shipped June 3, 2026 — awaiting test)
-**Recent:** v1.33.0 **visual-parity sweep — Tableau kit DONE** (L5/L6/L8/L12 now show every concept the text names). v1.32.0 L15/L20 parity fixes. v1.31.0 Final Exam study-guide visuals.
-**In flight:** visual-parity sweep across all kits (~26 gaps, tracked in `VISUAL_PARITY_SWEEP.md`). Tableau ✅ done. Remaining: **Excel (5) → SQL (4) → Python (7) → Power BI (4) → Stats (2)** — fixing kit-by-kit, one ship per kit.
+**Current version:** `v1.34.0` (shipped June 3, 2026 — awaiting test)
+**Recent:** v1.34.0 **visual-parity sweep — Excel kit DONE** (L1/L5/L8/L10/L11). v1.33.0 Tableau kit DONE. v1.32.0 L15/L20 parity fixes.
+**In flight:** visual-parity sweep across all kits (~26 gaps, tracked in `VISUAL_PARITY_SWEEP.md`). Done: **Tableau ✅, Excel ✅**. Remaining: **SQL (4) → Python (7) → Power BI (4) → Stats (2)** — one ship per kit.
 **Playtest passes:** Tableau L14 Live/Extract ✅, L16 Data Properties ✅, L17 Sets ✅ (June 3).
 **QA:** whole-kit smoke/acceptance checklist added at `TESTING_CHECKLIST.md` (6 shared checks per kit + kit-specific top-level item; research-backed lenses). v1.27.0 "Know Your Workspace" UI module. v1.24.0 Cycle 1/7 L14 ✅ PASS.
 **Note:** Tableau cert-critical plan (`TABLEAU_CERT_PLAN.md`) fully shipped — L14–L20 awaiting Mike's playtest. Optional future: full-blueprint Tableau (maps/density, bins/histograms, quick table calcs, formatting, sharing/export, cert practice-exam mode); roll Workspace module to SQL/Python/Stats. Parking Lot: deeper IN/OUT-in-filters explainer (fold into L17 Sets when promoted) — park until UI-walkthrough fully done.

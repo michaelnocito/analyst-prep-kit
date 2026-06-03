@@ -15,12 +15,12 @@ Fix kit-by-kit; check off as shipped. Each kit's viz helper differs.
 - [x] L6 Color, Size & Labels — Color + Size + Label encodings on one mark *(v1.33.0)*
 **Tableau DONE.**
 
-## Excel (`lessonGridHTML` — cell grid)
-- [ ] L1 Your First Formula — SUM / AVERAGE / COUNT (shows SUM only)
-- [ ] L10 Text Functions — TRIM / PROPER / LEFT / LEN (shows PROPER only)
-- [ ] L5 Count & Sum with Conditions — COUNTIF / SUMIF (shows SUMIF only)
-- [ ] L11 Dates and Numbers — YEAR / MONTH / TEXT (shows MONTH only)
-- [ ] L8 Slicers, Sorting & Grouping — three tools (shows filtered slicer only)
+## Excel (`lessonGridHTML` — cell grid)  — DONE (v1.34.0)
+- [x] L1 Your First Formula — SUM / AVERAGE / COUNT result rows
+- [x] L10 Text Functions — TRIM / PROPER / LEFT / LEN table
+- [x] L5 Count & Sum with Conditions — COUNTIF + SUMIF results
+- [x] L11 Dates and Numbers — YEAR / MONTH / TEXT rows
+- [x] L8 Slicers, Sorting & Grouping — slicer chip + sorted + grouped grid
 
 ## SQL (`lessonResultHTML` — result table)
 - [ ] L5 COUNT, SUM & GROUP BY — COUNT / SUM / AVG / MAX / MIN (shows COUNT only)

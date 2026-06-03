@@ -9,6 +9,21 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.34.0] — 2026-06-03 — Visual-parity sweep, Excel kit complete
+
+Kit 2 of 6 in the sweep. June 3, 2026 — 6:28 PM ET.
+
+- **L1 Your First Formula:** grid now shows **SUM (500) / AVERAGE (125) / COUNT (4)**
+  result rows (was SUM only).
+- **L5 Count & Sum with Conditions:** shows **COUNTIF (3) + SUMIF (260)** (was SUMIF only).
+- **L10 Text Functions:** a 4-row table — **TRIM / PROPER / LEFT / LEN** (was PROPER only).
+- **L11 Dates and Numbers:** **YEAR (2026) / MONTH (3) / TEXT ('Mar 2026')** rows (was MONTH only).
+- **L8 Slicers, Sorting & Grouping:** grid now shows a **slicer chip + sorted rows + grouped
+  months** — all three tools (was a single filtered pivot).
+
+Sweep progress: Tableau ✅, Excel ✅. Next: SQL → Python → Power BI → Stats.
+Headless-verified: 2 scripts clean.
+
 ## [1.33.0] — 2026-06-03 — Visual-parity sweep, Tableau kit complete
 
 Per Mike's "sweep all kits" — audited every kit's "See it" visuals (found ~26
