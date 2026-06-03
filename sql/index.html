@@ -543,73 +543,73 @@ BUGS: [
    broken:"SELECT name FROM customers WHERE status == 'active';",
    issue:"SQL uses = for equality, not ==",
    fix:"SELECT name FROM customers WHERE status = 'active';",
-   hint:"SQL is not JavaScript — one equals sign."},
+   hint:"SQL is not JavaScript — one equals sign.",choices:["Use a single = for equality","Wrap 'active' in double quotes","Add a semicolon at the end"]},
   {id:2, title:"Missing comma between columns", concept:"SELECT",
    prompt:"Select name and email.",
    broken:"SELECT name email FROM customers;",
    issue:"Columns in SELECT must be separated by commas",
    fix:"SELECT name, email FROM customers;",
-   hint:"Every column after the first needs a comma prefix."},
+   hint:"Every column after the first needs a comma prefix.",choices:["Add a comma between name and email","Put AND between the columns","Wrap the columns in parentheses"]},
   {id:3, title:"ORDER BY after LIMIT", concept:"ORDER BY / LIMIT",
    prompt:"Get the 5 most recent orders.",
    broken:"SELECT * FROM orders LIMIT 5 ORDER BY order_date DESC;",
    issue:"LIMIT must come after ORDER BY",
    fix:"SELECT * FROM orders ORDER BY order_date DESC LIMIT 5;",
-   hint:"SQL clause order at this point: SELECT → FROM → WHERE → ORDER BY → LIMIT."},
+   hint:"SQL clause order at this point: SELECT → FROM → WHERE → ORDER BY → LIMIT.",choices:["Put ORDER BY before LIMIT","Remove the ORDER BY clause","Swap LIMIT for TOP 5"]},
   {id:4, title:"Using = with NULL", concept:"WHERE / NULL",
    prompt:"Find customers whose email is missing (null).",
    broken:"SELECT name FROM customers WHERE email = NULL;",
    issue:"= NULL never matches anything — NULL means 'unknown', so equality is unknown too",
    fix:"SELECT name FROM customers WHERE email IS NULL;",
-   hint:"NULL isn't a value you can equal — use IS NULL or IS NOT NULL."},
+   hint:"NULL isn't a value you can equal — use IS NULL or IS NOT NULL.",choices:["Use IS NULL instead of = NULL","Put quotes around NULL","Use != NULL"]},
   {id:5, title:"COUNT with column name for total rows", concept:"COUNT",
    prompt:"Count all customers including those with null emails.",
    broken:"SELECT COUNT(email) FROM customers;",
    issue:"COUNT(col) skips NULLs; COUNT(*) counts all rows",
    fix:"SELECT COUNT(*) FROM customers;",
-   hint:"To count every row regardless of NULLs, use *."},
+   hint:"To count every row regardless of NULLs, use *.",choices:["Use COUNT(*) to count every row","Use COUNT(DISTINCT email)","Use SUM(email)"]},
   {id:6, title:"Ambiguous column name in JOIN", concept:"JOIN",
    prompt:"Select customer names and their order dates.",
    broken:"SELECT name, order_date FROM customers INNER JOIN orders ON id = customer_id;",
    issue:"'id' is ambiguous — it exists in both tables",
    fix:"SELECT c.name, o.order_date FROM customers c INNER JOIN orders o ON c.id = o.customer_id;",
-   hint:"Use table aliases and qualify column names in JOINs."},
+   hint:"Use table aliases and qualify column names in JOINs.",choices:["Alias the tables and qualify it: c.id = o.customer_id","Rename one table's id column","Drop the ON clause"]},
   {id:7, title:"GROUP BY missing column", concept:"GROUP BY",
    prompt:"Show status and the count of customers per status.",
    broken:"SELECT status, name, COUNT(*) FROM customers GROUP BY status;",
    issue:"'name' is in SELECT but not in GROUP BY or an aggregate",
    fix:"SELECT status, COUNT(*) FROM customers GROUP BY status;",
-   hint:"Every non-aggregate column in SELECT must appear in GROUP BY."},
+   hint:"Every non-aggregate column in SELECT must appear in GROUP BY.",choices:["Remove 'name' from SELECT (or add it to GROUP BY)","Move name into the WHERE clause","Wrap name in COUNT()"]},
   {id:8, title:"String value not quoted", concept:"WHERE",
    prompt:"Find orders from customer ID 'C001'.",
    broken:"SELECT * FROM orders WHERE customer_id = C001;",
    issue:"Text values must be wrapped in single quotes",
    fix:"SELECT * FROM orders WHERE customer_id = 'C001';",
-   hint:"Numbers don't need quotes; strings do."},
+   hint:"Numbers don't need quotes; strings do.",choices:["Wrap C001 in single quotes","Wrap C001 in double quotes","Remove quotes everywhere"]},
   {id:9, title:"CASE missing END", concept:"CASE",
    prompt:"Label customers as 'Active' or 'Inactive'.",
    broken:"SELECT name, CASE WHEN status='active' THEN 'Active' ELSE 'Inactive' FROM customers;",
    issue:"CASE expression must be closed with END",
    fix:"SELECT name, CASE WHEN status='active' THEN 'Active' ELSE 'Inactive' END AS label FROM customers;",
-   hint:"Every CASE needs an END to close it."},
+   hint:"Every CASE needs an END to close it.",choices:["Add END to close the CASE","Add another WHEN branch","Delete the ELSE"]},
   {id:10, title:"Subquery returns multiple rows for = operator", concept:"Subqueries",
    prompt:"Find customers whose IDs are in the orders table.",
    broken:"SELECT name FROM customers WHERE id = (SELECT customer_id FROM orders);",
    issue:"= expects one value; the subquery returns many rows",
    fix:"SELECT name FROM customers WHERE id IN (SELECT customer_id FROM orders);",
-   hint:"Use IN when the subquery can return more than one row."},
+   hint:"Use IN when the subquery can return more than one row.",choices:["Use IN instead of = for the subquery","Add LIMIT 1 to the subquery","Keep = but add DISTINCT"]},
   {id:11, title:"CTE referenced before WITH", concept:"CTEs",
    prompt:"Use a CTE to get active customers, then select from it.",
    broken:"SELECT * FROM active;\nWITH active AS (SELECT * FROM customers WHERE status='active');",
    issue:"The WITH clause must come before the final SELECT",
    fix:"WITH active AS (\n  SELECT * FROM customers WHERE status='active'\n)\nSELECT * FROM active;",
-   hint:"WITH goes at the very start of the query."},
+   hint:"WITH goes at the very start of the query.",choices:["Put the WITH clause before the final SELECT","Move the semicolon to the top","Remove the WITH entirely"]},
   {id:12, title:"Window function missing OVER", concept:"Window Functions",
    prompt:"Rank orders by date.",
    broken:"SELECT order_date, ROW_NUMBER() AS rn FROM orders;",
    issue:"Window functions require OVER (...) to define the window",
    fix:"SELECT order_date, ROW_NUMBER() OVER (ORDER BY order_date) AS rn FROM orders;",
-   hint:"Without OVER, SQL doesn't know it's a window function."}
+   hint:"Without OVER, SQL doesn't know it's a window function.",choices:["Add OVER (ORDER BY order_date) after ROW_NUMBER()","Add GROUP BY order_date","Wrap ROW_NUMBER() in COUNT()"]}
 ],
 
 PARSONS: [
@@ -1213,32 +1213,21 @@ function renderBug(idx){
       <p class="text-muted text-sm">${b.prompt}</p>
       <div class="code-broken">${b.broken}</div>
       <div class="bug-issue">⚠️ ${b.issue}</div>
-      <p class="text-muted text-sm" style="margin-top:12px">Try the fix yourself first:</p>
-      <textarea id="bug-input" spellcheck="false" placeholder="Type your corrected query…" style="width:100%;min-height:58px;background:var(--bg,#0f141b);border:1px solid var(--border,#28303c);border-radius:6px;padding:9px 11px;color:var(--text,#e6edf3);font-family:var(--mono);font-size:13px;outline:none;resize:vertical">${done?b.fix:''}</textarea>
-      <div class="row mt" style="gap:8px">
-        <button class="btn btn-primary btn-sm" onclick="checkBugFix(${idx})">Check My Fix</button>
-        <button class="btn btn-ghost btn-sm" onclick="revealFix(${idx})">Reveal Fix</button>
+      <p class="text-muted text-sm" style="margin-top:12px">Tap the correct fix:</p>
+      <div id="bugChoices" style="display:flex;flex-direction:column;gap:8px">
+        ${_shuf(b.choices).map(c=>`<button class="bug-choice" data-correct="${c===b.choices[0]?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:rgba(47,109,240,.08);color:var(--accent);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer" onclick="pickBugFix(this,${idx})" ${done?'disabled':''}>${c}</button>`).join('')}
       </div>
       <div id="bug-result" class="mt"></div>
       <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button>
       <div class="hint-panel" id="drill-hint"></div>
       <div class="answer-panel" id="drill-answer"></div>
-      <div class="code-fixed" id="bug-fix">${b.fix}</div>
+      <div class="code-fixed${done?' show':''}" id="bug-fix">${b.fix}</div>
       <div id="bug-next" class="mt"></div>
     </div>`;
 }
 
-// GR-E: let the user attempt the fix before revealing it.
-function _bugNorm(s){ return (s||'').toLowerCase().replace(/[`;]+/g,'').replace(/\s+/g,' ').trim(); }
-function _bugPass(input, fix){
-  const a=_bugNorm(input), b=_bugNorm(fix);
-  if(!a) return false;
-  if(a===b) return true;
-  const tok=s=>s.split(/[^a-z0-9_*().'"=<>!|&+/-]+/).filter(Boolean);
-  const aset=new Set(tok(a)), bt=tok(b);
-  if(!bt.length) return false;
-  return bt.filter(t=>aset.has(t)).length / bt.length >= 0.8;
-}
+// Bug Hunt — tap the correct fix (no free typing).
+function _shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function _bugAdvance(idx){
   return guided
     ? `<button class="btn btn-primary btn-sm" onclick="guidedNext()">Next →</button>`
@@ -1246,25 +1235,21 @@ function _bugAdvance(idx){
       ? `<button class="btn btn-primary btn-sm" onclick="navigate('bug',${idx+1})">Next Bug →</button>`
       : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">All Done →</button>`;
 }
-function checkBugFix(idx){
+function pickBugFix(btn, idx){
   const b = DATA.BUGS[idx];
   const res = document.getElementById('bug-result');
-  if(_bugPass(document.getElementById('bug-input').value, b.fix)){
-    res.innerHTML = `<span style="color:var(--green);font-weight:600">✓ That's the fix — nicely done.</span>`;
+  if(btn.dataset.correct === '1'){
+    btn.style.background='var(--green,#1a7f37)'; btn.style.color='#fff'; btn.style.borderColor='var(--green,#1a7f37)';
+    document.querySelectorAll('#bugChoices .bug-choice').forEach(x=>x.disabled=true);
+    document.getElementById('bug-fix').classList.add('show');
+    res.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Fixed!</span>`;
     celebrate();
     markDone('doneBugs', b.id);
-    document.getElementById('bug-fix').classList.add('show');
     document.getElementById('bug-next').innerHTML = _bugAdvance(idx);
   } else {
-    res.innerHTML = `<span style="color:var(--red)">Not quite — tweak it and try again, or Reveal Fix to compare.</span>`;
+    btn.style.background='rgba(207,34,46,.12)'; btn.style.borderColor='var(--red,#cf222e)'; btn.style.color='var(--red,#cf222e)'; btn.style.opacity='.8'; btn.disabled=true;
+    res.innerHTML = `<span style="color:var(--red)">Not quite — try another, or use the hint.</span>`;
   }
-}
-function revealFix(idx){
-  const b = DATA.BUGS[idx];
-  document.getElementById('bug-fix').classList.add('show');
-  celebrate();
-  markDone('doneBugs', b.id);
-  document.getElementById('bug-next').innerHTML = _bugAdvance(idx);
 }
 
 // ─── PARSONS DRILL ─────────────────────────────────────────────────────────
