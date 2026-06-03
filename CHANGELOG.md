@@ -9,6 +9,27 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.21.0] — 2026-06-03 — Tableau drills: tap-the-choice, no more free typing
+
+Mike: the Tableau practice/"Practice this" drills still had too much free-fill
+text — should be minimal tap-the-word/phrase choice. Converted the two free-text
+Tableau drill types (June 3, 2026 — 10:35 AM ET):
+
+- **Bug Hunt** — was a "type the corrected code" textbox. Now shows the broken
+  config and **3 tappable fix options** (one correct + two distractors); tap the
+  right fix, wrong taps mark red and disable, the hint/answer still available.
+- **Describe → Tableau** — was a free textarea. Now a **tap-the-word/phrase**
+  question (like the fill-in drills): the prompt plus 3–4 code/term chips, tap the
+  correct one (e.g. `COUNTD([Product])` vs `COUNT([Product])`, or the right IF
+  expression).
+
+Added a `choices` array (correct first) to all 12 Bug and 12 Describe items;
+choices are shuffled on render. Applies to both the standalone Practice tab and
+the guided "Practice this" flow (shared renderers). Verified live: no input
+fields remain, correct/wrong tap feedback works, long code chips render cleanly.
+
+---
+
 ## [1.20.1] — 2026-06-03 — Fix: land on the action buttons after finishing a lesson
 
 Mike: answering a lesson's Quick Check correctly bounced the page to the top (or
