@@ -9,6 +9,26 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.24.0] — 2026-06-03 — Tableau cert beef-up, Cycle 1: Live vs. Extract (L14)
+
+First lesson of the Tableau Desktop Specialist cert push (see `TABLEAU_CERT_PLAN.md`).
+Targets exam Domain 1 (Connecting & Preparing Data, 25% — previously almost
+entirely missing). June 3, 2026 — 12:23 PM ET.
+
+- **New Lesson 14 — "Live vs. Extract Connections"** in a new **Unit 4:
+  Connecting & Preparing Data (Cert Domain 1)**. Phone-line-vs-photocopy analogy,
+  a Live/Extract trade-off breakdown, a "when to use which" decision aid, an
+  html two-panel visual, and the misconception bust ("publishing keeps data
+  current" → no, an extract is a frozen snapshot until refreshed).
+- **3 guided tap-the-choice drills** wired in: ESQL "where do you create an
+  extract" (idx 13), WRONG "stale dashboard = un-refreshed extract" (idx 12),
+  FILLS ".hyper snapshot = Extract" (idx 13). `LESSON_DRILLS[14]` added.
+- **Appended** (ids stay sequential, no renumbering of L1–13). Side effect: the
+  "finish line" moved — L13 no longer ends the kit, L14 does.
+
+Headless-verified: 3 scripts clean; 14 sequential lesson ids; FILLS/ESQL=14,
+WRONG=13; LESSON_DRILLS keys 1–14.
+
 ## [1.23.2] — 2026-06-03 — Grouping lesson: deeper basics for struggling learners
 
 Mike's class is struggling with grouping-method decisions; he asked for more
