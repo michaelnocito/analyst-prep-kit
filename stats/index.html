@@ -566,58 +566,58 @@ FILLS:[
 BUGS:[
  {prompt:"This mean function will crash on an empty list.",
   buggy:"def mean(values):\n    return sum(values) / len(values)",
-  fix:"add a guard: if not values: return None",accept:["if not values","len(values) == 0","if len(values)"],
+  fix:"add a guard: if not values: return None",accept:["if not values","len(values) == 0","if len(values)"],choices:["Guard the empty list: if not values: return None","Wrap it in try/except","Multiply by len(values)"],
   explain:"Dividing by len([]) raises ZeroDivisionError. Always guard against empty inputs."},
  {prompt:"The analyst claims the mean represents the typical value, but the data has an extreme outlier.",
   buggy:"# data = [1, 1, 1, 1, 246]  mean = 50\nprint('The typical value is around 50')",
   fix:"print('The median (1) is more representative — the mean is skewed by the outlier 246')",
-  accept:["median","outlier","skewed"],explain:"Mean is pulled by outliers. Pair mean with median and std dev to understand skewed data."},
+  accept:["median","outlier","skewed"],choices:["Report the median — the mean is skewed by the outlier","Round the mean to 50","Drop the smallest value"],explain:"Mean is pulled by outliers. Pair mean with median and std dev to understand skewed data."},
  {prompt:"This IQR outlier fence formula has a bug — it uses + instead of *.",
   buggy:"upper_fence = q3 + 1.5 + iqr",
-  fix:"upper_fence = q3 + 1.5 * iqr",accept:["* iqr","1.5 * iqr"],
+  fix:"upper_fence = q3 + 1.5 * iqr",accept:["* iqr","1.5 * iqr"],choices:["Multiply: q3 + 1.5 * iqr","Keep the +: q3 + 1.5 + iqr","Use q3 - 1.5 * iqr"],
   explain:"The IQR rule multiplies 1.5 by IQR, then adds to Q3. Using + gives the wrong fence value."},
  {prompt:"This z-score formula has the numerator reversed.",
   buggy:"z = (mean - value) / std_dev",
-  fix:"z = (value - mean) / std_dev",accept:["value - mean","(value - mean)"],
+  fix:"z = (value - mean) / std_dev",accept:["value - mean","(value - mean)"],choices:["Fix the order: z = (value - mean) / std_dev","Swap to (mean - value)","Divide by the mean instead"],
   explain:"z-score = (value - mean) / std_dev. Reversing to (mean - value) flips the sign of every z-score."},
  {prompt:"The analyst claims correlation proves causation. Fix the conclusion.",
   buggy:"r = df['ad_spend'].corr(df['sales'])  # r = 0.91\nprint('Ad spend causes sales')",
   fix:"print('Ad spend is strongly correlated with sales, but causation is not established')",
-  accept:["correlated","not proven","does not prove","causation is not"],
+  accept:["correlated","not proven","does not prove","causation is not"],choices:["Say 'correlated' — causation isn't established","Conclude that ad spend causes sales","Remove the correlation line"],
   explain:"r = 0.91 shows a strong association. A confounder like seasonality may drive both."},
  {prompt:"The confidence level argument should be 0.95 (a proportion), not 95.",
   buggy:"ci = stats.t.interval(95, df=n-1, loc=mean, scale=se)",
   fix:"ci = stats.t.interval(0.95, df=n-1, loc=mean, scale=se)",
-  accept:["0.95"],explain:"stats.t.interval takes a proportion (0.95), not a percentage (95). Passing 95 returns nonsense bounds."},
+  accept:["0.95"],choices:["Pass a proportion: stats.t.interval(0.95, ...)","Pass 95 as a percent","Multiply the result by 100"],explain:"stats.t.interval takes a proportion (0.95), not a percentage (95). Passing 95 returns nonsense bounds."},
  {prompt:"The analyst says p = 0.04 means '96% chance the result is real.' Fix this interpretation.",
   buggy:"# p = 0.04\nprint('96% chance the effect is real')",
   fix:"print('If H0 were true, there is only a 4% chance of seeing results this extreme')",
-  accept:["H0","null","4%","extreme","chance of seeing"],
+  accept:["H0","null","4%","extreme","chance of seeing"],choices:["Say: if H0 were true, only a 4% chance of data this extreme","Say there's a 96% chance the effect is real","Round p up to 0.05"],
   explain:"p-value is the probability of the data given H₀ is true — NOT the probability that H₁ is true."},
  {prompt:"This uses population variance (n) but should use sample variance (n-1).",
   buggy:"variance = sum((x - mean)**2 for x in data) / len(data)",
   fix:"variance = sum((x - mean)**2 for x in data) / (len(data) - 1)",
-  accept:["len(data) - 1","n - 1","n-1"],
+  accept:["len(data) - 1","n - 1","n-1"],choices:["Divide by n-1: / (len(data) - 1)","Divide by n: / len(data)","Use the population formula"],
   explain:"Sample variance uses n-1 (Bessel's correction) to correct for the bias of estimating from a sample."},
  {prompt:"The null and alternative hypotheses are swapped.",
   buggy:"# H0: the new feature increases clicks\n# H1: the new feature has no effect",
   fix:"# H0: the new feature has no effect\n# H1: the new feature increases clicks",
-  accept:["H0: no effect","H0: the new feature has no effect"],
+  accept:["H0: no effect","H0: the new feature has no effect"],choices:["Swap them — H0 is 'no effect', H1 is the claim","Leave them as written","Drop H1 entirely"],
   explain:"H₀ is always the 'no effect' baseline. H₁ is the claim you are trying to support with data."},
  {prompt:"This sample introduces selection bias by only surveying 5-star reviewers.",
   buggy:"survey = [c for c in customers if c['rating'] == 5]",
   fix:"survey = random.sample(customers, 200)  # random sample",
-  accept:["random","random.sample","all customers"],
+  accept:["random","random.sample","all customers"],choices:["Take a random sample: random.sample(customers, 200)","Survey only the 5-star reviewers","Survey twice as many 5-star reviewers"],
   explain:"Surveying only 5-star reviewers creates selection bias — you only hear from your happiest customers."},
  {prompt:"The standard error formula divides by n instead of sqrt(n).",
   buggy:"se = std_dev / len(data)",
   fix:"import math\nse = std_dev / math.sqrt(len(data))",
-  accept:["sqrt","math.sqrt","** 0.5"],
+  accept:["sqrt","math.sqrt","** 0.5"],choices:["Divide by sqrt(n): std_dev / math.sqrt(len(data))","Divide by n: std_dev / len(data)","Multiply std_dev by n"],
   explain:"SE = std_dev / √n. Dividing by n (not √n) dramatically underestimates the true uncertainty."},
  {prompt:"Q1 and Q3 percentile arguments are swapped.",
   buggy:"q1 = np.percentile(data, 75)\nq3 = np.percentile(data, 25)",
   fix:"q1 = np.percentile(data, 25)\nq3 = np.percentile(data, 75)",
-  accept:["percentile(data, 25)","25","swap"],
+  accept:["percentile(data, 25)","25","swap"],choices:["Swap them — q1 is the 25th, q3 the 75th","Keep q1 = 75th, q3 = 25th","Use the median for both"],
   explain:"Q1 = 25th percentile, Q3 = 75th. Swapping makes IQR negative and outlier fences backwards."},
 ],
 
@@ -714,40 +714,40 @@ PARSONS:[
 ESQL:[
  {english:'"Give me the mean, median, and mode of the Revenue column."',
   answer:'mean = df["revenue"].mean()\nmedian = df["revenue"].median()\nmode = df["revenue"].mode()[0]',
-  keywords:["mean","median","mode"],explain:".mode() returns a Series; [0] picks the first (or only) mode."},
+  keywords:["mean","median","mode"],choices:[".mean(), .median(), .mode()",".sum() / .count()",".value_counts()"],explain:".mode() returns a Series; [0] picks the first (or only) mode."},
  {english:'"How spread out is the data? Give me variance and standard deviation of units."',
   answer:'var = df["units"].var()\nstd = df["units"].std()',
-  keywords:["var","std"],explain:".var() gives variance, .std() gives standard deviation. Both measure spread around the mean."},
+  keywords:["var","std"],choices:[".var() and .std()",".mean() and .median()",".spread()"],explain:".var() gives variance, .std() gives standard deviation. Both measure spread around the mean."},
  {english:'"Find Q1, Q2, Q3, and IQR for revenue."',
   answer:'q1 = df["revenue"].quantile(0.25)\nq2 = df["revenue"].quantile(0.50)\nq3 = df["revenue"].quantile(0.75)\niqr = q3 - q1',
-  keywords:["quantile","0.25","0.75","iqr"],explain:".quantile() accepts 0–1. IQR = Q3 − Q1."},
+  keywords:["quantile","0.25","0.75","iqr"],choices:[".quantile(0.25) and .quantile(0.75)",".percentile(25, 75)",".iqr()"],explain:".quantile() accepts 0–1. IQR = Q3 − Q1."},
  {english:'"Flag any revenue values that are outliers using the IQR method."',
   answer:'q1=df["revenue"].quantile(0.25)\nq3=df["revenue"].quantile(0.75)\niqr=q3-q1\noutliers=df[(df["revenue"]<q1-1.5*iqr)|(df["revenue"]>q3+1.5*iqr)]',
-  keywords:["quantile","iqr","1.5","outliers"],explain:"Filter rows outside Q1−1.5×IQR and Q3+1.5×IQR."},
+  keywords:["quantile","iqr","1.5","outliers"],choices:["Filter outside Q1−1.5·IQR and Q3+1.5·IQR","Use .dropna() on revenue","Sort and take the top 5"],explain:"Filter rows outside Q1−1.5×IQR and Q3+1.5×IQR."},
  {english:'"Compute the correlation between units and revenue."',
   answer:'r = df["units"].corr(df["revenue"])',
-  keywords:["corr"],explain:".corr() computes Pearson r. Values near ±1 indicate strong linear association."},
+  keywords:["corr"],choices:[".corr()",".cov()",".relate()"],explain:".corr() computes Pearson r. Values near ±1 indicate strong linear association."},
  {english:'"Standardize revenue — express every value as a z-score."',
   answer:'df["revenue_z"] = (df["revenue"] - df["revenue"].mean()) / df["revenue"].std()',
-  keywords:["mean","std","z","standardize"],explain:"z = (value − mean) / std dev. After this, revenue_z has mean = 0 and std = 1."},
+  keywords:["mean","std","z","standardize"],choices:["(value − mean) / std","value / mean",".normalize()"],explain:"z = (value − mean) / std dev. After this, revenue_z has mean = 0 and std = 1."},
  {english:'"Is the revenue distribution skewed? Show me the skewness value."',
   answer:'skew = df["revenue"].skew()\nprint(f"Skewness: {skew:.2f}")\n# >1 right-skewed, <-1 left-skewed',
-  keywords:["skew"],explain:".skew() returns Pearson skewness. Positive = right tail, negative = left tail."},
+  keywords:["skew"],choices:[".skew()",".kurtosis()",".shape()"],explain:".skew() returns Pearson skewness. Positive = right tail, negative = left tail."},
  {english:'"Run a t-test to check if revenue differs between North and South regions."',
   answer:'from scipy import stats\nnorth = df[df["region"]=="North"]["revenue"]\nsouth = df[df["region"]=="South"]["revenue"]\nt, p = stats.ttest_ind(north, south)',
-  keywords:["ttest_ind","stats","north","south","p"],explain:"ttest_ind compares means of two independent groups and returns t-stat and p-value."},
+  keywords:["ttest_ind","stats","north","south","p"],choices:["stats.ttest_ind(north, south)","df.compare(north, south)","stats.corr(north, south)"],explain:"ttest_ind compares means of two independent groups and returns t-stat and p-value."},
  {english:'"What is the 95% confidence interval for mean revenue?"',
   answer:'from scipy import stats\nimport numpy as np\nmean=df["revenue"].mean()\nse=stats.sem(df["revenue"])\nci=stats.t.interval(0.95,df=len(df)-1,loc=mean,scale=se)',
-  keywords:["t.interval","0.95","sem","mean","ci"],explain:"stats.t.interval builds the CI. Use stats.sem as scale (standard error of the mean)."},
+  keywords:["t.interval","0.95","sem","mean","ci"],choices:["stats.t.interval(0.95, …)","stats.confidence(95)",".quantile(0.95)"],explain:"stats.t.interval builds the CI. Use stats.sem as scale (standard error of the mean)."},
  {english:'"Should I report mean or median for this column? Check the skewness."',
   answer:'skew=df["revenue"].skew()\nif abs(skew)>1:\n    print("Skewed — report median:", df["revenue"].median())\nelse:\n    print("Symmetric — report mean:", df["revenue"].mean())',
-  keywords:["skew","median","mean","abs"],explain:"|skew| > 1 = substantially skewed = report median."},
+  keywords:["skew","median","mean","abs"],choices:["Check abs(.skew()) > 1 — report median if skewed","Always report the mean",".describe() and read the count"],explain:"|skew| > 1 = substantially skewed = report median."},
  {english:'"Compute the standard error of the mean for the revenue column."',
   answer:'from scipy import stats\nse = stats.sem(df["revenue"])\n# or: se = df["revenue"].std() / len(df)**0.5',
-  keywords:["sem","std","sqrt","0.5"],explain:"SE = std dev / √n. Smaller SE = more precise estimate of the true mean."},
+  keywords:["sem","std","sqrt","0.5"],choices:["stats.sem(df['revenue'])","df['revenue'].std()","df['revenue'].var()"],explain:"SE = std dev / √n. Smaller SE = more precise estimate of the true mean."},
  {english:'"Show a full descriptive summary: count, mean, std, min, quartiles, max."',
   answer:'summary = df["revenue"].describe()',
-  keywords:["describe"],explain:".describe() returns count, mean, std, min, Q1, median, Q3, max — the full picture in one line."},
+  keywords:["describe"],choices:[".describe()",".info()",".summary()"],explain:".describe() returns count, mean, std, min, Q1, median, Q3, max — the full picture in one line."},
 ],
 
 CARDS:[
@@ -1208,15 +1208,23 @@ function checkFill(){
 }
 
 /* BUG */
+function _shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+/* BUG — tap the correct fix (no free typing) */
 function renderBug(item,done){
   _hd={hint:item.explain||'',ans:item.fix||'',state:0};
-  return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.buggy}</pre><p style="font-size:.85rem;color:var(--txt2);margin-bottom:8px">What is the fix?</p><input id="bugAns" class="inp" placeholder="Describe or write the fix…" ${done?'disabled':''}>${!done?`<button class="btn" style="margin-top:10px" onclick="checkBug()">Check</button>`:''}<div id="bugFb" style="margin-top:10px;display:none"></div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
+  const correct=item.choices[0];
+  return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.buggy}</pre><p style="font-size:.85rem;color:var(--txt2);margin:0 0 8px">Tap the correct fix:</p><div id="bugChoices" style="display:flex;flex-direction:column;gap:8px">${_shuf(item.choices).map(c=>`<button class="bug-choice" data-correct="${c===correct?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid var(--accent);border-radius:8px;background:rgba(91,140,245,.08);color:var(--accent);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer" onclick="pickBug(this)" ${done?'disabled':''}>${c}</button>`).join('')}</div><div id="bugFb" style="margin-top:12px;display:none"></div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
 }
-function checkBug(){
-  const item=DATA.BUGS[drillState.idx];const ans=document.getElementById('bugAns').value.trim().toLowerCase();const fb=document.getElementById('bugFb');
-  const accept=item.accept?item.accept.map(a=>a.toLowerCase()):[item.fix.toLowerCase()];
-  if(accept.some(a=>ans.includes(a))){fb.innerHTML=`<span style="color:var(--accent)">✓ ${item.explain}</span>`;fb.style.display='block';markDone('bugs',drillState.idx);celebrate(true,'Bug squashed! 🐛✓');}
-  else{fb.innerHTML=`<span style="color:var(--err)">Not quite — check the hint.</span>`;fb.style.display='block';}
+function pickBug(btn){
+  const item=DATA.BUGS[drillState.idx];const fb=document.getElementById('bugFb');
+  if(btn.dataset.correct==='1'){
+    btn.style.background='var(--success,#1a7f37)';btn.style.color='#fff';btn.style.borderColor='var(--success,#1a7f37)';
+    document.querySelectorAll('#bugChoices .bug-choice').forEach(x=>x.disabled=true);
+    fb.innerHTML=`<span style="color:var(--success)">✓ ${item.explain}</span>`;fb.style.display='block';markDone('bugs',drillState.idx);celebrate(true,'Bug squashed! 🐛✓');
+  } else {
+    btn.style.opacity='.6';btn.style.borderColor='var(--err)';btn.style.color='var(--err)';btn.disabled=true;
+    fb.innerHTML=`<span style="color:var(--err)">Not quite — try another, or use the hint.</span>`;fb.style.display='block';
+  }
 }
 
 /* WRONG */
@@ -1260,14 +1268,22 @@ function checkParsons(){
 }
 
 /* ESQL */
+/* ESQL — tap the right method/phrase (no free typing) */
 function renderEsql(item,done){
-  return `<div class="card"><p style="font-size:.85rem;color:var(--txt2);margin-bottom:6px">Translate to pandas / stats code:</p><p style="font-size:1rem;font-weight:600;margin-bottom:14px">${item.english}</p><textarea id="esqlAns" class="inp" rows="3" style="resize:vertical" placeholder="Write the code or describe the steps…" ${done?'disabled':''}></textarea>${!done?`<button class="btn" style="margin-top:10px" onclick="checkEsql()">Check</button>`:''}<div id="esqlFb" style="margin-top:10px;display:none"></div><div id="esqlSol" style="display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem"><strong>Model Answer:</strong><pre style="margin-top:6px;white-space:pre-wrap">${item.answer}</pre><em>${item.explain}</em></div><button class="btn btn-sm" style="margin-top:8px;opacity:.6" onclick="toggleSol('esqlSol')">Show Answer</button></div>`;
+  _hd={hint:item.explain||'',ans:item.answer||'',state:0};
+  const correct=item.choices[0];
+  return `<div class="card"><p style="font-size:.85rem;color:var(--txt2);margin-bottom:6px">Tap the answer:</p><p style="font-size:1rem;font-weight:600;margin-bottom:14px">${item.english}</p><div id="esqlChoices" style="display:flex;flex-wrap:wrap;gap:10px">${_shuf(item.choices).map(c=>`<button class="bug-choice" data-correct="${c===correct?1:0}" style="white-space:normal;text-align:left;padding:9px 16px;border:1.5px solid var(--accent);border-radius:8px;background:rgba(91,140,245,.08);color:var(--accent);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer" onclick="pickEsql(this)" ${done?'disabled':''}>${c}</button>`).join('')}</div><div id="esqlFb" style="margin-top:14px;display:none"></div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
 }
-function checkEsql(){
-  const item=DATA.ESQL[drillState.idx];const ans=document.getElementById('esqlAns').value.trim().toLowerCase();const fb=document.getElementById('esqlFb');
-  const hits=item.keywords.filter(k=>ans.includes(k.toLowerCase()));
-  if(hits.length>=Math.ceil(item.keywords.length*0.6)){fb.innerHTML=`<span style="color:var(--accent)">✓ Good answer! ${item.explain}</span>`;fb.style.display='block';markDone('esql',drillState.idx);celebrate(true,'Translated! 💬✓');}
-  else{fb.innerHTML=`<span style="color:var(--err)">Missing key terms — check the model answer.</span>`;fb.style.display='block';}
+function pickEsql(btn){
+  const item=DATA.ESQL[drillState.idx];const fb=document.getElementById('esqlFb');
+  if(btn.dataset.correct==='1'){
+    btn.style.background='var(--success,#1a7f37)';btn.style.color='#fff';btn.style.borderColor='var(--success,#1a7f37)';
+    document.querySelectorAll('#esqlChoices .bug-choice').forEach(x=>x.disabled=true);
+    fb.innerHTML=`<span style="color:var(--success)">✓ Good answer! ${item.explain}</span>`;fb.style.display='block';markDone('esql',drillState.idx);celebrate(true,'Translated! 💬✓');
+  } else {
+    btn.style.opacity='.6';btn.style.borderColor='var(--err)';btn.style.color='var(--err)';btn.disabled=true;
+    fb.innerHTML=`<span style="color:var(--err)">Not quite — try another.</span>`;fb.style.display='block';
+  }
 }
 
 /* ── DISTRIBUTION LAB ── */
