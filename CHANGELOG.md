@@ -9,6 +9,26 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.26.0] — 2026-06-03 — Tableau cert beef-up, Cycle 2: Joins/Unions/Relationships (L15)
+
+Cycle 2/7 of the Desktop Specialist push (exam Domain 1.2). June 3, 2026 — 12:33 PM ET.
+
+- **New Lesson 15 — "Joins, Unions & Relationships"** (Unit 4). Tape-side-by-side
+  (join) vs stack-rows (union) vs flexible-link (relationship) analogy; a "three
+  ways to combine data" block, join-types block (inner/left/right/full), and a
+  "when to use which" decision aid.
+- **Visual:** an html three-mini-table diagram (Orders + Products lookup → joined
+  on ProdID) using the lesson `viz` html path — no dataset change.
+- **Misconception bust (the exam's favorite trap):** relationship vs join — a
+  join flattens immediately and can double-count on grain mismatch; a
+  relationship preserves each table's grain and joins per worksheet.
+- **3 guided tap-the-choice drills:** ESQL "stacking rows = Union" (idx 14),
+  WRONG "SUM doubled = join grain mismatch, use relationship" (idx 13), FILLS
+  "side-by-side on a key = Join" (idx 14). `LESSON_DRILLS[15]` added.
+
+Headless-verified: 3 scripts clean; 15 sequential lesson ids; FILLS/ESQL=15,
+WRONG=14; LESSON_DRILLS keys 1–15.
+
 ## [1.25.0] — 2026-06-03 — Grouping lesson: visuals for the new sections
 
 Mike (playtest): the Grouping lesson's added breakdown blocks were text-only and
