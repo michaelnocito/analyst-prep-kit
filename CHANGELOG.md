@@ -9,6 +9,29 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.32.0] — 2026-06-03 — Visual parity sweep: show every concept the text names
+
+Mike (playtest): L15's "See it on screen" showed a nice JOIN but the text names
+JOIN + UNION + RELATIONSHIP — "if we call it out in text we need visuals."
+Principle: when a lesson names co-equal concepts, the visual must show all of
+them. June 3, 2026 — 6:13 PM ET.
+
+- **L15 "Joins, Unions & Relationships":** replaced the join-only visual with a
+  **three-part visual** — JOIN (glue columns on a key), UNION (stack same-shape
+  rows into one taller table), RELATIONSHIP (link on a key without flattening).
+- **L20 "Dual-Axis & Combined-Axis":** added a **combined-axis mini-visual** beside
+  the dual-axis one (two scales vs. one shared scale) on the "Dual vs Combined
+  axis" breakdown block — the title names both, so both are now shown.
+
+Sweep finding (not yet changed — pending Mike's call): a weaker, "menu-style"
+pattern exists in a few older Tableau lessons where the text lists several
+*options* but the visual shows one worked example — L5 Filters & Sorting
+(filter types), L6 Color/Size/Labels, L8 Aggregation (SUM/AVG/COUNT/COUNTD),
+L12 Chart Choice (chart-type menu). These are arguably fine as one example; flagged
+for a decision rather than auto-rewritten.
+
+Headless-verified: 3 scripts clean; L15 three-part + L20 combined-axis present.
+
 ## [1.31.0] — 2026-06-03 — Final Exam study guide: per-section "See it" visuals
 
 The Final Exam Kit's bare-basics study guide was text-only (it was never part of
