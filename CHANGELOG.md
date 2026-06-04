@@ -9,6 +9,23 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.38.0] — 2026-06-03 — Curriculum pilot v2: story thread + lesson layering
+
+Mike's feedback on v1.37.0: good start, but the jumps between lessons are still too
+big and there's no narrative pulling it together. June 3, 2026 — 9:08 PM ET.
+
+- **Story thread:** a running scenario now threads the kit — *you're a new junior
+  analyst at the coffee company; your manager's questions drive each lesson* (reuses
+  the existing reps/regions/products). Rendered as a 📖 "story bridge" at the top of
+  each lesson.
+- **Lesson-to-lesson layering:** every bridge **recalls the previous lesson and adds
+  exactly one new idea** ("you can split by region; now total the sales → dimensions
+  vs. measures"), so the sequence reads as one continuous build, not a topic list.
+- New `story` field (rendered in place of the bare prereq callout; prereq kept as
+  fallback). Piloted on **Tableau Unit 0 + Unit 1 (8 lessons)**; rolls to all lessons/kits.
+
+Headless-verified: 3 scripts clean; 8 story bridges; render wired.
+
 ## [1.37.0] — 2026-06-03 — Curriculum rebuild PILOT: Tableau "Unit 0 — Foundations"
 
 First build toward the 6-Month Analyst Standard (`CURRICULUM_STANDARD.md` /

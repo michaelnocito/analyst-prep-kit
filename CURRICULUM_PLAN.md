@@ -66,6 +66,23 @@ progress/next logic), then purely additive content.
 - Per kit also: give each Unit-0 lesson a viz (reuse the kit's existing viz path — grids/tables/
   output/html/charts), a quiz, and ≥1 tap-the-choice drill; update the hardcoded "N lessons" copy.
 
+## Refinement after the pilot (Mike's feedback, June 3 — v1.38.0)
+The Unit-0 start was good but the **jumps between lessons were still too large** and
+there was no narrative. Two additions, now part of the standard for every kit:
+1. **A story thread.** A running scenario threads the whole kit: *you're a new junior
+   analyst at the coffee company; your manager's questions drive each lesson.* Reuses
+   the existing data (reps Maya/Jordan/Sam, regions, products). Rendered as a 📖
+   "story bridge" at the top of each lesson.
+2. **Lesson-to-lesson layering.** Every lesson's bridge **recalls the previous lesson's
+   concept and adds exactly ONE new idea** ("You can already split by region; now you
+   need to total the sales → dimensions vs. measures"). This shrinks the perceived jump
+   and makes the sequence feel like one continuous build, not a topic list.
+- Mechanism: a new `story` field per lesson (replaces the bare `prereq` callout when
+  present; `prereq` stays as fallback/data). Piloted on Tableau Unit 0 + Unit 1 (8
+  lessons); rolls to all lessons in every kit.
+- **Open question for Mike:** do the bridges make the jumps small enough, or do the
+  biggest gaps also need NEW intermediate micro-lessons inserted?
+
 ## Scope reality
 ~**24 new lessons** + ~**80 prerequisite lines** + depth beats + per-kit ordering plumbing.
 Big, multi-cycle, but every cycle is shippable and testable on its own. Net: the suite moves from
