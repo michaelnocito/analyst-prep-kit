@@ -1,8 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.41.0` (shipped June 4, 2026 — awaiting test)
-**Recent:** v1.41.0 **Tableau story bridges complete** — L11–L20 all have 📖 bridges; all 28 Tableau lessons fully narrative-threaded. v1.40.0 curriculum pilot v4 (3 intermediate micro-lessons + story bridges through 18 lessons, 28 total).
-**In flight: 6-Month Analyst Standard rebuild.** Tableau pilot = COMPLETE (Unit 0 + nav + prereqs + story bridges on all 28 lessons + intermediate micro-lessons). **Next: roll the whole pattern to Excel → SQL → Python → Power BI → Stats (one ship per kit).** Plans: `CURRICULUM_STANDARD.md`, `CURRICULUM_PLAN.md`.
+**Current version:** `v1.46.0` (shipped June 4, 2026 — awaiting Mike's playtest)
+**Recent:** v1.42–46 **Curriculum rollout COMPLETE** — all 5 remaining kits (Excel, SQL, Python, Stats, Power BI) each received Unit 0 (4 foundation lessons) + story bridges on all 12 existing lessons + position-nav. 20 new lessons total. Tableau already done (v1.37–v1.41). All 6 lesson kits are now fully scaffolded.
+**6-Month Analyst Standard rebuild: SHIPPED.** Every kit now has: Unit 0 Foundations, 📖 story bridges on every lesson, position-based nav, lesson number display by array position. Interview/Sim/Final kits intentionally excluded. Plans: `CURRICULUM_STANDARD.md`, `CURRICULUM_PLAN.md`.
 **In flight: the 6-Month Analyst Standard rebuild** (`CURRICULUM_STANDARD.md` + `CURRICULUM_PLAN.md`). Tableau pilot ✅ shipped — awaiting Mike's reaction. On approval, roll the same pattern (Unit 0 + prereqs + depth) to **Excel → SQL → Python → Power BI → Stats**, one kit per cycle. Per-kit Unit-0 lessons already specced in `CURRICULUM_PLAN.md`.
 **State: everything shipped is verified clean and awaiting Mike's playtest.** Big-day session (v1.22 → v1.36): Tableau cert beef-up (20 lessons), Workspace module (3 GUI kits), full visual-parity sweep, Final study-guide visuals.
 **Visual-parity sweep: ✅ DONE (all 6 kits).** Borderline menu-cases (SQL L10, PBI L6, Stats L9) left as single examples by design.

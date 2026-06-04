@@ -9,6 +9,25 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.46.0] — 2026-06-04 — Curriculum rollout complete: all 5 remaining kits
+
+Full 6-month curriculum pattern rolled to Excel, SQL, Python, Stats, and Power BI.
+Each kit received: Unit 0 Foundations (4 new lessons, ids 101–104), 📖 story bridges on
+all 12 existing lessons, position-based nav (lessonPos/nextLessonId), and lesson number
+display fixed to use array position instead of raw id.
+
+- **v1.42.0 Excel:** Unit 0 "Before You Type a Formula" (grid, cell refs, types, formulas)
+- **v1.43.0 SQL:** Unit 0 "Before You Query" (DB structure, grain, keys, NULL/query shape)
+- **v1.44.0 Python:** Unit 0 "Before You Code" (values/vars, types, libraries, DataFrame)
+- **v1.45.0 Stats:** Unit 0 "Before You Calculate" (stats purpose, variables, pop/sample, describe vs infer); renderLessonList updated to include unit 0
+- **v1.46.0 Power BI:** Unit 0 "Before You Build" (table/grain, types, aggregation, Load→Shape→Analyze loop)
+
+Total new lessons added: 20 (4 per kit × 5 kits). Story bridges added: 60 (12 per kit × 5 kits).
+All kits: 16 lessons each (was 12). Interview kit: intentionally skipped (meta-skills, no tool grain).
+All syntax-clean (headless verified). Pushed live.
+
+---
+
 ## [1.41.0] — 2026-06-04 — Tableau story bridges complete: all 28 lessons threaded
 
 Story bridges added to L11–L20 (Tooltips, Chart Choice, Telling a Story, Live/Extract,

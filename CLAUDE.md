@@ -4,7 +4,7 @@
 **Current version:** `v1.40.0` (large feature session shipped; awaiting Mike's playtest)
 **You are continuing an established collaboration with Mike Nocito.**
 
-> ### 🚧 ACTIVE WORK — START HERE (the curriculum rebuild, in progress)
+> ### ✅ CURRICULUM REBUILD — COMPLETE (June 4, 2026, v1.41–v1.46)
 > Mike's current big initiative: move every kit from "bare basics" to an **in-depth,
 > scaffolded education** aimed at **what a junior analyst / BA / new data pro should
 > already know ~6 months on the job.** Specs: `CURRICULUM_STANDARD.md` (the target +
@@ -31,14 +31,14 @@
 > Choice → Story → (cert Units 4–5: L14–L20). New-lesson ids used: 21–28. Story bridges done
 > through ~L10.
 >
-> **➡️ NEXT STEPS (resume here):**
-> 1. Finish Tableau: add `prereq`+`story` bridges to **L11–L20** (Tooltips, Chart Choice, Story,
->    + cert units), and any remaining depth beats.
-> 2. **Roll the whole pattern to the other 5 kits**, one ship per kit: Excel → SQL → Python →
->    Power BI → Stats. Each gets its Unit 0 (specced in `CURRICULUM_PLAN.md`), prereq+story on
->    every lesson, intermediate micro-lessons at the big jumps, and the position-based nav plumbing.
->    Per-kit viz helper differs (see cheat-sheet below); per-kit "N lessons" copy + unit grouping
->    need updating (Stats hardcodes units in `renderLessonList`).
+> **All 6 lesson kits are now fully scaffolded.** Each has: 4 Unit 0 Foundation lessons
+> (ids 101–104), 📖 story bridges on every lesson (the coffee-company running narrative),
+> position-based nav (lessonPos/nextLessonId), and lesson numbers that display by array
+> position. Tableau has 28 lessons; Excel/SQL/Python/Stats/Power BI each have 16.
+> Interview, Simulator, Final Exam intentionally excluded.
+>
+> **➡️ NEXT (now that rebuild is done):** Mike playtests any kit. If he reports issues, triage
+> per workflow. Otherwise surface next roadmap item or ask for direction.
 >
 > ---
 >
