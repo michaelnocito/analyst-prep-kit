@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.36.0] — 2026-06-03 — Finishing wave: borderline visuals closed + handoff refreshed
+
+"Big push to finished." June 3, 2026 — 8:31 PM ET.
+
+- **Closed the 3 remaining borderline visual-parity cases** (sweep now 100%, no asterisks):
+  - **SQL L10 Window Functions:** table now shows ROW_NUMBER / RANK / DENSE_RANK / LAG together.
+  - **Power BI L6 Basic DAX Aggregations:** four cards — SUM / AVERAGE / COUNTROWS / DISTINCTCOUNT.
+  - **Stats L9 Hypothesis Testing:** both **H₀ and H₁** claim cards (via the new `html` viz support).
+- **Health check:** all 9 kits' inline scripts syntax-clean; Tableau structural integrity verified
+  (84 LESSON_DRILLS references all in range; drill arrays + 20 sequential lessons intact).
+- **`CLAUDE.md` handoff refreshed** to v1.36.0 with a top-of-file summary of the whole June-3
+  session (was stale at v1.22.0).
+
 ## [1.35.0] — 2026-06-03 — Visual-parity sweep COMPLETE (SQL, Python, Power BI, Stats)
 
 Finished the all-kits sweep ("do them all"). Every "See it" visual now shows

@@ -1,8 +1,36 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 3, 2026
-**Current version:** `v1.22.0` (all active roadmap buckets clear; awaiting Mike's playtest — see "Current state" below)
+**Last session ended:** June 3, 2026 (big day — v1.22.0 → v1.36.0)
+**Current version:** `v1.36.0` (large feature session shipped; awaiting Mike's playtest)
 **You are continuing an established collaboration with Mike Nocito.**
+
+> ### ⏩ June 3, 2026 session — what's new since v1.22.0 (read this first)
+> A very large session. All shipped, committed, pushed, live. Awaiting Mike's playtest.
+> - **Tableau cert beef-up (v1.23–v1.30):** went for the **Tableau Desktop Specialist**
+>   cert. Added 8 lessons → Tableau now has **20 lessons**. New **Unit 4 (Connecting &
+>   Preparing Data)**: L14 Live vs Extract, L15 Joins/Unions/Relationships, L16 Data
+>   Properties. New **Unit 5**: L17 Sets, L18 Hierarchies, L19 Parameters, L20 Dual-Axis.
+>   Plus a new **L9 Grouping** lesson (+ method-choice depth + Data-pane "where did it go"
+>   gotcha + visuals). Plan/handoff docs: `TABLEAU_CERT_HANDOFF.md`, `TABLEAU_CERT_PLAN.md`.
+>   **Tableau passes so far: L14, L16, L17 ✅.**
+> - **🧭 "Know Your Workspace" UI module (v1.27):** interactive interface tour + "Find it"
+>   hotspot drill. In **Tableau, Power BI, Excel only** (GUI tools) — **DECIDED not to roll to
+>   SQL/Python/Stats** (code/concept kits). Nav entry `show('workspace')`/`navigate('workspace')`
+>   + `renderWorkspace()` + `WORKSPACE` data + a `#view-workspace` (Tableau/Excel) or `#main`
+>   render (Power BI). Lesson-flow CTA on each kit's interface/first lesson.
+> - **Visual-parity sweep (v1.32–v1.36): COMPLETE across all 6 lesson kits.** Principle: if a
+>   lesson's text names ≥2 co-equal concepts, the "See it" visual must show ALL of them. ~31
+>   lesson visuals fixed (Tableau 6, Excel 5, SQL 4, Python 7, Power BI 4, Stats 2 + 3 borderline).
+>   Tracking: `VISUAL_PARITY_SWEEP.md`.
+> - **Final Exam study-guide visuals (v1.31):** first visuals in the Final kit — a "📺 See it"
+>   diagram per subject section (`studyViz(key)`).
+> - **New helpers this session:** Tableau `renderLesson` now supports per-RAL-block `html`;
+>   Tableau `drawLessonChart` has a `dualaxis` branch (second `y1` axis); Stats `lessonStatHTML`
+>   now supports an `html` viz (since `drawStatChart` is single-series).
+> - **New repo docs:** `TABLEAU_CERT_HANDOFF.md`, `TABLEAU_CERT_PLAN.md`, `VISUAL_PARITY_SWEEP.md`,
+>   `TESTING_CHECKLIST.md` (whole-kit smoke/acceptance QA).
+> - **Story-delivery rule (memory):** "walking with a friend" dev recaps → always full text IN CHAT,
+>   default the LONG (~15 min) version, never just a saved file path.
 
 Read this entire file before doing anything. It is the source of truth
 for HOW we work; `ROADMAP.md` and `CHANGELOG.md` are the source of

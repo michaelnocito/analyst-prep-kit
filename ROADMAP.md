@@ -1,7 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.35.0` (shipped June 3, 2026 — awaiting test)
-**Recent:** v1.35.0 **visual-parity sweep COMPLETE** — SQL/Python/Power BI/Stats fixed; all 6 kits' "See it" visuals now show every concept the text names (`VISUAL_PARITY_SWEEP.md`). v1.34.0 Excel. v1.33.0 Tableau.
+**Current version:** `v1.36.0` (shipped June 3, 2026 — awaiting test)
+**Recent:** v1.36.0 finishing wave — closed the 3 borderline visuals (SQL L10, PBI L6, Stats L9), full 9-kit health check (clean), CLAUDE.md handoff refreshed. v1.35.0 visual-parity sweep COMPLETE (all 6 lesson kits). v1.33–34 Tableau/Excel parity.
+**State: everything shipped is verified clean and awaiting Mike's playtest.** Big-day session (v1.22 → v1.36): Tableau cert beef-up (20 lessons), Workspace module (3 GUI kits), full visual-parity sweep, Final study-guide visuals.
 **Visual-parity sweep: ✅ DONE (all 6 kits).** Borderline menu-cases (SQL L10, PBI L6, Stats L9) left as single examples by design.
 **Rollout audit (June 3, 2026 — 6:55 PM ET):** confirmed scope of every session change. Visual-parity = all 6 lesson kits ✅. 🧭 Workspace module = **GUI tools only (Tableau/Power BI/Excel) — DECIDED, not rolling to SQL/Python/Stats** (code/concept kits, no button-hunting). Grouping + cert lessons = Tableau-only by design. No missed kits.
 **Playtest passes:** Tableau L14 Live/Extract ✅, L16 Data Properties ✅, L17 Sets ✅ (June 3).
