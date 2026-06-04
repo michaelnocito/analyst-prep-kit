@@ -9,6 +9,25 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.40.0] — 2026-06-03 — Curriculum pilot v4: finest-granularity Tableau beginner→mid path
+
+Mike chose "fill every big jump + split bundles." June 3, 2026 — 9:17 PM ET.
+
+- **3 new intermediate micro-lessons:** *Sorting Your View* (before Filtering), *Your
+  First Calculation* (Profit = Rev − Cost, before Calculated Fields), *From One Sheet
+  to a Workbook* (before Building a Dashboard).
+- **Split the bundle:** "Filters & Sorting" → **Sorting Your View** + **Filtering Your
+  Data** (two lessons, smaller steps).
+- **Story bridges threaded through the whole beginner→mid path** (Unit 0 → Unit 1 →
+  Unit 2 → into Unit 3): 18 lessons now each recall the prior lesson and add one idea.
+- Tableau now **28 lessons**. Order: Unit 0 → Interface → Your First Drag → Dim/Measures
+  → Bar → Line → Sorting → Filtering → Marks → Your First Calculation → Calc Fields →
+  Aggregation → Grouping → Sheets-to-Workbook → Dashboard → …
+
+Remaining: bridges on L11–L20 (Tooltips/Chart Choice/Story + cert units), then roll the
+whole pattern (Unit 0 + prereqs + depth + story bridges + intermediate lessons) to the
+other 5 kits. Headless-verified: 3 scripts clean; 28 lessons; position-nav intact.
+
 ## [1.39.0] — 2026-06-03 — Curriculum pilot v3: first intermediate micro-lesson
 
 Mike: bridges help but the biggest gaps need NEW smaller lessons inserted. June 3,
