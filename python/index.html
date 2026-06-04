@@ -411,7 +411,51 @@ applyBasics();
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const DATA = {
 LESSONS:[
+{id:101,unit:"Unit 0: Before You Code",title:"What Code Is (Values, Variables, Top-to-Bottom)",slug:"py-code-basics",
+ story:"You've used Excel and SQL — tools with menus and click-based interfaces. Python is different: you write instructions in plain text, and the computer runs them line by line, top to bottom. Before you write a single data operation, you need that mental model: a value is a piece of data, a variable is a name you give to a value, and Python reads your code from the first line to the last.",
+ intro:"A value is any piece of data: the number 150, the string 'West', the boolean True. A variable is a label you attach to a value — write <code>revenue = 150</code> and Python stores 150 under the name 'revenue'. From that point on, wherever you write <code>revenue</code>, Python uses 150. The crucial property: Python executes your code top to bottom, one line at a time. Order matters.",
+ ral:[
+  {formula:"revenue = 150",say:"Store the value 150 in a variable named revenue.",lines:[["revenue","the variable name — you choose it (no spaces, no leading numbers)"],["=","assignment — stores the right side's value into the left side's name"],["150","an integer value"]]},
+  {formula:"region = 'West'",say:"Store the string 'West' in a variable named region.",lines:[["region","variable name"],["'West'","a string value — text wrapped in quotes (single or double)"],["Python reads top-to-bottom","if you write revenue on a line BEFORE you define it, you get a NameError"]]}
+ ],
+ notes:"Python is case-sensitive: 'revenue' and 'Revenue' are two different variables. And indentation is not optional — Python uses whitespace to understand structure. A misplaced indent causes an IndentationError that stops your script completely.",
+ viz:{code:"# Python runs top to bottom\nregion = 'West'\nrevenue = 150\nprint(region, revenue)",out:"West 150",caption:"Two variables assigned, then printed. Python ran those three lines in order. Comment lines (starting with #) are skipped."},
+ quiz:{q:"You write 'print(revenue)' on line 1 and 'revenue = 150' on line 2. What happens?",opts:["Prints 150 — Python finds it before running","NameError — revenue isn't defined yet when line 1 runs","Prints None","Prints 0"],ans:1,exp:"Python executes top-to-bottom. Line 1 runs before line 2. When it hits print(revenue), the name 'revenue' doesn't exist yet — NameError. Define variables before you use them."}
+},
+{id:102,unit:"Unit 0: Before You Code",title:"Data Types & the Text-vs-Number Trap",slug:"py-data-types",
+ story:"You can name a value. But Python — like Excel and SQL — doesn't treat all values the same. The number 150 and the string '150' look almost identical and behave completely differently. Divide a string by a number and Python raises a TypeError. Knowing the types you're working with tells you what operations are allowed.",
+ intro:"Python has four types you'll hit constantly in data work: <code>int</code> (whole numbers — for counts and IDs), <code>float</code> (decimal numbers — for prices and rates), <code>str</code> (strings — text: names, codes, categories), and <code>bool</code> (True or False — for flags and filters). The trap: a CSV that stores '150' as text and 150 as a number look the same on screen but behave differently in code.",
+ ral:[
+  {formula:"type(150)   # → int",say:"Ask Python what type 150 is. It's an integer.",lines:[["int","whole number — no decimal: 1, 42, 500"],["float","decimal number: 3.14, 144.50, 0.0"],["str","text in quotes: 'West', 'P-101', '150' (this last one looks like a number — it isn't)"],["bool","True or False — used in conditions"],["type()","built-in function that tells you a value's type"]]},
+  {formula:"int('150')  # → 150",say:"Convert the string '150' to the integer 150.",lines:[["int(x)","converts x to an integer — TypeError if it can't"],["float(x)","converts to a float"],["str(x)","converts to a string"],["TypeError","what Python raises when you do math with the wrong type"]]}
+ ],
+ notes:"When you load a CSV, pandas sometimes reads numeric columns as strings — especially IDs and codes. Check your DataFrame's types with df.dtypes before you start. A column summing to 0 or throwing a TypeError is almost always a type mismatch.",
+ viz:{code:"x = '150'    # string\ny = 150      # int\nprint(type(x))  # → str\nprint(type(y))  # → int\nprint(y + 50)   # works: 200\n# print(x + 50) # TypeError!",out:"<class 'str'>\n<class 'int'>\n200",caption:"'150' (string) and 150 (int) look the same on screen but behave differently. y + 50 works; x + 50 raises TypeError. type() is the tool to confirm which one you have."},
+ quiz:{q:"A CSV column labeled 'units_sold' contains values like '120', '85', '200' (with quotes in the source). What type will pandas likely read them as?",opts:["int64","float64","object (string)","bool"],ans:2,exp:"When a column's values are quoted in the source file, pandas reads them as object (string). Summing or averaging them will fail. Convert with pd.to_numeric() or astype(int) first."}
+},
+{id:103,unit:"Unit 0: Before You Code",title:"What a Library Is & Why pandas (import)",slug:"py-libraries",
+ story:"You know Python's basic types. But Python's built-in tools don't know anything about DataFrames, CSV files, or statistical summaries. A library is a collection of tools someone else wrote that you activate with import. Pandas is the library that turns Python into a data analysis tool — without it you'd spend weeks reinventing what pandas does out of the box.",
+ intro:"Python ships with a small set of built-in tools. Libraries extend it. <code>import pandas as pd</code> loads the pandas library and gives it the alias 'pd' — so you type <code>pd.read_csv()</code> instead of <code>pandas.read_csv()</code>. Every data analyst also uses <strong>NumPy</strong> (math on arrays), <strong>Matplotlib</strong> (charts), and often <strong>Seaborn</strong> (nicer charts). You install libraries once (<code>pip install pandas</code>); you import them at the top of every script.",
+ ral:[
+  {formula:"import pandas as pd",say:"Load the pandas library and call it 'pd' throughout this script.",lines:[["import","load the library into this script"],["pandas","the full library name — pip install pandas if needed"],["as pd","alias — shorter to type in every subsequent line"],["pd.read_csv('file.csv')","pandas function: read a CSV into a DataFrame"],["pd.DataFrame(...)","pandas function: create a DataFrame from data you already have"]]}
+ ],
+ notes:"The import statement goes at the very top of your script — before any code that uses the library. If you write 'df = pd.read_csv(...)' before 'import pandas as pd', you'll get a NameError. Convention: all imports first, then your code.",
+ viz:{code:"import pandas as pd\n\ndf = pd.read_csv('coffee_sales.csv')\nprint(type(df))\nprint(df.shape)",out:"<class 'pandas.core.frame.DataFrame'>\n(500, 4)",caption:"Two lines of code after the import: load a CSV and check its type and shape. The result tells you you have a DataFrame with 500 rows and 4 columns — that's the whole data model in one glance."},
+ quiz:{q:"Why do we write 'import pandas as pd' instead of just 'import pandas'?",opts:["'as pd' makes it load faster","'as pd' lets us use the shorter 'pd.' prefix instead of 'pandas.' on every call","'as pd' is required syntax — it won't run without it","'pd' is the official pandas name"],ans:1,exp:"'as pd' creates an alias. Instead of typing 'pandas.read_csv()' every time, you type 'pd.read_csv()'. It's just a convenience — the 'pd' prefix is the universal Python data analyst convention."}
+},
+{id:104,unit:"Unit 0: Before You Code",title:"What a DataFrame Really Is (Rows, Cols, Index, Grain)",slug:"py-dataframe",
+ story:"You can import pandas. Now the key concept before you analyze anything: a DataFrame is a 2D table — exactly like a spreadsheet — with labeled columns (fields) and a row index. And like every table in SQL and Excel, it has a grain: what one row represents. In the coffee sales data, one row = one sale. Get the grain wrong and every groupby and merge that follows will silently mislead you.",
+ intro:"A pandas DataFrame is a two-dimensional table: rows are records, columns are fields, and a special integer index numbers the rows (0, 1, 2…). The index is not a column — it's separate label. Three calls you make on every new DataFrame: <code>df.head()</code> to see the first rows, <code>df.dtypes</code> to see each column's type, <code>df.shape</code> to see (rows, columns). And then ask: what does one row represent?",
+ ral:[
+  {formula:"df.shape",say:"How many rows and columns does this DataFrame have?",lines:[["df.shape","a tuple: (n_rows, n_cols) — e.g. (500, 4)"],["df.head()","first 5 rows — quick sanity check"],["df.dtypes","type of each column — check for text masquerading as numbers"],["df.columns","list of column names"],["df.describe()","count/mean/std/min/max for every numeric column"]]},
+  {formula:"df['Region'].value_counts()",say:"Count how many rows belong to each unique Region value.",lines:[["df['col']","select one column — returns a Series"],["value_counts()","count unique values, sorted most frequent first"],["one row = one sale","the grain of this DataFrame — state it before analyzing"]]}
+ ],
+ notes:"The index is not your data. Don't put a 'row number' column in your DataFrame — that's what the index is already doing. If you reset_index() after a groupby, the old group column becomes a regular column and the index becomes 0, 1, 2… again. Mixing them up is the most common pandas beginner confusion.",
+ viz:{df:{columns:["Region","Product","Revenue","Date"],rows:[["West","Latte",150,"2026-01-03"],["East","Cold Brew",120,"2026-01-04"],["West","Espresso",90,"2026-01-05"],["North","Mocha",140,"2026-01-06"]]},caption:"A DataFrame: rows are records (one sale each — that's the grain), columns are fields. The leftmost numbers (0, 1, 2, 3) are the index — a row address, not a data column. df.shape would return (4, 4)."},
+ quiz:{q:"What does df.dtypes tell you?",opts:["The number of rows and columns","The data type of each column (int, float, object, etc.)","The first 5 rows of the DataFrame","A count of non-null values per column"],ans:1,exp:"df.dtypes returns the type of every column: int64 for integers, float64 for decimals, object for strings, datetime64 for dates. It's the first check you run on any new DataFrame to catch type mismatches before they cause silent errors."}
+},
 {id:1,core:true,unit:"Unit 1: Python Foundations",title:"Variables & Data Types",slug:"variables",
+ story:"You know what code is and the four core types. Now Python's data types in a data context: integers for counts and IDs, floats for prices and rates, strings for names and codes, booleans for yes/no flags. These are the atoms every DataFrame column is built from — knowing the type tells you which operations are allowed on that column.",
  intro:"A variable is like a labeled jar on a shelf: you put something in, write a name on the front, and grab it later by that name. A variable is a label you stick on a piece of data. Python figures out the type automatically — you just assign and go. Four types show up constantly in data work: <strong>int</strong> (whole number), <strong>float</strong> (decimal number), <strong>str</strong> (string — text in quotes), and <strong>bool</strong> (boolean — True or False).",
  ral:[
   {formula:"revenue = 144.50",say:"Store the number 144.50 in a variable called revenue.",lines:[["revenue","the variable name — you choose this"],["=","assign — store the value on the right into the name on the left"],["144.50","a float (decimal number)"]]},
@@ -422,6 +466,7 @@ LESSONS:[
  quiz:{q:"What type is the value in: price = '3.50'?",opts:["float","int","str","bool"],ans:2,exp:"The quotes make it a string, even though it looks like a number. '3.50' is text — you can't do math with it until you convert it with float(price)."}
 },
 {id:2,core:true,unit:"Unit 1: Python Foundations",title:"Lists & Dictionaries",slug:"lists-dicts",
+ story:"You can work with individual values. But data analysis works with collections. A list is an ordered sequence — think a column of values. A dictionary maps keys to values — think a single row of data with column names. These are the Python building blocks that pandas is built on.",
  intro:"A list is like a numbered grocery list (item 1, item 2…); a dictionary is like a contacts app where you look people up by name, not by position. Two containers you'll use every day. A list is an ordered sequence. A dictionary maps keys to values — like a row of data with column names.",
  ral:[
   {formula:"revenues = [144, 152, 195, 160, 108]",say:"Make a list called revenues holding five numbers, in order.",lines:[["revenues","the variable name"],["[ ]","square brackets define a list"],["144, 152, ...","comma-separated values — order is preserved"]]},
@@ -432,6 +477,7 @@ LESSONS:[
  quiz:{q:"How do you get the value 'West' from: row = {'rep': 'Maya', 'region': 'West'}?",opts:["row[1]","row['region']","row.region","row.get(1)"],ans:1,exp:"Dictionaries are accessed by key, not position. row['region'] looks up the key 'region' and returns its value 'West'."}
 },
 {id:3,unit:"Unit 1: Python Foundations",title:"Functions & Loops",slug:"functions-loops",
+ story:"You can build collections — lists and dictionaries. But repeating the same operation on each item manually doesn't scale. A function packages logic you can call by name — write it once, use it anywhere. A loop applies it to every item in a collection. Together they're what turns 'do this for each row' from tedious to one line.",
  intro:"A function is like a coffee machine — press the button (call it) and it runs the same steps to hand you a result; a loop is doing that for every cup on the tray. Functions let you name and reuse a block of code. Loops let you do something to every item in a collection. Together they're the engine of most data scripts.",
  ral:[
   {formula:"def total(values):\n    return sum(values)",say:"Define a function named total that takes a list of values and returns their sum.",lines:[["def total(values):","define a function named total that takes one argument"],["    return sum(values)","add up the values and send the result back — indentation matters"]]},
@@ -442,6 +488,7 @@ LESSONS:[
  quiz:{q:"What does 'return' do inside a function?",opts:["Prints the value to the screen","Sends the result back to whoever called the function","Ends the script","Loops back to the start"],ans:1,exp:"return sends a value out of the function. Without return, the function runs but produces None. print() displays to the screen but doesn't return anything."}
 },
 {id:4,core:true,unit:"Unit 2: pandas",title:"Your First DataFrame",slug:"dataframe-basics",
+ story:"You have Python's building blocks: values, types, lists, dicts, functions, loops. Now bring in the real tool. You already know what a DataFrame is from Unit 0 — a 2D table with a grain. This lesson makes it concrete: pd.read_csv() loads a file and hands you a DataFrame in one line, ready to analyze.",
  intro:"A DataFrame is a spreadsheet that lives inside Python — the same rows and columns, but you slice and total them with code instead of a mouse. A DataFrame is a table in Python — rows and columns, just like a spreadsheet. pandas is the library that creates and manages them. It's the most-used tool in a data analyst's Python stack. <em>New keyword you'll see: <code>import</code> — it's how Python loads an external library into your script. Think of it like clicking 'Open' on a toolbox before you can use the tools inside.</em>",
  ral:[
   {formula:"import pandas as pd\ndf = pd.read_csv('sales.csv')",say:"Load the pandas library (alias it as pd), then read sales.csv into a DataFrame called df.",lines:[["import pandas as pd","load the pandas library and alias it as pd"],["pd.read_csv('sales.csv')","read a CSV file and turn it into a DataFrame"],["df","conventional variable name for a DataFrame — short for 'data frame'"]]},
@@ -452,6 +499,7 @@ LESSONS:[
  quiz:{q:"What does df.shape return for a DataFrame with 25 rows and 7 columns?",opts:["[25, 7]","(25, 7)","25","7"],ans:1,exp:"shape returns a tuple: (rows, columns). So df.shape for our dataset is (25, 7). Access either value with df.shape[0] (rows) or df.shape[1] (columns)."}
 },
 {id:5,unit:"Unit 2: pandas",title:"Exploring Data",slug:"exploring",
+ story:"You have a DataFrame. Before you analyze anything, you interrogate it: how many rows? Which columns? What types? Any nulls? df.shape, df.dtypes, df.describe(), df.head() — these are your first-look tools. Exploring before analyzing is what separates a reliable analyst from a guessing one.",
  intro:"Exploring data is like reading the nutrition label before you cook — a few quick methods tell you what's actually in the dataset before you commit. Before you analyze anything, you need to know what you have. These methods let you see column types, summary stats, and spot outliers in seconds.",
  ral:[
   {formula:"df.describe()",say:"Give me summary stats for every numeric column — count, mean, standard deviation, min, quartiles, and max.",lines:[["df.describe()","summary stats for all numeric columns: count, mean, std, min, quartiles, max"]]},
@@ -464,6 +512,7 @@ LESSONS:[
  quiz:{q:"What's the difference between df['revenue'] and df[['revenue']]?",opts:["No difference","First returns a Series, second returns a DataFrame","First returns a DataFrame, second returns a Series","Second raises an error"],ans:1,exp:"Single brackets select one column as a Series (1D). Double brackets select columns as a DataFrame (2D). The distinction matters when passing data to functions that expect one or the other."}
 },
 {id:6,core:true,unit:"Unit 2: pandas",title:"Filtering Rows",slug:"filtering",
+ story:"You know your DataFrame's shape and types. Your manager asks: 'Show me just the West region orders.' In pandas, filtering uses a boolean mask: df[df['Region'] == 'West']. True rows stay; False rows disappear. Same idea as SQL's WHERE clause, different syntax.",
  intro:"Filtering is like a coffee filter — you let only the rows you want pass through and leave the grounds behind. Filtering is boolean indexing — you build a True/False mask, then use it to keep only the rows you want. It's the pandas equivalent of a WHERE clause.",
  ral:[
   {formula:"df[df['region'] == 'West']",say:"Give me the rows of df where region equals 'West'.",lines:[["df['region'] == 'West'","compare every row — True where region is West, False otherwise"],["df[...]","pass the mask in — keep only True rows"]]},
@@ -475,6 +524,7 @@ LESSONS:[
  quiz:{q:"What does ~ mean in pandas filtering?",opts:["Multiply","NOT — inverts a boolean mask","Approximate match","String contains"],ans:1,exp:"~ is the bitwise NOT operator. df[~df['region'].isin(['West'])] returns all rows where region is NOT West. It's the pandas equivalent of WHERE NOT."}
 },
 {id:7,unit:"Unit 2: pandas",title:"Sorting & Selecting",slug:"sorting",
+ story:"You can filter rows. Now your manager wants the top items first: 'Sort by revenue descending, and only show me Region and Revenue.' sort_values() reorders the rows; column selection shapes the output. The result of every analysis needs to be readable, not just correct.",
  intro:"Sorting and 'top N' is a sports leaderboard — line everyone up by score, then grab the leaders. Once you can filter, you need to sort, rank, and extract the rows that matter. These three methods cover 80% of 'show me the top N' questions.",
  ral:[
   {formula:"df.sort_values('revenue', ascending=False)",say:"Sort df by the revenue column, largest values first.",lines:[["sort_values('revenue')","sort rows by the revenue column"],["ascending=False","largest first (descending order)"]]},
@@ -486,6 +536,7 @@ LESSONS:[
  quiz:{q:"df.nlargest(3, 'revenue') returns…",opts:["The 3 rows with the lowest revenue","The 3 rows with the highest revenue","The top 3 unique revenue values","3 random rows"],ans:1,exp:"nlargest(n, column) is a shortcut for sort_values(column, ascending=False).head(n). It returns the n rows with the highest values in the specified column."}
 },
 {id:8,core:true,unit:"Unit 2: pandas",title:"GroupBy & Aggregation",slug:"groupby",
+ story:"You can filter and sort. The power move comes next: GroupBy. Your manager asks 'total revenue per region' — groupby('Region')['Revenue'].sum() collapses the rows into groups and runs the aggregation. Same logic as SQL's GROUP BY and Excel's PivotTable, now in Python.",
  intro:"GroupBy is the split-apply-combine of a bake sale: split the cookies by type, count each kind, then combine into one tidy summary. GroupBy is the most important pandas skill for a data analyst. Split the data into groups, apply a function to each group, combine the results. It's SQL's GROUP BY, in Python.",
  ral:[
   {formula:"df.groupby('region')['revenue'].sum()",say:"Group df by region, then sum the revenue inside each group — one total per region.",lines:[["df.groupby('region')","split into groups — one group per unique region"],["['revenue']","focus on the revenue column"],["sum()","add up revenue within each group — returns one row per region"]]},
@@ -496,6 +547,7 @@ LESSONS:[
  quiz:{q:"What does .reset_index() do after a groupby?",opts:["Clears all data","Converts the group key from an index back into a regular column","Sorts the result","Removes duplicate groups"],ans:1,exp:"After groupby + agg, the group key becomes the index. reset_index() promotes it back to a regular column, which is usually what you want for further processing or export."}
 },
 {id:9,unit:"Unit 2: pandas",title:"Merging DataFrames",slug:"merging",
+ story:"You can aggregate one DataFrame. Your manager wants to combine the orders table with a products table — match on Product ID and bring in the Category column. merge() is pandas' JOIN: match rows from two DataFrames on a key. The grain warning from Unit 0 still applies: if the key isn't unique in both tables, rows will fan out and your totals will inflate.",
  intro:"Merging is like a coat check — you match two lists on a shared ticket (the key) and pair each coat with its owner. Merging combines two DataFrames on a shared key — exactly like SQL JOINs. Inner keeps matches only. Left keeps all rows from the left table.",
  ral:[
   {formula:"pd.merge(sales, products, on='product_id')",say:"Combine the sales and products DataFrames by matching on product_id — the key column they share.",lines:[["pd.merge(...)","combine two DataFrames"],["sales","the left DataFrame"],["products","the right DataFrame"],["on='product_id'","the key column both tables share — must exist in both"]]},
@@ -506,6 +558,7 @@ LESSONS:[
  quiz:{q:"pd.merge(a, b, on='id', how='left') — what happens to rows in 'a' with no match in 'b'?",opts:["They're dropped","They're kept, with NaN in b's columns","They cause an error","They're duplicated"],ans:1,exp:"A left join keeps all rows from the left DataFrame (a). For rows with no match in b, the columns that came from b are filled with NaN. Use .fillna() afterward if needed."}
 },
 {id:10,core:true,unit:"Unit 3: Data Cleaning",title:"Finding & Fixing Nulls",slug:"nulls",
+ story:"You can merge DataFrames. Now the reliability check: nulls. A NaN in a pandas column silently drops that row from aggregations — your count is wrong without any error message. isnull().sum() finds them; fillna() fills them; dropna() drops them. Choosing between fill and drop is an analytical decision, not a technical one.",
  intro:"A null is an empty seat at the table — pandas calls it NaN, and if you ignore it your headcount and averages quietly come out wrong. Nulls are missing values — NaN in pandas. They'll silently skew your aggregations and break your merges if you don't handle them. Find them first, then decide: fill or drop.",
  ral:[
   {formula:"df.isnull().sum()",say:"Count how many nulls are in each column of df.",lines:[["df.isnull()","returns a True/False DataFrame — True where value is NaN"],["sum()","count the Trues per column — number of nulls in each"]]},
@@ -517,6 +570,7 @@ LESSONS:[
  quiz:{q:"df.dropna() with no arguments does what?",opts:["Drops columns with any nulls","Drops rows where ALL values are null","Drops rows where ANY value is null","Returns a count of nulls"],ans:2,exp:"df.dropna() by default drops any row that has at least one NaN in any column. That's often too aggressive. Use subset=['col'] to only drop rows where a specific column is null."}
 },
 {id:11,unit:"Unit 3: Data Cleaning",title:"String Cleaning",slug:"strings",
+ story:"You can handle nulls. But text data is messy: 'west' vs 'West' vs ' West ', product names with trailing spaces, IDs that mix text and numbers. str.strip(), str.lower(), str.replace() are the pandas equivalents of Excel's TRIM/LOWER/SUBSTITUTE — but applied to an entire column in one line.",
  intro:"Cleaning a text column with .str is a whole column going through the car wash at once — trim the spaces, fix the casing, swap characters, all in one pass. Real data is messy — extra spaces, inconsistent capitalization, mixed formats. The .str accessor gives you string operations across an entire column at once.",
  ral:[
   {formula:"df['rep'].str.strip()",say:"Trim leading and trailing whitespace from every value in the rep column.",lines:[["str.strip()","remove leading and trailing whitespace from every value in the column"]]},
@@ -529,6 +583,7 @@ LESSONS:[
  quiz:{q:"df['region'].str.lower() — does this modify df['region'] in place?",opts:["Yes, it updates the column","No — you need to assign: df['region'] = df['region'].str.lower()","Only if inplace=True is passed","It depends on the pandas version"],ans:1,exp:"pandas string methods return a new Series — they don't modify the original. You must assign back: df['region'] = df['region'].str.lower(). This is true for almost all pandas methods."}
 },
 {id:12,unit:"Unit 3: Data Cleaning",title:"Types, Duplicates & Export",slug:"types-export",
+ story:"Your data is clean and your analysis is solid. One last checklist before handing anything off: confirm column types are what they should be (astype), check for duplicate rows (duplicated), and write the result to a file. to_csv() and to_excel() turn a DataFrame back into something your manager can open without Python.",
  intro:"This is the last mile — like packing a clean order into the box before it ships: fix the labels (column types), pull out duplicates, and send it off. The last mile of cleaning: fix column types, remove duplicates, and write the clean data out. These are the final steps before you hand off or analyze.",
  ral:[
   {formula:"df['units'] = df['units'].astype(int)",say:"Convert the units column to integer type and assign it back — that's how the change sticks.",lines:[["astype(int)","convert the units column to integer type"],["df['units'] =","assign back — astype returns a new Series"]]},
@@ -812,6 +867,8 @@ function renderHome(){
 function resumeLesson(){ openLesson(S.currentLesson); }
 
 // ─── LESSONS ──────────────────────────────────────────────────────────────────
+function lessonPos(id){return DATA.LESSONS.findIndex(l=>l.id===id);}
+function nextLessonId(id){const p=lessonPos(id);return(p>=0&&p<DATA.LESSONS.length-1)?DATA.LESSONS[p+1].id:null;}
 function renderLessonList(){
   const basicsOn = localStorage.getItem('apk-basics')==='1';
   const coreLessons = DATA.LESSONS.filter(l=>l.core);
@@ -823,7 +880,7 @@ function renderLessonList(){
     let hdr='';
     if(l.unit!==lastUnit){hdr=`<h3 style="color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin:${lastUnit?'20px':0} 0 8px">${l.unit}</h3>`;lastUnit=l.unit;}
     return `${hdr}<div class="card" data-basics="${l.core?'1':'0'}" style="cursor:pointer;margin-bottom:8px;border-color:${done?'var(--success)':'var(--border)'}" onclick="openLesson(${l.id})">
-      <div class="flex-between"><div><span class="tag" style="margin-bottom:6px">L${l.id}</span><h3 style="margin:0">${l.title}${l.core?'<span class="basics-pill">★ Bare Basics</span>':''}</h3></div>
+      <div class="flex-between"><div><span class="tag" style="margin-bottom:6px">L${lessonPos(l.id)+1}</span><h3 style="margin:0">${l.title}${l.core?'<span class="basics-pill">★ Bare Basics</span>':''}</h3></div>
       <span style="color:${done?'var(--success)':'var(--border)'};font-size:20px">${done?'✓':'○'}</span></div></div>`;
   }).join('');
 }
@@ -856,7 +913,7 @@ function lessonOutputHTML(v){
 function renderLesson(){
   const l=DATA.LESSONS.find(x=>x.id===S.currentLesson);
   if(!l) return;
-  const pct=Math.round((l.id-1)/DATA.LESSONS.length*100);
+  const pct=Math.round(lessonPos(S.currentLesson)/DATA.LESSONS.length*100);
   const done=S.lessonsDone.includes(l.id);
   let html=`<div class="lesson-header">
     <div class="flex-between mb8">
@@ -864,10 +921,11 @@ function renderLesson(){
       <span class="tag">${l.unit}</span>
     </div>
     ${done?`<div class="mb8"><button class="btn btn-outline btn-sm" onclick="resetLessonProgress()" title="Clear this lesson's progress and quiz">↺ Reset this lesson</button></div>`:''}
-    <div class="lesson-progress">Lesson ${l.id} of ${DATA.LESSONS.length}</div>
+    <div class="lesson-progress">Lesson ${lessonPos(l.id)+1} of ${DATA.LESSONS.length}</div>
     <div class="prog-bar mb12"><div class="prog-fill" style="width:${pct}%"></div></div>
     <h1>${l.title}</h1>
   </div>
+  ${l.story?`<div style="font-size:.88rem;color:var(--txt2);margin-bottom:14px;padding:10px 14px;background:var(--surf2);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;line-height:1.65">📖 ${l.story}</div>`:l.prereq?`<div style="font-size:.82rem;color:var(--txt2);margin-bottom:12px;padding:7px 11px;background:var(--surf2);border-left:3px solid var(--accent);border-radius:0 6px 6px 0">📎 <strong>Before this:</strong> ${l.prereq}</div>`:''}
   <div class="card"><p class="lead">${l.intro}</p></div>`;
 
   html+=`<div class="card"><h2>Read It Aloud</h2><p>Say each part out loud. If you can explain it, you own it.</p>`;
@@ -889,19 +947,19 @@ function renderLesson(){
       <div class="quiz-opts">${l.quiz.opts.map((o,i)=>`<button class="quiz-opt" onclick="checkQuiz(${l.id},${i})">${o}</button>`).join('')}</div>
       <div id="quizFeedback"></div></div>`;
   } else {
-    const isLast=l.id>=DATA.LESSONS.length;
+    const isLast=lessonPos(l.id)>=DATA.LESSONS.length-1;
     const drillCount=(LESSON_DRILLS[l.id]||[]).length;
     const basicsOn=localStorage.getItem('apk-basics')==='1';
     const allCoreDone=DATA.LESSONS.filter(x=>x.core).every(x=>S.lessonsDone.includes(x.id));
     const handoff=(basicsOn&&allCoreDone)?`<a href="../tableau/" class="btn btn-primary" style="text-decoration:none">🔖 Python bare basics done — Next: Tableau bare basics →</a>`:'';
     html+=`<div class="card" style="border-color:var(--success);text-align:center;padding:28px">
       <div style="font-size:32px;margin-bottom:8px">✓</div>
-      <h2 style="color:var(--success);margin-bottom:6px">Lesson ${l.id} complete</h2>
+      <h2 style="color:var(--success);margin-bottom:6px">Lesson ${lessonPos(l.id)+1} complete</h2>
       <p>Now lock it in — practice this lesson's drills before moving on${drillCount?` (${drillCount} quick exercises)`:''}.</p>
       <div class="flex" style="justify-content:center;gap:10px;margin-top:16px;flex-wrap:wrap">
         ${handoff}
         <button class="btn btn-primary" onclick="startGuided(${l.id})">Practice this →</button>
-        ${isLast?`<a href="../final/" class="btn btn-outline" style="text-decoration:none">Try the Final Exam →</a>`:`<button class="btn btn-ghost" onclick="openLesson(${l.id+1})">Skip to next lesson →</button>`}
+        ${isLast?`<a href="../final/" class="btn btn-outline" style="text-decoration:none">Try the Final Exam →</a>`:`<button class="btn btn-ghost" onclick="openLesson(${nextLessonId(l.id)})">Skip to next lesson →</button>`}
         <button class="btn btn-ghost btn-sm" onclick="show('lessons')">All lessons</button>
       </div></div>`;
   }
