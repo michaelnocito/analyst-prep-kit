@@ -443,7 +443,48 @@ applyBasics();
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const DATA = {
 LESSONS:[
+{id:101,unit:"Unit 0: Before You Type a Formula",title:"How a Spreadsheet Is Built (the Grid)",slug:"grid-basics",
+ story:"It's your first day at the coffee company. Your manager drops a CSV of sales data — a year's worth of orders — and says 'get familiar with this.' Before you can write a single formula, you need to understand what you're looking at: a grid of rows and columns, and the one concept that prevents most analysis mistakes — the grain.",
+ intro:"A spreadsheet is a table of cells. Rows run left to right (numbered). Columns run top to bottom (lettered). Every cell holds exactly one piece of information — that's the rule. The most important concept first: the grain — what one row represents. Is one row one sale? One customer? One day? Getting the grain wrong leads to the most common analysis mistakes.",
+ ral:[
+  {formula:"Spreadsheet anatomy",lines:[["Row","a horizontal band of cells — one record (e.g. one sale)"],["Column","a vertical band — one field (e.g. Region, Product, Revenue)"],["Cell","one box at the intersection of a row and column — holds exactly one value"],["Header row","row 1 — the column names — always include it, never skip it"],["Grain","what one row means — 'each row is one sale' — the single most important question to answer first"]]}
+ ],
+ notes:"Grain confusion is the hidden cause of most analysis mistakes. If your table mixes two grains — monthly totals alongside daily transactions, for example — your formulas will produce wrong results, silently.",
+ viz:{cols:["A","B","C"],grid:[["Region","Product","Revenue"],["West","Latte",150],["East","Cold Brew",120],["West","Espresso",90],["North","Mocha",140]],caption:"One row per sale — that's the grain. Region, Product, and Revenue are the fields (columns). Every formula you write will reference this structure."},
+ quiz:{q:"What does 'grain' mean for a spreadsheet table?",opts:["The number of columns in the table","What one row represents — the level of detail of the data","The formatting style of the headers","The file format of the spreadsheet"],ans:1,exp:"The grain answers 'what does one row mean?' — one sale, one customer, one order. Getting this right before you start is the single most important data habit. A wrong grain silently corrupts formulas and pivots."}
+},
+{id:102,unit:"Unit 0: Before You Type a Formula",title:"Cell References & the A1 Grid",slug:"cell-references",
+ story:"You've got the grid down — each row is a sale, each column is a field. Now you need to point at things. Every cell has an address: a column letter + a row number. B4 means 'column B, row 4.' Writing a formula that references B4 instead of typing '150' is what makes a spreadsheet live — change B4 and every formula reading it updates automatically.",
+ intro:"A cell reference is an address. B4 means column B, row 4. When you write =B4 in a formula, Excel reads the current value there — not a copy you typed in. That's the superpower: your analysis updates automatically when the data changes. Relative references shift when copied down a column (B2 → B3 → B4). Absolute references (with $) stay fixed wherever you paste.",
+ ral:[
+  {formula:"=B2*C2",say:"Multiply the value in B2 by the value in C2.",lines:[["B2","column B row 2 — a relative reference, shifts when you copy the formula down"],["C2","column C row 2 — same"],["$B$2","an absolute reference — $ locks the column AND row so it never shifts when copied"],["=B4","just the live value in B4 — not a copy, it updates when B4 changes"],["#REF!","what Excel shows when a reference points to a cell that no longer exists"]]}
+ ],
+ notes:"The fill-down trick: write your formula in the top cell, then drag the small square (the fill handle) down the column. Relative references adjust automatically (B2 → B3 → B4). Forget to anchor a $ and your formula silently points at the wrong row.",
+ viz:{formula:"=B2*C2",cols:["A","B","C","D"],grid:[["Product","Price","Units","Revenue (=B*C)"],["Latte",4.50,12,"=B2*C2 → 54"],["Cold Brew",5.00,8,"=B3*C3 → 40"],["Espresso",3.00,20,"=B4*C4 → 60"]],hl:"D2",caption:"The formula =B2*C2 in D2 multiplies Price × Units. Copy it down to D3 and D4 — relative references shift automatically (B2→B3, C2→C3). One formula written, three rows calculated."},
+ quiz:{q:"You write =B2*C2 in D2 and copy it down to D3. What does D3 contain?",opts:["=B2*C2 (unchanged)","=B3*C3 (relative references shifted one row)","=B2*C3 (mixed)","=B$2*C$2 (absolute)"],ans:1,exp:"Relative references adjust when copied. Paste the formula one row down and B2 becomes B3, C2 becomes C3 — it points to the row it's now in. That's what makes fill-down work."}
+},
+{id:103,unit:"Unit 0: Before You Type a Formula",title:"Text vs Number (& Dates)",slug:"data-types",
+ story:"You can reference any cell. But Excel doesn't treat all cells the same — a cell holding 150 as a number and a cell holding '150' as text look identical but behave completely differently. One you can calculate with; the other you can't. And dates are secretly numbers in disguise — which is exactly why date subtraction gives you the number of days between them.",
+ intro:"Excel has three types you'll work with constantly: text (any label, name, or code — aligned left by default), numbers (anything you'll add or average — aligned right), and dates (integers under the hood: Jan 1, 1900 is 1, today is around 46000, which is why subtracting two dates gives days). The #1 gotcha: a number stored as text won't sum — and Excel's only warning is a tiny green triangle in the corner.",
+ ral:[
+  {formula:"Data types in the wild",lines:[["Text (Abc)","labels, region names, product codes — aligned left in the cell"],["Number (#)","any value you'll calculate with — aligned right"],["Date (📅)","a number displayed as a date — the underlying value is a serial integer"],["Green triangle","Excel's warning: 'this looks like a number but is stored as text'"],["=VALUE(A2)","convert a text number to a real number — fixes the silent SUM=0 bug"]]}
+ ],
+ notes:"When you import data from a CSV or another system, numbers often come in as text. Your SUM returns 0 or wrong totals without any obvious error. The telltale sign: numbers are LEFT-aligned in the cell instead of right-aligned. Always check type before you start analyzing.",
+ viz:{cols:["A","B","C"],grid:[["Value","Stored as","What =SUM returns"],["150","number (right-aligned)","150 ✓"],["'150","text (left-aligned)","0 ✗ — looks like a number, isn't"],["2026-03-15","date (number)","serial 46095 — date math works"]],caption:"Same value, three different types — only the number sums correctly. The text cell looks identical but returns 0 in a SUM. Dates are integers formatted for display; date subtraction works because of that."},
+ quiz:{q:"Your =SUM(B2:B10) returns 0, but the cells appear to have numbers. Most likely cause?",opts:["SUM can't handle this range","The numbers are stored as text","The column is hidden","The sheet is protected"],ans:1,exp:"Numbers stored as text are the classic trap. Excel displays them but can't calculate with them. Convert to true numeric values — paste-special → Values, or use =VALUE() — and the SUM will work."}
+},
+{id:104,unit:"Unit 0: Before You Type a Formula",title:"What a Formula Actually Is",slug:"formula-basics",
+ story:"You know data types: text, numbers, dates. Now the payoff. A formula is a live calculation — write it once, reference cells, and it recalculates the moment any referenced value changes. The = sign is the switch that tells Excel 'don't just show this, work it out.' Every formula in this kit builds on that one idea.",
+ intro:"A formula starts with =. That = tells Excel to compute this rather than just display it. A formula can be a plain calculation (=2+3), a cell reference (=B4), a built-in function (=SUM(B2:B10)), or a chain of operations (=SUM(B2:B10)/COUNT(B2:B10)). The key property: formulas are live — they recalculate whenever any cell they reference changes.",
+ ral:[
+  {formula:"=SUM(B2:B10)/COUNT(B2:B10)",say:"Sum all values in B2 to B10, then divide by how many values there are — the manual average.",lines:[["=","starts every formula — tells Excel to evaluate, not display"],["SUM(B2:B10)","a built-in function: add every number in the range"],["COUNT(B2:B10)","a built-in function: count how many numbers are in the range"],["/ (division)","chain two functions — this computes average the long way (same as =AVERAGE)"],["Order of operations","Excel follows PEMDAS — use parentheses when in doubt"]]}
+ ],
+ notes:"Formulas error for a reason. #DIV/0! means you divided by zero. #N/A means a lookup found no match. #VALUE! means you fed a function the wrong type (text where a number is expected). Each error is a specific diagnosis — not random noise.",
+ viz:{formula:"=SUM(B2:B5)/COUNT(B2:B5)",cols:["A","B"],grid:[["Product","Revenue"],["Latte",150],["Cold Brew",120],["Espresso",90],["Mocha",140],["",""],["Average →","125 (=SUM/COUNT)"]],caption:"One formula chains SUM and COUNT to compute the average manually. Change any Revenue cell and the result updates immediately — that's the live recalculation property that makes every formula in this kit worth learning."},
+ quiz:{q:"You type =SUM(B2:B5) in B7 and then change the value in B3. What happens?",opts:["B7 keeps the old result until you press Enter again","B7 recalculates automatically to reflect the new B3","You get a #REF! error","You have to re-type the formula"],ans:1,exp:"Formulas are live. When a referenced cell changes, Excel immediately recalculates every formula that reads it. That's the core property that makes a spreadsheet a dynamic tool rather than a static printout."}
+},
 {id:1,core:true,unit:"Unit 1: Formulas",title:"Your First Formula",slug:"sum-avg-count",
+ story:"You know what a formula is: write it once, reference cells, it recalculates live. Now your manager walks in with three questions about last month's sales: 'What's the total revenue? What's the average order? How many transactions?' One column. Three answers. SUM, AVERAGE, and COUNT — and you already know every piece they use.",
  intro:"Think of a formula like a recipe card: you write the steps once, and Excel cooks the result every time — and re-cooks it the moment an ingredient changes. A formula is just an instruction that starts with =. Excel reads it and gives you the result. Three formulas you'll use on literally every job: SUM, AVERAGE, and COUNT.",
  onthejob:"Your first week as an analyst, someone will hand you a spreadsheet and ask \"What's the total?\" or \"How many orders came in?\" SUM, AVERAGE, and COUNT are how you answer — fast, accurate, and without eyeballing rows manually.",
  ral:[
@@ -456,6 +497,7 @@ LESSONS:[
  quiz:{q:"What does =COUNT(A1:A10) return if the range has 6 numbers and 2 text cells?",opts:["8","6","2","10"],ans:1,exp:"COUNT only counts numeric cells. The 2 text cells are ignored, so the answer is 6. (COUNT is like a turnstile that only clicks for people, not their bags.)"}
 },
 {id:2,core:true,unit:"Unit 1: Formulas",title:"Make Decisions with IF",slug:"if-nested",
+ story:"You can total, average, and count. Your manager follows up: 'Can you flag which transactions are above $100 — mark them High or Low?' That's a yes/no question on every row, and IF is the answer: check a condition, output one thing if true, another if false. You already know how to reference a cell; now you give that reference a question.",
  intro:"An IF formula is like a bouncer at a door: it checks one condition and sends each row down one of two paths — in or out, pass or fail. =IF lets your spreadsheet make decisions. Give it a condition, a value for when it's true, and a value for when it's false. That's the whole idea.",
  onthejob:"You're cleaning up a customer list and need to label accounts as \"Active\" or \"Inactive\" based on their last purchase date. Instead of checking hundreds of rows by hand, one IF formula does it for the entire column in a second.",
  ral:[
@@ -467,6 +509,7 @@ LESSONS:[
  quiz:{q:'=IF(50>100,"Big","Small") — what does this return?',opts:["Big","Small","TRUE","FALSE"],ans:1,exp:"50 is not greater than 100, so the condition is FALSE and Excel returns the second option: Small."}
 },
 {id:3,core:true,unit:"Unit 1: Formulas",title:"Lookup Magic: VLOOKUP",slug:"vlookup",
+ story:"You can flag values inside one table. But your manager adds a wrinkle: 'The revenue data is in one sheet; the product details are in another — can you bring the product names into the sales table?' That's a lookup: find the matching key in another table and pull back a value. VLOOKUP is the first tool for exactly that.",
  intro:"VLOOKUP is like a phone book: you look someone up by name and it hands back their number. You give it a key (the name), it finds the matching row in another table and brings back a value from a specific column.",
  onthejob:"Sales sends you a list of order IDs and wants the customer name for each one. The customer names live in a separate master table. VLOOKUP connects the two — match the ID, pull the name. This comes up almost daily.",
  ral:[
@@ -477,6 +520,7 @@ LESSONS:[
  quiz:{q:"In =VLOOKUP(D2, A:C, 2, FALSE) — what does the '2' mean?",opts:["Search in column 2","Return the value from column 2 of the range","Match within 2 rows","Exact match"],ans:1,exp:"The third argument is the column index — it tells VLOOKUP which column of the range to return. Column 2 means the second column of A:C, which is column B."}
 },
 {id:4,unit:"Unit 1: Formulas",title:"Lookup Evolved: XLOOKUP",slug:"xlookup",
+ story:"You know VLOOKUP: match a key, bring back a column to the right, exact match. Your manager asks for a detail column that sits to the LEFT of the key — and VLOOKUP can't read left. XLOOKUP solves that: you point at the lookup column and the return column separately, any direction, with a clean 'Not found' fallback instead of #N/A.",
  intro:"XLOOKUP is VLOOKUP's younger, more flexible sibling — same phone-book lookup, but it can read in either direction and never trips over counting columns. XLOOKUP does everything VLOOKUP does, with less gotcha. No column number to count. Can look left. Handles 'not found' gracefully. If your Excel supports it, use it.",
  onthejob:"Same lookup tasks as VLOOKUP, but cleaner. If a product ID doesn't exist, XLOOKUP shows \"Not found\" instead of an ugly #N/A error — your manager sees a polished report instead of error codes.",
  ral:[
@@ -487,6 +531,7 @@ LESSONS:[
  quiz:{q:"What advantage does XLOOKUP have over VLOOKUP?",opts:["It's faster","It can look left and handles missing values cleanly","It works in all Excel versions","It uses less memory"],ans:1,exp:"XLOOKUP separates the lookup column from the return column, so you can return values that are to the LEFT of your search column — something VLOOKUP can't do."}
 },
 {id:5,core:true,unit:"Unit 1: Formulas",title:"Count and Sum with Conditions",slug:"countif-sumif",
+ story:"You can pull product details across tables. Now your manager wants filtered totals: 'How many West region orders came in, and what was their revenue?' A plain SUM adds everything. COUNTIF and SUMIF count or add only the rows that match a condition — same column, different slice.",
  intro:"COUNTIF and SUMIF are like a cashier counting only the red items in a cart: they tally or total just the rows that match your condition and ignore the rest. COUNTIF and SUMIF let you count or add up only the rows that match a condition. The multi-condition versions are COUNTIFS and SUMIFS (note the S).",
  onthejob:"\"How many orders came from the West region last quarter?\" or \"What's total revenue for just the hot drinks?\" These are the exact questions COUNTIF and SUMIF were built for — filtering and totaling in one step.",
  ral:[
@@ -499,6 +544,7 @@ LESSONS:[
  quiz:{q:'=SUMIFS(Revenue, Region, "West", Category, "Hot") — how many conditions does this have?',opts:["1","2","3","4"],ans:1,exp:"SUMIFS takes pairs of (range, condition). Two pairs here = two conditions: Region=West AND Category=Hot."}
 },
 {id:6,core:true,unit:"Unit 2: PivotTables",title:"What Is a PivotTable?",slug:"pivot-concept",
+ story:"You've been writing one formula at a time. Now your manager drops 10,000 rows on your desk: 'Break this down by region AND product.' Writing SUMIFS for every combination would take an hour. A PivotTable does it in 30 seconds — drag Region to Rows, Revenue to Values, done. No formulas typed, no grain math, instant.",
  intro:"A PivotTable is like dumping a messy junk drawer onto the table and instantly sorting everything into labeled bins — the original drawer stays untouched. A PivotTable reorganizes your raw data into a summary — without changing the original. You drag fields into zones and Excel handles all the grouping and math.",
  onthejob:"Your boss drops 10,000 rows of sales data on you and says \"break this down by region and product.\" Writing formulas for that would take an hour. A PivotTable does it in 30 seconds with drag-and-drop — no formulas needed.",
  ral:[
@@ -509,6 +555,7 @@ LESSONS:[
  quiz:{q:"What does placing 'Revenue' in the Values zone do?",opts:["Creates a new column in your data","Aggregates revenue (sum/count/avg) grouped by your row/column fields","Filters the table to show only revenue rows","Sorts the data by revenue"],ans:1,exp:"Values are aggregated — Excel does the math. The default is Sum, but you can change it to Count, Average, Min, Max, and more. (The Values zone is a calculator that runs once per group.)"}
 },
 {id:7,core:true,unit:"Unit 2: PivotTables",title:"Build Your First Pivot",slug:"pivot-build",
+ story:"You know what a PivotTable does: it reorganizes rows into a summary by dragging fields into zones. Now you build one step by step — select the data, insert the pivot, drag Region to Rows and Revenue to Values. The four-zone logic you practice here is the same one you'll use on every report.",
  intro:"Building a pivot is like arranging furniture in a room: you drag fields into four zones (Rows, Columns, Values, Filters) until the summary reads the way you want. Use the Pivot Lab (tab above) as you follow along here. The same four-zone logic applies everywhere.",
  onthejob:"In a real analyst role, you'll build pivots weekly — sometimes daily. The weekly sales report, the monthly headcount summary, the quarterly performance review all start with a PivotTable. This is muscle memory you'll use constantly.",
  ral:[
@@ -519,6 +566,7 @@ LESSONS:[
  quiz:{q:"You want to see total revenue broken down by region. Which zones do you need?",opts:["Rows only","Rows + Values","Columns + Values","Filters + Values"],ans:1,exp:"Rows gives you the category (Region), Values gives you the number to aggregate (Revenue). That's the minimum to get a meaningful pivot."}
 },
 {id:8,unit:"Unit 2: PivotTables",title:"Slicers, Sorting & Grouping",slug:"pivot-slicers",
+ story:"You've built a working pivot. Your manager's manager sees it and says: 'Can I filter this myself — just click to see one region at a time?' That's a Slicer: a button panel attached to the pivot that filters with one click, no dropdown menus, no rebuilding the report. It turns your spreadsheet into a mini-dashboard anyone can use.",
  intro:"A slicer is like the filter buttons on a shopping site — tap 'West' and the whole report instantly narrows to West. A PivotTable is a live tool, not a static report. Slicers add click-to-filter buttons. Sorting and grouping let you surface the story in your data.",
  onthejob:"You built a pivot for the team lead, but now they want to click a button to see just their region. That's a Slicer. It turns your spreadsheet into a mini-dashboard that anyone can use — even people who don't know Excel well.",
  ral:[
@@ -529,6 +577,7 @@ LESSONS:[
  quiz:{q:"What is a slicer?",opts:["A formula that removes duplicates","A visual filter button that controls a PivotTable","A chart type for pivot data","A way to split a sheet"],ans:1,exp:"Slicers are interactive filter buttons you attach to a PivotTable. Click a button and the pivot filters instantly — no dropdown menus needed."}
 },
 {id:9,core:true,unit:"Unit 3: Data Cleaning",title:"Spot and Fix Dirty Data",slug:"dirty-data",
+ story:"You've been building, filtering, and grouping. Now a vendor's Monday CSV lands in your inbox — and your SUM returns 0. The data is dirty: numbers stored as text, stray spaces, inconsistent capitalization. Before any formula is trustworthy, you need to know how to spot and fix what's wrong.",
  intro:"Dirty data is like cooking with unwashed vegetables — clean it first, or everything you make downstream is contaminated. Dirty data is the #1 reason analysis goes wrong. Before you build a pivot or write a SUMIF, you need to know what you're working with.",
  onthejob:"A vendor sends you a CSV export every Monday. Half the time it has blank rows, duplicate entries, or numbers stored as text. Before you can do anything useful, you have to clean it. This lesson is what separates a slow analyst from a fast one.",
  ral:[
@@ -539,6 +588,7 @@ LESSONS:[
  quiz:{q:"You run =SUM(B2:B10) and get 0, but the cells look like they have numbers. Most likely cause?",opts:["SUM doesn't work on that range","The numbers are stored as text","The cells are hidden","The sheet is protected"],ans:1,exp:"Numbers stored as text are the classic trap. Excel can display them but can't calculate with them until you convert them to true numeric values. (A number stored as text is a price tag written in crayon — looks right, won't scan.)"}
 },
 {id:10,unit:"Unit 3: Data Cleaning",title:"Text Functions",slug:"text-functions",
+ story:"Your dirty-data checklist found the issues: customer names in ALL CAPS from one system, trailing spaces that break lookups, product codes where you only need the first three characters. TRIM, PROPER, LEFT, and LEN are the precision tools for exactly this — reshaping text without retyping a single cell.",
  intro:"Text functions are your data's grooming kit — trimming stray spaces, fixing capitalization, snipping out just the part you need. Text functions let you reshape, extract, and clean string data. You'll use these whenever you get a messy export from another system.",
  onthejob:"Customer names come in as \"JOHN SMITH\" from one system and \"john smith\" from another. Product codes have trailing spaces that break your lookups. TRIM, PROPER, LEFT, and MID fix all of this without retyping anything.",
  ral:[
@@ -552,6 +602,7 @@ LESSONS:[
  quiz:{q:'=LEFT("Excel",2) returns…',opts:["Ex","El","ce","Exc"],ans:0,exp:'LEFT starts from the left. The first 2 characters of "Excel" are "Ex".'}
 },
 {id:11,unit:"Unit 3: Data Cleaning",title:"Dates and Numbers",slug:"dates-numbers",
+ story:"You can clean text. Now your manager asks: 'Group the orders by month and show me Q1 only.' You know dates are secretly numbers — now you use that: YEAR and MONTH extract the pieces you need for grouping, and TEXT formats the date as a label for charts and report headers.",
  intro:"A date in Excel is a number wearing a costume — under the hood Jan 1, 1900 is day 1 and today is around day 46,000 — which is exactly why you can add and subtract them. Dates in Excel are secretly numbers — January 1, 1900 is 1, today is somewhere around 46000. That's why date math works. Text formatting dates is a common trap.",
  onthejob:"\"Group these orders by month\" or \"Show me only Q1 data.\" You need YEAR and MONTH to pull those pieces out of a date column. TEXT turns raw dates into readable labels for charts and report headers.",
  ral:[
@@ -564,6 +615,7 @@ LESSONS:[
  quiz:{q:"What does =YEAR(\"2026-03-15\") return?",opts:["2026","03","15","2026-03-15"],ans:0,exp:"=YEAR() extracts the year component from a date value and returns it as a number: 2026."}
 },
 {id:12,unit:"Unit 3: Data Cleaning",title:"Defensive Formulas: IFERROR",slug:"iferror",
+ story:"Your formulas work on clean data. But real data is messy — some order IDs won't match, some denominators will be zero, and your polished report will suddenly show #N/A or #DIV/0! in front of executives. IFERROR wraps any formula and replaces the ugly error with something graceful. The last habit of a careful analyst.",
  intro:"IFERROR is like a safety net under a trapeze artist: when a formula slips and throws an error, it catches the fall and shows something graceful instead. Some formulas produce errors when the data is messy — #N/A from VLOOKUP, #DIV/0! from dividing by zero. IFERROR wraps them so your spreadsheet stays clean.",
  onthejob:"You're building a report that goes to executives. They don't want to see #N/A or #DIV/0! — they want clean numbers or a clear \"No data.\" IFERROR is how you make spreadsheets presentation-ready.",
  ral:[
@@ -930,6 +982,8 @@ function resumeLesson(){
 }
 
 // ─── LESSONS ──────────────────────────────────────────────────────────────────
+function lessonPos(id){return DATA.LESSONS.findIndex(l=>l.id===id);}
+function nextLessonId(id){const p=lessonPos(id);return(p>=0&&p<DATA.LESSONS.length-1)?DATA.LESSONS[p+1].id:null;}
 function renderLessonList(){
   const basicsOn = localStorage.getItem('apk-basics') === '1';
   const coreLessons = DATA.LESSONS.filter(l => l.core);
@@ -943,7 +997,7 @@ function renderLessonList(){
     return `${unitHdr}<div class="card lesson-card${l.core?' sc-core':' sc-supporting'}" data-basics="${l.core?'1':''}" style="cursor:pointer;margin-bottom:8px;border-color:${done?'var(--success)':'var(--border)'}" onclick="openLesson(${l.id})">
       <div class="flex-between">
         <div>
-          <span class="tag" style="margin-bottom:6px">L${l.id}</span>
+          <span class="tag" style="margin-bottom:6px">L${lessonPos(l.id)+1}</span>
           <h3 style="margin:0">${l.title}${l.core?'<span class="sc-badge">Core</span><span class="basics-pill">★ Bare Basics</span>':''}</h3>
         </div>
         <span style="color:${done?'var(--success)':'var(--border)'};font-size:20px">${done?'✓':'○'}</span>
@@ -992,7 +1046,7 @@ function lessonGridHTML(v){
 function renderLesson(){
   const l = DATA.LESSONS.find(x=>x.id===S.currentLesson);
   if(!l) return;
-  const pct = Math.round((S.currentLesson-1)/DATA.LESSONS.length*100);
+  const pct = Math.round(lessonPos(S.currentLesson)/DATA.LESSONS.length*100);
   const done = S.lessonsDone.includes(l.id);
   let html = `
     <div class="lesson-header">
@@ -1001,10 +1055,11 @@ function renderLesson(){
         <span class="tag">${l.unit}</span>
       </div>
       ${done?`<div class="mb8"><button class="btn btn-outline btn-sm" onclick="resetLessonProgress()" title="Clear this lesson's progress and quiz">↺ Reset this lesson</button></div>`:''}
-      <div class="lesson-progress">Lesson ${l.id} of ${DATA.LESSONS.length}</div>
+      <div class="lesson-progress">Lesson ${lessonPos(l.id)+1} of ${DATA.LESSONS.length}</div>
       <div class="prog-bar mb12"><div class="prog-fill" style="width:${pct}%"></div></div>
       <h1>${l.title}</h1>
     </div>
+    ${l.story?`<div style="font-size:.88rem;color:var(--txt2);margin-bottom:14px;padding:10px 14px;background:var(--surf2);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;line-height:1.65">📖 ${l.story}</div>`:l.prereq?`<div style="font-size:.82rem;color:var(--txt2);margin-bottom:12px;padding:7px 11px;background:var(--surf2);border-left:3px solid var(--accent);border-radius:0 6px 6px 0">📎 <strong>Before this:</strong> ${l.prereq}</div>`:''}
     <div class="card">
       <p class="lead">${l.intro}</p>
     </div>
@@ -1035,7 +1090,7 @@ function renderLesson(){
   if(S.lessonStage === 'intro'){
     html += renderQuiz(l);
   } else if(S.lessonStage === 'done'){
-    const isLast = l.id >= DATA.LESSONS.length;
+    const isLast = lessonPos(l.id) >= DATA.LESSONS.length-1;
     const drillCount = (LESSON_DRILLS[l.id] || []).length;
     const basicsOn = localStorage.getItem('apk-basics') === '1';
     const allCoreDone = DATA.LESSONS.filter(x=>x.core).every(x=>S.lessonsDone.includes(x.id));
@@ -1044,14 +1099,14 @@ function renderLesson(){
     // is still allowed via the secondary buttons.
     html += `<div class="card" style="border-color:var(--success);text-align:center;padding:28px">
       <div style="font-size:32px;margin-bottom:8px">✓</div>
-      <h2 style="color:var(--success);margin-bottom:6px">Lesson ${l.id} complete</h2>
+      <h2 style="color:var(--success);margin-bottom:6px">Lesson ${lessonPos(l.id)+1} complete</h2>
       <p>Now lock it in — practice this lesson's drills before moving on${drillCount?` (${drillCount} quick exercises)`:''}.</p>
       <div class="flex" style="justify-content:center;gap:10px;margin-top:16px;flex-wrap:wrap">
         ${handoff}
         <button class="btn btn-primary" onclick="startGuided(${l.id})">Practice this &rarr;</button>
         ${isLast
           ? `<a href="../final/" class="btn btn-outline" style="text-decoration:none">Try the Final Exam &rarr;</a>`
-          : `<button class="btn btn-ghost" onclick="openLesson(${l.id+1})">Skip to next lesson &rarr;</button>`}
+          : `<button class="btn btn-ghost" onclick="openLesson(${nextLessonId(l.id)})">Skip to next lesson &rarr;</button>`}
         <button class="btn btn-ghost btn-sm" onclick="show('lessons')">All lessons</button>
       </div>
     </div>`;
