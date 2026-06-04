@@ -9,6 +9,22 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.39.0] — 2026-06-03 — Curriculum pilot v3: first intermediate micro-lesson
+
+Mike: bridges help but the biggest gaps need NEW smaller lessons inserted. June 3,
+2026 — 9:12 PM ET.
+
+- **New intermediate micro-lesson "Your First Drag"** inserted between "The Interface"
+  (where things live) and "Dimensions vs. Measures" (a concept) — the missing
+  *"just do one simple thing"* step. Teaches the single core gesture: drag a field
+  onto a shelf, watch the canvas redraw, drag it off to undo. Pure confidence-builder.
+- Placed by **array position** (id 25, between lessons 1 and 2) — position-based nav
+  flows Interface → Your First Drag → Dimensions vs. Measures with no renumbering.
+- Tightened Lesson 2's story bridge to build on the drag lesson.
+
+Tableau now 25 lessons. Demonstrates the "intermediate micro-lesson" approach; scanning
+for the other large jumps next (see chat / `CURRICULUM_PLAN.md`). Headless-verified: clean.
+
 ## [1.38.0] — 2026-06-03 — Curriculum pilot v2: story thread + lesson layering
 
 Mike's feedback on v1.37.0: good start, but the jumps between lessons are still too

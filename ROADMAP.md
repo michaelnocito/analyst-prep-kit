@@ -1,7 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.38.0` (shipped June 3, 2026 — awaiting test)
-**Recent:** v1.38.0 **Curriculum pilot v2** — story thread (new-analyst-at-coffee-co narrative) + lesson-to-lesson layering bridges (each recalls prior + adds one idea) on Tableau Unit 0 + Unit 1. v1.37.0 Tableau Unit 0 Foundations + position-based nav (24 lessons). v1.36.0 finishing wave.
+**Current version:** `v1.39.0` (shipped June 3, 2026 — awaiting test)
+**Recent:** v1.39.0 **Curriculum pilot v3** — first intermediate micro-lesson "Your First Drag" (between Interface & Dimensions/Measures). v1.38.0 story thread + layering bridges. v1.37.0 Tableau Unit 0 Foundations + position-based nav. Tableau now 25 lessons.
+**In flight: 6-Month Analyst Standard rebuild.** Tableau pilot = Unit 0 + prereqs + depth + story bridges + intermediate micro-lessons. **Next: calibrate granularity with Mike (how many intermediate lessons), finish the Tableau pilot, then roll all of it to Excel/SQL/Python/Power BI/Stats.** Plans: `CURRICULUM_STANDARD.md`, `CURRICULUM_PLAN.md`.
 **In flight: the 6-Month Analyst Standard rebuild** (`CURRICULUM_STANDARD.md` + `CURRICULUM_PLAN.md`). Tableau pilot ✅ shipped — awaiting Mike's reaction. On approval, roll the same pattern (Unit 0 + prereqs + depth) to **Excel → SQL → Python → Power BI → Stats**, one kit per cycle. Per-kit Unit-0 lessons already specced in `CURRICULUM_PLAN.md`.
 **State: everything shipped is verified clean and awaiting Mike's playtest.** Big-day session (v1.22 → v1.36): Tableau cert beef-up (20 lessons), Workspace module (3 GUI kits), full visual-parity sweep, Final study-guide visuals.
 **Visual-parity sweep: ✅ DONE (all 6 kits).** Borderline menu-cases (SQL L10, PBI L6, Stats L9) left as single examples by design.
