@@ -331,7 +331,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
   <div class="path-grid">
     <div class="path-tile" onclick="show('lessons')">
       <h3>Learn</h3>
-      <div class="count" id="lessonsCount">0/12</div>
+      <div class="count" id="lessonsCount">0/24</div>
       <div class="sub">lessons done</div>
       <div class="prog-bar"><div class="prog-fill" id="lessonsFill" style="width:0%"></div></div>
     </div>
@@ -386,7 +386,7 @@ Color: Category</div>
 <!-- LESSONS LIST -->
 <div id="view-lessons" class="view">
   <h1>Lessons</h1>
-  <p>12 lessons across three units. Each ends with a quiz, then drills.</p>
+  <p>24 lessons — foundations first, then fundamentals through advanced. Each ends with a quiz, then drills.</p>
   <div id="lessonList" class="mt16"></div>
 </div>
 
@@ -496,7 +496,86 @@ function deactivateBasics(){ localStorage.removeItem('apk-basics'); applyBasics(
 applyBasics();
 const DATA = {
 LESSONS:[
+{id:21,unit:"Unit 0: Before You Build (Foundations)",title:"How Tableau Sees Your Data",slug:"tab-data",
+ prereq:"Nothing — this is the very first step. Start here.",
+ intro:"Before any chart, Tableau just sees a table — like a receipt or a spreadsheet. Every ROW is one record (one sale, one day, one customer); every COLUMN is one field (the date, the region, the dollars). The single most important question to ask of any dataset is: what does ONE ROW mean? That's called the grain — and getting it wrong is how analysts accidentally double-count.",
+ ral:[
+  {shelf:"A data table, the way Tableau reads it",lines:[
+   ["Row = one record","one sale — Maya, West, Jan, $144"],
+   ["Column = one field","Rep, Region, Month, Revenue"],
+   ["The grain","what ONE row means here: one sale (not one rep, not one day)"],
+   ["Why grain matters","join to a coarser table and each sale repeats → your totals inflate"]
+  ]}
+ ],
+ notes:"Always pin down the grain before you build. Finish the sentence 'one row = one ___' first. If you can't, you'll misread every number that follows — this is the hidden cause of the join double-counting trap you'll meet in Unit 4.",
+ viz:{table:{columns:["Rep","Region","Month","Revenue"],rows:[["Maya","West","Jan","$144"],["Jordan","East","Jan","$152"],["Sam","South","Jan","$195"]]},caption:"One row = one sale; four fields across the top. The 'grain' here is a single sale — that's the unit every chart and total will be built from."},
+ quiz:{q:"In a table where each row is one sale, what is the 'grain'?",opts:["One region","One sale","One rep","The total revenue"],ans:1,exp:"The grain is what a single row represents — here, one sale. Naming the grain ('one row = one sale') before you build is how you avoid double-counting later."}
+},
+{id:22,unit:"Unit 0: Before You Build (Foundations)",title:"Field Types & Why Tableau Colors Them",slug:"tab-fieldtypes",
+ prereq:"Lesson — How Tableau Sees Your Data (rows, fields, grain).",
+ intro:"Tableau color-codes your fields, and the colors aren't decoration — they're meaning. Text and categories (Region, Product) turn BLUE; numbers you'd add up (Revenue, Units) turn GREEN. Tableau picks the color from each field's data type. Learn to read the colors and half of Tableau stops being mysterious.",
+ ral:[
+  {shelf:"Data type → color → behavior",lines:[
+   ["Text / category → blue","Region, Product — these SPLIT the view into groups"],
+   ["Number → green","Revenue, Units — these get AGGREGATED (summed, averaged)"],
+   ["Date → either","acts like a category (blue headers) or an axis (green timeline)"],
+   ["Blue = discrete","makes separate headers / buckets"],
+   ["Green = continuous","makes a sliding axis (a range)"]
+  ]}
+ ],
+ notes:"A number isn't always green-by-meaning. Year, ZIP code, and Store ID are numbers, but you'd never average them — they're really categories. When Tableau guesses wrong, convert the field from measure to dimension (green → blue). Reading the color tells you what Tableau is about to do.",
+ viz:{html:`<div style="display:flex;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:12px">
+   <span style="padding:3px 9px;border-radius:4px;background:rgba(123,179,240,.15);color:var(--dim-blue);border:1px solid rgba(123,179,240,.4)">▦ Region (text → blue)</span>
+   <span style="padding:3px 9px;border-radius:4px;background:rgba(123,179,240,.15);color:var(--dim-blue);border:1px solid rgba(123,179,240,.4)">▦ Product (text → blue)</span>
+   <span style="padding:3px 9px;border-radius:4px;background:rgba(109,191,139,.15);color:var(--meas-green);border:1px solid rgba(109,191,139,.4)"># Revenue (number → green)</span>
+   <span style="padding:3px 9px;border-radius:4px;background:rgba(109,191,139,.15);color:var(--meas-green);border:1px solid rgba(109,191,139,.4)"># Units (number → green)</span>
+ </div>`,caption:"Tableau reads each field's data type and colors it: text/categories blue (they split the view), numbers green (they get aggregated). The color is a preview of what the field will do."},
+ quiz:{q:"You drag 'Store ID' (stored as a number); Tableau makes it green and sums it. What's the fix?",opts:["Nothing — IDs should be summed","Store ID is really a category — convert it to a dimension (blue); summing IDs is meaningless","Green fields can't be IDs","Delete the field"],ans:1,exp:"Store ID is a number by storage but a category by meaning — adding up IDs is nonsense. Convert it to a dimension (blue) so Tableau treats it as a label, not a quantity."}
+},
+{id:23,unit:"Unit 0: Before You Build (Foundations)",title:"What \"Aggregate\" Means",slug:"tab-aggregate",
+ prereq:"Lesson — Field Types (green number fields are the ones that get aggregated).",
+ intro:"When Tableau says it 'auto-aggregates,' here's all it means: it takes MANY rows and rolls them up into ONE number. Twelve sales of $144, $152, $195… become a single total, or a single average. That roll-up is called aggregation, and it's the heartbeat of every chart — a bar's height, a line's point, a KPI number are all aggregates.",
+ ral:[
+  {shelf:"Many rows → one number",lines:[
+   ["The raw data","12 separate sale rows, each with a revenue"],
+   ["SUM","add them all → total revenue (one number)"],
+   ["AVG","the typical sale → average revenue (one number)"],
+   ["COUNT","how many rows → number of sales"],
+   ["Why it matters","a bar's height IS an aggregate — Tableau rolled up the rows behind it"]
+  ]}
+ ],
+ notes:"The same column answers different questions depending on how you aggregate it: SUM(Revenue) = total sold; AVG(Revenue) = typical sale size; COUNT = how many sales. Choosing the aggregation is an analyst decision, not a technicality — you'll go deeper in 'Aggregation in Tableau.'",
+ viz:{html:`<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12px">
+   <div style="border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-family:var(--mono)"><div style="color:var(--dim);margin-bottom:3px">Revenue (12 rows)</div><div>144</div><div>152</div><div>195</div><div style="color:var(--dim)">…</div></div>
+   <span style="font-size:18px;color:var(--accent)">→</span>
+   <div style="display:flex;flex-direction:column;gap:6px">
+     <span><b style="color:var(--accent)">SUM</b> = $1,820 <span style="color:var(--dim)">total sold</span></span>
+     <span><b style="color:var(--accent)">AVG</b> = $152 <span style="color:var(--dim)">typical sale</span></span>
+     <span><b style="color:var(--accent)">COUNT</b> = 12 <span style="color:var(--dim)">how many sales</span></span>
+   </div>
+ </div>`,caption:"Aggregation = many rows rolled into one number. The same Revenue column becomes a total (SUM), a typical value (AVG), or a count — your choice answers different questions."},
+ quiz:{q:"What does it mean that Tableau 'aggregates' a measure like Revenue?",opts:["It deletes duplicate rows","It rolls many rows up into a single number (e.g. a total or average)","It sorts the rows","It changes the data type"],ans:1,exp:"Aggregation collapses many rows into one value — a total, average, or count. Every bar height and line point you'll ever make is an aggregate of the rows behind it."}
+},
+{id:24,unit:"Unit 0: Before You Build (Foundations)",title:"The Analyst's Loop in Tableau",slug:"tab-loop",
+ prereq:"Lessons 0.1–0.3 (rows/fields/grain, field types, aggregation).",
+ intro:"Everything in this kit is one repeating loop. You start with a QUESTION ('which region sells the most?'), grab the right FIELD (Region, Revenue), drop it on a SHELF, read the CHART it makes, and pull out the INSIGHT — then say the 'so what' to someone who doesn't use Tableau. Every lesson ahead is just a sharper tool for one step of this loop.",
+ ral:[
+  {shelf:"Question → Field → Shelf → Chart → Insight",lines:[
+   ["1. Question","what do I actually want to know? ('top region by revenue')"],
+   ["2. Field","which fields answer it? (Region + Revenue)"],
+   ["3. Shelf","drop them on Columns / Rows / Marks"],
+   ["4. Chart","read what Tableau draws"],
+   ["5. Insight","the 'so what' — say it in one sentence a manager gets"]
+  ]}
+ ],
+ notes:"The job isn't 'make a chart' — it's 'answer a question and communicate it.' Hiring managers care less about which button you pressed and more about whether you asked the right question and can say what the data means. Keep the loop in mind and every feature finds its place.",
+ viz:{html:`<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:11px">
+   ${[["❓","Question"],["▦","Field"],["▭","Shelf"],["📊","Chart"],["💡","Insight"]].map((s,i)=>`${i?'<span style="color:var(--dim)">→</span>':''}<span style="border:1px solid var(--border);border-radius:6px;padding:6px 10px;background:var(--surf2)"><b>${s[0]}</b> ${s[1]}</span>`).join('')}
+ </div>`,caption:"The analyst's loop: every Tableau task is question → field → shelf → chart → insight. The last step — the 'so what' — is the one that actually gets you hired."},
+ quiz:{q:"Which step of the analyst's loop do hiring managers care about most?",opts:["Memorizing every menu","Asking the right question and communicating the insight","Using the most chart types","Building the biggest dashboard"],ans:1,exp:"Tool fluency matters, but employers reward analysts who ask the right question and can say what the data means in one clear sentence — the start and end of the loop."}
+},
 {id:1,unit:"Unit 1: Tableau Fundamentals",title:"The Tableau Interface",slug:"interface",
+ prereq:"Unit 0 — how Tableau sees your data, field types, and the analyst's loop.",
  intro:"Tableau's workspace is like a chef's station — ingredients (your fields) on the left, prep surfaces (the shelves) in front of you, and the finished plate (the chart) in the middle. Before you build anything, you need to know what you're looking at. Tableau's interface is shelf-based — you drag fields onto shelves and the view updates immediately.",
  ral:[
   {shelf:"Key interface areas",lines:[
@@ -520,6 +599,7 @@ LESSONS:[
  quiz:{q:"Where do you drag a field to make it the X-axis of a chart?",opts:["Marks card","Columns shelf","Rows shelf","Data pane"],ans:1,exp:"The Columns shelf controls the X-axis. Rows controls the Y-axis. Think of it as: Columns goes across (horizontal), Rows goes up (vertical)."}
 },
 {id:2,core:true,unit:"Unit 1: Tableau Fundamentals",title:"Dimensions vs. Measures",slug:"dim-vs-meas",
+ prereq:"Lesson 0.2 — field types and why Tableau colors fields blue vs. green.",
  intro:"Dimensions vs measures is like a receipt: the words (store, item, date) are dimensions that group things, and the dollar amounts are measures that get totalled. This is the most important distinction in Tableau. Dimensions are categories — they split your data. Measures are numbers — they get aggregated. Blue pills are dimensions, green pills are measures.",
  ral:[
   {shelf:"Dimensions (blue) vs Measures (green)",lines:[
@@ -531,11 +611,12 @@ LESSONS:[
    ["Discrete (striped)","forms headers — distinct buckets"]
   ]}
  ],
- notes:"Dates default to dimensions in Tableau but can act as either. A discrete date (blue) creates separate headers per year/month. A continuous date (green) creates a continuous axis. Right-click a date pill to switch.",
+ notes:"Dates default to dimensions in Tableau but can act as either. A discrete date (blue) creates separate headers per year/month. A continuous date (green) creates a continuous axis. Right-click a date pill to switch. And remember the trap from Unit 0: a number can still be a category — Year, ZIP, and Store ID are numbers you'd never sum. If Tableau makes one green and you meant it as a label, convert it to a dimension.",
  viz:{type:'bar',x:'region',y:'revenue',color:'region',mark:'Bar',shelves:[{shelf:'Columns',pill:'Region',kind:'dim'},{shelf:'Rows',pill:'SUM(Revenue)',kind:'meas'},{shelf:'Color',pill:'Region',kind:'dim'}],caption:"Region (a dimension, blue) splits the data into separate bars; Revenue (a measure, green) is aggregated into each bar's height. Drop the dimension on Color and every region gets its own color."},
  quiz:{q:"You drag 'Region' to the Color shelf. What happens?",opts:["Revenue is split by color","Each region gets a different color in the view","The chart turns blue","Nothing — Color only works with measures"],ans:1,exp:"Region is a dimension. Dragging it to Color assigns a distinct color to each unique value — West gets one color, East another, etc. This is one of the most powerful quick-analysis moves in Tableau."}
 },
 {id:3,core:true,unit:"Unit 1: Tableau Fundamentals",title:"Your First Bar Chart",slug:"bar-chart",
+ prereq:"Lesson 2 (dimensions vs. measures) and Lesson 0.3 (a bar's height is an aggregate).",
  intro:"A bar chart is the science-fair classic — a category on one axis, a number on the other, tallest bar wins. A bar chart is dimension on one axis, measure on the other. In Tableau: dimension on Columns, measure on Rows. Then sort. That's most of what you'll do in your first month.",
  ral:[
   {shelf:"Revenue by Region (bar chart)",lines:[
@@ -545,11 +626,12 @@ LESSONS:[
    ["Color: Region","optional — adds color per bar, reinforces the dimension"]
   ]}
  ],
- notes:"Always sort your bar charts. An unsorted bar chart forces the reader to scan for the biggest/smallest bar. Sort descending by the measure and the story is immediately obvious.",
+ notes:"Always sort your bar charts. An unsorted bar chart forces the reader to scan for the biggest/smallest bar. Sort descending by the measure and the story is immediately obvious. On the job, you'd lead a stakeholder deck with one sorted bar — it answers 'who's biggest?' in a single glance, no explanation needed.",
  viz:{type:'bar',x:'region',y:'revenue',color:null,sort:'desc',mark:'Bar',shelves:[{shelf:'Columns',pill:'Region',kind:'dim'},{shelf:'Rows',pill:'SUM(Revenue)',kind:'meas'}],caption:"One bar per region — the bar's height is that region's total revenue, sorted biggest-first. This is exactly what those two shelves produce."},
  quiz:{q:"You have Region on Columns and SUM(Revenue) on Rows. What chart type does Tableau create by default?",opts:["Line chart","Scatter plot","Bar chart","Pie chart"],ans:2,exp:"One discrete dimension on Columns + one measure on Rows = bar chart. Tableau's Show Me logic picks bar chart automatically. The bars represent each region, and their height is the total revenue."}
 },
 {id:4,core:true,unit:"Unit 1: Tableau Fundamentals",title:"Line Charts & Time",slug:"line-charts",
+ prereq:"Lesson 3 (your first bar chart) and Lesson 0.2 (continuous green vs. discrete blue dates).",
  intro:"A line chart is a heart-rate monitor for your data — it traces how a number rises and falls over time. Line charts are for trends over time. In Tableau, date fields have a hierarchy (Year > Quarter > Month > Day). Drilling down is as simple as clicking the + on a date pill.",
  ral:[
   {shelf:"Revenue trend over time",lines:[
@@ -1443,6 +1525,8 @@ function resetLesson(){
   save();
   renderLesson();
 }
+function lessonPos(id){return DATA.LESSONS.findIndex(l=>l.id===id);}
+function nextLessonId(id){const p=lessonPos(id);return (p>=0&&p<DATA.LESSONS.length-1)?DATA.LESSONS[p+1].id:null;}
 function renderLesson(){
   const l=DATA.LESSONS.find(x=>x.id===lessonState.id);
   if(!l)return;
@@ -1450,10 +1534,11 @@ function renderLesson(){
   el.innerHTML=`
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
       <button class="btn" style="padding:4px 10px;font-size:.8rem" onclick="renderLessonList()">← All Lessons</button>
-      <span style="color:var(--txt2);font-size:.85rem">Lesson ${l.id} of ${DATA.LESSONS.length}</span>
+      <span style="color:var(--txt2);font-size:.85rem">Lesson ${lessonPos(l.id)+1} of ${DATA.LESSONS.length}</span>
       ${S.done['lesson'+l.id]?`<button class="btn" style="margin-left:auto;padding:4px 10px;font-size:.8rem" onclick="resetLesson()" title="Clear this lesson's progress">↺ Reset this lesson</button>`:''}
     </div>
     <h2 style="margin-bottom:4px">${l.title}</h2>
+    ${l.prereq?`<div style="font-size:.82rem;color:var(--txt2);margin-bottom:12px;padding:7px 11px;background:var(--surf2);border-left:3px solid var(--accent);border-radius:0 6px 6px 0">📎 <strong>Before this:</strong> ${l.prereq}</div>`:''}
     ${l.intro?`<p style="color:var(--txt2);margin-bottom:20px">${l.intro}</p>`:''}
     ${l.viz?lessonVizHTML(l.viz):''}
     ${l.slug==='interface'?`<button class="btn" style="margin-bottom:16px;background:var(--accent);color:#fff" onclick="show('workspace')">🧭 New here? Tour the workspace interactively →</button>`:''}
@@ -1569,7 +1654,8 @@ function finishLesson(id){
 }
 // Guided-primary complete card: reinforce THIS lesson's drills before moving on.
 function renderLessonComplete(id){
-  const isLast=id>=DATA.LESSONS.length;
+  const isLast=lessonPos(id)>=DATA.LESSONS.length-1;
+  const _nxt=nextLessonId(id);
   const drillCount=(LESSON_DRILLS[id]||[]).length;
   const basicsOn=localStorage.getItem('apk-basics')==='1';
   const allCoreDone=DATA.LESSONS.filter(l=>l.core).every(l=>S.done['lesson'+l.id]);
@@ -1577,12 +1663,12 @@ function renderLessonComplete(id){
   document.getElementById('view-lessons').innerHTML=`
     <div class="card" style="text-align:center;padding:28px;border-color:var(--accent)">
       <div style="font-size:2rem;margin-bottom:8px">✓</div>
-      <h2 style="margin-bottom:6px">Lesson ${id} complete</h2>
-      <p style="color:var(--txt2)">Now lock it in — practice this lesson's drills before moving on${drillCount?` (${drillCount} quick exercises)`:''}.</p>
+      <h2 style="margin-bottom:6px">Lesson ${lessonPos(id)+1} complete</h2>
+      <p style="color:var(--txt2)">${drillCount?`Now lock it in — practice this lesson's drills before moving on (${drillCount} quick exercises).`:'Nice — that foundation is set. On to the next one.'}</p>
       <div style="display:flex;justify-content:center;gap:10px;margin-top:18px;flex-wrap:wrap">
         ${handoff}
-        <button class="btn" style="background:var(--accent);color:#fff" onclick="startGuided(${id})">Practice this →</button>
-        ${isLast?`<a href="../final/" class="btn" style="text-decoration:none">Try the Final Exam →</a>`:`<button class="btn" onclick="openLesson(${id+1})">Skip to next lesson →</button>`}
+        ${drillCount?`<button class="btn" style="background:var(--accent);color:#fff" onclick="startGuided(${id})">Practice this →</button>`:''}
+        ${isLast?`<a href="../final/" class="btn" style="text-decoration:none">Try the Final Exam →</a>`:`<button class="btn"${drillCount?'':' style="background:var(--accent);color:#fff"'} onclick="openLesson(${_nxt})">${drillCount?'Skip to next lesson →':'Next lesson →'}</button>`}
         <button class="btn" style="font-size:.85rem" onclick="renderLessonList()">All lessons</button>
       </div>
     </div>`;
@@ -1673,7 +1759,7 @@ function renderGuidedStep(){
 }
 function guidedNext(){ if(!guided)return; if(guided.pos<guided.seq.length-1){guided.pos++;renderGuidedStep();} else {const lid=guided.lessonId;guided=null;gotoNextLesson(lid);} }
 function guidedPrev(){ if(guided&&guided.pos>0){guided.pos--;renderGuidedStep();} }
-function gotoNextLesson(lid){ if(lid<DATA.LESSONS.length){openLesson(lid+1);} else {activateView('view-home');renderHome();celebrate(true,'🎉 You finished every Tableau lesson!');} }
+function gotoNextLesson(lid){ const nxt=nextLessonId(lid); if(nxt!==null){openLesson(nxt);} else {activateView('view-home');renderHome();celebrate(true,'🎉 You finished every Tableau lesson!');} }
 function renderDrillList(){
   document.getElementById('view-practice').innerHTML=`
     <h2 style="margin-bottom:16px">Practice Drills</h2>

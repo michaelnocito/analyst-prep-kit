@@ -9,6 +9,31 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.37.0] — 2026-06-03 — Curriculum rebuild PILOT: Tableau "Unit 0 — Foundations"
+
+First build toward the 6-Month Analyst Standard (`CURRICULUM_STANDARD.md` /
+`CURRICULUM_PLAN.md`). Tableau is the pilot. June 3, 2026 — 8:51 PM ET.
+
+- **New "Unit 0 — Before You Build" (4 foundation lessons), rendered FIRST:**
+  - 0.1 **How Tableau Sees Your Data** — rows/fields and the **grain**.
+  - 0.2 **Field Types & Why Tableau Colors Them** — data type → blue/green.
+  - 0.3 **What "Aggregate" Means** — many rows → one number, before any SUM button.
+  - 0.4 **The Analyst's Loop** — question → field → shelf → chart → insight ("so what").
+- **Per-lesson PREREQUISITE line** — new `prereq` field rendered as a "📎 Before this:"
+  callout. Added to Unit 0 + Unit 1 (L1–L4); rolls to the rest next.
+- **Depth beats** on the flagged beginner lessons: L2 (a number can be a category —
+  Year/ZIP/Store ID), L3 (lead a deck with one sorted bar — applied beat).
+- **Position-based navigation** (`lessonPos` / `nextLessonId`) so Unit 0 sits at the
+  front WITHOUT renumbering the existing 20 lessons — **saved progress + LESSON_DRILLS
+  untouched**, ships as MINOR (not a v2.0.0 progress-wipe). "Lesson X of N", "next
+  lesson", and the complete-card now follow display order; foundation lessons (no
+  drills) show a clean "Next lesson →".
+- Updated stale home copy (24 lessons).
+
+Tableau now 24 lessons. Pattern proven here; rolls to Excel/SQL/Python/Power BI/Stats
+next (each gets its own Unit 0 + prereqs — see `CURRICULUM_PLAN.md`). Headless-verified:
+3 scripts clean; 24 lessons, Unit 0 first, existing ids 1–20 intact.
+
 ## [1.36.0] — 2026-06-03 — Finishing wave: borderline visuals closed + handoff refreshed
 
 "Big push to finished." June 3, 2026 — 8:31 PM ET.

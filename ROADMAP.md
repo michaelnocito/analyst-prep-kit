@@ -1,7 +1,8 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.36.0` (shipped June 3, 2026 — awaiting test)
-**Recent:** v1.36.0 finishing wave — closed the 3 borderline visuals (SQL L10, PBI L6, Stats L9), full 9-kit health check (clean), CLAUDE.md handoff refreshed. v1.35.0 visual-parity sweep COMPLETE (all 6 lesson kits). v1.33–34 Tableau/Excel parity.
+**Current version:** `v1.37.0` (shipped June 3, 2026 — awaiting test)
+**Recent:** v1.37.0 **Curriculum rebuild PILOT** — Tableau "Unit 0 — Foundations" (4 lessons: data/grain, field types, aggregate, the analyst's loop) + per-lesson prerequisite lines + position-based nav (no renumber, progress preserved). Tableau now 24 lessons. v1.36.0 finishing wave; v1.35.0 visual-parity sweep complete.
+**In flight: the 6-Month Analyst Standard rebuild** (`CURRICULUM_STANDARD.md` + `CURRICULUM_PLAN.md`). Tableau pilot ✅ shipped — awaiting Mike's reaction. On approval, roll the same pattern (Unit 0 + prereqs + depth) to **Excel → SQL → Python → Power BI → Stats**, one kit per cycle. Per-kit Unit-0 lessons already specced in `CURRICULUM_PLAN.md`.
 **State: everything shipped is verified clean and awaiting Mike's playtest.** Big-day session (v1.22 → v1.36): Tableau cert beef-up (20 lessons), Workspace module (3 GUI kits), full visual-parity sweep, Final study-guide visuals.
 **Visual-parity sweep: ✅ DONE (all 6 kits).** Borderline menu-cases (SQL L10, PBI L6, Stats L9) left as single examples by design.
 **Rollout audit (June 3, 2026 — 6:55 PM ET):** confirmed scope of every session change. Visual-parity = all 6 lesson kits ✅. 🧭 Workspace module = **GUI tools only (Tableau/Power BI/Excel) — DECIDED, not rolling to SQL/Python/Stats** (code/concept kits, no button-hunting). Grouping + cert lessons = Tableau-only by design. No missed kits.
