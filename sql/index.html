@@ -320,8 +320,46 @@ applyBasics();
 const DATA = {
 
 LESSONS: [
+  // UNIT 0
+  {id:101, unit:"Unit 0: Before You Query", title:"What a Database Is", sub:"Tables, rows, columns — the mental model behind every query.",
+   story:"You've used Excel to answer questions from a spreadsheet. Now your company says the real data lives in the database — and SQL is how you ask it questions. Before you write a single query, you need the mental model: a database is a collection of tables, each one shaped like a spreadsheet but potentially holding millions of rows.",
+   intro:"A database is an organized collection of tables. Each table has rows (one record each) and columns (one field each) — exactly like a spreadsheet, but built for fast querying at scale. Databases separate concerns: an <code>orders</code> table stores orders, a <code>customers</code> table stores customer details, a <code>products</code> table stores products. SQL is the language you use to ask questions across any of them.",
+   ral:{sql:"-- A database is a collection of tables\n-- orders table  →  one row per order\n-- customers table →  one row per customer\n-- products table  →  one row per product",say:"Each table has one job. SQL lets you ask questions across all of them.",
+     lines:[["Table","a 2D grid of rows × columns — the basic unit of a database"],["Row","one record — one order, one customer, one product"],["Column","one field — order_id, region, revenue, date"],["Database","a container that holds many related tables"],["Schema","the blueprint — the names and types of every column in every table"]]},
+   notes:"A database is not one big flat table. The data is intentionally split across many tables so it can be stored efficiently and updated without duplicating information. SQL's job is stitching those tables back together to answer a question.",
+   viz:{columns:["table_name","one_row_represents","example_columns"],rows:[["orders","one sale transaction","order_id, customer_id, product_id, revenue, date"],["customers","one unique customer","customer_id, name, region, email"],["products","one product SKU","product_id, name, category, price"]],caption:"Three tables, each with a single job. Notice that order rows reference customer_id and product_id — those are the keys that will link the tables together."},
+   quiz:{q:"In a relational database, why is customer data stored in a separate table from order data?",opts:["It's a limitation of SQL","Separating them avoids duplication — each customer's details are stored once, not repeated on every order row","SQL can only read one table at a time","Databases can't store different data types in one table"],ans:1,exp:"Storing customer details on every order row would repeat the same name/email/region data thousands of times. A separate customers table stores each customer once — and orders just reference the customer_id. SQL joins reconnect them on demand."}
+  },
+  {id:102, unit:"Unit 0: Before You Query", title:"The Grain of a Table", sub:"What one row represents — the most important question before you query.",
+   story:"You can picture what a database is. But before you write a single query, you need to ask: what does one row in this table mean? That's the grain. A row in orders is one sale. A row in customers is one customer. Confuse the grain — especially when joining tables — and your aggregations double-count silently.",
+   intro:"The grain of a table is what one row represents. Before you query anything, state the grain out loud: 'one row = one order.' This becomes critical when you join tables. If your <code>orders</code> table has one row per order and your <code>products</code> table has one row per product, a join that doesn't respect the grain can fan out rows and silently multiply your revenue totals.",
+   ral:{sql:"-- ALWAYS ask: what does one row mean?\n-- orders grain: one row = one sale transaction\n-- customers grain: one row = one unique customer\n-- daily_agg grain: one row = one day's totals",say:"State the grain before you query. It's the check that prevents silent double-counting.",
+     lines:[["Grain","what one row represents — 'one row = one sale'"],["Grain mismatch","joining two tables at different grains → rows fan out → totals get multiplied"],["Check the grain","SELECT COUNT(*) vs SELECT COUNT(DISTINCT order_id) — if they differ, you have duplicates"],["Aggregation & grain","GROUP BY collapses to a new grain — by region, by month, etc."],["Why it matters","JOIN double-counting is the #1 silent error in SQL analytics"]]},
+   notes:"Before any JOIN, confirm the grain of both tables. If orders has one row per line item (not per order) and you join on order_id, you'll get one row per line item — not per order. Your SUM(revenue) will count revenue once per item, not once per order. Always check.",
+   viz:{columns:["scenario","COUNT(*)","COUNT(DISTINCT order_id)","conclusion"],rows:[["Clean orders table","500","500","grain is one row per order ✓"],["Line-item orders table","1,840","500","grain is one row per line item — totals will be inflated if you don't GROUP right"]],caption:"COUNT(*) vs COUNT(DISTINCT primary_key) is the grain check. When they match, you have one row per entity. When they differ, you're at a finer grain — factor that in before aggregating."},
+   quiz:{q:"You join orders (500 rows) to a promotions table where each order can have multiple promotions. After the join you have 1,200 rows. What happened?",opts:["500 orders + 700 promotions were added as new rows","The join fanned out — each order now appears once per promotion it matched, so revenue totals will be inflated","SQL always adds extra rows on a join","You need to use DISTINCT to get 500 rows"],ans:1,exp:"When one table has multiple matching rows in the join table, the result fans out — one order row becomes multiple. This is grain mismatch: orders are at order grain but the result is now at order-promotion grain. SUM(revenue) now totals revenue once per promotion match — silently wrong."}
+  },
+  {id:103, unit:"Unit 0: Before You Query", title:"Keys & Why Tables Relate", sub:"How tables connect — and what a JOIN is actually doing.",
+   story:"You know the grain of each table. Now you need to connect them. An orders row knows the customer_id — but the customer's name lives in the customers table. The key is the bridge: match the customer_id in orders to the id in customers and you can pull name, region, anything. That's what makes a database more powerful than one giant flat spreadsheet.",
+   intro:"A <strong>primary key</strong> uniquely identifies every row in a table — like an order_id or customer_id. A <strong>foreign key</strong> is a column in one table that references the primary key of another. That's the link. When you write a JOIN, you're telling SQL: 'for every row in orders, find the matching row in customers where orders.customer_id = customers.id.' Keys make that match possible.",
+   ral:{sql:"SELECT o.order_id, c.name, o.revenue\nFROM orders o\nJOIN customers c ON o.customer_id = c.id;",say:"For every order, find the matching customer and pull their name alongside the order's revenue.",
+     lines:[["Primary key (PK)","uniquely identifies every row — orders.order_id, customers.id"],["Foreign key (FK)","a column referencing another table's PK — orders.customer_id points to customers.id"],["JOIN ... ON","the matching condition — only rows where these two columns are equal are combined"],["One-to-many","one customer → many orders (that's why customer data is separate)"],["Referential integrity","a FK should always point to a row that exists in the parent table"]]},
+   notes:"The JOIN condition is where most SQL errors are made. Make sure you're joining on the right columns — the FK in one table to the PK in the other. Joining on a non-unique column can fan out your rows. And never join without an ON clause — that's a cross join, which returns every possible combination of rows from both tables.",
+   viz:{columns:["orders row","orders.customer_id","→ match →","customers.id","customers.name"],rows:[["order #1001","C-45","matches","C-45","Maya Chen"],["order #1002","C-88","matches","C-88","Jordan Lee"],["order #1003","C-45","matches","C-45","Maya Chen (again)"]],caption:"The FK (orders.customer_id) bridges to the PK (customers.id). Maya appears twice because she placed two orders — one row in customers, two rows in orders. That's the one-to-many relationship."},
+   quiz:{q:"In a JOIN between orders and customers, the ON clause should match which columns?",opts:["Any two columns with the same name","The foreign key in orders (customer_id) to the primary key in customers (id)","The revenue column to the price column","ORDER BY columns"],ans:1,exp:"A JOIN connects a FK in one table to the PK it references in another. orders.customer_id is the FK; customers.id is the PK. Matching these two columns is what stitches the tables together correctly."}
+  },
+  {id:104, unit:"Unit 0: Before You Query", title:"A Query Returns a Table; NULL = Unknown", sub:"The output shape of every SQL query — and the special case of missing data.",
+   story:"Keys connect the tables. One more idea before you query: SQL always returns a result set shaped like a table — even a single number is wrapped in a 1×1 table. And empty cells in a database aren't blank — they're NULL, which means 'unknown.' NULL is not zero and not empty string. It has its own comparison rules, and ignoring them causes silent wrong totals.",
+   intro:"Every SQL query returns a table — rows and columns, even if it's one row or one column. That's the contract. And when a value is missing or unknown, databases store NULL — a special sentinel meaning 'we don't know.' NULL is NOT zero. NULL is NOT an empty string. NULL doesn't equal NULL. Comparisons with NULL require <code>IS NULL</code> / <code>IS NOT NULL</code>, not <code>= NULL</code>.",
+   ral:{sql:"SELECT name, revenue\nFROM orders\nWHERE region IS NULL;",say:"Show me every order where the region is unknown (NULL).",
+     lines:[["NULL","means 'unknown' — not zero, not blank, not false"],["IS NULL","the correct way to check for NULL — never use = NULL"],["IS NOT NULL","the correct way to check for non-NULL values"],["COUNT(col)","counts only non-NULL values in that column"],["COUNT(*)","counts every row, including ones with NULLs"],["NULL in math","NULL + anything = NULL — one unknown makes the whole expression unknown"]]},
+   notes:"COUNT(*) and COUNT(column) return different numbers when a column has NULLs. COUNT(*) counts every row; COUNT(revenue) skips rows where revenue is NULL. If your totals seem low, check for NULLs with SELECT COUNT(*) vs SELECT COUNT(revenue) — a difference tells you how many NULL rows there are.",
+   viz:{columns:["order_id","region","revenue","COUNT(*) sees this row?","COUNT(revenue) sees this?"],rows:[["1001","West","150","yes ✓","yes ✓"],["1002","NULL","200","yes ✓","yes ✓"],["1003","East","NULL","yes ✓","no — NULL skipped"]],caption:"COUNT(*) counts all 3 rows. COUNT(revenue) counts only 2 (skips the NULL). COUNT(region) counts only 2 (skips the NULL row 1002). These distinctions change your totals silently if you're not expecting them."},
+   quiz:{q:"You run SELECT COUNT(*) and get 500. You run SELECT COUNT(revenue) and get 480. What does this tell you?",opts:["The query has a bug","20 rows have a NULL value in the revenue column","revenue has 20 duplicate values","You should use SUM instead"],ans:1,exp:"COUNT(*) counts every row. COUNT(column) skips NULLs. A difference of 20 means 20 rows have revenue = NULL. Those rows are silently excluded from COUNT(revenue) — and will also be excluded from SUM(revenue) and AVG(revenue)."}
+  },
   // UNIT 1
   {id:1, core:true, unit:"Unit 1: Foundations", title:"SELECT & FROM", sub:"Pull columns from a table",
+   story:"You know the mental model: databases are tables, rows have a grain, keys connect tables, queries return tables. Now write your first actual question. SELECT names the columns you want; FROM names the table to get them from. That's the whole skeleton. Every query you'll ever write starts with these two words.",
    intro:"A SELECT query is like ordering at a deli counter: you name what you want (the columns) and which counter to get it from (the table). Every SQL query starts with <code>SELECT</code> to choose columns and <code>FROM</code> to name the table. Think of it as: &ldquo;Give me <em>these columns</em> from <em>this table</em>.&rdquo;",
    ral:{
      sql:"SELECT name, email\nFROM customers;",
@@ -339,6 +377,7 @@ LESSONS: [
    quiz:{q:"Which clause tells SQL which table to read from?",opts:["SELECT","FROM","WHERE","ORDER BY"],ans:1,exp:"FROM names the table. SELECT names the columns you want back."}
   },
   {id:2, core:true, unit:"Unit 1: Foundations", title:"WHERE", sub:"Filter rows by condition",
+   story:"You can pull columns from a table. Your manager's first real question isn't 'show me everything' — it's 'show me just the West region.' WHERE is the filter: it checks a condition row by row and only returns the rows where it's true. SELECT tells SQL what to show; WHERE tells it which rows.",
    intro:"WHERE is like a guest list at the door — only the rows whose name is on it (the condition is true) get in. <code>WHERE</code> filters which rows come back. Only rows where the condition is TRUE are returned.",
    ral:{
      sql:"SELECT name\nFROM customers\nWHERE status = 'active';",
@@ -354,6 +393,7 @@ LESSONS: [
    quiz:{q:"What does WHERE do?",opts:["Picks which columns to show","Filters which rows are returned","Sorts the results","Groups rows together"],ans:1,exp:"WHERE filters rows. Only rows where the condition is true survive."}
   },
   {id:3, unit:"Unit 1: Foundations", title:"ORDER BY & LIMIT", sub:"Sort and cap your results",
+   story:"You can filter rows. Your manager wants the highest-revenue orders first, not whatever order the database stored them in. ORDER BY sorts the result — ASC for smallest to largest, DESC for largest to smallest. LIMIT caps how many rows come back. Two small clauses that make query output readable.",
    intro:"ORDER BY and LIMIT are like a leaderboard: sort everyone by score, then show just the top few. <code>ORDER BY</code> sorts results. <code>LIMIT</code> caps how many rows come back — essential for large tables.",
    ral:{
      sql:"SELECT name, order_date\nFROM orders\nORDER BY order_date DESC\nLIMIT 5;",
@@ -369,6 +409,7 @@ LESSONS: [
    quiz:{q:"What does DESC do in ORDER BY?",opts:["Filters duplicates","Sorts largest/newest first","Limits row count","Joins two tables"],ans:1,exp:"DESC = descending order — largest number or most-recent date appears first."}
   },
   {id:4, core:true, unit:"Unit 1: Foundations", title:"INNER JOIN", sub:"Match rows across two tables",
+   story:"You can query one table cleanly. Your manager asks: 'Show me order revenue with the customer name.' The customer name lives in a different table. INNER JOIN stitches two tables together on a shared key — every order row gets its customer row glued on. The grain warning from Unit 0 applies here: mismatched grains silently double your totals.",
    intro:"An INNER JOIN is like matching socks from two laundry piles — you only keep the ones that have a partner in both piles. <code>INNER JOIN</code> links two tables on a shared column. Only rows with a match in both tables appear.",
    ral:{
      sql:"SELECT c.name, o.order_date\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id;",
@@ -386,6 +427,7 @@ LESSONS: [
   },
   // UNIT 2
   {id:5, core:true, unit:"Unit 2: Aggregates & Joins", title:"COUNT, SUM & GROUP BY", sub:"Summarize data by category",
+   story:"You can join tables and filter rows. Now your manager wants summaries: 'How many orders per region? What's total revenue per product?' GROUP BY collapses rows into groups; COUNT and SUM run the math on each group. The same data, now aggregated — the move you'll make on almost every stakeholder question.",
    intro:"GROUP BY is like sorting a shoebox of receipts into stacks by store, then totalling each stack. Aggregate functions collapse many rows into one number. <code>GROUP BY</code> tells SQL which column to group on before aggregating.",
    ral:{
      sql:"SELECT status, COUNT(*) AS total\nFROM customers\nGROUP BY status;",
@@ -402,6 +444,7 @@ LESSONS: [
    quiz:{q:"Which column must appear in GROUP BY if it's in SELECT without an aggregate?",opts:["The primary key","Any column used in WHERE","Every non-aggregate column in SELECT","Only text columns"],ans:2,exp:"Non-aggregate columns in SELECT must be in GROUP BY so SQL knows how to group the rows."}
   },
   {id:6, core:true, unit:"Unit 2: Aggregates & Joins", title:"LEFT JOIN & NULLs", sub:"Keep all rows from the left table",
+   story:"INNER JOIN only keeps rows that match in both tables. Your manager asks: 'Show me all customers, even the ones who never placed an order.' INNER JOIN would drop them. LEFT JOIN keeps every row from the left table — and fills NULL into the right-table columns when there's no match. That's when the NULL lesson from Unit 0 becomes critical.",
    intro:"A LEFT JOIN is like taking class attendance: every student on your roster stays on the list, even the ones who turned in no homework (those columns just come back blank/NULL). <code>LEFT JOIN</code> keeps every row from the left table. If there's no match on the right, you get NULLs.",
    ral:{
      sql:"SELECT c.name, o.order_date\nFROM customers c\nLEFT JOIN orders o ON c.id = o.customer_id;",
@@ -417,6 +460,7 @@ LESSONS: [
    quiz:{q:"What value fills the right-side columns when a LEFT JOIN finds no match?",opts:["0","Empty string","NULL","The row is dropped"],ans:2,exp:"NULL fills unmatched columns in a LEFT JOIN. The left row still appears."}
   },
   {id:7, core:true, unit:"Unit 2: Aggregates & Joins", title:"HAVING & Duplicates", sub:"Filter groups and remove dupes",
+   story:"You can aggregate with GROUP BY. But WHERE filters rows before grouping — you can't use it to filter on an aggregated result like COUNT or SUM. HAVING filters after grouping: 'show me only regions where total revenue > 1000.' HAVING is WHERE for groups.",
    intro:"If WHERE bounces people at the club door, HAVING checks the groups already inside — it filters after everyone's been sorted into tables. You've already used <code>WHERE</code> to filter rows. <code>HAVING</code> works the same way — but it filters <em>after</em> grouping, so you can filter on aggregate results like COUNT or SUM. <code>DISTINCT</code> removes duplicate rows.",
    ral:{
      sql:"SELECT status, COUNT(*) AS n\nFROM customers\nGROUP BY status\nHAVING COUNT(*) > 2;",
@@ -431,6 +475,7 @@ LESSONS: [
    quiz:{q:"What is the key difference between WHERE and HAVING?",opts:["WHERE is faster","WHERE filters before grouping; HAVING filters after","HAVING works with any column","They are interchangeable"],ans:1,exp:"WHERE runs before GROUP BY; HAVING runs after. Use HAVING to filter on aggregate results."}
   },
   {id:8, unit:"Unit 2: Aggregates & Joins", title:"CASE & COALESCE", sub:"Conditional logic in SQL",
+   story:"You can filter groups. Your manager wants a new column: 'label orders over $200 as High, under as Low.' That's conditional logic inside the query — CASE is SQL's IF/ELSE. And COALESCE replaces NULLs with a fallback value so they don't disappear from your aggregations silently.",
    intro:"CASE is SQL's choose-your-own-adventure: depending on the answer to a question, it returns a different result. <code>CASE</code> is SQL's if/else. <code>COALESCE</code> returns the first non-NULL value from a list.",
    ral:{
      sql:"SELECT name,\n  CASE WHEN status='active' THEN 'Yes' ELSE 'No' END AS is_active\nFROM customers;",
@@ -448,6 +493,7 @@ LESSONS: [
   },
   // UNIT 3
   {id:9, unit:"Unit 3: Advanced SQL", title:"Subqueries", sub:"Nest a query inside another",
+   story:"You can add conditional logic inside a query. Now your manager asks: 'Show me customers who ordered more than the average revenue per customer.' The average is itself a query result. You embed one query inside another — the inner query runs first and hands its result to the outer. That's a subquery.",
    intro:"A subquery is like a sticky note inside a bigger task: SQL does the little note first, then uses that answer to finish the main job. A subquery is a SELECT inside another SELECT (or WHERE). The inner query runs first and its result is used by the outer query.",
    ral:{
      sql:"SELECT name\nFROM customers\nWHERE id IN (\n  SELECT customer_id FROM orders\n);",
@@ -463,6 +509,7 @@ LESSONS: [
    quiz:{q:"Which part of a subquery executes first?",opts:["The outer query","The inner (sub)query","Both at the same time","The ORDER BY clause"],ans:1,exp:"The inner query runs first. Its result is handed to the outer query."}
   },
   {id:10, unit:"Unit 3: Advanced SQL", title:"Window Functions", sub:"Rank and aggregate without collapsing rows",
+   story:"You can nest queries. Your manager wants a ranking: 'Show each product's revenue and its rank — but keep every row.' GROUP BY would collapse everything into one row per product. Window functions aggregate without collapsing: each row keeps its detail and also gets a calculated value across the full set.",
    intro:"A window function is like ranking runners without pulling anyone off the track — every row keeps its place but also gets a label (its rank, a running total). Window functions compute a value across a set of rows (a 'window') without collapsing them like GROUP BY does.",
    ral:{
      sql:"SELECT name,\n  ROW_NUMBER() OVER (ORDER BY order_date) AS rn\nFROM orders;",
@@ -479,6 +526,7 @@ LESSONS: [
    quiz:{q:"What makes window functions different from GROUP BY aggregates?",opts:["They are faster","They don't collapse rows — each row keeps its own output","They only work on numbers","They require a subquery"],ans:1,exp:"Window functions calculate across rows but return a value for every row — no collapsing."}
   },
   {id:11, unit:"Unit 3: Advanced SQL", title:"CTEs", sub:"Name a query for reuse with WITH",
+   story:"You can write subqueries. But deep nesting gets unreadable fast. CTEs let you name a query result and reference it by name in the next query. Same logic, readable structure: WITH gives each step a name, and the final SELECT reads from those names like tables.",
    intro:"A CTE is like prepping your ingredients before you cook: you name and set aside a result up front, then the main query uses it like any other table. A Common Table Expression (CTE) names a subquery so you can reference it like a table. It makes complex queries readable.",
    ral:{
      sql:"WITH active AS (\n  SELECT * FROM customers WHERE status = 'active'\n)\nSELECT name FROM active;",
@@ -494,6 +542,7 @@ LESSONS: [
    quiz:{q:"What is the main benefit of a CTE over an inline subquery?",opts:["Faster execution","Can be used across multiple databases","Readability — name complex logic and reference it cleanly","Stores data permanently"],ans:2,exp:"CTEs improve readability. You name the logic once and reference it like a table — much cleaner than nesting subqueries."}
   },
   {id:12, unit:"Unit 3: Advanced SQL", title:"Reconciliation Queries", sub:"Find gaps, dupes, and mismatches",
+   story:"You can write clean, readable SQL. Now the real-world trust check: 'Is this data actually right?' Reconciliation queries are the analyst's QA patterns — find duplicates, count NULLs, spot mismatches between two datasets. You can't trust an analysis until you've confirmed the data underneath it.",
    intro:"Reconciliation is like balancing a checkbook — you cross-check two records against each other to catch anything missing, doubled, or mismatched. Reconciliation means checking that data is complete, consistent, and correct. These are the patterns analysts use to QA datasets.",
    ral:{
      sql:"SELECT a.id\nFROM customers_old a\nLEFT JOIN customers b ON a.id = b.id\nWHERE b.id IS NULL;",
@@ -918,6 +967,8 @@ function renderHome(){
 }
 
 // ─── LESSONS LIST ──────────────────────────────────────────────────────────
+function lessonPos(id){return DATA.LESSONS.findIndex(l=>l.id===id);}
+function nextLessonId(id){const p=lessonPos(id);return(p>=0&&p<DATA.LESSONS.length-1)?DATA.LESSONS[p+1].id:null;}
 function renderLessons(){
   const basicsOn = localStorage.getItem('apk-basics') === '1';
   const coreLessons = DATA.LESSONS.filter(l => l.core);
@@ -932,7 +983,7 @@ function renderLessons(){
     }
     const done = state.doneLessons.includes(l.id);
     html += `<div class="lesson-row${l.core?' sc-core':' sc-supporting'}" data-basics="${l.core?'1':'0'}" onclick="navigate('lesson',${l.id})">
-      <div class="lesson-num ${done?'done':''}">${done ? '✓' : l.id}</div>
+      <div class="lesson-num ${done?'done':''}">${done ? '✓' : lessonPos(l.id)+1}</div>
       <div class="lesson-info">
         <div class="lesson-title">${l.title}${l.core?'<span class="basics-pill">★ Bare Basics</span>':''}</div>
         <div class="lesson-sub">${l.sub}</div>
@@ -961,6 +1012,7 @@ function renderLesson(id){
       ${done ? `<button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="resetLesson(${l.id})" title="Clear this lesson's progress and quiz">↺ Reset this lesson</button>` : ''}
     </div>
     <h1>${l.title}</h1>
+    ${l.story?`<div style="font-size:.88rem;color:var(--txt2);margin-bottom:14px;padding:10px 14px;background:var(--surf2);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;line-height:1.65">📖 ${l.story}</div>`:l.prereq?`<div style="font-size:.82rem;color:var(--txt2);margin-bottom:12px;padding:7px 11px;background:var(--surf2);border-left:3px solid var(--accent);border-radius:0 6px 6px 0">📎 <strong>Before this:</strong> ${l.prereq}</div>`:''}
     <p style="margin-bottom:20px">${l.intro}</p>
     <div class="card">
       <h3>Read-Aloud</h3>
