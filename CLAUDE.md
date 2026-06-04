@@ -1,10 +1,48 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 3, 2026 (big day — v1.22.0 → v1.36.0)
-**Current version:** `v1.36.0` (large feature session shipped; awaiting Mike's playtest)
+**Last session ended:** June 3, 2026 (huge day — v1.22.0 → v1.40.0)
+**Current version:** `v1.40.0` (large feature session shipped; awaiting Mike's playtest)
 **You are continuing an established collaboration with Mike Nocito.**
 
-> ### ⏩ June 3, 2026 session — what's new since v1.22.0 (read this first)
+> ### 🚧 ACTIVE WORK — START HERE (the curriculum rebuild, in progress)
+> Mike's current big initiative: move every kit from "bare basics" to an **in-depth,
+> scaffolded education** aimed at **what a junior analyst / BA / new data pro should
+> already know ~6 months on the job.** Specs: `CURRICULUM_STANDARD.md` (the target +
+> tier model) and `CURRICULUM_PLAN.md` (the per-kit blueprint — READ THIS before building).
+>
+> **The repeatable pattern (per kit):**
+> 1. **Unit 0 — Foundations** (4 new lessons): how the tool sees data (rows/fields/**grain**),
+>    data types, what "aggregate" means, the analyst's loop. Each kit's 4 are specced in `CURRICULUM_PLAN.md`.
+> 2. **Per-lesson `prereq`** field + **`story`** field (a 📖 narrative bridge that recalls the
+>    prior lesson and adds ONE new idea — the running scenario: *new junior analyst at a coffee
+>    company; the manager's questions drive each lesson*). `story` renders in place of `prereq`.
+> 3. **Intermediate micro-lessons** filling the biggest jumps; **split bundled lessons** for smaller steps.
+> 4. **Depth beats** (why/when + gotcha + "on the job you'd…") on shallow lessons.
+>
+> **Architecture for adding lessons WITHOUT breaking saved progress (important):** do NOT
+> renumber. Give new lessons **non-colliding ids** and place them at the right **array position**;
+> rendering + nav use **array order** via `lessonPos()` / `nextLessonId()` (added to Tableau —
+> replicate per kit). Existing ids + `LESSON_DRILLS` + `localStorage` progress stay intact. Ships MINOR.
+>
+> **Tableau = the PILOT (v1.37–v1.40), beginner→mid path DONE:** now **28 lessons**. Order:
+> Unit 0 (4) → Interface → **Your First Drag** → Dim/Measures → Bar → Line → **Sorting** →
+> **Filtering** (split from "Filters & Sorting") → Marks → **Your First Calculation** → Calc Fields
+> → Aggregation → Grouping → **From One Sheet to a Workbook** → Dashboard → Tooltips → Chart
+> Choice → Story → (cert Units 4–5: L14–L20). New-lesson ids used: 21–28. Story bridges done
+> through ~L10.
+>
+> **➡️ NEXT STEPS (resume here):**
+> 1. Finish Tableau: add `prereq`+`story` bridges to **L11–L20** (Tooltips, Chart Choice, Story,
+>    + cert units), and any remaining depth beats.
+> 2. **Roll the whole pattern to the other 5 kits**, one ship per kit: Excel → SQL → Python →
+>    Power BI → Stats. Each gets its Unit 0 (specced in `CURRICULUM_PLAN.md`), prereq+story on
+>    every lesson, intermediate micro-lessons at the big jumps, and the position-based nav plumbing.
+>    Per-kit viz helper differs (see cheat-sheet below); per-kit "N lessons" copy + unit grouping
+>    need updating (Stats hardcodes units in `renderLessonList`).
+>
+> ---
+>
+> ### ⏩ Earlier June 3 session — what shipped v1.22.0 → v1.36.0
 > A very large session. All shipped, committed, pushed, live. Awaiting Mike's playtest.
 > - **Tableau cert beef-up (v1.23–v1.30):** went for the **Tableau Desktop Specialist**
 >   cert. Added 8 lessons → Tableau now has **20 lessons**. New **Unit 4 (Connecting &
