@@ -325,8 +325,50 @@ applyBasics();
 const DATA = {
 
 LESSONS: [
+  // UNIT 0
+  {id:101, unit:"Unit 0: Before You Build", title:"How Power BI Sees Data (Table & Grain)", sub:"Tables, rows, and what one row represents.",
+   story:"Your manager says the team is moving to Power BI for all reporting. Before you drag a single field onto a canvas, you need to understand how Power BI thinks about data: tables. Everything — sales, customers, products — lives in a table, and each table has a grain: what one row means. Get the grain right and every measure and visual that follows makes sense.",
+   intro:"Power BI works with tables — exactly like a database or a spreadsheet. Every data source you connect to becomes a table in your model. Each table has rows (records) and columns (fields). And each table has a grain: what one row represents. One row = one sale? One row = one customer? Misidentifying the grain is the root cause of most incorrect Power BI measures — especially double-counting in DAX.",
+   ral:{code:"Sales table:   one row = one transaction\nCustomers:     one row = one unique customer\nProducts:      one row = one product SKU\nDaily_Agg:     one row = one day's totals",
+     say:"Each table has one job. State the grain before you build any measure.",
+     lines:[["Table","a 2D grid: rows × columns — the basic data unit in Power BI"],["Row (record)","one observation — one sale, one customer, one product"],["Column (field)","one attribute — Region, Revenue, Date, ProductID"],["Grain","what one row represents — state this before writing any measure"],["Double-counting","what happens when you join tables at different grains"]]},
+   notes:"Power BI's star schema (one fact table + multiple dimension tables) is designed to keep grain consistent. Your Sales table should be at transaction grain; Products and Customers tables are at their own grain. Relating them correctly in the Model View is what prevents double-counting.",
+   viz:{bars:[{label:"Sales",value:90,display:"1 row = 1 sale"},{label:"Customers",value:60,display:"1 row = 1 customer"},{label:"Products",value:40,display:"1 row = 1 SKU"}],title:"Each table — one grain",caption:"Three tables, three grains. Sales rows are at transaction level; Customers and Products are at entity level. Relate them on their shared keys and the measures stay correct."},
+   quiz:{q:"Your Sales table has one row per order line item, not per order. What will happen if you create a measure = SUM(Sales[Revenue]) grouped by Order?",opts:["Nothing — Power BI handles it automatically","Revenue will be summed correctly per order","Revenue will be correct only if you use CALCULATE","It will show correct totals if each order had equal line items"],ans:0,exp:"SUM(Sales[Revenue]) adds every line item row. If an order has 3 line items, all 3 revenue values are summed correctly — grain doesn't cause a problem for plain SUM. The risk is when you JOIN at mismatched grains, which fans out rows and inflates totals."}
+  },
+  {id:102, unit:"Unit 0: Before You Build", title:"Data Types & Why They Matter in Power BI", sub:"Why type mismatches break aggregations silently.",
+   story:"You've got the table and grain concept down. Now the next thing Power BI checks before it does anything: data type. A number stored as text won't aggregate. A date column recognized as text won't let you use time intelligence. Power BI color-codes every column's type in the Data and Model views — checking and fixing types early saves hours of confusion later.",
+   intro:"Power BI assigns a data type to every column: Whole Number, Decimal Number, Text, Date, Date/Time, True/False, and more. The type determines what you can do: you can SUM a number, you can filter a date by year, you can concatenate text. Wrong type = silent errors — your SUM returns blank, your time intelligence fails, your chart shows nothing. Fix types in Power Query before they reach your model.",
+   ral:{code:"Whole Number → counts, IDs, quantities\nDecimal     → prices, rates, percentages\nText        → names, codes, categories\nDate        → dates (not datetime unless you need time)\nTrue/False  → boolean flags",
+     say:"Check every column's type before building measures. A number stored as text is invisible to SUM.",
+     lines:[["Whole Number","integers — counts, IDs, quantities"],["Decimal Number","floating point — prices, rates, calculated fields"],["Text","strings — names, codes, region labels"],["Date","calendar dates — enables time intelligence functions"],["Wrong type","a revenue column typed as Text sums to blank — no error, just wrong"]]},
+   notes:"Power Query flags type issues with the column header icon. A yellow triangle means mismatched or inferred type. Always verify types in the 'Changed Type' step — don't trust Power BI's auto-detection on imported data, especially from CSV or Excel where numbers often import as text.",
+   viz:{bars:[{label:"Whole Number",value:100,display:"SUM, COUNT, AVERAGE ✓"},{label:"Decimal",value:100,display:"All math ✓"},{label:"Text",value:30,display:"SUM → blank ✗"},{label:"Date",value:80,display:"Time intelligence ✓"}],title:"What each type allows",caption:"Type determines capability. Text columns look like numbers but SUM returns blank — no error message. Fix the type in Power Query before you start building."},
+   quiz:{q:"Your Revenue column imports as type Text. You create a measure: Total Revenue = SUM(Sales[Revenue]). What does the measure return?",opts:["The correct sum","0","BLANK — SUM on a text column returns blank","An error message"],ans:2,exp:"SUM on a text column returns BLANK in Power BI — no error, just silence. The card visual shows empty. This is one of the most common beginner traps. Fix the type in Power Query before it reaches your model."}
+  },
+  {id:103, unit:"Unit 0: Before You Build", title:"What 'Aggregate' Means in Power BI", sub:"The one idea underneath every KPI card and bar chart.",
+   story:"Types are correct. Your manager asks for 'total revenue.' The Revenue column has one row per transaction — thousands of them. An aggregation collapses those rows into one number: SUM totals them, COUNT counts them, AVERAGE averages them. Every visual in Power BI is an aggregation of an underlying table. This idea is what makes DAX measures finally click.",
+   intro:"Every visual in Power BI aggregates rows into a summary. A bar chart of Revenue by Region collapses all West transactions into one bar — it's SUM(Revenue) WHERE Region = 'West'. A KPI card showing Total Revenue is the same SUM applied to the whole table. The aggregation is always there, even when you don't write it explicitly. DAX measures just make it explicit and controllable.",
+   ral:{code:"Total Revenue = SUM(Sales[Revenue])   -- explicit aggregation\nOrder Count  = COUNTROWS(Sales)       -- count rows = count orders\nAvg Order    = AVERAGE(Sales[Revenue]) -- mean over all rows",
+     say:"A measure is a named aggregation. Power BI evaluates it against the current filter context — the region selected, the date range active, the row in the table.",
+     lines:[["Aggregation","collapsing many rows into one number: SUM, COUNT, AVERAGE, MIN, MAX"],["Implicit aggregation","drag Revenue into Values — Power BI defaults to SUM automatically"],["Explicit aggregation (measure)","write SUM(table[col]) yourself — full control"],["Filter context","the active filters (slicer, row context, visual filter) that determine which rows the aggregation sees"],["Why it matters","every wrong total in Power BI is a filter-context or aggregation mistake"]]},
+   notes:"When you drag a numeric column directly into a visual, Power BI applies an implicit aggregation (usually SUM). That's often what you want — but not always. If you drag a Revenue column and it shows one number per row instead of a total, Power BI chose 'Don't summarize.' Right-click the field → Summarize → Sum to fix it.",
+   viz:{bars:[{label:"West",value:412},{label:"East",value:388},{label:"North",value:195},{label:"South",value:284}],title:"SUM(Revenue) by Region — each bar is an aggregation",caption:"Each bar collapses all transaction rows for that region into one SUM. The visual doesn't show raw rows — it shows the aggregation. That's every Power BI visual, every time."},
+   quiz:{q:"You drag Revenue into the Values field of a bar chart and see one separate bar per transaction row instead of one total bar per region. What happened?",opts:["You need to add a Region field to the Axis","The Revenue column is set to 'Don't Summarize' — change it to Sum","The data model has no relationships","You need to write a DAX measure first"],ans:1,exp:"'Don't Summarize' means Power BI treats the column as a row identifier instead of an aggregate. Right-click the Revenue field in Values and change the summarization to Sum to get one aggregated bar per category."}
+  },
+  {id:104, unit:"Unit 0: Before You Build", title:"Load vs Shape vs Analyze (The Power BI Loop)", sub:"The three-phase workflow every Power BI project follows.",
+   story:"You understand aggregation. Now the Power BI loop that every dashboard is built on: Load (bring data in via Get Data), Shape (clean and transform in Power Query), Analyze (build measures and visuals on the Report canvas). Each phase has its own tools and its own mistakes. Knowing which phase you're in tells you where to look when something goes wrong.",
+   intro:"Power BI has three phases: 1. <strong>Load</strong> — connect to a source (Excel, CSV, SQL, SharePoint, API) via Get Data. 2. <strong>Shape</strong> — clean and transform in Power Query (rename columns, fix types, remove blanks, unpivot tables). 3. <strong>Analyze</strong> — build the data model (relationships), write DAX measures, and lay out visuals on the Report canvas. Each phase is the right place for specific tasks — editing a column's name belongs in Power Query, not DAX.",
+   ral:{code:"Phase 1 — Load:   Home → Get Data → choose source\nPhase 2 — Shape:  Power Query Editor → transform\nPhase 3 — Analyze: Model View + Report canvas + DAX",
+     say:"Load brings the data in. Shape makes it clean and correct. Analyze builds the measures and visuals. Do things in this order — fixing the wrong phase is always more work.",
+     lines:[["Get Data","Load phase — connect to CSV, Excel, SQL, SharePoint, APIs"],["Power Query","Shape phase — transform before data reaches your model"],["Model View","Analyze phase — define table relationships (star schema)"],["DAX measure","Analyze phase — write aggregations and calculations"],["Wrong phase","cleaning data in DAX instead of Power Query = slow, fragile reports"]]},
+   notes:"The most common mistake is doing Shape work in the Analyze phase. Adding a clean-up calculated column in DAX when you should have fixed it in Power Query makes your model heavier and harder to maintain. Ask: 'Does this change the data before it reaches my model?' If yes — Power Query. If no — DAX.",
+   viz:{html:`<div style="display:flex;gap:8px;font-size:11px;flex-wrap:wrap"><div style="flex:1;min-width:120px;border:1px solid var(--border);border-radius:8px;padding:10px"><div style="font-weight:700;color:var(--accent);margin-bottom:6px">1. Load</div><div style="color:var(--txt2)">Get Data → connect to source → tables appear in your model</div></div><div style="font-size:16px;color:var(--accent);align-self:center">→</div><div style="flex:1;min-width:120px;border:1px solid var(--border);border-radius:8px;padding:10px"><div style="font-weight:700;color:var(--accent);margin-bottom:6px">2. Shape</div><div style="color:var(--txt2)">Power Query → fix types, clean columns, remove blanks</div></div><div style="font-size:16px;color:var(--accent);align-self:center">→</div><div style="flex:1;min-width:120px;border:1px solid var(--border);border-radius:8px;padding:10px"><div style="font-weight:700;color:var(--accent);margin-bottom:6px">3. Analyze</div><div style="color:var(--txt2)">Model View → relationships · DAX → measures · Report canvas → visuals</div></div></div>`,caption:"The three-phase loop. Load → Shape → Analyze. Doing things out of order (fixing data in DAX, building visuals before relationships are set) causes the most common Power BI frustrations."},
+   quiz:{q:"You notice a column is named 'dt_order' and should be 'Order Date'. Where should you rename it?",opts:["In a DAX calculated column: Order Date = [dt_order]","In Power Query — rename the column in the Shape phase","In the Report canvas — rename the visual label","In the Model View — rename the table"],ans:1,exp:"Renaming a column is a Shape task — it should happen in Power Query before the data reaches your model. Doing it in DAX creates a duplicate column; doing it in the Report canvas only changes one visual's label, not the field name everywhere."}
+  },
   // UNIT 1
   {id:1, unit:"Unit 1: The Interface & Data", title:"The Power BI Interface", sub:"Navigate Desktop like a pro",
+   story:"You've got the mental model: tables with a grain, types, aggregation, the three-phase loop. Now open Power BI Desktop and orient yourself. Three views on the left — Report, Data, Model. Fields pane on the right. Learn the layout now so you stop looking for things when the real work starts.",
    intro:"Power BI Desktop is like a workshop with three benches — one to see the data, one to wire the tables together, one to lay out the report. Power BI Desktop has three views and a set of panes that control everything. Before you build anything, knowing <em>where things live</em> saves hours of searching.",
    ral:{
      code:"Report View → canvas + visualizations\nData View   → see raw table data\nModel View  → manage relationships between tables",
@@ -348,6 +390,7 @@ LESSONS: [
    quiz:{q:"Which Power BI Desktop view lets you see and manage how tables are related to each other?",opts:["Report View","Data View","Model View","Filters Pane"],ans:2,exp:"Model View displays the relationship diagram. You drag between key columns here to create or edit relationships."}
   },
   {id:2, core:true, unit:"Unit 1: The Interface & Data", title:"Connecting to Data", sub:"Get Data and Power Query basics",
+   story:"You know the layout. The first step in every project: Get Data — point Power BI at a source (CSV, Excel, SQL, SharePoint) and pull the tables in. Power Query is the shaping layer that opens automatically — rename columns, fix types, remove blanks — before the data ever touches your model.",
    intro:"Loading data is like unpacking groceries — Get Data brings the bags in, and Power Query is the counter where you wash and chop before anything goes in the fridge (the model). Power BI reads data from almost anywhere. The Get Data workflow loads it in; Power Query Editor is where you clean it before it enters the model.",
    ral:{
      code:"Home → Get Data → Excel / SQL Server / Web / ...\n↓\nPower Query Editor (Transform Data)\n↓\nClose & Apply  →  data enters the model",
@@ -368,6 +411,7 @@ LESSONS: [
    quiz:{q:"Where do you clean and transform data before it loads into the Power BI model?",opts:["Report View canvas","Model View","Power Query Editor","DAX formula bar"],ans:2,exp:"Power Query Editor (Transform Data) is the ETL layer. Changes here are recorded as Applied Steps and re-run on every refresh."}
   },
   {id:3, unit:"Unit 1: The Interface & Data", title:"Building Your First Visual", sub:"Drag, drop, and configure",
+   story:"Data is loaded and shaped. Now the core Power BI move: click the visual type you want, then drag fields to assign them. A bar chart needs a category on the Axis and a measure in Values. Power BI aggregates automatically. That's the Analyze phase in practice.",
    intro:"Building a visual is like filling out a form — pick the chart, then drop your fields into its blanks (the field wells). Every visual in Power BI starts the same way: pick a chart type, then drag fields into the three field wells — Axis, Values, and Legend. The rest is formatting.",
    ral:{
      code:"1. Click a chart type in the Visualizations pane\n2. Drag a field to Axis   → what to group by\n3. Drag a field to Values → what to measure\n4. Drag a field to Legend → how to color-code",
@@ -385,6 +429,7 @@ LESSONS: [
    quiz:{q:"In Power BI's field wells, which well controls the Y-axis (what gets measured)?",opts:["Axis","Values","Legend","Tooltips"],ans:1,exp:"Values is where you drop the numeric field being measured. Power BI automatically aggregates it (Sum by default). Axis controls grouping (the X-axis)."}
   },
   {id:4, core:true, unit:"Unit 1: The Interface & Data", title:"Relationships & the Data Model", sub:"Star schema and how Power BI joins tables",
+   story:"You can build visuals from one table. But your sales table doesn't have the product category — it's in a separate products table. The Data Model is where you tell Power BI how the tables relate. Connect Order's ProductID to Products' ID (a star schema), and every visual can use fields from both tables without any join syntax.",
    intro:"A data model is like a hub airport — one central fact table in the middle, dimension tables as the destinations, all connected by direct routes (keys). A data model is multiple tables connected by keys. Power BI uses a star schema — one central fact table surrounded by dimension tables. Get this right and every visual just works.",
    ral:{
      code:"Fact Table: Sales (OrderID, CustomerID, ProductID, Amount, Date)\n      │                    │                 │\n  Customers           Products           Dates\n  (CustomerID, Name)  (ProductID, Name)  (Date, Month, Year)",
@@ -407,6 +452,7 @@ LESSONS: [
   },
   // UNIT 2
   {id:5, core:true, unit:"Unit 2: DAX & Measures", title:"Calculated Columns vs Measures", sub:"Row context vs filter context",
+   story:"Your model is connected. Now the two ways to create new values in Power BI: a Calculated Column runs row by row and stores the result in the table — like an Excel formula filled down. A Measure runs at query time and respects whatever filters are active. Measures are almost always what you want for KPIs and aggregations.",
    intro:"Calculated columns vs measures is like meal-prep vs cooking to order: a column cooks a value for every row up front and stores it; a measure cooks only what the visual asks for, on the spot. This is the most important conceptual distinction in DAX. Calculated columns are computed row by row when the data loads. Measures are computed at query time based on what's currently filtered. <em>If DAX syntax looks unfamiliar, it borrows heavily from Excel formulas — review the Excel kit if you'd like a refresher before diving in.</em>",
    ral:{
      code:"-- Calculated Column (stored in table, row by row)\nProfit = Sales[Revenue] - Sales[Cost]\n\n-- Measure (computed dynamically on filter context)\nTotal Profit = SUM(Sales[Profit])",
@@ -436,6 +482,7 @@ LESSONS: [
    quiz:{q:"A measure in DAX is evaluated based on…",opts:["Each row of the table when data loads","The current filter context at query time","The primary key of the fact table","The sort order of the visual"],ans:1,exp:"Measures are dynamic — they recalculate every time a slicer, filter, or visual grouping changes. That's what makes them powerful for interactive reports."}
   },
   {id:6, core:true, unit:"Unit 2: DAX & Measures", title:"Basic DAX Aggregations", sub:"SUM, COUNT, AVERAGE, DIVIDE",
+   story:"You understand when to use a Measure. Now write your first ones in DAX: SUM, COUNT, AVERAGE, DIVIDE. DAX syntax looks like Excel formulas — Total Revenue = SUM(Sales[Revenue]) — with one key difference: every measure is evaluated against the current filter context, so the same measure returns different numbers depending on what slicer or row is active.",
    intro:"A basic measure is a pocket calculator for a column — point it at the numbers and it sums, averages, or counts them. Most measures you'll write are simple aggregations over a column. DAX has the same building blocks as SQL aggregates — with a few important differences.",
    ral:{
      code:"Total Revenue = SUM(Sales[Revenue])\nOrder Count   = COUNTROWS(Sales)\nAvg Order     = AVERAGE(Sales[Revenue])\nMargin %      = DIVIDE([Total Revenue] - [Total Cost], [Total Revenue])",
@@ -453,6 +500,7 @@ LESSONS: [
    quiz:{q:"Why should you use DIVIDE() instead of / in DAX?",opts:["DIVIDE is faster","DIVIDE handles divide-by-zero gracefully instead of returning an error","/ only works in calculated columns","DIVIDE works with text columns"],ans:1,exp:"DIVIDE(numerator, denominator, [alternateResult]) returns blank (or your alternateResult) when the denominator is zero or blank. The / operator throws an error that can break your visuals."}
   },
   {id:7, core:true, unit:"Unit 2: DAX & Measures", title:"CALCULATE & Filter Context", sub:"The most powerful function in DAX",
+   story:"You can write basic DAX aggregations. Now the most powerful function in DAX: CALCULATE. It evaluates any expression inside a modified filter context. CALCULATE(SUM(Revenue), Region = 'West') returns West revenue no matter what the active slicer says. Understanding CALCULATE is the unlock for advanced DAX.",
    intro:"CALCULATE is like changing the TV channel before you read the guide — it swaps the filter context first, then reads the result. <code>CALCULATE</code> does two things: it evaluates an expression AND lets you modify the filter context it runs in. Almost every advanced DAX measure uses it.",
    ral:{
      code:"West Revenue = CALCULATE(\n    SUM(Sales[Revenue]),\n    Sales[Region] = \"West\"\n)",
@@ -470,6 +518,7 @@ LESSONS: [
    quiz:{q:"What does CALCULATE do to the filter context?",opts:["It ignores all existing filters","It evaluates an expression and can add, replace, or remove filters","It only works with SUM","It copies the filter context from another measure"],ans:1,exp:"CALCULATE evaluates its first argument (any DAX expression) within a modified filter context. The filter arguments can add new filters, override existing ones, or remove them with ALL."}
   },
   {id:8, unit:"Unit 2: DAX & Measures", title:"Time Intelligence", sub:"YTD, prior period, and date comparisons",
+   story:"You can override filter context with CALCULATE. Time intelligence is its most common application: year-to-date revenue, prior-period comparison, month-over-month growth. Functions like TOTALYTD and DATEADD run your measure at a different point in time — essential for any sales or financial dashboard.",
    intro:"Time intelligence is your data's calendar app — it already knows what 'last month' and 'year to date' mean, so you don't have to spell out the dates. Time intelligence functions let you compare periods, accumulate year-to-date totals, and measure change over time. They require a proper Date table with continuous dates.",
    ral:{
      code:"YTD Revenue       = TOTALYTD([Total Revenue], Dates[Date])\nPrior Year Rev    = CALCULATE([Total Revenue], SAMEPERIODLASTYEAR(Dates[Date]))\nRevenue vs LY %   = DIVIDE([Total Revenue] - [Prior Year Rev], [Prior Year Rev])",
@@ -493,6 +542,7 @@ LESSONS: [
   },
   // UNIT 3
   {id:9, unit:"Unit 3: Reports & Insights", title:"Slicers & Filters", sub:"Controlling what your audience sees",
+   story:"Your measures handle time. Now the user-facing controls: slicers and filters. A Slicer is a visual on the canvas — your manager clicks 'West' and every visual updates. Page Filters and Report Filters narrow all visuals at different scopes. Visual Filters apply to just one chart. Knowing which to reach for keeps dashboards clean.",
    intro:"A slicer is a TV remote sitting on the report — viewers press a button and everything updates; the Filters pane is the settings menu doing the same thing quietly behind the scenes. Slicers are on-canvas interactive filters. The Filters pane applies filters behind the scenes. Understanding the difference — and when to use each — makes reports cleaner and more intuitive.",
    ral:{
      code:"Slicer     → visible on canvas, user clicks to filter\nFilter Pane → hidden controls, pre-set by the report author\n\nFilter hierarchy (most powerful first):\n  Visual-level → Page-level → Report-level",
@@ -522,6 +572,7 @@ LESSONS: [
    quiz:{q:"Which filter level affects every visual on every page of a report?",opts:["Visual-level filter","Page-level filter","Report-level filter","Slicer"],ans:2,exp:"Report-level filters apply across all pages. Use them for global context like 'only show last 3 years.' Page-level filters scope to one page; visual-level filters scope to one chart."}
   },
   {id:10, unit:"Unit 3: Reports & Insights", title:"Drill-Through & Cross-Filtering", sub:"Letting data guide the story",
+   story:"Slicers filter the page. Drill-through is the next level: right-click a data point, drill through to a detail page focused on that item. Cross-filtering is when clicking a bar in one chart automatically filters the other charts on the page. Both are on by default — understanding them stops you from being confused when a chart 'randomly' changes.",
    intro:"Drill-through is the 'zoom in' on a map app — click a region and jump to a detailed page about just that spot. Drill-through pages let users right-click a data point and jump to a detail page. Cross-filtering means selecting one visual automatically filters the others on the same page.",
    ral:{
      code:"Drill-through:\n1. Create a detail page\n2. Drag a field to 'Drill-through' in Filters pane\n3. Right-click any data point in your report → Drill through →\n\nCross-filter:\n• Clicking a bar in one visual highlights/filters others",
@@ -550,6 +601,7 @@ LESSONS: [
    quiz:{q:"To create a drill-through page in Power BI, what must you add to the detail page?",opts:["A back button","A slicer for the drill field","The field in the page's Drill-through field well","A bookmark"],ans:2,exp:"Adding a field to the Drill-through well in the Filters pane registers that page as a drill-through destination for that dimension. Power BI auto-creates the Back button."}
   },
   {id:11, unit:"Unit 3: Reports & Insights", title:"Dashboard Design Principles", sub:"Layout, hierarchy, and visual clarity",
+   story:"Your interactions work correctly. Now make the report readable. Layout hierarchy: most important KPI at the top-left (where eyes go first). Two or three accent colors maximum. White space matters more than people think. Every visual should answer one specific question — if it can't be labeled with a question, remove it.",
    intro:"A cluttered report is a road sign with twenty messages — technically all true, completely useless at 60 mph. A technically correct report that&rsquo;s visually cluttered won&rsquo;t be used. These four principles — hierarchy, alignment, color restraint, and context — separate a good report from a great one.",
    ral:{
      code:"1. Hierarchy   → most important number top-left, largest\n2. Alignment   → snap visuals to grid, equal spacing\n3. Color       → 1-2 accent colors max, grey for context\n4. Context     → every number needs a comparison (vs LY, vs target)",
@@ -570,6 +622,7 @@ LESSONS: [
    quiz:{q:"According to the hierarchy principle, where should your most important KPI card be placed?",opts:["Bottom-right (most prominent)","Center of the canvas","Top-left (F-pattern reading)","Top-right"],ans:2,exp:"Users read dashboards in an F-pattern — top-left first, then across, then down. Place your headline number top-left to ensure it's seen first."}
   },
   {id:12, unit:"Unit 3: Reports & Insights", title:"Publishing & Sharing", sub:"Power BI Service, workspaces, and access",
+   story:"Your dashboard is clean and correct. The final step: publish to Power BI Service so your manager can view it in a browser with no software. Create a workspace, publish from Desktop, share the link or embed in Teams. Schedule a data refresh so it stays current without you manually re-running anything.",
    intro:"Publishing is like moving a doc to a shared drive — your file goes from your desk (Desktop) to a place the whole team can open it (the Service). Publishing sends your .pbix file to the Power BI Service (the web app). From there you can share dashboards, set up automatic refresh, and control who sees what.",
    ral:{
      code:"Desktop: File → Publish → Select workspace\n           ↓\nPower BI Service (app.powerbi.com)\n  ├─ Workspace  → where the report lives\n  ├─ Dashboard  → pinned visuals from reports\n  └─ Share      → link or direct access",
@@ -1142,6 +1195,8 @@ function renderHome(){
 }
 
 // ─── LESSONS LIST ──────────────────────────────────────────────────────────
+function lessonPos(id){return DATA.LESSONS.findIndex(l=>l.id===id);}
+function nextLessonId(id){const p=lessonPos(id);return(p>=0&&p<DATA.LESSONS.length-1)?DATA.LESSONS[p+1].id:null;}
 function renderLessons(){
   let html = '<h1>Lessons</h1>';
   let lastUnit = '';
@@ -1149,7 +1204,7 @@ function renderLessons(){
     if(l.unit !== lastUnit){ html += `<div class="unit-label">${l.unit}</div>`; lastUnit = l.unit; }
     const done = state.doneLessons.includes(l.id);
     html += `<div class="lesson-row" data-basics="${l.core?'1':'0'}" onclick="navigate('lesson',${l.id})">
-      <div class="lesson-num ${done?'done':''}">${done ? '✓' : l.id}</div>
+      <div class="lesson-num ${done?'done':''}">${done ? '✓' : lessonPos(l.id)+1}</div>
       <div class="lesson-info"><div class="lesson-title">${l.title}${l.core?'<span class="basics-pill">★ Bare Basics</span>':''}</div><div class="lesson-sub">${l.sub}</div></div>
       <div class="lesson-arrow">›</div>
     </div>`;
@@ -1173,6 +1228,7 @@ function renderLesson(id){
       ${done ? `<button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="resetLesson(${l.id})" title="Clear this lesson's progress and quiz">↺ Reset this lesson</button>` : ''}
     </div>
     <h1>${l.title}</h1>
+    ${l.story?`<div style="font-size:.88rem;color:var(--txt2);margin-bottom:14px;padding:10px 14px;background:var(--surf2);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;line-height:1.65">📖 ${l.story}</div>`:l.prereq?`<div style="font-size:.82rem;color:var(--txt2);margin-bottom:12px;padding:7px 11px;background:var(--surf2);border-left:3px solid var(--accent);border-radius:0 6px 6px 0">📎 <strong>Before this:</strong> ${l.prereq}</div>`:''}
     <p style="margin-bottom:20px">${l.intro}</p>
     <div class="card">
       <h3>Read-Aloud</h3>
