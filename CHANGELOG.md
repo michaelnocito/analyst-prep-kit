@@ -9,6 +9,16 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.41.0] — 2026-06-04 — Tableau story bridges complete: all 28 lessons threaded
+
+Story bridges added to L11–L20 (Tooltips, Chart Choice, Telling a Story, Live/Extract,
+Joins/Unions/Relationships, Data Properties, Sets, Hierarchies, Parameters, Dual-Axis).
+Every Tableau lesson now opens with a 📖 narrative bridge that recalls the prior lesson
+and introduces exactly one new idea — the coffee-company scenario runs end-to-end through
+all 28 lessons. Tableau pilot is now fully narrative-complete.
+
+---
+
 ## [1.40.0] — 2026-06-03 — Curriculum pilot v4: finest-granularity Tableau beginner→mid path
 
 Mike chose "fill every big jump + split bundles." June 3, 2026 — 9:17 PM ET.
