@@ -491,6 +491,41 @@ LESSONS: [
    viz:{columns:["name","is_active (CASE)","contact (COALESCE)"],rows:[["Maya Chen","Yes","maya@co.com"],["Jordan Lee","Yes","555-0182"],["Sam Rivera","No","no contact"],["Alex Kim","Yes","alex@co.com"]],caption:"Two conditional tools side by side: CASE builds the Yes/No column from status, while COALESCE(email, phone, 'no contact') fills the contact column with the first value that isn't NULL."},
    quiz:{q:"What does COALESCE(a, b, c) return?",opts:["The sum of a, b, c","The last non-NULL value","The first non-NULL value","Always returns a"],ans:2,exp:"COALESCE returns the first non-NULL value in the list. Great for providing fallbacks."}
   },
+  {id:13, unit:"Unit 2: Aggregates & Joins", title:"RIGHT JOIN & FULL OUTER JOIN", sub:"Keep all rows from the right table — or from both",
+   story:"You've used LEFT JOIN to keep all rows from the left table. But sometimes the question flips: 'Show me all orders, even if their customer record was deleted.' That keeps the right table complete. And occasionally you need everything from BOTH tables — customers with no orders AND orders with no customer. That's a FULL OUTER JOIN.",
+   intro:"RIGHT JOIN is a mirror of LEFT JOIN — it keeps every row from the right table, filling NULLs on the left side when there's no match. FULL OUTER JOIN combines both: all rows from both tables, NULLs wherever a side has no match. MySQL doesn't support FULL OUTER JOIN directly, but you can simulate it with UNION.",
+   ral:{
+     sql:"-- RIGHT JOIN: keep all orders even if customer is gone\nSELECT c.name, o.order_id, o.amount\nFROM customers c\nRIGHT JOIN orders o ON c.id = o.customer_id;\n\n-- FULL OUTER JOIN (MySQL workaround)\nSELECT c.name, o.amount\nFROM customers c\nLEFT JOIN orders o ON c.id = o.customer_id\nUNION\nSELECT c.name, o.amount\nFROM customers c\nRIGHT JOIN orders o ON c.id = o.customer_id;",
+     say:"Get every order with its customer name — even orphaned orders where the customer no longer exists. Then combine both directions with UNION to see every customer and every order at once.",
+     lines:[
+       ["RIGHT JOIN orders o","keep ALL rows from the right table (orders)"],
+       ["c.name → NULL","when no matching customer exists, left-side columns come back NULL"],
+       ["LEFT JOIN ... UNION ... RIGHT JOIN","the MySQL workaround for FULL OUTER JOIN — each half covers one side"],
+       ["UNION","merges two result sets, removing exact duplicates"]
+     ]
+   },
+   notes:"In practice, most analysts rewrite RIGHT JOINs as LEFT JOINs by swapping the table order — it reads more naturally and avoids confusion. FULL OUTER JOIN is rare in day-to-day work but a common interview question. The key is knowing WHEN each join is needed, not just the syntax.",
+   viz:{columns:["JOIN type","Rows returned","NULLs where"],rows:[["INNER JOIN","Only matching rows","No NULLs from join"],["LEFT JOIN","All left + matching right","Right side when no match"],["RIGHT JOIN","Matching left + all right","Left side when no match"],["FULL OUTER JOIN","All rows from both","Either side when no match"]],caption:"All four join types at a glance. In practice, rewrite RIGHT JOINs as LEFT JOINs by flipping table positions — same result, more readable."},
+   quiz:{q:"Some orders have a customer_id that no longer exists in the customers table. Which JOIN keeps all orders regardless?",opts:["INNER JOIN","LEFT JOIN with customers on left","RIGHT JOIN with customers on left, orders on right","CROSS JOIN"],ans:2,exp:"RIGHT JOIN keeps every row from the right table (orders) and fills NULLs for unmatched left-table columns. Equivalently: swap tables and use LEFT JOIN orders LEFT JOIN customers — same data, more readable."}
+  },
+  {id:14, unit:"Unit 2: Aggregates & Joins", title:"Date Functions", sub:"Filter, extract, and calculate with dates",
+   story:"Almost every real analysis has a time dimension. 'Revenue last 30 days', 'orders by month', 'customers inactive for 90+ days' — all require date math. SQL has a small set of date functions that show up in nearly every production query. Learn these and you can answer any time-based question your manager throws at you.",
+   intro:"Date functions let you filter by time period, group by month or year, and calculate how long ago something happened. The workhorses: CURDATE() for today, DATE_SUB() to go back in time, DATE_FORMAT() to group by month, and DATEDIFF() to measure gaps. These examples use MySQL syntax — PostgreSQL uses the same concepts with slightly different names.",
+   ral:{
+     sql:"-- Filter: last 30 days\nSELECT * FROM orders\nWHERE order_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY);\n\n-- Group by month\nSELECT DATE_FORMAT(order_date, '%Y-%m') AS month,\n       SUM(revenue) AS monthly_rev\nFROM orders\nGROUP BY month\nORDER BY month;",
+     say:"First: filter orders to only the last 30 days by subtracting 30 days from today. Then: group revenue by month using DATE_FORMAT to extract year-month.",
+     lines:[
+       ["CURDATE()","today's date — no arguments needed"],
+       ["DATE_SUB(date, INTERVAL n unit)","subtract n DAY / MONTH / YEAR from a date"],
+       ["DATE_FORMAT(date, '%Y-%m')","format a date as text — '%Y-%m' gives '2024-03'"],
+       ["DATEDIFF(date1, date2)","integer difference in days: date1 minus date2"],
+       ["YEAR(date) / MONTH(date)","extract year or month as an integer"]
+     ]
+   },
+   notes:"These are MySQL-specific. PostgreSQL equivalents: NOW() for today, date - INTERVAL '30 days' for subtraction, TO_CHAR(date, 'YYYY-MM') for formatting. Concepts are universal; only function names differ. Always confirm which database you're using before an interview.",
+   viz:{columns:["Function","Example call","Result"],rows:[["CURDATE()","CURDATE()","2024-03-15 (today)"],["DATE_SUB()","DATE_SUB(CURDATE(), INTERVAL 1 MONTH)","2024-02-15"],["DATE_FORMAT()","DATE_FORMAT('2024-03-15', '%Y-%m')","'2024-03'"],["DATEDIFF()","DATEDIFF('2024-03-15', '2024-01-01')","74 (days)"],["YEAR() / MONTH()","YEAR('2024-03-15')","2024"]],caption:"Five date functions you'll use in nearly every time-series query. DATE_FORMAT is the most versatile — use it to group by any time granularity you need."},
+   quiz:{q:"Which function returns today's date in MySQL?",opts:["TODAY()","NOW() — returns date+time","CURDATE() — returns date only","GETDATE()"],ans:2,exp:"CURDATE() returns today's date without a time component. NOW() returns the current date AND time. GETDATE() is SQL Server syntax. TODAY() doesn't exist in standard SQL."}
+  },
   // UNIT 3
   {id:9, unit:"Unit 3: Advanced SQL", title:"Subqueries", sub:"Nest a query inside another",
    story:"You can add conditional logic inside a query. Now your manager asks: 'Show me customers who ordered more than the average revenue per customer.' The average is itself a query result. You embed one query inside another — the inner query runs first and hands its result to the outer. That's a subquery.",
@@ -556,6 +591,42 @@ LESSONS: [
    notes:"Core recon patterns: missing rows (LEFT JOIN + IS NULL), duplicate keys (GROUP BY id HAVING COUNT > 1), value mismatches (JOIN + WHERE a.col != b.col), row counts (SELECT COUNT(*)).",
    viz:{columns:["Recon pattern","SQL shape","What it finds"],rows:[["Missing rows","LEFT JOIN … WHERE b.id IS NULL","IDs 107, 112, 118"],["Duplicate keys","GROUP BY id HAVING COUNT(*) > 1","ID 104 (appears twice)"],["Value mismatch","JOIN … WHERE a.amt <> b.amt","ID 109: 90 vs 95"]],caption:"The three core reconciliation patterns at a glance — find missing rows, duplicate keys, and value mismatches — each a different join/filter shape."},
    quiz:{q:"To find rows in table A that are missing from table B, you use:",opts:["INNER JOIN + WHERE b.id IS NULL","LEFT JOIN + WHERE b.id IS NULL","RIGHT JOIN + GROUP BY","FULL OUTER JOIN"],ans:1,exp:"LEFT JOIN keeps all of A. WHERE b.id IS NULL isolates rows that had no match in B — those are the missing ones."}
+  },
+  {id:15, unit:"Unit 3: Advanced SQL", title:"SQL Indexing", sub:"Speed up queries — and know when not to",
+   story:"Your query runs fine on 1,000 rows. On 10 million rows, it times out. An index is the fix — a separate data structure the database uses to jump directly to the rows you need instead of reading every single row. Understanding when to use (and when NOT to use) an index is the difference between a query that runs in milliseconds and one that takes minutes.",
+   intro:"An index in SQL is like the index at the back of a textbook — it doesn't hold the actual content, but it tells you exactly which page to turn to. Databases build indexes using a B-Tree structure (or Hash for equality lookups). Adding an index on a WHERE column turns a full table scan into a targeted lookup.",
+   ral:{
+     sql:"-- Create an index on department_id\nCREATE INDEX idx_emp_dept ON employees(department_id);\n\n-- This query now uses the index instead of scanning all rows\nSELECT * FROM employees\nWHERE department_id = 10;\n\n-- Composite index: column order matters\nCREATE INDEX idx_country_city ON addresses(country, city);",
+     say:"Build an index on department_id so lookups by department skip the full table scan. Then create a composite index on (country, city) — the leftmost column is always searched first.",
+     lines:[
+       ["CREATE INDEX idx_name ON table(col)","build a B-Tree index on this column"],
+       ["Full table scan","what happens WITHOUT an index — every row is checked sequentially"],
+       ["B-Tree index","good for: WHERE =, WHERE >, WHERE BETWEEN, ORDER BY, JOIN ON"],
+       ["Composite index (col1, col2)","covers queries filtering on col1 or (col1 + col2); column order matters"],
+       ["Index trade-off","reads faster; writes slower — INSERT/UPDATE/DELETE must also update the index"]
+     ]
+   },
+   notes:"Rule of thumb: index high-cardinality columns used in WHERE, JOIN, or ORDER BY. Don't index low-cardinality columns (gender, status with 2–3 values) — the full scan is actually faster because the index lookup itself has overhead. Never index small tables or columns that are updated constantly.",
+   viz:{columns:["Scenario","Index it?","Why"],rows:[["WHERE email = 'x@y.com'","Yes","email is unique — index cuts millions of rows to 1 lookup"],["WHERE gender = 'F'","No","Only 2 values; scans ~50% of table anyway — overhead beats the gain"],["JOIN ON customer_id","Yes","Connecting on a key is the most common index use case"],["Frequently updated column","No","Every update must rebuild the index — write cost outweighs read benefit"],["Small 50-row table","No","Full scan of 50 rows is faster than the index overhead"]],caption:"Choose indexes by cardinality and access pattern. High-cardinality WHERE/JOIN columns win. Low-cardinality and write-heavy columns lose."},
+   quiz:{q:"Which column is the best candidate for an index?",opts:["is_deleted (TRUE/FALSE only)","gender (M/F/Other)","customer_email (unique per customer)","status (active/inactive/pending)"],ans:2,exp:"customer_email has high cardinality — nearly every value is unique. Searching by email with an index jumps directly to the matching row. The other options all have 2–3 distinct values, so the database scans nearly the whole table anyway — index overhead doesn't help."}
+  },
+  {id:16, unit:"Unit 3: Advanced SQL", title:"Temp Tables vs Views", sub:"Intermediate storage choices and when to use each",
+   story:"You're building a multi-step analysis — calculate intermediate results, then need them again in the next step. A CTE handles this inside a single query. But for heavier work across multiple queries in a session, you have two tools: a Temporary Table physically stores the result (like a whiteboard you erase when done); a View saves only the query definition (like a saved formula that re-runs every time you call it).",
+   intro:"A Temporary Table stores actual data for the duration of your session — deleted automatically when the connection closes. A View stores a SQL query, not data. Every time you SELECT from a view, it re-runs the underlying query against the current data. Both are alternatives to CTEs, but they live at different scopes.",
+   ral:{
+     sql:"-- Temp Table: physically store the result\nCREATE TEMPORARY TABLE temp_top AS\nSELECT customer_id, SUM(revenue) AS total\nFROM orders\nGROUP BY customer_id\nHAVING total > 10000;\n\nSELECT * FROM temp_top;  -- reuse multiple times this session\n\n-- View: save the query definition\nCREATE VIEW high_value AS\nSELECT customer_id, SUM(revenue) AS total\nFROM orders\nGROUP BY customer_id\nHAVING total > 10000;\n\nSELECT * FROM high_value;  -- always fresh data",
+     say:"The temp table stores today's snapshot of high-value customers for use later this session. The view re-runs the same query every time — so it always reflects the latest orders.",
+     lines:[
+       ["CREATE TEMPORARY TABLE","stores data physically; auto-deleted when session ends"],
+       ["CREATE VIEW","stores only the SQL query definition — no physical data"],
+       ["SELECT from view","re-runs the underlying query — always sees current data"],
+       ["SELECT from temp table","reads the stored snapshot — fast for heavy intermediate results"],
+       ["CTE vs Temp vs View","CTE = single query scope; Temp = session scope; View = permanent until dropped"]
+     ]
+   },
+   notes:"Views are permanent (until you DROP VIEW). Temp tables are session-scoped — they disappear when the connection closes. CTEs exist only within the single query that defines them. Use CTEs for readability, temp tables for heavy multi-step ETL, and views for shared business logic or column-level access control.",
+   viz:{columns:["Feature","Temp Table","View","CTE"],rows:[["Stores data?","Yes — physically","No — query only","No — inline"],["Lifetime","Current session","Permanent (until dropped)","Single query"],["Supports DML?","Yes","Usually read-only","No"],["Performance","Fast re-use of stored result","Re-runs on every SELECT","Evaluated inline"],["Best for","Multi-step ETL, heavy transforms","Shared logic, access control","Readability in one query"]],caption:"Three tools for intermediate logic — each at a different scope. CTE is per-query, Temp Table is per-session, View is permanent."},
+   quiz:{q:"You want to give another analyst access to customer data but hide the salary column. Which tool fits best?",opts:["Temporary Table","CTE","View","Subquery"],ans:2,exp:"A View lets you define exactly which columns are exposed and restrict access via database permissions. The analyst queries the view and never sees the underlying salary column. A Temp Table is session-specific — it disappears when your connection closes and isn't accessible to others."}
   }
 ],
 
@@ -583,7 +654,15 @@ FILLS: [
   {id:11, q:"Define a CTE called 'active_customers'.",
    partial:"___ active_customers AS (\n  SELECT * FROM customers WHERE status = 'active'\n)\nSELECT * FROM active_customers;", ans:"WITH", hint:"CTEs start with this keyword."},
   {id:12, q:"Assign a row number ordered by order_date using a window function.",
-   partial:"SELECT name,\n  ROW_NUMBER() ___ (ORDER BY order_date) AS rn\nFROM orders;", ans:"OVER", hint:"Window functions use this keyword to define the window."}
+   partial:"SELECT name,\n  ROW_NUMBER() ___ (ORDER BY order_date) AS rn\nFROM orders;", ans:"OVER", hint:"Window functions use this keyword to define the window."},
+  {id:13, q:"Keep all orders even when no matching customer exists (orders on right).",
+   partial:"SELECT c.name, o.amount FROM customers c\n___ JOIN orders o ON c.id = o.customer_id;", ans:"RIGHT", hint:"This join type keeps all rows from the second (right) table."},
+  {id:14, q:"Filter orders to only the last 30 days.",
+   partial:"WHERE order_date >= ___(CURDATE(), INTERVAL 30 DAY);", ans:"DATE_SUB", hint:"The function that subtracts a time interval from a date."},
+  {id:15, q:"Create an index named idx_email on the email column of the customers table.",
+   partial:"CREATE ___ idx_email ON customers(email);", ans:"INDEX", hint:"The keyword after CREATE for building an index."},
+  {id:16, q:"Create a view named monthly_rev from a query that groups revenue by month.",
+   partial:"CREATE ___ monthly_rev AS\nSELECT DATE_FORMAT(order_date,'%Y-%m') AS m, SUM(revenue) AS rev\nFROM orders GROUP BY m;", ans:"VIEW", hint:"This keyword defines a saved query that re-runs on demand."}
 ],
 
 BUGS: [
@@ -658,7 +737,31 @@ BUGS: [
    broken:"SELECT order_date, ROW_NUMBER() AS rn FROM orders;",
    issue:"Window functions require OVER (...) to define the window",
    fix:"SELECT order_date, ROW_NUMBER() OVER (ORDER BY order_date) AS rn FROM orders;",
-   hint:"Without OVER, SQL doesn't know it's a window function.",choices:["Add OVER (ORDER BY order_date) after ROW_NUMBER()","Add GROUP BY order_date","Wrap ROW_NUMBER() in COUNT()"]}
+   hint:"Without OVER, SQL doesn't know it's a window function.",choices:["Add OVER (ORDER BY order_date) after ROW_NUMBER()","Add GROUP BY order_date","Wrap ROW_NUMBER() in COUNT()"]},
+  {id:13, title:"RIGHT JOIN tables swapped", concept:"RIGHT JOIN",
+   prompt:"Keep all orders even if their customer was deleted.",
+   broken:"SELECT c.name, o.amount FROM orders o RIGHT JOIN customers c ON c.id = o.customer_id;",
+   issue:"Tables are swapped — this keeps all customers, not all orders",
+   fix:"SELECT c.name, o.amount FROM customers c RIGHT JOIN orders o ON c.id = o.customer_id;",
+   hint:"RIGHT JOIN keeps all rows from the RIGHT (second) table.",choices:["Swap tables: customers LEFT, orders RIGHT","Use LEFT JOIN instead","Add WHERE o.customer_id IS NULL"]},
+  {id:14, title:"Wrong date function name", concept:"Date Functions",
+   prompt:"Filter rows to the last 90 days.",
+   broken:"WHERE order_date >= DATE_SUBTRACT(CURDATE(), INTERVAL 90 DAY);",
+   issue:"The function is DATE_SUB(), not DATE_SUBTRACT()",
+   fix:"WHERE order_date >= DATE_SUB(CURDATE(), INTERVAL 90 DAY);",
+   hint:"MySQL's subtraction function is DATE_SUB, not DATE_SUBTRACT.",choices:["Use DATE_SUB(CURDATE(), INTERVAL 90 DAY)","Use CURDATE() - 90","Use NOW() - 90"]},
+  {id:15, title:"Indexing a boolean column", concept:"Indexing",
+   prompt:"Speed up queries that filter on is_deleted.",
+   broken:"CREATE INDEX idx_deleted ON users(is_deleted);  -- is_deleted is TRUE/FALSE only",
+   issue:"Low-cardinality columns (only 2 values) don't benefit from indexes — a full scan is faster",
+   fix:"-- Skip this index; index a high-cardinality column instead\nCREATE INDEX idx_email ON users(email);",
+   hint:"Indexes help when a column has many distinct values (high cardinality).",choices:["Don't index is_deleted — index email or user_id instead","Add a composite index to fix it","Use a UNIQUE index on is_deleted"]},
+  {id:16, title:"Deleting from a view", concept:"Views",
+   prompt:"Remove stale rows by deleting from the view.",
+   broken:"DELETE FROM high_value_customers WHERE total < 5000;",
+   issue:"Views are usually read-only — they store a query, not data; you can't DELETE from them",
+   fix:"-- Delete from the underlying base table instead:\nDELETE FROM orders WHERE customer_id IN (\n  SELECT customer_id FROM orders\n  GROUP BY customer_id HAVING SUM(revenue) < 5000\n);",
+   hint:"Views have no physical data. Modify the base tables directly.",choices:["Delete from the underlying base table, not the view","Add WITH CHECK OPTION to the view","Use DROP VIEW then recreate"]}
 ],
 
 PARSONS: [
@@ -709,7 +812,15 @@ PARSONS: [
   {id:12, title:"Reconciliation — find missing rows", concept:"Reconciliation",
    prompt:"Find customer IDs in the old table that are missing from the new table.",
    lines:["WHERE b.id IS NULL;","FROM customers_old a","LEFT JOIN customers b ON a.id = b.id","SELECT a.id"],
-   answer:[3,1,2,0]}
+   answer:[3,1,2,0]},
+  {id:13, title:"RIGHT JOIN structure", concept:"RIGHT JOIN",
+   prompt:"Get all orders and their customer names — keep all orders even if no customer match.",
+   lines:["RIGHT JOIN orders o ON c.id = o.customer_id;","FROM customers c","SELECT c.name, o.order_id"],
+   answer:[2,1,0]},
+  {id:14, title:"Date filter — last 30 days, grouped by month", concept:"Date Functions",
+   prompt:"Get revenue per month for the past 30 days, newest month first.",
+   lines:["ORDER BY month DESC;","WHERE order_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)","FROM orders","SELECT DATE_FORMAT(order_date,'%Y-%m') AS month, SUM(revenue) AS rev","GROUP BY month"],
+   answer:[3,2,1,4,0]}
 ],
 
 CARDS: [
@@ -740,7 +851,17 @@ CARDS: [
   ["PRIMARY KEY","A column that uniquely identifies each row."],
   ["FOREIGN KEY","A column that references the primary key of another table."],
   ["Reconciliation","Checking data for completeness, accuracy, and consistency."],
-  ["IS NULL","Tests whether a value is NULL (not equal to NULL won't work)."]
+  ["IS NULL","Tests whether a value is NULL (not equal to NULL won't work)."],
+  ["RIGHT JOIN","Returns all rows from the right table; NULLs where no left-side match."],
+  ["FULL OUTER JOIN","Returns all rows from both tables; simulated in MySQL with LEFT JOIN UNION RIGHT JOIN."],
+  ["CURDATE()","Returns today's date in MySQL (date only, no time)."],
+  ["DATE_SUB(date, INTERVAL n unit)","Subtracts a time interval — e.g. DATE_SUB(CURDATE(), INTERVAL 30 DAY)."],
+  ["DATE_FORMAT(date, format)","Formats a date as a string — '%Y-%m' produces '2024-03'."],
+  ["DATEDIFF(date1, date2)","Returns the integer number of days between two dates."],
+  ["Index","A B-Tree data structure that speeds up WHERE/JOIN lookups by avoiding full table scans."],
+  ["Composite index","An index on two or more columns — e.g. (country, city). Column order matters."],
+  ["Temporary Table","A session-scoped physical table; stores intermediate data, auto-deleted on disconnect."],
+  ["View","A stored SQL query — no physical data; re-runs against current base tables on each SELECT."]
 ],
 
 GLOSSARY: [
@@ -767,7 +888,14 @@ GLOSSARY: [
   ["Row","A single record in a table."],
   ["Schema","The structure of a database: tables, columns, data types, and relationships."],
   ["Subquery","A SELECT statement nested inside another SQL statement."],
-  ["Window function","A function that computes a value across a set of rows (a window) without collapsing them."]
+  ["Window function","A function that computes a value across a set of rows (a window) without collapsing them."],
+  ["RIGHT JOIN","Keeps all rows from the right table; fills NULLs for unmatched left-table columns."],
+  ["Full Outer JOIN","Returns all rows from both tables; simulated in MySQL via UNION of LEFT and RIGHT JOINs."],
+  ["Date functions","SQL tools for working with dates: CURDATE(), DATE_SUB(), DATE_FORMAT(), DATEDIFF()."],
+  ["Index (SQL)","A B-Tree structure built on a column to speed up reads. Best on high-cardinality WHERE/JOIN columns."],
+  ["Cardinality","Number of distinct values in a column. High cardinality (e.g. email) benefits from indexing; low cardinality (e.g. gender) does not."],
+  ["Temporary Table","A session-scoped physical table. Stores intermediate data; deleted when the connection closes."],
+  ["View","A stored SQL query that acts like a virtual table. No physical data — re-runs on every SELECT."]
 ],
 
 SCHEMA:`
@@ -1126,7 +1254,11 @@ const LESSON_DRILLS = {
   9:  [['fills',9],['bugs',9],['parsons',7]],
   10: [['fills',11],['bugs',11],['parsons',10]],
   11: [['fills',10],['bugs',10],['parsons',9]],
-  12: [['parsons',11]]
+  12: [['parsons',11]],
+  13: [['fills',12],['bugs',12],['parsons',12]],
+  14: [['fills',13],['bugs',13],['parsons',13]],
+  15: [['fills',14],['bugs',14]],
+  16: [['fills',15],['bugs',15]]
 };
 let guided = null;
 function startGuided(lessonId){

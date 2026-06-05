@@ -594,6 +594,28 @@ LESSONS:[
  notes:"astype() will throw an error if any value can't be converted. Check for nulls and mixed types before casting. Use pd.to_numeric(df['col'], errors='coerce') to convert and turn problem values to NaN instead of crashing.",
  viz:{code:"df['units'] = df['units'].astype(int)\ndf = df.drop_duplicates()\ndf.to_csv('clean_sales.csv', index=False)",out:"df['units'].dtype  →  dtype('int64')\n✓ 23 rows written to clean_sales.csv",caption:"Fix the column type, drop exact duplicates, and write the clean file — the last mile before analysis or hand-off."},
  quiz:{q:"Why use index=False in df.to_csv()?",opts:["To make the file smaller","To prevent the 0,1,2... row numbers from becoming a column in the CSV","To skip the header row","To overwrite the file if it exists"],ans:1,exp:"By default pandas writes the index (row numbers 0, 1, 2...) as the first column. That's rarely what you want in an output file. index=False suppresses it."}
+},
+{id:13,unit:"Unit 3: Data Cleaning",title:"Deep Copy vs Shallow Copy",slug:"copy",
+ story:"You're cleaning a DataFrame. You write df2 = df, modify df2, and discover df was also changed. That's because assignment doesn't copy — both names point to the same object. Python has two kinds of copying: shallow (new container, shared inner data) and deep (completely independent clone). In pandas, this becomes df.copy() — the one time you must call a method to get a real copy.",
+ intro:"A shallow copy creates a new object but shares the inner data — modifying a nested value in the copy also modifies the original. A deep copy clones everything recursively — the copy is completely independent. In pandas, df2 = df is not a copy at all. df.copy() is a deep copy by default.",
+ ral:[
+  {formula:"import copy\noriginal = [[1, 2], [3, 4]]\nshallow = copy.copy(original)\ndeep    = copy.deepcopy(original)\nshallow[0][0] = 99\n# original[0][0] is now 99 too — they share inner data!",say:"A shallow copy shares the inner lists. Changing a nested element in the shallow copy also changes the original. A deep copy is fully independent.",lines:[["copy.copy()","shallow copy — new outer container, shared inner objects"],["copy.deepcopy()","deep copy — fully independent clone at every level"],["shallow[0][0] = 99","modifies the shared inner list — original is also changed"],["deep[0][0] = 99","modifies only the deep copy — original is untouched"]]},
+  {formula:"# pandas — the version that matters for DA work\ndf2 = df              # NOT a copy — same object\ndf2 = df.copy()       # deep copy by default\ndf2 = df.copy(deep=False)  # shallow copy (rare)",say:"In pandas, df2 = df gives you an alias, not a copy. df.copy() gives you a fully independent DataFrame.",lines:[["df2 = df","assignment — both names point to same object in memory"],["df.copy()","creates an independent DataFrame (deep=True by default)"],["df.copy(deep=False)","shallow copy — index/columns copied, underlying data shared"]]}
+ ],
+ notes:"The practical DA rule: whenever you want to transform a subset without touching the original, use df.copy(). It's also the fix for SettingWithCopyWarning — that warning appears when pandas detects you're modifying what might be a view of the original DataFrame.",
+ viz:{code:"import copy\n\noriginal = [[1, 2], [3, 4]]\nshallow  = copy.copy(original)\ndeep     = copy.deepcopy(original)\n\nshallow[0][0] = 99\n\nprint('original:', original)\nprint('shallow: ', shallow)\nprint('deep:    ', deep)",out:"original: [[99, 2], [3, 4]]\nshallow:  [[99, 2], [3, 4]]\ndeep:     [[1, 2], [3, 4]]",caption:"Shallow copy shares inner objects — changing shallow[0][0] changes original[0][0] too. Deep copy is fully independent — original stays [[1,2],[3,4]]."},
+ quiz:{q:"After df2 = df, you run df2.drop('revenue', axis=1, inplace=True). What happens to df?",opts:["df is unchanged — assignment copies the data","df is also missing the revenue column — they share the same object","Only happens if df2 has the same columns","A ValueError is raised"],ans:1,exp:"df2 = df doesn't copy anything — both names reference the same DataFrame object in memory. Modifying df2 in-place also modifies df. Use df2 = df.copy() to get a truly independent DataFrame."}
+},
+{id:14,unit:"Unit 3: Data Cleaning",title:"Decorators",slug:"decorators",
+ story:"You see @staticmethod, @property, or @app.route('/') in a codebase and wonder what the @ symbol does. Those are decorators — Python's way of wrapping a function with extra behavior without editing its body. They show up everywhere: Flask routing, pandas caching, pytest fixtures. Once you understand the pattern, all those @ lines become readable.",
+ intro:"A decorator is a function that takes another function as input, adds behavior around it, and returns a modified version. The @decorator syntax is shorthand for func = decorator(func). You'll use built-in decorators far more often than writing your own — but understanding how they work makes you a much more fluent Python reader.",
+ ral:[
+  {formula:"def log_calls(func):\n    def wrapper(*args, **kwargs):\n        print(f\"Calling {func.__name__}...\")\n        result = func(*args, **kwargs)\n        print(\"Done.\")\n        return result\n    return wrapper\n\n@log_calls\ndef clean_data(df):\n    return df.dropna()",say:"Define a decorator that prints a message before and after any function it wraps. Apply it with @log_calls above clean_data.",lines:[["def log_calls(func):","decorator function — takes a function as its argument"],["def wrapper(*args, **kwargs):","the wrapped version — accepts whatever arguments the original takes"],["func(*args, **kwargs)","calls the original function inside the wrapper"],["return wrapper","returns the enhanced version of func to replace it"],["@log_calls","shorthand for: clean_data = log_calls(clean_data)"]]},
+  {formula:"# Common built-in decorators in the wild\n@staticmethod          # method doesn't need self\n@property              # access method like an attribute\n@functools.lru_cache() # cache results of expensive calls",say:"Three decorators you'll encounter constantly — @staticmethod for utility methods, @property for computed attributes, @lru_cache for memoization.",lines:[["@staticmethod","marks a method that belongs to the class but doesn't need self"],["@property","lets you call a method without () — obj.value instead of obj.value()"],["@lru_cache()","memoizes a function: repeated calls with same args return cached result instantly"]]}
+ ],
+ notes:"*args captures any positional arguments; **kwargs captures any keyword arguments. Together they make wrapper() usable with any function signature, regardless of how many parameters the original takes. This pattern is why decorators are so composable.",
+ viz:{code:"def log_calls(func):\n    def wrapper(*args, **kwargs):\n        print(f'Calling {func.__name__}...')\n        result = func(*args, **kwargs)\n        print('Done.')\n        return result\n    return wrapper\n\n@log_calls\ndef add(a, b):\n    return a + b\n\nprint(add(3, 5))",out:"Calling add...\nDone.\n8",caption:"@log_calls wraps add() so every call prints a before/after message. The call still returns 8 — the decorator adds behavior without replacing the original function's logic."},
+ quiz:{q:"What does @log_calls above a function definition actually do?",opts:["Imports the log_calls module","Runs clean_data = log_calls(clean_data) — replaces the function with its decorated version","Adds a comment that the function is logged","Calls the function immediately at import time"],ans:1,exp:"@decorator is syntactic sugar for func = decorator(func). Python replaces the original function name with the return value of the decorator — the wrapper function. The original function is still called inside the wrapper."}
 }
 ],
 
@@ -609,7 +631,9 @@ FILLS:[
  {id:9,q:"Merge sales and products DataFrames on the 'product' column.",partial:"pd.___(sales, products, on='product')",ans:"pd.merge(sales, products, on='product')",hint:"The pandas function for combining two DataFrames."},
  {id:10,q:"Count the number of null values in each column of df.",partial:"df.isnull().___",ans:"df.isnull().sum()",hint:"Aggregate the True/False values into counts."},
  {id:11,q:"Remove leading and trailing spaces from the rep column.",partial:"df['rep'].str.___",ans:"df['rep'].str.strip()",hint:"The string method that removes whitespace from both ends."},
- {id:12,q:"Write df to a CSV file named 'output.csv' without the index column.",partial:"df.to_csv('output.csv', ___=False)",ans:"df.to_csv('output.csv', index=False)",hint:"The parameter that controls whether row numbers are written."}
+ {id:12,q:"Write df to a CSV file named 'output.csv' without the index column.",partial:"df.to_csv('output.csv', ___=False)",ans:"df.to_csv('output.csv', index=False)",hint:"The parameter that controls whether row numbers are written."},
+ {id:13,q:"Create a deep copy of DataFrame df.",partial:"df2 = df.___",ans:"df2 = df.copy()",hint:"The pandas method that creates an independent copy (deep by default)."},
+ {id:14,q:"Apply a decorator named 'timer' to a function named 'load_data'.",partial:"___\ndef load_data(path):\n    return pd.read_csv(path)",ans:"@timer",hint:"Decorators are applied with @ directly above the function definition."}
 ],
 
 BUGS:[
@@ -624,7 +648,9 @@ BUGS:[
  {id:9,code:"df.dropna('revenue')",broken:"dropna() doesn't take a column name directly — use subset= keyword.",fix:"df.dropna(subset=['revenue'])",hint:"Use subset= to target specific columns.",choices:["Use subset=: df.dropna(subset=['revenue'])","Pass the column positionally","Use df.drop('revenue')"]},
  {id:10,code:"df['rep'].strip()",broken:"strip() is a string method — on a Series you need the .str accessor.",fix:"df['rep'].str.strip()",hint:"Vectorized string operations on a Series use .str.method()",choices:["Use the .str accessor: df['rep'].str.strip()","Use df['rep'].strip(axis=0)","Loop over each value with a for loop"]},
  {id:11,code:"df['units'].astype('integer')",broken:"The correct type name is 'int', not 'integer'.",fix:"df['units'].astype(int)",hint:"Use int, float, or str — not the full word.",choices:["Use int, not 'integer': df['units'].astype(int)","Use astype('integer64')","Use df['units'].toInt()"]},
- {id:12,code:"df.to_csv('output.csv', index=True)",broken:"index=True (the default) writes row numbers as an extra column in the CSV.",fix:"df.to_csv('output.csv', index=False)",hint:"Almost always use index=False when exporting.",choices:["Use index=False","Use index=None","Remove the index argument"]}
+ {id:12,code:"df.to_csv('output.csv', index=True)",broken:"index=True (the default) writes row numbers as an extra column in the CSV.",fix:"df.to_csv('output.csv', index=False)",hint:"Almost always use index=False when exporting.",choices:["Use index=False","Use index=None","Remove the index argument"]},
+ {id:13,code:"df2 = df\ndf2['revenue'] = df2['revenue'] * 1.1\nprint(df['revenue'].mean())",broken:"df2 = df is not a copy — both names point to the same object. Modifying df2 also changes df.",fix:"df2 = df.copy()\ndf2['revenue'] = df2['revenue'] * 1.1\nprint(df['revenue'].mean())",hint:"Use df.copy() to create an independent DataFrame.",choices:["Use df.copy(): df2 = df.copy()","Use df.clone()","Use import copy; copy.copy(df)"]},
+ {id:14,code:"def repeat(func):\n    def wrapper():\n        func()\n        func()\nreturn wrapper",broken:"return wrapper is at module level — it should be indented inside repeat().",fix:"def repeat(func):\n    def wrapper():\n        func()\n        func()\n    return wrapper",hint:"The return statement must be inside the outer function.",choices:["Indent return wrapper inside repeat()","Move wrapper() to module level","Add pass after return wrapper"]}
 ],
 
 WRONG:[
@@ -639,7 +665,9 @@ WRONG:[
  {id:9,q:"df.sort_values('revenue') — the output looks right but df hasn't changed. Why?",opts:["sort_values needs a column list","sort_values doesn't modify df by default — it returns a new sorted DataFrame","You need to call df.refresh()","Sorting only works on numeric columns"],ans:1,exp:"Most pandas methods return a new object and leave the original unchanged. Save the result: df = df.sort_values('revenue') or pass inplace=True."},
  {id:10,q:"df.fillna(df.mean()) fills NaN with column means — but it also fills text columns. What's the risk?",opts:["No risk — fillna is safe on all types","It may fill text/object columns with NaN-like placeholder values or error","It converts all columns to float","It rounds all values"],ans:1,exp:"df.mean() only computes means for numeric columns, but fillna() will try to apply to all columns. Use df.fillna(df.select_dtypes(include='number').mean()) or fill specific columns explicitly."},
  {id:11,q:"df['units'].astype(int) throws ValueError. Most likely cause?",opts:["int is not a valid type","A value in the column is NaN or contains non-numeric text","The column is already int type","astype() needs parentheses"],ans:1,exp:"astype(int) can't convert NaN or strings like 'N/A' to integer. Replace or drop problematic values first: df['units'] = pd.to_numeric(df['units'], errors='coerce') then handle NaNs."},
- {id:12,q:"After a groupby, you try df_grouped['new_col'] = 1 and get a warning. Why?",opts:["You can't add columns to a GroupBy object","df_grouped might be a copy — modifying a copy doesn't update the original","groupby results are read-only","The column name is reserved"],ans:1,exp:"After groupby().agg(), the result is often a view or copy of the original. Use .reset_index() first, then add columns to the clean DataFrame to avoid SettingWithCopyWarning."}
+ {id:12,q:"After a groupby, you try df_grouped['new_col'] = 1 and get a warning. Why?",opts:["You can't add columns to a GroupBy object","df_grouped might be a copy — modifying a copy doesn't update the original","groupby results are read-only","The column name is reserved"],ans:1,exp:"After groupby().agg(), the result is often a view or copy of the original. Use .reset_index() first, then add columns to the clean DataFrame to avoid SettingWithCopyWarning."},
+ {id:13,q:"df2 = df.copy(deep=False) — does modifying df2['revenue'] affect df?",opts:["No — deep=False still creates independent columns","Yes — shallow copy shares the underlying data arrays","Only if you use inplace=True","No — pandas always deep-copies column values"],ans:1,exp:"deep=False creates a shallow copy — index and column labels are new objects, but the underlying data block is shared. Modifying df2['revenue'] in place may affect df. For safety, always use df.copy() (deep=True is the default)."},
+ {id:14,q:"@functools.lru_cache — when does this decorator NOT help?",opts:["When the function returns a mutable object like a DataFrame","When the function is called repeatedly with the same args","When the function has no return value","When the function is very fast"],ans:0,exp:"lru_cache caches return values by argument. If the function returns a mutable object (like a DataFrame or list), modifying the cached result corrupts the cache — all future calls with the same args return the mutated version. Safe for functions returning immutable values: strings, tuples, numbers."}
 ],
 
 PARSONS:[
@@ -654,7 +682,9 @@ PARSONS:[
  {id:9,q:"Order: fill NaN in revenue with 0",pieces:["df['revenue']",".fillna(0)"],ans:["df['revenue']",".fillna(0)"],formula:"df['revenue'].fillna(0)"},
  {id:10,q:"Order: drop duplicate rows keeping first",pieces:[".drop_duplicates()","df"],ans:["df",".drop_duplicates()"],formula:"df.drop_duplicates()"},
  {id:11,q:"Order: convert units column to int",pieces:["df['units']",".astype(int)"],ans:["df['units']",".astype(int)"],formula:"df['units'].astype(int)"},
- {id:12,q:"Order: export df to CSV without index",pieces:["df.to_csv(","'output.csv', index=False)"],ans:["df.to_csv(","'output.csv', index=False)"],formula:"df.to_csv('output.csv', index=False)"}
+ {id:12,q:"Order: export df to CSV without index",pieces:["df.to_csv(","'output.csv', index=False)"],ans:["df.to_csv(","'output.csv', index=False)"],formula:"df.to_csv('output.csv', index=False)"},
+ {id:13,q:"Order: deep copy df into df2",pieces:["df2 = ","df.copy()"],ans:["df2 = ","df.copy()"],formula:"df2 = df.copy()"},
+ {id:14,q:"Order: apply a decorator named log to a function named run",pieces:["def run():","@log"],ans:["@log","def run():"],formula:"@log\ndef run():"}
 ],
 
 ESQL:[
@@ -669,7 +699,9 @@ ESQL:[
  {id:9,q:"Drop rows where the 'rep' column is null.",ans:"df.dropna(subset=['rep'])",hint:"Use the subset parameter to target one column."},
  {id:10,q:"Convert the region column to lowercase.",ans:"df['region'] = df['region'].str.lower()",hint:"Use .str.lower() and assign back."},
  {id:11,q:"Return the 3 rows with the lowest revenue.",ans:"df.nsmallest(3, 'revenue')",hint:"The opposite of nlargest()."},
- {id:12,q:"Remove duplicate rows based on the 'rep' and 'date' columns only.",ans:"df.drop_duplicates(subset=['rep', 'date'])",hint:"Use the subset parameter to specify which columns define a duplicate."}
+ {id:12,q:"Remove duplicate rows based on the 'rep' and 'date' columns only.",ans:"df.drop_duplicates(subset=['rep', 'date'])",hint:"Use the subset parameter to specify which columns define a duplicate."},
+ {id:13,q:"Create a deep copy of df named df_clean.",ans:"df_clean = df.copy()",hint:"df.copy() is deep by default — fully independent."},
+ {id:14,q:"Apply the @staticmethod decorator to a method named helper inside a class.",ans:"@staticmethod",hint:"Decorators go on the line directly above the function definition."}
 ],
 
 CARDS:[
@@ -702,7 +734,10 @@ CARDS:[
  {front:"df.to_csv()",back:"Write DataFrame to CSV.\ndf.to_csv('output.csv', index=False)\nindex=False — don't write row numbers\nAlmost always use index=False\nsep=',' is default"},
  {front:"reset_index()",back:"Move the index into a regular column.\nUsed after groupby to flatten results.\ndf.reset_index() — promotes index to column\ndrop=True — discard the index instead"},
  {front:"NaN",back:"Not a Number — pandas missing value.\ntype is float — NaN is technically a float.\nNaN != NaN (always False) — use isnull() to check.\nPropagates: NaN + 5 = NaN"},
- {front:"pd.to_numeric()",back:"Convert a column to numeric, safely.\npd.to_numeric(df['col'], errors='coerce')\nerrors='coerce' — bad values become NaN\nerrors='raise' — throws error on bad values\nSafer than astype() for messy data"}
+ {front:"pd.to_numeric()",back:"Convert a column to numeric, safely.\npd.to_numeric(df['col'], errors='coerce')\nerrors='coerce' — bad values become NaN\nerrors='raise' — throws error on bad values\nSafer than astype() for messy data"},
+ {front:"df.copy()",back:"Create an independent deep copy of a DataFrame.\ndf2 = df.copy()  ← fully independent\ndf2 = df         ← NOT a copy — same object\ndf.copy(deep=False) → shallow copy (data shared)\nUse whenever you want to modify without touching original"},
+ {front:"Shallow vs Deep Copy",back:"Shallow: new container, shared inner data\n  copy.copy() / df.copy(deep=False)\nDeep: fully independent clone\n  copy.deepcopy() / df.copy()\nRule: if modifying nested data, always use deep copy"},
+ {front:"Decorator",back:"A function that wraps another function.\n@my_decorator\ndef fn(): ...\n# same as: fn = my_decorator(fn)\nCommon: @staticmethod @property @lru_cache\nWrapper uses *args, **kwargs to pass through any arguments"}
 ],
 
 GLOSSARY:[
@@ -726,6 +761,13 @@ GLOSSARY:[
  {term:"dropna()",def:"Remove rows (or columns) with NaN. Use subset= to only drop rows where a specific column is null. Assign back or use inplace=True."},
  {term:"value_counts()",def:"Count occurrences of each unique value in a Series. Returns a Series sorted by frequency. Great for quick categorical breakdowns."},
  {term:"isin()",def:"Filter rows where a column's value is in a given list: df[df['region'].isin(['West','East'])]. More readable than chaining multiple == conditions with |."},
+ {term:"Deep copy",def:"A completely independent clone of an object at every level. In pandas: df.copy() (deep=True by default). Changes to the copy never affect the original."},
+ {term:"Shallow copy",def:"A new container object that shares the underlying inner data. In pandas: df.copy(deep=False). Modifying inner data can affect the original. Use deep copy for safety."},
+ {term:"df2 = df (assignment)",def:"NOT a copy — both names point to the same DataFrame object. Modifying df2 also modifies df. Always use df.copy() when you need an independent copy."},
+ {term:"Decorator",def:"A function that wraps another function to add behavior. @my_decorator above a def is shorthand for func = my_decorator(func). Common built-ins: @staticmethod, @property, @lru_cache."},
+ {term:"@staticmethod",def:"Decorator marking a method that doesn't need self — a utility function that belongs logically to a class but doesn't use instance state."},
+ {term:"@property",def:"Decorator that lets you call a method like an attribute — obj.value instead of obj.value(). Useful for computed or validated attributes."},
+ {term:"functools.lru_cache",def:"Decorator that memoizes a function's return values. Repeated calls with the same arguments return the cached result instantly. Safe only for functions returning immutable values."},
  {term:"nlargest() / nsmallest()",def:"Return the n rows with the highest or lowest values in a column. Shortcut for sort_values + head."},
  {term:"Pyodide",def:"A port of CPython (the standard Python interpreter) to WebAssembly, allowing Python to run in the browser. Used in this app's Terminal for real code execution."},
  {term:"pandas",def:"The primary Python library for data analysis. Built on NumPy. Provides DataFrame and Series, plus tools for loading, cleaning, transforming, and aggregating data."},
@@ -1011,7 +1053,9 @@ const LESSON_DRILLS = {
   9:  [['fills',8],['esql',7],['bugs',7],['parsons',6],['wrong',6]],
   10: [['fills',9],['esql',8],['bugs',8],['parsons',4],['parsons',8],['wrong',9]],
   11: [['fills',10],['esql',9],['bugs',9],['parsons',5],['wrong',5]],
-  12: [['fills',11],['esql',11],['bugs',10],['bugs',11],['parsons',9],['parsons',10],['parsons',11],['wrong',7],['wrong',10]]
+  12: [['fills',11],['esql',11],['bugs',10],['bugs',11],['parsons',9],['parsons',10],['parsons',11],['wrong',7],['wrong',10]],
+  13: [['fills',12],['esql',12],['bugs',12],['wrong',12],['parsons',12]],
+  14: [['fills',13],['esql',13],['bugs',13],['wrong',13],['parsons',13]]
 };
 
 // ─── GUIDED PATH (lesson → its drills → next lesson) ────────────────────────
