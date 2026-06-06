@@ -9,6 +9,18 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.48.0] — 2026-06-05 — Excel expanded to 28 lessons (Units 4–6)
+
+Excel is now the deepest kit, matching Tableau's lesson count. Added 3 new units, 12 new lessons:
+
+- **Unit 4: Deeper Formulas** — Excel Tables (Ctrl+T), Nested IF/IFS, INDEX+MATCH, SUMPRODUCT
+- **Unit 5: Charts & Formatting** — Your First Chart, Conditional Formatting, Data Validation, Named Ranges
+- **Unit 6: Power Tools** — Power Query Basics, Dynamic Arrays (FILTER/UNIQUE/SORT), Keyboard Shortcuts & Speed, Protecting Your Work
+
+Drill arrays expanded: FILLS/BUGS/WRONG/ESQL now 24 entries each; PARSONS 22 (shortcuts+protecting skip — no formula to order). LESSON_DRILLS entries added for all 12 new ids. 6 new CARDS, 4 new GLOSSARY terms.
+
+---
+
 ## [1.47.0] — 2026-06-05 — Excel polish: home lessons section + nav flow fixes (all kits)
 
 **Excel kit — polished example:**
