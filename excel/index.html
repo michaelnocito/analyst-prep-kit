@@ -200,6 +200,8 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
   .path-grid{grid-template-columns:1fr 1fr}
   .pivot-layout{grid-template-columns:1fr}
   .pivot-zones{grid-template-columns:1fr}
+  nav{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:4px;padding:0 10px;scrollbar-width:none}
+  nav::-webkit-scrollbar{display:none}
 }
 
 /* -- Sprint Bar ---------------------------------------- */
@@ -301,6 +303,15 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
     <div class="resume-card-watermark" id="resumeWM">1</div>
   </div>
 
+  <div class="card" style="margin-bottom:16px">
+    <div class="flex-between mb12">
+      <h2 style="margin:0">Lessons</h2>
+      <button class="btn btn-outline btn-sm" onclick="show('lessons')">Browse all →</button>
+    </div>
+    <div id="home-lesson-units" style="margin-bottom:4px"></div>
+    <div id="home-next-lessons"></div>
+  </div>
+
   <div class="card" style="border-color:var(--accent);cursor:pointer;margin-bottom:16px" onclick="show('pivot')">
     <div class="flex-between">
       <div>
@@ -357,7 +368,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 <!-- LESSONS LIST -->
 <div id="view-lessons" class="view">
   <h1>Lessons</h1>
-  <p>12 lessons across three units. Each one ends with a short quiz, then drills.</p>
+  <p>16 lessons across four units. Each one ends with a short quiz, then drills.</p>
   <div id="lessonList" class="mt16"></div>
 </div>
 
@@ -975,6 +986,17 @@ function renderHome(){
       <span class="readiness-pct">${Math.round(p)}%</span>
     </div>`;
   }).join('');
+
+  // Lesson units overview + next-up on home screen
+  const _units=[...new Set(DATA.LESSONS.map(l=>l.unit))];
+  document.getElementById('home-lesson-units').innerHTML=_units.map(unit=>{
+    const ls=DATA.LESSONS.filter(l=>l.unit===unit);
+    const d=ls.filter(l=>S.lessonsDone.includes(l.id)).length;
+    const p=Math.round(d/ls.length*100);
+    return `<div style="margin-bottom:10px"><div class="flex-between" style="margin-bottom:3px"><span style="font-size:13px;font-weight:600">${unit}</span><span style="font-size:12px;font-family:var(--mono);color:var(--dim)">${d}/${ls.length}</span></div><div class="prog-bar" style="height:5px"><div class="prog-fill" style="width:${p}%"></div></div></div>`;
+  }).join('');
+  const _nxtL=DATA.LESSONS.filter(l=>!S.lessonsDone.includes(l.id)).slice(0,3);
+  document.getElementById('home-next-lessons').innerHTML=_nxtL.length?_nxtL.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 2px;border-top:1px solid var(--border);cursor:pointer" onclick="openLesson(${l.id})"><div><span style="font-size:11px;color:var(--dim);font-family:var(--mono);margin-right:8px">L${lessonPos(l.id)+1}</span><span style="font-size:14px;font-weight:600">${l.title}</span></div><span style="color:var(--accent);font-weight:700">→</span></div>`).join(''):`<p style="font-size:13px;color:var(--dim);margin:8px 0 0">All 16 lessons complete! 🎉</p>`;
 }
 
 function resumeLesson(){
@@ -1106,8 +1128,8 @@ function renderLesson(){
         <button class="btn btn-primary" onclick="startGuided(${l.id})">Practice this &rarr;</button>
         ${isLast
           ? `<a href="../final/" class="btn btn-outline" style="text-decoration:none">Try the Final Exam &rarr;</a>`
-          : `<button class="btn btn-ghost" onclick="openLesson(${nextLessonId(l.id)})">Skip to next lesson &rarr;</button>`}
-        <button class="btn btn-ghost btn-sm" onclick="show('lessons')">All lessons</button>
+          : `<button class="btn btn-outline" onclick="openLesson(${nextLessonId(l.id)})">Next Lesson &rarr;</button>`}
+        <button class="btn btn-outline btn-sm" onclick="show('lessons')">All lessons</button>
       </div>
     </div>`;
   }
@@ -1157,10 +1179,14 @@ function retryQuiz(lid){
 
 function finishLesson(lid){
   if(!S.lessonsDone.includes(lid)) S.lessonsDone.push(lid);
-  S.currentLesson = Math.min(lid+1, DATA.LESSONS.length);
+  const _nxtId=nextLessonId(lid);
+  S.currentLesson=_nxtId!==null?_nxtId:lid;
   S.lessonStage = 'done';
   save();
   if(S.lessonsDone.length % 3 === 0) celebrate(true, `🔥 ${S.lessonsDone.length} lessons done!`);
+  // Unit completion celebration
+  const _fl=DATA.LESSONS.find(x=>x.id===lid);
+  if(_fl){ const _ul=DATA.LESSONS.filter(x=>x.unit===_fl.unit); if(_ul.every(x=>S.lessonsDone.includes(x.id))) setTimeout(()=>celebrate(true,`🎊 ${_fl.unit} complete!`),1500); }
   renderLesson();
   // Land the learner on the "Lesson complete" card + its action buttons,
   // instead of leaving them scrolled at the (now-gone) quiz.
@@ -1264,7 +1290,8 @@ function guidedPrev(){
   if(guided && guided.pos>0){ guided.pos--; renderGuidedStep(); }
 }
 function gotoNextLesson(lid){
-  if(lid < DATA.LESSONS.length){ openLesson(lid+1); }
+  const _nxt=nextLessonId(lid);
+  if(_nxt!==null){ openLesson(_nxt); }
   else { show('home'); celebrate(true,'🎉 You finished every Excel lesson!'); }
 }
 

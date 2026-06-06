@@ -9,6 +9,25 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.47.0] — 2026-06-05 — Excel polish: home lessons section + nav flow fixes (all kits)
+
+**Excel kit — polished example:**
+- **Home screen lessons section:** new "Lessons" card shows unit-by-unit progress bars + up to 3 next-up lessons with direct links. Home now answers "where are the lessons?" without hunting the nav.
+- **Fixed: `finishLesson` ID bug** — was using `lid+1` (breaks for Unit 0 ids 101–104); now uses `nextLessonId()` (array-position based). After L104, correctly advances to L1 instead of a nonexistent id=105.
+- **Fixed: `gotoNextLesson` ID bug** — was `lid < DATA.LESSONS.length` + `lid+1` (after L104 the condition `104 < 16` fired "you finished everything!"). Now uses `nextLessonId()`.
+- **Fixed: invisible "Next Lesson" button** — was `btn-ghost` (white text = invisible in light mode). Changed to `btn-outline`, renamed from "Skip to next lesson" to "Next Lesson →".
+- **Unit completion celebrations** — completing the last lesson in a unit now fires a 🎊 toast.
+- **Mobile nav** — nav now scrolls horizontally on ≤600px instead of wrapping into multiple rows.
+- **Stale lesson count** — lessons view header updated from "12 lessons" to "16 lessons across four units".
+
+**All kits (Excel, SQL, Python, Stats, Power BI) — same nav fixes:**
+- `gotoNextLesson` rewritten to use `nextLessonId()` in all 5 affected kits.
+- Python: `finishLesson` currentLesson advancement also fixed.
+- Next-lesson buttons changed from `btn-ghost` to `btn-outline` where applicable.
+- Tableau was already correct (pilot kit); no changes needed.
+
+---
+
 ## [1.46.0] — 2026-06-04 — Curriculum rollout complete: all 5 remaining kits
 
 Full 6-month curriculum pattern rolled to Excel, SQL, Python, Stats, and Power BI.
