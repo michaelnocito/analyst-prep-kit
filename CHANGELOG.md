@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.49.1] — 2026-06-08 — SQL Parsons: scaffold layout fix (Task 1 ✅)
+
+After hint fires, layout restacks to Answer-on-top / Available-Lines-below — reads top→bottom naturally. Reset restores original side-by-side.
+
+## [1.49.0] — 2026-06-08 — SQL Parsons: progressive scaffold on wrong answer (Task 1)
+
+Put in Order drill now gives progressive help when wrong:
+- **1st wrong attempt:** first half of lines snap into the answer zone in correct order (locked/dimmed). Message: "first N lines placed for you — drag the rest."
+- **2nd wrong attempt:** full correct answer shown locked. "Full answer shown — study the order." Next → button appears.
+- Reset and correct answer both clear the attempt counter.
+
+---
+
 ## [1.48.0] — 2026-06-05 — Excel expanded to 28 lessons (Units 4–6)
 
 Excel is now the deepest kit, matching Tableau's lesson count. Added 3 new units, 12 new lessons:
