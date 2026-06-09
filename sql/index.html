@@ -989,6 +989,7 @@ function navigate(view, ...args){
   else if(view==='bug') renderBug(args[0]);
   else if(view==='parsons') renderParsons(args[0]);
   else if(view==='lab') renderLab();
+  else if(view==='lab-join') renderLabJoin();
   else if(view==='cards') renderCards();
   else if(view==='glossary') renderGlossary();
   else if(view==='settings') renderSettings();
@@ -1587,9 +1588,35 @@ function resetParsons(idx){ delete _parsonsAttempts[idx]; navigate('parsons', id
 
 // ─── LAB ───────────────────────────────────────────────────────────────────
 let sqlDb = null;
+let _joinTaskIdx = 0;
+let _joinCompareOpen = false;
+let _joinHintOpen = false;
+
+// Shared DB init — used by Free Query and JOIN Practice
+async function ensureDb(statusEl){
+  if(sqlDb) return true;
+  if(statusEl) statusEl.innerHTML = '<span class="terminal-info">Loading SQL engine…</span>';
+  try {
+    const SQL = await initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}` });
+    sqlDb = new SQL.Database();
+    sqlDb.run(DATA.SCHEMA);
+    return true;
+  } catch(e){
+    if(statusEl) statusEl.innerHTML = `<span class="terminal-error">Failed to load SQL engine: ${e.message}</span>`;
+    return false;
+  }
+}
+
+// Sub-tabs rendered at the top of both lab views
+function labTabsHTML(active){
+  const tab = (id, label, a) => `<button onclick="navigate('${id}')" style="background:none;border:none;padding:10px 20px;font:600 14px var(--font);cursor:pointer;color:${active===a?'var(--accent)':'var(--muted)'};border-bottom:2px solid ${active===a?'var(--accent)':'transparent'};transition:.15s">${label}</button>`;
+  return `<div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:20px">${tab('lab','🔧 Free Query','free')}${tab('lab-join','🔗 JOIN Practice','join')}</div>`;
+}
+
 async function renderLab(){
   document.getElementById('main').innerHTML = `
     <h1>SQL Lab</h1>
+    ${labTabsHTML('free')}
     <p>Run live SQL queries against a sample dataset. Practice anything.</p>
     <div class="card card-sm mb">
       <strong>Tables:</strong> <code style="font-family:var(--mono);font-size:13px">customers</code>, <code style="font-family:var(--mono);font-size:13px">orders</code>, <code style="font-family:var(--mono);font-size:13px">customers_old</code>
@@ -1608,20 +1635,8 @@ async function renderLab(){
       </div>
       <div class="terminal-results" id="sql-results"><span class="terminal-info">Results appear here…</span></div>
     </div>`;
-
-  if(sqlDb) return;
-
-  const resultsEl = document.getElementById('sql-results');
-  if(resultsEl) resultsEl.innerHTML = '<span class="terminal-info">Loading SQL engine…</span>';
-
-  try {
-    const SQL = await initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}` });
-    sqlDb = new SQL.Database();
-    sqlDb.run(DATA.SCHEMA);
-    if(resultsEl) resultsEl.innerHTML = '<span class="terminal-info">Ready — run a query.</span>';
-  } catch(e){
-    if(resultsEl) resultsEl.innerHTML = `<span class="terminal-error">Failed to load SQL engine: ${e.message}</span>`;
-  }
+  const ok = await ensureDb(document.getElementById('sql-results'));
+  if(ok){ const el=document.getElementById('sql-results'); if(el) el.innerHTML='<span class="terminal-info">Ready — run a query.</span>'; }
 }
 
 function runSQL(){
@@ -1640,6 +1655,208 @@ function runSQL(){
   } catch(e){
     results.innerHTML = `<span class="terminal-error">Error: ${e.message}</span>`;
   }
+}
+
+// ─── JOIN PRACTICE ─────────────────────────────────────────────────────────
+const JOIN_TASKS = [
+  { id:1, title:"Basic INNER JOIN", concept:"Only rows matched in both tables",
+    prompt:"Show each customer's name and their order amount. Only include customers who have placed at least one order.",
+    starter:"SELECT c.name, o.amount\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id;",
+    hint:"INNER JOIN is like matching socks — you only keep pairs. Connect customers.id on the left to orders.customer_id on the right. Customers with no orders disappear.",
+    expectedRows:5,
+    note:"5 rows — one per order. Alice appears twice because she placed 2 orders. Customers with no orders are excluded entirely." },
+  { id:2, title:"LEFT JOIN — keep every customer", concept:"All left-table rows, NULLs where no match",
+    prompt:"Show ALL 8 customers and any orders they've placed. Customers with no orders should still appear — their order columns will be NULL.",
+    starter:"SELECT c.name, o.order_id, o.amount\nFROM customers c\nLEFT JOIN orders o ON c.id = o.customer_id;",
+    hint:"LEFT JOIN keeps every row from the left table (customers) even without a matching order. Unmatched right-side columns come back as NULL — like a class roster where missing homework shows as blank, not absent.",
+    expectedRows:9,
+    note:"9 rows — all 8 customers included. Alice appears twice (2 orders). Bob, Eva, Frank, and Henry show NULL in order columns — they're on the roster but have no homework turned in." },
+  { id:3, title:"Find customers with no orders", concept:"LEFT JOIN + IS NULL gap pattern",
+    prompt:"Find only the customers who have never placed an order. Use a LEFT JOIN, then filter to keep only the unmatched rows.",
+    starter:"SELECT c.name\nFROM customers c\nLEFT JOIN orders o ON c.id = o.customer_id\nWHERE o.customer_id IS NULL;",
+    hint:"LEFT JOIN first to keep all customers. Then WHERE o.customer_id IS NULL keeps only the rows where no order matched — those NULL rows are the gap. This LEFT JOIN + IS NULL is the classic pattern for finding 'what's missing.'",
+    expectedRows:4,
+    note:"4 rows — Bob, Eva, Frank, Henry. These customers exist but have never placed an order. This is one of the most common analyst patterns: find what's missing from the right side." },
+  { id:4, title:"Revenue per customer", concept:"JOIN + GROUP BY + SUM",
+    prompt:"Show each customer's name and their total order revenue, sorted highest first. Only include customers who have placed at least one order.",
+    starter:"SELECT c.name, SUM(o.amount) AS total_revenue\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id\nGROUP BY c.name\nORDER BY total_revenue DESC;",
+    hint:"INNER JOIN first (only customers with orders). GROUP BY c.name collapses Alice's 2 rows into 1. SUM(o.amount) totals each group. ORDER BY total_revenue DESC puts the highest spender first.",
+    expectedRows:4,
+    note:"4 rows — one per customer who has orders. Alice leads because she placed 2 orders. GROUP BY collapsed her duplicate rows and SUM added their amounts together." }
+];
+
+async function renderLabJoin(){
+  _joinHintOpen = false;
+  _joinCompareOpen = false;
+  const t = JOIN_TASKS[_joinTaskIdx];
+
+  const schemaHTML = `
+    <div class="card card-sm" style="margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">🗄 The Tables</div>
+      <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap">
+        <div style="flex:1;min-width:130px;background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:13px">
+          <div style="font-weight:700;color:var(--accent);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">customers</div>
+          <div style="margin-bottom:5px"><span style="color:var(--text);font-weight:700">id</span> <span style="font-size:11px;background:rgba(47,109,240,.15);color:var(--accent);border-radius:4px;padding:1px 6px">PK</span></div>
+          <div style="color:var(--muted);margin-bottom:5px">name</div>
+          <div style="color:var(--muted);margin-bottom:5px">email</div>
+          <div style="color:var(--muted)">status</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:0 12px;min-width:80px;text-align:center">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">customers.id</div>
+          <div style="color:var(--accent);font-size:20px;line-height:1">⟶</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">orders.customer_id</div>
+        </div>
+        <div style="flex:1;min-width:130px;background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:13px">
+          <div style="font-weight:700;color:var(--accent);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">orders</div>
+          <div style="color:var(--muted);margin-bottom:5px">order_id</div>
+          <div style="margin-bottom:5px"><span style="color:var(--text);font-weight:700">customer_id</span> <span style="font-size:11px;background:rgba(47,109,240,.15);color:var(--accent);border-radius:4px;padding:1px 6px">FK</span></div>
+          <div style="color:var(--muted);margin-bottom:5px">order_date</div>
+          <div style="color:var(--muted)">amount</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:var(--muted)">8 customers · 5 orders · joined on <code style="font-family:var(--mono)">customers.id = orders.customer_id</code></div>
+    </div>`;
+
+  const dots = JOIN_TASKS.map((_,i) =>
+    `<span onclick="_joinTaskIdx=${i};renderLabJoin()" style="display:inline-block;width:10px;height:10px;border-radius:50%;cursor:pointer;background:${i===_joinTaskIdx?'var(--accent)':'rgba(127,127,127,.3)'};transition:.15s"></span>`
+  ).join('');
+
+  document.getElementById('main').innerHTML = `
+    <h1>SQL Lab</h1>
+    ${labTabsHTML('join')}
+    ${schemaHTML}
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <span style="font-size:12px;color:var(--muted)">Task ${_joinTaskIdx+1} of ${JOIN_TASKS.length}</span>
+        <div style="display:flex;gap:6px;align-items:center">${dots}</div>
+        <span style="margin-left:auto;font-size:12px;font-weight:600;background:rgba(47,109,240,.12);color:var(--accent);border:1px solid rgba(47,109,240,.3);border-radius:20px;padding:3px 12px">${t.concept}</span>
+      </div>
+      <h2 style="margin-bottom:8px">${t.title}</h2>
+      <p style="margin-bottom:16px">${t.prompt}</p>
+      <div class="terminal-wrap">
+        <div class="terminal-toolbar">
+          <div class="terminal-dot" style="background:#ff5f57"></div>
+          <div class="terminal-dot" style="background:#febc2e"></div>
+          <div class="terminal-dot" style="background:#28c840"></div>
+          <span class="terminal-title">SQL Terminal — Task ${_joinTaskIdx+1}</span>
+        </div>
+        <textarea class="terminal-editor" id="join-editor" spellcheck="false" style="min-height:90px">${t.starter}</textarea>
+        <div class="terminal-actions" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm" onclick="runJoinQuery(${_joinTaskIdx})">▶ Run</button>
+            <button class="btn btn-ghost btn-sm" id="join-hint-btn" onclick="toggleJoinHint()">💡 Hint</button>
+          </div>
+          <div style="display:flex;gap:8px">
+            ${_joinTaskIdx > 0 ? `<button class="btn btn-ghost btn-sm" onclick="_joinTaskIdx=${_joinTaskIdx-1};renderLabJoin()">← Prev</button>` : ''}
+            ${_joinTaskIdx < JOIN_TASKS.length-1 ? `<button class="btn btn-primary btn-sm" onclick="_joinTaskIdx=${_joinTaskIdx+1};renderLabJoin()">Next Task →</button>` : '<button class="btn btn-ghost btn-sm" onclick="navigate(\'lab-join\');_joinTaskIdx=0;renderLabJoin()">↺ Restart</button>'}
+          </div>
+        </div>
+        <div id="join-hint" style="display:none;padding:12px 16px;background:rgba(47,109,240,.07);border-top:1px solid rgba(47,109,240,.2);font-size:13px;color:var(--text);line-height:1.65">💡 ${t.hint}</div>
+        <div class="terminal-results" id="join-results"><span class="terminal-info">Edit the query above and click Run →</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleJoinCompare()">
+        <div>
+          <h3 style="margin-bottom:2px">🔄 Compare JOIN Types</h3>
+          <p class="text-muted text-sm" style="margin:0">See INNER vs LEFT side by side — watch what happens to unmatched rows</p>
+        </div>
+        <span id="compare-chev" style="color:var(--muted);font-size:20px;flex-shrink:0;margin-left:12px">▾</span>
+      </div>
+      <div id="compare-body" style="display:none;margin-top:16px">
+        <div id="compare-content"></div>
+      </div>
+    </div>`;
+
+  const ok = await ensureDb(document.getElementById('join-results'));
+  if(ok){ const el=document.getElementById('join-results'); if(el) el.innerHTML='<span class="terminal-info">Edit the query above and click Run →</span>'; }
+}
+
+function toggleJoinHint(){
+  _joinHintOpen = !_joinHintOpen;
+  const el = document.getElementById('join-hint');
+  const btn = document.getElementById('join-hint-btn');
+  if(el) el.style.display = _joinHintOpen ? 'block' : 'none';
+  if(btn) btn.style.color = _joinHintOpen ? 'var(--accent)' : '';
+}
+
+function runJoinQuery(taskIdx){
+  const editor = document.getElementById('join-editor');
+  const results = document.getElementById('join-results');
+  if(!results) return;
+  if(!sqlDb){ results.innerHTML = '<span class="terminal-error">SQL engine not ready yet.</span>'; return; }
+  const sql = editor ? editor.value.trim() : '';
+  if(!sql){ results.innerHTML = '<span class="terminal-info">Enter a query above.</span>'; return; }
+  const t = JOIN_TASKS[taskIdx];
+  try {
+    const res = sqlDb.exec(sql);
+    if(!res.length){ results.innerHTML = '<span class="terminal-info">Query ran — no rows returned. Check your JOIN condition and make sure the ON clause matches the right columns.</span>'; return; }
+    const {columns, values} = res[0];
+    const thead = `<tr>${columns.map(c=>`<th>${c}</th>`).join('')}</tr>`;
+    const tbody = values.map(row=>`<tr>${row.map(v=>`<td>${v==null?'<em style="color:var(--red);font-style:italic">NULL</em>':v}</td>`).join('')}</tr>`).join('');
+    const n = values.length;
+    const countBadge = n === t.expectedRows
+      ? `<span style="color:var(--green);font-weight:700">✓ ${n} row${n!==1?'s':''}</span>`
+      : `<span style="color:var(--muted)">${n} row${n!==1?'s':''} <span style="font-size:11px">(expected ~${t.expectedRows})</span></span>`;
+    results.innerHTML = `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>
+      <div style="margin-top:10px;display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap">
+        ${countBadge}
+        <span style="color:var(--muted);font-size:12px">— ${t.note}</span>
+      </div>`;
+  } catch(e){
+    results.innerHTML = `<span class="terminal-error">Error: ${e.message}</span>`;
+  }
+}
+
+function toggleJoinCompare(){
+  _joinCompareOpen = !_joinCompareOpen;
+  const body = document.getElementById('compare-body');
+  const chev = document.getElementById('compare-chev');
+  if(body) body.style.display = _joinCompareOpen ? 'block' : 'none';
+  if(chev) chev.textContent = _joinCompareOpen ? '▴' : '▾';
+  if(_joinCompareOpen) renderJoinCompare();
+}
+
+function _joinResultTable(sql, accentColor){
+  if(!sqlDb) return '<span style="color:var(--muted);font-size:12px">DB not ready</span>';
+  try {
+    const res = sqlDb.exec(sql);
+    if(!res.length) return '<div style="font-size:12px;color:var(--muted);padding:8px">No rows returned</div>';
+    const {columns, values} = res[0];
+    const th = columns.map(c=>`<th style="text-align:left;padding:5px 10px;border-bottom:2px solid ${accentColor};color:${accentColor};white-space:nowrap;font-size:12px">${c}</th>`).join('');
+    const tb = values.map(r=>`<tr>${r.map(v=>`<td style="padding:4px 10px;border-bottom:1px solid rgba(127,127,127,.15);font-size:12px;white-space:nowrap">${v==null?'<em style="color:var(--red);font-style:italic">NULL</em>':v}</td>`).join('')}</tr>`).join('');
+    return `<div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%"><thead><tr>${th}</tr></thead><tbody>${tb}</tbody></table></div>
+      <div style="margin-top:6px;font-size:11px;font-weight:700;color:${accentColor}">${values.length} row${values.length!==1?'s':''}</div>`;
+  } catch(e){ return `<span style="color:var(--red);font-size:12px">Error: ${e.message}</span>`; }
+}
+
+function renderJoinCompare(){
+  const content = document.getElementById('compare-content');
+  if(!content || !sqlDb) return;
+  const SQ_INNER = "SELECT c.name, o.order_id, o.amount FROM customers c INNER JOIN orders o ON c.id = o.customer_id";
+  const SQ_LEFT  = "SELECT c.name, o.order_id, o.amount FROM customers c LEFT JOIN orders o ON c.id = o.customer_id";
+  const col = (label, color, code, tableHTML, note) => `
+    <div style="min-width:260px;flex:1">
+      <div style="font-size:12px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${label}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surf2);border-radius:6px;padding:8px 10px;margin-bottom:10px;white-space:pre-wrap;line-height:1.5">${code}</div>
+      ${tableHTML}
+      <div style="margin-top:8px;font-size:12px;color:var(--muted);background:${color === 'var(--green)' ? 'rgba(57,185,80,.08)' : 'rgba(47,109,240,.08)'};border-radius:6px;padding:8px 10px;line-height:1.5">${note}</div>
+    </div>`;
+  content.innerHTML = `
+    <p class="text-muted text-sm" style="margin-bottom:14px">Same two tables, same ON clause — only the JOIN keyword changes. Count the rows.</p>
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      ${col('INNER JOIN','var(--green)',
+        'SELECT c.name, o.order_id, o.amount\nFROM customers c\nINNER JOIN orders o\n  ON c.id = o.customer_id',
+        _joinResultTable(SQ_INNER,'var(--green)'),
+        'Only customers who have orders. Unmatched customers are <strong>dropped</strong>.')}
+      ${col('LEFT JOIN','var(--accent)',
+        'SELECT c.name, o.order_id, o.amount\nFROM customers c\nLEFT JOIN orders o\n  ON c.id = o.customer_id',
+        _joinResultTable(SQ_LEFT,'var(--accent)'),
+        'Every customer kept. Unmatched ones show <em style="color:var(--red)">NULL</em> — that\'s 4 extra rows vs INNER.')}
+    </div>
+    <div style="margin-top:16px;padding:12px 16px;background:var(--surf2);border-radius:8px;font-size:13px;color:var(--muted);line-height:1.65">
+      💡 <strong style="color:var(--text)">What changed:</strong> INNER returned 5 rows — only the orders that matched a customer. LEFT returned 9 rows — all 8 customers, but Alice's 2 orders made her appear twice. The 4 rows with <em style="color:var(--red)">NULL</em> are Bob, Eva, Frank, and Henry — customers who exist but placed no orders. Those rows are what INNER silently dropped.
+    </div>`;
 }
 
 // ─── FLASHCARDS ────────────────────────────────────────────────────────────
