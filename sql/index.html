@@ -1677,25 +1677,29 @@ function runSQL(){
 const JOIN_TASKS = [
   { id:1, title:"Basic INNER JOIN", concept:"Only rows matched in both tables",
     prompt:"Show each customer's name and their order amount. Only include customers who have placed at least one order.",
-    starter:"SELECT c.name, o.amount\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id;",
+    scaffold:"-- Show each customer's name and their order amount\n-- Only include customers who have placed at least one order\n\n",
+    answer:"SELECT c.name, o.amount\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id;",
     hint:"INNER JOIN is like matching socks — you only keep pairs. Connect customers.id on the left to orders.customer_id on the right. Customers with no orders disappear.",
     expectedRows:5,
     note:"5 rows — one per order. Alice appears twice because she placed 2 orders. Customers with no orders are excluded entirely." },
   { id:2, title:"LEFT JOIN — keep every customer", concept:"All left-table rows, NULLs where no match",
     prompt:"Show ALL 8 customers and any orders they've placed. Customers with no orders should still appear — their order columns will be NULL.",
-    starter:"SELECT c.name, o.order_id, o.amount\nFROM customers c\nLEFT JOIN orders o ON c.id = o.customer_id;",
+    scaffold:"-- Show ALL customers and any orders they've placed\n-- Keep customers even if they have no orders\n\n",
+    answer:"SELECT c.name, o.order_id, o.amount\nFROM customers c\nLEFT JOIN orders o ON c.id = o.customer_id;",
     hint:"LEFT JOIN keeps every row from the left table (customers) even without a matching order. Unmatched right-side columns come back as NULL — like a class roster where missing homework shows as blank, not absent.",
     expectedRows:9,
     note:"9 rows — all 8 customers included. Alice appears twice (2 orders). Bob, Eva, Frank, and Henry show NULL in order columns — they're on the roster but have no homework turned in." },
   { id:3, title:"Find customers with no orders", concept:"LEFT JOIN + IS NULL gap pattern",
     prompt:"Find only the customers who have never placed an order. Use a LEFT JOIN, then filter to keep only the unmatched rows.",
-    starter:"SELECT c.name\nFROM customers c\nLEFT JOIN orders o ON c.id = o.customer_id\nWHERE o.customer_id IS NULL;",
+    scaffold:"-- Find customers who have NEVER placed an order\n-- Tip: LEFT JOIN then filter on NULL\n\n",
+    answer:"SELECT c.name\nFROM customers c\nLEFT JOIN orders o ON c.id = o.customer_id\nWHERE o.customer_id IS NULL;",
     hint:"LEFT JOIN first to keep all customers. Then WHERE o.customer_id IS NULL keeps only the rows where no order matched — those NULL rows are the gap. This LEFT JOIN + IS NULL is the classic pattern for finding 'what's missing.'",
     expectedRows:4,
     note:"4 rows — Bob, Eva, Frank, Henry. These customers exist but have never placed an order. This is one of the most common analyst patterns: find what's missing from the right side." },
   { id:4, title:"Revenue per customer", concept:"JOIN + GROUP BY + SUM",
     prompt:"Show each customer's name and their total order revenue, sorted highest first. Only include customers who have placed at least one order.",
-    starter:"SELECT c.name, SUM(o.amount) AS total_revenue\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id\nGROUP BY c.name\nORDER BY total_revenue DESC;",
+    scaffold:"-- Each customer's total revenue, highest first\n-- Only customers with at least one order\n\n",
+    answer:"SELECT c.name, SUM(o.amount) AS total_revenue\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id\nGROUP BY c.name\nORDER BY total_revenue DESC;",
     hint:"INNER JOIN first (only customers with orders). GROUP BY c.name collapses Alice's 2 rows into 1. SUM(o.amount) totals each group. ORDER BY total_revenue DESC puts the highest spender first.",
     expectedRows:4,
     note:"4 rows — one per customer who has orders. Alice leads because she placed 2 orders. GROUP BY collapsed her duplicate rows and SUM added their amounts together." }
@@ -1756,11 +1760,12 @@ async function renderLabJoin(){
           <div class="terminal-dot" style="background:#28c840"></div>
           <span class="terminal-title">SQL Terminal — Task ${_joinTaskIdx+1}</span>
         </div>
-        <textarea class="terminal-editor" id="join-editor" spellcheck="false" style="min-height:90px">${t.starter}</textarea>
+        <textarea class="terminal-editor" id="join-editor" spellcheck="false" style="min-height:90px">${t.scaffold}</textarea>
         <div class="terminal-actions" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
           <div style="display:flex;gap:8px">
             <button class="btn btn-primary btn-sm" onclick="runJoinQuery(${_joinTaskIdx})">▶ Run</button>
             <button class="btn btn-ghost btn-sm" id="join-hint-btn" onclick="toggleJoinHint()">💡 Hint</button>
+            <button class="btn btn-ghost btn-sm" style="opacity:.55;font-size:11px" onclick="showLabAnswer('join-editor',JOIN_TASKS[${_joinTaskIdx}].answer)">📋 Show Answer</button>
           </div>
           <div style="display:flex;gap:8px">
             ${_joinTaskIdx > 0 ? `<button class="btn btn-ghost btn-sm" onclick="_joinTaskIdx=${_joinTaskIdx-1};renderLabJoin()">← Prev</button>` : ''}
@@ -1879,25 +1884,29 @@ function renderJoinCompare(){
 const AGG_TASKS = [
   { id:1, title:"Count by group", concept:"GROUP BY + COUNT",
     prompt:"How many customers are in each status group? Show status and the count, sorted by count highest first.",
-    starter:"SELECT status, COUNT(*) AS customer_count\nFROM customers\nGROUP BY status\nORDER BY customer_count DESC;",
+    scaffold:"-- Count customers per status, highest first\n\n",
+    answer:"SELECT status, COUNT(*) AS customer_count\nFROM customers\nGROUP BY status\nORDER BY customer_count DESC;",
     hint:"GROUP BY splits rows into groups — one per distinct status value. COUNT(*) counts every row in each group. ORDER BY the alias (customer_count) DESC puts the biggest group first.",
     expectedRows:3,
     note:"3 rows — one per status (active, inactive, pending if present). GROUP BY collapsed all 8 customers into 3 summary rows." },
   { id:2, title:"Total revenue per customer", concept:"SUM + GROUP BY",
     prompt:"Show each customer's name and their total order revenue. Only include customers who have placed at least one order.",
-    starter:"SELECT c.name, SUM(o.amount) AS total_revenue\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id\nGROUP BY c.name;",
+    scaffold:"-- Each customer's total revenue\n-- Only customers with at least one order\n\n",
+    answer:"SELECT c.name, SUM(o.amount) AS total_revenue\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id\nGROUP BY c.name;",
     hint:"INNER JOIN first to connect customers to their orders. GROUP BY c.name collapses multiple order rows per customer into one. SUM(o.amount) totals their spend.",
     expectedRows:4,
     note:"4 rows — one per customer with orders. Alice's two orders are collapsed and summed into a single total." },
   { id:3, title:"Filter groups with HAVING", concept:"HAVING — filter after grouping",
     prompt:"Show only the customer statuses that have more than 1 customer. (Tip: HAVING filters groups; WHERE filters rows.)",
-    starter:"SELECT status, COUNT(*) AS n\nFROM customers\nGROUP BY status\nHAVING COUNT(*) > 1;",
+    scaffold:"-- Statuses with more than 1 customer\n-- Tip: use HAVING, not WHERE\n\n",
+    answer:"SELECT status, COUNT(*) AS n\nFROM customers\nGROUP BY status\nHAVING COUNT(*) > 1;",
     hint:"WHERE runs before grouping — you can't use it to filter on COUNT(*). HAVING runs after GROUP BY, so you CAN filter on the aggregated result. Think of it as WHERE for groups.",
     expectedRows:2,
     note:"Returns only the statuses where more than 1 customer exists. Statuses with a single customer are filtered out by HAVING." },
   { id:4, title:"Multiple aggregates at once", concept:"COUNT + SUM + AVG + MAX in one query",
     prompt:"For each customer status, show the count of customers, total orders placed (sum of the orders column), average orders, and the highest order count in that group.",
-    starter:"SELECT status,\n  COUNT(*) AS customers,\n  SUM(orders) AS total_orders,\n  ROUND(AVG(orders), 1) AS avg_orders,\n  MAX(orders) AS top_customer_orders\nFROM customers\nGROUP BY status\nORDER BY total_orders DESC;",
+    scaffold:"-- Summary stats per status: count, sum, avg, max\n\n",
+    answer:"SELECT status,\n  COUNT(*) AS customers,\n  SUM(orders) AS total_orders,\n  ROUND(AVG(orders), 1) AS avg_orders,\n  MAX(orders) AS top_customer_orders\nFROM customers\nGROUP BY status\nORDER BY total_orders DESC;",
     hint:"All four aggregate functions — COUNT, SUM, AVG, MAX — run on the same GROUP BY grouping. They each collapse the rows in each group into one number. ROUND keeps the average tidy.",
     expectedRows:3,
     note:"3 rows — one per status. Each row now carries four aggregated facts about that group. This is the shape of nearly every summary report you'll build on the job." }
@@ -1934,11 +1943,12 @@ async function renderLabAgg(){
           <div class="terminal-dot" style="background:#28c840"></div>
           <span class="terminal-title">SQL Terminal — Aggregation Task ${_aggTaskIdx+1}</span>
         </div>
-        <textarea class="terminal-editor" id="agg-editor" spellcheck="false" style="min-height:90px">${t.starter}</textarea>
+        <textarea class="terminal-editor" id="agg-editor" spellcheck="false" style="min-height:90px">${t.scaffold}</textarea>
         <div class="terminal-actions" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
           <div style="display:flex;gap:8px">
             <button class="btn btn-primary btn-sm" onclick="runAggQuery(${_aggTaskIdx})">▶ Run</button>
             <button class="btn btn-ghost btn-sm" id="agg-hint-btn" onclick="toggleAggHint()">💡 Hint</button>
+            <button class="btn btn-ghost btn-sm" style="opacity:.55;font-size:11px" onclick="showLabAnswer('agg-editor',AGG_TASKS[${_aggTaskIdx}].answer)">📋 Show Answer</button>
           </div>
           <div style="display:flex;gap:8px">
             ${_aggTaskIdx > 0 ? `<button class="btn btn-ghost btn-sm" onclick="_aggTaskIdx=${_aggTaskIdx-1};renderLabAgg()">← Prev</button>` : ''}
@@ -1951,6 +1961,11 @@ async function renderLabAgg(){
     </div>`;
   const ok = await ensureDb(document.getElementById('agg-results'));
   if(ok){ const el=document.getElementById('agg-results'); if(el) el.innerHTML='<span class="terminal-info">Edit the query above and click Run →</span>'; }
+}
+
+function showLabAnswer(editorId, answer){
+  const ed = document.getElementById(editorId);
+  if(ed){ ed.value = answer; ed.focus(); }
 }
 
 function toggleAggHint(){
