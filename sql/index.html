@@ -1261,6 +1261,7 @@ const LESSON_DRILLS = {
   16: [['fills',15],['bugs',15]]
 };
 let guided = null;
+let _parsonsAttempts = {}; // tracks wrong-attempt count per drill idx for progressive scaffolding
 function startGuided(lessonId){
   const M = {fills:'FILLS', bugs:'BUGS', parsons:'PARSONS'};
   const seq = (LESSON_DRILLS[lessonId] || []).filter(s => M[s[0]] && DATA[M[s[0]]] && DATA[M[s[0]]][s[1]]);
@@ -1507,16 +1508,72 @@ function checkParsons(idx){
     res.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Correct order!</span>`;
     celebrate();
     markDone('doneParsons', p.id);
+    delete _parsonsAttempts[idx];
     setTimeout(() => {
       if(guided) guidedNext();
       else if(idx+1 < DATA.PARSONS.length) navigate('parsons', idx+1);
       else navigate('practice');
     }, 1200);
   } else {
-    res.innerHTML = `<span style="color:var(--red)">✗ Not quite — try reordering.</span>`;
+    if(!_parsonsAttempts[idx]) _parsonsAttempts[idx] = 0;
+    _parsonsAttempts[idx]++;
+    const attempts = _parsonsAttempts[idx];
+    if(attempts === 1){
+      // 1st wrong: scaffold the first half in correct order, leave rest for user
+      const half = Math.ceil(p.answer.length / 2);
+      scaffoldParsons(idx, half);
+      res.innerHTML = `<span style="color:var(--yellow)">✗ Not quite — the first ${half} line${half>1?'s are':' is'} placed for you. Drag the rest into order.</span>`;
+    } else {
+      // 2nd wrong: show the full correct answer locked
+      scaffoldParsons(idx, p.answer.length);
+      const nxtBtn = guided
+        ? `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="guidedNext()">Next →</button>`
+        : idx+1 < DATA.PARSONS.length
+          ? `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="navigate('parsons',${idx+1})">Next →</button>`
+          : `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="navigate('practice')">Done →</button>`;
+      res.innerHTML = `<span style="color:var(--accent)">Full answer shown — study the order, then move on.</span><br>${nxtBtn}`;
+    }
   }
 }
-function resetParsons(idx){ navigate('parsons', idx); }
+// Place the first `count` lines of the correct answer into the answer zone (locked/dimmed),
+// return the rest to the pool in original line order.
+function scaffoldParsons(idx, count){
+  const p = DATA.PARSONS[idx];
+  const pool = document.getElementById('parsons-pool');
+  const answer = document.getElementById('parsons-answer');
+  // collect all chips from both zones by their data-line index
+  const allChips = {};
+  [...pool.querySelectorAll('.parsons-chip'), ...answer.querySelectorAll('.parsons-chip')]
+    .forEach(c => { allChips[parseInt(c.dataset.line)] = c; });
+  pool.innerHTML = '';
+  answer.innerHTML = '';
+  const inAnswer = new Set();
+  for(let i = 0; i < count; i++) inAnswer.add(p.answer[i]);
+  // place scaffolded chips in correct order, visually locked
+  for(let i = 0; i < count; i++){
+    const chip = allChips[p.answer[i]];
+    if(!chip) continue;
+    chip.setAttribute('draggable','false');
+    chip.style.opacity = '0.65';
+    chip.style.cursor = 'default';
+    chip.style.borderColor = 'rgba(47,109,240,.5)';
+    chip.style.background = 'rgba(47,109,240,.10)';
+    answer.appendChild(chip);
+  }
+  // remaining chips back to pool in original line-array order (don't reveal ordering)
+  p.lines.forEach((_,lineIdx) => {
+    if(inAnswer.has(lineIdx)) return;
+    const chip = allChips[lineIdx];
+    if(!chip) return;
+    chip.setAttribute('draggable','true');
+    chip.style.opacity = '';
+    chip.style.cursor = '';
+    chip.style.borderColor = '';
+    chip.style.background = '';
+    pool.appendChild(chip);
+  });
+}
+function resetParsons(idx){ delete _parsonsAttempts[idx]; navigate('parsons', idx); }
 
 // ─── LAB ───────────────────────────────────────────────────────────────────
 let sqlDb = null;
