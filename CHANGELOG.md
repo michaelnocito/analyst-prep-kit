@@ -34,6 +34,8 @@ Added two tool-agnostic concept kits that teach the *thinking* the tool kits ass
 
 **Headless-verified:** every kit's inline script parses; all guided-path drill references resolve; every drill is covered by a lesson; every quiz/answer index is valid.
 
+**Playtest (June 9, 2026):** ✅ Tableau Trend Lines (29a–c), ✅ Tableau Build Scatter/Treemap/Map (T1a–e), ✅ Chart Literacy (CL-a–d) all PASSED. Forecasting kit + cross-links awaiting playtest. Personal site (`michaelnocito.github.io`) feature card updated with both new kits (shipped same day — blocker).
+
 ## [1.49.1] — 2026-06-08 — SQL Parsons: scaffold layout fix (Task 1 ✅)
 
 After hint fires, layout restacks to Answer-on-top / Available-Lines-below — reads top→bottom naturally. Reset restores original side-by-side.

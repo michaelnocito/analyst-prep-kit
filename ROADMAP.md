@@ -141,6 +141,12 @@ _Response time: current cycle. Clear before accepting new feedback._
 
 _(GR-F-1, GR-F-2, GR-F-3 shipped May 28, 2026 — see CHANGELOG v1.4.1)_
 
+- **GR-H: Lesson-complete badge persists onto the Lessons screen** _(added June 9, 2026 — 8:05 PM ET — Mike playtest, not a blocker)_
+  - _What:_ The "lesson complete" badge/celebration that pops up when a lesson is finished stays visible (persists) on the Lessons list screen instead of clearing. Should appear briefly on completion, then dismiss — it must not linger on the Lessons view.
+  - _Repro/scope:_ Reproduce first and identify WHICH kit(s) — the celebration/badge markup differs per kit (toast vs. inline badge vs. completion pill). Likely a missing dismiss/teardown when navigating from a finished lesson back to the Lessons list. Check the newer kits (Chart Literacy, Forecasting) and the established kits separately — same fix may not apply to all.
+  - _Why it's here:_ Visible UX glitch that undercuts the "see your progress cleanly" feel (Vision #1). Low severity, not a blocker — no flow is broken.
+  - _Est. effort:_ Small (per kit once repro'd).
+
 - **GR-G (EPIC): "Guided Path" — merge Learn + Practice into one linear flow, simplify home, tone down Bare Basics, Excel makeover** _(added June 1, 2026 — 12:40 AM ET — TOP PRIORITY per Mike; prototype on Excel first)_
   - _STATUS (June 2, 2026):_ Thread 1 (merged guided flow) **SHIPPED on all 6 lesson kits** (v1.10–v1.13). Thread 3 (tone down Bare Basics) effectively done — kits already show a quiet one-line "Turn on Bare Basics" link, not a full-width banner. **Remaining: Thread 2 (simplified home — drop the 3-tile grid, lead with one Start-learning entry) and Thread 4 (Excel layout makeover).** Both are visible redesigns — get Mike's design direction before executing.
   - _What:_ Collapse the currently-segmented Lessons / Practice / Cards into a single guided route. One prominent "Start learning" entry walks the user straight through: lesson content → Quick Check → **that lesson's practice drills** (fill-in-the-blank, Bug Hunt, put-in-order, relevant cards/lab) → next lesson. After the Quick Check the CTA becomes "Practice this," NOT "Next lesson" — reinforce the lesson's content immediately, no skip-ahead within the flow. Four threads:
@@ -194,7 +200,10 @@ cool if…" Hold until the backlog above is empty, OR until the same idea
 surfaces twice (auto-promote to Medium on second mention)._
 _Response time: when there's air to breathe._
 
-(empty)
+- **Complete old→new cross-links across the remaining kits** _(added June 9, 2026 — 8:05 PM ET)_
+  - _What:_ Chart Literacy + Forecasting cross-links were added to the SQL, Power BI, Tableau, and Stats kits (the most topically related). The other kits — Excel, Python, Interview, Simulator, Final — reach the new kits only via the hub's "← All Kits" link, not a direct sibling link.
+  - _Why it's Low:_ Every kit still connects to the new ones through the hub, so nothing is unreachable. Pure consistency polish.
+  - _Est. effort:_ Small.
 
 ---
 
