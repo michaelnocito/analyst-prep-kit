@@ -975,7 +975,7 @@ function navigate(view, ...args){
   guided = null; // any normal navigation exits the guided practice flow
   currentView = view;
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const map = {home:0,lessons:1,practice:2,lab:3,cards:4,glossary:5};
+  const map = {home:0,lessons:1,practice:2,lab:3,'lab-join':3,'lab-agg':3,'lab-dates':3,'lab-clean':3,cards:4,glossary:5};
   const btns = document.querySelectorAll('.nav-btn');
   if(map[view] !== undefined) btns[map[view]].classList.add('active');
   const main = document.getElementById('main');
@@ -990,6 +990,9 @@ function navigate(view, ...args){
   else if(view==='parsons') renderParsons(args[0]);
   else if(view==='lab') renderLab();
   else if(view==='lab-join') renderLabJoin();
+  else if(view==='lab-agg') renderLabAgg();
+  else if(view==='lab-dates') renderLabStub('dates');
+  else if(view==='lab-clean') renderLabStub('clean');
   else if(view==='cards') renderCards();
   else if(view==='glossary') renderGlossary();
   else if(view==='settings') renderSettings();
@@ -1607,10 +1610,23 @@ async function ensureDb(statusEl){
   }
 }
 
-// Sub-tabs rendered at the top of both lab views
+// Sub-tabs + callout rendered at the top of every lab view
 function labTabsHTML(active){
-  const tab = (id, label, a) => `<button onclick="navigate('${id}')" style="background:none;border:none;padding:10px 20px;font:600 14px var(--font);cursor:pointer;color:${active===a?'var(--accent)':'var(--muted)'};border-bottom:2px solid ${active===a?'var(--accent)':'transparent'};transition:.15s">${label}</button>`;
-  return `<div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:20px">${tab('lab','🔧 Free Query','free')}${tab('lab-join','🔗 JOIN Practice','join')}</div>`;
+  const labs = [
+    {id:'lab',        key:'free',  label:'🔧 Free Lab'},
+    {id:'lab-join',   key:'join',  label:'🔗 JOIN Lab'},
+    {id:'lab-agg',    key:'agg',   label:'📊 Aggregation Lab'},
+    {id:'lab-dates',  key:'dates', label:'📅 Date & Time Lab'},
+    {id:'lab-clean',  key:'clean', label:'🧹 Data Quality Lab'},
+  ];
+  const btns = labs.map(l =>
+    `<button onclick="navigate('${l.id}')" style="background:none;border:none;padding:10px 14px;font:600 13px var(--font);cursor:pointer;white-space:nowrap;flex-shrink:0;color:${active===l.key?'var(--accent)':'var(--muted)'};border-bottom:2px solid ${active===l.key?'var(--accent)':'transparent'};transition:.15s">${l.label}</button>`
+  ).join('');
+  return `
+    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(47,109,240,.1);border:1px solid rgba(47,109,240,.22);border-radius:20px;padding:4px 14px;font-size:12px;color:var(--accent);font-weight:600;margin-bottom:10px">
+      🧪 Switch lab types below — each focuses on a different analyst skill
+    </div>
+    <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto">${btns}</div>`;
 }
 
 async function renderLab(){
@@ -1857,6 +1873,179 @@ function renderJoinCompare(){
     <div style="margin-top:16px;padding:12px 16px;background:var(--surf2);border-radius:8px;font-size:13px;color:var(--muted);line-height:1.65">
       💡 <strong style="color:var(--text)">What changed:</strong> INNER returned 5 rows — only the orders that matched a customer. LEFT returned 9 rows — all 8 customers, but Alice's 2 orders made her appear twice. The 4 rows with <em style="color:var(--red)">NULL</em> are Bob, Eva, Frank, and Henry — customers who exist but placed no orders. Those rows are what INNER silently dropped.
     </div>`;
+}
+
+// ─── AGGREGATION LAB ───────────────────────────────────────────────────────
+const AGG_TASKS = [
+  { id:1, title:"Count by group", concept:"GROUP BY + COUNT",
+    prompt:"How many customers are in each status group? Show status and the count, sorted by count highest first.",
+    starter:"SELECT status, COUNT(*) AS customer_count\nFROM customers\nGROUP BY status\nORDER BY customer_count DESC;",
+    hint:"GROUP BY splits rows into groups — one per distinct status value. COUNT(*) counts every row in each group. ORDER BY the alias (customer_count) DESC puts the biggest group first.",
+    expectedRows:3,
+    note:"3 rows — one per status (active, inactive, pending if present). GROUP BY collapsed all 8 customers into 3 summary rows." },
+  { id:2, title:"Total revenue per customer", concept:"SUM + GROUP BY",
+    prompt:"Show each customer's name and their total order revenue. Only include customers who have placed at least one order.",
+    starter:"SELECT c.name, SUM(o.amount) AS total_revenue\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id\nGROUP BY c.name;",
+    hint:"INNER JOIN first to connect customers to their orders. GROUP BY c.name collapses multiple order rows per customer into one. SUM(o.amount) totals their spend.",
+    expectedRows:4,
+    note:"4 rows — one per customer with orders. Alice's two orders are collapsed and summed into a single total." },
+  { id:3, title:"Filter groups with HAVING", concept:"HAVING — filter after grouping",
+    prompt:"Show only the customer statuses that have more than 1 customer. (Tip: HAVING filters groups; WHERE filters rows.)",
+    starter:"SELECT status, COUNT(*) AS n\nFROM customers\nGROUP BY status\nHAVING COUNT(*) > 1;",
+    hint:"WHERE runs before grouping — you can't use it to filter on COUNT(*). HAVING runs after GROUP BY, so you CAN filter on the aggregated result. Think of it as WHERE for groups.",
+    expectedRows:2,
+    note:"Returns only the statuses where more than 1 customer exists. Statuses with a single customer are filtered out by HAVING." },
+  { id:4, title:"Multiple aggregates at once", concept:"COUNT + SUM + AVG + MAX in one query",
+    prompt:"For each customer status, show the count of customers, total orders placed (sum of the orders column), average orders, and the highest order count in that group.",
+    starter:"SELECT status,\n  COUNT(*) AS customers,\n  SUM(orders) AS total_orders,\n  ROUND(AVG(orders), 1) AS avg_orders,\n  MAX(orders) AS top_customer_orders\nFROM customers\nGROUP BY status\nORDER BY total_orders DESC;",
+    hint:"All four aggregate functions — COUNT, SUM, AVG, MAX — run on the same GROUP BY grouping. They each collapse the rows in each group into one number. ROUND keeps the average tidy.",
+    expectedRows:3,
+    note:"3 rows — one per status. Each row now carries four aggregated facts about that group. This is the shape of nearly every summary report you'll build on the job." }
+];
+
+let _aggTaskIdx = 0;
+let _aggHintOpen = false;
+
+async function renderLabAgg(){
+  _aggHintOpen = false;
+  const t = AGG_TASKS[_aggTaskIdx];
+  const dots = AGG_TASKS.map((_,i) =>
+    `<span onclick="_aggTaskIdx=${i};renderLabAgg()" style="display:inline-block;width:10px;height:10px;border-radius:50%;cursor:pointer;background:${i===_aggTaskIdx?'var(--accent)':'rgba(127,127,127,.3)'};transition:.15s"></span>`
+  ).join('');
+  document.getElementById('main').innerHTML = `
+    <h1>SQL Lab</h1>
+    ${labTabsHTML('agg')}
+    <div class="card card-sm" style="margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">📊 Aggregation Lab</div>
+      <p style="margin:0;font-size:13px;color:var(--muted)">Answer your manager's questions — GROUP BY, COUNT, SUM, AVG, and HAVING are the workhorses of every analyst's daily reporting.</p>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <span style="font-size:12px;color:var(--muted)">Task ${_aggTaskIdx+1} of ${AGG_TASKS.length}</span>
+        <div style="display:flex;gap:6px;align-items:center">${dots}</div>
+        <span style="margin-left:auto;font-size:12px;font-weight:600;background:rgba(47,109,240,.12);color:var(--accent);border:1px solid rgba(47,109,240,.3);border-radius:20px;padding:3px 12px">${t.concept}</span>
+      </div>
+      <h2 style="margin-bottom:8px">${t.title}</h2>
+      <p style="margin-bottom:16px">${t.prompt}</p>
+      <div class="terminal-wrap">
+        <div class="terminal-toolbar">
+          <div class="terminal-dot" style="background:#ff5f57"></div>
+          <div class="terminal-dot" style="background:#febc2e"></div>
+          <div class="terminal-dot" style="background:#28c840"></div>
+          <span class="terminal-title">SQL Terminal — Aggregation Task ${_aggTaskIdx+1}</span>
+        </div>
+        <textarea class="terminal-editor" id="agg-editor" spellcheck="false" style="min-height:90px">${t.starter}</textarea>
+        <div class="terminal-actions" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm" onclick="runAggQuery(${_aggTaskIdx})">▶ Run</button>
+            <button class="btn btn-ghost btn-sm" id="agg-hint-btn" onclick="toggleAggHint()">💡 Hint</button>
+          </div>
+          <div style="display:flex;gap:8px">
+            ${_aggTaskIdx > 0 ? `<button class="btn btn-ghost btn-sm" onclick="_aggTaskIdx=${_aggTaskIdx-1};renderLabAgg()">← Prev</button>` : ''}
+            ${_aggTaskIdx < AGG_TASKS.length-1 ? `<button class="btn btn-primary btn-sm" onclick="_aggTaskIdx=${_aggTaskIdx+1};renderLabAgg()">Next Task →</button>` : '<button class="btn btn-ghost btn-sm" onclick="_aggTaskIdx=0;renderLabAgg()">↺ Restart</button>'}
+          </div>
+        </div>
+        <div id="agg-hint" style="display:none;padding:12px 16px;background:rgba(47,109,240,.07);border-top:1px solid rgba(47,109,240,.2);font-size:13px;color:var(--text);line-height:1.65">💡 ${t.hint}</div>
+        <div class="terminal-results" id="agg-results"><span class="terminal-info">Edit the query above and click Run →</span></div>
+      </div>
+    </div>`;
+  const ok = await ensureDb(document.getElementById('agg-results'));
+  if(ok){ const el=document.getElementById('agg-results'); if(el) el.innerHTML='<span class="terminal-info">Edit the query above and click Run →</span>'; }
+}
+
+function toggleAggHint(){
+  _aggHintOpen = !_aggHintOpen;
+  const el = document.getElementById('agg-hint');
+  const btn = document.getElementById('agg-hint-btn');
+  if(el) el.style.display = _aggHintOpen ? 'block' : 'none';
+  if(btn) btn.style.color = _aggHintOpen ? 'var(--accent)' : '';
+}
+
+function runAggQuery(taskIdx){
+  const editor = document.getElementById('agg-editor');
+  const results = document.getElementById('agg-results');
+  if(!results) return;
+  if(!sqlDb){ results.innerHTML = '<span class="terminal-error">SQL engine not ready yet.</span>'; return; }
+  const sql = editor ? editor.value.trim() : '';
+  if(!sql){ results.innerHTML = '<span class="terminal-info">Enter a query above.</span>'; return; }
+  const t = AGG_TASKS[taskIdx];
+  try {
+    const res = sqlDb.exec(sql);
+    if(!res.length){ results.innerHTML = '<span class="terminal-info">Query ran — no rows returned. Check your GROUP BY clause.</span>'; return; }
+    const {columns, values} = res[0];
+    const thead = `<tr>${columns.map(c=>`<th>${c}</th>`).join('')}</tr>`;
+    const tbody = values.map(row=>`<tr>${row.map(v=>`<td>${v==null?'<em style="color:var(--red);font-style:italic">NULL</em>':v}</td>`).join('')}</tr>`).join('');
+    const n = values.length;
+    const countBadge = n === t.expectedRows
+      ? `<span style="color:var(--green);font-weight:700">✓ ${n} row${n!==1?'s':''}</span>`
+      : `<span style="color:var(--muted)">${n} row${n!==1?'s':''} <span style="font-size:11px">(expected ~${t.expectedRows})</span></span>`;
+    results.innerHTML = `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>
+      <div style="margin-top:10px;display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap">
+        ${countBadge}<span style="color:var(--muted);font-size:12px">— ${t.note}</span>
+      </div>`;
+  } catch(e){ results.innerHTML = `<span class="terminal-error">Error: ${e.message}</span>`; }
+}
+
+// ─── DATE & TIME LAB + DATA QUALITY LAB (stubs — full tasks coming) ─────────
+const LAB_STUBS = {
+  dates: {
+    key:'dates', icon:'📅', label:'Date & Time Lab',
+    desc:'Every dashboard and every report has a time dimension. Filter by date ranges, group by month, and calculate gaps between events — skills you\'ll use in every real-world query.',
+    tasks:[
+      'Filter orders to the last 30 days (DATE_SUB + CURDATE)',
+      'Group revenue by month (DATE_FORMAT + GROUP BY)',
+      'Find customers inactive for 60+ days (DATEDIFF)',
+      'Build a 3-month revenue trend sorted by month'
+    ],
+    sample:"-- Preview: revenue by month\nSELECT DATE_FORMAT(order_date, '%Y-%m') AS month,\n       SUM(amount) AS revenue\nFROM orders\nGROUP BY month\nORDER BY month;"
+  },
+  clean: {
+    key:'clean', icon:'🧹', label:'Data Quality Lab',
+    desc:'Real data is messy. Catch NULLs, duplicates, and mismatches before they reach your stakeholder — this is the analyst\'s QA toolkit and a common interview topic.',
+    tasks:[
+      'Find rows with missing (NULL) values in a column',
+      'Detect duplicate records (GROUP BY + HAVING COUNT > 1)',
+      'Replace NULLs with fallback values using COALESCE',
+      'Reconcile two table versions — find rows missing from one'
+    ],
+    sample:"-- Preview: customers with missing email\nSELECT name, email\nFROM customers\nWHERE email IS NULL;"
+  }
+};
+
+function renderLabStub(key){
+  const s = LAB_STUBS[key];
+  if(!s) return navigate('lab');
+  document.getElementById('main').innerHTML = `
+    <h1>SQL Lab</h1>
+    ${labTabsHTML(key)}
+    <div class="card" style="text-align:center;padding:36px 24px">
+      <div style="font-size:3rem;margin-bottom:12px">${s.icon}</div>
+      <h2 style="margin-bottom:8px">${s.label}</h2>
+      <p style="max-width:480px;margin:0 auto 24px;color:var(--muted);line-height:1.65">${s.desc}</p>
+      <div class="card card-sm" style="max-width:480px;margin:0 auto 20px;text-align:left;background:var(--surf2)">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Tasks in this lab</div>
+        ${s.tasks.map((t,i)=>`<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--muted)"><span style="color:var(--accent);font-weight:700;font-size:12px;min-width:16px;flex-shrink:0">${i+1}</span>${t}</div>`).join('')}
+      </div>
+      <div class="card card-sm" style="max-width:480px;margin:0 auto 24px;text-align:left">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Try a preview query in the Free Lab</div>
+        <div class="ral-sql" style="font-size:12px;line-height:1.6;margin-bottom:12px">${s.sample}</div>
+        <button class="btn btn-ghost btn-sm" onclick="tryLabSample('${key}')">▶ Open in Free Lab</button>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center">
+        <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(212,160,64,.12);border:1px solid rgba(212,160,64,.35);border-radius:20px;padding:4px 14px;font-size:12px;color:#d4a040;font-weight:600">🚧 Full lab in development</span>
+        <button class="btn btn-primary btn-sm" onclick="navigate('lab-agg')">Try Aggregation Lab →</button>
+      </div>
+    </div>`;
+}
+
+function tryLabSample(key){
+  const s = LAB_STUBS[key];
+  if(!s) return;
+  navigate('lab');
+  setTimeout(() => {
+    const ed = document.getElementById('sql-editor');
+    if(ed){ ed.value = s.sample; ed.focus(); }
+  }, 300);
 }
 
 // ─── FLASHCARDS ────────────────────────────────────────────────────────────
