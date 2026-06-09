@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forecasting & Trend Modeling Kit</title>
+<meta name="description" content="Learn time-series forecasting and trend modeling for analysts — moving averages, smoothing, regression, seasonality, accuracy metrics, and presenting a forecast. No install, no login.">
+<script>try{var _s=localStorage.getItem('fmk-v1');if(_s){var _t=JSON.parse(_s).theme;if(_t)document.documentElement.setAttribute('data-theme',_t);}}catch(e){}</script>
+<style>
+:root{
+  --bg:#0f141b;--surf:#161c26;--surf2:#222b38;--accent:#5b8cf5;--accent2:#84a8f8;
+  --text:#e6edf3;--dim:#98a3b2;--border:#28303c;--success:#3fb950;--err:#f47984;
+  --warn:#d2a24a;--radius:8px;--font:-apple-system,"Segoe UI",Roboto,system-ui,sans-serif;--mono:"Consolas",ui-monospace,monospace;
+}
+[data-theme="light"]{
+  --bg:#eef1f5;--surf:#ffffff;--surf2:#f3f5f8;--accent:#2f6df0;--accent2:#1f4fc4;
+  --text:#1f2328;--dim:#5b6470;--border:#d6dce4;--success:#1a7f37;--err:#cf222e;--warn:#9a6700;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
+a{color:var(--accent);text-decoration:none}
+code,.mono{font-family:var(--mono)}
+nav{background:var(--surf);border-bottom:1px solid var(--border);padding:0 18px;display:flex;align-items:center;gap:4px;height:56px;position:sticky;top:0;z-index:100;flex-wrap:wrap}
+.nav-logo{font-weight:700;font-size:14px;margin-right:12px;color:var(--text);padding-right:12px;border-right:1px solid var(--border);white-space:nowrap;display:inline-flex;align-items:center;gap:9px}
+.nav-logo::before{content:"\1F4CA";background:var(--surf2);width:30px;height:30px;display:inline-grid;place-items:center;border-radius:9px;font-size:16px}
+.nav-btn{background:none;border:none;color:var(--dim);cursor:pointer;padding:14px 10px;font-size:13px;font-family:var(--font);border-bottom:2px solid transparent;transition:.15s;white-space:nowrap}
+.nav-btn:hover{color:var(--text)}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.spacer{flex:1}
+.theme-btn,.settings-btn{background:none;border:1px solid var(--border);color:var(--dim);cursor:pointer;padding:4px 10px;border-radius:6px;font-size:13px;font-family:var(--font)}
+.theme-btn:hover,.settings-btn:hover{color:var(--text);border-color:var(--accent)}
+.view{display:none;max-width:900px;margin:0 auto;padding:28px 20px}
+.view.active{display:block}
+.card{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;background:var(--surf2);color:var(--dim);border:1px solid var(--border)}
+.tag.accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+h1{font-size:24px;font-weight:700;margin-bottom:6px}
+h2{font-size:19px;font-weight:700;margin-bottom:12px}
+h3{font-size:15px;font-weight:600;margin-bottom:8px}
+p{line-height:1.6;color:var(--dim);margin-bottom:10px}
+p strong{color:var(--text)}
+.lead{color:var(--text);font-size:15px}
+.btn{display:inline-block;padding:9px 18px;border-radius:6px;border:none;cursor:pointer;font-size:14px;font-family:var(--font);font-weight:600;transition:.15s;background:var(--surf2);color:var(--text)}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:5px 12px;font-size:13px}
+.resume-card{background:var(--accent);border-radius:var(--radius);padding:24px 28px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer}
+.resume-card h2{color:#fff;margin-bottom:4px}
+.resume-card p{color:rgba(255,255,255,.85);margin:0}
+.path-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.path-tile{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:.15s}
+.path-tile:hover{border-color:var(--accent);transform:translateY(-1px)}
+.path-tile h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);margin-bottom:6px}
+.path-tile .count{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text)}
+.path-tile .sub{font-size:12px;color:var(--dim);margin-top:2px}
+.prog-bar{height:4px;background:var(--surf2);border-radius:2px;margin-top:8px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s}
+.ral-block{background:var(--surf2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin:12px 0}
+.ral-title{font-family:var(--mono);font-size:13px;margin-bottom:10px;padding:8px 12px;background:var(--bg);border-radius:4px;border-left:3px solid var(--accent);line-height:1.6;font-weight:600}
+.ral-say{font-size:14px;font-style:italic;color:var(--text);background:var(--bg);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:9px 13px;margin-bottom:12px;line-height:1.55}
+.ral-say::before{content:'\1F5E3\FE0F ';font-style:normal;margin-right:4px}
+.ral-line{display:flex;gap:10px;align-items:baseline;padding:5px 0;font-size:13px;border-bottom:1px solid var(--border)}
+.ral-line:last-child{border:none}
+.ral-chunk{font-family:var(--mono);color:var(--accent);flex-shrink:0;min-width:190px;font-weight:600}
+.ral-arrow{color:var(--border);flex-shrink:0}
+.ral-desc{color:var(--text)}
+.gotcha{background:var(--surf2);border-left:3px solid var(--warn);padding:10px 14px;border-radius:0 6px 6px 0;margin:12px 0;font-size:13.5px;color:var(--text)}
+.gotcha strong{color:var(--warn)}
+.viz-cap{font-size:12.5px;color:var(--dim);margin-top:8px;line-height:1.55}
+.quiz-wrap{background:var(--surf2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-top:18px}
+.quiz-opt{display:block;width:100%;text-align:left;background:var(--surf);border:1px solid var(--border);border-radius:6px;padding:11px 16px;margin-bottom:8px;cursor:pointer;font:inherit;font-size:14px;color:var(--text);transition:.15s}
+.quiz-opt:hover{border-color:var(--accent)}
+.quiz-opt.correct{background:rgba(46,158,107,.16);border-color:var(--success);color:var(--success)}
+.quiz-opt.wrong{background:rgba(207,34,46,.12);border-color:var(--err);color:var(--err)}
+.quiz-exp{margin-top:12px;padding:12px 14px;background:var(--surf);border-radius:6px;font-size:13px;color:var(--dim);display:none}
+.quiz-exp.show{display:block}
+.lesson-row{display:flex;align-items:center;gap:14px;padding:13px 16px;background:var(--surf);border:1px solid var(--border);border-radius:6px;margin-bottom:8px;cursor:pointer;transition:.15s}
+.lesson-row:hover{border-color:var(--accent);transform:translateX(3px)}
+.lesson-num{width:28px;height:28px;border-radius:50%;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--dim);flex-shrink:0}
+.lesson-num.done{background:var(--accent);color:#fff}
+.lesson-info{flex:1;min-width:0}
+.lesson-title{font-weight:600;font-size:14px}
+.lesson-sub{font-size:12px;color:var(--dim)}
+.unit-label{font-size:12px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;padding:14px 0 6px}
+.fill-choice{display:block;width:100%;text-align:left;background:var(--surf);border:1px solid var(--border);border-radius:6px;padding:11px 16px;margin-bottom:8px;cursor:pointer;font:inherit;font-size:14px;color:var(--text);transition:.15s}
+.fill-choice:hover{border-color:var(--accent)}
+.fill-choice.correct{background:rgba(46,158,107,.16);border-color:var(--success);color:var(--success)}
+.fill-choice.wrong{background:rgba(207,34,46,.12);border-color:var(--err);color:var(--err);opacity:.7}
+.code-block{font-family:var(--mono);font-size:13px;background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;white-space:pre-wrap;line-height:1.6;color:var(--text)}
+.pars-piece{font-family:var(--mono);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:6px;padding:9px 12px;cursor:grab;user-select:none}
+.pars-piece:hover{border-color:var(--accent)}
+.pars-piece.placed{border-color:var(--accent)}
+.drill-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.drill-tile{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius);padding:18px;cursor:pointer;transition:.15s;text-align:center}
+.drill-tile:hover{border-color:var(--accent);transform:translateY(-2px)}
+.drill-tile .icon{font-size:1.5rem;margin-bottom:6px}
+.drill-tile h3{font-size:.9rem;margin:0 0 4px}
+.drill-tile p{font-size:11px;margin:0}
+.fc-outer{perspective:1000px;height:210px;margin:18px 0;cursor:pointer}
+.fc-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:.5s;border-radius:var(--radius)}
+.fc-inner.flipped{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px;text-align:center;border:1px solid var(--border);background:var(--surf)}
+.fc-back{background:var(--surf2);border-color:var(--accent);transform:rotateY(180deg);white-space:pre-line;font-size:.95rem;color:var(--text);line-height:1.7}
+.fc-term{font-size:1.2rem;font-weight:700}
+.gloss-search{width:100%;background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:11px 14px;color:var(--text);font:inherit;font-size:14px;outline:none;margin-bottom:14px}
+.gloss-search:focus{border-color:var(--accent)}
+.gloss-item{border-bottom:1px solid var(--border);padding:13px 0}
+.gloss-item:last-child{border:none}
+.gloss-term{font-weight:700;font-size:14px;color:var(--accent);margin-bottom:4px}
+.gloss-def{font-size:13px;color:var(--dim)}
+.kit-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.kit-link{padding:8px 14px;border:1px solid var(--border);border-radius:6px;font-size:13px;color:var(--dim);transition:.15s}
+.kit-link:hover{border-color:var(--accent);color:var(--accent)}
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:#fff;padding:12px 24px;border-radius:var(--radius);font-weight:600;font-size:14px;z-index:1000;transition:.35s;opacity:0;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.dots{margin-bottom:16px}
+.dot{width:22px;height:6px;border-radius:3px;display:inline-block;background:var(--surf2);margin-right:5px}
+.dot.on{background:var(--accent)}
+@media(max-width:600px){.path-grid,.drill-grid{grid-template-columns:1fr 1fr}.ral-chunk{min-width:120px}}
+</style>
+</head>
+<body>
+<nav>
+  <a class="nav-btn" href="../index.html" title="Back to all kits">← All Kits</a>
+  <span class="nav-logo">Forecasting</span>
+  <button class="nav-btn active" data-v="home" onclick="navigate('home')">Home</button>
+  <button class="nav-btn" data-v="lessons" onclick="navigate('lessons')">Lessons</button>
+  <button class="nav-btn" data-v="practice" onclick="navigate('practice')">Practice</button>
+  <button class="nav-btn" data-v="cards" onclick="navigate('cards')">Cards</button>
+  <button class="nav-btn" data-v="glossary" onclick="navigate('glossary')">Glossary</button>
+  <span class="spacer"></span>
+  <button class="settings-btn" onclick="navigate('settings')" title="Settings">⚙️</button>
+  <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️ Light</button>
+</nav>
+<div id="view-home" class="view active"></div>
+<div id="view-lessons" class="view"></div>
+<div id="view-lesson" class="view"></div>
+<div id="view-practice" class="view"></div>
+<div id="view-cards" class="view"></div>
+<div id="view-glossary" class="view"></div>
+<div id="view-settings" class="view"></div>
+<div id="toast"></div>
+<script>
+// ─── DATA (filled in by build steps) ───────────────────────────────────────
+const DATA = {
+LESSONS:[
+ {id:101,unit:"Unit 0: Foundations",title:"What Forecasting Is (and Isn't)",sub:"Extrapolating patterns — with honest uncertainty.",core:true,
+  story:"Your manager asks, 'What will sales be next quarter?' You can't know the future — but you can read the patterns in the past and project them forward, with a clear statement of how confident you are. That's forecasting: not a crystal ball, but a disciplined extrapolation of patterns plus an honest range of error. Get that mindset right and everything else in this kit is technique.",
+  intro:"A forecast takes historical data, finds the <strong>patterns</strong> in it (trend, seasonality, level), and projects them into the future. Two truths sit underneath every method: the future resembles the past <em>only as far as the patterns hold</em>, and every forecast is <strong>a range, not a single number</strong>. A forecast without a stated uncertainty is a guess wearing a suit.",
+  ral:[
+   {title:"What a forecast actually is",say:"You're not predicting the future — you're extending the patterns you can measure, and saying how wide the error bars are.",
+    lines:[
+     ["Forecast","a projection of historical patterns into the future"],
+     ["Assumption","the patterns that held in the past keep holding"],
+     ["Uncertainty","every forecast is a range — state it, don't hide it"],
+     ["Horizon","how far ahead you predict — error grows with distance"]
+    ]},
+   {title:"What forecasting is NOT",say:"It can't see shocks it has never seen, and a precise-looking number is not a confident one.",
+    lines:[
+     ["Not a crystal ball","it can't foresee a new product, a pandemic, a policy change"],
+     ["Not exact","'$1,283,402' implies false precision — give a range"],
+     ["Not set-and-forget","re-check it as new data arrives; patterns drift"]
+    ]}
+  ],
+  notes:"The most common rookie mistake is presenting a single forecast number with no range. The instant you do, people treat it as a promise. Always pair the point forecast with an interval and the assumptions behind it.",
+  viz:{html:`<h3 style="margin-bottom:10px">A forecast is history + projection + a range</h3>
+   <svg viewBox="0 0 320 130" width="100%" height="140" style="max-width:400px">
+    <line x1="10" y1="115" x2="310" y2="115" stroke="var(--border)"/>
+    <line x1="170" y1="10" x2="170" y2="115" stroke="var(--border)" stroke-dasharray="3 3"/>
+    <polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="10,95 40,88 70,80 100,82 130,68 160,60"/>
+    <polygon points="160,60 310,28 310,62 160,60" fill="var(--accent)" opacity="0.15"/>
+    <polyline fill="none" stroke="var(--accent2)" stroke-width="2.5" stroke-dasharray="5 4" points="160,60 310,45"/>
+    <text x="60" y="20" fill="var(--dim)" font-size="11">history</text>
+    <text x="225" y="20" fill="var(--dim)" font-size="11">forecast + range</text>
+   </svg>`,caption:"Solid line = the history you measured. Dashed line = the projected forecast. The shaded fan = the uncertainty range, which widens the further out you go. A forecast is all three together — never just the dashed line."},
+  quiz:{q:"What's the single most important thing to include with any point forecast?",opts:["A bigger font so it stands out","A range / interval showing the uncertainty","The exact number to the dollar","A 3D chart"],ans:1,exp:"A forecast is a projection of patterns, so it always carries uncertainty. Pairing the point forecast with a range (and stating your assumptions) keeps people from treating an estimate as a promise. A single precise number hides the risk."}
+ },
+ {id:102,unit:"Unit 0: Foundations",title:"The Anatomy of a Time Series",sub:"Trend, seasonality, cycle, and noise.",core:true,
+  story:"Before you forecast a single number, you have to see what a time series is made of. Almost any series — sales, traffic, temperatures — can be split into a few building blocks: a long-run trend, a repeating seasonal pattern, slower cycles, and random noise. Once you can name these pieces in a chart, picking the right method becomes obvious.",
+  intro:"<strong>Decomposition</strong> breaks a time series into components: the <strong>trend</strong> (long-run direction), <strong>seasonality</strong> (a fixed-period repeating pattern — daily, weekly, yearly), the <strong>cycle</strong> (longer, irregular swings like the economy), and <strong>noise</strong> (the random leftover). A good forecast models the parts it can explain and accepts the noise it can't.",
+  ral:[
+   {title:"The four components",say:"Read a series by asking: where's it heading, what repeats on a calendar, what swings slowly, and what's just random?",
+    lines:[
+     ["Trend","the long-run direction — up, down, or flat"],
+     ["Seasonality","a repeating pattern with a FIXED period (e.g. every December)"],
+     ["Cycle","longer, irregular ups and downs (business cycles) — no fixed period"],
+     ["Noise","random variation left after the rest is removed"]
+    ]},
+   {title:"Seasonality vs. cycle",say:"Seasonality keeps a fixed calendar period; a cycle doesn't. Mixing them up leads to the wrong model.",
+    lines:[
+     ["Seasonality","fixed period — ice cream every summer, sales every Friday"],
+     ["Cycle","variable length — a recession can last 1 year or 4"],
+     ["Why it matters","seasonal methods assume a fixed period; cycles don't fit them"]
+    ]}
+  ],
+  notes:"Don't confuse seasonality with a cycle. Seasonality repeats on a fixed calendar (every Q4); a cycle (like the economy) swings over years with no fixed length. Seasonal models only work on the fixed-period kind.",
+  viz:{html:`<h3 style="margin-bottom:10px">One series = trend + seasonality + noise</h3>
+   <svg viewBox="0 0 320 130" width="100%" height="140" style="max-width:400px">
+    <line x1="10" y1="115" x2="310" y2="115" stroke="var(--border)"/>
+    <line x1="10" y1="100" x2="310" y2="35" stroke="var(--dim)" stroke-dasharray="4 4"/>
+    <polyline fill="none" stroke="var(--accent)" stroke-width="2" points="10,96 30,70 50,92 70,66 90,88 110,60 130,84 150,54 170,80 190,48 210,74 230,42 250,70 270,38 290,66 310,32"/>
+    <text x="120" y="22" fill="var(--dim)" font-size="11">trend (dashed) + repeating season + noise</text>
+   </svg>`,caption:"The dashed line is the underlying upward trend; the wiggle around it is a repeating seasonal pattern plus random noise. Decomposition is the act of separating these so you can model each — and forecast the parts that are predictable."},
+  quiz:{q:"Sales spike every December and dip every January, year after year. Which component is this?",opts:["Trend","Seasonality","Noise","Cycle"],ans:1,exp:"A pattern that repeats on a fixed calendar period (every December) is seasonality. Trend is the long-run direction; a cycle swings over variable multi-year periods; noise is the random leftover. Recognizing this points you to a seasonal forecasting method."}
+ },
+ {id:103,unit:"Unit 0: Foundations",title:"Signal vs. Noise",sub:"Why smoothing reveals the pattern underneath.",core:true,
+  story:"Raw data is jumpy. Hidden inside that jumpiness is the real pattern — the signal — buried under random noise. The whole craft of trend modeling is separating the two: smoothing away the noise enough to see the signal, without smoothing so hard you erase a real change. This is the intuition behind every method in Unit 1.",
+  intro:"Every measurement mixes <strong>signal</strong> (the real underlying pattern) with <strong>noise</strong> (random fluctuation). <strong>Smoothing</strong> averages nearby points to mute the noise and expose the signal. The art is the trade-off: too little smoothing and you chase noise; too much and you lag behind or flatten a genuine shift. There is no single 'right' amount — it depends on how noisy your data is and how fast it really changes.",
+  ral:[
+   {title:"The core trade-off",say:"Smoothing is a dial between responsiveness and stability. Turn it up for calm, down for quick reaction.",
+    lines:[
+     ["Signal","the real, repeatable pattern you want to forecast"],
+     ["Noise","random variation with no predictive value"],
+     ["Smoothing","averaging nearby points to mute noise"],
+     ["Too little","you react to every random blip (overfitting noise)"],
+     ["Too much","you lag real changes and flatten the pattern"]
+    ]},
+   {title:"How much to smooth",say:"There's no universal setting — match the dial to how noisy and how fast-moving your series really is.",
+    lines:[
+     ["Noisy data","→ more smoothing to see through the static"],
+     ["Fast-changing data","→ less smoothing so you don't lag"],
+     ["Always sanity-check","plot the smoothed line over the raw — does it track?"]
+    ]}
+  ],
+  notes:"More smoothing is not 'better.' Over-smoothing makes a forecast look clean while quietly lagging behind real turning points — you find out too late that demand already shifted. Always overlay the smoothed line on the raw data to judge it.",
+  viz:{html:`<h3 style="margin-bottom:10px">Raw (jumpy) vs. smoothed (signal)</h3>
+   <svg viewBox="0 0 320 120" width="100%" height="130" style="max-width:400px">
+    <line x1="10" y1="105" x2="310" y2="105" stroke="var(--border)"/>
+    <polyline fill="none" stroke="var(--dim)" stroke-width="1.5" opacity="0.7" points="10,80 30,55 50,88 70,50 90,75 110,48 130,82 150,40 170,70 190,44 210,66 230,36 250,60 270,40 290,52 310,30"/>
+    <polyline fill="none" stroke="var(--accent)" stroke-width="3" points="10,78 40,70 70,66 100,62 130,58 160,52 190,48 220,44 250,42 280,38 310,34"/>
+    <text x="120" y="20" fill="var(--dim)" font-size="11">grey = raw · blue = smoothed</text>
+   </svg>`,caption:"The grey line is the raw, noisy data; the blue line smooths it to reveal the steady upward signal. Smoothing trades a little responsiveness for a much clearer view of the real trend underneath the static."},
+  quiz:{q:"What is the risk of smoothing a time series too aggressively?",opts:["The chart becomes too colorful","It lags behind and flattens real changes, hiding turning points","It always makes the forecast more accurate","It removes the trend entirely by law"],ans:1,exp:"Heavy smoothing mutes noise but also dampens and delays real shifts. You can end up with a clean-looking line that reacts to a genuine change too late. Smoothing is a trade-off between stability and responsiveness — not a 'more is better' setting."}
+ },
+ {id:1,unit:"Unit 1: Trend & Smoothing",title:"Moving Averages",sub:"The simplest smoothing — and your baseline forecast.",core:true,
+  story:"The first real technique, and the one you'll reach for constantly: the moving average. Average the last few periods, slide the window forward, repeat. It smooths noise and gives you a dead-simple forecast — next period ≈ the recent average. It's also your <em>baseline</em>: any fancier model has to beat the moving average to earn its complexity.",
+  intro:"A <strong>simple moving average (SMA)</strong> replaces each point with the average of the last <em>k</em> periods. The <strong>window size k</strong> is the dial: a small window reacts fast but stays jumpy; a large window is smooth but lags. As a forecast, the SMA simply carries the latest average forward. It treats every period in the window equally — its main limitation.",
+  ral:[
+   {title:"How a moving average works",say:"Average the last k periods, then slide the window forward one step at a time.",
+    lines:[
+     ["Window (k)","how many recent periods you average — the key choice"],
+     ["Small k","reacts quickly, but noisier"],
+     ["Large k","smoother, but lags real changes more"],
+     ["As a forecast","next period ≈ the most recent k-period average"],
+     ["Baseline","the simple benchmark every fancier model must beat"]
+    ]},
+   {title:"The equal-weight limitation",say:"An SMA treats a point from k periods ago exactly like yesterday's — which is rarely realistic.",
+    lines:[
+     ["Equal weights","every period in the window counts the same"],
+     ["Problem","old data shouldn't matter as much as recent data"],
+     ["Fix preview","weighted / exponential smoothing (next lesson)"]
+    ]}
+  ],
+  notes:"A moving average always lags a trend — when data is rising, the average sits below the latest value. The bigger your window, the bigger the lag. Don't pick a huge window just because it 'looks smoother.'",
+  viz:{html:`<h3 style="margin-bottom:10px">3-period moving average</h3>
+   <svg viewBox="0 0 320 120" width="100%" height="130" style="max-width:400px">
+    <line x1="10" y1="105" x2="310" y2="105" stroke="var(--border)"/>
+    <polyline fill="none" stroke="var(--dim)" stroke-width="1.5" opacity="0.7" points="10,80 45,55 80,85 115,50 150,72 185,46 220,78 255,42 290,60"/>
+    <polyline fill="none" stroke="var(--accent)" stroke-width="3" points="45,73 80,63 115,69 150,57 185,63 220,55 255,60 290,52"/>
+    <text x="100" y="20" fill="var(--dim)" font-size="11">grey = actual · blue = 3-period MA</text>
+   </svg>`,caption:"Each blue point is the average of the three most recent grey points. The line is far smoother than the raw data, and it lags slightly behind — notice it sits below the peaks. That lag is the price of smoothing."},
+  quiz:{q:"You increase a moving average's window from 3 periods to 12. What happens?",opts:["It reacts faster to recent changes","It gets smoother but lags real changes more","It removes the trend completely","It becomes an exponential smoother"],ans:1,exp:"A larger window averages more (older) periods, so the line is smoother but slower to respond — it lags turning points more. Smaller windows react faster but stay jumpier. The window size is the smoothness-vs-responsiveness trade-off."}
+ },
+ {id:2,unit:"Unit 1: Trend & Smoothing",title:"Exponential Smoothing",sub:"Recent data matters more — weight it that way.",core:true,
+  story:"The moving average's flaw is that last week and three months ago count equally. Exponential smoothing fixes that: it weights recent periods more heavily, with influence fading smoothly the further back you go. One tuning knob — alpha — controls how fast the past fades. It's the most widely used simple forecasting method in business.",
+  intro:"<strong>Exponential smoothing</strong> forecasts the next value as a blend of the latest actual and the previous forecast: <code>new = α·(latest actual) + (1−α)·(previous forecast)</code>. The <strong>smoothing factor α</strong> (between 0 and 1) sets how reactive it is: high α leans on recent data (fast, jumpy), low α leans on history (smooth, slow). Older data never fully disappears — its weight just shrinks exponentially.",
+  ral:[
+   {title:"The exponential smoothing idea",say:"Each new forecast nudges the old one toward the latest actual. Alpha decides how big that nudge is.",
+    lines:[
+     ["α (alpha)","the smoothing factor, 0–1 — how much weight on the latest actual"],
+     ["High α (→1)","reacts fast to recent data, but stays jumpy"],
+     ["Low α (→0)","smooth and stable, but slow to adapt"],
+     ["Weighting","recent periods weigh most; influence fades exponentially"],
+     ["vs. moving average","no hard cutoff window — all history counts, less and less"]
+    ]},
+   {title:"When to use it",say:"Great for a level series with no strong trend or seasonality. Extensions handle those (next lessons).",
+    lines:[
+     ["Simple ES","best when there's no clear trend or season — just a level"],
+     ["Holt's method","adds a trend term (covered later)"],
+     ["Holt-Winters","adds trend AND seasonality (covered later)"]
+    ]}
+  ],
+  notes:"Simple exponential smoothing has no trend term — if your data is steadily rising, plain ES will chronically under-forecast. For trending data you need Holt's method (trend) or Holt-Winters (trend + seasonality).",
+  viz:{html:`<h3 style="margin-bottom:10px">High α vs. low α</h3>
+   <svg viewBox="0 0 320 120" width="100%" height="130" style="max-width:400px">
+    <line x1="10" y1="105" x2="310" y2="105" stroke="var(--border)"/>
+    <polyline fill="none" stroke="var(--dim)" stroke-width="1.5" opacity="0.6" points="10,80 45,55 80,85 115,50 150,72 185,46 220,78 255,42 290,60"/>
+    <polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="10,80 45,63 80,77 115,61 150,68 185,55 220,70 255,53 290,57"/>
+    <polyline fill="none" stroke="var(--accent2)" stroke-width="2.5" stroke-dasharray="5 4" points="10,82 45,78 80,79 115,75 150,75 185,71 220,73 255,68 290,68"/>
+    <text x="60" y="20" fill="var(--dim)" font-size="11">solid = high α (reactive) · dashed = low α (smooth)</text>
+   </svg>`,caption:"Both lines smooth the grey actuals, but the high-α line (solid) tracks the bumps closely while the low-α line (dashed) glides through them. Alpha is your single dial between reacting fast and staying stable."},
+  quiz:{q:"In exponential smoothing, what does a HIGH alpha (close to 1) do?",opts:["Ignores recent data entirely","Makes the forecast react quickly to the most recent actuals","Adds a seasonal component","Guarantees a more accurate forecast"],ans:1,exp:"Alpha is the weight on the latest actual. High alpha leans heavily on recent data, so the forecast reacts fast (but stays jumpy). Low alpha leans on accumulated history, giving a smoother, slower line. It's the reactivity dial — not an accuracy guarantee."}
+ },
+ {id:3,unit:"Unit 1: Trend & Smoothing",title:"Fitting a Linear Trend",sub:"A straight line through time — slope, intercept, R².",core:true,
+  story:"When a series climbs or falls roughly steadily, you can summarize it with a straight line: a linear trend. The slope tells you how much it changes per period; extend the line and you have a quick forecast. R² tells you how well the line actually fits. This is your bridge from smoothing into real models.",
+  intro:"A <strong>linear trend</strong> fits the best straight line through your data over time: <code>value = intercept + slope × period</code>. The <strong>slope</strong> is the average change per period; the <strong>intercept</strong> is the starting level. <strong>R²</strong> (0 to 1) measures how much of the variation the line explains — high R² means the points hug the line, low R² means a straight line is a poor summary.",
+  ral:[
+   {title:"Reading a fitted trend line",say:"Slope is the speed and direction; R² is how much to trust the line.",
+    lines:[
+     ["Slope","average change per period — the trend's steepness and direction"],
+     ["Intercept","the fitted value at period zero — the starting level"],
+     ["R² (fit)","share of variation the line explains; 1.0 = perfect fit"],
+     ["Forecast","plug a future period into the line equation"]
+    ]},
+   {title:"When a straight line is wrong",say:"A linear trend assumes a constant rate of change. If the data curves or has seasonality, the line misleads.",
+    lines:[
+     ["Curved growth","→ a line under/over-shoots; consider a nonlinear model"],
+     ["Seasonality present","→ fit the trend AFTER removing the season"],
+     ["Low R²","→ the line isn't a good summary; don't extrapolate it far"]
+    ]}
+  ],
+  notes:"A high R² means the line fits the past well — it does NOT mean the trend will continue. Extrapolating a straight line far into the future assumes nothing changes, which is exactly when forecasts go wrong.",
+  viz:{html:`<h3 style="margin-bottom:10px">Linear trend (R² ≈ 0.9)</h3>
+   <svg viewBox="0 0 320 120" width="100%" height="130" style="max-width:400px">
+    <line x1="10" y1="105" x2="310" y2="105" stroke="var(--border)"/>
+    ${[[20,92],[55,84],[90,80],[125,70],[160,66],[195,54],[230,50],[265,40],[300,30]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="var(--accent)"/>`).join('')}
+    <line x1="15" y1="92" x2="305" y2="32" stroke="var(--accent2)" stroke-width="2.5"/>
+    <text x="120" y="20" fill="var(--dim)" font-size="11">dots = actuals · line = fitted trend</text>
+   </svg>`,caption:"The fitted line is the best straight-line summary of the dots; its slope is the average change per period. R² near 0.9 means the points hug the line tightly. Extend the line to forecast — but only as long as the straight-line assumption holds."},
+  quiz:{q:"A trend line has R² = 0.95. What does that tell you?",opts:["The trend is guaranteed to continue","The line explains 95% of the past variation — it fits the history well","The forecast will be 95% accurate","The slope is 0.95 per period"],ans:1,exp:"R² measures goodness of fit on the historical data — 0.95 means the line explains 95% of the past variation. It says nothing about whether the trend continues or how accurate future forecasts will be. A great fit to the past can still extrapolate badly."}
+ },
+ {id:4,unit:"Unit 1: Trend & Smoothing",title:"Seasonality & Seasonal Indices",sub:"Measuring the repeating pattern — and removing it.",core:true,
+  story:"Most business data has a heartbeat: retail peaks in December, gyms in January, ice cream in summer. If you ignore that rhythm, your forecast is wrong half the year. The fix is to <em>measure</em> the seasonal pattern as a set of indices, then forecast the trend and multiply the season back in. This is the most practical skill in the kit.",
+  intro:"A <strong>seasonal index</strong> says how much each period typically runs above or below the average — December at 1.4 means 40% above normal; January at 0.7 means 30% below. To forecast: <strong>deseasonalize</strong> (divide out the index) to see the clean trend, project the trend, then <strong>reseasonalize</strong> (multiply the index back in). Indices around a season must average to 1.0.",
+  ral:[
+   {title:"Working with seasonal indices",say:"An index is a multiplier on the average. Strip it out to model the trend, then put it back to forecast.",
+    lines:[
+     ["Seasonal index","a period's typical level vs. average (1.4 = +40%, 0.7 = −30%)"],
+     ["Averages to 1.0","across a full season, the indices balance out"],
+     ["Deseasonalize","divide actuals by the index → clean trend"],
+     ["Reseasonalize","multiply the trend forecast by the index → final forecast"]
+    ]},
+   {title:"Additive vs. multiplicative",say:"Does the seasonal swing stay the same size, or grow with the level? That picks the model.",
+    lines:[
+     ["Multiplicative","swing grows with the level (×) — most common in sales"],
+     ["Additive","swing is a constant amount (+) regardless of level"],
+     ["Tell them apart","fanning-out seasonal peaks → multiplicative"]
+    ]}
+  ],
+  notes:"Forecasting a seasonal series with a plain trend line (no seasonal adjustment) is a classic error — it cuts straight through the peaks and troughs and is wrong almost every period. Always handle the season explicitly.",
+  viz:{html:`<h3 style="margin-bottom:10px">Seasonal indices (avg = 1.0)</h3>
+   <div style="display:flex;align-items:flex-end;gap:6px;height:110px;font-size:10px;text-align:center;color:var(--dim)">
+    ${[["Q1",0.8,64],["Q2",1.0,80],["Q3",0.9,72],["Q4",1.3,104]].map(q=>`<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%"><div style="width:40px;background:${q[1]>=1?'var(--accent)':'var(--accent2)'};height:${q[2]}px;border-radius:3px 3px 0 0"></div>${q[0]}<br><b style="color:var(--text)">${q[1]}</b></div>`).join('')}
+    <div style="border-left:2px dashed var(--dim);height:80px;margin:0 6px"></div>
+    <div style="align-self:center;font-size:11px">Q4 runs 30%<br>above average;<br>Q1 runs 20% below.</div>
+   </div>`,caption:"Each quarter's index shows its typical level versus the yearly average — Q4 at 1.3 is 30% above, Q1 at 0.8 is 20% below. The four average to 1.0. Forecast the trend, then multiply by these to put the season back."},
+  quiz:{q:"A product's Q4 seasonal index is 1.3 and your deseasonalized trend forecast for Q4 is 200 units. What's the seasonally-adjusted forecast?",opts:["200 units (the index doesn't apply)","260 units (200 × 1.3)","154 units (200 ÷ 1.3)","1.3 units"],ans:1,exp:"Reseasonalizing means multiplying the trend forecast by the seasonal index: 200 × 1.3 = 260. The index of 1.3 says Q4 typically runs 30% above the deseasonalized level, so your final Q4 forecast is 260 units."}
+ },
+ {id:5,unit:"Unit 2: Forecasting Models",title:"Regression for Forecasting",sub:"Using drivers, not just time, to predict.",
+  story:"So far time has been the only input. But sometimes the future depends on things you can know in advance — price, marketing spend, the weather, the day of week. Regression lets you forecast a value from one or more <em>driver</em> variables. It's the same fitted-line idea from the trend lesson, generalized to real predictors.",
+  intro:"<strong>Regression forecasting</strong> models the target as a function of predictor variables: <code>sales = b0 + b1·price + b2·adspend + …</code>. Each <strong>coefficient</strong> is the effect of that driver, holding others fixed. To forecast, you plug in future values of the drivers. The catch: you must <em>know or assume</em> the drivers' future values, and the relationship must stay stable.",
+  ral:[
+   {title:"How regression forecasting works",say:"Fit the effect of each driver on history, then plug in the drivers' future values to predict.",
+    lines:[
+     ["Predictors (drivers)","inputs you believe move the target (price, spend, season)"],
+     ["Coefficient","the effect of one driver, holding the others constant"],
+     ["Forecast","plug future driver values into the fitted equation"],
+     ["Time trend","time itself can be one predictor among several"]
+    ]},
+   {title:"The catches",say:"You can only forecast the target if you can supply the drivers — and if the past relationship still holds.",
+    lines:[
+     ["Need future drivers","unknown future price → no forecast (or you assume it)"],
+     ["Stable relationship","the fitted effects must keep holding"],
+     ["Correlation ≠ cause","a predictor that fits isn't necessarily a cause"],
+     ["Don't over-stuff","too many predictors → overfitting (Unit 3)"]
+    ]}
+  ],
+  notes:"Regression can only forecast the target as far ahead as you can supply the drivers. If a key driver (like next quarter's ad budget) is itself unknown, you've just turned one forecast into two. Pick drivers you'll actually know in advance.",
+  viz:{html:`<h3 style="margin-bottom:10px">Sales vs. a driver (ad spend)</h3>
+   <svg viewBox="0 0 300 130" width="100%" height="140" style="max-width:380px">
+    <line x1="20" y1="115" x2="290" y2="115" stroke="var(--border)"/>
+    <line x1="20" y1="10" x2="20" y2="115" stroke="var(--border)"/>
+    ${[[50,100],[80,92],[110,82],[130,86],[160,68],[185,60],[210,52],[240,40],[265,30]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="var(--accent)"/>`).join('')}
+    <line x1="40" y1="103" x2="285" y2="28" stroke="var(--accent2)" stroke-width="2.5"/>
+    <text x="120" y="20" fill="var(--dim)" font-size="11">fit the line, then plug in future spend</text>
+   </svg>`,caption:"Regression fits how a driver (ad spend, x) relates to the target (sales, y). To forecast, you supply a future spend value and read the fitted line. The model is only as good as your knowledge of that future driver."},
+  quiz:{q:"What's the key practical limitation of using regression on driver variables to forecast?",opts:["It can only use time as a predictor","You must know or assume the future values of those drivers","It never needs historical data","It always overfits"],ans:1,exp:"To forecast the target you have to plug in the drivers' future values. If a driver (like next quarter's price or ad budget) is itself unknown, you can't forecast without first assuming or forecasting it. Choose predictors you can actually know in advance."}
+ },
+ {id:6,unit:"Unit 2: Forecasting Models",title:"Holt-Winters (Trend + Seasonality)",sub:"Exponential smoothing that handles everything at once.",
+  story:"Simple exponential smoothing handles a flat level. Real data usually trends AND has a season. Holt-Winters is the upgrade that smooths all three pieces — level, trend, and seasonality — at the same time, each with its own dial. It's the default workhorse for seasonal business forecasting, built right into Excel, Tableau, and Power BI.",
+  intro:"<strong>Holt-Winters</strong> (triple exponential smoothing) extends exponential smoothing with three smoothing factors: <strong>α</strong> for the level, <strong>β</strong> for the trend, and <strong>γ</strong> for the seasonality. It updates all three as new data arrives, so it tracks a series that's simultaneously growing and cycling — without you separately deseasonalizing by hand. It comes in additive and multiplicative seasonal flavors.",
+  ral:[
+   {title:"The three components Holt-Winters smooths",say:"It's exponential smoothing applied to three things at once — level, trend, and season — each with its own factor.",
+    lines:[
+     ["Level (α)","the current baseline value"],
+     ["Trend (β)","the slope — how fast the level is changing"],
+     ["Seasonality (γ)","the repeating per-period pattern"],
+     ["Result","one model that forecasts trending, seasonal data"]
+    ]},
+   {title:"Choosing it",say:"Match the method to what your data actually contains — don't pay for components you don't need.",
+    lines:[
+     ["Level only","→ simple exponential smoothing"],
+     ["Level + trend","→ Holt's linear method"],
+     ["Level + trend + season","→ Holt-Winters"],
+     ["In tools","Excel FORECAST.ETS, Tableau/Power BI built-in forecast use this family"]
+    ]}
+  ],
+  notes:"Holt-Winters needs at least two full seasonal cycles of history to estimate the seasonal pattern reliably — ideally more. With only one year of monthly data, the seasonal estimates are shaky. Don't force it on too little history.",
+  viz:{html:`<h3 style="margin-bottom:10px">Trend + seasonality, projected</h3>
+   <svg viewBox="0 0 320 130" width="100%" height="140" style="max-width:400px">
+    <line x1="10" y1="115" x2="310" y2="115" stroke="var(--border)"/>
+    <line x1="200" y1="10" x2="200" y2="115" stroke="var(--border)" stroke-dasharray="3 3"/>
+    <polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="10,95 35,70 60,98 85,72 110,84 135,58 160,86 185,55"/>
+    <polyline fill="none" stroke="var(--accent2)" stroke-width="2.5" stroke-dasharray="5 4" points="185,55 210,78 235,46 260,76 285,40 310,70"/>
+    <text x="40" y="22" fill="var(--dim)" font-size="11">history</text>
+    <text x="225" y="22" fill="var(--dim)" font-size="11">HW forecast</text>
+   </svg>`,caption:"Holt-Winters carries the rising trend AND the repeating seasonal swing into the forecast (dashed). It smooths level, trend, and season together — which is why it's the go-to for data that both grows and cycles."},
+  quiz:{q:"What does Holt-Winters add over simple exponential smoothing?",opts:["Nothing — they're identical","Separate smoothing of trend and seasonality, not just the level","It removes the need for historical data","It only works without seasonality"],ans:1,exp:"Simple exponential smoothing tracks only the level. Holt-Winters adds a trend component (β) and a seasonal component (γ), smoothing all three at once. That lets it forecast data that is simultaneously trending and seasonal — the common real-world case."}
+ },
+ {id:7,unit:"Unit 2: Forecasting Models",title:"ARIMA in Plain English",sub:"The three letters, demystified.",
+  story:"At some point you'll hear 'we should try ARIMA' and feel a flicker of dread. Don't. ARIMA is just three simple ideas bolted together — using past values, using past errors, and differencing to remove trend. You don't need the math to know what it does and when it's the right call. This lesson gives you that working understanding.",
+  intro:"<strong>ARIMA</strong> stands for AutoRegressive (AR), Integrated (I), Moving Average (MA). <strong>AR</strong>: predict from past <em>values</em>. <strong>I</strong>: <em>difference</em> the series (subtract the prior value) to remove trend and make it stationary. <strong>MA</strong>: predict from past <em>errors</em>. Each part has an order (p, d, q). It's a flexible model for stationary or differenced series — but it needs more data and care than smoothing.",
+  ral:[
+   {title:"The three letters",say:"AR uses where you've been, MA uses how wrong you've been, and I flattens the trend so the other two can work.",
+    lines:[
+     ["AR (p)","autoregressive — uses past VALUES of the series"],
+     ["I (d)","integrated — differences the data to remove trend (stationarity)"],
+     ["MA (q)","moving average — uses past forecast ERRORS"],
+     ["Stationary","constant mean/variance over time — what ARIMA needs"]
+    ]},
+   {title:"When ARIMA fits",say:"Reach for it when smoothing isn't enough and you have plenty of clean history — otherwise keep it simple.",
+    lines:[
+     ["Good for","complex autocorrelation a smoother can't capture"],
+     ["SARIMA","the seasonal extension — adds seasonal AR/I/MA terms"],
+     ["Needs","more data, stationarity, and parameter tuning"],
+     ["Don't over-reach","a moving average often matches ARIMA on simple series"]
+    ]}
+  ],
+  notes:"ARIMA is not automatically more accurate than exponential smoothing — on many real business series the simpler smoother wins. Use ARIMA when the data has structure a smoother misses, not to look sophisticated.",
+  viz:{html:`<h3 style="margin-bottom:10px">A·R·I·M·A, decoded</h3>
+   <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px">
+    ${[["AR","uses past <b>values</b> (where the series has been)"],["I","<b>differences</b> the data to remove the trend"],["MA","uses past <b>errors</b> (how wrong recent forecasts were)"]].map(r=>`<div style="display:flex;gap:12px;align-items:center"><span style="width:34px;height:34px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">${r[0]}</span><span style="color:var(--dim)">${r[1]}</span></div>`).join('')}
+   </div>`,caption:"ARIMA is just these three ideas combined: model from past values (AR), flatten the trend by differencing (I), and correct using past errors (MA). Knowing what each letter does is enough to decide when it's the right tool."},
+  quiz:{q:"In ARIMA, what does the 'I' (Integrated) part do?",opts:["Adds the values up into a running total","Differences the series (subtracts the prior value) to remove trend and make it stationary","Integrates seasonality automatically","Uses past forecast errors"],ans:1,exp:"The 'I' differences the data — replacing each value with its change from the previous period — to strip out the trend and make the series stationary (stable mean/variance). That's what lets the AR and MA parts model it. AR uses past values; MA uses past errors."}
+ },
+ {id:8,unit:"Unit 3: Evaluating & Communicating",title:"Measuring Forecast Accuracy",sub:"MAE, MAPE, RMSE — and the train/test split.",core:true,
+  story:"How do you know a forecast is any good? You test it against reality. The discipline: hold back recent data, forecast it, and compare to what actually happened using error metrics. This is how you choose between methods honestly — and how you avoid the trap of a model that fits the past perfectly but predicts the future terribly.",
+  intro:"To judge a forecast, measure its <strong>error</strong> (actual − forecast) with a metric: <strong>MAE</strong> (mean absolute error, in original units), <strong>MAPE</strong> (mean absolute % error, unit-free for comparing series), or <strong>RMSE</strong> (root mean squared error, which punishes big misses harder). Crucially, evaluate on a <strong>holdout (test) set</strong> the model never saw — fitting and grading on the same data flatters every model.",
+  ral:[
+   {title:"The three everyday error metrics",say:"Pick the metric that matches your question: absolute size (MAE), percentage (MAPE), or big-miss sensitivity (RMSE).",
+    lines:[
+     ["Error","actual − forecast, per period"],
+     ["MAE","average absolute error — in the data's own units"],
+     ["MAPE","average absolute % error — unit-free, compares across series"],
+     ["RMSE","square errors first → penalizes large misses more"]
+    ]},
+   {title:"Train/test — the honest test",say:"Grade on data the model never saw, the way you'd grade a student on an unseen exam, not the homework.",
+    lines:[
+     ["Training set","the history the model learns from"],
+     ["Test (holdout) set","recent data held back to grade the forecast"],
+     ["Backtesting","roll the split forward to test over many windows"],
+     ["Why","in-sample error always looks too good — overfitting hides here"]
+    ]}
+  ],
+  notes:"Never judge a forecast only on the data it was fit to. A flexible model can memorize the history (near-zero in-sample error) and still fail on new data. The holdout error is the number that matters.",
+  viz:{html:`<h3 style="margin-bottom:10px">Train / test split</h3>
+   <div style="display:flex;height:46px;border-radius:6px;overflow:hidden;font-size:12px;color:#fff;margin-bottom:8px">
+    <div style="flex:4;background:var(--accent);display:flex;align-items:center;justify-content:center">Training (model learns)</div>
+    <div style="flex:1;background:var(--accent2);display:flex;align-items:center;justify-content:center">Test</div>
+   </div>
+   <div style="font-size:12px;color:var(--dim)">MAE = avg |actual − forecast| · MAPE = avg |error| ÷ actual · RMSE penalizes big misses</div>`,caption:"Fit the model on the early 'training' chunk, then forecast the held-back 'test' chunk and compare to what really happened. The test-set error — MAE, MAPE, or RMSE — is the honest measure of accuracy."},
+  quiz:{q:"Why must you evaluate a forecast on a holdout (test) set rather than the data it was fit on?",opts:["It's faster to compute","A flexible model can fit the training data almost perfectly yet fail on new data — only holdout error reveals this","Test sets are always larger","In-sample error is illegal"],ans:1,exp:"Fitting and grading on the same data flatters every model — a flexible one can memorize the history and show near-zero in-sample error while forecasting the future badly (overfitting). A holdout set the model never saw gives the honest accuracy estimate."}
+ },
+ {id:9,unit:"Unit 3: Evaluating & Communicating",title:"Prediction Intervals",sub:"A forecast is a range — the fan chart.",core:true,
+  story:"Back to the truth from lesson one: a forecast is a range, not a number. The prediction interval makes that range explicit — 'we expect 200, and we're 80% sure it lands between 170 and 240.' Drawn out, it's the fan chart: a band that widens the further ahead you look. Showing it is what separates a credible analyst from an overconfident one.",
+  intro:"A <strong>prediction interval</strong> is the range a future actual is likely to fall in, at a stated confidence (e.g. 80% or 95%). It comes from the model's error spread. Two facts to internalize: a <strong>higher confidence level means a wider interval</strong> (95% is wider than 80%), and intervals <strong>widen with the horizon</strong> — next month is more certain than next year. The picture is the <strong>fan chart</strong>.",
+  ral:[
+   {title:"Reading a prediction interval",say:"The point forecast is your best single guess; the interval is where reality will probably land.",
+    lines:[
+     ["Point forecast","the single best estimate — the center line"],
+     ["Prediction interval","the likely range around it, at a stated confidence"],
+     ["Confidence level","80%, 95% — higher confidence → WIDER interval"],
+     ["Fan chart","the band that widens as the horizon extends"]
+    ]},
+   {title:"Why the fan widens",say:"Uncertainty compounds — each step ahead adds error on top of the last.",
+    lines:[
+     ["Short horizon","narrow band — recent patterns still grip"],
+     ["Long horizon","wide band — small errors compound, patterns may shift"],
+     ["Takeaway","trust near-term forecasts more than far-term ones"]
+    ]}
+  ],
+  notes:"A 95% interval is WIDER than an 80% interval, not narrower — more confidence that you've captured the true value requires more room. People often get this backwards. And a suspiciously narrow long-range interval usually means the model is overconfident.",
+  viz:{html:`<h3 style="margin-bottom:10px">The fan chart widens with the horizon</h3>
+   <svg viewBox="0 0 320 130" width="100%" height="140" style="max-width:400px">
+    <line x1="10" y1="115" x2="310" y2="115" stroke="var(--border)"/>
+    <line x1="150" y1="10" x2="150" y2="115" stroke="var(--border)" stroke-dasharray="3 3"/>
+    <polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="10,95 50,86 90,74 130,66 150,60"/>
+    <polygon points="150,60 310,20 310,90 150,60" fill="var(--accent)" opacity="0.12"/>
+    <polygon points="150,60 310,38 310,72 150,60" fill="var(--accent)" opacity="0.2"/>
+    <polyline fill="none" stroke="var(--accent2)" stroke-width="2.5" stroke-dasharray="5 4" points="150,60 310,40"/>
+    <text x="180" y="105" fill="var(--dim)" font-size="10">wider band = 95% · inner = 80%</text>
+   </svg>`,caption:"The dashed center line is the point forecast; the shaded bands are the prediction intervals. The wider (lighter) band is 95%, the inner band 80% — higher confidence is wider. Both fan out with the horizon as uncertainty compounds."},
+  quiz:{q:"Which is true about prediction intervals?",opts:["A 95% interval is narrower than an 80% interval","A 95% interval is wider than an 80% interval, and intervals widen as you forecast further out","Intervals stay the same width at every horizon","Only the point forecast matters"],ans:1,exp:"More confidence requires more room, so a 95% interval is WIDER than an 80% one. And because errors compound the further ahead you look, intervals fan out with the horizon — near-term forecasts are tighter than long-term ones."}
+ },
+ {id:10,unit:"Unit 3: Evaluating & Communicating",title:"Common Mistakes & Communicating Forecasts",sub:"Avoid the traps; present the result like a pro.",core:true,
+  story:"The last lesson is the one that protects your reputation. Most forecasting failures aren't exotic — they're the same handful of traps: overfitting, extrapolating too far, ignoring a known change, hiding the uncertainty. And once your forecast is sound, you still have to communicate it so a decision-maker can act on it. Here's how to do both.",
+  intro:"The frequent traps: <strong>overfitting</strong> (a model that memorizes noise), <strong>extrapolating too far</strong> (assuming today's trend runs forever), <strong>ignoring known changes</strong> (a price hike the model can't see), and <strong>false precision</strong> (a single number, no range). Communicating well is the flip side: lead with the range and the key assumptions, show the fan chart, and state what would change your mind.",
+  ral:[
+   {title:"The four traps to avoid",say:"Most bad forecasts fail in one of these ways — check yourself against the list before you ship.",
+    lines:[
+     ["Overfitting","model fits history's noise → great in-sample, bad out"],
+     ["Over-extrapolating","projecting a trend far past where it can hold"],
+     ["Ignoring known events","a planned launch/price change the model can't see"],
+     ["False precision","one number, no interval — implies certainty you lack"]
+    ]},
+   {title:"Communicating a forecast",say:"Give the decision-maker the range, the assumptions, and the triggers that would change it.",
+    lines:[
+     ["Lead with the range","the interval first, not just the point number"],
+     ["State assumptions","'assumes price and promo hold steady'"],
+     ["Show the fan chart","make the growing uncertainty visible"],
+     ["Name the triggers","what new info would make you revise it"]
+    ]}
+  ],
+  notes:"The biggest communication failure is presenting a forecast as a fact. Pair every number with its range and assumptions, and say plainly that you'll revise it as data arrives. That honesty is what makes people trust the next forecast too.",
+  viz:{html:`<h3 style="margin-bottom:10px">Overfit vs. sensible</h3>
+   <svg viewBox="0 0 320 120" width="100%" height="130" style="max-width:400px">
+    <line x1="10" y1="105" x2="310" y2="105" stroke="var(--border)"/>
+    ${[[20,80],[50,60],[80,82],[110,55],[140,74],[170,50],[200,78],[230,48]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="var(--dim)"/>`).join('')}
+    <polyline fill="none" stroke="var(--err)" stroke-width="1.5" points="20,80 50,60 80,82 110,55 140,74 170,50 200,78 230,48"/>
+    <polyline fill="none" stroke="var(--accent)" stroke-width="3" points="20,76 80,70 140,63 200,57 260,51 310,46"/>
+    <text x="70" y="20" fill="var(--dim)" font-size="11">red = overfit (chases noise) · blue = sensible trend</text>
+   </svg>`,caption:"The red line snakes through every point — it has memorized the noise and will predict the future badly. The blue line captures the real trend and will generalize. Simpler, well-judged models usually forecast better than over-complex ones."},
+  quiz:{q:"What's the most important thing to do when presenting a forecast to a decision-maker?",opts:["Give a single precise number so they're not confused","Lead with the range and assumptions, and say you'll revise as data arrives","Hide the uncertainty so they feel confident","Use the most complex model available"],ans:1,exp:"A forecast presented as a single certain number invites bad decisions. Leading with the prediction interval, stating your assumptions, and committing to revise as new data comes in gives an honest basis for action — and builds the trust that makes your next forecast credible."}
+ }
+],
+FILLS:[
+ {id:1,q:"Every forecast should be presented as a ___, not a single number.",partial:"A forecast is a ___",ans:"range",choices:["range","guarantee","constant","secret"],hint:"Pair the point forecast with an interval that shows the uncertainty."},
+ {id:2,q:"Splitting a time series into trend, seasonality, cycle, and noise is called ___.",partial:"Splitting a series into parts = ___",ans:"decomposition",choices:["decomposition","aggregation","normalization","extrapolation"],hint:"You decompose a series to model each component separately."},
+ {id:3,q:"A pattern that repeats on a FIXED calendar period (every December) is ___.",partial:"Fixed repeating pattern = ___",ans:"seasonality",choices:["seasonality","a cycle","noise","trend"],hint:"Fixed period = seasonality; variable-length swings = cycle."},
+ {id:4,q:"Averaging the last k periods and sliding the window forward is a ___ ___.",partial:"Average last k periods = ___ ___",ans:"moving average",choices:["moving average","seasonal index","prediction interval","linear trend"],hint:"It's also your simple baseline forecast."},
+ {id:5,q:"In exponential smoothing, the smoothing factor is called ___.",partial:"ES smoothing factor = ___",ans:"alpha",choices:["alpha","sigma","R-squared","lambda"],hint:"Between 0 and 1; high = reactive, low = smooth."},
+ {id:6,q:"R² measures how well a trend line ___ the historical data.",partial:"R² = how well the line ___ the data",ans:"fits",choices:["fits","predicts","causes","randomizes"],hint:"Goodness of fit on the past — not future accuracy."},
+ {id:7,q:"To remove a seasonal pattern before modeling the trend, you ___ the data.",partial:"Remove the season = ___ the data",ans:"deseasonalize",choices:["deseasonalize","smooth","difference","aggregate"],hint:"Divide actuals by the seasonal index."},
+ {id:8,q:"The 'I' in ARIMA stands for Integrated, which means it ___ the series.",partial:"ARIMA 'I' = ___ the series",ans:"differences",choices:["differences","totals","colors","duplicates"],hint:"Subtract the prior value to remove trend (stationarity)."},
+ {id:9,q:"To judge a forecast honestly, evaluate it on a ___ set the model never saw.",partial:"Grade the forecast on a ___ set",ans:"test",choices:["test","training","seasonal","noisy"],hint:"Also called the holdout set."},
+ {id:10,q:"The error metric that punishes large misses most is ___.",partial:"Penalizes big misses most: ___",ans:"RMSE",choices:["RMSE","MAE","MAPE","R²"],hint:"It squares the errors before averaging."},
+ {id:11,q:"A 95% prediction interval is ___ than an 80% interval.",partial:"95% interval is ___ than 80%",ans:"wider",choices:["wider","narrower","the same width","negative"],hint:"More confidence needs more room."},
+ {id:12,q:"A model that memorizes the noise in history is said to be ___.",partial:"Memorizes noise = ___",ans:"overfit",choices:["overfit","underfit","stationary","seasonal"],hint:"Great in-sample, bad on new data."}
+],
+ESQL:[
+ {id:1,q:"Data is noisy but flat (no trend, no season). Which simple method fits?",ans:"Simple exponential smoothing",choices:["Simple exponential smoothing","Holt-Winters","Linear regression on 5 drivers","ARIMA(2,1,2)"],hint:"Flat level → smooth the level only."},
+ {id:2,q:"Data has a steady upward trend AND a yearly seasonal swing. Best method?",ans:"Holt-Winters",choices:["Holt-Winters","Simple moving average","Simple exponential smoothing","A single average"],hint:"Trend + season → triple smoothing."},
+ {id:3,q:"You want a dead-simple baseline to compare every other model against. Use a ___.",ans:"Moving average",choices:["Moving average","SARIMA","Neural network","Holt-Winters"],hint:"The benchmark fancier models must beat."},
+ {id:4,q:"You can predict sales from price and ad spend, both known in advance. Which approach?",ans:"Regression on drivers",choices:["Regression on drivers","Simple exponential smoothing","Seasonal index only","ARIMA"],hint:"Forecast from predictor variables."},
+ {id:5,q:"Q4 index is 1.3; deseasonalized trend says 200. The seasonal forecast is ___.",ans:"260",choices:["260","200","154","1.3"],hint:"Multiply the trend by the index: 200 × 1.3."},
+ {id:6,q:"You need an error metric that lets you compare accuracy across products of very different sizes.",ans:"MAPE",choices:["MAPE","MAE","RMSE","R²"],hint:"Percentage error is unit-free."},
+ {id:7,q:"What do you call holding back recent data, forecasting it, and rolling the split forward?",ans:"Backtesting",choices:["Backtesting","Smoothing","Deseasonalizing","Differencing"],hint:"Test over many windows."},
+ {id:8,q:"Sales swing gets BIGGER as the overall level grows. Which seasonal model?",ans:"Multiplicative",choices:["Multiplicative","Additive","Linear","Stationary"],hint:"Swing scales with the level → multiply."},
+ {id:9,q:"A series must have constant mean and variance over time for ARIMA's AR/MA parts. That property is ___.",ans:"Stationarity",choices:["Stationarity","Seasonality","Correlation","Skew"],hint:"The 'I' differencing helps achieve it."},
+ {id:10,q:"Your model has near-zero error on training data but big errors on the test set. What's happening?",ans:"Overfitting",choices:["Overfitting","Underfitting","Perfect forecasting","Seasonality"],hint:"It memorized the noise."},
+ {id:11,q:"A stakeholder wants 'the number' for revenue 3 years out. Best response?",ans:"Give a range and note uncertainty grows with the horizon",choices:["Give a range and note uncertainty grows with the horizon","Give one exact number","Refuse to forecast","Give last year's number"],hint:"Long horizon = wide fan."},
+ {id:12,q:"Which Excel function family implements exponential smoothing for forecasting?",ans:"FORECAST.ETS",choices:["FORECAST.ETS","VLOOKUP","SUMIFS","CONCAT"],hint:"ETS = error/trend/season (Holt-Winters family)."}
+],
+BUGS:[
+ {id:1,config:"Method: plain linear trend line\nData: monthly sales that clearly peak every December\nResult: forecast cuts straight through the seasonal peaks and troughs",broken:"A plain trend ignores the season — it's wrong almost every month. You must model the seasonality (e.g. seasonal indices or Holt-Winters).",choices:["Add a seasonal component (seasonal indices or Holt-Winters)","Use a larger font on the chart","Switch the line to a bar chart","Delete the December data points"]},
+ {id:2,config:"Reporting: 'Next quarter revenue will be $1,283,402.'\nNo range given.",broken:"A single precise number implies certainty a forecast never has. Present a prediction interval and the assumptions.",choices:["Present a range (prediction interval) with the point estimate","Round it to $1,283,400","Add more decimal places for accuracy","Bold the number"]},
+ {id:3,config:"Evaluation: model fit on Jan–Dec, accuracy also measured on Jan–Dec.\nReported error: nearly zero.",broken:"Fitting and grading on the same data flatters the model — that near-zero error hides overfitting. Use a holdout test set.",choices:["Hold back recent data as a test set and grade on that","Trust the near-zero error","Fit on even more of the same data","Report the error to more decimals"]},
+ {id:4,config:"Method: simple exponential smoothing (level only)\nData: sales rising steadily ~5% per month\nResult: forecast consistently below actuals",broken:"Simple ES has no trend term, so it lags a rising series and under-forecasts. Use Holt's method (trend) or Holt-Winters.",choices:["Use a method with a trend term (Holt's / Holt-Winters)","Raise alpha to exactly 1.0","Switch to a pie chart","Forecast the average instead"]},
+ {id:5,config:"Interval setup: 95% prediction interval drawn NARROWER than the 80% interval.",broken:"Higher confidence requires a wider interval — 95% must be wider than 80%. They're reversed.",choices:["Make the 95% interval wider than the 80% one","Make both intervals the same width","Remove the 80% interval","Use a single line instead"]},
+ {id:6,config:"Model: 8th-degree curve that passes through every single historical point\nNew data arrives: forecast is wildly off",broken:"The model memorized the noise (overfitting) — perfect on history, useless on new data. Use a simpler model and judge on holdout error.",choices:["Use a simpler model and validate on a holdout set","Add even more curve terms","Trust it because it fit the past perfectly","Remove the new data"]}
+],
+WRONG:[
+ {id:1,q:"Someone says 'more smoothing always makes a forecast better.' Why is that wrong?",opts:["Smoothing never changes anything","Over-smoothing lags and flattens real changes, so you miss turning points until too late","Smoothing only works on seasonal data","Smoothing increases the noise"],ans:1,exp:"Smoothing is a trade-off, not a free win. Too much mutes real shifts and delays them, so a clean-looking line can quietly miss a genuine turning point. Match the amount of smoothing to how noisy and fast-moving the data actually is."},
+ {id:2,q:"A model has R² = 0.98 on the last 3 years. A colleague says 'so the 5-year forecast is basically guaranteed.' What's the flaw?",opts:["R² should be negative","R² measures fit to the PAST; it says nothing about whether the trend continues or how accurate the future will be","R² of 0.98 is impossible","You need R² above 1.0"],ans:1,exp:"R² is goodness of fit on historical data. A great fit can still extrapolate terribly — especially 5 years out, where the trend may not hold and uncertainty compounds. Fit ≠ future accuracy; judge forecasts on holdout error and show the widening interval."},
+ {id:3,q:"Your team forecasts demand but ignores a price increase that's already scheduled next quarter. What's the risk?",opts:["No risk — models handle everything","The model can't see a known future change, so the forecast will be biased; adjust for it explicitly","Price never affects demand","You should delete past data"],ans:1,exp:"A time-series model only knows the patterns in the history it was trained on. A known upcoming change (price hike, promo, store closure) won't be captured automatically — you must adjust the forecast or include the driver. Ignoring known events is a classic miss."},
+ {id:4,q:"Two regions are forecast; you want to compare which forecast was more accurate, but they sell very different volumes. Which metric?",opts:["MAE, because it's in original units","MAPE, because percentage error is unit-free and comparable across different scales","RMSE, because it's always best","R², because it's a percentage"],ans:1,exp:"MAE and RMSE are in the data's own units, so a big-volume region will show bigger absolute errors regardless of relative accuracy. MAPE expresses error as a percentage, making it comparable across series of very different scales."},
+ {id:5,q:"A forecast's prediction interval is the SAME width for next month and for three years out. Why is that suspicious?",opts:["Intervals should shrink over time","Uncertainty compounds with the horizon, so the interval should widen further out — a flat band signals overconfidence","Intervals are always constant","It means the model is perfect"],ans:1,exp:"The further ahead you forecast, the more errors compound and the less today's patterns can be trusted — so a proper interval fans out. A long-range interval as tight as the near-term one almost always means the model is understating its uncertainty."},
+ {id:6,q:"A junior analyst picks ARIMA over a moving average 'because it's more advanced.' What's the better reasoning?",opts:["Always use the most advanced model","Choose the method that actually fits the data and beats the simple baseline on holdout error — often the simpler one wins","Moving averages are never valid","ARIMA is always more accurate"],ans:1,exp:"Sophistication isn't accuracy. On many real business series a moving average or exponential smoother matches or beats ARIMA. Let the holdout error decide, and only pay for complexity (more data, tuning, fragility) when it earns its keep."},
+ {id:7,q:"You present a single forecast number to executives with no range or assumptions. What goes wrong?",opts:["Nothing — clarity is good","They treat the estimate as a promise and may make risky decisions; always include the interval and assumptions","Executives prefer ranges to be hidden","The number becomes more accurate"],ans:1,exp:"A lone number reads as a commitment. Without the range and the assumptions behind it, decision-makers can't weigh the risk and will over-trust it. Lead with the interval, state assumptions, and say you'll revise as new data arrives."}
+],
+PARSONS:[
+ {id:1,q:"Order the steps to forecast a seasonal series with a trend:",ans:["Deseasonalize (divide actuals by the seasonal index)","Fit and project the trend on the clean data","Reseasonalize (multiply the trend forecast by the index)","Add a prediction interval"]},
+ {id:2,q:"Order these methods from simplest to most complex:",ans:["Simple moving average","Simple exponential smoothing","Holt-Winters (trend + season)","ARIMA"]},
+ {id:3,q:"Order the steps to evaluate a forecast honestly:",ans:["Split history into a training set and a test set","Fit the model on the training set only","Forecast the test set and compare to actuals","Compute an error metric (MAE / MAPE / RMSE)"]},
+ {id:4,q:"Order the components of a decomposed time series (from biggest-picture to leftover):",ans:["Trend","Seasonality","Cycle","Noise"]},
+ {id:5,q:"Order the steps to communicate a forecast to a decision-maker:",ans:["Lead with the point forecast and its range","State the key assumptions","Show the fan chart (widening uncertainty)","Name the triggers that would make you revise it"]}
+],
+CARDS:[
+ {front:"Forecast",back:"A projection of historical patterns into the future.\nAlways a RANGE, not a single number.\nAssumes past patterns keep holding.\nError grows with the horizon."},
+ {front:"Decomposition",back:"Splitting a series into its parts:\nTrend + Seasonality + Cycle + Noise.\nModel the predictable parts;\naccept the noise you can't explain."},
+ {front:"Trend",back:"The long-run direction of a series.\nUp, down, or flat.\nThe steady backbone under the wiggles.\nFit with a line or a trend-smoothing method."},
+ {front:"Seasonality",back:"A pattern repeating on a FIXED period.\nEvery December, every Friday.\nMeasured with seasonal indices.\nDiffers from a cycle (variable length)."},
+ {front:"Cycle",back:"Longer, irregular swings (e.g. the economy).\nNO fixed period — unlike seasonality.\nCan last 1 year or several.\nSeasonal models don't capture it."},
+ {front:"Signal vs. noise",back:"Signal = the real, repeatable pattern.\nNoise = random, unpredictable variation.\nSmoothing separates the two.\nThe goal of all trend modeling."},
+ {front:"Moving average",back:"Average of the last k periods, sliding forward.\nWindow k = smoothness vs. responsiveness.\nEqual weight on all k periods.\nYour simple baseline forecast."},
+ {front:"Exponential smoothing",back:"Recent data weighted more; influence fades.\nnew = α·actual + (1−α)·prev forecast.\nAlpha (0–1) = the reactivity dial.\nSimple ES has no trend term."},
+ {front:"Alpha (α)",back:"The smoothing factor in exponential smoothing.\nHigh α → reacts fast (jumpy).\nLow α → smooth and stable (slow).\nBetween 0 and 1."},
+ {front:"Linear trend",back:"Best straight line through time.\nvalue = intercept + slope × period.\nSlope = average change per period.\nR² = how well it fits the past."},
+ {front:"R²",back:"Share of variation a model explains (0–1).\nGoodness of FIT on historical data.\nHigh R² ≠ accurate future forecast.\nDon't extrapolate a great fit too far."},
+ {front:"Seasonal index",back:"A period's typical level vs. average.\n1.3 = 30% above; 0.7 = 30% below.\nIndices average to 1.0 over a season.\nDeseasonalize ÷, reseasonalize ×."},
+ {front:"Holt-Winters",back:"Triple exponential smoothing.\nSmooths level (α), trend (β), season (γ).\nThe workhorse for trending+seasonal data.\nNeeds ≥2 full seasonal cycles."},
+ {front:"ARIMA",back:"AutoRegressive, Integrated, Moving Average.\nAR = past values · I = differencing · MA = past errors.\nNeeds a stationary (or differenced) series.\nNot automatically better than smoothing."},
+ {front:"Stationarity",back:"Constant mean and variance over time.\nWhat ARIMA's AR/MA parts require.\nThe 'I' (differencing) helps achieve it.\nTrending data is non-stationary."},
+ {front:"Train/test split",back:"Fit on a training set;\ngrade on a held-back test set.\nThe honest way to judge a forecast.\nIn-sample error always looks too good."},
+ {front:"MAE / MAPE / RMSE",back:"MAE: avg |error|, original units.\nMAPE: avg % error, unit-free.\nRMSE: squares errors → punishes big misses.\nPick the one that fits your question."},
+ {front:"Prediction interval",back:"The likely range around a point forecast.\nStated at a confidence (80%, 95%).\n95% is WIDER than 80%.\nWidens with the horizon (the fan chart)."},
+ {front:"Overfitting",back:"A model that memorizes the noise.\nNear-zero error in-sample, bad out.\nFix: simpler model + holdout validation.\nThe most common forecasting failure."},
+ {front:"Backtesting",back:"Roll the train/test split forward over time.\nTests the forecast over many windows.\nGuards against a lucky single split.\nThe standard out-of-sample check."}
+],
+GLOSSARY:[
+ ["Forecast","A projection of historical patterns into the future, always carrying uncertainty — best expressed as a range plus its assumptions."],
+ ["Time series","A sequence of values recorded over time at regular intervals — the data forecasting works on."],
+ ["Decomposition","Splitting a time series into trend, seasonality, cycle, and noise so each component can be modeled separately."],
+ ["Trend","The long-run direction of a series (up, down, or flat), independent of short-term wiggles."],
+ ["Seasonality","A pattern that repeats on a fixed calendar period (daily, weekly, yearly), measured with seasonal indices."],
+ ["Cycle","Longer, irregular swings with no fixed period (like business cycles) — distinct from fixed-period seasonality."],
+ ["Noise","The random, unpredictable variation left in a series after trend, seasonality, and cycle are removed."],
+ ["Smoothing","Averaging nearby points to mute noise and reveal the underlying signal; trades responsiveness for stability."],
+ ["Moving average","A forecast/smoother that averages the most recent k periods and slides the window forward; the common baseline."],
+ ["Exponential smoothing","A method that weights recent observations more heavily, with influence fading exponentially; tuned by alpha."],
+ ["Alpha (α)","The smoothing factor (0–1) in exponential smoothing; high values react fast, low values stay smooth."],
+ ["Linear trend","A straight-line model over time (intercept + slope × period); slope is the average change per period."],
+ ["R-squared (R²)","The share of variation a model explains (0–1) — a measure of fit to the past, not of future accuracy."],
+ ["Seasonal index","A multiplier showing a period's typical level versus average (1.3 = 30% above); indices average to 1.0."],
+ ["Deseasonalize","Divide actuals by the seasonal index to reveal the underlying trend; reseasonalize by multiplying it back."],
+ ["Holt-Winters","Triple exponential smoothing that models level, trend, and seasonality together — the seasonal workhorse."],
+ ["ARIMA","AutoRegressive Integrated Moving Average — a model using past values (AR), differencing (I), and past errors (MA)."],
+ ["Stationarity","A property where a series has constant mean and variance over time; required for ARIMA's AR/MA components."],
+ ["Train/test split","Fitting a model on early data (training) and grading it on held-back data (test) for an honest accuracy estimate."],
+ ["Backtesting","Repeatedly rolling a train/test split forward to evaluate a forecast over many out-of-sample windows."],
+ ["MAE","Mean Absolute Error — the average absolute difference between forecast and actual, in the data's original units."],
+ ["MAPE","Mean Absolute Percentage Error — average absolute error as a percentage, unit-free for comparing across series."],
+ ["RMSE","Root Mean Squared Error — squares errors before averaging, so it penalizes large misses more heavily than MAE."],
+ ["Prediction interval","The range a future actual is likely to fall in, at a stated confidence; widens with the forecast horizon."],
+ ["Overfitting","When a model captures the noise in historical data, fitting the past almost perfectly but forecasting poorly."]
+]
+};
+const LESSON_DRILLS = {
+  101: [['fills',0],['bugs',1]],
+  102: [['fills',1],['fills',2],['parsons',3]],
+  103: [['wrong',0]],
+  1:   [['fills',3],['esql',2]],
+  2:   [['fills',4],['esql',0],['bugs',3]],
+  3:   [['fills',5],['wrong',1]],
+  4:   [['fills',6],['esql',4],['esql',7],['bugs',0],['parsons',0]],
+  5:   [['esql',3],['wrong',2]],
+  6:   [['esql',1],['esql',11],['parsons',1]],
+  7:   [['fills',7],['esql',8],['wrong',5]],
+  8:   [['fills',8],['fills',9],['esql',5],['esql',6],['wrong',3],['bugs',2],['parsons',2]],
+  9:   [['fills',10],['esql',10],['bugs',4],['wrong',4]],
+  10:  [['fills',11],['esql',9],['bugs',5],['wrong',6],['parsons',4]]
+};
+
+// --- STATE ---
+const SK='fmk-v1';
+let S={done:{},lastLesson:null,theme:'light'};
+function load(){try{const s=JSON.parse(localStorage.getItem(SK));if(s)S={...S,...s};}catch(e){}
+  document.documentElement.setAttribute('data-theme',S.theme||'light');updateThemeBtn();}
+function save(){localStorage.setItem(SK,JSON.stringify(S));}
+function markDone(key){if(!S.done[key]){S.done[key]=true;save();}}
+function toggleTheme(){S.theme=(S.theme==='light')?'dark':'light';document.documentElement.setAttribute('data-theme',S.theme);save();updateThemeBtn();}
+function updateThemeBtn(){const b=document.getElementById('themeBtn');if(b)b.textContent=(S.theme==='light')?'☀️ Light':'\u{1F319} Dark';}
+function showToast(msg){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500);}
+function celebrate(ok,msg){showToast(msg);}
+function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ─── NAV ───────────────────────────────────────────────────────────────────
+function activateView(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===id));}
+function navigate(view,arg){
+  guided=null;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.v===view));
+  window.scrollTo(0,0);
+  if(view==='home'){activateView('view-home');renderHome();}
+  else if(view==='lessons'){activateView('view-lessons');renderLessons();}
+  else if(view==='practice'){activateView('view-practice');renderDrillList();}
+  else if(view==='cards'){activateView('view-cards');renderCards();}
+  else if(view==='glossary'){activateView('view-glossary');renderGlossary();}
+  else if(view==='settings'){activateView('view-settings');renderSettings();}
+}
+
+// ─── HOME ────────────────────────────────────────────────────────────────────
+function lessonsDone(){return DATA.LESSONS.filter(l=>S.done['lesson'+l.id]).length;}
+function drillTotal(){return DATA.FILLS.length+DATA.ESQL.length+DATA.BUGS.length+DATA.WRONG.length+DATA.PARSONS.length;}
+function drillsDone(){return Object.keys(S.done).filter(k=>/^(fills|esql|bugs|wrong|parsons)\d+$/.test(k)).length;}
+function renderHome(){
+  const lc=DATA.LESSONS.length,ld=lessonsDone();
+  const next=DATA.LESSONS.find(l=>!S.done['lesson'+l.id])||DATA.LESSONS[0];
+  const pct=lc?Math.round(ld/lc*100):0;
+  document.getElementById('view-home').innerHTML=`
+    <div class="resume-card" onclick="openLesson(${(S.lastLesson||next.id)})">
+      <div><h2>${ld?'Pick up where you left off':'Start learning charts'}</h2>
+        <p>${esc(next.title)}</p></div>
+      <span style="font-size:1.6rem">→</span>
+    </div>
+    <div class="path-grid">
+      <div class="path-tile" onclick="navigate('lessons')"><h3>Lessons</h3><div class="count">${ld}/${lc}</div><div class="sub">guided path</div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>
+      <div class="path-tile" onclick="navigate('practice')"><h3>Practice</h3><div class="count">${drillsDone()}/${drillTotal()}</div><div class="sub">drills done</div></div>
+      <div class="path-tile" onclick="navigate('cards')"><h3>Flashcards</h3><div class="count">${DATA.CARDS.length}</div><div class="sub">key terms</div></div>
+    </div>
+    <div class="card">
+      <h2>What this kit teaches</h2>
+      <p>Forecasting is how analysts turn history into a <strong>defensible view of what comes next</strong> — and, just as important, how to say how sure they are. This kit builds it from the ground up: the anatomy of a time series, smoothing and trend lines, regression and seasonal models, ARIMA in plain English, measuring forecast accuracy, and presenting a forecast with its uncertainty.</p>
+      <p style="margin-bottom:0">It's <em>tool-agnostic</em> — the ideas apply whether you forecast in Excel, Tableau, Power BI, or Python. Learn the thinking here, then build it in the tool kits.</p>
+      <div class="kit-links">
+        <a class="kit-link" href="../chart-literacy/index.html">\u{1F4CA} Chart Literacy Kit</a>
+        <a class="kit-link" href="../stats/index.html">\u{1F4D0} Stats Kit</a>
+        <a class="kit-link" href="../tableau/index.html">\u{1F4C8} Tableau Kit</a>
+        <a class="kit-link" href="../powerbi/index.html">\u{1F4CA} Power BI Kit</a>
+        <a class="kit-link" href="../index.html">← All Kits</a>
+      </div>
+    </div>`;
+}
+
+// ─── LESSONS LIST ─────────────────────────────────────────────────────────────
+function renderLessons(){
+  let html='<h1>Lessons</h1><p>Work top to bottom. Each lesson ends with a few quick practice drills before the next one.</p>';
+  let unit=null;
+  DATA.LESSONS.forEach(l=>{
+    if(l.unit!==unit){unit=l.unit;html+=`<div class="unit-label">${esc(unit)}</div>`;}
+    const done=S.done['lesson'+l.id];
+    html+=`<div class="lesson-row" onclick="openLesson(${l.id})">
+      <div class="lesson-num${done?' done':''}">${done?'✓':''}</div>
+      <div class="lesson-info"><div class="lesson-title">${esc(l.title)}${l.core?' <span class="tag accent" style="font-size:10px">core</span>':''}</div><div class="lesson-sub">${esc(l.sub||'')}</div></div>
+      <span style="color:var(--dim)">›</span></div>`;
+  });
+  document.getElementById('view-lessons').innerHTML=html;
+}
+
+// ─── LESSON DETAIL ─────────────────────────────────────────────────────────────
+function nextLessonId(id){const i=DATA.LESSONS.findIndex(l=>l.id===id);return (i>=0&&i<DATA.LESSONS.length-1)?DATA.LESSONS[i+1].id:null;}
+function openLesson(id){
+  const l=DATA.LESSONS.find(x=>x.id===id);if(!l)return;
+  S.lastLesson=id;save();
+  activateView('view-lesson');window.scrollTo(0,0);
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.v==='lessons'));
+  const pos=DATA.LESSONS.findIndex(x=>x.id===id)+1;
+  let ral='';
+  (l.ral||[]).forEach(b=>{
+    ral+='<div class="ral-block">';
+    if(b.title)ral+=`<div class="ral-title">${esc(b.title)}</div>`;
+    if(b.say)ral+=`<div class="ral-say">${esc(b.say)}</div>`;
+    if(b.code)ral+=`<div class="code-block" style="margin-bottom:10px">${esc(b.code)}</div>`;
+    (b.lines||[]).forEach(ln=>{ral+=`<div class="ral-line"><span class="ral-chunk">${esc(ln[0])}</span><span class="ral-arrow">→</span><span class="ral-desc">${esc(ln[1])}</span></div>`;});
+    ral+='</div>';
+  });
+  const viz=l.viz?`<div class="card">${l.viz.html||''}<div class="viz-cap">${esc(l.viz.caption||'')}</div></div>`:'';
+  const q=l.quiz?`<div class="quiz-wrap"><h3>Quick check</h3><p style="color:var(--text)">${esc(l.quiz.q)}</p>
+    <div id="quizOpts">${l.quiz.opts.map((o,i)=>`<button class="quiz-opt" onclick="checkQuiz(${i},${l.quiz.ans},${id})">${esc(o)}</button>`).join('')}</div>
+    <div class="quiz-exp" id="quizExp">${esc(l.quiz.exp)}</div></div>`:'';
+  document.getElementById('view-lesson').innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <button class="btn btn-sm" onclick="navigate('lessons')">← Lessons</button>
+      <span style="color:var(--dim);font-size:13px">Lesson ${pos} of ${DATA.LESSONS.length}</span></div>
+    <span class="tag">${esc(l.unit||'')}</span>
+    <h1 style="margin-top:8px">${esc(l.title)}</h1>
+    ${l.story?`<p class="lead">${esc(l.story)}</p>`:''}
+    ${l.intro?`<div class="card"><p style="margin-bottom:0;color:var(--text)">${l.intro}</p></div>`:''}
+    ${ral}
+    ${l.notes?`<div class="gotcha"><strong>Watch out:</strong> ${l.notes}</div>`:''}
+    ${viz}
+    ${q}
+    <div style="display:flex;justify-content:space-between;gap:10px;margin-top:18px">
+      <button class="btn btn-outline" onclick="navigate('lessons')">All lessons</button>
+      <button class="btn btn-primary" onclick="startGuided(${id})">Practice this lesson →</button>
+    </div>`;
+}
+function checkQuiz(i,ans,id){
+  const opts=document.querySelectorAll('#quizOpts .quiz-opt');
+  opts.forEach(o=>o.onclick=null);
+  if(i===ans){opts[i].classList.add('correct');markDone('lesson'+id);celebrate(true,'Correct! ✨');}
+  else{opts[i].classList.add('wrong');opts[ans].classList.add('correct');}
+  document.getElementById('quizExp').classList.add('show');
+}
+
+// ─── GUIDED PRACTICE (lesson → its drills → next lesson) ──────────────────────
+const DRILL_TYPES=[
+  {key:'fills',label:'Fill in the Blank',icon:'✏️',data:'FILLS'},
+  {key:'esql',label:'Pick the Method',icon:'\u{1F4AC}',data:'ESQL'},
+  {key:'bugs',label:'Fix the Forecast',icon:'\u{1F41B}',data:'BUGS'},
+  {key:'wrong',label:"What's Wrong?",icon:'\u{1F50D}',data:'WRONG'},
+  {key:'parsons',label:'Put It In Order',icon:'\u{1F9E9}',data:'PARSONS'}
+];
+let guided=null;let drillState={type:null,idx:null,parsPlaced:[],parsBank:[]};
+function startGuided(lessonId){
+  const seq=(LESSON_DRILLS[lessonId]||[]).filter(s=>{const dt=DRILL_TYPES.find(d=>d.key===s[0]);return dt&&DATA[dt.data]&&DATA[dt.data][s[1]];});
+  if(!seq.length){gotoNext(lessonId);return;}
+  guided={lessonId,seq,pos:0};activateView('view-practice');renderGuidedStep();
+}
+function renderGuidedStep(){
+  if(!guided)return;
+  const {seq,pos,lessonId}=guided;const step=seq[pos];
+  const lesson=DATA.LESSONS.find(l=>l.id===lessonId);const isLast=pos===seq.length-1;
+  const dt=DRILL_TYPES.find(d=>d.key===step[0]);const idx=step[1];const item=DATA[dt.data][idx];
+  drillState={type:step[0],idx,parsPlaced:[],parsBank:[]};
+  const done=S.done[`${step[0]}${idx}`];
+  const dots='<div class="dots">'+seq.map((_,i)=>`<span class="dot${i<=pos?' on':''}"></span>`).join('')+'</div>';
+  const header=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <button class="btn btn-sm" onclick="openLesson(${lessonId})">← Back to lesson</button>
+      <span style="color:var(--dim);font-size:13px">Practice ${pos+1}/${seq.length} · ${esc(lesson.title)}</span></div>${dots}`;
+  let body='';
+  if(step[0]==='fills')body=renderFill(item,done);
+  else if(step[0]==='bugs')body=renderBug(item,done);
+  else if(step[0]==='wrong')body=renderWrong(item,done);
+  else if(step[0]==='parsons')body=renderParsons(item,done);
+  else if(step[0]==='esql')body=renderEsql(item,done);
+  const nav=`<div style="display:flex;justify-content:space-between;gap:10px;margin-top:16px">
+      <button class="btn" onclick="${pos>0?'guidedPrev()':'openLesson('+lessonId+')'}">${pos>0?'← Back':'← Lesson'}</button>
+      <button class="btn btn-primary" onclick="guidedNext()">${isLast?'Finish → next lesson':'Next drill →'}</button></div>`;
+  document.getElementById('view-practice').innerHTML=header+body+nav;
+  if(step[0]==='parsons'&&!done)initParsons(item);
+  window.scrollTo(0,0);
+}
+function guidedNext(){if(!guided)return;if(guided.pos<guided.seq.length-1){guided.pos++;renderGuidedStep();}else{const l=guided.lessonId;guided=null;gotoNext(l);}}
+function guidedPrev(){if(guided&&guided.pos>0){guided.pos--;renderGuidedStep();}}
+function gotoNext(lid){const n=nextLessonId(lid);if(n!==null)openLesson(n);else{navigate('home');celebrate(true,'\u{1F389} You finished every lesson!');}}
+
+// ─── DRILL: FILLS (tap the choice) ─────────────────────────────────────────────
+function renderFill(item,done){
+  const correct=item.choices[0];const opts=_shuf(item.choices);
+  return `<div class="card"><p style="color:var(--text)">${esc(item.q)}</p>
+    ${item.partial?`<div class="code-block" style="margin:10px 0">${esc(item.partial).replace('___','<span style="color:var(--accent);font-weight:700">[ ? ]</span>')}</div>`:''}
+    <div id="fillChoices">${opts.map(c=>`<button class="fill-choice${done&&c===correct?' correct':''}" onclick="pickFill(this)" ${done?'disabled':''}>${esc(c)}</button>`).join('')}</div>
+    <div id="fillFb" style="margin-top:10px;${done?'':'display:none'}">${done?`<span style="color:var(--success)">✓ ${esc(item.hint)}</span>`:''}</div></div>`;
+}
+function pickFill(btn){
+  const item=DATA.FILLS[drillState.idx];const fb=document.getElementById('fillFb');
+  if(btn.textContent.trim()===item.choices[0].trim()){
+    btn.classList.add('correct');document.querySelectorAll('#fillChoices .fill-choice').forEach(b=>b.disabled=true);
+    fb.innerHTML=`<span style="color:var(--success)">✓ ${esc(item.hint)}</span>`;fb.style.display='block';
+    markDone('fills'+drillState.idx);celebrate(true,'Correct! ✨');
+  }else{btn.classList.add('wrong');btn.disabled=true;fb.innerHTML=`<span style="color:var(--err)">Not quite — try another.</span>`;fb.style.display='block';}
+}
+function _shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+// ─── DRILL: ESQL (Name That Chart) ─────────────────────────────────────────────
+function renderEsql(item,done){
+  const correct=item.choices?item.choices[0]:item.ans;const opts=_shuf(item.choices||[item.ans]);
+  return `<div class="card"><p style="color:var(--text)">${esc(item.q)}</p>
+    <div id="esqlChoices">${opts.map(c=>`<button class="fill-choice${done&&c===correct?' correct':''}" onclick="pickEsql(this)" ${done?'disabled':''}>${esc(c)}</button>`).join('')}</div>
+    <div id="esqlFb" style="margin-top:10px;${done?'':'display:none'}">${done?`<span style="color:var(--success)">✓ ${esc(item.hint||'')}</span>`:''}</div></div>`;
+}
+function pickEsql(btn){
+  const item=DATA.ESQL[drillState.idx];const fb=document.getElementById('esqlFb');const correct=item.choices?item.choices[0]:item.ans;
+  if(btn.textContent.trim()===correct.trim()){
+    btn.classList.add('correct');document.querySelectorAll('#esqlChoices .fill-choice').forEach(b=>b.disabled=true);
+    fb.innerHTML=`<span style="color:var(--success)">✓ ${esc(item.hint||'')}</span>`;fb.style.display='block';
+    markDone('esql'+drillState.idx);celebrate(true,'Correct! ✨');
+  }else{btn.classList.add('wrong');btn.disabled=true;fb.innerHTML=`<span style="color:var(--err)">Not quite — try another.</span>`;fb.style.display='block';}
+}
+
+// ─── DRILL: BUGS (Fix the Chart) ───────────────────────────────────────────────
+function renderBug(item,done){
+  const correct=item.choices[0];const opts=_shuf(item.choices);
+  return `<div class="card"><p style="color:var(--text)">This chart setup is broken — tap the correct fix:</p>
+    <div class="code-block" style="margin:10px 0">${esc(item.config)}</div>
+    <div id="bugChoices">${opts.map(c=>`<button class="fill-choice${done&&c===correct?' correct':''}" onclick="pickBug(this)" ${done?'disabled':''}>${esc(c)}</button>`).join('')}</div>
+    <div id="bugFb" style="margin-top:10px;${done?'':'display:none'}">${done?`<span style="color:var(--success)">✓ ${esc(item.broken)}</span>`:''}</div></div>`;
+}
+function pickBug(btn){
+  const item=DATA.BUGS[drillState.idx];const fb=document.getElementById('bugFb');
+  if(btn.textContent.trim()===item.choices[0].trim()){
+    btn.classList.add('correct');document.querySelectorAll('#bugChoices .fill-choice').forEach(b=>b.disabled=true);
+    fb.innerHTML=`<span style="color:var(--success)">✓ ${esc(item.broken)}</span>`;fb.style.display='block';
+    markDone('bugs'+drillState.idx);celebrate(true,'Fixed! \u{1F41B}✓');
+  }else{btn.classList.add('wrong');btn.disabled=true;fb.innerHTML=`<span style="color:var(--err)">Not quite — try another.</span>`;fb.style.display='block';}
+}
+
+// ─── DRILL: WRONG (What's Wrong?) ──────────────────────────────────────────────
+function renderWrong(item,done){
+  return `<div class="card"><p style="color:var(--text)">${esc(item.q)}</p>
+    <div id="wrongOpts">${item.opts.map((o,i)=>`<button class="quiz-opt" onclick="checkWrong(${i})" ${done?'disabled':''}>${esc(o)}</button>`).join('')}</div>
+    <div class="quiz-exp${done?' show':''}" id="wrongFb">${done?esc(item.exp):''}</div></div>`;
+}
+function checkWrong(i){
+  const item=DATA.WRONG[drillState.idx];const fb=document.getElementById('wrongFb');const btns=document.querySelectorAll('#wrongOpts .quiz-opt');
+  btns.forEach(b=>b.disabled=true);
+  if(i===item.ans){btns[i].classList.add('correct');markDone('wrong'+drillState.idx);celebrate(true,'Spotted it! \u{1F50D}');}
+  else{btns[i].classList.add('wrong');btns[item.ans].classList.add('correct');}
+  fb.textContent=item.exp;fb.classList.add('show');
+}
+
+// ─── DRILL: PARSONS (Put It In Order) ──────────────────────────────────────────
+function renderParsons(item,done){
+  if(done){return `<div class="card"><p style="color:var(--text)">${esc(item.q)}</p>
+    <div class="code-block">${item.ans.map(s=>esc(s)).join('\\n')}</div>
+    <div style="margin-top:10px;color:var(--success)">✓ Complete</div></div>`;}
+  return `<div class="card"><p style="color:var(--text)">${esc(item.q)}</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+      <div><div style="font-size:.78rem;color:var(--dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Bank</div>
+        <div id="parsBank" style="min-height:80px;background:var(--surf2);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:6px"></div></div>
+      <div><div style="font-size:.78rem;color:var(--dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Your order</div>
+        <div id="parsPlaced" style="min-height:80px;background:var(--surf2);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:6px"></div></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-primary" onclick="checkParsons()">Check order</button>
+      <button class="btn" onclick="resetParsons()">Reset</button></div>
+    <div id="parsFb" style="margin-top:10px;display:none"></div></div>`;
+}
+function initParsons(item){drillState.parsBank=item.ans.map((_,i)=>i).sort(()=>Math.random()-0.5);drillState.parsPlaced=[];renderParsonsUI(item);}
+function renderParsonsUI(item){
+  const bank=document.getElementById('parsBank'),placed=document.getElementById('parsPlaced');if(!bank||!placed)return;
+  bank.innerHTML=drillState.parsBank.map(i=>`<div class="pars-piece" draggable="true" data-idx="${i}" data-from="bank" ondragstart="parsMove(event)">${esc(item.ans[i])}</div>`).join('');
+  placed.innerHTML=drillState.parsPlaced.map(i=>`<div class="pars-piece placed" draggable="true" data-idx="${i}" data-from="placed" ondragstart="parsMove(event)">${esc(item.ans[i])}</div>`).join('');
+  [bank,placed].forEach(z=>{
+    z.ondragover=e=>{e.preventDefault();z.style.outline='2px dashed var(--accent)';};
+    z.ondragleave=()=>{z.style.outline='';};
+    z.ondrop=e=>{e.preventDefault();z.style.outline='';
+      const idx=parseInt(e.dataTransfer.getData('idx'));const from=e.dataTransfer.getData('from');const to=z.id==='parsBank'?'bank':'placed';
+      if(from===to)return;
+      if(from==='bank'){drillState.parsBank=drillState.parsBank.filter(x=>x!==idx);drillState.parsPlaced.push(idx);}
+      else{drillState.parsPlaced=drillState.parsPlaced.filter(x=>x!==idx);drillState.parsBank.push(idx);}
+      renderParsonsUI(DATA.PARSONS[drillState.idx]);};
+  });
+}
+function parsMove(e){e.dataTransfer.setData('idx',e.target.dataset.idx);e.dataTransfer.setData('from',e.target.dataset.from);}
+function resetParsons(){initParsons(DATA.PARSONS[drillState.idx]);}
+function checkParsons(){
+  const item=DATA.PARSONS[drillState.idx];const fb=document.getElementById('parsFb');
+  const ok=drillState.parsPlaced.join(',')===item.ans.map((_,i)=>i).join(',');
+  if(ok){fb.innerHTML=`<span style="color:var(--success)">✓ Perfect order!</span>`;fb.style.display='block';markDone('parsons'+drillState.idx);celebrate(true,'Solved! \u{1F9E9}');}
+  else{fb.innerHTML=`<span style="color:var(--err)">Not quite — keep arranging.</span>`;fb.style.display='block';}
+}
+
+// ─── PRACTICE LIST ─────────────────────────────────────────────────────────────
+function renderDrillList(){
+  document.getElementById('view-practice').innerHTML=`<h1>Practice</h1>
+    <p>Drills are woven into each lesson's guided path. Jump into any type below to free-practice.</p>
+    <div class="drill-grid">${DRILL_TYPES.map(dt=>`<div class="drill-tile" onclick="freeDrill('${dt.key}')">
+      <div class="icon">${dt.icon}</div><h3>${dt.label}</h3><p>${DATA[dt.data].length} items</p></div>`).join('')}</div>`;
+}
+function freeDrill(key){
+  const dt=DRILL_TYPES.find(d=>d.key===key);if(!DATA[dt.data].length)return;
+  guided={lessonId:null,seq:DATA[dt.data].map((_,i)=>[key,i]),pos:0};renderGuidedStep();
+}
+
+// ─── CARDS ──────────────────────────────────────────────────────────────────
+let cardIdx=0,cardFlipped=false;
+function renderCards(){cardIdx=0;cardFlipped=false;renderCardAt(0);}
+function renderCardAt(i){
+  const c=DATA.CARDS[i];if(!c)return;
+  document.getElementById('view-cards').innerHTML=`<h1>Flashcards</h1>
+    <p>Card ${i+1} of ${DATA.CARDS.length} — tap to flip.</p>
+    <div class="fc-outer" onclick="flipCard()"><div class="fc-inner${cardFlipped?' flipped':''}" id="fcInner">
+      <div class="fc-face"><div class="fc-term">${esc(c.front)}</div><div style="color:var(--dim);font-size:12px;margin-top:10px">tap to reveal</div></div>
+      <div class="fc-face fc-back">${esc(c.back)}</div></div></div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:18px;margin-top:14px">
+      <button class="btn" onclick="cardPrev()">← Prev</button>
+      <button class="btn btn-primary" onclick="cardNext()">Next →</button></div>`;
+}
+function flipCard(){cardFlipped=!cardFlipped;document.getElementById('fcInner').classList.toggle('flipped',cardFlipped);}
+function cardNext(){cardIdx=(cardIdx+1)%DATA.CARDS.length;cardFlipped=false;renderCardAt(cardIdx);}
+function cardPrev(){cardIdx=(cardIdx-1+DATA.CARDS.length)%DATA.CARDS.length;cardFlipped=false;renderCardAt(cardIdx);}
+
+// ─── GLOSSARY ─────────────────────────────────────────────────────────────────
+function renderGlossary(){
+  document.getElementById('view-glossary').innerHTML=`<h1>Glossary</h1>
+    <input class="gloss-search" id="glossSearch" placeholder="Search terms…" oninput="filterGloss(this.value)">
+    <div id="glossList"></div>`;
+  filterGloss('');
+}
+function filterGloss(q){
+  q=(q||'').toLowerCase();
+  const items=DATA.GLOSSARY.filter(g=>!q||g[0].toLowerCase().includes(q)||g[1].toLowerCase().includes(q));
+  document.getElementById('glossList').innerHTML=items.map(g=>`<div class="gloss-item"><div class="gloss-term">${esc(g[0])}</div><div class="gloss-def">${esc(g[1])}</div></div>`).join('')||'<p>No matches.</p>';
+}
+
+// ─── SETTINGS ─────────────────────────────────────────────────────────────────
+function renderSettings(){
+  document.getElementById('view-settings').innerHTML=`<h1>Settings</h1>
+    <div class="card"><h3>Progress</h3>
+      <p>Lessons completed: ${lessonsDone()}/${DATA.LESSONS.length} · Drills done: ${drillsDone()}/${drillTotal()}</p>
+      <button class="btn btn-outline" onclick="resetProgress()">Reset all progress</button></div>
+    <div class="card"><h3>About</h3>
+      <p style="margin-bottom:0">Chart Literacy Kit — part of the <a href="../index.html">Analyst Prep Kit</a>. Free, browser-based, no login. Your progress is saved only in this browser.</p></div>`;
+}
+function resetProgress(){if(confirm('Reset all progress for this kit?')){S.done={};S.lastLesson=null;save();showToast('Progress reset');navigate('settings');}}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────────
+load();renderHome();
+</script>
+</body>
+</html>
