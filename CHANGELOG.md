@@ -9,6 +9,31 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.50.0] — 2026-06-09 — Two new standalone kits: Chart Literacy + Forecasting & Trend Modeling
+
+Added two tool-agnostic concept kits that teach the *thinking* the tool kits assume, plus Tableau visualization additions. Built on the shared single-file pattern (calm-analyst design system, guided path, tap-the-choice drills, flashcards, glossary). New non-colliding kit folders — no existing kit, id, or saved progress touched.
+
+**New — Chart Literacy Kit (`chart-literacy/`)** — 13 lessons, 43 drills, 20 flashcards, 23 glossary terms.
+- Unit 0: what a chart encodes · the visual-encoding accuracy ranking · reading any axis.
+- Unit 1 (the 6 you'll use most): bar, line, scatter, pie/donut, treemap/heatmap, waterfall.
+- Unit 2: how charts lie (truncated axes, cherry-picking) · misleading comparisons (bases, normalizing).
+- Unit 3: choosing the right chart (question→chart path) · explaining a chart to stakeholders.
+
+**New — Forecasting & Trend Modeling Kit (`forecasting/`)** — 13 lessons, 42 drills, 20 flashcards, 25 glossary terms.
+- Foundations: what forecasting is (and isn't) · time-series anatomy (trend/season/cycle/noise) · signal vs noise.
+- Trend & smoothing: moving averages · exponential smoothing (α) · linear trend (slope/R²) · seasonality & seasonal indices.
+- Models: regression on drivers · Holt-Winters (level/trend/season) · ARIMA in plain English.
+- Evaluating & communicating: MAE/MAPE/RMSE + train/test split · prediction intervals (the fan chart) · common mistakes + presenting a forecast.
+
+**Tableau kit additions (shipped earlier this session, ids 29–32):**
+- L29 Trend Lines & Reference Lines (Analytics pane, R²) + 4 drills.
+- L30 Build a Scatter Plot, L31 Build a Treemap, L32 Build a Map — each with drills.
+- (Dual-axis bar+line was already covered by L20 Dual-Axis & Combined-Axis Charts.)
+
+**Cross-linking:** hub homepage gets "New" cards for both kits. New kits link to Tableau/Power BI/Stats/each other; SQL, Power BI, Tableau, and Stats kits gained links to the two new kits. Fixed a stale `../statistics/` link (→ `../stats/`) in Chart Literacy.
+
+**Headless-verified:** every kit's inline script parses; all guided-path drill references resolve; every drill is covered by a lesson; every quiz/answer index is valid.
+
 ## [1.49.1] — 2026-06-08 — SQL Parsons: scaffold layout fix (Task 1 ✅)
 
 After hint fires, layout restacks to Answer-on-top / Available-Lines-below — reads top→bottom naturally. Reset restores original side-by-side.
