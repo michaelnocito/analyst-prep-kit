@@ -9,6 +9,24 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.51.0] — 2026-06-09 — Excel kit: 🧠 Low Cog Mode (fatigue-aware learning layer)
+
+A reduced-friction, fatigue-aware mode for the **Excel kit** — a toggle in the nav (`🧠 Low Cog Mode`) that wraps the existing drills without touching question data, scoring, hints, or the Pivot Lab. Built additively: one nav button + one CSS block + one appended script that wraps `renderDrill` / `renderGuidedStep` / `startGuided`. Persists in `localStorage['lowCogMode']`; session/save-point state in `localStorage['epk-lowcog']`; recognition answers append to `S.recognitionLog` (existing state format untouched).
+
+**When ON:**
+- **Warm-up first** — session entry shows one previously-correct question ("Quick warm-up — you already know this one") to prime the schema; skips gracefully if no history yet.
+- **First hint auto-visible** — the first hint surfaces without a click; "Show Answer" stays gated.
+- **Recognition mode** — a per-question `👁 Show Answer` reveals the answer and asks "Does this look right? [Yes / No / Not sure]", logged as `mode:"recognition"` (passive encoding for tired users).
+- **Progress always visible** — a `Question X of Y` line at the top of every question card.
+- **Long preamble truncation** — questions over ~180 chars collapse to 2 sentences with a "Show full context" expander (rarely triggers in this kit; graceful where it does).
+- **20-minute break nudge** — non-blocking banner fires once per session with `[Keep going]` / `[Save & stop]`.
+- **Come-back-tomorrow off-ramp** — `📌 Save & Stop` saves position and shows a rest screen ("Good stop. The learning happens while you sleep…") with the save time + `[Resume]`; a resume banner greets you next session.
+- **Warm visual skin** — `body.low-cog-active` softens to a warm off-white palette (not dark mode) with slightly larger type and line-height; everything else unchanged.
+
+No regressions in normal mode (decorations only apply when ON). Verified headless (script syntax) + live DOM smoke (toggle/persist, warm-up, recognition logging, nudge-once, save/resume, clean toggle-off, zero console errors).
+
+---
+
 ## [1.50.0] — 2026-06-09 — Two new standalone kits: Chart Literacy + Forecasting & Trend Modeling
 
 Added two tool-agnostic concept kits that teach the *thinking* the tool kits assume, plus Tableau visualization additions. Built on the shared single-file pattern (calm-analyst design system, guided path, tap-the-choice drills, flashcards, glossary). New non-colliding kit folders — no existing kit, id, or saved progress touched.
