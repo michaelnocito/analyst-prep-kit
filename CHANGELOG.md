@@ -9,6 +9,50 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.54.0] — 2026-06-12 — Tableau kit: 10-improvement sweep (orientation, home rebuild, working Filter shelf, touch support)
+
+One bundled pass over the Tableau kit (Mike's direct ask: "implement 10 improvements").
+All verified headless: 3 script blocks parse, all 7 nav routes resolve, all 49 inline
+event handlers reference defined functions.
+
+1. **Nav highlight finally moves** — `show()` toggled `.nav-link` but every nav button
+   is `.nav-btn`, so "Home" stayed underlined forever. You now always see which tab you're on.
+2. **Home rebuilt on the Excel "polished" pattern** (the roadmap's "roll the Lessons home
+   section to other kits" item): big resume card (lesson position + title + first-sentence
+   teaser + Start/Continue/Review verb), Learn/Practice/Cards path tiles with progress
+   bars, **Progress by unit** (6 real units replacing the stale 5-skill map that only
+   counted old lesson ids 1–10), and a **Next up** card with the next 3 unfinished lessons.
+   Also purged the dead two-generations-old static home markup (incl. an undefined
+   `resumeLesson()` handler and a hardcoded "0/28").
+3. **Lesson numbers shown by position everywhere** — completion toast said "Lesson 27
+   complete!" for the lesson displayed as Lesson 16; Continue button labeled raw ids
+   ("Lesson 101"). Both now use `lessonPos()+1`, and Continue targets the last-visited
+   lesson only if unfinished, else the first incomplete one (`resumeTarget()`).
+4. **Viz Builder months in calendar order** — dragging Month to Columns sorted
+   alphabetically (Apr, Aug, Dec…); now uses MONTH_ORDER like the lesson charts. Also
+   fixed the scatter x-axis spread that wiped tick colors.
+5. **Filter shelf actually filters** — it was a no-op (the old comment admitted it).
+   Dropping a dimension now shows its values as tap-to-toggle pills (all on by default);
+   unticked values drop out of the chart. A measure shows a teaching note about range
+   filters instead.
+6. **Touch support for the two drag-only surfaces** — Parsons pieces move on tap
+   (drag still works), and Viz Builder fields place by tap-field-then-tap-shelf.
+   Phone users were locked out of both before (HTML5 drag needs a mouse).
+7. **Lesson list upgrade** — page header survives re-render and counts dynamically
+   ("32 lessons", was hardcoded "28"), per-unit done counts (x/y), **▶ Next up** badge on
+   the first unfinished lesson, L-number on every card, and a real description line
+   (first sentence of the intro — the old `subtitle` field no longer exists, so that
+   line had rendered empty).
+8. **Practice resumes where you left off** — each drill-type card opens at the first
+   unfinished exercise with a "continue at #N" cue (was always #1).
+9. **"Reset all kits" resets ALL kits** — it only cleared the original 5 keys; now also
+   Power BI, Interview, Simulator, Final, Chart Literacy, Forecasting + the hub's
+   last-kit pointer. Settings copy updated ("all 5 kits" → "every kit in the suite").
+10. **Celebration + theme polish** — back-to-back toasts no longer get cut short by the
+    previous toast's timer; one shared AudioContext instead of a new one per celebration;
+    and the workspace-tour highlight dropped the last old-teal `rgba(88,170,162,…)`
+    leftover for the accent blue.
+
 ## [1.53.1] — 2026-06-12 — Fix SQL-a1 + Excel fill-in scaffold (test feedback)
 
 **SQL-a1 fix (blocker from v1.53.0):** when a query had a SQL syntax error

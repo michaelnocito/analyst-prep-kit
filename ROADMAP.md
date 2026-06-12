@@ -1,6 +1,7 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.48.0` (shipped June 5, 2026 — awaiting Mike's playtest)
+**Current version:** `v1.54.0` (shipped June 12, 2026 — Tableau 10-improvement sweep, awaiting Mike's playtest; test steps 054a–054j in chat)
+**Note (June 12, 2026 — 2:10 PM ET):** the "roll the Excel home Lessons section to other kits" inbox item is now DONE for **Tableau** (v1.54.0 home rebuild). Remaining: SQL, Python, Stats, Power BI.
 **Recent:** v1.42–46 **Curriculum rollout COMPLETE** — all 5 remaining kits (Excel, SQL, Python, Stats, Power BI) each received Unit 0 (4 foundation lessons) + story bridges on all 12 existing lessons + position-nav. 20 new lessons total. Tableau already done (v1.37–v1.41). All 6 lesson kits are now fully scaffolded.
 **6-Month Analyst Standard rebuild: SHIPPED.** Every kit now has: Unit 0 Foundations, 📖 story bridges on every lesson, position-based nav, lesson number display by array position. Interview/Sim/Final kits intentionally excluded. Plans: `CURRICULUM_STANDARD.md`, `CURRICULUM_PLAN.md`.
 **In flight: the 6-Month Analyst Standard rebuild** (`CURRICULUM_STANDARD.md` + `CURRICULUM_PLAN.md`). Tableau pilot ✅ shipped — awaiting Mike's reaction. On approval, roll the same pattern (Unit 0 + prereqs + depth) to **Excel → SQL → Python → Power BI → Stats**, one kit per cycle. Per-kit Unit-0 lessons already specced in `CURRICULUM_PLAN.md`.
