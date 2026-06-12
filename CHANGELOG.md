@@ -9,6 +9,14 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.56.1] — 2026-06-12 — Sprint links follow the companion repo rename
+
+Mike-directed: the consolidated games repo was renamed `sales-sprint` →
+`prep-companion-apps`. All sprint links (Excel kit callout, SQL kit callout,
+README "Learn by playing") now point at
+https://michaelnocito.github.io/prep-companion-apps/. Series branding is
+unchanged — the games are still the Sales Sprint.
+
 ## [1.56.0] — 2026-06-12 — SQL Sales Sprint is live; sprint links point at the consolidated repo
 
 Mike-directed (June 12, 2026 — 10:21 PM ET): the sprint games were consolidated
