@@ -14,8 +14,11 @@ Chart Literacy CL-a–d (Jun 9) · SQL Parsons Task 1 (Jun 8).
 
 | # | Do this | Expect to see | Result | Note |
 |---|---------|---------------|:------:|------|
-| SQL-a | Open SQL Lab → click **JOIN Lab** tab | Opens **blank** (no pre-filled query); guided JOIN tasks; **INNER vs LEFT compare panel** present | ☐ | |
-| SQL-b | In JOIN Lab, run wrong/empty query → click **Show Answer** | Answer only as **last resort**; hint readable in **dark AND light** | ☐ | |
+| SQL-a | Open SQL Lab → click **JOIN Lab** tab | Opens **blank** (no pre-filled query); guided JOIN tasks; **INNER vs LEFT compare panel** present | ⚠️→🔧 | PARTIAL (Jun 12, 12:11 AM ET): no progressive answer help on miss. **FIXED v1.53.0** — progressive scaffold (miss1 hint / miss2 half / miss3 full) + correctness check, JOIN+Agg labs. **Retest SQL-a1/a2/a3.** |
+| SQL-a1 | JOIN Lab Task 1 → run a **wrong** query | "(expected ~N)"; amber **"Hint opened below"**; 💡 Hint **auto-opens** | ☐ | retest after v1.53.0 deploys |
+| SQL-a2 | Run wrong **again** (2nd), then **3rd** time | 2nd: **first half** of answer fills editor; 3rd: **full answer** fills editor | ☐ | |
+| SQL-a3 | Run the **correct** query | **"✓ Correct — N rows"** green + celebration | ☐ | |
+| SQL-b | In JOIN Lab, run wrong/empty query → click **Show Answer** | Answer only as **last resort**; hint readable in **dark AND light** | ☐ | unblocked once SQL-a passes |
 | SQL-c | Click **Aggregation Lab** tab, then **Free Lab** tab | Each tab **loads its own panel**, no blank; nav map highlights active tab | ☐ | |
 
 ## 2. Forecasting Kit — brand new → /forecasting/
@@ -62,4 +65,6 @@ Open, F12 on, click every nav button. Pass = renders, no red console errors, no 
 ## GR / issues found during this run
 _(log here with ET timestamp; triaged into ROADMAP after the run)_
 
--
+- **SQL-a (blocker)** _(June 12, 2026 — 12:11 AM ET)_ — JOIN/Agg labs gave no progressive
+  answer help on repeated misses (other drills do — give answer / fill in, up to 3 misses).
+  **Actioned immediately (blocker). Shipped v1.53.0.** Awaiting retest SQL-a1/a2/a3.
