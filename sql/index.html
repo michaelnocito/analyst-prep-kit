@@ -1838,10 +1838,34 @@ function _runLabQuery(kind, taskIdx){
   const sql = editor ? editor.value.trim() : '';
   if(!sql){ results.innerHTML = '<span class="terminal-info">Enter a query above.</span>'; return; }
   const t = cfg.arr[taskIdx];
-  let res;
+  let res, syntaxErrMsg = null;
   try { res = sqlDb.exec(sql); }
-  catch(e){ results.innerHTML = `<span class="terminal-error">Error: ${e.message}</span>`; return; }
-  if(!res.length){ results.innerHTML = `<span class="terminal-info">${cfg.norows}</span>`; return; }
+  catch(e){ syntaxErrMsg = e.message; res = []; }
+
+  // Syntax error OR empty result → count as a miss and escalate help.
+  if(syntaxErrMsg || !res.length){
+    const key = kind + taskIdx;
+    const att = (_labAttempts[key] || 0) + 1;
+    _labAttempts[key] = att;
+    let help;
+    if(att === 1){
+      _labOpenHint(kind);
+      help = `Not quite — ${syntaxErrMsg ? 'your query had a syntax error' : 'no rows returned'}. 💡 <strong>Hint opened below</strong> — adjust and Run again.`;
+    } else if(att === 2){
+      _labFillPartial(cfg.editor, cfg.arr[taskIdx].answer, 0.5);
+      help = `Still off — I filled in the <strong>first half</strong> of the query for you. Finish it and Run again.`;
+    } else {
+      const ed = document.getElementById(cfg.editor);
+      if(ed){ ed.value = cfg.arr[taskIdx].answer; ed.focus(); }
+      help = `<strong>Full answer filled in</strong> — Run it to see the target result, then compare it line-by-line with the prompt.`;
+    }
+    const head = syntaxErrMsg
+      ? `<div style="color:var(--red);font-family:var(--mono);font-size:12px;margin-bottom:8px">Error: ${syntaxErrMsg}</div>`
+      : `<div style="color:var(--muted);margin-bottom:8px">Query ran — no rows returned.</div>`;
+    results.innerHTML = head + `
+      <div style="color:var(--text);font-size:12px;line-height:1.55;background:rgba(212,160,64,.12);border:1px solid rgba(212,160,64,.3);border-radius:6px;padding:8px 11px">${help}</div>`;
+    return;
+  }
   const {columns, values} = res[0];
   const thead = `<tr>${columns.map(c=>`<th>${c}</th>`).join('')}</tr>`;
   const tbody = values.map(row=>`<tr>${row.map(v=>`<td>${v==null?'<em style="color:var(--red);font-style:italic">NULL</em>':v}</td>`).join('')}</tr>`).join('');

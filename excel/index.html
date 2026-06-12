@@ -1592,12 +1592,37 @@ function renderDrill(){
 }
 
 // FILL IN THE BLANK
+// Compute the missing piece between partial template's ___ and the answer.
+// Returns {prefix, missing, suffix} or null if shape doesn't match.
+function _fillMissing(item){
+  const tpl = item.partial || '';
+  const i = tpl.indexOf('___');
+  if(i < 0) return null;
+  const prefix = tpl.slice(0, i);
+  const suffix = tpl.slice(i + 3);
+  const ans = item.ans || '';
+  if(!ans.startsWith(prefix) || !ans.endsWith(suffix)) return null;
+  return { prefix, missing: ans.slice(prefix.length, ans.length - suffix.length), suffix };
+}
+
+// Render the partial with the ___ blank sized to the actual missing text
+// (one underscore per missing char). Lets the learner see how much is missing.
+function _renderPartialSized(item){
+  const m = _fillMissing(item);
+  if(!m) return item.partial;
+  // One '_' per missing char, in monospace so it lines up visually.
+  const blank = '_'.repeat(Math.max(3, m.missing.length));
+  return `${m.prefix}<span style="font-family:var(--mono);letter-spacing:1px;color:var(--err);font-weight:700">${blank}</span>${m.suffix}`;
+}
+
+let _fillAttempts = {};
+
 function renderFill(item, idx, isDone){
   _hd={hint:item.hint,ans:item.ans,state:0};
   return `<div class="card">
     <h2>Fill in the Blank</h2>
     <p>${item.q}</p>
-    <div class="example-box">${item.partial}</div>
+    <div class="example-box">${_renderPartialSized(item)}</div>
     <input class="drill-input mt8 ${isDone?'ok':''}" id="fillInput" placeholder="Type the complete formula…" value="${isDone?item.ans:''}">
     <div class="check-row">
       <button class="btn btn-primary btn-sm" onclick="checkFill(${idx})">Check</button>
@@ -1621,8 +1646,28 @@ function checkFill(idx){
   const val = normVal(input.value);
   const correct = val === normVal(item.ans);
   input.className = 'drill-input ' + (correct?'ok':'bad');
-  document.getElementById('fillResult').innerHTML = `<div class="result-msg ${correct?'ok':'bad'}">${correct?'✓ Correct! '+item.ans:'Not quite. Check the hint: '+item.hint}</div>`;
-  if(correct){ markDone('fillsDone', idx); celebrate(); }
+  if(correct){
+    _fillAttempts[idx] = 0;
+    document.getElementById('fillResult').innerHTML = `<div class="result-msg ok">✓ Correct! ${item.ans}</div>`;
+    markDone('fillsDone', idx);
+    celebrate();
+    return;
+  }
+  // Wrong → progressive scaffold (matches the SQL Lab pattern).
+  const att = (_fillAttempts[idx] || 0) + 1;
+  _fillAttempts[idx] = att;
+  const m = _fillMissing(item);
+  let msg = `Not quite. Check the hint: ${item.hint}`;
+  if(att >= 2 && m){
+    const half = m.prefix + m.missing.slice(0, Math.max(1, Math.ceil(m.missing.length/2))) + m.suffix;
+    input.value = half;
+    msg = `Still off — I filled in the <strong>first half</strong> of the answer. Finish it and Check again.`;
+  }
+  if(att >= 3){
+    input.value = item.ans;
+    msg = `<strong>Full answer filled in</strong> — read it, then Check again to lock it in.`;
+  }
+  document.getElementById('fillResult').innerHTML = `<div class="result-msg bad">${msg}</div>`;
 }
 
 // FIX THE BUG

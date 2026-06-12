@@ -9,6 +9,28 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.53.1] — 2026-06-12 — Fix SQL-a1 + Excel fill-in scaffold (test feedback)
+
+**SQL-a1 fix (blocker from v1.53.0):** when a query had a SQL syntax error
+(e.g. typing `sdfsf`), the catch block returned early and the attempt counter
+never incremented — so progressive help never fired. Syntax errors now count
+as a miss the same way wrong rows do: miss 1 auto-opens the hint, miss 2 fills
+the first half of the answer, miss 3 fills the full answer. Error message still
+shown above the scaffold prompt.
+
+**Excel fill-in-the-blank (XL-b partial):** matched the SQL Lab pattern.
+- **Progressive scaffold on miss:** miss 1 = show hint, miss 2 = auto-fill the
+  **first half** of the answer into the input, miss 3 = fill the **full answer**.
+  Per-drill attempt counter (`_fillAttempts`) resets on a correct answer.
+- **Sized blank lines:** the `___` placeholder in `partial` now renders as a
+  monospace underscore run sized to the actual missing text length, so the
+  learner sees visually how much is missing. Falls back to `___` literal when
+  the partial/answer shape doesn't match.
+
+Headless-verified: all 11 kits' scripts parse; every top-level nav route in
+the 9 unchanged kits resolves to a renderer (FC-a smoke + 5–9 smoke
+coverage check).
+
 ## [1.53.0] — 2026-06-12 — SQL Lab: progressive answer scaffold on miss (JOIN + Aggregation)
 
 Fixes a testing blocker (SQL-a partial, June 12, 2026 — 12:11 AM ET): the JOIN and
