@@ -43,6 +43,10 @@ That's the whole methodology. Each lesson follows the same shape: see the code �
 - Per-kit progress is saved in `localStorage` so you can leave and come back.
 - The simulator's "manager review" uses the Claude API directly from your browser. Paste your own API key in the simulator's nav — it's stored only on your machine.
 
+## Learn by playing
+
+The kit has companion games: the **[Sales Sprint](https://michaelnocito.github.io/sales-sprint/)** series ([repo](https://github.com/michaelnocito/sales-sprint)) — ten-minute warm-up games matched unit-for-unit to the kits. Coach Srbina, a sales rep finding her analyst instincts, through the [Excel sprint](https://michaelnocito.github.io/sales-sprint/excel/) and the [SQL sprint](https://michaelnocito.github.io/sales-sprint/sql/), then come back here to go deeper.
+
 ## Suggested order
 
 If you're prepping for an entry-level / associate analyst role from scratch:

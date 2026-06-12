@@ -9,6 +9,22 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.56.0] — 2026-06-12 — SQL Sales Sprint is live; sprint links point at the consolidated repo
+
+Mike-directed (June 12, 2026 — 10:21 PM ET): the sprint games were consolidated
+into one scalable repo, `github.com/michaelnocito/sales-sprint` (one subdirectory
+per skill + hub page, mirroring this repo's structure). Old URLs redirect.
+
+- **SQL kit home:** the "🎮 Learn by playing" card now links the live **SQL Sales
+  Sprint** (https://michaelnocito.github.io/sales-sprint/sql/) — queries run
+  against an in-browser database, matched unit-for-unit to this kit — with a
+  pointer to the Excel sprint as the start of the story. (This closes the
+  v1.55.0 "swap this link when the SQL game ships" note.)
+- **Excel kit home:** the "🎮 Excel Sales Sprint" callout now points at the new
+  home, https://michaelnocito.github.io/sales-sprint/excel/.
+- **README:** new "Learn by playing" section linking the Sales Sprint hub and
+  both games.
+
 ## [1.55.0] — 2026-06-12 — Excel Sales Sprint cross-promo callouts (Excel + SQL kits)
 
 Mike-directed (June 12, 2026 — 9:52 PM ET): the Excel Sales Sprint game
