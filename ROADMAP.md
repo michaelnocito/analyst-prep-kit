@@ -1,6 +1,6 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.54.0` (shipped June 12, 2026 — Tableau 10-improvement sweep, awaiting Mike's playtest; test steps 054a–054j in chat)
+**Current version:** `v1.54.1` (shipped June 12, 2026 — GR-H toast fix + Chart.js defer; v1.54.0's ten checks 054a–054j ALL PASSED, Mike June 12)
 **Note (June 12, 2026 — 2:10 PM ET):** the "roll the Excel home Lessons section to other kits" inbox item is now DONE for **Tableau** (v1.54.0 home rebuild). Remaining: SQL, Python, Stats, Power BI.
 **Recent:** v1.42–46 **Curriculum rollout COMPLETE** — all 5 remaining kits (Excel, SQL, Python, Stats, Power BI) each received Unit 0 (4 foundation lessons) + story bridges on all 12 existing lessons + position-nav. 20 new lessons total. Tableau already done (v1.37–v1.41). All 6 lesson kits are now fully scaffolded.
 **6-Month Analyst Standard rebuild: SHIPPED.** Every kit now has: Unit 0 Foundations, 📖 story bridges on every lesson, position-based nav, lesson number display by array position. Interview/Sim/Final kits intentionally excluded. Plans: `CURRICULUM_STANDARD.md`, `CURRICULUM_PLAN.md`.
@@ -142,11 +142,7 @@ _Response time: current cycle. Clear before accepting new feedback._
 
 _(GR-F-1, GR-F-2, GR-F-3 shipped May 28, 2026 — see CHANGELOG v1.4.1)_
 
-- **GR-H: Lesson-complete badge persists onto the Lessons screen** _(added June 9, 2026 — 8:05 PM ET — Mike playtest, not a blocker)_
-  - _What:_ The "lesson complete" badge/celebration that pops up when a lesson is finished stays visible (persists) on the Lessons list screen instead of clearing. Should appear briefly on completion, then dismiss — it must not linger on the Lessons view.
-  - _Repro/scope:_ Reproduce first and identify WHICH kit(s) — the celebration/badge markup differs per kit (toast vs. inline badge vs. completion pill). Likely a missing dismiss/teardown when navigating from a finished lesson back to the Lessons list. Check the newer kits (Chart Literacy, Forecasting) and the established kits separately — same fix may not apply to all.
-  - _Why it's here:_ Visible UX glitch that undercuts the "see your progress cleanly" feel (Vision #1). Low severity, not a blocker — no flow is broken.
-  - _Est. effort:_ Small (per kit once repro'd).
+_(GR-H shipped June 12, 2026 (v1.54.1) — root cause was the top-anchored toast in Tableau/Excel/Python hiding via translateY(-80px) with no fade, leaving its bottom half over the sticky nav; now fades + fully clears. Other kits were never affected (they hide with opacity:0). Same release: Chart.js now `defer` in Tableau/Stats — was render-blocking and caused the intermittent page-load delay Mike reported.)_
 
 - **GR-G (EPIC): "Guided Path" — merge Learn + Practice into one linear flow, simplify home, tone down Bare Basics, Excel makeover** _(added June 1, 2026 — 12:40 AM ET — TOP PRIORITY per Mike; prototype on Excel first)_
   - _STATUS (June 2, 2026):_ Thread 1 (merged guided flow) **SHIPPED on all 6 lesson kits** (v1.10–v1.13). Thread 3 (tone down Bare Basics) effectively done — kits already show a quiet one-line "Turn on Bare Basics" link, not a full-width banner. **Remaining: Thread 2 (simplified home — drop the 3-tile grid, lead with one Start-learning entry) and Thread 4 (Excel layout makeover).** Both are visible redesigns — get Mike's design direction before executing.

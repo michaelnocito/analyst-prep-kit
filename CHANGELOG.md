@@ -9,6 +9,32 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.54.1] — 2026-06-12 — GR-H fix: half-visible completion toast (Tableau/Excel/Python) + render-blocking Chart.js (Tableau/Stats)
+
+From Mike's playtest (June 12, 2026 — 7:06 PM ET), after passing all ten v1.54.0 checks:
+
+**GR-H — green completion toast persists across screens, half visible.** Root cause
+found and it's kit-specific exactly as the roadmap entry suspected: Tableau, Excel and
+Python use a top-anchored toast whose hidden state was only `translateY(-80px)` with
+**no fade** — the pill is ~40px tall and anchored at `top:64px`, so after the hide
+animation its bottom half stayed parked over the sticky nav (with the last message's
+text) until a reload emptied it. The other kits hide with `opacity:0`, which is why
+they never showed the artifact. Fix in all three kits: hidden state now
+`translateY(-110px)` + `opacity:0` + `visibility:hidden` (matching transition), shown
+state restores them. GR-H closed.
+
+**Intermittent page-load delay (Tableau + Stats).** Chart.js was loaded from the CDN
+in `<head>` without `defer`, blocking the entire page from painting until the CDN
+responded — instant when cached, visibly slow when not ("sometimes delays, sometimes
+not"). Both kits now load it with `defer` (neither draws a chart at boot; first chart
+happens on user navigation, long after the deferred script runs). Tableau `buildChart`
+gained the same `typeof Chart` guard the lesson charts already had. SQL kit already
+loads sql.js at the end of `<body>` — not affected.
+
+Headless-verified: all script blocks in the 4 touched kits parse.
+
+**v1.54.0 playtest: ✅ ALL TEN PASS (Mike, June 12, 2026 — steps 054a–054j).**
+
 ## [1.54.0] — 2026-06-12 — Tableau kit: 10-improvement sweep (orientation, home rebuild, working Filter shelf, touch support)
 
 One bundled pass over the Tableau kit (Mike's direct ask: "implement 10 improvements").
