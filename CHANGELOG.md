@@ -9,6 +9,24 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.53.0] — 2026-06-12 — SQL Lab: progressive answer scaffold on miss (JOIN + Aggregation)
+
+Fixes a testing blocker (SQL-a partial, June 12, 2026 — 12:11 AM ET): the JOIN and
+Aggregation labs only had a manual "Show Answer" button and a loose row-count check —
+no graduated help when a learner keeps missing, unlike the Parsons drill. Now both labs
+escalate help the same way Parsons does, driven by a real correctness check:
+
+- **Correctness check** — the user's result rows are compared against the model answer's
+  rows (not just the row count), so a wrong query actually registers as a miss. A match
+  shows **"✓ Correct"** + celebrate.
+- **Miss 1:** the 💡 Hint auto-opens. *"Hint opened below — adjust and Run again."*
+- **Miss 2:** the **first half** of the answer is filled into the editor. *"Finish it and Run again."*
+- **Miss 3:** the **full answer** is filled in. *"Run it to see the target result."*
+
+Shared `_runLabQuery(kind, idx)` + `_labAttempts` counter; `runJoinQuery`/`runAggQuery` are
+now thin wrappers. Manual "📋 Show Answer" button kept as the explicit last resort.
+Headless-verified (script parses). Free Lab (freeform) and the two stub labs unaffected.
+
 ## [1.50.0] — 2026-06-09 — Two new standalone kits: Chart Literacy + Forecasting & Trend Modeling
 
 Added two tool-agnostic concept kits that teach the *thinking* the tool kits assume, plus Tableau visualization additions. Built on the shared single-file pattern (calm-analyst design system, guided path, tap-the-choice drills, flashcards, glossary). New non-colliding kit folders — no existing kit, id, or saved progress touched.

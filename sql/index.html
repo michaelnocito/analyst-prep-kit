@@ -1803,33 +1803,93 @@ function toggleJoinHint(){
   if(btn) btn.style.color = _joinHintOpen ? 'var(--accent)' : '';
 }
 
-function runJoinQuery(taskIdx){
-  const editor = document.getElementById('join-editor');
-  const results = document.getElementById('join-results');
+// ─── SHARED LAB RUN + PROGRESSIVE SCAFFOLD ─────────────────────────────────
+// Wrong-attempt counter per "<kind><taskIdx>" so each task escalates help
+// the same way the Parsons drill does: miss 1 → auto-hint, miss 2 → first
+// half of the answer filled in, miss 3 → full answer filled in.
+let _labAttempts = {};
+
+function _labOpenHint(kind){
+  if(kind==='join') _joinHintOpen = true; else _aggHintOpen = true;
+  const el = document.getElementById(kind+'-hint');
+  const btn = document.getElementById(kind+'-hint-btn');
+  if(el) el.style.display = 'block';
+  if(btn) btn.style.color = 'var(--accent)';
+}
+
+function _labFillPartial(editorId, answer, frac){
+  const lines = answer.split('\n');
+  const keep = Math.max(1, Math.round(lines.length * frac));
+  const ed = document.getElementById(editorId);
+  if(ed){ ed.value = lines.slice(0, keep).join('\n') + '\n'; ed.focus(); }
+}
+
+function _runLabQuery(kind, taskIdx){
+  const cfg = {
+    join: { arr: JOIN_TASKS, editor:'join-editor', results:'join-results',
+            norows:'Query ran — no rows returned. Check your JOIN condition and make sure the ON clause matches the right columns.' },
+    agg:  { arr: AGG_TASKS,  editor:'agg-editor',  results:'agg-results',
+            norows:'Query ran — no rows returned. Check your GROUP BY clause.' }
+  }[kind];
+  const editor = document.getElementById(cfg.editor);
+  const results = document.getElementById(cfg.results);
   if(!results) return;
   if(!sqlDb){ results.innerHTML = '<span class="terminal-error">SQL engine not ready yet.</span>'; return; }
   const sql = editor ? editor.value.trim() : '';
   if(!sql){ results.innerHTML = '<span class="terminal-info">Enter a query above.</span>'; return; }
-  const t = JOIN_TASKS[taskIdx];
+  const t = cfg.arr[taskIdx];
+  let res;
+  try { res = sqlDb.exec(sql); }
+  catch(e){ results.innerHTML = `<span class="terminal-error">Error: ${e.message}</span>`; return; }
+  if(!res.length){ results.innerHTML = `<span class="terminal-info">${cfg.norows}</span>`; return; }
+  const {columns, values} = res[0];
+  const thead = `<tr>${columns.map(c=>`<th>${c}</th>`).join('')}</tr>`;
+  const tbody = values.map(row=>`<tr>${row.map(v=>`<td>${v==null?'<em style="color:var(--red);font-style:italic">NULL</em>':v}</td>`).join('')}</tr>`).join('');
+  const tableHTML = `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>`;
+  const n = values.length;
+
+  // Correctness: compare the user's rows against the model answer's rows.
+  let correct = false;
   try {
-    const res = sqlDb.exec(sql);
-    if(!res.length){ results.innerHTML = '<span class="terminal-info">Query ran — no rows returned. Check your JOIN condition and make sure the ON clause matches the right columns.</span>'; return; }
-    const {columns, values} = res[0];
-    const thead = `<tr>${columns.map(c=>`<th>${c}</th>`).join('')}</tr>`;
-    const tbody = values.map(row=>`<tr>${row.map(v=>`<td>${v==null?'<em style="color:var(--red);font-style:italic">NULL</em>':v}</td>`).join('')}</tr>`).join('');
-    const n = values.length;
-    const countBadge = n === t.expectedRows
-      ? `<span style="color:var(--green);font-weight:700">✓ ${n} row${n!==1?'s':''}</span>`
-      : `<span style="color:var(--muted)">${n} row${n!==1?'s':''} <span style="font-size:11px">(expected ~${t.expectedRows})</span></span>`;
-    results.innerHTML = `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>
+    const ar = sqlDb.exec(t.answer);
+    if(ar.length) correct = JSON.stringify(ar[0].values) === JSON.stringify(values);
+  } catch(e){ /* answer should always parse; fall through to wrong path */ }
+
+  const key = kind + taskIdx;
+  if(correct){
+    _labAttempts[key] = 0;
+    results.innerHTML = `${tableHTML}
       <div style="margin-top:10px;display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap">
-        ${countBadge}
+        <span style="color:var(--green);font-weight:700">✓ Correct — ${n} row${n!==1?'s':''}</span>
         <span style="color:var(--muted);font-size:12px">— ${t.note}</span>
       </div>`;
-  } catch(e){
-    results.innerHTML = `<span class="terminal-error">Error: ${e.message}</span>`;
+    if(typeof celebrate === 'function') celebrate();
+    return;
   }
+
+  // Wrong → escalate help by attempt number.
+  const att = (_labAttempts[key] || 0) + 1;
+  _labAttempts[key] = att;
+  let help;
+  if(att === 1){
+    _labOpenHint(kind);
+    help = `Not quite — your result doesn't match the target yet. 💡 <strong>Hint opened below</strong> — adjust and Run again.`;
+  } else if(att === 2){
+    _labFillPartial(cfg.editor, t.answer, 0.5);
+    help = `Still off — I filled in the <strong>first half</strong> of the query for you. Finish it and Run again.`;
+  } else {
+    const ed = document.getElementById(cfg.editor);
+    if(ed){ ed.value = t.answer; ed.focus(); }
+    help = `<strong>Full answer filled in</strong> — Run it to see the target result, then compare it line-by-line with the prompt.`;
+  }
+  results.innerHTML = `${tableHTML}
+    <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
+      <span style="color:var(--muted)">${n} row${n!==1?'s':''} <span style="font-size:11px">(expected ~${t.expectedRows})</span></span>
+      <span style="color:var(--text);font-size:12px;line-height:1.55;background:rgba(212,160,64,.12);border:1px solid rgba(212,160,64,.3);border-radius:6px;padding:8px 11px">${help}</span>
+    </div>`;
 }
+
+function runJoinQuery(taskIdx){ _runLabQuery('join', taskIdx); }
 
 function toggleJoinCompare(){
   _joinCompareOpen = !_joinCompareOpen;
@@ -1978,30 +2038,7 @@ function toggleAggHint(){
   if(btn) btn.style.color = _aggHintOpen ? 'var(--accent)' : '';
 }
 
-function runAggQuery(taskIdx){
-  const editor = document.getElementById('agg-editor');
-  const results = document.getElementById('agg-results');
-  if(!results) return;
-  if(!sqlDb){ results.innerHTML = '<span class="terminal-error">SQL engine not ready yet.</span>'; return; }
-  const sql = editor ? editor.value.trim() : '';
-  if(!sql){ results.innerHTML = '<span class="terminal-info">Enter a query above.</span>'; return; }
-  const t = AGG_TASKS[taskIdx];
-  try {
-    const res = sqlDb.exec(sql);
-    if(!res.length){ results.innerHTML = '<span class="terminal-info">Query ran — no rows returned. Check your GROUP BY clause.</span>'; return; }
-    const {columns, values} = res[0];
-    const thead = `<tr>${columns.map(c=>`<th>${c}</th>`).join('')}</tr>`;
-    const tbody = values.map(row=>`<tr>${row.map(v=>`<td>${v==null?'<em style="color:var(--red);font-style:italic">NULL</em>':v}</td>`).join('')}</tr>`).join('');
-    const n = values.length;
-    const countBadge = n === t.expectedRows
-      ? `<span style="color:var(--green);font-weight:700">✓ ${n} row${n!==1?'s':''}</span>`
-      : `<span style="color:var(--muted)">${n} row${n!==1?'s':''} <span style="font-size:11px">(expected ~${t.expectedRows})</span></span>`;
-    results.innerHTML = `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>
-      <div style="margin-top:10px;display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap">
-        ${countBadge}<span style="color:var(--muted);font-size:12px">— ${t.note}</span>
-      </div>`;
-  } catch(e){ results.innerHTML = `<span class="terminal-error">Error: ${e.message}</span>`; }
-}
+function runAggQuery(taskIdx){ _runLabQuery('agg', taskIdx); }
 
 // ─── DATE & TIME LAB + DATA QUALITY LAB (stubs — full tasks coming) ─────────
 const LAB_STUBS = {
