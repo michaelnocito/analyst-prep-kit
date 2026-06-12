@@ -45,7 +45,7 @@ That's the whole methodology. Each lesson follows the same shape: see the code �
 
 ## Learn by playing
 
-The kit has companion games: the **[Sales Sprint](https://michaelnocito.github.io/prep-companion-apps/)** series ([repo](https://github.com/michaelnocito/prep-companion-apps)) — ten-minute warm-up games matched unit-for-unit to the kits. Coach Srbina, a sales rep finding her analyst instincts, through the [Excel sprint](https://michaelnocito.github.io/prep-companion-apps/excel/) and the [SQL sprint](https://michaelnocito.github.io/prep-companion-apps/sql/), then come back here to go deeper.
+The kit has companion games: the **[Analyst Sprint](https://michaelnocito.github.io/prep-companion-apps/)** series ([repo](https://github.com/michaelnocito/prep-companion-apps)) — ten-minute warm-up games matched unit-for-unit to the kits. Coach Srbina, a sales rep finding her analyst instincts, through the [Excel sprint](https://michaelnocito.github.io/prep-companion-apps/excel/) and the [SQL sprint](https://michaelnocito.github.io/prep-companion-apps/sql/), then come back here to go deeper.
 
 ## Suggested order
 

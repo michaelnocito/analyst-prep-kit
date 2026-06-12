@@ -9,6 +9,12 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.57.0] — 2026-06-12 — Companion games rebranded to Analyst Sprint
+
+Mike-directed: the games are now **Excel Analyst Sprint** and **SQL Analyst
+Sprint** (series: Analyst Sprint) — search-optimized naming. Both kit
+callouts and the README updated; URLs unchanged.
+
 ## [1.56.1] — 2026-06-12 — Sprint links follow the companion repo rename
 
 Mike-directed: the consolidated games repo was renamed `sales-sprint` →
