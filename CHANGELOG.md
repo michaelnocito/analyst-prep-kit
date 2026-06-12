@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.55.0] — 2026-06-12 — Excel Sales Sprint cross-promo callouts (Excel + SQL kits)
+
+Mike-directed (June 12, 2026 — 9:52 PM ET): the Excel Sales Sprint game
+(https://michaelnocito.github.io/excel-sales-sprint/) is revived with a 14-lesson
+curriculum matched unit-for-unit to the Excel Kit. Added cross-promo:
+
+- **Excel kit home:** new "🎮 Excel Sales Sprint" callout card (below Pivot Lab,
+  same card pattern) — "Practice with real analyst examples… ten minutes, matched
+  unit-for-unit to this kit." Opens the game in a new tab.
+- **SQL kit home:** new "🎮 Learn by playing" card (above Other Kits) linking the
+  Excel game, noting a SQL edition of the sprint is coming next. Swap this link to
+  the SQL game when it ships.
+
 ## [1.54.1] — 2026-06-12 — GR-H fix: half-visible completion toast (Tableau/Excel/Python) + render-blocking Chart.js (Tableau/Stats)
 
 From Mike's playtest (June 12, 2026 — 7:06 PM ET), after passing all ten v1.54.0 checks:
