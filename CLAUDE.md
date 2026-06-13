@@ -398,8 +398,7 @@ Extract each inline `<script>` block and syntax-check with
 | Each kit | Single self-contained `index.html`, inline CSS/JS |
 | Theme variable | `--accent:#58aaa2` (teal) default; light mode toggles via `data-theme="light"` |
 | Theme storage | `localStorage['apk-theme']` |
-| Bare Basics flag | `localStorage['apk-basics'] === '1'` |
-| Bare Basics highlight color | `#e0b84a` (amber, set in v1.4.0) |
+| Bare Basics mode | REMOVED in v1.58.0 (Mike-directed) — the Analyst Sprint games are the "bare basics" now. `apk-basics` is cleaned from localStorage on load. Don't rebuild it. |
 | Per-kit lesson state keys | epk, sqlkit-v1, ppk, tpk, spk, pbikt-v1, ipk, sim2, apk-final |
 | Most recent kit visited | `localStorage['apk-last-kit']` (drives Continue card) |
 | Simulator API key (user-supplied) | `localStorage['sim2-apikey']` |

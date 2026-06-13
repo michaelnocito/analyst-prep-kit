@@ -122,40 +122,6 @@ main{max-width:760px; margin:0 auto; padding:28px 18px 0}
 .continue-meta{font-size:12.5px; color:var(--dim); font-family:"Consolas",ui-monospace,monospace; margin-top:2px}
 .continue-arrow{flex-shrink:0; color:var(--accent); font-size:1.2rem; font-weight:700}
 
-/* ── Bare Basics entry ── */
-.basics-entry{
-  display:flex; align-items:flex-start; gap:14px;
-  background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--warm);
-  border-radius:14px; box-shadow:var(--shadow); padding:18px 20px; margin-bottom:18px;
-}
-.basics-icon{font-size:1.5rem; flex-shrink:0; margin-top:1px}
-.basics-body{flex:1; min-width:0}
-.basics-title{font-weight:700; font-size:15.5px; margin-bottom:5px; color:var(--ink)}
-.basics-desc{font-size:13.5px; color:var(--dim); line-height:1.6; margin-bottom:12px}
-.basics-default-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
-.basics-active-row{display:none; align-items:center; gap:10px; flex-wrap:wrap}
-body.basics-mode .basics-active-row{display:flex}
-body.basics-mode .basics-default-row{display:none}
-body.basics-mode .basics-entry .basics-title::before{content:'✓ '; color:var(--warm)}
-.basics-btn{
-  background:var(--accent); color:#fff; border:0; border-radius:10px;
-  padding:9px 16px; font-size:13.5px; font-weight:700; font-family:inherit; cursor:pointer;
-  box-shadow:0 2px 8px rgba(47,109,240,.35); transition:background .15s, transform .05s;
-}
-.basics-btn:hover{background:var(--accent-d)}
-.basics-btn:active{transform:translateY(1px)}
-.basics-btn-ghost{
-  background:transparent; border:1px solid var(--line); color:var(--dim);
-  border-radius:8px; padding:8px 14px; font-size:13px; font-weight:600;
-  font-family:inherit; cursor:pointer; transition:border-color .15s, color .15s;
-}
-.basics-btn-ghost:hover{border-color:var(--accent); color:var(--accent)}
-.basics-on-pill{
-  display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:999px;
-  background:var(--warm-soft); color:var(--warm); border:1px solid var(--warm-soft-bd);
-  font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
-}
-
 /* ── Beta banner ── */
 .beta-banner{
   background:var(--tint); border:1px solid var(--tint-bd); border-radius:12px;
@@ -276,25 +242,6 @@ footer a:hover{color:var(--accent-d)}
     </div>
     <div class="continue-arrow">→</div>
   </a>
-
-  <!-- ── Bare Basics entry — toggle + study-guide link ── -->
-  <div class="basics-entry">
-    <div class="basics-icon">🔖</div>
-    <div class="basics-body">
-      <div class="basics-title">Just want the bare basics?</div>
-      <div class="basics-desc">Turn on Bare Basics mode and every kit will highlight only the must-know lessons — clearly labeled — and dim the rest. Click into any kit and you'll see exactly which lessons to focus on. Pair it with the study guide for a 15-minute end-to-end refresher.</div>
-      <div id="basicsProgress" style="margin-bottom:12px"></div>
-      <div class="basics-default-row">
-        <button class="basics-btn" onclick="activateBasics()">Turn on Bare Basics →</button>
-        <a class="basics-btn-ghost" href="final/#study">Open the study guide</a>
-      </div>
-      <div class="basics-active-row">
-        <span class="basics-on-pill">● Bare Basics is ON</span>
-        <a class="basics-btn-ghost" href="final/#study">Open the study guide</a>
-        <button class="basics-btn-ghost" onclick="deactivateBasics()">Turn off</button>
-      </div>
-    </div>
-  </div>
 
   <div class="beta-banner">
     🛠️ <strong>Actively in development.</strong> All modules are free — content and layout may change between sessions. Progress is saved locally in your browser and won't be affected.
@@ -472,52 +419,36 @@ function toggleTheme() {
 }
 applyTheme();
 
-// ── Bare Basics mode (cross-kit) ──
-// Stored in localStorage as 'apk-basics' = '1' when active.
-// Every kit reads the same flag on load and applies body.basics-mode,
-// which makes core lessons stand out with a 'BARE BASICS' pill.
-function applyBasics(){
-  const on = localStorage.getItem('apk-basics') === '1';
-  document.body.classList.toggle('basics-mode', on);
-}
-function activateBasics(){
-  localStorage.setItem('apk-basics', '1');
-  applyBasics();
-}
-function deactivateBasics(){
-  localStorage.removeItem('apk-basics');
-  applyBasics();
-}
-applyBasics();
-
-// One-time cleanup: clear leftover sprint flag from prior visits.
+// One-time cleanup: clear leftover flags from prior visits
+// (apk-sprint = old sprint mode; apk-basics = removed Bare Basics mode).
 localStorage.removeItem('apk-sprint');
+localStorage.removeItem('apk-basics');
 
 // ── Per-kit progress + "Continue where you left off" ──
 // Each kit stores its own state under its own key with its own shape.
 // The hub reads them all through small adapters that return a normalized
 // { done, total, last, label } shape.
 const KITS = [
-  { id:'excel',     name:'Excel Kit',                            path:'excel/',     unit:'lessons', total:12, coreIds:[1,2,3,5,6,7,9],
+  { id:'excel',     name:'Excel Kit',                            path:'excel/',     unit:'lessons', total:12,
     read: () => { const s = JSON.parse(localStorage.getItem('epk')||'{}'); const ids=s.lessonsDone||[];
       return { done:ids.length, doneIds:ids, last:s.currentLesson||null }; } },
-  { id:'sql',       name:'SQL Kit',                              path:'sql/',       unit:'lessons', total:12, coreIds:[1,2,4,5,6,7],
+  { id:'sql',       name:'SQL Kit',                              path:'sql/',       unit:'lessons', total:12,
     read: () => { const s = JSON.parse(localStorage.getItem('sqlkit-v1')||'{}');
       const ids = s.doneLessons||[]; const done = ids.length;
       // SQL has no explicit cursor — last = next unfinished
       return { done, doneIds:ids, last: done < 12 ? done + 1 : 12 }; } },
-  { id:'python',    name:'Python Kit',                           path:'python/',    unit:'lessons', total:12, coreIds:[1,2,4,6,8,10],
+  { id:'python',    name:'Python Kit',                           path:'python/',    unit:'lessons', total:12,
     read: () => { const s = JSON.parse(localStorage.getItem('ppk')||'{}'); const ids=s.lessonsDone||[];
       return { done:ids.length, doneIds:ids, last:s.currentLesson||null }; } },
-  { id:'tableau',   name:'Tableau Kit',                          path:'tableau/',   unit:'lessons', total:12, coreIds:[2,3,4,7,11],
+  { id:'tableau',   name:'Tableau Kit',                          path:'tableau/',   unit:'lessons', total:12,
     read: () => { const s = JSON.parse(localStorage.getItem('tpk')||'{}');
       const ids = Object.keys(s.done||{}).filter(k=>/^lesson\d+$/.test(k)).map(k=>+k.slice(6));
       return { done:ids.length, doneIds:ids, last:s.lastLesson||null }; } },
-  { id:'stats',     name:'Stats Kit',                            path:'stats/',     unit:'lessons', total:12, coreIds:[1,2,3,4,6,7,8,11],
+  { id:'stats',     name:'Stats Kit',                            path:'stats/',     unit:'lessons', total:12,
     read: () => { const s = JSON.parse(localStorage.getItem('spk')||'{}');
       const ids = Object.keys(s.done||{}).filter(k=>/^lesson\d+$/.test(k)).map(k=>+k.slice(6));
       return { done:ids.length, doneIds:ids, last:s.lastLesson||null }; } },
-  { id:'powerbi',   name:'Power BI Kit',                         path:'powerbi/',   unit:'lessons', total:12, coreIds:[2,4,5,6,7],
+  { id:'powerbi',   name:'Power BI Kit',                         path:'powerbi/',   unit:'lessons', total:12,
     read: () => { const s = JSON.parse(localStorage.getItem('pbikt-v1')||'{}');
       const ids = s.doneLessons||[]; const done = ids.length;
       return { done, doneIds:ids, last: done < 12 ? done + 1 : 12 }; } },
@@ -567,17 +498,6 @@ function renderKitProgress(){
   });
 }
 
-function renderBasicsProgress(){
-  const el = document.getElementById('basicsProgress');
-  if(!el) return;
-  const lessonKits = KITS.filter(k => Array.isArray(k.coreIds));
-  let doneCount = 0;
-  lessonKits.forEach(k => { try { const ids = (k.read().doneIds)||[]; if(k.coreIds.every(id => ids.includes(id))) doneCount++; } catch(e){} });
-  el.innerHTML = doneCount > 0
-    ? `<span style="display:inline-block;font-size:12.5px;font-weight:600;color:var(--accent);background:rgba(47,109,240,.1);border:1px solid var(--accent);border-radius:20px;padding:4px 12px">🔖 Bare basics: ${doneCount} of ${lessonKits.length} subjects complete</span>`
-    : '';
-}
-
 function renderContinueCard(){
   const card = document.getElementById('continueCard');
   // Pick the kit to suggest, in priority order:
@@ -621,7 +541,6 @@ document.querySelectorAll('.kit-card[data-kit]').forEach(a => {
 });
 
 renderKitProgress();
-renderBasicsProgress();
 renderContinueCard();
 </script>
 </body>

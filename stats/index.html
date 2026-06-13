@@ -84,21 +84,6 @@ body.sprint-on #sprint-tips{display:block}
 [data-theme="light"] #sprint-tips .st-dismiss{color:rgba(60,60,60,.55)}
 #sprint-tips .st-dismiss:hover{border-color:var(--accent,#2f6df0);color:var(--accent,#2f6df0)}
 .sc-badge{display:none}
-/* ── Bare Basics Mode (cross-kit shared pattern) ── */
-.basics-bar-default,.basics-bar-active{display:block;padding:9px 20px;text-align:center;font-size:13px;font-weight:600;border-bottom:1px solid var(--bord,#28303c);background:var(--surf,#161c26);color:var(--txt,#e6edf3)}
-.basics-bar-active{display:none;background:rgba(224,184,74,.18);border-bottom:2px solid #e0b84a;color:#e0b84a}
-body.basics-mode .basics-bar-default{display:none}
-body.basics-mode .basics-bar-active{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
-.basics-bar-default a,.basics-bar-default .b-link{color:var(--accent);text-decoration:none;background:none;border:none;font:inherit;font-weight:700;cursor:pointer;padding:0}
-.basics-bar-default .b-link:hover,.basics-bar-default a:hover{text-decoration:underline}
-.basics-bar-active b{font-weight:800;letter-spacing:.04em}
-.basics-bar-active .b-exit{background:transparent;border:1px solid #e0b84a;color:#e0b84a;padding:3px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700;font-family:inherit}
-.basics-bar-active .b-exit:hover{background:rgba(224,184,74,.15)}
-.basics-pill{display:none;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;background:#e0b84a;color:#1a1410;border:1px solid #b89030;padding:3px 9px;border-radius:4px;margin-left:8px;vertical-align:middle;box-shadow:0 1px 3px rgba(0,0,0,.25)}
-body.basics-mode .basics-pill{display:inline-block}
-body.basics-mode [data-basics="1"]{box-shadow:0 0 0 2px #e0b84a,0 2px 18px rgba(224,184,74,.3)!important;position:relative}
-body.basics-mode [data-basics]:not([data-basics="1"]){opacity:.4;filter:saturate(.5);transition:opacity .15s,filter .15s}
-body.basics-mode [data-basics]:not([data-basics="1"]):hover{opacity:.85;filter:none}
 body.sprint-on .sc-supporting{opacity:.45}
 body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 /* -- End Sprint Bar ------------------------------------ */</style>
@@ -133,8 +118,6 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
     <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
   <button class="theme-btn" onclick="toggleTheme()"><span id="themeIcon">☀️</span></button>
 </nav>
-<div class="basics-bar-default">🔖 Want just the bare basics for Stats? <button class="b-link" onclick="activateBasics()">Turn on Bare Basics mode →</button> &nbsp;·&nbsp; <a href="../final/#study-stats">See the study guide</a></div>
-<div class="basics-bar-active"><span>🔖 <b>BARE BASICS MODE</b> — only the highlighted lessons below are your must-knows</span><button class="b-exit" onclick="deactivateBasics()">Exit mode</button></div>
 <main>
   <div id="view-home" class="view active"></div>
   <div id="view-lessons" class="view"></div>
@@ -182,11 +165,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 </main>
 <div id="toast"></div>
 <script>
-// ─── Bare Basics mode (cross-kit) ─────────────────────────────────────────
-function applyBasics(){ document.body.classList.toggle('basics-mode', localStorage.getItem('apk-basics') === '1'); }
-function activateBasics(){ localStorage.setItem('apk-basics','1'); applyBasics(); if(typeof renderLessonList==='function') renderLessonList(); }
-function deactivateBasics(){ localStorage.removeItem('apk-basics'); applyBasics(); if(typeof renderLessonList==='function') renderLessonList(); }
-applyBasics();
+localStorage.removeItem('apk-basics'); // Bare Basics mode removed
 const DATA = {
 LESSONS:[
  {id:101,unit:0,title:"What Stats Is For",subtitle:"Drawing trustworthy conclusions from incomplete data.",
@@ -977,36 +956,10 @@ function renderHome(){
     return Math.round(keys.filter(k=>S.done[k]).length/keys.length*100);
   });
   const overall=Math.round(skillScores.reduce((a,b)=>a+b,0)/skills.length);
-  const basicsOn=localStorage.getItem('apk-basics')==='1';
-  const coreLessons=DATA.LESSONS.filter(l=>l.core);
-  const coreDone=coreLessons.filter(l=>S.done['lesson'+l.id]).length;
-  const nextCore=DATA.LESSONS.find(l=>l.core&&!S.done['lesson'+l.id]);
-  const allCoreDone=coreLessons.every(l=>S.done['lesson'+l.id]);
-
-  /* Bare Basics hero — shown only when Bare Basics mode is on */
-  let basicsHero='';
-  if(basicsOn){
-    if(allCoreDone){
-      basicsHero=`<div class="card" style="margin-bottom:20px;border-color:var(--accent);background:rgba(47,109,240,.08);text-align:center;padding:28px 20px">
-        <div style="font-size:1.8rem;margin-bottom:6px">✅</div>
-        <h3 style="margin-bottom:6px;color:var(--accent)">Stats bare basics — complete</h3>
-        <p style="color:var(--txt2);margin-bottom:14px;font-size:.9rem">All ${coreLessons.length} must-know lessons done. Try the Final Exam to test yourself across all subjects.</p>
-        <a href="../final/" class="btn" style="text-decoration:none">Go to Final Exam →</a>
-      </div>`;
-    } else {
-      basicsHero=`<div class="card" style="margin-bottom:20px;border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent);padding:20px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font-size:1rem">🔖</span><strong style="color:var(--accent);font-size:.85rem;text-transform:uppercase;letter-spacing:.04em">Bare Basics mode</strong></div>
-        <div style="font-size:.82rem;color:var(--txt2);margin-bottom:14px">${coreDone} of ${coreLessons.length} must-know lessons done</div>
-        <div style="background:var(--surf2);border-radius:4px;height:6px;margin-bottom:16px"><div style="background:var(--accent);border-radius:4px;height:6px;width:${Math.round(coreDone/coreLessons.length*100)}%;transition:width .4s"></div></div>
-        ${nextCore?`<div style="margin-bottom:12px"><div style="font-size:.75rem;color:var(--txt2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Up next</div><strong style="font-size:1.05rem">${nextCore.title}</strong><div style="color:var(--txt2);font-size:.82rem;margin-top:2px">${nextCore.subtitle}</div></div><button class="btn" onclick="openLesson(${nextCore.id})">▶ Start Must-Know Lesson →</button><button class="btn btn-outline" style="margin-left:8px" onclick="show('lessons')">All Lessons</button>`:''}
-      </div>`;
-    }
-  }
 
   document.getElementById('view-home').innerHTML=`
     <h2 style="margin-bottom:8px">Stats Prep Kit</h2>
     <p style="color:var(--txt2);margin-bottom:24px">Master the statistics every data analyst interview tests — from mean/median to A/B testing.</p>
-    ${basicsHero}
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px">
       <div class="card" style="text-align:center;cursor:pointer" onclick="show('lessons')"><div style="font-size:2rem;font-weight:700;color:var(--accent)">${lessDone}/${total}</div><div style="color:var(--txt2);font-size:.85rem">Lessons →</div></div>
       <div class="card" style="text-align:center;cursor:pointer" onclick="show('practice')"><div style="font-size:2rem;font-weight:700;color:var(--accent)">${drillDone}/${drillTotal}</div><div style="color:var(--txt2);font-size:.85rem">Drills →</div></div>
@@ -1016,7 +969,7 @@ function renderHome(){
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><strong>Skill Readiness</strong><span style="font-size:1.4rem;font-weight:700;color:var(--accent)">${overall}%</span></div>
       ${skills.map((s,i)=>`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:3px"><span>${s}</span><span style="color:var(--txt2)">${skillScores[i]}%</span></div><div style="background:var(--surf2);border-radius:4px;height:6px"><div style="background:var(--accent);border-radius:4px;height:6px;width:${skillScores[i]}%;transition:width .4s"></div></div></div>`).join('')}
     </div>
-    ${!basicsOn?(S.lastLesson?`<button class="btn" onclick="openLesson(${S.lastLesson})">▶ Resume Lesson ${S.lastLesson}</button>`:`<button class="btn" onclick="show('lessons')">▶ Start Learning</button>`):''}
+    ${S.lastLesson?`<button class="btn" onclick="openLesson(${S.lastLesson})">▶ Resume Lesson ${S.lastLesson}</button>`:`<button class="btn" onclick="show('lessons')">▶ Start Learning</button>`}
     <div class="card" style="margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border-color:rgba(47,109,240,.3);background:rgba(47,109,240,.05)">
       <div>
         <strong style="font-size:1rem">Ready to test yourself?</strong>
@@ -1044,18 +997,14 @@ function renderHome(){
 function lessonPos(id){return DATA.LESSONS.findIndex(l=>l.id===id);}
 function nextLessonId(id){const p=lessonPos(id);return(p>=0&&p<DATA.LESSONS.length-1)?DATA.LESSONS[p+1].id:null;}
 function renderLessonList(){
-  const basicsOn=localStorage.getItem('apk-basics')==='1';
-  const coreLessons=DATA.LESSONS.filter(l=>l.core);
-  const coreDoneCount=coreLessons.filter(l=>S.done[`lesson${l.id}`]).length;
-  const basicsChip=basicsOn?`<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(47,109,240,.15);border:1px solid var(--accent);border-radius:20px;padding:5px 14px;font-size:13px;font-weight:600;color:var(--accent);margin-bottom:16px">🔖 Bare Basics: ${coreDoneCount} of ${coreLessons.length} must-know lessons done</div>`:'';
   const units={0:[],1:[],2:[],3:[]};
   DATA.LESSONS.forEach(l=>units[l.unit].push(l));
   const unames={0:'Unit 0: Before You Calculate',1:'Unit 1: Describing Data',2:'Unit 2: Probability & Distributions',3:'Unit 3: Inference & Testing'};
-  document.getElementById('view-lessons').innerHTML=basicsChip+Object.keys(units).map(u=>`
+  document.getElementById('view-lessons').innerHTML=Object.keys(units).map(u=>`
     <div style="margin-bottom:24px">
       <h3 style="margin-bottom:12px;color:var(--txt2);font-size:.9rem;text-transform:uppercase;letter-spacing:.05em">${unames[u]}</h3>
       <div style="display:flex;flex-direction:column;gap:8px">
-        ${units[u].map(l=>{const done=S.done[`lesson${l.id}`];return `<div class="card${l.core?' sc-core':' sc-supporting'}" data-basics="${l.core?'1':'0'}" style="display:flex;align-items:center;gap:12px;cursor:pointer;${done?'border-color:var(--accent)':''}" onclick="openLesson(${l.id})"><span style="font-size:1.2rem">${done?'✅':'📖'}</span><div><strong>${l.title}${l.core?'<span class="basics-pill">★ Bare Basics</span>':''}</strong><div style="color:var(--txt2);font-size:.82rem">${l.subtitle}</div></div></div>`;}).join('')}
+        ${units[u].map(l=>{const done=S.done[`lesson${l.id}`];return `<div class="card${l.core?' sc-core':' sc-supporting'}" style="display:flex;align-items:center;gap:12px;cursor:pointer;${done?'border-color:var(--accent)':''}" onclick="openLesson(${l.id})"><span style="font-size:1.2rem">${done?'✅':'📖'}</span><div><strong>${l.title}</strong><div style="color:var(--txt2);font-size:.82rem">${l.subtitle}</div></div></div>`;}).join('')}
       </div>
     </div>`).join('');
 }
@@ -1169,18 +1118,9 @@ function retryQuiz(lid){
 }
 function finishLesson(id){
   S.done[`lesson${id}`]=true;save();celebrate(true,`Lesson ${lessonPos(id)+1} complete! 🌟`);
-  const basicsOn=localStorage.getItem('apk-basics')==='1';
-  const coreLessons=DATA.LESSONS.filter(l=>l.core);
-  const doneLessons=DATA.LESSONS.filter(l=>S.done[`lesson${l.id}`]);
-  const coreDone=coreLessons.every(l=>S.done[`lesson${l.id}`]);
-  const nextCore=DATA.LESSONS.find(l=>l.core&&!S.done[`lesson${l.id}`]);
   const nextLesson=DATA.LESSONS.find(l=>!S.done[`lesson${l.id}`]);
   let primaryBtn;
-  if(basicsOn&&coreDone){
-    primaryBtn=`<a href="../powerbi/" class="btn" style="text-decoration:none;background:var(--accent);color:#fff">🔖 Stats bare basics done — Next: Power BI bare basics &rarr;</a>`;
-  } else if(basicsOn&&nextCore){
-    primaryBtn=`<button class="btn" style="background:var(--accent);color:#fff" onclick="openLesson(${nextCore.id})">Next Bare Basic: ${nextCore.title} &rarr;</button>`;
-  } else if(nextLesson){
+  if(nextLesson){
     primaryBtn=`<button class="btn" onclick="openLesson(${nextLesson.id})">Next: ${nextLesson.title} &rarr;</button>`;
   } else {
     primaryBtn=`<button class="btn" onclick="renderLessonList()">All Lessons</button>`;
@@ -1678,7 +1618,7 @@ function doCopy(e){
 }
 function _fbCopy(t){var a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.top='-9999px';document.body.appendChild(a);a.focus();a.select();try{document.execCommand('copy');}catch(_){}document.body.removeChild(a);}
 /* -- End Hint System JS ---- */
-/* Sprint mode removed — see Bare Basics mode (apk-basics flag). */
+/* Sprint mode removed. */
 localStorage.removeItem('apk-sprint');
 </script>
 </body>

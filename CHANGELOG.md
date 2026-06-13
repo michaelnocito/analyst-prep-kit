@@ -9,6 +9,29 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.58.0] — 2026-06-13 — Bare Basics mode removed everywhere
+
+Mike-directed (June 13, 2026 — 12:07 AM ET): "remove the bare basics feature
+from all prep kits, I hated it anyways and now these games are the bare
+basics" — the Analyst Sprint companion games now fill that role.
+
+Removed from the hub + all 7 kits that had it (Excel, SQL, Python, Tableau,
+Stats, Power BI, Interview):
+
+- Hub: the "Just want the bare basics?" entry card, the cross-kit toggle
+  (`apk-basics` flag), the "X of N subjects" progress pill, and the now-unused
+  `coreIds` in the KITS adapters. The flag is cleaned from localStorage on load.
+- Per kit: the top "Turn on Bare Basics mode" bar + active-mode banner, the
+  shared CSS block (amber pills/highlight/dimming), the
+  apply/activate/deactivateBasics functions, the "🔖 Bare Basics: X of N"
+  lesson-list chips, the ★ pills on core lessons, the lesson-complete
+  "next kit's bare basics" handoff links, and Stats' Bare Basics home hero.
+
+Kept: lesson `core:` data flags (inert), the Final Exam Kit's per-subject
+study guide (content, not the mode), and each kit's normal lesson flow —
+finishing a lesson now always offers Practice/Next Lesson as before the mode
+was on. All 8 pages pass the inline-script syntax check.
+
 ## [1.57.0] — 2026-06-12 — Companion games rebranded to Analyst Sprint
 
 Mike-directed: the games are now **Excel Analyst Sprint** and **SQL Analyst

@@ -108,21 +108,6 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 .quiz-feedback.ok{background:rgba(76,175,120,.1);border:1px solid var(--success);color:var(--success)}
 .quiz-feedback.bad{background:rgba(224,92,92,.1);border:1px solid var(--err);color:var(--err)}
 
-/* ── Bare Basics Mode (cross-kit shared pattern) ── */
-.basics-bar-active{display:none;padding:9px 20px;text-align:center;font-size:13px;font-weight:600;background:rgba(224,184,74,.18);border-bottom:2px solid #e0b84a;color:#e0b84a}
-.basics-bar-default{display:block;padding:5px 20px;text-align:right;font-size:11.5px;font-weight:500;background:none;border:none;color:var(--txt2,#8a8a8a)}
-body.basics-mode .basics-bar-default{display:none}
-body.basics-mode .basics-bar-active{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
-.basics-bar-default a,.basics-bar-default .b-link{color:var(--accent);text-decoration:none;background:none;border:none;font:inherit;font-weight:700;cursor:pointer;padding:0}
-.basics-bar-default .b-link:hover,.basics-bar-default a:hover{text-decoration:underline}
-.basics-bar-active b{font-weight:800;letter-spacing:.04em}
-.basics-bar-active .b-exit{background:transparent;border:1px solid #e0b84a;color:#e0b84a;padding:3px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700;font-family:inherit}
-.basics-bar-active .b-exit:hover{background:rgba(224,184,74,.15)}
-.basics-pill{display:none;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;background:#e0b84a;color:#1a1410;border:1px solid #b89030;padding:3px 9px;border-radius:4px;margin-left:8px;vertical-align:middle;box-shadow:0 1px 3px rgba(0,0,0,.25)}
-body.basics-mode .basics-pill{display:inline-block}
-body.basics-mode [data-basics="1"]{box-shadow:0 0 0 2px #e0b84a,0 2px 18px rgba(224,184,74,.3)!important;position:relative}
-body.basics-mode [data-basics]:not([data-basics="1"]){opacity:.4;filter:saturate(.5);transition:opacity .15s,filter .15s}
-body.basics-mode [data-basics]:not([data-basics="1"]):hover{opacity:.85;filter:none}
 
 /* DRILLS */
 .drill-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;resize:vertical;min-height:44px}
@@ -314,8 +299,6 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
     <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
   <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️ Light</button>
 </nav>
-<div class="basics-bar-default">🔖 Want just the bare basics for Tableau? <button class="b-link" onclick="activateBasics()">Turn on Bare Basics mode →</button> &nbsp;·&nbsp; <a href="../final/#study-tableau">See the study guide</a></div>
-<div class="basics-bar-active"><span>🔖 <b>BARE BASICS MODE</b> — only the highlighted lessons below are your must-knows</span><button class="b-exit" onclick="deactivateBasics()">Exit mode</button></div>
 <div id="flash" class="flash"></div>
 <div id="toast" class="toast"></div>
 
@@ -414,11 +397,7 @@ DATEDIFF('month', [Hire Date], TODAY())</div>
 </div>
 
 <script>
-// ─── Bare Basics mode (cross-kit) ─────────────────────────────────────────
-function applyBasics(){ document.body.classList.toggle('basics-mode', localStorage.getItem('apk-basics') === '1'); }
-function activateBasics(){ localStorage.setItem('apk-basics','1'); applyBasics(); if(typeof renderLessonList==='function') renderLessonList(); }
-function deactivateBasics(){ localStorage.removeItem('apk-basics'); applyBasics(); if(typeof renderLessonList==='function') renderLessonList(); }
-applyBasics();
+localStorage.removeItem('apk-basics'); // Bare Basics mode removed
 const DATA = {
 LESSONS:[
 {id:21,unit:"Unit 0: Before You Build (Foundations)",title:"How Tableau Sees Your Data",slug:"tab-data",
@@ -1690,9 +1669,9 @@ function renderLessonList(){
           const done=S.done[`lesson${l.id}`];
           const isNext=nextUp&&l.id===nextUp.id;
           const teaser=((l.intro||'').replace(/<[^>]*>/g,'').split('. ')[0]+'.').slice(0,120);
-          return `<div class="card" data-basics="${l.core?'1':'0'}" style="display:flex;align-items:center;gap:12px;cursor:pointer;${done?'border-color:var(--accent)':isNext?'border-color:var(--accent2)':''}" onclick="openLesson(${l.id})">
+          return `<div class="card" style="display:flex;align-items:center;gap:12px;cursor:pointer;${done?'border-color:var(--accent)':isNext?'border-color:var(--accent2)':''}" onclick="openLesson(${l.id})">
             <span style="font-size:1.2rem">${done?'✅':'📖'}</span>
-            <div><strong><span class="mono" style="color:var(--dim);font-size:.78rem;margin-right:6px">L${lessonPos(l.id)+1}</span>${l.title}${isNext?'<span class="tag accent" style="margin-left:8px;font-size:11px">▶ Next up</span>':''}${l.core?'<span class="basics-pill">★ Bare Basics</span>':''}</strong><div style="color:var(--txt2);font-size:.82rem">${teaser}</div></div>
+            <div><strong><span class="mono" style="color:var(--dim);font-size:.78rem;margin-right:6px">L${lessonPos(l.id)+1}</span>${l.title}${isNext?'<span class="tag accent" style="margin-left:8px;font-size:11px">▶ Next up</span>':''}</strong><div style="color:var(--txt2);font-size:.82rem">${teaser}</div></div>
           </div>`;
         }).join('')}
       </div>
@@ -1846,16 +1825,12 @@ function renderLessonComplete(id){
   const isLast=lessonPos(id)>=DATA.LESSONS.length-1;
   const _nxt=nextLessonId(id);
   const drillCount=(LESSON_DRILLS[id]||[]).length;
-  const basicsOn=localStorage.getItem('apk-basics')==='1';
-  const allCoreDone=DATA.LESSONS.filter(l=>l.core).every(l=>S.done['lesson'+l.id]);
-  const handoff=(basicsOn&&allCoreDone)?`<a href="../stats/" class="btn" style="background:var(--accent);color:#fff;text-decoration:none">🔖 Tableau bare basics done — Next: Stats bare basics →</a>`:'';
   document.getElementById('view-lessons').innerHTML=`
     <div class="card" style="text-align:center;padding:28px;border-color:var(--accent)">
       <div style="font-size:2rem;margin-bottom:8px">✓</div>
       <h2 style="margin-bottom:6px">Lesson ${lessonPos(id)+1} complete</h2>
       <p style="color:var(--txt2)">${drillCount?`Now lock it in — practice this lesson's drills before moving on (${drillCount} quick exercises).`:'Nice — that foundation is set. On to the next one.'}</p>
       <div style="display:flex;justify-content:center;gap:10px;margin-top:18px;flex-wrap:wrap">
-        ${handoff}
         ${drillCount?`<button class="btn" style="background:var(--accent);color:#fff" onclick="startGuided(${id})">Practice this →</button>`:''}
         ${isLast?`<a href="../final/" class="btn" style="text-decoration:none">Try the Final Exam →</a>`:`<button class="btn"${drillCount?'':' style="background:var(--accent);color:#fff"'} onclick="openLesson(${_nxt})">${drillCount?'Skip to next lesson →':'Next lesson →'}</button>`}
         <button class="btn" style="font-size:.85rem" onclick="renderLessonList()">All lessons</button>
@@ -2660,7 +2635,7 @@ function doCopy(e){
 }
 function _fbCopy(t){var a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.top='-9999px';document.body.appendChild(a);a.focus();a.select();try{document.execCommand('copy');}catch(_){}document.body.removeChild(a);}
 /* -- End Hint System JS ---- */
-/* Sprint mode removed — see Bare Basics mode (apk-basics flag). */
+/* Sprint mode removed. */
 localStorage.removeItem('apk-sprint');
 </script>
 </body>

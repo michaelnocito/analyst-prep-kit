@@ -234,21 +234,6 @@ body.sprint-on #sprint-tips{display:block}
 [data-theme="light"] #sprint-tips .st-dismiss{color:rgba(60,60,60,.55)}
 #sprint-tips .st-dismiss:hover{border-color:var(--accent,#2f6df0);color:var(--accent,#2f6df0)}
 .sc-badge{display:none}
-/* ── Bare Basics Mode (cross-kit shared pattern) ── */
-.basics-bar-active{display:none;padding:9px 20px;text-align:center;font-size:13px;font-weight:600;background:rgba(224,184,74,.18);border-bottom:2px solid #e0b84a;color:#e0b84a}
-.basics-bar-default{display:block;padding:5px 20px;text-align:right;font-size:11.5px;font-weight:500;background:none;border:none;color:var(--dim,#8a8a8a)}
-body.basics-mode .basics-bar-default{display:none}
-body.basics-mode .basics-bar-active{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
-.basics-bar-default a,.basics-bar-default .b-link{color:var(--accent);text-decoration:none;background:none;border:none;font:inherit;font-weight:700;cursor:pointer;padding:0}
-.basics-bar-default .b-link:hover,.basics-bar-default a:hover{text-decoration:underline}
-.basics-bar-active b{font-weight:800;letter-spacing:.04em}
-.basics-bar-active .b-exit{background:transparent;border:1px solid #e0b84a;color:#e0b84a;padding:3px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700;font-family:inherit}
-.basics-bar-active .b-exit:hover{background:rgba(224,184,74,.15)}
-.basics-pill{display:none;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;background:#e0b84a;color:#1a1410;border:1px solid #b89030;padding:3px 9px;border-radius:4px;margin-left:8px;vertical-align:middle;box-shadow:0 1px 3px rgba(0,0,0,.25)}
-body.basics-mode .basics-pill{display:inline-block}
-body.basics-mode [data-basics="1"]{box-shadow:0 0 0 2px #e0b84a,0 2px 18px rgba(224,184,74,.3)!important;position:relative}
-body.basics-mode [data-basics]:not([data-basics="1"]){opacity:.4;filter:saturate(.5);transition:opacity .15s,filter .15s}
-body.basics-mode [data-basics]:not([data-basics="1"]):hover{opacity:.85;filter:none}
 body.sprint-on .sc-supporting{opacity:.45}
 body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 /* -- End Sprint Bar ------------------------------------ */</style>
@@ -285,8 +270,6 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
     <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
   <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️ Light</button>
 </nav>
-<div class="basics-bar-default">🔖 Want just the bare basics for Excel? <button class="b-link" onclick="activateBasics()">Turn on Bare Basics mode →</button> &nbsp;·&nbsp; <a href="../final/#study-excel">See the study guide</a></div>
-<div class="basics-bar-active"><span>🔖 <b>BARE BASICS MODE</b> — only the highlighted lessons below are your must-knows</span><button class="b-exit" onclick="deactivateBasics()">Exit mode</button></div>
 
 <div id="flash" class="flash"></div>
 <div id="toast" class="toast"></div>
@@ -456,11 +439,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 </div>
 
 <script>
-// ─── Bare Basics mode (cross-kit) ─────────────────────────────────────────
-function applyBasics(){ document.body.classList.toggle('basics-mode', localStorage.getItem('apk-basics') === '1'); }
-function activateBasics(){ localStorage.setItem('apk-basics','1'); applyBasics(); if(typeof renderLessonList==='function') renderLessonList(); }
-function deactivateBasics(){ localStorage.removeItem('apk-basics'); applyBasics(); if(typeof renderLessonList==='function') renderLessonList(); }
-applyBasics();
+localStorage.removeItem('apk-basics'); // Bare Basics mode removed
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const DATA = {
 LESSONS:[
@@ -1239,20 +1218,16 @@ function resumeLesson(){
 function lessonPos(id){return DATA.LESSONS.findIndex(l=>l.id===id);}
 function nextLessonId(id){const p=lessonPos(id);return(p>=0&&p<DATA.LESSONS.length-1)?DATA.LESSONS[p+1].id:null;}
 function renderLessonList(){
-  const basicsOn = localStorage.getItem('apk-basics') === '1';
-  const coreLessons = DATA.LESSONS.filter(l => l.core);
-  const coreDoneCount = coreLessons.filter(l => S.lessonsDone.includes(l.id)).length;
-  const basicsChip = basicsOn ? `<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(47,109,240,.15);border:1px solid var(--accent);border-radius:20px;padding:5px 14px;font-size:13px;font-weight:600;color:var(--accent);margin-bottom:16px">🔖 Bare Basics: ${coreDoneCount} of ${coreLessons.length} must-know lessons done</div>` : '';
   let lastUnit = '';
-  document.getElementById('lessonList').innerHTML = basicsChip + DATA.LESSONS.map(l=>{
+  document.getElementById('lessonList').innerHTML = DATA.LESSONS.map(l=>{
     const done = S.lessonsDone.includes(l.id);
     let unitHdr = '';
     if(l.unit !== lastUnit){ unitHdr = `<h3 style="color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin:${lastUnit?'20px':0} 0 8px">${l.unit}</h3>`; lastUnit=l.unit; }
-    return `${unitHdr}<div class="card lesson-card${l.core?' sc-core':' sc-supporting'}" data-basics="${l.core?'1':''}" style="cursor:pointer;margin-bottom:8px;border-color:${done?'var(--success)':'var(--border)'}" onclick="openLesson(${l.id})">
+    return `${unitHdr}<div class="card lesson-card${l.core?' sc-core':' sc-supporting'}" style="cursor:pointer;margin-bottom:8px;border-color:${done?'var(--success)':'var(--border)'}" onclick="openLesson(${l.id})">
       <div class="flex-between">
         <div>
           <span class="tag" style="margin-bottom:6px">L${lessonPos(l.id)+1}</span>
-          <h3 style="margin:0">${l.title}${l.core?'<span class="sc-badge">Core</span><span class="basics-pill">★ Bare Basics</span>':''}</h3>
+          <h3 style="margin:0">${l.title}</h3>
         </div>
         <span style="color:${done?'var(--success)':'var(--border)'};font-size:20px">${done?'✓':'○'}</span>
       </div>
@@ -1346,9 +1321,6 @@ function renderLesson(){
   } else if(S.lessonStage === 'done'){
     const isLast = lessonPos(l.id) >= DATA.LESSONS.length-1;
     const drillCount = (LESSON_DRILLS[l.id] || []).length;
-    const basicsOn = localStorage.getItem('apk-basics') === '1';
-    const allCoreDone = DATA.LESSONS.filter(x=>x.core).every(x=>S.lessonsDone.includes(x.id));
-    const handoff = (basicsOn && allCoreDone) ? `<a href="../sql/" class="btn btn-primary" style="text-decoration:none">🔖 Excel bare basics done — Next: SQL bare basics &rarr;</a>` : '';
     // Guided-primary: reinforce THIS lesson's drills before moving on. Jumping
     // is still allowed via the secondary buttons.
     html += `<div class="card" style="border-color:var(--success);text-align:center;padding:28px">
@@ -1356,7 +1328,6 @@ function renderLesson(){
       <h2 style="color:var(--success);margin-bottom:6px">Lesson ${lessonPos(l.id)+1} complete</h2>
       <p>Now lock it in — practice this lesson's drills before moving on${drillCount?` (${drillCount} quick exercises)`:''}.</p>
       <div class="flex" style="justify-content:center;gap:10px;margin-top:16px;flex-wrap:wrap">
-        ${handoff}
         <button class="btn btn-primary" onclick="startGuided(${l.id})">Practice this &rarr;</button>
         ${isLast
           ? `<a href="../final/" class="btn btn-outline" style="text-decoration:none">Try the Final Exam &rarr;</a>`
@@ -2129,7 +2100,7 @@ function doCopy(e){
 }
 function _fbCopy(t){var a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.top='-9999px';document.body.appendChild(a);a.focus();a.select();try{document.execCommand('copy');}catch(_){}document.body.removeChild(a);}
 /* -- End Hint System JS ---- */
-/* Sprint mode removed — see Bare Basics mode (apk-basics flag). */
+/* Sprint mode removed. */
 localStorage.removeItem('apk-sprint');
 </script>
 </body>
