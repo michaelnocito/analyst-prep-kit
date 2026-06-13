@@ -9,6 +9,39 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.59.0] — 2026-06-13 — 🚩 Flag-for-review + "Practice this" wrong-lesson fix
+
+Mike-reported (June 13, 2026 — 12:41 AM ET): (1) finishing the Excel XLOOKUP
+lesson and clicking "Practice this →" dumped him into the COUNTIF drills;
+(2) users need a zero-friction way to mark "I got it right but I'm shaky on
+this" and find those items again later.
+
+**Bug fix (Excel + Python only — the other 4 kits were already correct):**
+`finishLesson` advances `currentLesson` to the NEXT lesson (for Home resume)
+before re-rendering, and `renderLesson` looked the lesson up from
+`currentLesson` — so the "Lesson complete" card and its "Practice this →"
+button belonged to the next lesson, not the one just finished. Fixed with a
+new `doneLesson` state field; the done card, its drill count, Practice-this,
+and per-lesson Reset now all bind to the finished lesson. Also: lessons with
+zero drills (Unit 0 concept lessons) no longer show "Practice this →" — Next
+Lesson becomes the primary button with honest copy.
+
+**New feature (all 6 lesson kits): 🚩 Flag for review.**
+- One-tap "🚩 Shaky? Flag to revisit" button on every lesson header, every
+  standalone drill, and every guided-practice step. Tap again to unflag.
+- Flagged items appear in a "🚩 Your review list" card at the top of the
+  kit's Home (hidden when empty), each row jumping straight back to that
+  exact lesson/drill, with a "✓ Got it now" button to clear it.
+- Persisted per kit in localStorage (`flagged:[]`); stale keys (renumbered
+  content) are tolerated silently.
+
+Verified with a new private headless harness (DOM-stubbed node run of each
+kit): script evaluation, LESSON_DRILLS index integrity, the
+finish-then-practice regression, and the full flag round-trip — 78 checks
+green across all 6 kits. Two latent crash guards landed alongside (SQL +
+Power BI `navigate()` empty-NodeList guard; Stats `drawStatChart` html-viz
+early return).
+
 ## [1.58.0] — 2026-06-13 — Bare Basics mode removed everywhere
 
 Mike-directed (June 13, 2026 — 12:07 AM ET): "remove the bare basics feature

@@ -61,6 +61,11 @@ p strong{color:var(--text)}
 .btn-ghost:hover{color:var(--text);border-color:var(--text)}
 .btn-outline{background:none;border:1px solid var(--border);color:var(--text)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
 .btn-sm{padding:7px 14px;font-size:13px}
+.flag-btn{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1.5px dashed var(--border);color:var(--muted);padding:4px 10px;border-radius:14px;font-size:12px;font-family:inherit;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap}
+.flag-btn:hover{border-color:var(--warn,#d9963a);color:var(--warn,#d9963a)}
+.flag-btn.flag-on{border:1.5px solid var(--warn,#d9963a);background:rgba(217,150,58,.12);color:var(--warn,#d9963a)}
+.flag-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 2px;border-top:1px solid var(--border);cursor:pointer}
+.flag-row:hover .flag-row-title{color:var(--accent)}
 
 /* BADGE / PILL */
 .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12px;font-weight:600}
@@ -948,6 +953,7 @@ let state = {
   doneFills: [],
   doneBugs: [],
   doneParsons: [],
+  flagged: [],
   theme: 'light'
 };
 function loadState(){
@@ -967,6 +973,54 @@ function resetLesson(id){
   navigate('lesson', id);
 }
 
+// ─── FLAG FOR REVIEW (🚩 "I got it right but I'm shaky on this") ─────────────
+// One tap on any lesson or drill saves it to a Review list on Home.
+// Keys: 'lesson:<id>' or '<drillKey>:<idx>' (e.g. 'fills:3').
+const DRILL_TYPES = [
+  {key:'fills', label:'Fill in the Blank', data:'FILLS', view:'fill'},
+  {key:'bugs', label:'Bug Hunt', data:'BUGS', view:'bug'},
+  {key:'parsons', label:'Put in Order', data:'PARSONS', view:'parsons'}
+];
+function isFlagged(t,i){ return state.flagged.includes(t+':'+i); }
+function toggleFlag(t,i,btn){
+  const k = t+':'+i, p = state.flagged.indexOf(k);
+  if(p>-1) state.flagged.splice(p,1); else state.flagged.push(k);
+  saveState();
+  if(btn){
+    const on = p===-1;
+    btn.classList.toggle('flag-on', on);
+    btn.innerHTML = on ? '🚩 Flagged — on your review list' : '🚩 Shaky? Flag to revisit';
+  }
+}
+function flagBtnHTML(t,i){
+  const on = isFlagged(t,i);
+  return `<button class="flag-btn${on?' flag-on':''}" onclick="toggleFlag('${t}',${i},this)" title="One tap saves this to the Review list on Home — flag anything you got right but still feel shaky on.">${on?'🚩 Flagged — on your review list':'🚩 Shaky? Flag to revisit'}</button>`;
+}
+// Human-readable label for a flagged key, for the Home review list.
+function flagLabel(k){
+  const ci = k.indexOf(':'), t = k.slice(0,ci), i = +k.slice(ci+1);
+  const trim = s => { s=(s||'').replace(/<[^>]*>/g,''); return s.length>70 ? s.slice(0,67)+'…' : s; };
+  if(t==='lesson'){
+    const l = DATA.LESSONS.find(x=>x.id===i);
+    return l ? {title:`Lesson ${lessonPos(l.id)+1} — ${l.title}`, sub:'Lesson', go:`navigate('lesson',${i})`} : null;
+  }
+  const dt = DRILL_TYPES.find(d=>d.key===t);
+  const item = dt && DATA[dt.data] && DATA[dt.data][i];
+  if(!item) return null;
+  return {title:trim(item.q || item.broken || item.title || dt.label), sub:`${dt.label} ${i+1}`, go:`navigate('${dt.view}',${i})`};
+}
+function renderFlagged(){
+  const el = document.getElementById('flaggedList');
+  if(!el) return;
+  const wrap = document.getElementById('flaggedCard');
+  const rows = state.flagged.map(k=>({k, info:flagLabel(k)})).filter(r=>r.info);
+  if(wrap) wrap.style.display = rows.length ? '' : 'none';
+  el.innerHTML = rows.map(r=>`<div class="flag-row" onclick="${r.info.go}">
+      <div><span style="font-size:11px;color:var(--warn,#d9963a);font-family:var(--mono);margin-right:8px">${r.info.sub}</span><span class="flag-row-title" style="font-size:14px;font-weight:600">${r.info.title}</span></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-shrink:0"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleFlag('${r.k.slice(0,r.k.indexOf(':'))}',${+r.k.slice(r.k.indexOf(':')+1)});renderFlagged()" title="Remove from review list">✓ Got it now</button><span style="color:var(--accent);font-weight:700">→</span></div>
+    </div>`).join('');
+}
+
 // ─── NAV ───────────────────────────────────────────────────────────────────
 let currentView = 'home';
 function navigate(view, ...args){
@@ -975,7 +1029,7 @@ function navigate(view, ...args){
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const map = {home:0,lessons:1,practice:2,lab:3,cards:4,glossary:5,workspace:6};
   const btns = document.querySelectorAll('.nav-btn');
-  if(map[view] !== undefined) btns[map[view]].classList.add('active');
+  if(map[view] !== undefined && btns[map[view]]) btns[map[view]].classList.add('active');
   document.getElementById('main').innerHTML = '';
   window.scrollTo(0,0);
   if(view==='home') renderHome();
@@ -1124,6 +1178,13 @@ function renderHome(){
 
   document.getElementById('main').innerHTML = `
     ${resumeHtml}
+    <div class="card" id="flaggedCard" style="margin-bottom:16px;border-color:var(--warn,#d9963a);display:none">
+      <div class="row mb" style="justify-content:space-between">
+        <h2 style="margin:0">🚩 Your review list</h2>
+        <span style="font-size:12px;color:var(--muted)">Things you flagged as shaky</span>
+      </div>
+      <div id="flaggedList"></div>
+    </div>
     <div style="background:rgba(224,184,74,.1);border:1px solid rgba(224,184,74,.4);border-left:3px solid #e0b84a;border-radius:8px;padding:12px 16px;margin:14px 0;font-size:13.5px;line-height:1.55">
       <strong style="color:#e0b84a">Heads up — Power BI assumes some background.</strong>
       The DAX unit (Lessons 5–8) borrows syntax from Excel formulas and concepts from SQL filtering and aggregation. New to both? Work through the <a href="../excel/" style="color:#e0b84a">Excel Kit</a> or <a href="../sql/" style="color:#e0b84a">SQL Kit</a> first — they're shorter, and the patterns transfer directly.
@@ -1174,6 +1235,7 @@ function renderHome(){
         <a class="kit-link" href="../">← All Kits</a>
       </div>
     </div>`;
+  renderFlagged();
 }
 
 // ─── LESSONS LIST ──────────────────────────────────────────────────────────
@@ -1205,9 +1267,9 @@ function renderLesson(id){
   document.getElementById('main').innerHTML = `
     <div class="row mb">
       <button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">← Lessons</button>
-      <span class="badge badge-unit">${l.unit}</span>
       ${done ? '<span class="badge badge-done">✓ Done</span>' : ''}
-      ${done ? `<button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="resetLesson(${l.id})" title="Clear this lesson's progress and quiz">↺ Reset this lesson</button>` : ''}
+      ${done ? `<button class="btn btn-ghost btn-sm" onclick="resetLesson(${l.id})" title="Clear this lesson's progress and quiz">↺ Reset this lesson</button>` : ''}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto">${flagBtnHTML('lesson', l.id)}<span class="badge badge-unit">${l.unit}</span></div>
     </div>
     <h1>${l.title}</h1>
     ${l.story?`<div style="font-size:.88rem;color:var(--txt2);margin-bottom:14px;padding:10px 14px;background:var(--surf2);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;line-height:1.65">📖 ${l.story}</div>`:l.prereq?`<div style="font-size:.82rem;color:var(--txt2);margin-bottom:12px;padding:7px 11px;background:var(--surf2);border-left:3px solid var(--accent);border-radius:0 6px 6px 0">📎 <strong>Before this:</strong> ${l.prereq}</div>`:''}
@@ -1320,7 +1382,9 @@ function injectGuidedHeader(){
   if(!row) return;
   const {seq, pos, lessonId} = guided;
   const lesson = DATA.LESSONS.find(l => l.id === lessonId);
-  row.innerHTML = `<button class="btn btn-ghost btn-sm" onclick="navigate('lesson',${lessonId})">← Back to lesson</button><span class="text-muted text-sm" style="margin-left:auto">Practice ${pos+1}/${seq.length} · ${lesson.title}</span>`;
+  const step = seq[pos];
+  const stepFlag = DRILL_TYPES.some(d => d.key === step[0]) ? flagBtnHTML(step[0], step[1]) : '';
+  row.innerHTML = `<button class="btn btn-ghost btn-sm" onclick="navigate('lesson',${lessonId})">← Back to lesson</button><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto">${stepFlag}<span class="text-muted text-sm">Practice ${pos+1}/${seq.length} · ${lesson.title}</span></div>`;
   const dots = document.createElement('div');
   dots.style.cssText = 'display:flex;gap:4px;align-items:center;margin:0 0 14px';
   dots.innerHTML = seq.map((_,i) => `<span style="width:20px;height:6px;border-radius:3px;background:${i<=pos?'var(--accent)':'rgba(127,127,127,.28)'};opacity:${i<=pos?1:.5}"></span>`).join('') + `<button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="guidedNext()">Skip →</button>`;
@@ -1372,8 +1436,8 @@ function renderFill(idx){
   document.getElementById('main').innerHTML = `
     <div class="row mb">
       <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
-      <span class="text-muted text-sm">${idx+1} / ${DATA.FILLS.length}</span>
       ${done ? '<span class="badge badge-done">✓</span>' : ''}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto">${flagBtnHTML('fills',idx)}<span class="text-muted text-sm">${idx+1} / ${DATA.FILLS.length}</span></div>
     </div>
     <div class="card">
       <h2>Fill in the Blank</h2>
@@ -1417,8 +1481,8 @@ function renderBug(idx){
   document.getElementById('main').innerHTML = `
     <div class="row mb">
       <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
-      <span class="text-muted text-sm">${idx+1} / ${DATA.BUGS.length}</span>
       ${done ? '<span class="badge badge-done">✓</span>' : ''}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto">${flagBtnHTML('bugs',idx)}<span class="text-muted text-sm">${idx+1} / ${DATA.BUGS.length}</span></div>
     </div>
     <div class="card">
       <h2>Bug Hunt</h2>
@@ -1473,8 +1537,8 @@ function renderParsons(idx){
   document.getElementById('main').innerHTML = `
     <div class="row mb">
       <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
-      <span class="text-muted text-sm">${idx+1} / ${DATA.PARSONS.length}</span>
       ${done ? '<span class="badge badge-done">✓</span>' : ''}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto">${flagBtnHTML('parsons',idx)}<span class="text-muted text-sm">${idx+1} / ${DATA.PARSONS.length}</span></div>
     </div>
     <div class="card">
       <h2>Put in Order</h2>

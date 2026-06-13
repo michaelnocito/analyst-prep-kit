@@ -39,6 +39,11 @@ main{max-width:860px;margin:0 auto;padding:24px 16px}
 .btn-sm{padding:4px 10px;font-size:.8rem}
 .btn-outline{background:none;border:1px solid var(--accent);color:var(--accent)}
 .btn-outline:hover{background:var(--accent);color:#fff}
+.flag-btn{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1.5px dashed var(--bord);color:var(--txt2);padding:4px 10px;border-radius:14px;font-size:12px;font-family:inherit;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap}
+.flag-btn:hover{border-color:var(--warn,#d9963a);color:var(--warn,#d9963a)}
+.flag-btn.flag-on{border:1.5px solid var(--warn,#d9963a);background:rgba(217,150,58,.12);color:var(--warn,#d9963a)}
+.flag-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 2px;border-top:1px solid var(--bord);cursor:pointer}
+.flag-row:hover .flag-row-title{color:var(--accent)}
 .inp{background:var(--surf2);border:1px solid var(--bord);border-radius:6px;padding:8px 12px;color:var(--txt);font-size:14px;font-family:inherit;width:100%}
 .inp:focus{outline:none;border-color:var(--accent)}
 .code-block{background:var(--surf2);border:1px solid var(--bord);border-radius:6px;padding:12px;font-family:'Consolas',monospace;font-size:.83rem;white-space:pre;overflow-x:auto;line-height:1.55}
@@ -910,9 +915,47 @@ const CONTOSO=[
 ];
 
 /* ── STATE ── */
-let S={done:{},theme:'light',lastLesson:null,cardIdx:0};
-function loadState(){try{const r=JSON.parse(localStorage.getItem('spk'));if(r)S=Object.assign(S,r);}catch(e){}}
+let S={done:{},theme:'light',lastLesson:null,cardIdx:0,flagged:[]};
+function loadState(){try{const r=JSON.parse(localStorage.getItem('spk'));if(r)S=Object.assign(S,r);}catch(e){}if(!Array.isArray(S.flagged))S.flagged=[];}
 function save(){localStorage.setItem('spk',JSON.stringify(S));}
+
+/* ── FLAG FOR REVIEW ── */
+function isFlagged(t,i){ return S.flagged.includes(t+':'+i); }
+function toggleFlag(t,i,btn){
+  const k = t+':'+i, p = S.flagged.indexOf(k);
+  if(p>-1) S.flagged.splice(p,1); else S.flagged.push(k);
+  save();
+  if(btn){ const on = p===-1; btn.classList.toggle('flag-on', on);
+    btn.innerHTML = on ? '🚩 Flagged — on your review list' : '🚩 Shaky? Flag to revisit'; }
+}
+function flagBtnHTML(t,i){
+  const on = isFlagged(t,i);
+  return `<button class="flag-btn${on?' flag-on':''}" onclick="toggleFlag('${t}',${i},this)" title="One tap saves this to the Review list on Home — flag anything you got right but still feel shaky on.">${on?'🚩 Flagged — on your review list':'🚩 Shaky? Flag to revisit'}</button>`;
+}
+function flagLabel(k){
+  const c=k.indexOf(':'); if(c<0)return null;
+  const t=k.slice(0,c), i=+k.slice(c+1);
+  if(t==='lesson'){
+    const l=DATA.LESSONS.find(x=>x.id===i); if(!l)return null;
+    return {title:`Lesson ${lessonPos(l.id)+1} — ${l.title}`,sub:'Lesson',go:`openLesson(${l.id})`};
+  }
+  const dt=DRILL_TYPES.find(d=>d.key===t); if(!dt)return null;
+  const item=DATA[dt.data]&&DATA[dt.data][i]; if(!item)return null;
+  let txt=(item.prompt||item.english||'').replace(/<[^>]*>/g,'').trim();
+  if(txt.length>70)txt=txt.slice(0,67)+'…';
+  return {title:txt,sub:`${dt.label} ${i+1}`,go:`activateView('view-practice');openDrill('${t}',${i})`};
+}
+function renderFlagged(){
+  const el = document.getElementById('flaggedList');
+  if(!el) return;
+  const wrap = document.getElementById('flaggedCard');
+  const rows = S.flagged.map(k=>({k, info:flagLabel(k)})).filter(r=>r.info);
+  if(wrap) wrap.style.display = rows.length ? '' : 'none';
+  el.innerHTML = rows.map(r=>`<div class="flag-row" onclick="${r.info.go}">
+      <div><span style="font-size:11px;color:var(--warn,#d9963a);font-family:var(--mono);margin-right:8px">${r.info.sub}</span><span class="flag-row-title" style="font-size:14px;font-weight:600">${r.info.title}</span></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-shrink:0"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();toggleFlag('${r.k.slice(0,r.k.indexOf(':'))}',${+r.k.slice(r.k.indexOf(':')+1)});renderFlagged()" title="Remove from review list">✓ Got it now</button><span style="color:var(--accent);font-weight:700">→</span></div>
+    </div>`).join('');
+}
 
 /* ── THEME ── */
 function applyTheme(){document.documentElement.setAttribute('data-theme',S.theme);document.getElementById('themeIcon').textContent=S.theme==='dark'?'☀️':'🌙';}
@@ -960,6 +1003,13 @@ function renderHome(){
   document.getElementById('view-home').innerHTML=`
     <h2 style="margin-bottom:8px">Stats Prep Kit</h2>
     <p style="color:var(--txt2);margin-bottom:24px">Master the statistics every data analyst interview tests — from mean/median to A/B testing.</p>
+    <div class="card" id="flaggedCard" style="margin-bottom:16px;border-color:var(--warn,#d9963a);display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <h2 style="margin:0;font-size:1.1rem">🚩 Your review list</h2>
+        <span style="font-size:12px;color:var(--txt2)">Things you flagged as shaky</span>
+      </div>
+      <div id="flaggedList"></div>
+    </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px">
       <div class="card" style="text-align:center;cursor:pointer" onclick="show('lessons')"><div style="font-size:2rem;font-weight:700;color:var(--accent)">${lessDone}/${total}</div><div style="color:var(--txt2);font-size:.85rem">Lessons →</div></div>
       <div class="card" style="text-align:center;cursor:pointer" onclick="show('practice')"><div style="font-size:2rem;font-weight:700;color:var(--accent)">${drillDone}/${drillTotal}</div><div style="color:var(--txt2);font-size:.85rem">Drills →</div></div>
@@ -991,6 +1041,7 @@ function renderHome(){
       <a href="../" style="color:var(--accent);font-size:.85rem">← All Kits</a>
     </div>
   `;
+  renderFlagged();
 }
 
 /* ── LESSONS ── */
@@ -1041,6 +1092,7 @@ function statOpts(tick,grid,legend,v){
   return {responsive:true,maintainAspectRatio:false,plugins:{legend:{display:legend,labels:{color:tick,font:{size:11},boxWidth:12}}},scales:{x:{title:v&&v.xlabel?{display:true,text:v.xlabel,color:tick}:{display:false},ticks:{color:tick,font:{size:10}},grid:{color:grid}},y:{title:v&&v.ylabel?{display:true,text:v.ylabel,color:tick}:{display:false},ticks:{color:tick,font:{size:10}},grid:{color:grid},beginAtZero:true}}};
 }
 function drawStatChart(v){
+  if(v.html)return; // html vizzes render inline — no canvas to draw
   const c=document.getElementById('lessonStatViz');
   if(!c||typeof Chart==='undefined')return;
   if(statChart){statChart.destroy();statChart=null;}
@@ -1069,7 +1121,10 @@ function renderLesson(){
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
       <button class="btn btn-sm" onclick="renderLessonList()">← All Lessons</button>
       <span style="color:var(--txt2);font-size:.85rem">Lesson ${lessonPos(l.id)+1} of ${DATA.LESSONS.length}</span>
-      ${S.done['lesson'+l.id]?`<button class="btn btn-sm" style="margin-left:auto" onclick="resetLesson()" title="Clear this lesson's progress">↺ Reset this lesson</button>`:''}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto">
+        ${flagBtnHTML('lesson',l.id)}
+        ${S.done['lesson'+l.id]?`<button class="btn btn-sm" onclick="resetLesson()" title="Clear this lesson's progress">↺ Reset this lesson</button>`:''}
+      </div>
     </div>
     <h2 style="margin-bottom:4px">${l.title}</h2>
     <p style="color:var(--txt2);margin-bottom:12px">${l.subtitle}</p>
@@ -1180,6 +1235,7 @@ function renderGuidedStep(){
   const header=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
       <button class="btn btn-sm" onclick="openLesson(${lessonId})">← Back to lesson</button>
       <span style="color:var(--txt2);font-size:.85rem">Practice ${pos+1}/${seq.length} · ${lesson.title}</span>
+      <span style="margin-left:auto">${DRILL_TYPES.some(d=>d.key===step[0])?flagBtnHTML(step[0],idx):''}</span>
     </div>
     <div style="margin-bottom:16px">${dots}</div>`;
   let body='';
@@ -1220,7 +1276,7 @@ function renderDrill(){
   const dt=DRILL_TYPES.find(d=>d.key===drillState.type);
   const items=DATA[dt.data];const item=items[drillState.idx];const done=S.done[`${drillState.type}${drillState.idx}`];
   const el=document.getElementById('view-practice');
-  const nav=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><button class="btn btn-sm" onclick="renderDrillList()">← Drills</button><span style="color:var(--txt2);font-size:.85rem">${dt.icon} ${dt.label} — ${drillState.idx+1}/${items.length}</span>${done?'<span style="color:var(--accent);font-size:.85rem">✓ Done</span>':''}</div>`;
+  const nav=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><button class="btn btn-sm" onclick="renderDrillList()">← Drills</button><span style="color:var(--txt2);font-size:.85rem">${dt.icon} ${dt.label} — ${drillState.idx+1}/${items.length}</span>${done?'<span style="color:var(--accent);font-size:.85rem">✓ Done</span>':''}<span style="margin-left:auto">${flagBtnHTML(drillState.type,drillState.idx)}</span></div>`;
   const navBtns=`<div style="display:flex;gap:8px;margin-top:16px">${drillState.idx>0?`<button class="btn" onclick="openDrill('${drillState.type}',${drillState.idx-1})">← Prev</button>`:''}${drillState.idx<items.length-1?`<button class="btn" onclick="openDrill('${drillState.type}',${drillState.idx+1})">Next →</button>`:`<button class="btn" onclick="renderDrillList()">All Done 🎯</button>`}</div>`;
   let body='';
   if(drillState.type==='fills')body=renderFill(item,done);

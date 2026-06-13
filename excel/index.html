@@ -123,6 +123,11 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 .drill-input.bad{border-color:var(--err)}
 .check-row{display:flex;gap:8px;margin-top:8px;align-items:center}
 .result-msg{font-size:13px;padding:8px 12px;border-radius:6px;margin-top:8px}
+.flag-btn{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1.5px dashed var(--border);color:var(--dim);padding:4px 10px;border-radius:14px;font-size:12px;font-family:inherit;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap}
+.flag-btn:hover{border-color:var(--warn,#d9963a);color:var(--warn,#d9963a)}
+.flag-btn.flag-on{border:1.5px solid var(--warn,#d9963a);background:rgba(217,150,58,.12);color:var(--warn,#d9963a)}
+.flag-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 2px;border-top:1px solid var(--border);cursor:pointer}
+.flag-row:hover .flag-row-title{color:var(--accent)}
 .result-msg.ok{background:rgba(76,175,120,.12);border:1px solid var(--success);color:var(--success)}
 .result-msg.bad{background:rgba(224,92,92,.12);border:1px solid var(--err);color:var(--err)}
 .solution-toggle{background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;font-family:var(--font);padding:0;text-decoration:underline}
@@ -284,6 +289,14 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
     </div>
     <button class="btn btn-ghost" id="resumeBtn">Start →</button>
     <div class="resume-card-watermark" id="resumeWM">1</div>
+  </div>
+
+  <div class="card" id="flaggedCard" style="margin-bottom:16px;border-color:var(--warn,#d9963a);display:none">
+    <div class="flex-between mb12">
+      <h2 style="margin:0">🚩 Your review list</h2>
+      <span style="font-size:12px;color:var(--dim)">Things you flagged as shaky</span>
+    </div>
+    <div id="flaggedList"></div>
   </div>
 
   <div class="card" style="margin-bottom:16px">
@@ -1019,11 +1032,54 @@ function loadState(){
   return Object.assign({
     theme:'light', lessonsDone:[], fillsDone:[], bugsDone:[], wrongDone:[],
     parsDone:[], esqlDone:[], exDone:[], cardsReviewed:[], streak:0,
-    lastChallenge:'', currentLesson:1, lessonStage:'intro'
+    lastChallenge:'', currentLesson:1, lessonStage:'intro', doneLesson:null, flagged:[]
   }, JSON.parse(store.getItem('epk')||'{}'));
 }
 let S = loadState();
 function save(){ store.setItem('epk', JSON.stringify(S)); }
+
+// ─── FLAG FOR REVIEW (🚩 "I got it right but I'm shaky on this") ─────────────
+// One tap on any lesson or drill saves it to a Review list on Home.
+// Keys: 'lesson:<id>' or '<drillKey>:<idx>' (e.g. 'fills:3').
+function isFlagged(t,i){ return S.flagged.includes(t+':'+i); }
+function toggleFlag(t,i,btn){
+  const k = t+':'+i, p = S.flagged.indexOf(k);
+  if(p>-1) S.flagged.splice(p,1); else S.flagged.push(k);
+  save();
+  if(btn){
+    const on = p===-1;
+    btn.classList.toggle('flag-on', on);
+    btn.innerHTML = on ? '🚩 Flagged — on your review list' : '🚩 Shaky? Flag to revisit';
+  }
+}
+function flagBtnHTML(t,i){
+  const on = isFlagged(t,i);
+  return `<button class="flag-btn${on?' flag-on':''}" onclick="toggleFlag('${t}',${i},this)" title="One tap saves this to the Review list on Home — flag anything you got right but still feel shaky on.">${on?'🚩 Flagged — on your review list':'🚩 Shaky? Flag to revisit'}</button>`;
+}
+// Human-readable label for a flagged key, for the Home review list.
+function flagLabel(k){
+  const ci = k.indexOf(':'), t = k.slice(0,ci), i = +k.slice(ci+1);
+  const trim = s => { s=(s||'').replace(/<[^>]*>/g,''); return s.length>70 ? s.slice(0,67)+'…' : s; };
+  if(t==='lesson'){
+    const l = DATA.LESSONS.find(x=>x.id===i);
+    return l ? {title:`Lesson ${lessonPos(l.id)+1} — ${l.title}`, sub:'Lesson', go:`openLesson(${i})`} : null;
+  }
+  const dt = DRILL_TYPES.find(d=>d.key===t);
+  const item = dt && DATA[dt.data] && DATA[dt.data][i];
+  if(!item) return null;
+  return {title:trim(item.q || item.broken || item.formula || dt.label), sub:`${dt.label} ${i+1}`, go:`openDrill('${t}',${i})`};
+}
+function renderFlagged(){
+  const el = document.getElementById('flaggedList');
+  if(!el) return;
+  const wrap = document.getElementById('flaggedCard');
+  const rows = S.flagged.map(k=>({k, info:flagLabel(k)})).filter(r=>r.info);
+  if(wrap) wrap.style.display = rows.length ? '' : 'none';
+  el.innerHTML = rows.map(r=>`<div class="flag-row" onclick="${r.info.go}">
+      <div><span style="font-size:11px;color:var(--warn,#d9963a);font-family:var(--mono);margin-right:8px">${r.info.sub}</span><span class="flag-row-title" style="font-size:14px;font-weight:600">${r.info.title}</span></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-shrink:0"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleFlag('${r.k.slice(0,r.k.indexOf(':'))}',${+r.k.slice(r.k.indexOf(':')+1)});renderFlagged()" title="Remove from review list">✓ Got it now</button><span style="color:var(--accent);font-weight:700">→</span></div>
+    </div>`).join('');
+}
 
 // ─── THEME ───────────────────────────────────────────────────────────────────
 function applyTheme(){
@@ -1166,6 +1222,7 @@ function celebrate(gold=false, msg=''){
 
 // ─── HOME ─────────────────────────────────────────────────────────────────────
 function renderHome(){
+  renderFlagged();
   const done = S.lessonsDone.length;
   const total = DATA.LESSONS.length;
   const cur = DATA.LESSONS.find(l=>l.id===S.currentLesson) || DATA.LESSONS[0];
@@ -1237,7 +1294,8 @@ function renderLessonList(){
 
 // Per-lesson reset: clears just THIS lesson's completion and reopens the quiz.
 function resetLessonProgress(){
-  const id = S.currentLesson;
+  const id = (S.lessonStage==='done' && S.doneLesson!=null) ? S.doneLesson : S.currentLesson;
+  S.currentLesson = id;
   const i = S.lessonsDone.indexOf(id);
   if(i > -1) S.lessonsDone.splice(i,1);
   S.lessonStage = 'intro';
@@ -1273,15 +1331,16 @@ function lessonGridHTML(v){
   </div>`;
 }
 function renderLesson(){
-  const l = DATA.LESSONS.find(x=>x.id===S.currentLesson);
+  const _viewId = (S.lessonStage==='done' && S.doneLesson!=null) ? S.doneLesson : S.currentLesson;
+  const l = DATA.LESSONS.find(x=>x.id===_viewId);
   if(!l) return;
-  const pct = Math.round(lessonPos(S.currentLesson)/DATA.LESSONS.length*100);
+  const pct = Math.round(lessonPos(l.id)/DATA.LESSONS.length*100);
   const done = S.lessonsDone.includes(l.id);
   let html = `
     <div class="lesson-header">
       <div class="flex-between mb8">
         <button class="btn btn-outline btn-sm" onclick="show('lessons')">← Lessons</button>
-        <span class="tag">${l.unit}</span>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${flagBtnHTML('lesson',l.id)}<span class="tag">${l.unit}</span></div>
       </div>
       ${done?`<div class="mb8"><button class="btn btn-outline btn-sm" onclick="resetLessonProgress()" title="Clear this lesson's progress and quiz">↺ Reset this lesson</button></div>`:''}
       <div class="lesson-progress">Lesson ${lessonPos(l.id)+1} of ${DATA.LESSONS.length}</div>
@@ -1326,12 +1385,12 @@ function renderLesson(){
     html += `<div class="card" style="border-color:var(--success);text-align:center;padding:28px">
       <div style="font-size:32px;margin-bottom:8px">✓</div>
       <h2 style="color:var(--success);margin-bottom:6px">Lesson ${lessonPos(l.id)+1} complete</h2>
-      <p>Now lock it in — practice this lesson's drills before moving on${drillCount?` (${drillCount} quick exercises)`:''}.</p>
+      <p>${drillCount?`Now lock it in — practice this lesson's drills before moving on (${drillCount} quick exercises).`:`This one is a concept lesson — no drills, so head straight to the next lesson.`}</p>
       <div class="flex" style="justify-content:center;gap:10px;margin-top:16px;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="startGuided(${l.id})">Practice this &rarr;</button>
+        ${drillCount?`<button class="btn btn-primary" onclick="startGuided(${l.id})">Practice this &rarr;</button>`:''}
         ${isLast
-          ? `<a href="../final/" class="btn btn-outline" style="text-decoration:none">Try the Final Exam &rarr;</a>`
-          : `<button class="btn btn-outline" onclick="openLesson(${nextLessonId(l.id)})">Next Lesson &rarr;</button>`}
+          ? `<a href="../final/" class="btn ${drillCount?'btn-outline':'btn-primary'}" style="text-decoration:none">Try the Final Exam &rarr;</a>`
+          : `<button class="btn ${drillCount?'btn-outline':'btn-primary'}" onclick="openLesson(${nextLessonId(l.id)})">Next Lesson &rarr;</button>`}
         <button class="btn btn-outline btn-sm" onclick="show('lessons')">All lessons</button>
       </div>
     </div>`;
@@ -1384,6 +1443,9 @@ function finishLesson(lid){
   if(!S.lessonsDone.includes(lid)) S.lessonsDone.push(lid);
   const _nxtId=nextLessonId(lid);
   S.currentLesson=_nxtId!==null?_nxtId:lid;
+  // The done card must belong to the lesson just FINISHED, not to
+  // S.currentLesson (which now points at the next lesson for Resume).
+  S.doneLesson = lid;
   S.lessonStage = 'done';
   save();
   if(S.lessonsDone.length % 3 === 0) celebrate(true, `🔥 ${S.lessonsDone.length} lessons done!`);
@@ -1462,7 +1524,7 @@ function renderGuidedStep(){
   const dots = seq.map((_,i)=>`<div style="width:24px;height:6px;border-radius:3px;background:${i<pos?'var(--success)':i===pos?'var(--accent)':'var(--surf2)'}"></div>`).join('');
   const header = `<div class="flex-between mb12">
       <button class="btn btn-outline btn-sm" onclick="openLesson(${lessonId})">← Back to lesson</button>
-      <span class="tag accent">Practice ${pos+1}/${seq.length} · ${lesson.title}</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${step[0]!=='pivot'?flagBtnHTML(step[0],step[1]):''}<span class="tag accent">Practice ${pos+1}/${seq.length} · ${lesson.title}</span></div>
     </div>
     <div class="flex" style="gap:8px;margin-bottom:16px">${dots}</div>`;
 
@@ -1548,7 +1610,7 @@ function renderDrill(){
 
   let content = `<div class="flex-between mb12">
     <button class="btn btn-outline btn-sm" onclick="show('practice')">← Practice</button>
-    <span class="tag">${dt.label} ${idx+1}/${items.length}</span>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${flagBtnHTML(type,idx)}<span class="tag">${dt.label} ${idx+1}/${items.length}</span></div>
   </div>
   <div class="flex" style="gap:8px;margin-bottom:16px">
     ${items.map((_,i)=>`<div style="width:24px;height:6px;border-radius:3px;background:${doneArr.includes(i)?'var(--success)':'var(--surf2)'}"></div>`).join('')}
