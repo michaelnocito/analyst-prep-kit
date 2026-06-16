@@ -9,6 +9,15 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.60.0] — 2026-06-16 — 🎮 Tableau kit "Learn by playing" callout
+
+Added a "Learn by playing" card to the Tableau kit home view pointing at the
+new **Tableau Analyst Sprint** (prep-companion-apps), mirroring the existing
+Excel- and SQL-kit callouts. The reciprocal link: the sprint's lessons already
+deep-link back to this kit, and now the kit funnels players to the warm-up game.
+Companion to the new Part 3 Tableau sprint shipped in prep-companion-apps
+(June 16, 2026 — 1:04 PM ET).
+
 ## [1.59.0] — 2026-06-13 — 🚩 Flag-for-review + "Practice this" wrong-lesson fix
 
 Mike-reported (June 13, 2026 — 12:41 AM ET): (1) finishing the Excel XLOOKUP
