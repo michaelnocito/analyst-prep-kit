@@ -1,6 +1,6 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.62.0` (shipped June 23, 2026 — 🎨 GRAIN redesign **Phase 1**: SQL pilot. Awaiting Mike's playtest.)
+**Current version:** `v1.63.0` (shipped June 23, 2026 — 🎨 GRAIN redesign **Phase 2a**: Excel kit. Awaiting Mike's playtest.)
 
 > ### 🎨 GRAIN REDESIGN — IN FLIGHT (multi-phase, one phase per cycle)
 > Restyling the suite to the **Grain** design system (clay primary `#C5511F`, honey amber accent,

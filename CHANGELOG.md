@@ -9,6 +9,30 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.63.0] — 2026-06-23 — 🎨 GRAIN redesign · Phase 2a (Excel kit)
+
+Same Grain treatment as the SQL pilot, applied to Excel. **The drag-and-drop
+Pivot Lab engine is untouched.**
+
+- **Shell → Grain:** links `../assets/grain/grain.css`; the kit's vars
+  (`--bg/surf/accent/text/dim/border/success/err/warn`) re-pointed onto Grain
+  tokens (clay-on-cream, no one-off hex); Space Grotesk headings; the active-tab
+  and cell-highlight tints moved to clay.
+- **Emoji → Lucide** across all UI chrome (brand mark, nav workspace/exam/
+  settings/theme, home review/Pivot Lab/Sprint cards, flags, drill hints,
+  workspace tour, the lesson "Watch out" / "On the job" / completion marks).
+  Lucide via CDN; a `document.body` MutationObserver re-renders icons after any
+  view change. (Pedagogical content emoji — flashcard text, conditional-format
+  example dots — left as content.)
+- **Lesson view → Grain "Say It Out Loud":** one bordered card with a megaphone
+  header; each formula becomes a **dark code block**, followed by the 🗣️ `say`
+  line and chunk-by-chunk `lines` (clay chunk chips). "See it on the sheet"
+  becomes a Grain section eyebrow; story bridge is a Grain amber callout; the
+  redundant `📖` story prefix removed. Added the same **confidence rater**
+  ("Not yet / Almost / Have it", persisted to `S.confidence`).
+
+Pivot Lab, progress, flags, quizzes, and saved state unchanged. Zero build step.
+
 ## [1.62.0] — 2026-06-23 — 🎨 GRAIN redesign · Phase 1 (SQL pilot)
 
 The pilot kit, end-to-end in Grain — proving the pattern before rolling to the
