@@ -1,6 +1,7 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.68.0` (shipped June 23, 2026 — 🎨 Grain redesign Phase 2f: Chart Literacy kit restyled to Grain — vars re-pointed onto tokens, Space Grotesk headings, Lucide brand mark + chrome/drill icons via the robust loader. Chart Literacy uses inline SVG (not Chart.js) so the defer trap doesn't apply. Verified headless + live, dark + light, no console errors. Awaiting Mike's live playtest.)
+**Current version:** `v1.68.1` (shipped June 23, 2026 — 🐛 fix: Chart Literacy "Practice" drills did nothing on click. Pre-existing bug, NOT the Grain restyle: `freeDrill` passes `lessonId:null` and `renderGuidedStep` read `lesson.title` on an undefined lesson → threw → render aborted. Fixed the no-lesson free-practice path. ⚠️ **Forecasting shares this freeDrill code and has the same latent bug — fix it during Phase 2g.** Verified live, all 5 drill types work.)
+**Prior:** `v1.68.0` (June 23, 2026 — 🎨 Grain redesign Phase 2f: Chart Literacy restyled to Grain — vars→tokens, Space Grotesk headings, Lucide brand mark + chrome/drill icons via the robust loader. Inline SVG, not Chart.js. Verified headless + live, dark + light.)
 
 > ### 🎨 GRAIN REDESIGN — IN FLIGHT (multi-phase, one phase per cycle)
 > Restyling the suite to the **Grain** design system (clay primary `#C5511F`, honey amber accent,

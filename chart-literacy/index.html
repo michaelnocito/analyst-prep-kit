@@ -784,8 +784,8 @@ function renderGuidedStep(){
   const done=S.done[`${step[0]}${idx}`];
   const dots='<div class="dots">'+seq.map((_,i)=>`<span class="dot${i<=pos?' on':''}"></span>`).join('')+'</div>';
   const header=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-      <button class="btn btn-sm" onclick="openLesson(${lessonId})">← Back to lesson</button>
-      <span style="color:var(--dim);font-size:13px">Practice ${pos+1}/${seq.length} · ${esc(lesson.title)}</span></div>${dots}`;
+      <button class="btn btn-sm" onclick="${lesson?('openLesson('+lessonId+')'):"navigate('practice')"}">${lesson?'← Back to lesson':'← Back to practice'}</button>
+      <span style="color:var(--dim);font-size:13px">${lesson?('Practice '+(pos+1)+'/'+seq.length+' · '+esc(lesson.title)):('Free practice · '+esc(dt.label)+' '+(pos+1)+'/'+seq.length)}</span></div>${dots}`;
   let body='';
   if(step[0]==='fills')body=renderFill(item,done);
   else if(step[0]==='bugs')body=renderBug(item,done);
@@ -793,13 +793,13 @@ function renderGuidedStep(){
   else if(step[0]==='parsons')body=renderParsons(item,done);
   else if(step[0]==='esql')body=renderEsql(item,done);
   const nav=`<div style="display:flex;justify-content:space-between;gap:10px;margin-top:16px">
-      <button class="btn" onclick="${pos>0?'guidedPrev()':'openLesson('+lessonId+')'}">${pos>0?'← Back':'← Lesson'}</button>
-      <button class="btn btn-primary" onclick="guidedNext()">${isLast?'Finish → next lesson':'Next drill →'}</button></div>`;
+      <button class="btn" onclick="${pos>0?'guidedPrev()':(lesson?('openLesson('+lessonId+')'):"navigate('practice')")}">${pos>0?'← Back':(lesson?'← Lesson':'← Practice')}</button>
+      <button class="btn btn-primary" onclick="guidedNext()">${isLast?(lesson?'Finish → next lesson':'Finish'):'Next drill →'}</button></div>`;
   document.getElementById('view-practice').innerHTML=header+body+nav;
   if(step[0]==='parsons'&&!done)initParsons(item);
   window.scrollTo(0,0);
 }
-function guidedNext(){if(!guided)return;if(guided.pos<guided.seq.length-1){guided.pos++;renderGuidedStep();}else{const l=guided.lessonId;guided=null;gotoNext(l);}}
+function guidedNext(){if(!guided)return;if(guided.pos<guided.seq.length-1){guided.pos++;renderGuidedStep();}else{const l=guided.lessonId;guided=null;if(l===null){navigate('practice');celebrate(true,'Nice — drill set complete!');}else gotoNext(l);}}
 function guidedPrev(){if(guided&&guided.pos>0){guided.pos--;renderGuidedStep();}}
 function gotoNext(lid){const n=nextLessonId(lid);if(n!==null)openLesson(n);else{navigate('home');celebrate(true,'\u{1F389} You finished every lesson!');}}
 

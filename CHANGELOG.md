@@ -9,6 +9,32 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.68.1] — 2026-06-23 — 🐛 Fix: Chart Literacy "Practice" drills did nothing on click (pre-existing)
+
+Mike-reported (June 23, 7:17 PM ET) during v1.68.0 testing: in Chart Literacy the
+lessons worked but the **Practice tab drills did nothing** — click a drill tile and
+nothing happened.
+
+**Cause (pre-existing, NOT the Grain restyle — the restyle only touched
+icons/vars):** the **free-practice** path (`freeDrill`) builds a guided session with
+`lessonId:null`, but `renderGuidedStep()` did `DATA.LESSONS.find(l=>l.id===lessonId)`
+(→ `undefined`) and then read `esc(lesson.title)` → **TypeError: Cannot read
+properties of undefined (reading 'title')** → the render aborted, so nothing
+appeared. (Lesson-driven guided practice worked because it passes a real `lessonId`.)
+
+**Fix:** made `renderGuidedStep()` and `guidedNext()` handle the no-lesson case —
+a "Free practice · &lt;drill type&gt; N/M" header, a "← Back to practice" button
+that routes to the practice list, and a Finish that returns to the practice grid
+(instead of calling `gotoNext(null)`).
+
+**Verified (live localhost):** all 5 drill types (Fill / Fix / What's Wrong /
+Parsons / Name That Chart) open, answer, advance with Next, and Finish back to the
+practice list — no throw, no console errors; 0 inline-script syntax errors.
+
+**Note:** the **Forecasting** kit shares this exact `freeDrill` code and has the
+same latent bug — it'll be fixed as part of the Forecasting Grain cycle (Phase 2g,
+next). The 6 core lesson kits use a different practice structure and are unaffected.
+
 ## [1.68.0] — 2026-06-23 — 🎨 Grain redesign Phase 2f: Chart Literacy kit
 
 Restyled the Chart Literacy kit to the Grain design system — the first of the
