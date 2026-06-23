@@ -9,6 +9,32 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.67.0] — 2026-06-23 — 🎨 GRAIN redesign · Phase 2e (Stats kit) — all 6 lesson kits done
+
+Grain applied to Stats — completing the **six core lesson kits**. Stats is
+section-based (no Read-Aloud `ral`), so the lesson view gets the Grain visual
+treatment rather than the megaphone card. **Chart.js + the Distribution Lab are
+untouched** (charts draw into a real canvas — verified).
+
+- **Shell → Grain:** links `../assets/grain/grain.css`; the kit's distinct vars
+  (`--txt/txt2/accdim/ok/bord` + standard) re-pointed onto Grain tokens (no
+  one-off hex); Space Grotesk headings; lesson code blocks darkened to a Grain
+  stone-900 surface.
+- **Emoji → Lucide** across the chrome (Σ brand mark, nav exam/settings/theme,
+  home review, lesson-list status, drill pickers, drill hints, the Read-It
+  toggle, flags). 
+- **Lesson view → Grain:** Grain amber story bridge; section cards with clay
+  `.sec-head` headings + dark code blocks; the Chart.js "See it on screen" gets a
+  Grain section eyebrow; "Quick Check" gets a Lucide icon; added the confidence
+  rater (persisted to `S.confidence`).
+- **Icon loader hardened:** Stats uses a **disconnect-during-refresh** observer
+  (can't loop) plus a short **poll-for-Lucide** retry so the initial nav/home
+  icons still render if the CDN loads late.
+
+Verified in-browser (incl. a chart lesson). Distribution Lab, charts, progress,
+flags, quizzes unchanged. **Phase 2 lesson kits complete** — remaining surfaces:
+Chart Literacy, Forecasting, Interview, Simulator, Final.
+
 ## [1.66.0] — 2026-06-23 — 🎨 GRAIN redesign · Phase 2d (Tableau kit)
 
 Grain applied to Tableau. **Chart.js lesson charts + the Viz Builder + the

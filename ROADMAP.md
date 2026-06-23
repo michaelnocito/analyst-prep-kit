@@ -1,6 +1,6 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.66.0` (shipped June 23, 2026 — 🎨 GRAIN **Phase 2d**: Tableau kit, Chart.js preserved. Awaiting Mike's playtest.)
+**Current version:** `v1.67.0` (shipped June 23, 2026 — 🎨 GRAIN **Phase 2e**: Stats kit — all 6 core lesson kits now Grain. Awaiting Mike's playtest.)
 
 > ### 🎨 GRAIN REDESIGN — IN FLIGHT (multi-phase, one phase per cycle)
 > Restyling the suite to the **Grain** design system (clay primary `#C5511F`, honey amber accent,
@@ -13,8 +13,10 @@
 > - **Phase 1 — SQL pilot ✅ shipped v1.62.0.** Shell remap + Say-It-Out-Loud lesson view +
 >   confidence rater + Lucide (MutationObserver on `#main`); sql.js engine untouched.
 > - **Phase 2 — roll restyle + Say-It-Out-Loud across remaining kits, one at a time.**
->   ✅ Excel (v1.63.0) · ✅ Python (v1.64.0) · ✅ Power BI (v1.65.0) · ✅ Tableau (v1.66.0, Chart.js).
->   **Remaining:** Stats (Chart.js) · Chart Literacy · Forecasting · Interview · Simulator (Claude-API) · Final.
+>   ✅ Excel (v1.63.0) · ✅ Python (v1.64.0) · ✅ Power BI (v1.65.0) · ✅ Tableau (v1.66.0) · ✅ Stats (v1.67.0).
+>   **All 6 core lesson kits done.** Remaining surfaces: Chart Literacy · Forecasting · Interview ·
+>   Simulator (Claude-API) · Final. (Stats uses the more-robust disconnect observer + poll-for-Lucide;
+>   consider retrofitting that to the earlier kits if any icon-load flakiness shows up.)
 > - **Phase 3 — adopt Grain's normalized lesson content + the 4 cross-kit interview tracks.**
 > - **Phase 4 — (separate decision, not this initiative):** Cards/Practice/Glossary surfaces,
 >   achievements, real Grain dark palette, React-vs-vanilla call.

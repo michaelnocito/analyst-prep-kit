@@ -5,23 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stats Prep Kit</title>
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="../assets/grain/grain.css">
 <style>
+/* GRAIN design system. The kit's own semantic vars are re-pointed onto Grain
+   tokens (assets/grain/) — no one-off hex. :root = warm dark variant;
+   [data-theme="light"] = the full Grain cream look (the default). A dedicated
+   Grain dark palette is a later token job (out of scope). */
 :root{
-  --bg:#0f141b;--surf:#161c26;--surf2:#222b38;--accent:#5b8cf5;--accdim:#84a8f8;
-  --txt:#e6edf3;--txt2:#98a3b2;--bord:#28303c;--ok:#3fb950;--err:#f47984;
-  --warn:#d2a24a;--font:-apple-system,"Segoe UI",Roboto,system-ui,sans-serif;--mono:"Consolas",ui-monospace,monospace;
+  --bg:var(--stone-900);--surf:var(--stone-800);--surf2:var(--stone-700);--accent:var(--clay-400);--accdim:var(--clay-300);
+  --txt:var(--stone-50);--txt2:var(--stone-300);--bord:var(--stone-700);--ok:var(--leaf-400);--err:var(--rust-400);
+  --warn:var(--amber-300);--font:var(--font-sans);--mono:var(--font-mono);
 }
 [data-theme="light"]{
-  --bg:#eef1f5;--surf:#ffffff;--surf2:#f3f5f8;--accent:#2f6df0;--accdim:#1f4fc4;
-  --txt:#1f2328;--txt2:#5b6470;--bord:#d6dce4;--ok:#1a7f37;--err:#cf222e;
-  --warn:#9a6700;
+  --bg:var(--color-bg);--surf:var(--color-surface);--surf2:var(--stone-100);--accent:var(--clay-500);--accdim:var(--clay-600);
+  --txt:var(--stone-900);--txt2:var(--stone-600);--bord:var(--stone-200);--ok:var(--leaf-500);--err:var(--rust-500);
+  --warn:var(--amber-600);
 }
+h1,h2,h3,h4{font-family:var(--font-display);letter-spacing:var(--tracking-tight)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;font-size:15px}
 a{color:var(--accent);text-decoration:none}
 nav{background:var(--surf);border-bottom:1px solid var(--bord);padding:0 18px;display:flex;align-items:center;gap:2px;height:56px;position:sticky;top:0;z-index:100;flex-wrap:wrap}
-.logo{font-weight:700;font-size:14px;color:var(--txt);margin-right:8px;padding-right:12px;border-right:1px solid var(--bord);white-space:nowrap;display:inline-flex;align-items:center;gap:9px}
-.logo::before{content:"▦";color:var(--accent);background:var(--surf2);width:30px;height:30px;display:inline-grid;place-items:center;border-radius:9px;font-size:17px}
+.logo{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--txt);margin-right:8px;padding-right:12px;border-right:1px solid var(--bord);white-space:nowrap;display:inline-flex;align-items:center;gap:9px;letter-spacing:var(--tracking-tight)}
+.logo-mark{color:var(--accent);background:var(--surf2);width:30px;height:30px;display:inline-grid;place-items:center;border-radius:9px;flex-shrink:0}
+.logo-mark .lucide{width:17px;height:17px}
 .nav-link{background:none;border:none;color:var(--txt2);cursor:pointer;padding:14px 10px;font-size:13px;font-family:inherit;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap}
 .nav-link:hover{color:var(--txt)}
 .nav-link.active{color:var(--accent);border-bottom-color:var(--accent)}
@@ -46,7 +53,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px}
 .flag-row:hover .flag-row-title{color:var(--accent)}
 .inp{background:var(--surf2);border:1px solid var(--bord);border-radius:6px;padding:8px 12px;color:var(--txt);font-size:14px;font-family:inherit;width:100%}
 .inp:focus{outline:none;border-color:var(--accent)}
-.code-block{background:var(--surf2);border:1px solid var(--bord);border-radius:6px;padding:12px;font-family:'Consolas',monospace;font-size:.83rem;white-space:pre;overflow-x:auto;line-height:1.55}
+.code-block{background:var(--stone-900);border:1px solid var(--stone-700);color:var(--stone-100);border-radius:6px;padding:12px 14px;font-family:var(--mono);font-size:.83rem;white-space:pre;overflow-x:auto;line-height:1.6}
 #toast{position:fixed;bottom:24px;right:24px;background:var(--accent);color:#fff;padding:10px 18px;border-radius:8px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .3s;z-index:999}
 #toast.show{opacity:1}
 body.flash::after{content:'';position:fixed;inset:0;background:var(--accent);opacity:.12;pointer-events:none;z-index:9999}
@@ -58,6 +65,30 @@ body.flash::after{content:'';position:fixed;inset:0;background:var(--accent);opa
 .stat-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:.82rem;font-weight:600;border:1px solid}
 input[type=range]{accent-color:var(--accent);width:150px;cursor:pointer}
 .read-panel{display:none;margin-top:10px;padding:10px;background:var(--surf2);border-radius:6px;font-size:.85rem}
+
+/* Grain lesson-view helpers (story bridge, section eyebrow, confidence rater) */
+.lesson-story{display:flex;gap:11px;align-items:flex-start;background:var(--amber-50);border:1px solid var(--amber-100);border-radius:8px;padding:13px 15px;margin-bottom:18px;font-size:.9rem;line-height:1.6;color:var(--stone-800)}
+.lesson-story .lucide{width:18px;height:18px;color:var(--amber-600);flex-shrink:0;margin-top:2px}
+.lesson-eyebrow{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:var(--tracking-caps);color:var(--txt2);margin:0 0 9px;display:flex;align-items:center;gap:7px}
+.lesson-eyebrow .lucide{width:15px;height:15px;color:var(--accent)}
+.sec-head{font-family:var(--font-display);font-weight:600;color:var(--accent);margin-bottom:8px;letter-spacing:var(--tracking-tight)}
+.conf-rater{background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:18px 20px;margin-top:16px}
+.conf-head{display:flex;align-items:center;gap:8px;font-family:var(--font);font-weight:600;font-size:14px;color:var(--txt);margin-bottom:4px}
+.conf-head .lucide{width:17px;height:17px;color:var(--accent)}
+.conf-sub{font-size:12.5px;color:var(--txt2);margin:0 0 14px}
+.conf-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.conf-chip{display:flex;flex-direction:column;align-items:center;gap:5px;padding:13px 8px;border-radius:8px;cursor:pointer;border:1.5px solid var(--bord);background:var(--surf);color:var(--txt);font:inherit;transition:.15s}
+.conf-chip .lucide{width:20px;height:20px}
+.conf-chip:hover{border-color:var(--accent)}
+.conf-chip .conf-label{font-size:13px;font-weight:600}
+.conf-chip[data-v="low"] .lucide{color:var(--err)}
+.conf-chip[data-v="mid"] .lucide{color:var(--warn)}
+.conf-chip[data-v="high"] .lucide{color:var(--ok)}
+.conf-chip.is-on{color:#fff}
+.conf-chip.is-on .lucide{color:#fff}
+.conf-chip[data-v="low"].is-on{background:var(--err);border-color:var(--err)}
+.conf-chip[data-v="mid"].is-on{background:var(--warn);border-color:var(--warn)}
+.conf-chip[data-v="high"].is-on{background:var(--ok);border-color:var(--ok)}
 
 /* -- Sprint Bar ---------------------------------------- */
 body{font-size:17px;line-height:1.65}
@@ -111,17 +142,17 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 <body>
 <nav>
   <button class="nav-link" onclick="window.location='../index.html'" title="Back to all kits">← All Kits</button>
-  <span class="logo">Stats Kit</span>
+  <span class="logo"><span class="logo-mark"><i data-lucide="sigma"></i></span>Stats Kit</span>
   <button class="nav-link active" onclick="show('home')">Home</button>
   <button class="nav-link" onclick="show('lessons')">Lessons</button>
   <button class="nav-link" onclick="show('practice')">Practice</button>
   <button class="nav-link" onclick="show('distlab')">Distribution Lab</button>
   <button class="nav-link" onclick="show('cards')">Cards</button>
   <button class="nav-link" onclick="show('glossary')">Glossary</button>
-  <a class="nav-link" href="../final/#exam-stats" style="text-decoration:none" title="Test yourself on Stats — the Final Exam's Stats section">📝 Exam</a>
+  <a class="nav-link" href="../final/#exam-stats" style="text-decoration:none" title="Test yourself on Stats — the Final Exam's Stats section"><i data-lucide="clipboard-check" style="width:14px;height:14px;vertical-align:-2px"></i> Exam</a>
   <div class="spacer"></div>
-    <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
-  <button class="theme-btn" onclick="toggleTheme()"><span id="themeIcon">☀️</span></button>
+    <button class="settings-btn" onclick="openSettings()" title="Settings"><i data-lucide="settings" style="width:15px;height:15px;vertical-align:-3px"></i></button>
+  <button class="theme-btn" onclick="toggleTheme()"><span id="themeIcon"><i data-lucide="sun" style="width:14px;height:14px;vertical-align:-2px"></i></span></button>
 </nav>
 <main>
   <div id="view-home" class="view active"></div>
@@ -169,6 +200,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
   <div id="view-glossary" class="view"></div>
 </main>
 <div id="toast"></div>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
 localStorage.removeItem('apk-basics'); // Bare Basics mode removed
 const DATA = {
@@ -926,11 +958,13 @@ function toggleFlag(t,i,btn){
   if(p>-1) S.flagged.splice(p,1); else S.flagged.push(k);
   save();
   if(btn){ const on = p===-1; btn.classList.toggle('flag-on', on);
-    btn.innerHTML = on ? '🚩 Flagged — on your review list' : '🚩 Shaky? Flag to revisit'; }
+    btn.innerHTML = (on ? '<i data-lucide="flag" style="width:13px;height:13px;vertical-align:-2px"></i> Flagged — on your review list' : '<i data-lucide="flag" style="width:13px;height:13px;vertical-align:-2px"></i> Shaky? Flag to revisit');
+    if(window.lucide) lucide.createIcons(); }
 }
 function flagBtnHTML(t,i){
   const on = isFlagged(t,i);
-  return `<button class="flag-btn${on?' flag-on':''}" onclick="toggleFlag('${t}',${i},this)" title="One tap saves this to the Review list on Home — flag anything you got right but still feel shaky on.">${on?'🚩 Flagged — on your review list':'🚩 Shaky? Flag to revisit'}</button>`;
+  const fic = '<i data-lucide="flag" style="width:13px;height:13px;vertical-align:-2px"></i> ';
+  return `<button class="flag-btn${on?' flag-on':''}" onclick="toggleFlag('${t}',${i},this)" title="One tap saves this to the Review list on Home — flag anything you got right but still feel shaky on.">${fic}${on?'Flagged — on your review list':'Shaky? Flag to revisit'}</button>`;
 }
 function flagLabel(k){
   const c=k.indexOf(':'); if(c<0)return null;
@@ -958,7 +992,7 @@ function renderFlagged(){
 }
 
 /* ── THEME ── */
-function applyTheme(){document.documentElement.setAttribute('data-theme',S.theme);document.getElementById('themeIcon').textContent=S.theme==='dark'?'☀️':'🌙';}
+function applyTheme(){document.documentElement.setAttribute('data-theme',S.theme);var ti=document.getElementById('themeIcon');if(ti){ti.innerHTML=S.theme==='dark'?'<i data-lucide="sun" style="width:14px;height:14px;vertical-align:-2px"></i>':'<i data-lucide="moon" style="width:14px;height:14px;vertical-align:-2px"></i>';if(window.lucide)lucide.createIcons();}}
 function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';applyTheme();save();}
 
 /* ── NAV ── */
@@ -1005,7 +1039,7 @@ function renderHome(){
     <p style="color:var(--txt2);margin-bottom:24px">Master the statistics every data analyst interview tests — from mean/median to A/B testing.</p>
     <div class="card" id="flaggedCard" style="margin-bottom:16px;border-color:var(--warn,#d9963a);display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <h2 style="margin:0;font-size:1.1rem">🚩 Your review list</h2>
+        <h2 style="margin:0;font-size:1.1rem"><i data-lucide="flag" style="width:18px;height:18px;vertical-align:-2px;color:var(--warn)"></i> Your review list</h2>
         <span style="font-size:12px;color:var(--txt2)">Things you flagged as shaky</span>
       </div>
       <div id="flaggedList"></div>
@@ -1055,7 +1089,7 @@ function renderLessonList(){
     <div style="margin-bottom:24px">
       <h3 style="margin-bottom:12px;color:var(--txt2);font-size:.9rem;text-transform:uppercase;letter-spacing:.05em">${unames[u]}</h3>
       <div style="display:flex;flex-direction:column;gap:8px">
-        ${units[u].map(l=>{const done=S.done[`lesson${l.id}`];return `<div class="card${l.core?' sc-core':' sc-supporting'}" style="display:flex;align-items:center;gap:12px;cursor:pointer;${done?'border-color:var(--accent)':''}" onclick="openLesson(${l.id})"><span style="font-size:1.2rem">${done?'✅':'📖'}</span><div><strong>${l.title}</strong><div style="color:var(--txt2);font-size:.82rem">${l.subtitle}</div></div></div>`;}).join('')}
+        ${units[u].map(l=>{const done=S.done[`lesson${l.id}`];return `<div class="card${l.core?' sc-core':' sc-supporting'}" style="display:flex;align-items:center;gap:12px;cursor:pointer;${done?'border-color:var(--accent)':''}" onclick="openLesson(${l.id})"><span style="font-size:1.2rem;color:${done?'var(--ok)':'var(--accent)'}"><i data-lucide="${done?'circle-check-big':'book-open'}" style="width:18px;height:18px;vertical-align:-3px"></i></span><div><strong>${l.title}</strong><div style="color:var(--txt2);font-size:.82rem">${l.subtitle}</div></div></div>`;}).join('')}
       </div>
     </div>`).join('');
 }
@@ -1079,7 +1113,7 @@ function resetLesson(){
 }
 // "See it on screen" — a chart that illustrates the lesson's concept.
 function lessonStatHTML(v){
-  const head=`<div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);font-weight:700;margin-bottom:10px">📺 See it on screen</div>`;
+  const head=`<div class="lesson-eyebrow"><i data-lucide="monitor"></i> See it on screen</div>`;
   const cap=v.caption?`<p style="font-size:.9rem;color:var(--txt2);margin:12px 0 0;line-height:1.6">${v.caption}</p>`:'';
   if(v.html) return `<div class="card" style="border-color:var(--accent)">${head}${v.html}${cap}</div>`;
   return `<div class="card" style="border-color:var(--accent)">${head}
@@ -1128,25 +1162,36 @@ function renderLesson(){
     </div>
     <h2 style="margin-bottom:4px">${l.title}</h2>
     <p style="color:var(--txt2);margin-bottom:12px">${l.subtitle}</p>
-    ${l.story?`<div style="font-size:.88rem;color:var(--txt2);margin-bottom:16px;padding:10px 14px;background:var(--surf2);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;line-height:1.65">📖 ${l.story}</div>`:''}
+    ${l.story?`<div class="lesson-story"><i data-lucide="book-open"></i><span>${l.story}</span></div>`:''}
     ${l.sections.map(sec=>`
       <div class="card" style="margin-bottom:16px">
-        <h4 style="margin-bottom:8px;color:var(--accent)">${sec.heading}</h4>
+        <h4 class="sec-head">${sec.heading}</h4>
         ${sec.body?`<p style="margin-bottom:${sec.code?'10px':'0'};line-height:1.6">${sec.body}</p>`:''}
-        ${sec.code?`<div style="position:relative"><pre class="code-block">${sec.code}</pre><button class="btn btn-sm" style="position:absolute;top:8px;right:8px;opacity:.7" onclick="toggleRead(this)">🔊 Read It</button></div>${sec.steps&&sec.steps.length?`<div class="read-panel">${sec.steps.map((s,i)=>`<div style="margin-bottom:6px"><span style="color:var(--accent);font-weight:600">Step ${i+1}:</span> ${s}</div>`).join('')}</div>`:''}`:''}
+        ${sec.code?`<div style="position:relative"><pre class="code-block">${sec.code}</pre><button class="btn btn-sm" style="position:absolute;top:8px;right:8px;opacity:.85" onclick="toggleRead(this)"><i data-lucide="volume-2" style="width:13px;height:13px;vertical-align:-2px"></i> Read It</button></div>${sec.steps&&sec.steps.length?`<div class="read-panel">${sec.steps.map((s,i)=>`<div style="margin-bottom:6px"><span style="color:var(--accent);font-weight:600">Step ${i+1}:</span> ${s}</div>`).join('')}</div>`:''}`:''}
       </div>`).join('')}
     ${l.viz?lessonStatHTML(l.viz):''}
-    ${l.quiz?`<div class="card" id="quizCard"><h4 style="margin-bottom:12px">Quick Check</h4><p style="margin-bottom:12px">${l.quiz.q}</p><div id="quizOpts" style="display:flex;flex-direction:column;gap:8px">${l.quiz.opts.map((o,i)=>`<button class="btn btn-outline" style="text-align:left;justify-content:flex-start" onclick="checkQuiz(${i})">${o}</button>`).join('')}</div><div id="quizFb" style="margin-top:10px;display:none"></div></div>`:''}
+    ${l.quiz?`<div class="card" id="quizCard"><h4 style="margin-bottom:12px"><i data-lucide="circle-check-big" style="width:17px;height:17px;color:var(--accent);vertical-align:-3px;margin-right:6px"></i>Quick Check</h4><p style="margin-bottom:12px">${l.quiz.q}</p><div id="quizOpts" style="display:flex;flex-direction:column;gap:8px">${l.quiz.opts.map((o,i)=>`<button class="btn btn-outline" style="text-align:left;justify-content:flex-start" onclick="checkQuiz(${i})">${o}</button>`).join('')}</div><div id="quizFb" style="margin-top:10px;display:none"></div></div>`:''}
     ${!l.quiz?`<button class="btn" style="margin-top:8px" onclick="finishLesson(${l.id})">Mark Complete ✓</button>`:''}
+    ${(()=>{const conf=(S.confidence||{})[l.id]||'';const cc=(v,icon,label)=>`<button class="conf-chip${conf===v?' is-on':''}" data-v="${v}" onclick="rateConf(${l.id},'${v}',this)"><i data-lucide="${icon}"></i><span class="conf-label">${label}</span></button>`;return `<div class="conf-rater"><div class="conf-head"><i data-lucide="gauge"></i> How well do you have this?</div><p class="conf-sub">Be honest — saying “not yet” is how the right lessons find their way back to you.</p><div class="conf-chips">${cc('low','circle-dashed','Not yet')}${cc('mid','circle-dot-dashed','Almost')}${cc('high','circle-check-big','Have it')}</div></div>`;})()}
   `;
   if(l.viz)drawStatChart(l.viz);
+  if(window.lucide) lucide.createIcons();
+}
+function rateConf(lessonId, level, btn){
+  S.confidence = S.confidence || {};
+  S.confidence[lessonId] = level;
+  save();
+  const wrap = btn.closest('.conf-chips');
+  if(wrap) wrap.querySelectorAll('.conf-chip').forEach(c => c.classList.toggle('is-on', c===btn));
+  if(window.lucide) lucide.createIcons();
 }
 function toggleRead(btn){
   const panel=btn.closest('.card').querySelector('.read-panel');
   if(!panel)return;
   const open=panel.style.display==='block';
   panel.style.display=open?'none':'block';
-  btn.textContent=open?'🔊 Read It':'🔕 Close';
+  btn.innerHTML=open?'<i data-lucide="volume-2" style="width:13px;height:13px;vertical-align:-2px"></i> Read It':'<i data-lucide="x" style="width:13px;height:13px;vertical-align:-2px"></i> Close';
+  if(window.lucide) lucide.createIcons();
 }
 function checkQuiz(i){
   const l=DATA.LESSONS.find(x=>x.id===lessonState.id);
@@ -1258,11 +1303,11 @@ function gotoNextLesson(lid){ const _nxt=nextLessonId(lid); if(_nxt!==null){open
 
 /* ── DRILLS ── */
 const DRILL_TYPES=[
-  {key:'fills',label:'Fill in the Blank',icon:'✏️',data:'FILLS'},
-  {key:'bugs',label:'Fix the Code',icon:'🐛',data:'BUGS'},
-  {key:'wrong',label:"What's Wrong?",icon:'🔍',data:'WRONG'},
-  {key:'parsons',label:'Parsons Puzzle',icon:'🧩',data:'PARSONS'},
-  {key:'esql',label:'Describe → Stats',icon:'💬',data:'ESQL'},
+  {key:'fills',label:'Fill in the Blank',icon:'<i data-lucide="pencil"></i>',data:'FILLS'},
+  {key:'bugs',label:'Fix the Code',icon:'<i data-lucide="bug"></i>',data:'BUGS'},
+  {key:'wrong',label:"What's Wrong?",icon:'<i data-lucide="search"></i>',data:'WRONG'},
+  {key:'parsons',label:'Parsons Puzzle',icon:'<i data-lucide="puzzle"></i>',data:'PARSONS'},
+  {key:'esql',label:'Describe → Stats',icon:'<i data-lucide="message-square"></i>',data:'ESQL'},
 ];
 let drillState={type:null,idx:null,parsPlaced:[],parsBank:[]};
 function renderDrillList(){
@@ -1293,7 +1338,7 @@ function toggleSol(id){const el=document.getElementById(id);if(el)el.style.displ
 /* FILL */
 function renderFill(item,done){
   _hd={hint:item.explain||'',ans:item.answer||'',state:0};
-  return `<div class="card"><p style="margin-bottom:14px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.code}</pre><input id="fillAns" class="inp" placeholder="Your answer…" value="${done?item.answer:''}" ${done?'disabled':''}>${!done?`<button class="btn" style="margin-top:10px" onclick="checkFill()">Check</button>`:''}<div id="fillFb" style="margin-top:10px;display:none"></div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
+  return `<div class="card"><p style="margin-bottom:14px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.code}</pre><input id="fillAns" class="inp" placeholder="Your answer…" value="${done?item.answer:''}" ${done?'disabled':''}>${!done?`<button class="btn" style="margin-top:10px" onclick="checkFill()">Check</button>`:''}<div id="fillFb" style="margin-top:10px;display:none"></div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
 }
 function checkFill(){
   const item=DATA.FILLS[drillState.idx];const ans=document.getElementById('fillAns').value.trim();const fb=document.getElementById('fillFb');
@@ -1307,7 +1352,7 @@ function _shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(M
 function renderBug(item,done){
   _hd={hint:item.explain||'',ans:item.fix||'',state:0};
   const correct=item.choices[0];
-  return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.buggy}</pre><p style="font-size:.85rem;color:var(--txt2);margin:0 0 8px">Tap the correct fix:</p><div id="bugChoices" style="display:flex;flex-direction:column;gap:8px">${_shuf(item.choices).map(c=>`<button class="bug-choice" data-correct="${c===correct?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid var(--accent);border-radius:8px;background:rgba(91,140,245,.08);color:var(--accent);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer" onclick="pickBug(this)" ${done?'disabled':''}>${c}</button>`).join('')}</div><div id="bugFb" style="margin-top:12px;display:none"></div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
+  return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.buggy}</pre><p style="font-size:.85rem;color:var(--txt2);margin:0 0 8px">Tap the correct fix:</p><div id="bugChoices" style="display:flex;flex-direction:column;gap:8px">${_shuf(item.choices).map(c=>`<button class="bug-choice" data-correct="${c===correct?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid var(--accent);border-radius:8px;background:rgba(91,140,245,.08);color:var(--accent);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer" onclick="pickBug(this)" ${done?'disabled':''}>${c}</button>`).join('')}</div><div id="bugFb" style="margin-top:12px;display:none"></div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
 }
 function pickBug(btn){
   const item=DATA.BUGS[drillState.idx];const fb=document.getElementById('bugFb');
@@ -1366,7 +1411,7 @@ function checkParsons(){
 function renderEsql(item,done){
   _hd={hint:item.explain||'',ans:item.answer||'',state:0};
   const correct=item.choices[0];
-  return `<div class="card"><p style="font-size:.85rem;color:var(--txt2);margin-bottom:6px">Tap the answer:</p><p style="font-size:1rem;font-weight:600;margin-bottom:14px">${item.english}</p><div id="esqlChoices" style="display:flex;flex-wrap:wrap;gap:10px">${_shuf(item.choices).map(c=>`<button class="bug-choice" data-correct="${c===correct?1:0}" style="white-space:normal;text-align:left;padding:9px 16px;border:1.5px solid var(--accent);border-radius:8px;background:rgba(91,140,245,.08);color:var(--accent);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer" onclick="pickEsql(this)" ${done?'disabled':''}>${c}</button>`).join('')}</div><div id="esqlFb" style="margin-top:14px;display:none"></div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()">💡 Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
+  return `<div class="card"><p style="font-size:.85rem;color:var(--txt2);margin-bottom:6px">Tap the answer:</p><p style="font-size:1rem;font-weight:600;margin-bottom:14px">${item.english}</p><div id="esqlChoices" style="display:flex;flex-wrap:wrap;gap:10px">${_shuf(item.choices).map(c=>`<button class="bug-choice" data-correct="${c===correct?1:0}" style="white-space:normal;text-align:left;padding:9px 16px;border:1.5px solid var(--accent);border-radius:8px;background:rgba(91,140,245,.08);color:var(--accent);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer" onclick="pickEsql(this)" ${done?'disabled':''}>${c}</button>`).join('')}</div><div id="esqlFb" style="margin-top:14px;display:none"></div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
 }
 function pickEsql(btn){
   const item=DATA.ESQL[drillState.idx];const fb=document.getElementById('esqlFb');
@@ -1582,6 +1627,33 @@ function filterGlossary(q){
 
 /* ── BOOT ── */
 loadState();applyTheme();show('home');
+
+// ─── Lucide icons: render now + re-render after any view change ─────────────
+// This Lucide build leaves data-lucide ON the generated <svg>, so createIcons
+// re-matches its own output. We strip it AND disconnect the observer during the
+// refresh, so createIcons's own mutations never re-trigger it (no loop).
+function grainRefreshIcons(){
+  if(!window.lucide) return;
+  if(window._grainObs) window._grainObs.disconnect();
+  lucide.createIcons();
+  document.querySelectorAll('svg[data-lucide]').forEach(function(s){ s.removeAttribute('data-lucide'); });
+  if(window._grainObs) window._grainObs.observe(document.body,{childList:true,subtree:true});
+}
+(function(){
+  function init(){
+    grainRefreshIcons();
+    if(window.MutationObserver && !window._grainObs){
+      window._grainObs=new MutationObserver(grainRefreshIcons);
+      window._grainObs.observe(document.body,{childList:true,subtree:true});
+    }
+  }
+  init();
+  // If the Lucide CDN hadn't finished when we first ran, retry briefly so the
+  // initial nav/home icons still render (the observer only fires on later changes).
+  if(typeof window.lucide==='undefined'){
+    var n=0, t=setInterval(function(){ if(window.lucide||++n>60){ clearInterval(t); init(); } },50);
+  }
+})();
 </script>
 <div id="settingsModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);align-items:center;justify-content:center" onclick="if(event.target===this)closeSettings()">
   <div style="background:var(--surf);border:1px solid var(--bord);border-radius:12px;padding:28px;min-width:300px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.4)">
