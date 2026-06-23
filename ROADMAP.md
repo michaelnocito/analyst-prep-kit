@@ -1,6 +1,6 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.67.1` (shipped June 23, 2026 — 🐛 fix: Stats kit blank-on-load + dead Cards tab, a pre-existing top-level `Chart.register` crash under deferred Chart.js. Found + verified via a full headless sweep of all 11 kits + hub — every other surface renders every view cleanly.)
+**Current version:** `v1.68.0` (shipped June 23, 2026 — 🎨 Grain redesign Phase 2f: Chart Literacy kit restyled to Grain — vars re-pointed onto tokens, Space Grotesk headings, Lucide brand mark + chrome/drill icons via the robust loader. Chart Literacy uses inline SVG (not Chart.js) so the defer trap doesn't apply. Verified headless + live, dark + light, no console errors. Awaiting Mike's live playtest.)
 
 > ### 🎨 GRAIN REDESIGN — IN FLIGHT (multi-phase, one phase per cycle)
 > Restyling the suite to the **Grain** design system (clay primary `#C5511F`, honey amber accent,
@@ -14,9 +14,10 @@
 >   confidence rater + Lucide (MutationObserver on `#main`); sql.js engine untouched.
 > - **Phase 2 — roll restyle + Say-It-Out-Loud across remaining kits, one at a time.**
 >   ✅ Excel (v1.63.0) · ✅ Python (v1.64.0) · ✅ Power BI (v1.65.0) · ✅ Tableau (v1.66.0) · ✅ Stats (v1.67.0).
->   **All 6 core lesson kits done.** Remaining surfaces: Chart Literacy · Forecasting · Interview ·
->   Simulator (Claude-API) · Final. (Stats uses the more-robust disconnect observer + poll-for-Lucide;
->   consider retrofitting that to the earlier kits if any icon-load flakiness shows up.)
+>   **All 6 core lesson kits done.** Then the non-core surfaces: ✅ Chart Literacy (v1.68.0).
+>   Remaining: Forecasting · Interview · Simulator (Claude-API) · Final. (Robust disconnect-observer +
+>   poll-for-Lucide loader now used in Stats + Chart Literacy; reuse it for the rest. Chart Literacy
+>   used inline SVG, not Chart.js — but Forecasting may use Chart.js, so mind the defer trap there.)
 > - **Phase 3 — adopt Grain's normalized lesson content + the 4 cross-kit interview tracks.**
 > - **Phase 4 — (separate decision, not this initiative):** Cards/Practice/Glossary surfaces,
 >   achievements, real Grain dark palette, React-vs-vanilla call.

@@ -9,6 +9,38 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.68.0] — 2026-06-23 — 🎨 Grain redesign Phase 2f: Chart Literacy kit
+
+Restyled the Chart Literacy kit to the Grain design system — the first of the
+five remaining non-core surfaces (Chart Literacy · Forecasting · Interview ·
+Simulator · Final).
+
+**What changed (style only — no engine/content changes):**
+- Linked `../assets/grain/grain.css` and re-pointed the kit's own semantic vars
+  (`--bg/--surf/--surf2/--accent/--accent2/--text/--dim/--border/--success/--err/--warn/--font/--mono`)
+  onto Grain tokens — no one-off hex. `:root` = warm dark variant; `[data-theme="light"]`
+  = the full Grain cream look (default).
+- Headings now use Space Grotesk (`--font-display`); body uses IBM Plex Sans/Mono.
+- Nav brand mark converted from a CSS `::before` emoji to a Grain `.logo-mark`
+  with a Lucide `bar-chart-big` icon; settings/theme chrome emoji and the five
+  drill-tile icons converted to Lucide line icons.
+- Added the **robust Lucide loader** (`grainRefreshIcons()` + a strip-`data-lucide`
+  + disconnect-during-refresh MutationObserver + poll-for-lucide) — same as Stats,
+  so dynamically-injected icons convert without the createIcons self-match loop
+  that froze a kit in v1.64.1.
+
+**Notes:** Chart Literacy renders its example charts with inline **SVG**, not
+Chart.js — so the Chart.js-`defer` top-level trap (v1.67.1) does not apply here.
+The SVGs reference `var(--accent/--err/--dim)`, so they re-themed to Grain
+automatically. RAL / "Say It Out Loud" lesson structure was already present and
+is unchanged.
+
+**Verified (headless + live localhost, dark + light):** 0 inline-script syntax
+errors; Grain tokens applied (clay accent, warm stone surfaces); all icons
+convert to SVG with no leftover `<i data-lucide>` and no `svg[data-lucide]`
+loop residue; lessons/practice render; nav responsive (no freeze); no console
+errors. Awaiting Mike's live-URL playtest.
+
 ## [1.67.1] — 2026-06-23 — 🐛 Fix: Stats kit blank on load + dead Cards tab (pre-existing crash)
 
 Mike-reported (June 23): clicking into Stats showed blank areas. Found via a
