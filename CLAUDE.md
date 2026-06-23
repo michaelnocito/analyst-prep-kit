@@ -1,74 +1,56 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 3, 2026 (huge day — v1.22.0 → v1.40.0)
-**Current version:** `v1.40.0` (large feature session shipped; awaiting Mike's playtest)
+**Last session ended:** June 23, 2026 (🎨 GRAIN redesign — hub + all 6 lesson kits, v1.61.0 → v1.67.1)
+**Current version:** `v1.67.1` (Grain restyle of all 6 core lesson kits done + 2 crash fixes; full headless sweep of all 11 kits + hub clean; awaiting Mike's playtest)
 **You are continuing an established collaboration with Mike Nocito.**
 
-> ### ✅ CURRICULUM REBUILD — COMPLETE (June 4, 2026, v1.41–v1.46)
-> Mike's current big initiative: move every kit from "bare basics" to an **in-depth,
-> scaffolded education** aimed at **what a junior analyst / BA / new data pro should
-> already know ~6 months on the job.** Specs: `CURRICULUM_STANDARD.md` (the target +
-> tier model) and `CURRICULUM_PLAN.md` (the per-kit blueprint — READ THIS before building).
+> ### 🎨 CURRENT INITIATIVE — GRAIN REDESIGN (in flight)
+> Restyling the whole suite to the **Grain** design system (clay `#C5511F` primary, honey amber
+> accent, warm stone-on-cream; Space Grotesk + IBM Plex; **Lucide** line icons, no emoji) and,
+> later, adopting its normalized lesson content. **Brief + drop-in tokens + Phase-3 content live
+> OUTSIDE this repo:**
+> `C:\Users\Mike\Projects\excel-dry-run-handoff\Grain Design System\design_handoff_grain_redesign\`
+> (`GRAIN_REDESIGN_BRIEF.md` + `README.md` + `grain_reference/lessons-*.js`).
 >
-> **The repeatable pattern (per kit):**
-> 1. **Unit 0 — Foundations** (4 new lessons): how the tool sees data (rows/fields/**grain**),
->    data types, what "aggregate" means, the analyst's loop. Each kit's 4 are specced in `CURRICULUM_PLAN.md`.
-> 2. **Per-lesson `prereq`** field + **`story`** field (a 📖 narrative bridge that recalls the
->    prior lesson and adds ONE new idea — the running scenario: *new junior analyst at a coffee
->    company; the manager's questions drive each lesson*). `story` renders in place of `prereq`.
-> 3. **Intermediate micro-lessons** filling the biggest jumps; **split bundled lessons** for smaller steps.
-> 4. **Depth beats** (why/when + gotcha + "on the job you'd…") on shallow lessons.
+> **Guardrails:** zero build step, GitHub-Pages, vanilla HTML/CSS/JS; **keep every kit's real
+> engine** (sql.js, Pyodide, Chart.js, the Claude-API sim); style only via Grain token CSS vars in
+> `assets/grain/` (no one-off hex); test each kit end-to-end before the next.
 >
-> **Architecture for adding lessons WITHOUT breaking saved progress (important):** do NOT
-> renumber. Give new lessons **non-colliding ids** and place them at the right **array position**;
-> rendering + nav use **array order** via `lessonPos()` / `nextLessonId()` (added to Tableau —
-> replicate per kit). Existing ids + `LESSON_DRILLS` + `localStorage` progress stay intact. Ships MINOR.
+> **DONE (v1.61.0 → v1.67.1):** hub + all **6 core lesson kits** (SQL, Excel, Python, Power BI,
+> Tableau, Stats) restyled to Grain + the **"Say It Out Loud"** lesson view + a per-lesson
+> confidence rater. Two crash fixes shipped: **v1.64.1** Lucide `createIcons()`+observer
+> infinite-loop (froze lessons); **v1.67.1** a pre-existing top-level `Chart.register()` under
+> deferred Chart.js that blanked Stats. A full headless sweep of all 11 kits + hub = every view
+> renders, no errors.
 >
-> **Tableau = the PILOT (v1.37–v1.40), beginner→mid path DONE:** now **28 lessons**. Order:
-> Unit 0 (4) → Interface → **Your First Drag** → Dim/Measures → Bar → Line → **Sorting** →
-> **Filtering** (split from "Filters & Sorting") → Marks → **Your First Calculation** → Calc Fields
-> → Aggregation → Grouping → **From One Sheet to a Workbook** → Dashboard → Tooltips → Chart
-> Choice → Story → (cert Units 4–5: L14–L20). New-lesson ids used: 21–28. Story bridges done
-> through ~L10.
+> **Per-kit pattern (SQL/Excel/Python/PBI/Tableau/Stats = templates):** link `assets/grain/grain.css`
+> → re-point the kit's `:root`/`.light`|`[data-theme]` vars onto Grain tokens (no new hex) → Space
+> Grotesk headings + nav brand mark → emoji→Lucide via the robust icon loader → rebuild the lesson
+> view to Grain "Say It Out Loud" (megaphone card → dark code block → say line → chunk chips → "See
+> it on screen" eyebrow → gotcha → quick-check → confidence rater). Leave pedagogical CONTENT emoji
+> + transient toasts. **Full pattern + gotchas are in memory `project_sql_prep_kit_state.md`.**
 >
-> **All 6 lesson kits are now fully scaffolded.** Each has: 4 Unit 0 Foundation lessons
-> (ids 101–104), 📖 story bridges on every lesson (the coffee-company running narrative),
-> position-based nav (lessonPos/nextLessonId), and lesson numbers that display by array
-> position. Tableau has 28 lessons; Excel/SQL/Python/Stats/Power BI each have 16.
-> Interview, Simulator, Final Exam intentionally excluded.
+> **⚠️ TWO GOTCHAS:** (1) this Lucide build leaves `data-lucide` ON the generated `<svg>` → it
+> re-matches its own output; the refresh helper MUST strip it — use Stats' robust loader
+> (`grainRefreshIcons()` = createIcons + strip + disconnect-during-refresh observer + poll-for-lucide).
+> (2) Chart.js loads `defer` (Tableau/Stats) → never call `Chart.*` at TOP LEVEL (it's undefined
+> then → throws → aborts the whole script → blank page). Guard: `if(typeof Chart!=='undefined'){…}`
+> else register on window `load`.
 >
-> **➡️ NEXT (now that rebuild is done):** Mike playtests any kit. If he reports issues, triage
-> per workflow. Otherwise surface next roadmap item or ask for direction.
+> **➡️ NEXT:** Phase 2 remaining surfaces (structurally different, NOT yet restyled): **Chart
+> Literacy, Forecasting, Interview, Simulator, Final** (Chart-Literacy/Forecasting are chart-heavy
+> → mind the Chart.js-defer gotcha). Then **Phase 3:** adopt Grain's normalized lesson content +
+> the 4 cross-kit tracks (Data Migration · From Question to Metric · Financial Analyst · General
+> Analyst Toolkit). **Phase 4** (separate decision): cross-kit Cards/Practice/Glossary surfaces, a
+> real Grain dark palette, React-vs-vanilla.
 >
 > ---
 >
-> ### ⏩ Earlier June 3 session — what shipped v1.22.0 → v1.36.0
-> A very large session. All shipped, committed, pushed, live. Awaiting Mike's playtest.
-> - **Tableau cert beef-up (v1.23–v1.30):** went for the **Tableau Desktop Specialist**
->   cert. Added 8 lessons → Tableau now has **20 lessons**. New **Unit 4 (Connecting &
->   Preparing Data)**: L14 Live vs Extract, L15 Joins/Unions/Relationships, L16 Data
->   Properties. New **Unit 5**: L17 Sets, L18 Hierarchies, L19 Parameters, L20 Dual-Axis.
->   Plus a new **L9 Grouping** lesson (+ method-choice depth + Data-pane "where did it go"
->   gotcha + visuals). Plan/handoff docs: `TABLEAU_CERT_HANDOFF.md`, `TABLEAU_CERT_PLAN.md`.
->   **Tableau passes so far: L14, L16, L17 ✅.**
-> - **🧭 "Know Your Workspace" UI module (v1.27):** interactive interface tour + "Find it"
->   hotspot drill. In **Tableau, Power BI, Excel only** (GUI tools) — **DECIDED not to roll to
->   SQL/Python/Stats** (code/concept kits). Nav entry `show('workspace')`/`navigate('workspace')`
->   + `renderWorkspace()` + `WORKSPACE` data + a `#view-workspace` (Tableau/Excel) or `#main`
->   render (Power BI). Lesson-flow CTA on each kit's interface/first lesson.
-> - **Visual-parity sweep (v1.32–v1.36): COMPLETE across all 6 lesson kits.** Principle: if a
->   lesson's text names ≥2 co-equal concepts, the "See it" visual must show ALL of them. ~31
->   lesson visuals fixed (Tableau 6, Excel 5, SQL 4, Python 7, Power BI 4, Stats 2 + 3 borderline).
->   Tracking: `VISUAL_PARITY_SWEEP.md`.
-> - **Final Exam study-guide visuals (v1.31):** first visuals in the Final kit — a "📺 See it"
->   diagram per subject section (`studyViz(key)`).
-> - **New helpers this session:** Tableau `renderLesson` now supports per-RAL-block `html`;
->   Tableau `drawLessonChart` has a `dualaxis` branch (second `y1` axis); Stats `lessonStatHTML`
->   now supports an `html` viz (since `drawStatChart` is single-series).
-> - **New repo docs:** `TABLEAU_CERT_HANDOFF.md`, `TABLEAU_CERT_PLAN.md`, `VISUAL_PARITY_SWEEP.md`,
->   `TESTING_CHECKLIST.md` (whole-kit smoke/acceptance QA).
-> - **Story-delivery rule (memory):** "walking with a friend" dev recaps → always full text IN CHAT,
->   default the LONG (~15 min) version, never just a saved file path.
+> _Older history (curriculum rebuild v1.41–v1.46 w/ Unit-0 foundations + 📖 coffee-company story
+> bridges + position-based nav via `lessonPos()`/`nextLessonId()`; Tableau cert v1.23–v1.40;
+> visual-parity sweep; "Know Your Workspace" module in Tableau/PBI/Excel) is in `CHANGELOG.md` +
+> git. **The per-kit architecture cheat-sheet lower in THIS file is still current and load-bearing —
+> read it before editing any kit.**_
 
 Read this entire file before doing anything. It is the source of truth
 for HOW we work; `ROADMAP.md` and `CHANGELOG.md` are the source of
