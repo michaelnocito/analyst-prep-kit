@@ -9,6 +9,27 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.65.0] — 2026-06-23 — 🎨 GRAIN redesign · Phase 2c (Power BI kit)
+
+Same Grain treatment as the other lesson kits, applied to Power BI (a SQL-clone
+architecture). **The DAX Lab reference + workspace tour are untouched.**
+
+- **Shell → Grain:** links `../assets/grain/grain.css`; the kit's vars
+  (`--bg/surf/accent/text/muted/border/red/green/yellow/r/r2`) re-pointed onto
+  Grain tokens (clay-on-cream, no one-off hex); Space Grotesk headings; quiz /
+  code-state soft-tints moved to Grain leaf/rust.
+- **Emoji → Lucide** across the UI chrome (brand mark, nav workspace/exam/
+  settings/theme, home review + path tiles, drill pickers, flags, hints,
+  workspace tour). Lucide via CDN with the v1.64.1 loop-safe `#main` observer
+  (strips `data-lucide` from rendered svgs). Power BI's interface-mockup emoji
+  (report canvas, viz-type icons, table glyphs) are left as illustrative content.
+- **Lesson view → Grain "Say It Out Loud":** megaphone-headed card → dark DAX
+  code block → 🗣️ `say` line → chunk-by-chunk `lines` (clay chips) → "See it on
+  screen" KPI/bar visual eyebrow → Gotcha → Quick Check → confidence rater
+  (persisted to `state.confidence`). Story bridge restyled to a Grain amber callout.
+
+Verified in-browser. DAX Lab, progress, flags, quizzes, saved state unchanged.
+
 ## [1.64.1] — 2026-06-23 — 🐛 Fix: lessons froze the page (Lucide icon loop)
 
 Mike-reported (June 23, 2026): opening any lesson in the SQL/Excel/Python kits

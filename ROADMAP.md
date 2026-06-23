@@ -1,6 +1,6 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.64.1` (shipped June 23, 2026 — 🐛 fix: lesson-open froze the page; Lucide `createIcons()` + MutationObserver infinite loop, now stripped. Verified in-browser across SQL/Excel/Python. Awaiting Mike's playtest of v1.61–v1.64.)
+**Current version:** `v1.65.0` (shipped June 23, 2026 — 🎨 GRAIN **Phase 2c**: Power BI kit. Awaiting Mike's playtest.) Prior: `v1.64.1` fixed the Lucide loop that froze lessons (verified in-browser).
 
 > ### 🎨 GRAIN REDESIGN — IN FLIGHT (multi-phase, one phase per cycle)
 > Restyling the suite to the **Grain** design system (clay primary `#C5511F`, honey amber accent,
