@@ -9,6 +9,31 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.66.0] — 2026-06-23 — 🎨 GRAIN redesign · Phase 2d (Tableau kit)
+
+Grain applied to Tableau. **Chart.js lesson charts + the Viz Builder + the
+Workspace tour are untouched** (charts still draw into a real canvas — verified
+the canvas-timing path is preserved).
+
+- **Shell → Grain:** links `../assets/grain/grain.css`; vars re-pointed onto
+  Grain tokens (no one-off hex; the dimension-blue / measure-green pill colors
+  map onto Grain teal / leaf); Space Grotesk headings; fixed a stray `:root`
+  override that still carried old hex.
+- **Emoji → Lucide** across UI chrome (brand mark, nav workspace/exam/settings/
+  theme, home review + Sprint + builder/workspace buttons, flags, drill pickers,
+  drill hints, lesson-list status, workspace tour, the Read-It toggle). Lucide
+  via CDN with the loop-safe `document.body` observer. Tableau's rich
+  interface/chart-type/field emoji inside lesson content are left as illustrative
+  content.
+- **Lesson view → Grain "Say It Out Loud":** megaphone-headed card; each `ral`
+  block shows its **shelf** artifact + chunk-by-chunk `lines` (clay chips); the
+  Chart.js "See it on screen" visual gets a Grain section eyebrow; story bridge
+  → Grain amber callout; "Note" + "Quick Check" get Lucide icons; added the
+  confidence rater (persisted to `S.confidence`).
+
+Verified in-browser (incl. a bar-chart lesson). Charts, Viz Builder, Workspace,
+progress, flags, quizzes unchanged.
+
 ## [1.65.0] — 2026-06-23 — 🎨 GRAIN redesign · Phase 2c (Power BI kit)
 
 Same Grain treatment as the other lesson kits, applied to Power BI (a SQL-clone
