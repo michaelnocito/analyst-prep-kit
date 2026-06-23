@@ -1449,7 +1449,11 @@ const vertLinesPlugin={
     });
   }
 };
-Chart.register(vertLinesPlugin);
+// Chart.js loads with `defer`, so it isn't defined yet while this inline script
+// runs. Register the plugin now if it's ready, otherwise on window load — never
+// throw at top level (that would abort the rest of the script, incl. BOOT).
+if(typeof Chart!=='undefined'){ Chart.register(vertLinesPlugin); }
+else { window.addEventListener('load',function(){ try{ Chart.register(vertLinesPlugin); }catch(e){} }); }
 
 function statMean(arr){return arr.reduce((s,v)=>s+v,0)/arr.length;}
 function statMedian(arr){const s=[...arr].sort((a,b)=>a-b);const n=s.length;return n%2===0?(s[n/2-1]+s[n/2])/2:s[Math.floor(n/2)];}

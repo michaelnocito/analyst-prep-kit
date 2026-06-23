@@ -1,6 +1,6 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.67.0` (shipped June 23, 2026 — 🎨 GRAIN **Phase 2e**: Stats kit — all 6 core lesson kits now Grain. Awaiting Mike's playtest.)
+**Current version:** `v1.67.1` (shipped June 23, 2026 — 🐛 fix: Stats kit blank-on-load + dead Cards tab, a pre-existing top-level `Chart.register` crash under deferred Chart.js. Found + verified via a full headless sweep of all 11 kits + hub — every other surface renders every view cleanly.)
 
 > ### 🎨 GRAIN REDESIGN — IN FLIGHT (multi-phase, one phase per cycle)
 > Restyling the suite to the **Grain** design system (clay primary `#C5511F`, honey amber accent,

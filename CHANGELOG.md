@@ -9,6 +9,28 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.67.1] — 2026-06-23 — 🐛 Fix: Stats kit blank on load + dead Cards tab (pre-existing crash)
+
+Mike-reported (June 23): clicking into Stats showed blank areas. Found via a
+full headless sweep of all 11 kits + hub.
+
+**Cause (pre-existing, since Chart.js went `defer` in v1.54.1 — not the Grain
+restyle):** `Chart.register(vertLinesPlugin)` ran at the top level of the inline
+script, but Chart.js loads with `defer`, so `Chart` was `undefined` at that
+point → it threw and **aborted the rest of the script**. Everything after it
+never ran: the `let cardFlipped` declaration (so the **Cards** tab threw a
+temporal-dead-zone error and rendered blank) and the **BOOT** call
+(`loadState/applyTheme/show('home')`) — so the kit showed a **blank landing**
+until you clicked a tab.
+
+**Fix:** register the plugin only if `Chart` is defined, otherwise on
+`window.load` (after the deferred Chart.js is ready) — never throw at top level.
+
+**Verified by headless sweep:** Stats now boots to Home on load, the Cards tab
+renders, and every view (Home/Lessons/Practice/Distribution Lab/Cards/Glossary)
+has content. All other 10 kits + hub confirmed rendering every view with no
+errors.
+
 ## [1.67.0] — 2026-06-23 — 🎨 GRAIN redesign · Phase 2e (Stats kit) — all 6 lesson kits done
 
 Grain applied to Stats — completing the **six core lesson kits**. Stats is
