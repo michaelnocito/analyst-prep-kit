@@ -1,6 +1,6 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.61.0` (shipped June 23, 2026 — 🎨 GRAIN redesign **Phase 0**: design tokens + hub restyle. Awaiting Mike's playtest.)
+**Current version:** `v1.62.0` (shipped June 23, 2026 — 🎨 GRAIN redesign **Phase 1**: SQL pilot. Awaiting Mike's playtest.)
 
 > ### 🎨 GRAIN REDESIGN — IN FLIGHT (multi-phase, one phase per cycle)
 > Restyling the suite to the **Grain** design system (clay primary `#C5511F`, honey amber accent,
@@ -9,10 +9,12 @@
 > (`GRAIN_REDESIGN_BRIEF.md` + `README.md`). **Guardrails:** zero build step, GitHub-Pages-deployable,
 > vanilla HTML/CSS/JS; **keep every kit's real engine** (sql.js, Pyodide, Chart.js, Claude-API sim);
 > style only through Grain token CSS vars (no one-off hex); test each phase before the next.
-> - **Phase 0 — Tokens + hub restyle ✅ shipped v1.61.0** (this cycle). Tokens in `assets/grain/`.
-> - **Phase 1 — SQL pilot** (restyle `sql/index.html` + rebuild lesson view to the "Say It Out Loud"
->   anatomy, keep the sql.js runner). NEXT once Phase 0 passes.
+> - **Phase 0 — Tokens + hub restyle ✅ shipped v1.61.0.** Tokens in `assets/grain/`.
+> - **Phase 1 — SQL pilot ✅ shipped v1.62.0.** Shell remap + Say-It-Out-Loud lesson view +
+>   confidence rater + Lucide (MutationObserver on `#main`); sql.js engine untouched.
 > - **Phase 2 — roll restyle + Say-It-Out-Loud across remaining kits, one at a time.**
+>   Excel + Python next (this batch). Then Tableau · Power BI · Chart Literacy · Forecasting ·
+>   Stats · Interview · Simulator · Final.
 > - **Phase 3 — adopt Grain's normalized lesson content + the 4 cross-kit interview tracks.**
 > - **Phase 4 — (separate decision, not this initiative):** Cards/Practice/Glossary surfaces,
 >   achievements, real Grain dark palette, React-vs-vanilla call.

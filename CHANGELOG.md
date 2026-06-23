@@ -9,6 +9,34 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.62.0] — 2026-06-23 — 🎨 GRAIN redesign · Phase 1 (SQL pilot)
+
+The pilot kit, end-to-end in Grain — proving the pattern before rolling to the
+rest. **The sql.js query engine is untouched** (runner, JOIN/Aggregation labs,
+schema all still execute live).
+
+**Shell restyled to Grain (`sql/index.html`):**
+- Links `../assets/grain/grain.css`; the kit's own semantic vars (`--bg`,
+  `--surf`, `--accent`, `--text`, `--muted`, `--border`, `--red/green/yellow`…)
+  are re-pointed onto Grain tokens — no one-off hex. The whole kit (cards,
+  buttons, nav, drills, labs, terminal) recolors to clay-on-cream. The light
+  default is the full Grain cream look; the dark toggle maps onto warm stone
+  tokens. Headings now use Space Grotesk.
+- **Emoji → Lucide line icons** across nav (brand/exam/settings/theme), home
+  tiles, drill pickers, lab tabs, hint/answer buttons, flags, and warnings.
+  Lucide loads from CDN; a `#main` MutationObserver re-renders icons after
+  every view change.
+
+**Lesson view rebuilt to the Grain "Say It Out Loud" anatomy:**
+- A single bordered card: **megaphone header → dark code block (the query) →
+  🗣️ one-line plain-English `say` → chunk-by-chunk `lines` breakdown** (clay
+  chunk chips) → **"See it on screen"** result table → **Gotcha** → **Quick
+  Check** quiz → a new **confidence rater** ("Not yet / Almost / Have it",
+  persisted to `state.confidence`, complements the 🚩 flag — never blocks
+  progress). Story bridge restyled to a Grain amber callout.
+
+Progress, flags, quizzes, and all saved state are unchanged. Zero build step.
+
 ## [1.61.0] — 2026-06-23 — 🎨 GRAIN redesign · Phase 0 (design tokens + hub restyle)
 
 First cycle of the multi-phase **Grain** redesign (brief +
