@@ -9,6 +9,27 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.64.0] — 2026-06-23 — 🎨 GRAIN redesign · Phase 2b (Python kit)
+
+Same Grain treatment, applied to Python. **The Pyodide terminal (real
+in-browser CPython) is untouched.**
+
+- **Shell → Grain:** links `../assets/grain/grain.css`; vars re-pointed onto
+  Grain tokens (clay-on-cream, no one-off hex); Space Grotesk headings; the
+  lesson code block darkened to a Grain stone-900 surface.
+- **Emoji → Lucide** across the UI chrome (brand mark, nav exam/settings/theme,
+  home review + Python Terminal cards, flags, drill hints). Lucide via CDN with
+  a `document.body` MutationObserver. (Transient celebration toasts left as-is.)
+- **Lesson view → Grain "Say It Out Loud":** megaphone-headed card, dark code
+  block per `ral` item, 🗣️ `say` line, chunk-by-chunk `lines` (clay chips),
+  "What it outputs" section eyebrow (code + DataFrame + output), Grain amber
+  story bridge, Watch-out, Quick Check, and the **confidence rater** (persisted
+  to `S.confidence`).
+
+Pyodide, progress, flags, quizzes, and saved state unchanged. Zero build step.
+**Phase 2 continues** — Tableau, Power BI, Chart Literacy, Forecasting, Stats,
+Interview, Simulator, and Final still to come.
+
 ## [1.63.0] — 2026-06-23 — 🎨 GRAIN redesign · Phase 2a (Excel kit)
 
 Same Grain treatment as the SQL pilot, applied to Excel. **The drag-and-drop
