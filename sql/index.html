@@ -2377,7 +2377,14 @@ function _fbCopy(t){var a=document.createElement('textarea');a.value=t;a.style.p
 
 // ─── Lucide icons: render now + re-render after any #main view change ───────
 (function(){
-  function refresh(){ if(window.lucide) lucide.createIcons(); }
+  // createIcons() in this Lucide build leaves data-lucide ON the generated <svg>,
+  // so it re-matches its own output. Strip it after rendering, otherwise the
+  // MutationObserver below would re-fire on createIcons's own mutations forever.
+  function refresh(){
+    if(!window.lucide) return;
+    lucide.createIcons();
+    document.querySelectorAll('svg[data-lucide]').forEach(function(s){ s.removeAttribute('data-lucide'); });
+  }
   refresh();
   var main=document.getElementById('main');
   if(main && 'MutationObserver' in window){

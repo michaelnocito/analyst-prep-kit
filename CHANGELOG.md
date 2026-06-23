@@ -9,6 +9,24 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.64.1] — 2026-06-23 — 🐛 Fix: lessons froze the page (Lucide icon loop)
+
+Mike-reported (June 23, 2026): opening any lesson in the SQL/Excel/Python kits
+showed no view change, then the browser's **"Page Unresponsive — Wait / Close"**
+dialog.
+
+**Cause:** this build of Lucide's `createIcons()` leaves the `data-lucide`
+attribute *on the `<svg>` it generates*, so calling it again re-matches and
+re-replaces its own output. Paired with the new icon-refresh **MutationObserver**,
+each `createIcons()` mutation re-fired the observer → another `createIcons()` →
+an **infinite loop** that locked the main thread. (The hub has no observer, so it
+was unaffected — which is why kit *home* pages looked fine but lessons hung.)
+
+**Fix:** the refresh helper now strips `data-lucide` from the rendered svgs
+(`svg[data-lucide] → removeAttribute`) so they no longer re-match; the observer
+settles after one pass. Verified in-browser: all three kits open lessons,
+icons render, the thread stays responsive, and `svg[data-lucide]` settles to 0.
+
 ## [1.64.0] — 2026-06-23 — 🎨 GRAIN redesign · Phase 2b (Python kit)
 
 Same Grain treatment, applied to Python. **The Pyodide terminal (real

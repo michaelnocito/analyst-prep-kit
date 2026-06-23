@@ -1,6 +1,6 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.64.0` (shipped June 23, 2026 — 🎨 GRAIN redesign **Phase 2b**: Python kit. Awaiting Mike's playtest of v1.61–v1.64.)
+**Current version:** `v1.64.1` (shipped June 23, 2026 — 🐛 fix: lesson-open froze the page; Lucide `createIcons()` + MutationObserver infinite loop, now stripped. Verified in-browser across SQL/Excel/Python. Awaiting Mike's playtest of v1.61–v1.64.)
 
 > ### 🎨 GRAIN REDESIGN — IN FLIGHT (multi-phase, one phase per cycle)
 > Restyling the suite to the **Grain** design system (clay primary `#C5511F`, honey amber accent,
