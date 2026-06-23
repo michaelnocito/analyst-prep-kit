@@ -9,6 +9,36 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.61.0] — 2026-06-23 — 🎨 GRAIN redesign · Phase 0 (design tokens + hub restyle)
+
+First cycle of the multi-phase **Grain** redesign (brief +
+tokens in the `design_handoff_grain_redesign` handoff folder). Phase 0 is the
+framework-agnostic, zero-build foundation: drop in the design tokens and restyle
+the hub. **No engine, link, or saved-progress changes.**
+
+**New — `assets/grain/` design-token layer (drop-in, used as-is):**
+- `tokens/{fonts,colors,typography,spacing,elevation,motion}.css` — Grain's CSS
+  custom properties (earthy clay/amber/stone palette, Space Grotesk + IBM Plex
+  type scale, 4px spacing grid, warm-tinted elevation, motion easings).
+- `grain.css` — single entry point that `@import`s the six token layers in
+  order. Linked from the hub via `<link rel="stylesheet" href="assets/grain/grain.css">`.
+
+**Hub `index.html` restyled to Grain:**
+- The page's own semantic vars (`--bg`, `--accent`, `--ink`, …) are now
+  **re-pointed onto Grain tokens** — clay `#C5511F` primary, honey amber accent,
+  warm stone neutrals on cream. No one-off hex values remain; both the light
+  default and the dark toggle map onto Grain tokens (a dedicated Grain dark
+  palette is a later token job, out of scope this pass).
+- Type: Space Grotesk for display headings (hero, kit names, card titles), IBM
+  Plex Sans for body/UI, IBM Plex Mono for code/metrics.
+- **Emoji → Lucide line icons** everywhere (brand mark, theme toggle, Continue/
+  beta/method cards, all 11 kit icons, exam badge). Lucide loaded from CDN; the
+  theme toggle swaps moon/sun and re-renders.
+
+**Unchanged on purpose:** all markup, links, and JS behavior (theme toggle,
+`apk-theme` contract, per-kit progress bars, Continue card, mini-exam badges).
+Zero build step; still a static GitHub-Pages site.
+
 ## [1.60.0] — 2026-06-16 — 🎮 Tableau kit "Learn by playing" callout
 
 Added a "Learn by playing" card to the Tableau kit home view pointing at the

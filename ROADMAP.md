@@ -1,6 +1,23 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.54.1` (shipped June 12, 2026 — GR-H toast fix + Chart.js defer; v1.54.0's ten checks 054a–054j ALL PASSED, Mike June 12)
+**Current version:** `v1.61.0` (shipped June 23, 2026 — 🎨 GRAIN redesign **Phase 0**: design tokens + hub restyle. Awaiting Mike's playtest.)
+
+> ### 🎨 GRAIN REDESIGN — IN FLIGHT (multi-phase, one phase per cycle)
+> Restyling the suite to the **Grain** design system (clay primary `#C5511F`, honey amber accent,
+> warm stone neutrals on cream; Space Grotesk + IBM Plex type; **Lucide** line icons, no emoji).
+> Plan + tokens live in `C:\Users\Mike\Projects\excel-dry-run-handoff\Grain Design System\design_handoff_grain_redesign\`
+> (`GRAIN_REDESIGN_BRIEF.md` + `README.md`). **Guardrails:** zero build step, GitHub-Pages-deployable,
+> vanilla HTML/CSS/JS; **keep every kit's real engine** (sql.js, Pyodide, Chart.js, Claude-API sim);
+> style only through Grain token CSS vars (no one-off hex); test each phase before the next.
+> - **Phase 0 — Tokens + hub restyle ✅ shipped v1.61.0** (this cycle). Tokens in `assets/grain/`.
+> - **Phase 1 — SQL pilot** (restyle `sql/index.html` + rebuild lesson view to the "Say It Out Loud"
+>   anatomy, keep the sql.js runner). NEXT once Phase 0 passes.
+> - **Phase 2 — roll restyle + Say-It-Out-Loud across remaining kits, one at a time.**
+> - **Phase 3 — adopt Grain's normalized lesson content + the 4 cross-kit interview tracks.**
+> - **Phase 4 — (separate decision, not this initiative):** Cards/Practice/Glossary surfaces,
+>   achievements, real Grain dark palette, React-vs-vanilla call.
+
+**Prior version:** `v1.54.1` (shipped June 12, 2026 — GR-H toast fix + Chart.js defer; v1.54.0's ten checks 054a–054j ALL PASSED, Mike June 12)
 **Note (June 12, 2026 — 2:10 PM ET):** the "roll the Excel home Lessons section to other kits" inbox item is now DONE for **Tableau** (v1.54.0 home rebuild). Remaining: SQL, Python, Stats, Power BI.
 **Recent:** v1.42–46 **Curriculum rollout COMPLETE** — all 5 remaining kits (Excel, SQL, Python, Stats, Power BI) each received Unit 0 (4 foundation lessons) + story bridges on all 12 existing lessons + position-nav. 20 new lessons total. Tableau already done (v1.37–v1.41). All 6 lesson kits are now fully scaffolded.
 **6-Month Analyst Standard rebuild: SHIPPED.** Every kit now has: Unit 0 Foundations, 📖 story bridges on every lesson, position-based nav, lesson number display by array position. Interview/Sim/Final kits intentionally excluded. Plans: `CURRICULUM_STANDARD.md`, `CURRICULUM_PLAN.md`.
