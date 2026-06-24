@@ -1,6 +1,7 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.68.1` (shipped June 23, 2026 — 🐛 fix: Chart Literacy "Practice" drills did nothing on click. Pre-existing bug, NOT the Grain restyle: `freeDrill` passes `lessonId:null` and `renderGuidedStep` read `lesson.title` on an undefined lesson → threw → render aborted. Fixed the no-lesson free-practice path. ⚠️ **Forecasting shares this freeDrill code and has the same latent bug — fix it during Phase 2g.** Verified live, all 5 drill types work.)
+**Current version:** `v1.69.0` (shipped June 24, 2026 — 🎨 Grain redesign Phase 2g: **Forecasting** kit restyled to Grain — vars→tokens, Space Grotesk headings, Lucide `trending-up` brand mark + chrome/drill icons via the robust loader — AND fixed its latent `freeDrill` Practice bug (same as Chart Literacy v1.68.1: `lessonId:null` → `lesson.title` threw → render aborted; now handles the no-lesson path). **Forecasting does NOT use Chart.js** (inline HTML viz), so the flagged defer trap didn't apply. Verified headless, 0 syntax errors. Awaiting Mike's live playtest.)
+**Prior:** `v1.68.1` (June 23, 2026 — 🐛 fix: Chart Literacy "Practice" drills did nothing on click — `freeDrill` `lessonId:null` → `renderGuidedStep` read `lesson.title` on undefined → threw. Fixed the no-lesson free-practice path. Verified live.)
 **Prior:** `v1.68.0` (June 23, 2026 — 🎨 Grain redesign Phase 2f: Chart Literacy restyled to Grain — vars→tokens, Space Grotesk headings, Lucide brand mark + chrome/drill icons via the robust loader. Inline SVG, not Chart.js. Verified headless + live, dark + light.)
 
 > ### 🎨 GRAIN REDESIGN — IN FLIGHT (multi-phase, one phase per cycle)
@@ -15,10 +16,11 @@
 >   confidence rater + Lucide (MutationObserver on `#main`); sql.js engine untouched.
 > - **Phase 2 — roll restyle + Say-It-Out-Loud across remaining kits, one at a time.**
 >   ✅ Excel (v1.63.0) · ✅ Python (v1.64.0) · ✅ Power BI (v1.65.0) · ✅ Tableau (v1.66.0) · ✅ Stats (v1.67.0).
->   **All 6 core lesson kits done.** Then the non-core surfaces: ✅ Chart Literacy (v1.68.0).
->   Remaining: Forecasting · Interview · Simulator (Claude-API) · Final. (Robust disconnect-observer +
->   poll-for-Lucide loader now used in Stats + Chart Literacy; reuse it for the rest. Chart Literacy
->   used inline SVG, not Chart.js — but Forecasting may use Chart.js, so mind the defer trap there.)
+>   **All 6 core lesson kits done.** Then the non-core surfaces: ✅ Chart Literacy (v1.68.0) ·
+>   ✅ Forecasting (v1.69.0). Remaining: Interview · Simulator (Claude-API) · Final. (Robust
+>   disconnect-observer + poll-for-Lucide loader now used in Stats + Chart Literacy + Forecasting;
+>   reuse it for the rest. Chart Literacy AND Forecasting both turned out to use inline HTML/SVG,
+>   NOT Chart.js — so the defer trap didn't apply to either; still mind it for any kit that does.)
 > - **Phase 3 — adopt Grain's normalized lesson content + the 4 cross-kit interview tracks.**
 > - **Phase 4 — (separate decision, not this initiative):** Cards/Practice/Glossary surfaces,
 >   achievements, real Grain dark palette, React-vs-vanilla call.

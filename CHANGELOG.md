@@ -9,6 +9,42 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.69.0] — 2026-06-24 — 🎨 Grain redesign Phase 2g: Forecasting kit (+ freeDrill fix)
+
+Restyled the **Forecasting & Trend Modeling** kit to the Grain design system —
+the second of the 5 remaining non-core surfaces. Style only; the kit's engine and
+content are unchanged. Also fixed the latent `freeDrill` Practice bug it shared
+with Chart Literacy (flagged in v1.68.1), bundled in per the Phase-2g plan.
+
+**Grain restyle (mirrors the proven Chart Literacy recipe):**
+- Link `assets/grain/grain.css`; re-point the kit's semantic vars onto Grain
+  tokens (no one-off hex). `:root` = warm dark variant; `[data-theme="light"]` =
+  the Grain cream look (default).
+- Space Grotesk headings (`h1–h4` → `--font-display` + `--tracking-tight`);
+  IBM Plex body/mono.
+- Nav brand mark CSS-emoji → a Grain `.logo-mark` + Lucide **`trending-up`**;
+  settings/theme chrome emoji and the 5 drill-tile icons → Lucide.
+- Added the robust Lucide loader (`grainRefreshIcons` + strip-`data-lucide` +
+  disconnect-during-refresh observer + poll-for-Lucide), same as Stats / Chart
+  Literacy, to avoid the `createIcons` self-match loop.
+
+**Chart.js note:** the handoff flagged the Chart.js-`defer` top-level trap for
+this kit, but Forecasting **does not use Chart.js** — its lesson visuals are
+inline HTML (`viz.html`), like Chart Literacy's inline SVG. The trap did not
+apply; no Chart.js was added.
+
+**🐛 freeDrill fix (same as Chart Literacy v1.68.1):** the free-practice path
+builds a guided session with `lessonId:null`, but `renderGuidedStep()` read
+`lesson.title` on an undefined lesson → **TypeError** → render aborted, so
+clicking a Practice drill tile did nothing. `renderGuidedStep()` and
+`guidedNext()` now handle the no-lesson case — a "Free practice · &lt;type&gt;
+N/M" header, a "← Back to practice" button, and a Finish that returns to the
+practice grid (instead of `gotoNext(null)`).
+
+**Verified headless** (3 inline scripts, 0 syntax errors; all Grain tokens
+referenced are defined in `assets/grain/`). Awaiting Mike's live playtest
+(dark + light; click-test all 5 Practice drill types).
+
 ## [1.68.1] — 2026-06-23 — 🐛 Fix: Chart Literacy "Practice" drills did nothing on click (pre-existing)
 
 Mike-reported (June 23, 7:17 PM ET) during v1.68.0 testing: in Chart Literacy the
