@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 24, 2026 (🎨 GRAIN Phase 2g + 2h — Forecasting AND Interview restyled to Grain, v1.69.0 → v1.70.0)
-**Current version:** `v1.70.0` (Interview now on Grain. All 6 core kits + Chart Literacy + Forecasting + Interview are on Grain; awaiting Mike's live playtest of both Forecasting and Interview — dark+light.)
+**Last session ended:** June 24, 2026 (🎨 GRAIN Phase 2g→2i — Forecasting, Interview, AND Simulator restyled to Grain, v1.69.0 → v1.71.0; Interview verified by Mike)
+**Current version:** `v1.71.0` (Simulator now on Grain. All 6 core kits + Chart Literacy + Forecasting + Interview + Simulator are on Grain — **only Final remains** for the Phase-2 rollout. Interview ✅ verified by Mike (070a/b/c). Awaiting Mike's playtest of Forecasting + Simulator.)
 **You are continuing an established collaboration with Mike Nocito.**
 
 > ### 🎨 CURRENT INITIATIVE — GRAIN REDESIGN (in flight)
@@ -35,10 +35,17 @@
 > • **Interview** (Phase 2h) restyled to Grain. **Structurally different** kit — rate-the-answer /
 >   multiple-choice drills + an Answer Builder + a sealed-intention card, **NO `freeDrill` path**, so
 >   no freeDrill bug to fix. Key trick: the old blue accent was baked into **14** `rgba(47,109,240,…)`
->   tints → all re-derived via `color-mix(in srgb, var(--accent) N%, transparent)` so they track the
->   clay accent + theme; hardcoded state reds/amber → new `--err`/`--warn` vars. Brand mark = Lucide
->   `messages-square`. No Chart.js. Pedagogical content emoji (📢💡🔒🎉) left intact.
-> Both verified headless (0 syntax errors, 0 color residue); awaiting Mike's live playtest, dark + light.
+>   tints → all re-derived via `color-mix(in srgb, var(--accent) N%, transparent)`; hardcoded state
+>   reds/amber → new `--err`/`--warn` vars. Brand mark = Lucide `messages-square`. **✅ verified by
+>   Mike (070a/b/c pass).**
+> • **Simulator** (Phase 2i) restyled to Grain — the **live Claude-API** kit. **Style ONLY: the
+>   fetch endpoint, `claude-sonnet-4-5` model, `x-api-key`/direct-browser headers, and `sim2-apikey`
+>   localStorage flow were NOT touched** (verified intact). Full var set → tokens; brand = Lucide
+>   `briefcase`; intro/stat emoji → Lucide; 2 baked tints → `color-mix`; the cool `TYPE_COLOR`
+>   skill palette remapped to Grain hues. No Chart.js. Content emoji (🗣️💡🎉👤, PASS✓/FAIL✗ in
+>   prompts) left intact.
+> All verified headless (0 syntax errors, 0 color residue, API block confirmed untouched); awaiting
+> Mike's live playtest of Forecasting + Simulator, dark + light.
 > _GR noted for triage: two stray "Chart Literacy" copy-paste leftovers in `forecasting/index.html` —
 > the home heading "Start learning charts" (~L681) and the Settings → About text "Chart Literacy Kit"
 > (~L963). Content-only; not fixed (no bundling without permission)._
@@ -57,14 +64,13 @@
 > then → throws → aborts the whole script → blank page). Guard: `if(typeof Chart!=='undefined'){…}`
 > else register on window `load`.
 >
-> **➡️ NEXT — Phase 2i: Simulator (Claude-API) kit.** Restyle to Grain using the same per-kit recipe
-> below. ⚠️ This kit makes **live Claude API calls** (direct browser → api.anthropic.com, `sonnet`),
-> so be extra careful to touch **style only** — do not alter the fetch/prompt/grading logic. Read its
-> code first; it's structurally its own thing (week-1 sim, manager review). Then the last surface:
-> **Final** (28-Q exam + study guide). Check each for Chart.js before assuming the defer trap applies —
-> every non-core kit so far used inline HTML/SVG, not Chart.js. If a kit bakes the old blue accent into
-> `rgba(47,109,240,…)` tints (like Interview did), convert them with `color-mix(in srgb, var(--accent)
-> N%, transparent)` so they track the theme.
+> **➡️ NEXT — Phase 2j: Final Exam kit (the LAST Phase-2 surface).** Restyle to Grain using the same
+> per-kit recipe below. Read its code first — it's the 28-Q cross-subject test + study guide, its own
+> structure (per-section submit, partial cumulative grade). Check for Chart.js before assuming the
+> defer trap applies (every non-core kit so far used inline HTML/SVG, not Chart.js). Convert any baked
+> `rgba(...)` accent tints with `color-mix(in srgb, var(--accent) N%, transparent)`, and remap any cool
+> categorical palette to Grain hues (as done for the Simulator's `TYPE_COLOR`). After Final, Phase 2 is
+> DONE → move to **Phase 3** (adopt Grain's normalized lesson content + the 4 cross-kit interview tracks).
 > Then **Phase 3:** adopt Grain's normalized lesson content + the 4 cross-kit tracks (Data Migration ·
 > From Question to Metric · Financial Analyst · General Analyst Toolkit). **Phase 4** (separate
 > decision): cross-kit Cards/Practice/Glossary surfaces, a real Grain dark palette, React-vs-vanilla.

@@ -9,6 +9,38 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.71.0] — 2026-06-24 — 🎨 Grain redesign Phase 2i: Simulator (Claude-API) kit
+
+Restyled the **Associate Data Analyst Simulator** to the Grain design system —
+the fourth of the 5 non-core surfaces, and the only one that makes **live Claude
+API calls**. **Style only — the API/fetch/prompt/grading logic was not touched**
+(endpoint, `claude-sonnet-4-5` model, `x-api-key` + direct-browser headers, and
+the `sim2-apikey` localStorage flow all verified intact).
+
+- Link `assets/grain/grain.css`; re-point the kit's full semantic var set onto
+  Grain tokens (no one-off hex). `:root` = warm dark; `[data-theme="light"]` =
+  Grain cream default. `--good` → leaf (green completion states), `--info` → teal
+  (Sarah the reviewer's avatar), `--warn` → amber, `--bad` → rust.
+- Space Grotesk headings (intro/board/task titles + nav + modal); IBM Plex body/mono.
+- Nav brand glyph (`▦`) → Grain `.logo-mark` + Lucide **`briefcase`**; the API-Key,
+  Reset and theme chrome buttons (`⚙`/`↺`/`☀☾`) → Lucide `settings` / `rotate-ccw`
+  / `sun`·`moon`; the intro hero `📊` and the three stat icons (`📅`/`✓`/`💬`) →
+  Lucide `bar-chart-3` / `calendar-days` / `list-checks` / `message-square`.
+- Two baked tints (`rgba(47,109,240,…)` view-feedback hover, `rgba(122,179,230,…)`
+  reviewer avatar) → `color-mix` off `var(--accent)` / `var(--info)`.
+- **Skill-category palette** (`TYPE_COLOR`: SQL/Python/Excel/Tableau/Communication/
+  Reflection) remapped from cool greens/blues/purple to distinct, cream-readable
+  Grain hues (teal / clay / leaf / amber / stone / rust).
+- Added the robust Lucide loader (same as the other kits).
+- Pedagogical content emoji left intact (🗣️ Say It Out Loud, 💡 hints, 🎉 complete,
+  👤 manager, and the `PASS ✓`/`FAIL ✗` markers inside the assignment prompts).
+
+**No Chart.js** in this kit, so the defer trap didn't apply.
+
+**Verified headless:** 2 inline scripts, 0 syntax errors; API/engine block confirmed
+untouched; 0 old-color/blue-rgba/chrome-emoji residue. Awaiting Mike's live playtest
+(dark + light; intro → board → a task; optionally paste an API key for a live review).
+
 ## [1.70.0] — 2026-06-24 — 🎨 Grain redesign Phase 2h: Interview kit
 
 Restyled the **Interview Prep** kit to the Grain design system — the third of the
@@ -39,8 +71,8 @@ path), so there was no freeDrill bug to fix here.
 **No Chart.js** in this kit, so the defer trap didn't apply.
 
 **Verified headless:** 2 inline scripts, 0 syntax errors; 0 blue/old-hex residue;
-all referenced Grain tokens defined. Awaiting Mike's live playtest (dark + light;
-check Practice drills, the Answer Builder, and flashcards).
+all referenced Grain tokens defined. **✅ Verified by Mike on the live site — 070a/b/c
+all pass** (nav/brand, warm rust wrong-state + clay-tinted highlights, theme toggle).
 
 ## [1.69.0] — 2026-06-24 — 🎨 Grain redesign Phase 2g: Forecasting kit (+ freeDrill fix)
 
