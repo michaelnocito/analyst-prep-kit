@@ -1,8 +1,9 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.69.0` (shipped June 24, 2026 — 🎨 Grain redesign Phase 2g: **Forecasting** kit restyled to Grain — vars→tokens, Space Grotesk headings, Lucide `trending-up` brand mark + chrome/drill icons via the robust loader — AND fixed its latent `freeDrill` Practice bug (same as Chart Literacy v1.68.1: `lessonId:null` → `lesson.title` threw → render aborted; now handles the no-lesson path). **Forecasting does NOT use Chart.js** (inline HTML viz), so the flagged defer trap didn't apply. Verified headless, 0 syntax errors. Awaiting Mike's live playtest.)
+**Current version:** `v1.70.0` (shipped June 24, 2026 — 🎨 Grain redesign Phase 2h: **Interview** kit restyled to Grain — vars→tokens (+ new `--err`/`--warn`), Space Grotesk headings, Lucide `messages-square` brand mark + chrome icons via the robust loader. Structurally different kit (rate-the-answer drills + Answer Builder, **no `freeDrill`** path → no freeDrill bug). Notable: the old blue accent was baked into **14** `rgba(47,109,240,…)` tints — all re-derived via `color-mix` off `var(--accent)` so they follow the clay theme; hardcoded state reds/amber → `var(--err)`/`var(--warn)`. No Chart.js. Verified headless, 0 syntax errors, 0 residue. Awaiting Mike's live playtest.)
+**Prior:** `v1.69.0` (June 24, 2026 — 🎨 Grain Phase 2g: Forecasting restyled + its `freeDrill` Practice bug fixed; Forecasting does NOT use Chart.js. Verified headless.)
 **Prior:** `v1.68.1` (June 23, 2026 — 🐛 fix: Chart Literacy "Practice" drills did nothing on click — `freeDrill` `lessonId:null` → `renderGuidedStep` read `lesson.title` on undefined → threw. Fixed the no-lesson free-practice path. Verified live.)
-**Prior:** `v1.68.0` (June 23, 2026 — 🎨 Grain redesign Phase 2f: Chart Literacy restyled to Grain — vars→tokens, Space Grotesk headings, Lucide brand mark + chrome/drill icons via the robust loader. Inline SVG, not Chart.js. Verified headless + live, dark + light.)
+**Prior:** `v1.68.0` (June 23, 2026 — 🎨 Grain redesign Phase 2f: Chart Literacy restyled to Grain. Inline SVG, not Chart.js. Verified headless + live, dark + light.)
 
 > ### 🎨 GRAIN REDESIGN — IN FLIGHT (multi-phase, one phase per cycle)
 > Restyling the suite to the **Grain** design system (clay primary `#C5511F`, honey amber accent,
@@ -17,10 +18,12 @@
 > - **Phase 2 — roll restyle + Say-It-Out-Loud across remaining kits, one at a time.**
 >   ✅ Excel (v1.63.0) · ✅ Python (v1.64.0) · ✅ Power BI (v1.65.0) · ✅ Tableau (v1.66.0) · ✅ Stats (v1.67.0).
 >   **All 6 core lesson kits done.** Then the non-core surfaces: ✅ Chart Literacy (v1.68.0) ·
->   ✅ Forecasting (v1.69.0). Remaining: Interview · Simulator (Claude-API) · Final. (Robust
->   disconnect-observer + poll-for-Lucide loader now used in Stats + Chart Literacy + Forecasting;
->   reuse it for the rest. Chart Literacy AND Forecasting both turned out to use inline HTML/SVG,
->   NOT Chart.js — so the defer trap didn't apply to either; still mind it for any kit that does.)
+>   ✅ Forecasting (v1.69.0) · ✅ Interview (v1.70.0). Remaining: Simulator (Claude-API) · Final.
+>   (Robust disconnect-observer + poll-for-Lucide loader now used in Stats + Chart Literacy +
+>   Forecasting + Interview; reuse it for the rest. None of the non-core kits so far used Chart.js
+>   — all inline HTML/SVG — so the defer trap didn't apply; still mind it for any kit that does.
+>   New trick this phase: `color-mix(in srgb, var(--accent) N%, transparent)` to convert
+>   baked-accent rgba tints onto the token system — reuse for the Simulator/Final if they bake hex.)
 > - **Phase 3 — adopt Grain's normalized lesson content + the 4 cross-kit interview tracks.**
 > - **Phase 4 — (separate decision, not this initiative):** Cards/Practice/Glossary surfaces,
 >   achievements, real Grain dark palette, React-vs-vanilla call.

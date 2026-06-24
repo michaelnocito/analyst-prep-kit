@@ -9,6 +9,39 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.70.0] — 2026-06-24 — 🎨 Grain redesign Phase 2h: Interview kit
+
+Restyled the **Interview Prep** kit to the Grain design system — the third of the
+5 remaining non-core surfaces. Style only; engine and content unchanged. This kit
+is **structurally different** from the lesson kits (rate-the-answer / multiple-choice
+drills, an Answer Builder, a sealed-intention card — no `freeDrill` guided-practice
+path), so there was no freeDrill bug to fix here.
+
+- Link `assets/grain/grain.css`; re-point the kit's semantic vars onto Grain tokens
+  (no one-off hex). `:root` = warm dark; `[data-theme="light"]` = Grain cream default.
+  Added `--err` (rust) and `--warn` (amber) vars — this kit previously hardcoded its
+  state colors.
+- Space Grotesk headings (`h1–h4` → `--font-display`); IBM Plex body/mono.
+- Nav brand mark (`▦` CSS glyph) → a Grain `.logo-mark` + Lucide **`messages-square`**;
+  settings/theme chrome emoji (`⚙️`/`🌓`) → Lucide `settings` / `sun-moon`; the
+  settings-modal header gear → Lucide.
+- **Token-faithful tint conversion:** the kit had the old blue accent baked into
+  **14** `rgba(47,109,240,…)` tints (active states, callouts, choice-correct,
+  say-it box, flashcard back, sprint bar) — all re-derived via
+  `color-mix(in srgb, var(--accent) N%, transparent)` so they follow the clay
+  accent and theme. Hardcoded wrong/ok state colors (`#c85050`/`#e07070`/`#c8a03c`
+  and their rgba tints) → `var(--err)` (rust) / `var(--warn)` (amber).
+- Added the robust Lucide loader (`grainRefreshIcons` + strip-`data-lucide` +
+  disconnect-during-refresh observer + poll-for-Lucide), same as the other kits.
+- Pedagogical content emoji left intact (📢 Say It Out Loud, 💡 hint, 🔒 sealed
+  intention, 🎉 toast), per the per-kit recipe.
+
+**No Chart.js** in this kit, so the defer trap didn't apply.
+
+**Verified headless:** 2 inline scripts, 0 syntax errors; 0 blue/old-hex residue;
+all referenced Grain tokens defined. Awaiting Mike's live playtest (dark + light;
+check Practice drills, the Answer Builder, and flashcards).
+
 ## [1.69.0] — 2026-06-24 — 🎨 Grain redesign Phase 2g: Forecasting kit (+ freeDrill fix)
 
 Restyled the **Forecasting & Trend Modeling** kit to the Grain design system —
