@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 23, 2026 (🎨 GRAIN Phase 2f — Chart Literacy restyled + a Practice-tab bug fix, v1.68.0 → v1.68.1)
-**Current version:** `v1.68.1` (Chart Literacy now on Grain + fix: its Practice free-drills threw on click. All 6 core kits + Chart Literacy are on Grain; awaiting Mike's live playtest of Chart Literacy's Practice tab.)
+**Last session ended:** June 24, 2026 (🎨 GRAIN Phase 2g — Forecasting restyled to Grain + its freeDrill Practice bug fixed, v1.69.0)
+**Current version:** `v1.69.0` (Forecasting now on Grain + the no-lesson freeDrill fix. All 6 core kits + Chart Literacy + Forecasting are on Grain; awaiting Mike's live playtest of Forecasting — dark+light + click-test all 5 Practice drill types.)
 **You are continuing an established collaboration with Mike Nocito.**
 
 > ### 🎨 CURRENT INITIATIVE — GRAIN REDESIGN (in flight)
@@ -23,13 +23,19 @@
 > deferred Chart.js that blanked Stats. A full headless sweep of all 11 kits + hub = every view
 > renders, no errors.
 >
-> **DONE this session (v1.68.0–v1.68.1):** **Chart Literacy** restyled to Grain (Phase 2f) — it
-> renders its example charts with inline **SVG (not Chart.js)**, so the defer trap didn't apply; uses
-> the robust Lucide loader. Then **v1.68.1** fixed its **Practice tab**: `freeDrill` builds a guided
-> session with `lessonId:null`, but `renderGuidedStep` read `lesson.title` on the undefined lesson →
-> threw → clicking a drill tile did nothing. Fixed the no-lesson free-practice path (header/back/finish).
-> ⚠️ **Forecasting shares this exact `freeDrill` code → same latent bug; fix it during Phase 2g.**
+> **DONE last session (v1.68.0–v1.68.1):** **Chart Literacy** restyled to Grain (Phase 2f) — inline
+> **SVG (not Chart.js)**, robust Lucide loader; then **v1.68.1** fixed its **Practice** freeDrill bug
+> (`lessonId:null` → `renderGuidedStep` read `lesson.title` on undefined → threw → drill tile did nothing).
 > _Lesson learned: click-test interactive flows (drills), don't just confirm they render._
+>
+> **DONE this session (v1.69.0):** **Forecasting** restyled to Grain (Phase 2g) + the **same freeDrill
+> fix** ported over (it shared the exact bug). ⚠️ **The handoff predicted Forecasting "WILL use Chart.js"
+> — it does NOT.** Its lesson visuals are inline HTML (`viz.html`), like Chart Literacy's SVG, so the
+> Chart.js-`defer` trap never applied. Brand mark = Lucide `trending-up`. Verified headless (0 syntax
+> errors); awaiting Mike's live click-test of all 5 Practice drill types, dark + light.
+> _GR noted for triage: two stray "Chart Literacy" copy-paste leftovers in `forecasting/index.html` —
+> the home heading "Start learning charts" (~L681) and the Settings → About text "Chart Literacy Kit"
+> (~L963). Content-only; not fixed this cycle (no bundling without permission)._
 >
 > **Per-kit pattern (SQL/Excel/Python/PBI/Tableau/Stats = templates):** link `assets/grain/grain.css`
 > → re-point the kit's `:root`/`.light`|`[data-theme]` vars onto Grain tokens (no new hex) → Space
@@ -45,10 +51,11 @@
 > then → throws → aborts the whole script → blank page). Guard: `if(typeof Chart!=='undefined'){…}`
 > else register on window `load`.
 >
-> **➡️ NEXT — Phase 2g: Forecasting kit.** Restyle to Grain AND fix its `freeDrill` Practice bug
-> (same as Chart Literacy's v1.68.1). Forecasting **WILL use Chart.js**, so mind the Chart.js-`defer`
-> top-level trap — never call `Chart.*` at top level; guard `if(typeof Chart!=='undefined'){…}` else
-> register on `window.load`. Then the remaining surfaces: **Interview, Simulator (Claude-API), Final**.
+> **➡️ NEXT — Phase 2h: Interview kit.** Restyle to Grain using the same per-kit recipe below. The
+> Interview kit is **structurally different** from the lesson kits (rate-the-answer / multiple-choice,
+> no `freeDrill` guided-practice path), so DON'T assume the same JS shapes — read its code first.
+> Then the remaining surfaces: **Simulator (Claude-API), Final**. (Check each for Chart.js before
+> assuming the defer trap applies — the last two non-core kits both turned out to use inline HTML/SVG.)
 > Then **Phase 3:** adopt Grain's normalized lesson content + the 4 cross-kit tracks (Data Migration ·
 > From Question to Metric · Financial Analyst · General Analyst Toolkit). **Phase 4** (separate
 > decision): cross-kit Cards/Practice/Glossary surfaces, a real Grain dark palette, React-vs-vanilla.
