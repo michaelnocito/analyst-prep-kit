@@ -9,6 +9,37 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.72.0] — 2026-06-24 — ♻️ Review list is now driven by the confidence rater (flag feature removed)
+
+Mike-reported (June 24, 7:00 PM ET): the **"Shaky? Flag to revisit"** button was
+**redundant** with the lesson confidence rater ("How well do you have this?"). If a
+learner doesn't mark a lesson as "Have it," that should be enough to put it on the
+review list — no separate flag tap needed.
+
+**Change (all 6 core lesson kits — Excel, SQL, Python, Tableau, Stats, Power BI):**
+- **Removed the flag feature entirely** — the per-lesson "Shaky? Flag to revisit"
+  button AND the per-drill flag buttons (SQL & Power BI had literal-keyed flags;
+  Excel/Python/Tableau/Stats had variable-keyed drill flags). One clean model.
+- **The Home "Your review list" card is now driven by the confidence rating:** a
+  lesson appears when rated **"Not yet"** (shown as a *Not yet* tag) or **"Almost"**
+  (*Almost*). Rating **"Have it"** keeps it off; **unrated** lessons don't appear
+  (no signal yet) — per Mike's "if they don't mark have it, it goes to review."
+- The list's **"✓ Got it now"** button now calls a new `confGotIt(lessonId)` that
+  sets the lesson's confidence to "high" (removing it), instead of the old
+  `toggleFlag`. Card subtitle updated: "Lessons you rated below 'Have it'."
+- Decisions confirmed with Mike up front: review threshold = below "Have it";
+  remove all flags (no per-drill flagging).
+
+**Note:** old saved `flagged` entries are simply ignored now (the array remains in
+state for back-compat but is no longer read). The now-unused flag helpers
+(`flagBtnHTML`/`toggleFlag`/`isFlagged`/`flagLabel`) and `.flag-btn` CSS are left
+in place as dead code — a separate cleanup.
+
+**Verified headless (all 6 kits):** 0 inline-script syntax errors; 0 remaining
+`flagBtnHTML` call-sites; `confGotIt` present; review list confidence-driven; new
+subtitle in place. Logic-tested: low/mid surface, high/unrated excluded, "Got it
+now" removes. Awaiting Mike's live playtest.
+
 ## [1.71.0] — 2026-06-24 — 🎨 Grain redesign Phase 2i: Simulator (Claude-API) kit
 
 Restyled the **Associate Data Analyst Simulator** to the Grain design system —

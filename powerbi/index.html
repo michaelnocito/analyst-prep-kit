@@ -1052,12 +1052,21 @@ function renderFlagged(){
   const el = document.getElementById('flaggedList');
   if(!el) return;
   const wrap = document.getElementById('flaggedCard');
-  const rows = state.flagged.map(k=>({k, info:flagLabel(k)})).filter(r=>r.info);
+  const conf = state.confidence || {};
+  const rows = Object.keys(conf).filter(id => conf[id]==='low' || conf[id]==='mid')
+    .map(id => DATA.LESSONS.find(x => x.id === +id)).filter(Boolean)
+    .map(l => ({id:l.id, title:`Lesson ${lessonPos(l.id)+1} — ${l.title}`, sub: conf[l.id]==='low' ? 'Not yet' : 'Almost'}));
   if(wrap) wrap.style.display = rows.length ? '' : 'none';
-  el.innerHTML = rows.map(r=>`<div class="flag-row" onclick="${r.info.go}">
-      <div><span style="font-size:11px;color:var(--warn,#d9963a);font-family:var(--mono);margin-right:8px">${r.info.sub}</span><span class="flag-row-title" style="font-size:14px;font-weight:600">${r.info.title}</span></div>
-      <div style="display:flex;gap:10px;align-items:center;flex-shrink:0"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleFlag('${r.k.slice(0,r.k.indexOf(':'))}',${+r.k.slice(r.k.indexOf(':')+1)});renderFlagged()" title="Remove from review list">✓ Got it now</button><span style="color:var(--accent);font-weight:700">→</span></div>
+  el.innerHTML = rows.map(r=>`<div class="flag-row" onclick="navigate('lesson',${r.id})">
+      <div><span style="font-size:11px;color:var(--warn,#d9963a);font-family:var(--mono);margin-right:8px">${r.sub}</span><span class="flag-row-title" style="font-size:14px;font-weight:600">${r.title}</span></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-shrink:0"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();confGotIt(${r.id})" title="Mark as 'Have it' — removes from review list">✓ Got it now</button><span style="color:var(--accent);font-weight:700">→</span></div>
     </div>`).join('');
+}
+function confGotIt(lessonId){
+  state.confidence = state.confidence || {};
+  state.confidence[lessonId] = 'high';
+  saveState();
+  renderFlagged();
 }
 
 // ─── NAV ───────────────────────────────────────────────────────────────────
@@ -1223,7 +1232,7 @@ function renderHome(){
     <div class="card" id="flaggedCard" style="margin-bottom:16px;border-color:var(--warn,#d9963a);display:none">
       <div class="row mb" style="justify-content:space-between">
         <h2 style="margin:0"><i data-lucide="flag" style="width:18px;height:18px;vertical-align:-2px;color:var(--warn)"></i> Your review list</h2>
-        <span style="font-size:12px;color:var(--muted)">Things you flagged as shaky</span>
+        <span style="font-size:12px;color:var(--muted)">Lessons you rated below “Have it”</span>
       </div>
       <div id="flaggedList"></div>
     </div>
@@ -1313,7 +1322,7 @@ function renderLesson(id){
       <button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">← Lessons</button>
       ${done ? '<span class="badge badge-done">✓ Done</span>' : ''}
       ${done ? `<button class="btn btn-ghost btn-sm" onclick="resetLesson(${l.id})" title="Clear this lesson's progress and quiz">↺ Reset this lesson</button>` : ''}
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto">${flagBtnHTML('lesson', l.id)}<span class="badge badge-unit">${l.unit}</span></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto"><span class="badge badge-unit">${l.unit}</span></div>
     </div>
     <h1>${l.title}</h1>
     ${l.story?`<div class="lesson-story"><i data-lucide="book-open"></i><span>${l.story}</span></div>`:l.prereq?`<div class="lesson-story"><i data-lucide="corner-down-right"></i><span><strong>Before this:</strong> ${l.prereq}</span></div>`:''}
@@ -1495,7 +1504,7 @@ function renderFill(idx){
     <div class="row mb">
       <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
       ${done ? '<span class="badge badge-done">✓</span>' : ''}
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto">${flagBtnHTML('fills',idx)}<span class="text-muted text-sm">${idx+1} / ${DATA.FILLS.length}</span></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto"><span class="text-muted text-sm">${idx+1} / ${DATA.FILLS.length}</span></div>
     </div>
     <div class="card">
       <h2>Fill in the Blank</h2>
@@ -1540,7 +1549,7 @@ function renderBug(idx){
     <div class="row mb">
       <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
       ${done ? '<span class="badge badge-done">✓</span>' : ''}
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto">${flagBtnHTML('bugs',idx)}<span class="text-muted text-sm">${idx+1} / ${DATA.BUGS.length}</span></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto"><span class="text-muted text-sm">${idx+1} / ${DATA.BUGS.length}</span></div>
     </div>
     <div class="card">
       <h2>Bug Hunt</h2>
@@ -1596,7 +1605,7 @@ function renderParsons(idx){
     <div class="row mb">
       <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
       ${done ? '<span class="badge badge-done">✓</span>' : ''}
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto">${flagBtnHTML('parsons',idx)}<span class="text-muted text-sm">${idx+1} / ${DATA.PARSONS.length}</span></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto"><span class="text-muted text-sm">${idx+1} / ${DATA.PARSONS.length}</span></div>
     </div>
     <div class="card">
       <h2>Put in Order</h2>

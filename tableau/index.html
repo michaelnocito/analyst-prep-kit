@@ -1515,12 +1515,21 @@ function renderFlagged(){
   const el = document.getElementById('flaggedList');
   if(!el) return;
   const wrap = document.getElementById('flaggedCard');
-  const rows = S.flagged.map(k=>({k, info:flagLabel(k)})).filter(r=>r.info);
+  const conf = S.confidence || {};
+  const rows = Object.keys(conf).filter(id => conf[id]==='low' || conf[id]==='mid')
+    .map(id => DATA.LESSONS.find(x => x.id === +id)).filter(Boolean)
+    .map(l => ({id:l.id, title:`Lesson ${lessonPos(l.id)+1} — ${l.title}`, sub: conf[l.id]==='low' ? 'Not yet' : 'Almost'}));
   if(wrap) wrap.style.display = rows.length ? '' : 'none';
-  el.innerHTML = rows.map(r=>`<div class="flag-row" onclick="${r.info.go}">
-      <div><span style="font-size:11px;color:var(--warn,#d9963a);font-family:var(--mono);margin-right:8px">${r.info.sub}</span><span class="flag-row-title" style="font-size:14px;font-weight:600">${r.info.title}</span></div>
-      <div style="display:flex;gap:10px;align-items:center;flex-shrink:0"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();toggleFlag('${r.k.slice(0,r.k.indexOf(':'))}',${+r.k.slice(r.k.indexOf(':')+1)});renderFlagged()" title="Remove from review list">✓ Got it now</button><span style="color:var(--accent);font-weight:700">→</span></div>
+  el.innerHTML = rows.map(r=>`<div class="flag-row" onclick="openLesson(${r.id})">
+      <div><span style="font-size:11px;color:var(--warn,#d9963a);font-family:var(--mono);margin-right:8px">${r.sub}</span><span class="flag-row-title" style="font-size:14px;font-weight:600">${r.title}</span></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-shrink:0"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();confGotIt(${r.id})" title="Mark as 'Have it' — removes from review list">✓ Got it now</button><span style="color:var(--accent);font-weight:700">→</span></div>
     </div>`).join('');
+}
+function confGotIt(lessonId){
+  S.confidence = S.confidence || {};
+  S.confidence[lessonId] = 'high';
+  save();
+  renderFlagged();
 }
 
 /* ── THEME ── */
@@ -1694,7 +1703,7 @@ function renderHome(){
     <div class="card" id="flaggedCard" style="margin-bottom:16px;border-color:var(--warn,#d9963a);display:none">
       <div class="flex-between mb12">
         <h2 style="margin:0"><i data-lucide="flag" style="width:18px;height:18px;vertical-align:-2px;color:var(--warn)"></i> Your review list</h2>
-        <span style="font-size:12px;color:var(--dim)">Things you flagged as shaky</span>
+        <span style="font-size:12px;color:var(--dim)">Lessons you rated below “Have it”</span>
       </div>
       <div id="flaggedList"></div>
     </div>
@@ -1804,9 +1813,7 @@ function renderLesson(){
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
       <button class="btn" style="padding:4px 10px;font-size:.8rem" onclick="renderLessonList()">← All Lessons</button>
       <span style="color:var(--txt2);font-size:.85rem">Lesson ${lessonPos(l.id)+1} of ${DATA.LESSONS.length}</span>
-      <div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
-        ${flagBtnHTML('lesson',l.id)}
-        ${S.done['lesson'+l.id]?`<button class="btn" style="padding:4px 10px;font-size:.8rem" onclick="resetLesson()" title="Clear this lesson's progress">↺ Reset this lesson</button>`:''}
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">        ${S.done['lesson'+l.id]?`<button class="btn" style="padding:4px 10px;font-size:.8rem" onclick="resetLesson()" title="Clear this lesson's progress">↺ Reset this lesson</button>`:''}
       </div>
     </div>
     <h2 style="margin-bottom:4px">${l.title}</h2>
@@ -2022,7 +2029,6 @@ function renderGuidedStep(){
   const header=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
       <button class="btn" style="padding:4px 10px;font-size:.8rem" onclick="openLesson(${lessonId})">← Back to lesson</button>
       <span style="color:var(--txt2);font-size:.85rem">Practice ${pos+1}/${seq.length} · ${lesson.title}</span>
-      <span style="margin-left:auto">${flagBtnHTML(step[0],idx)}</span>
     </div>
     <div style="margin-bottom:16px">${dots}</div>`;
   let body='';
@@ -2075,7 +2081,6 @@ function renderDrill(){
     <button class="btn" style="padding:4px 10px;font-size:.8rem" onclick="renderDrillList()">← Drills</button>
     <span style="color:var(--txt2);font-size:.85rem">${dt.icon} ${dt.label} — ${drillState.idx+1}/${items.length}</span>
     ${done?'<span style="color:var(--accent);font-size:.85rem">✓ Done</span>':''}
-    <span style="margin-left:auto">${flagBtnHTML(drillState.type,drillState.idx)}</span>
   </div>`;
   let navBtns=`<div style="display:flex;gap:8px;margin-top:16px">
     ${drillState.idx>0?`<button class="btn" onclick="openDrill('${drillState.type}',${drillState.idx-1})">← Prev</button>`:''}

@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 24, 2026 (🎨 GRAIN Phase 2g→2i — Forecasting, Interview, AND Simulator restyled to Grain, v1.69.0 → v1.71.0; Interview verified by Mike)
-**Current version:** `v1.71.0` (Simulator now on Grain. All 6 core kits + Chart Literacy + Forecasting + Interview + Simulator are on Grain — **only Final remains** for the Phase-2 rollout. Interview ✅ verified by Mike (070a/b/c). Awaiting Mike's playtest of Forecasting + Simulator.)
+**Last session ended:** June 24, 2026 (🎨 GRAIN Phase 2g→2i + ♻️ review-list/flag refactor, v1.69.0 → v1.72.0; Interview verified by Mike)
+**Current version:** `v1.72.0` (♻️ **Review list now confidence-driven; flag feature removed** across all 6 core lesson kits — see below. Grain rollout: all 6 core + Chart Literacy + Forecasting + Interview + Simulator done — **only Final remains** for Phase 2. Interview ✅ verified by Mike (070a/b/c). Awaiting Mike's playtest of Forecasting + Simulator + the review-list change.)
 **You are continuing an established collaboration with Mike Nocito.**
 
 > ### 🎨 CURRENT INITIATIVE — GRAIN REDESIGN (in flight)
@@ -46,6 +46,16 @@
 >   prompts) left intact.
 > All verified headless (0 syntax errors, 0 color residue, API block confirmed untouched); awaiting
 > Mike's live playtest of Forecasting + Simulator, dark + light.
+> • **♻️ Review-list / flag refactor (v1.72.0, all 6 core lesson kits):** Mike flagged the "Shaky?
+>   Flag to revisit" button as redundant with the confidence rater. **Removed the flag feature
+>   entirely** (lesson + drill flags — note Excel/Python/Tableau/Stats flagged drills via a *variable*
+>   arg `flagBtnHTML(type,idx)`, SQL/PowerBI via literals). Home's "Your review list" is now built from
+>   `confidence` ratings: lessons rated `low`/`mid` appear; `high`/unrated don't. New `confGotIt(id)`
+>   sets confidence `high` (the "✓ Got it now" button). Two state-var groups: SQL/PowerBI use
+>   `state`/`saveState`/`navigate('lesson',id)`; Excel/Python/Tableau/Stats use `S`/`save`/`openLesson(id)`
+>   (Tableau/Stats "Got it" button is `btn-outline`, others `btn-ghost`). **Dead code left behind on
+>   purpose:** `flagBtnHTML`/`toggleFlag`/`isFlagged`/`flagLabel` + `.flag-btn` CSS are now unused in all
+>   6 kits — a spawned cleanup task covers removing them.
 > _GR noted for triage: two stray "Chart Literacy" copy-paste leftovers in `forecasting/index.html` —
 > the home heading "Start learning charts" (~L681) and the Settings → About text "Chart Literacy Kit"
 > (~L963). Content-only; not fixed (no bundling without permission)._
