@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 23, 2026 (🎨 GRAIN redesign — hub + all 6 lesson kits, v1.61.0 → v1.67.1)
-**Current version:** `v1.67.1` (Grain restyle of all 6 core lesson kits done + 2 crash fixes; full headless sweep of all 11 kits + hub clean; awaiting Mike's playtest)
+**Last session ended:** June 23, 2026 (🎨 GRAIN Phase 2f — Chart Literacy restyled + a Practice-tab bug fix, v1.68.0 → v1.68.1)
+**Current version:** `v1.68.1` (Chart Literacy now on Grain + fix: its Practice free-drills threw on click. All 6 core kits + Chart Literacy are on Grain; awaiting Mike's live playtest of Chart Literacy's Practice tab.)
 **You are continuing an established collaboration with Mike Nocito.**
 
 > ### 🎨 CURRENT INITIATIVE — GRAIN REDESIGN (in flight)
@@ -23,6 +23,14 @@
 > deferred Chart.js that blanked Stats. A full headless sweep of all 11 kits + hub = every view
 > renders, no errors.
 >
+> **DONE this session (v1.68.0–v1.68.1):** **Chart Literacy** restyled to Grain (Phase 2f) — it
+> renders its example charts with inline **SVG (not Chart.js)**, so the defer trap didn't apply; uses
+> the robust Lucide loader. Then **v1.68.1** fixed its **Practice tab**: `freeDrill` builds a guided
+> session with `lessonId:null`, but `renderGuidedStep` read `lesson.title` on the undefined lesson →
+> threw → clicking a drill tile did nothing. Fixed the no-lesson free-practice path (header/back/finish).
+> ⚠️ **Forecasting shares this exact `freeDrill` code → same latent bug; fix it during Phase 2g.**
+> _Lesson learned: click-test interactive flows (drills), don't just confirm they render._
+>
 > **Per-kit pattern (SQL/Excel/Python/PBI/Tableau/Stats = templates):** link `assets/grain/grain.css`
 > → re-point the kit's `:root`/`.light`|`[data-theme]` vars onto Grain tokens (no new hex) → Space
 > Grotesk headings + nav brand mark → emoji→Lucide via the robust icon loader → rebuild the lesson
@@ -37,12 +45,21 @@
 > then → throws → aborts the whole script → blank page). Guard: `if(typeof Chart!=='undefined'){…}`
 > else register on window `load`.
 >
-> **➡️ NEXT:** Phase 2 remaining surfaces (structurally different, NOT yet restyled): **Chart
-> Literacy, Forecasting, Interview, Simulator, Final** (Chart-Literacy/Forecasting are chart-heavy
-> → mind the Chart.js-defer gotcha). Then **Phase 3:** adopt Grain's normalized lesson content +
-> the 4 cross-kit tracks (Data Migration · From Question to Metric · Financial Analyst · General
-> Analyst Toolkit). **Phase 4** (separate decision): cross-kit Cards/Practice/Glossary surfaces, a
-> real Grain dark palette, React-vs-vanilla.
+> **➡️ NEXT — Phase 2g: Forecasting kit.** Restyle to Grain AND fix its `freeDrill` Practice bug
+> (same as Chart Literacy's v1.68.1). Forecasting **WILL use Chart.js**, so mind the Chart.js-`defer`
+> top-level trap — never call `Chart.*` at top level; guard `if(typeof Chart!=='undefined'){…}` else
+> register on `window.load`. Then the remaining surfaces: **Interview, Simulator (Claude-API), Final**.
+> Then **Phase 3:** adopt Grain's normalized lesson content + the 4 cross-kit tracks (Data Migration ·
+> From Question to Metric · Financial Analyst · General Analyst Toolkit). **Phase 4** (separate
+> decision): cross-kit Cards/Practice/Glossary surfaces, a real Grain dark palette, React-vs-vanilla.
+>
+> **Per-kit Grain pattern (reused this session, proven on Chart Literacy):** link
+> `../assets/grain/grain.css` → re-point the kit's own `:root` / `[data-theme="light"]` vars onto Grain
+> tokens (no new hex) → `h1–h4{font-family:var(--font-display)}` → emoji→Lucide (nav `.logo-mark` +
+> chrome buttons + drill-tile icons) → add the **robust `grainRefreshIcons()` loader** (createIcons +
+> strip `data-lucide` off generated `<svg>` + disconnect-during-refresh MutationObserver + poll-for-lucide).
+> **Click-test the drills**, not just render. Cleanup noted: "Bare Basics" (removed v1.58) still appears
+> as dead refs in 8 files — prune when convenient.
 >
 > ---
 >
