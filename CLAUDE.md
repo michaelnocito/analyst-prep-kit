@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
 **Last session ended:** June 25, 2026 (🎨 Grain Phase 2 COMPLETE + 🧹 cleanup + 📚 **Phase 3 started: SQL kit's 4 interview tracks added** (46 lessons), v1.73.0 → v1.75.0)
-**Current version:** `v1.77.0` (🎉 **Phase 3 track rollout COMPLETE.** All 4 tool kits have all 4 interview tracks: SQL 46 · Excel 51 · Python 42 · Power BI 39 (match Grain targets). Chart viz the kits can't draw → **data tables** (Mike's call). 🏷️ Hub labels accurate. Grain Phase 2 done (all 11 kits). ✅ Mike-verified: Interview, review-list. **Next = Phase 4 (separate decision): cross-kit Cards/Practice/Glossary surfaces, real Grain dark palette.**)
+**Current version:** `v1.77.0` (🎉 **Phase 3 track rollout COMPLETE.** All 4 tool kits have all 4 interview tracks: SQL 46 · Excel 51 · Python 42 · Power BI 39 (match Grain targets). Chart viz the kits can't draw → **data tables** (Mike's call). 🏷️ Hub labels accurate. Grain Phase 2 done (all 11 kits). ✅ Mike-verified: Interview, review-list. **Grain Phases 2 + 3 COMPLETE. Phase 4 is PARKED — revisit ~July 25, 2026 (traffic-gated; see Parking Lot for per-item verdicts). No active build work queued.**)
 **You are continuing an established collaboration with Mike Nocito.**
 
 > ### 🎨 CURRENT INITIATIVE — GRAIN REDESIGN (in flight)
@@ -108,8 +108,14 @@
 >   Reusable generator lives in the v1.74–v1.77 commits: load Grain `lessons-<kit>.js` by string
 >   index (NOT regex), filter tracks by NAME, `vizToTable()` converter (table/bar/line/waterfall/
 >   boxplot/histogram/combo/scatter), then wrap to the kit's viz shape; CRLF anchors.
-> **➡️ NEXT — Phase 4 (separate decision, scope with Mike):** cross-kit Cards/Practice/Glossary
->   surfaces (auto-generate from lesson data), achievements, a real Grain dark palette, React-vs-vanilla.
+> **⏸️ Phase 4 is PARKED — revisit ~July 25, 2026 (traffic-gated).** Decision (Mike + Claude, Jun 25):
+>   hold the whole phase ~1 month; none of it earns its keep pre-traffic (GA4 was just added — let usage
+>   data promote what's worth building). Verdicts in ROADMAP Parking Lot: cross-kit Cards/Practice/
+>   Glossary → later; achievements → later/maybe-skip (clutter risk vs calm vision); real Grain dark
+>   palette → later/low-pri (dark already works); **React re-platform → skip even later** (vanilla/zero-
+>   build is a feature). One portfolio-value pull-forward if promoted sooner: real inline-SVG **charts**
+>   in the track lessons (they currently render as data tables). **Don't start Phase 4 unless Mike
+>   promotes it.** Independent loose ends still open: none blocking.
 > Then **Phase 3:** adopt Grain's normalized lesson content + the 4 cross-kit tracks (Data Migration ·
 > From Question to Metric · Financial Analyst · General Analyst Toolkit). **Phase 4** (separate
 > decision): cross-kit Cards/Practice/Glossary surfaces, a real Grain dark palette, React-vs-vanilla.

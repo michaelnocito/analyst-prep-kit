@@ -1,6 +1,6 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.77.0` (shipped June 25, 2026 — 📚 **Phase 3 track rollout COMPLETE** — Python (+24 → 42 lessons) and Power BI (+23 → 39) gained all 4 interview tracks, finishing the additive-tracks phase across all 4 tool kits (SQL 46 · Excel 51 · Python 42 · Power BI 39, all matching Grain targets). Python viz → `lessonOutputHTML` `df` table; Power BI viz → `lessonPbiHTML` `html` table. Hub labels updated. Verified headless, 0 syntax errors. **Next: Phase 4 (separate decision) — cross-kit Cards/Practice/Glossary surfaces, real Grain dark palette.**)
+**Current version:** `v1.77.0` (shipped June 25, 2026 — 📚 **Phase 3 track rollout COMPLETE** — Python (+24 → 42 lessons) and Power BI (+23 → 39) gained all 4 interview tracks, finishing the additive-tracks phase across all 4 tool kits (SQL 46 · Excel 51 · Python 42 · Power BI 39, all matching Grain targets). Python viz → `lessonOutputHTML` `df` table; Power BI viz → `lessonPbiHTML` `html` table. Hub labels updated. Verified headless, 0 syntax errors. **Grain Phases 2 + 3 both COMPLETE. Phase 4 is PARKED — revisit ~July 25, 2026 (traffic-gated; see Parking Lot).**)
 **Prior:** `v1.76.0` (June 25, 2026 — 📚 Phase 3: Excel kit complete — 4 tracks → 51 lessons; hub labels fixed.) — all 4 interview tracks added (Units 7–10), Excel now **51 lessons** (matches Grain). Excel shape differs (ral array `{formula,say,lines}`; viz = spreadsheet grid `{cols,grid}`) — chart→table converter extended (+histogram) then wrapped to grid form for `lessonGridHTML`. 🏷️ **Hub lesson-count labels fixed** (were all stale "12 lessons" → now accurate: Excel 51 · SQL 46 · Tableau 32 · Python 18 · Stats 16 · PBI 16 · Interview 16 · Charts/Forecasting 13). Verified headless, 0 syntax errors. **Next: Python → Power BI.**)
 **Prior:** `v1.75.0` (June 25, 2026 — 📚 Phase 3: SQL kit complete — all 4 interview tracks, 46 lessons; chart viz→data tables.) — all 4 interview tracks added (Units 4–7: Data Migration · From Question to Metric · Financial Analysis · General Analyst Toolkit), SQL now **46 lessons** (matches Grain target). Chart viz the kit can't draw (bar/line/waterfall/boxplot/combo/scatter) are rendered as **data tables** via a converter + the existing `lessonResultHTML` (Mike's call — no Chart.js added). Verified headless, 0 syntax errors. **Next: roll the 4 tracks to Excel → Python → Power BI**, reusing the chart→table converter.)
 **Prior:** `v1.74.0` (June 25, 2026 — 📚 Phase 3 begins: SQL Unit 4 "Data Migration" track (8 lessons), pilot of the additive-tracks approach.)
@@ -262,6 +262,31 @@ gets requested again, when testing surfaces a related issue, or when
 all other buckets are empty.
 
 ---
+
+- **🎨 GRAIN PHASE 4 — cross-kit surfaces + polish** _(parked June 25, 2026 — revisit ~July 25, 2026)_
+  - _What:_ The post-rollout "nice-to-haves" from the Grain brief — (a) cross-kit
+    **Cards / Practice / Glossary** surfaces (auto-generate from lesson data), (b)
+    **achievements / track badges**, (c) a real **Grain dark palette**, (d) a
+    **React-vs-vanilla** re-platform.
+  - _Decision (Mike + Claude, June 25):_ **hold the whole phase ~1 month and revisit**
+    once GA4 traffic data exists. None of it earns its keep pre-traffic — it's all
+    retention/polish/architecture that pays off only with repeat users. Per-item take:
+    - **Cross-kit Cards/Practice/Glossary** → later (traffic-gated). Each kit already
+      has these per-kit; the unified version is power-user/repeat-visitor value.
+    - **Achievements/badges** → later, maybe skip. Retention gamification; biggest risk
+      to the calm "simplicity beats completeness" vision. Only if GA4 shows return-then-drop.
+    - **Real Grain dark palette** → later, low priority. Dark already works (mapped onto
+      tokens); bespoke dark is pure polish, invisible to first-time visitors.
+    - **React re-platform** → **skip even later** unless the app outgrows a single file.
+      Vanilla + zero-build + GH-Pages is a feature; React adds a build step for no
+      learner-visible gain (brief explicitly fences it off).
+  - _One adjacent item with real portfolio value if promoted sooner:_ the interview-track
+    **chart lessons currently render as data tables** (not charts). For a data-analyst's
+    portfolio, real **inline-SVG charts** would photograph better than tables. Still a
+    "nice to have," but the most justifiable Phase-4 pull-forward.
+  - _Revisit trigger:_ ~July 25, 2026, OR when GA4 shows meaningful repeat traffic — let
+    real usage promote whichever surface earns it.
+  - _Est. effort:_ Large (multi-cycle; each sub-item its own scoped piece).
 
 - **Within-lesson highlighting in Bare Basics mode** _(parked)_ —
   Currently the mode highlights _which lessons_ are must-knows but
