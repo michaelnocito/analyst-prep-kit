@@ -9,6 +9,31 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.77.0] — 2026-06-25 — 📚 Phase 3: Python (42) + Power BI (39) tracks — **track rollout COMPLETE**
+
+Added the 4 interview tracks to the last two tool kits, finishing the additive-tracks
+phase. All 4 tool kits (SQL, Excel, Python, Power BI) now carry Data Migration · From
+Question to Metric · Financial Analysis · General Analyst Toolkit.
+
+- **Python kit:** +24 track lessons (Units 4–7; ids 401–406/601–606/701–706/801–806) →
+  **42 lessons**. Python `ral` is an array of `{formula,say,lines}` (Grain `code`→
+  `formula`); viz renders via `lessonOutputHTML`'s **`df` table** slot — chart viz
+  converted to `{df:{columns,rows}}`.
+- **Power BI kit:** +23 track lessons (Unit 4 = 5 lessons; ids 401–405/601–606/701–706/
+  801–806) → **39 lessons**. Power BI `ral` is `{code,say,lines}`; viz renders via
+  `lessonPbiHTML`'s **`html`** slot — chart viz converted to an inline HTML table.
+- Both: chart viz the kits can't draw rendered as **data tables** (Mike's call); lesson
+  `intro` made optional in each render.
+- **Hub labels updated:** Python 42, Power BI 39 (joining Excel 51 · SQL 46 · Tableau 32
+  · Stats/Interview 16 · Charts/Forecasting 13).
+
+Each kit now **matches Grain's declared total** (SQL 46 · Excel 51 · Python 42 · Power BI
+39). **Verified headless:** both kits 0 syntax errors, correct totals, all 4 track units
+present; hub 0 errors.
+
+**Phase 3 (additive interview tracks) is complete.** Remaining is **Phase 4** (separate
+decision): cross-kit Cards/Practice/Glossary surfaces, real Grain dark palette.
+
 ## [1.76.0] — 2026-06-25 — 📚 Phase 3: Excel kit tracks (51 lessons) + 🏷️ hub lesson labels fixed
 
 **Excel kit — all 4 interview tracks added** (23 lessons), purely additive:
