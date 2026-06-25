@@ -9,6 +9,32 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.74.0] — 2026-06-25 — 📚 Phase 3 (content) begins: SQL "Data Migration" interview track
+
+First slice of Phase 3 — adding Grain's **cross-kit interview tracks** to the tool kits,
+purely additive (existing lessons untouched). Approach confirmed with Mike: add the new
+tracks only, one kit per cycle, starting SQL.
+
+- **SQL kit: added Unit 4 "Data Migration"** — 8 new lessons (ids 501–508) bolted onto
+  the existing curriculum: Profiling (counts/uniqueness, duplicates, nulls & format
+  chaos), Cleansing (standardize text), Mapping (CASE WHEN source→target), Type Coercion
+  & Defaults (CAST + COALESCE), Validation (row counts & control totals), Reconciliation
+  (what didn't make it). Content from Grain's `lessons-sql.js`, translated into the SQL
+  kit's existing lesson shape (`code`→`ral.sql`, `say`→`ral.say`, `lines`→`ral.lines`,
+  `viz` table). SQL now has **28 lessons** (was 20). Directly relevant to Mike's
+  AlayaCare data-migration interview.
+- Made the lesson `intro` field optional in the render (`${l.intro?…:''}`) — the Grain
+  track lessons lead with `story`, no separate intro.
+
+**Verified headless:** 0 syntax errors; all 8 lesson ids present; Unit 4 groups correctly;
+all viz are `table` (render via the existing `lessonResultHTML`); nav flows to the finish
+celebration after lesson 508.
+
+**Known next step:** SQL's other 3 tracks (Units 5–7) and the other tool kits use chart
+viz types (bar/line/waterfall/boxplot/combo/scatter) the kits can't currently draw —
+a viz-handling decision is pending before they're added. Also noted: the hub's per-kit
+"12 lessons" labels are pre-existing stale (kits have 20–28) — separate fix.
+
 ## [1.73.1] — 2026-06-25 — 🧹 Cleanup: remove dead flag-feature code + fix Forecasting copy leftovers
 
 Post-Phase-2 tidy-up (no user-facing behavior change beyond two copy fixes).
