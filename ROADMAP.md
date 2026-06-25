@@ -1,6 +1,7 @@
 # Analyst Prep Kit — Roadmap
 
-**Current version:** `v1.72.0` (shipped June 24, 2026 — ♻️ **Review list now driven by the confidence rater; flag feature removed** across all 6 core lesson kits. The "Shaky? Flag to revisit" button (lesson + drill) was redundant with "How well do you have this?" — now a lesson lands on Home's "Your review list" when rated "Not yet" or "Almost" (unrated/"Have it" stay off); the "✓ Got it now" button sets confidence to "high" via new `confGotIt()`. Mike-confirmed: threshold = below "Have it", remove all flags. Verified headless, 6 kits, 0 syntax errors, 0 flag call-sites, logic-tested. Dead flag helpers left for a separate cleanup.)
+**Current version:** `v1.73.0` (shipped June 25, 2026 — 🎨 Grain redesign Phase 2j: **Final Exam** kit restyled to Grain — full var set→tokens, Space Grotesk headings, Lucide `clipboard-check` brand + chrome/CTA/See-it icons via the robust loader; 7-color per-subject palette remapped to Grain hues; 6 baked tints → `color-mix`. **🎉 This COMPLETES the Grain Phase-2 rollout — all 11 kits + hub are now on Grain.** Intentionally kept the Tableau dimension/measure study pills' blue/green (mimics Tableau's real UI). No Chart.js. Verified headless, 0 syntax errors. Awaiting Mike's live playtest.)
+**Prior:** `v1.72.0` (June 24, 2026 — ♻️ **Review list now driven by the confidence rater; flag feature removed** across all 6 core lesson kits. The "Shaky? Flag to revisit" button (lesson + drill) was redundant with "How well do you have this?" — now a lesson lands on Home's "Your review list" when rated "Not yet" or "Almost" (unrated/"Have it" stay off); the "✓ Got it now" button sets confidence to "high" via new `confGotIt()`. Mike-confirmed: threshold = below "Have it", remove all flags. Verified headless, 6 kits, 0 syntax errors, 0 flag call-sites, logic-tested. Dead flag helpers left for a separate cleanup.)
 **Prior:** `v1.71.0` (June 24, 2026 — 🎨 Grain redesign Phase 2i: **Simulator** (Claude-API) kit restyled to Grain — full var set→tokens, Space Grotesk headings, Lucide `briefcase` brand mark + chrome/intro/stat icons via the robust loader. **Style only — the live Claude API fetch/model/key logic was NOT touched** (verified intact). Two baked tints → `color-mix`; the cool skill-category palette (`TYPE_COLOR`) remapped to Grain hues. No Chart.js. Verified headless, 0 syntax errors, 0 residue, API block confirmed untouched. Awaiting Mike's live playtest.)
 **Prior:** `v1.70.0` (June 24, 2026 — 🎨 Grain Phase 2h: Interview kit restyled — 14 baked-blue tints → `color-mix`; **✅ verified by Mike, 070a/b/c pass**.)
 **Prior:** `v1.69.0` (June 24, 2026 — 🎨 Grain Phase 2g: Forecasting restyled + its `freeDrill` Practice bug fixed; Forecasting does NOT use Chart.js. Verified headless.)
@@ -20,13 +21,14 @@
 > - **Phase 2 — roll restyle + Say-It-Out-Loud across remaining kits, one at a time.**
 >   ✅ Excel (v1.63.0) · ✅ Python (v1.64.0) · ✅ Power BI (v1.65.0) · ✅ Tableau (v1.66.0) · ✅ Stats (v1.67.0).
 >   **All 6 core lesson kits done.** Then the non-core surfaces: ✅ Chart Literacy (v1.68.0) ·
->   ✅ Forecasting (v1.69.0) · ✅ Interview (v1.70.0) · ✅ Simulator (v1.71.0). **Remaining: Final.**
->   (Robust disconnect-observer + poll-for-Lucide loader now used in every restyled kit; reuse it.
->   None of the non-core kits used Chart.js — all inline HTML/SVG — so the defer trap didn't apply;
->   still mind it for Final. `color-mix(in srgb, var(--accent) N%, transparent)` converts baked-accent
->   rgba tints onto the token system; remap any cool categorical palettes to Grain hues like the
->   Simulator's `TYPE_COLOR`. The Simulator's live Claude-API logic was style-frozen — do the same
->   if Final has any engine.)
+>   ✅ Forecasting (v1.69.0) · ✅ Interview (v1.70.0) · ✅ Simulator (v1.71.0) · ✅ Final (v1.73.0).
+>   **🎉 Phase 2 COMPLETE — all 11 kits + hub are on Grain.** (None of the non-core kits used
+>   Chart.js — all inline HTML/SVG — so the defer trap never applied. `color-mix(in srgb, var(--accent)
+>   N%, transparent)` was the reusable trick for baked-accent rgba tints; cool categorical palettes
+>   (Simulator `TYPE_COLOR`, Final `--c-*`) were remapped to Grain hues.)
+> - **➡️ NEXT: Phase 3** — adopt Grain's normalized lesson content + the 4 cross-kit interview tracks
+>   (Data Migration · From Question to Metric · Financial Analyst · General Analyst Toolkit). Content,
+>   not styling. Plan/tokens still in the design_handoff folder.
 > - **Phase 3 — adopt Grain's normalized lesson content + the 4 cross-kit interview tracks.**
 > - **Phase 4 — (separate decision, not this initiative):** Cards/Practice/Glossary surfaces,
 >   achievements, real Grain dark palette, React-vs-vanilla call.

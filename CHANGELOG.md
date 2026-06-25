@@ -9,6 +9,37 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.73.0] — 2026-06-25 — 🎨 Grain redesign Phase 2j: Final Exam kit — **Phase 2 COMPLETE**
+
+Restyled the **Final Exam** kit (28-Q cross-subject test + study guide) to the Grain
+design system — the **last** of the non-core surfaces. Style only; the exam
+engine, scoring, per-section submit, and study-guide content are unchanged.
+**This completes the Grain Phase-2 rollout: all 11 kits + the hub are now on Grain.**
+
+- Link `assets/grain/grain.css`; re-point the kit's full semantic var set onto Grain
+  tokens (no one-off hex). `:root` = warm dark; `[data-theme="light"]` = Grain cream.
+  `--good` → leaf, `--warn` → amber, `--bad` → rust.
+- Space Grotesk headings (nav/CTA/study/exam titles); IBM Plex body/mono.
+- Nav brand glyph (`▦`) → Grain `.logo-mark` + Lucide **`clipboard-check`**; Reset +
+  theme chrome (`↺`/`☀☾`) → Lucide `rotate-ccw` / `sun`·`moon`; the two home CTA
+  icons (`📖`/`📝`) → Lucide `book-open` / `clipboard-list`; the study-viz "See it"
+  caption (`📺`) → Lucide `monitor`; the Results "Retake exam" `↺` → Lucide.
+- **Per-subject palette** (`--c-excel`…`--c-interview`, 7 cool greens/blues/purple)
+  remapped to distinct, cream-readable Grain hues (leaf / teal / clay / amber / rust
+  / stone / dark-teal).
+- Six baked accent/error rgba tints → `color-mix` off `var(--accent)` / `var(--bad)`.
+- Added the robust Lucide loader.
+- **Intentionally left as pedagogical content:** the star-schema study diagram emoji
+  (📅 👤 ★ 📦 🌐), the 🗣️ "Say it out loud" + 🔒 absolute-ref notes, and — notably —
+  the **Tableau dimension/measure study pills** keep their blue/green (`#5b8cf5` +
+  `▦` / green): that blue=dimension, green=measure coloring mimics Tableau's real UI,
+  so recoloring it would make the lesson wrong.
+
+**No Chart.js** in this kit, so the defer trap didn't apply.
+
+**Verified headless:** 2 inline scripts, 0 syntax errors; only the intentional
+Tableau-pill glyph remains; content emoji preserved. Awaiting Mike's live playtest.
+
 ## [1.72.0] — 2026-06-24 — ♻️ Review list is now driven by the confidence rater (flag feature removed)
 
 Mike-reported (June 24, 7:00 PM ET): the **"Shaky? Flag to revisit"** button was
@@ -38,7 +69,7 @@ in place as dead code — a separate cleanup.
 **Verified headless (all 6 kits):** 0 inline-script syntax errors; 0 remaining
 `flagBtnHTML` call-sites; `confGotIt` present; review list confidence-driven; new
 subtitle in place. Logic-tested: low/mid surface, high/unrated excluded, "Got it
-now" removes. Awaiting Mike's live playtest.
+now" removes. **✅ Verified by Mike on the live site — 072a/b/c all pass.**
 
 ## [1.71.0] — 2026-06-24 — 🎨 Grain redesign Phase 2i: Simulator (Claude-API) kit
 
