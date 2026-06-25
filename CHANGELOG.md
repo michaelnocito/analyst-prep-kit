@@ -9,6 +9,28 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.75.0] — 2026-06-25 — 📚 Phase 3: SQL kit — all 4 interview tracks complete (46 lessons)
+
+Added the remaining 3 interview tracks to the SQL kit (Unit 4 shipped in v1.74.0):
+- **Unit 5: From Question to Metric** (6 lessons, 601–606)
+- **Unit 6: Financial Analysis** (6 lessons, 701–706)
+- **Unit 7: General Analyst Toolkit** (6 lessons, 801–806)
+
+**SQL kit is now 46 lessons** (20 core + 26 across 4 tracks) — matches Grain's target.
+Content translated from `lessons-sql.js` into the SQL kit's lesson shape.
+
+**Chart viz → data tables** (per Mike's call): these tracks use chart viz the SQL kit
+can't draw (bar/line/waterfall/boxplot/combo/scatter). A converter renders each chart's
+underlying data as a "See it on screen" result table via the existing `lessonResultHTML`
+— e.g. a waterfall P&L becomes a Step/Amount table, a boxplot becomes a five-number
+summary, a scatter becomes an x/y table. No new rendering engine, no Chart.js added.
+
+**Verified headless:** 0 syntax errors; 46 lessons; all 4 track units present; every new
+lesson's viz is a `{columns,rows}` table (no unrenderable chart types remain).
+
+**Next:** roll the same 4 tracks to Excel, Python, Power BI (one kit per cycle), reusing
+this chart→table converter.
+
 ## [1.74.0] — 2026-06-25 — 📚 Phase 3 (content) begins: SQL "Data Migration" interview track
 
 First slice of Phase 3 — adding Grain's **cross-kit interview tracks** to the tool kits,
