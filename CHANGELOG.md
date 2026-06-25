@@ -9,6 +9,29 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.76.0] — 2026-06-25 — 📚 Phase 3: Excel kit tracks (51 lessons) + 🏷️ hub lesson labels fixed
+
+**Excel kit — all 4 interview tracks added** (23 lessons), purely additive:
+- **Unit 7: Data Migration** (521–525, 5), **Unit 8: From Question to Metric** (601–606),
+  **Unit 9: Financial Analysis** (701–706), **Unit 10: General Analyst Toolkit** (801–806).
+  Excel now **51 lessons** (28 core + 23 tracks) — matches Grain's target.
+- Per-kit shape differs from SQL: Excel `ral` is an array of `{formula, say, lines}`
+  blocks (Grain `code`→`formula`), and viz is a spreadsheet **grid** `{cols, grid}`.
+  Extended the chart→table converter (added `histogram`) then wrapped each into grid
+  form (column letters + headers in row 1) so they render via the existing
+  `lessonGridHTML`. Made Excel's lesson `intro` optional in the render.
+
+**🏷️ Hub lesson-count labels corrected** (`index.html`) — they all said "12 lessons"
+(stale since the curriculum grew well before this). Now accurate per kit: Excel 51 ·
+SQL 46 · Tableau 32 · Python 18 · Stats 16 · Power BI 16 · Interview 16 · Chart
+Literacy 13 · Forecasting 13. (Simulator / Final keep their "5 days · 10 tasks" /
+"Study + 28 Qs" labels.)
+
+**Verified headless:** Excel 0 syntax errors, 51 lessons, all 4 track units present,
+all track viz grid-shaped; hub 0 syntax errors, all labels accurate.
+
+**Next:** Python, then Power BI (same recipe; each kit's table/grid renderer differs).
+
 ## [1.75.0] — 2026-06-25 — 📚 Phase 3: SQL kit — all 4 interview tracks complete (46 lessons)
 
 Added the remaining 3 interview tracks to the SQL kit (Unit 4 shipped in v1.74.0):

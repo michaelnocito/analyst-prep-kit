@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
 **Last session ended:** June 25, 2026 (🎨 Grain Phase 2 COMPLETE + 🧹 cleanup + 📚 **Phase 3 started: SQL kit's 4 interview tracks added** (46 lessons), v1.73.0 → v1.75.0)
-**Current version:** `v1.75.0` (📚 **Phase 3 in progress.** SQL kit now has all 4 cross-kit interview tracks (Units 4–7: Data Migration · From Question to Metric · Financial Analysis · General Analyst Toolkit) → **46 lessons**, purely additive. Chart viz the kits can't draw are rendered as **data tables** (Mike's call). Grain Phase 2 done (all 11 kits). ✅ Mike-verified: Interview, review-list. **Next = roll the 4 tracks to Excel → Python → Power BI** (one kit/cycle), reusing the chart→table converter.)
+**Current version:** `v1.76.0` (📚 **Phase 3 in progress.** SQL (46) + **Excel (51)** kits now have all 4 cross-kit interview tracks, purely additive. Chart viz the kits can't draw → **data tables** (Mike's call). 🏷️ Hub lesson labels fixed. Grain Phase 2 done (all 11 kits). ✅ Mike-verified: Interview, review-list. **Next = Python → Power BI** (one kit/cycle), reusing the chart→table converter.)
 **You are continuing an established collaboration with Mike Nocito.**
 
 > ### 🎨 CURRENT INITIATIVE — GRAIN REDESIGN (in flight)
@@ -86,7 +86,12 @@
 > untouched. Tracks exist only for the 4 **tool** kits: SQL, Excel, Python, Power BI. Source =
 > `design_handoff_grain_redesign/grain_reference/lessons-<kit>.js` (Units 4–7 are the new content;
 > Units 0–3 are just reshapes of existing lessons — DON'T re-import those).
-> - **✅ SQL DONE (v1.74.0 + v1.75.0):** all 4 tracks → 46 lessons. Pattern proven:
+> - **✅ SQL DONE (v1.74.0 + v1.75.0):** all 4 tracks → 46 lessons. **✅ Excel DONE (v1.76.0):** all 4
+>   tracks (Units 7–10) → 51 lessons; Excel `ral` is an array of `{formula,say,lines}` (Grain `code`→
+>   `formula`) and viz is a grid `{cols,grid}` rendered by `lessonGridHTML` (chart→table converter +
+>   wrap to grid: column letters + headers in row 1; added `histogram`). **🏷️ Hub lesson labels fixed**
+>   (were stale "12 lessons"). ⚠️ Filter tracks by NAME not unit number — Excel's Units 4–6 are CORE
+>   (Deeper Formulas/Charts/Power Tools); tracks are Units 7–10. Pattern proven:
 >   1. node-extract Units 4–7 from `lessons-sql.js`; translate Grain shape → the kit's shape
 >      (`code`→`ral.sql`, `say`→`ral.say`, `lines`→`ral.lines`); insert into `DATA.LESSONS` before the
 >      array close (⚠️ files are **CRLF** — anchor with `\r\n`). New IDs 501–508/601–606/701–706/801–806
@@ -96,10 +101,10 @@
 >      `{columns,rows}` table via the existing result-table renderer. The converter is in the SQL
 >      git history (v1.75.0 commit) — reuse it for the other kits (each kit's table renderer differs:
 >      Excel=`lessonGridHTML`, Python=`lessonOutputHTML`, Power BI=`lessonResultHTML`).
-> - **➡️ NEXT: Excel, then Python, then Power BI** — same recipe, one kit per cycle, test each.
->   Check each kit's lesson shape first (the cheat-sheet: shapes differ per kit).
-> **Phase 4** (separate): cross-kit Cards/Practice/Glossary surfaces, real Grain dark palette. **Also
-> pending (independent):** hub per-kit "12 lessons" labels are stale (kits now 28–46 lessons).
+> - **➡️ NEXT: Python, then Power BI** — same recipe, one kit per cycle, test each. Check each kit's
+>   lesson shape + viz renderer first (Python=`lessonOutputHTML`, Power BI=`lessonResultHTML`); filter
+>   tracks by NAME. Tableau/Stats/Charts/Forecasting/Interview have NO tracks (tool-kit only).
+> **Phase 4** (separate): cross-kit Cards/Practice/Glossary surfaces, real Grain dark palette.
 > Then **Phase 3:** adopt Grain's normalized lesson content + the 4 cross-kit tracks (Data Migration ·
 > From Question to Metric · Financial Analyst · General Analyst Toolkit). **Phase 4** (separate
 > decision): cross-kit Cards/Practice/Glossary surfaces, a real Grain dark palette, React-vs-vanilla.
