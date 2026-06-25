@@ -9,6 +9,28 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.73.1] — 2026-06-25 — 🧹 Cleanup: remove dead flag-feature code + fix Forecasting copy leftovers
+
+Post-Phase-2 tidy-up (no user-facing behavior change beyond two copy fixes).
+
+- **Forecasting kit:** fixed two "Chart Literacy" copy-paste leftovers — the Home
+  hero now reads **"Start learning forecasting"** (was "Start learning charts"), and
+  the Settings → About line now reads **"Forecasting & Trend Modeling Kit"** (was
+  "Chart Literacy Kit").
+- **Dead-code removal (all 6 core lesson kits):** the flag feature was retired in
+  v1.72.0 but its helpers lingered. Removed the now-unused `isFlagged`,
+  `toggleFlag`, `flagBtnHTML`, `flagLabel` functions and the `.flag-btn` CSS rules
+  (kept `.flag-row`/`.flag-row-title`, which the confidence-driven review list still
+  uses). **Also removed 5 lingering guided-practice step flag references**
+  (`flagBtnHTML(step[0],…)`) that the v1.72.0 sweep missed — these called a function
+  that v1.72.0's UI removal had left callable, but the dead-code pass would have made
+  them throw in the guided view; both the calls and the function are now gone.
+  (`flagged:[]` left in each kit's state for back-compat; it's simply unread.)
+
+**Verified headless (all 6 kits):** 0 syntax errors; 0 remaining references to any of
+the 4 removed helpers; `renderFlagged`/`confGotIt`/`DRILL_TYPES`/`.flag-row` all
+intact.
+
 ## [1.73.0] — 2026-06-25 — 🎨 Grain redesign Phase 2j: Final Exam kit — **Phase 2 COMPLETE**
 
 Restyled the **Final Exam** kit (28-Q cross-subject test + study guide) to the Grain

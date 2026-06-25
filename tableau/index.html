@@ -68,9 +68,6 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 .btn-outline{background:none;border:1px solid var(--border);color:var(--text)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
 .btn-ghost{background:none;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.9)}.btn-ghost:hover{background:rgba(255,255,255,.1)}
 .btn-sm{padding:5px 12px;font-size:13px}
-.flag-btn{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1.5px dashed var(--border);color:var(--dim);padding:4px 10px;border-radius:14px;font-size:12px;font-family:inherit;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap}
-.flag-btn:hover{border-color:var(--warn,#d9963a);color:var(--warn,#d9963a)}
-.flag-btn.flag-on{border:1.5px solid var(--warn,#d9963a);background:rgba(217,150,58,.12);color:var(--warn,#d9963a)}
 .flag-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 2px;border-top:1px solid var(--border);cursor:pointer}
 .flag-row:hover .flag-row-title{color:var(--accent)}
 
@@ -1481,36 +1478,6 @@ function save(){localStorage.setItem('tpk',JSON.stringify(S));}
 /* ── FLAG FOR REVIEW (🚩 "I got it right but I'm shaky on this") ── */
 // One tap on any lesson or drill saves it to a Review list on Home.
 // Keys: 'lesson:<id>' or '<drillKey>:<idx>' (e.g. 'fills:3').
-function isFlagged(t,i){ return S.flagged.includes(t+':'+i); }
-function toggleFlag(t,i,btn){
-  const k = t+':'+i, p = S.flagged.indexOf(k);
-  if(p>-1) S.flagged.splice(p,1); else S.flagged.push(k);
-  save();
-  if(btn){
-    const on = p===-1;
-    btn.classList.toggle('flag-on', on);
-    btn.innerHTML = (on ? '<i data-lucide="flag" style="width:13px;height:13px;vertical-align:-2px"></i> Flagged — on your review list' : '<i data-lucide="flag" style="width:13px;height:13px;vertical-align:-2px"></i> Shaky? Flag to revisit');
-    if(window.lucide) lucide.createIcons();
-  }
-}
-function flagBtnHTML(t,i){
-  const on = isFlagged(t,i);
-  const fic = '<i data-lucide="flag" style="width:13px;height:13px;vertical-align:-2px"></i> ';
-  return `<button class="flag-btn${on?' flag-on':''}" onclick="toggleFlag('${t}',${i},this)" title="One tap saves this to the Review list on Home — flag anything you got right but still feel shaky on.">${fic}${on?'Flagged — on your review list':'Shaky? Flag to revisit'}</button>`;
-}
-// Human-readable label for a flagged key, for the Home review list.
-function flagLabel(k){
-  const ci = k.indexOf(':'), t = k.slice(0,ci), i = +k.slice(ci+1);
-  const trim = s => { s=(s||'').replace(/<[^>]*>/g,''); return s.length>70 ? s.slice(0,67)+'…' : s; };
-  if(t==='lesson'){
-    const l = DATA.LESSONS.find(x=>x.id===i);
-    return l ? {title:`Lesson ${lessonPos(l.id)+1} — ${l.title}`, sub:'Lesson', go:`openLesson(${i})`} : null;
-  }
-  const dt = DRILL_TYPES.find(d=>d.key===t);
-  const item = dt && DATA[dt.data] && DATA[dt.data][i];
-  if(!item) return null;
-  return {title:trim(item.q || item.broken || item.formula || dt.label), sub:`${dt.label} ${i+1}`, go:`show('practice');openDrill('${t}',${i})`};
-}
 function renderFlagged(){
   const el = document.getElementById('flaggedList');
   if(!el) return;

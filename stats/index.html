@@ -46,9 +46,6 @@ main{max-width:860px;margin:0 auto;padding:24px 16px}
 .btn-sm{padding:4px 10px;font-size:.8rem}
 .btn-outline{background:none;border:1px solid var(--accent);color:var(--accent)}
 .btn-outline:hover{background:var(--accent);color:#fff}
-.flag-btn{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1.5px dashed var(--bord);color:var(--txt2);padding:4px 10px;border-radius:14px;font-size:12px;font-family:inherit;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap}
-.flag-btn:hover{border-color:var(--warn,#d9963a);color:var(--warn,#d9963a)}
-.flag-btn.flag-on{border:1.5px solid var(--warn,#d9963a);background:rgba(217,150,58,.12);color:var(--warn,#d9963a)}
 .flag-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 2px;border-top:1px solid var(--bord);cursor:pointer}
 .flag-row:hover .flag-row-title{color:var(--accent)}
 .inp{background:var(--surf2);border:1px solid var(--bord);border-radius:6px;padding:8px 12px;color:var(--txt);font-size:14px;font-family:inherit;width:100%}
@@ -952,33 +949,6 @@ function loadState(){try{const r=JSON.parse(localStorage.getItem('spk'));if(r)S=
 function save(){localStorage.setItem('spk',JSON.stringify(S));}
 
 /* ── FLAG FOR REVIEW ── */
-function isFlagged(t,i){ return S.flagged.includes(t+':'+i); }
-function toggleFlag(t,i,btn){
-  const k = t+':'+i, p = S.flagged.indexOf(k);
-  if(p>-1) S.flagged.splice(p,1); else S.flagged.push(k);
-  save();
-  if(btn){ const on = p===-1; btn.classList.toggle('flag-on', on);
-    btn.innerHTML = (on ? '<i data-lucide="flag" style="width:13px;height:13px;vertical-align:-2px"></i> Flagged — on your review list' : '<i data-lucide="flag" style="width:13px;height:13px;vertical-align:-2px"></i> Shaky? Flag to revisit');
-    if(window.lucide) lucide.createIcons(); }
-}
-function flagBtnHTML(t,i){
-  const on = isFlagged(t,i);
-  const fic = '<i data-lucide="flag" style="width:13px;height:13px;vertical-align:-2px"></i> ';
-  return `<button class="flag-btn${on?' flag-on':''}" onclick="toggleFlag('${t}',${i},this)" title="One tap saves this to the Review list on Home — flag anything you got right but still feel shaky on.">${fic}${on?'Flagged — on your review list':'Shaky? Flag to revisit'}</button>`;
-}
-function flagLabel(k){
-  const c=k.indexOf(':'); if(c<0)return null;
-  const t=k.slice(0,c), i=+k.slice(c+1);
-  if(t==='lesson'){
-    const l=DATA.LESSONS.find(x=>x.id===i); if(!l)return null;
-    return {title:`Lesson ${lessonPos(l.id)+1} — ${l.title}`,sub:'Lesson',go:`openLesson(${l.id})`};
-  }
-  const dt=DRILL_TYPES.find(d=>d.key===t); if(!dt)return null;
-  const item=DATA[dt.data]&&DATA[dt.data][i]; if(!item)return null;
-  let txt=(item.prompt||item.english||'').replace(/<[^>]*>/g,'').trim();
-  if(txt.length>70)txt=txt.slice(0,67)+'…';
-  return {title:txt,sub:`${dt.label} ${i+1}`,go:`activateView('view-practice');openDrill('${t}',${i})`};
-}
 function renderFlagged(){
   const el = document.getElementById('flaggedList');
   if(!el) return;
@@ -1287,7 +1257,6 @@ function renderGuidedStep(){
   const header=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
       <button class="btn btn-sm" onclick="openLesson(${lessonId})">← Back to lesson</button>
       <span style="color:var(--txt2);font-size:.85rem">Practice ${pos+1}/${seq.length} · ${lesson.title}</span>
-      <span style="margin-left:auto">${DRILL_TYPES.some(d=>d.key===step[0])?flagBtnHTML(step[0],idx):''}</span>
     </div>
     <div style="margin-bottom:16px">${dots}</div>`;
   let body='';
