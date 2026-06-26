@@ -14,6 +14,7 @@
 <title>Final Exam Kit · Analyst Prep Kit</title>
 <meta name="description" content="A 28-question final exam covering Excel, SQL, Python, Tableau, Statistics, Power BI, and interview essentials. Plus a study guide with the bare basics for each.">
 <link rel="stylesheet" href="../assets/grain/grain.css">
+<script src="../assets/apk-pass.js"></script>
 <style>
 /* GRAIN design system. The kit's own semantic vars are re-pointed onto Grain
    tokens (assets/grain/) — no one-off hex. :root = warm dark variant;
@@ -218,6 +219,9 @@ state.openSections = state.openSections || {};
 // overrides this default.
 state.view = location.hash ? (state.view || 'home') : 'home';
 function save(){ localStorage.setItem(STORE, JSON.stringify(state)); }
+
+/* ============== All-Access Pass (premium gate) ============== */
+if(window.apkPass) apkPass.setKit('final');
 
 /* ============== STUDY GUIDE — bare basics per section ============== */
 const STUDY = [
@@ -503,17 +507,27 @@ const SECTION_ORDER = ['excel','sql','python','tableau','stats','powerbi','inter
 
 /* ============== RENDER ============== */
 function render(){
+  const app = document.getElementById('app');
+
+  // Gate: if not unlocked, show the paywall
+  if(window.apkPass && !apkPass.isUnlocked()){
+    document.querySelectorAll('nav .nav-btn').forEach(b=>b.classList.remove('active'));
+    app.innerHTML = apkPass.gateHTML({title:'Final Exam Kit'});
+    grainRefreshIcons();
+    return;
+  }
+
   document.querySelectorAll('nav .nav-btn').forEach(b=>b.classList.remove('active'));
   const navId = 'nav' + state.view.charAt(0).toUpperCase() + state.view.slice(1);
   document.getElementById(navId)?.classList.add('active');
   document.getElementById('navResults').style.display = anySubmitted() ? '' : 'none';
 
-  const app = document.getElementById('app');
   if(state.view === 'home') app.innerHTML = renderHome();
   else if(state.view === 'study') app.innerHTML = renderStudy();
   else if(state.view === 'exam') app.innerHTML = renderExam();
   else if(state.view === 'results') app.innerHTML = renderResults();
   attachFooter(app);
+  grainRefreshIcons();
 }
 
 function setView(v, opts){
