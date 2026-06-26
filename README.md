@@ -67,4 +67,4 @@ Actively in development. Content and layout may change between sessions. All pro
 
 ## License & credits
 
-Built by [Michael Nocito](https://michaelnocito.github.io). All content is free to use. The CONTOSO and DataBridge Analytics datasets are fictional.
+Built by [Michael Nocito](https://michaelnocito.github.io). Core content is free to use. The CONTOSO and DataBridge Analytics datasets are fictional.
