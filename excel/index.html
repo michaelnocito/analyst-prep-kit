@@ -493,8 +493,13 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 </div>
 
 <script src="https://unpkg.com/lucide@latest"></script>
+<script src="../assets/apk-pass.js"></script>
 <script>
 localStorage.removeItem('apk-basics'); // Bare Basics mode removed
+// ─── Interview Prep Pass (premium gate) ──────────────────────────────────────
+if(window.apkPass) apkPass.setKit('excel');
+function isPremiumLesson(l){ return l && l.id >= 500; }            // Units 7-10 = interview tracks
+function isLockedLesson(l){ return isPremiumLesson(l) && !(window.apkPass && apkPass.isUnlocked()); }
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const DATA = {
 LESSONS:[
@@ -1494,7 +1499,7 @@ function renderLessonList(){
       <div class="flex-between">
         <div>
           <span class="tag" style="margin-bottom:6px">L${lessonPos(l.id)+1}</span>
-          <h3 style="margin:0">${l.title}</h3>
+          <h3 style="margin:0">${l.title}${isLockedLesson(l)?' <i class="lesson-lock" data-lucide="lock" style="width:13px;height:13px"></i>':''}</h3>
         </div>
         <span style="color:${done?'var(--success)':'var(--border)'};font-size:20px">${done?'✓':'○'}</span>
       </div>
@@ -1544,6 +1549,17 @@ function renderLesson(){
   const _viewId = (S.lessonStage==='done' && S.doneLesson!=null) ? S.doneLesson : S.currentLesson;
   const l = DATA.LESSONS.find(x=>x.id===_viewId);
   if(!l) return;
+  if(isLockedLesson(l)){
+    document.getElementById('lessonContent').innerHTML = `
+      <div class="flex-between mb8">
+        <button class="btn btn-outline btn-sm" onclick="show('lessons')">← Lessons</button>
+        <span class="tag">${l.unit}</span>
+      </div>
+      <h1>${l.title}</h1>
+      ${window.apkPass ? apkPass.gateHTML({title:'Interview track lesson'}) : ''}`;
+    if(window.lucide) lucide.createIcons();
+    return;
+  }
   const pct = Math.round(lessonPos(l.id)/DATA.LESSONS.length*100);
   const done = S.lessonsDone.includes(l.id);
   let html = `

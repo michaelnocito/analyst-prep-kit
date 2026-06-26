@@ -346,8 +346,12 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 <div id="toast"></div>
 
 <script src="https://unpkg.com/lucide@latest"></script>
+<script src="../assets/apk-pass.js"></script>
 <script>
 localStorage.removeItem('apk-basics'); // Bare Basics mode removed
+if(window.apkPass) apkPass.setKit('powerbi');
+function isPremiumLesson(l){ return l && l.id >= 400; }
+function isLockedLesson(l){ return isPremiumLesson(l) && !(window.apkPass && apkPass.isUnlocked()); }
 // ─── DATA ──────────────────────────────────────────────────────────────────
 const DATA = {
 
@@ -1457,9 +1461,10 @@ function renderLessons(){
   DATA.LESSONS.forEach(l => {
     if(l.unit !== lastUnit){ html += `<div class="unit-label">${l.unit}</div>`; lastUnit = l.unit; }
     const done = state.doneLessons.includes(l.id);
+    const lock = isLockedLesson(l) ? ` <i class="lesson-lock" data-lucide="lock" style="width:13px;height:13px"></i>` : '';
     html += `<div class="lesson-row" onclick="navigate('lesson',${l.id})">
       <div class="lesson-num ${done?'done':''}">${done ? '✓' : lessonPos(l.id)+1}</div>
-      <div class="lesson-info"><div class="lesson-title">${l.title}</div><div class="lesson-sub">${l.sub}</div></div>
+      <div class="lesson-info"><div class="lesson-title">${l.title}${lock}</div><div class="lesson-sub">${l.sub}</div></div>
       <div class="lesson-arrow">›</div>
     </div>`;
   });
@@ -1470,6 +1475,16 @@ function renderLessons(){
 function renderLesson(id){
   const l = DATA.LESSONS.find(x => x.id === id);
   if(!l) return;
+  if(isLockedLesson(l)){
+    document.getElementById('main').innerHTML = `
+      <div class="row mb">
+        <button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">← Lessons</button>
+        <span class="badge badge-unit">${l.unit}</span>
+      </div>
+      <h1>${l.title}</h1>
+      ${window.apkPass ? apkPass.gateHTML({title:'Interview track lesson'}) : ''}`;
+    return;
+  }
   const done = state.doneLessons.includes(l.id);
   const ralLines = l.ral.lines.map(([chunk, desc]) =>
     `<div class="ral-line"><span class="ral-chunk">${chunk}</span><span class="ral-arrow">→</span><span class="ral-desc">${desc}</span></div>`
