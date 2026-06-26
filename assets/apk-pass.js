@@ -1,5 +1,5 @@
 /* ============================================================
-   Analyst Prep Kit — Interview Prep Pass (client-side unlock).
+   Analyst Prep Kit — All-Access Pass (client-side unlock).
    Static GitHub-Pages gate: a buyer gets the unlock code in the
    Buy Me a Coffee post-purchase message, pastes it into any kit,
    and premium lessons unlock for 1 year (localStorage).
@@ -66,22 +66,22 @@
       opts = opts || {};
       var live = MODE === 'live';
       var icon = live ? 'lock' : 'rocket';
-      var heading = live ? (opts.title || 'Premium lesson') : 'Interview tracks — coming soon';
+      var heading = live ? (opts.title || 'Premium lesson') : 'All-Access Pass — coming soon';
       var badge = live ? '' : '<div class="apk-gate-badge">Launching ' + LAUNCH + '</div>';
       var blurb = live
-        ? 'Part of the <strong>Interview Prep Pass</strong> — the interview tracks, mock exams, and deep practice that get you interview-ready. The core lessons stay free, always.'
-        : 'The interview tracks, mock exams, and deep practice are in final testing before launch. The core lessons stay free, always.';
+        ? 'Part of the <strong>All-Access Pass</strong> — the full premium layer of the Analyst Prep Kit, and it keeps growing. The core lessons stay free, always.'
+        : 'The premium layer of the Analyst Prep Kit is in final testing before launch — and it keeps expanding. The core lessons stay free, always.';
       var offer = live
         ? ''
         : '<div class="apk-gate-offer">' +
             '<div class="apk-gate-offer-tag">Founding offer · ends at launch ' + LAUNCH + '</div>' +
-            '<div class="apk-gate-juice">A whole year of premium access — every interview track, mock-exam practice, the analyst job-sim, and the final exam.</div>' +
+            '<div class="apk-gate-juice">A whole year of all-access — interview tracks, mock-exam practice, the analyst job-sim, the final exam, and new advanced modules as they land.</div>' +
             '<div class="apk-gate-price"><span class="apk-gate-amt">' + FOUNDING_PRICE + '</span>' +
             '<span class="apk-gate-per">for your first year</span></div>' +
             '<div class="apk-gate-strike">Founding rate · ' + LAUNCH_PRICE + ' at launch</div>' +
           '</div>';
       var buyLabel = live
-        ? 'Get the Interview Prep Pass — ' + LAUNCH_PRICE
+        ? 'Get the All-Access Pass — ' + LAUNCH_PRICE
         : 'Become a founding member — ' + FOUNDING_PRICE + '/year';
       return '<div class="apk-gate"><div class="apk-gate-card">' +
         badge +
