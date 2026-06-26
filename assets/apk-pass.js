@@ -6,10 +6,11 @@
    Client-side only — best-effort by nature; acceptable at this price.
 
    LAUNCH MODEL (set 2026-06-26):
-   - Now → launch: premium = "coming soon" + FOUNDING OFFER, $5 for
-     the first year (96.21212121% off the $11/mo launch price).
+   - Now → launch: premium = "coming soon" + FOUNDING OFFER, $5.55 for
+     the first year (95.837084% off the $11.11/mo launch price).
+     Prices are number-sequence winks: 555 = "change", 11:11 = "new beginnings".
    - Founding code is redeemable now; access lasts 1 year from redeem.
-   - At launch (~July 10, 2026): flip MODE to 'live' and price to $11/mo.
+   - At launch (~July 10, 2026): flip MODE to 'live' and price to $11.11/mo.
 
    Each kit decides WHICH lessons are premium and calls:
      window.apkPass.isUnlocked()      -> boolean
@@ -27,9 +28,9 @@
 
   var MODE = 'founding';              // 'founding' (pre-launch) | 'live' (post-launch)
   var LAUNCH = 'July 10, 2026';
-  var FOUNDING_PRICE = '$5';
-  var LAUNCH_PRICE = '$11/mo';
-  var DISCOUNT = '96.21212121%';      // (132-5)/132 off the true annual price
+  var FOUNDING_PRICE = '$5.55';       // 555 = "change" (for career-changers)
+  var LAUNCH_PRICE = '$11.11/mo';     // 11:11 = "new beginnings"
+  var DISCOUNT = '95.837084%';        // ($133.32 - $5.55) / $133.32 off the true annual price
 
   function h(s) {
     var n = 5381;
