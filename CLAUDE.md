@@ -117,7 +117,7 @@
 >   in the track lessons (they currently render as data tables). **Don't start Phase 4 unless Mike
 >   promotes it.** Independent loose ends still open: none blocking.
 > Then **Phase 3:** adopt Grain's normalized lesson content + the 4 cross-kit tracks (Data Migration ·
-> From Question to Metric · Financial Analyst · General Analyst Toolkit). **Phase 4** (separate
+> From Question to Metric · Financial Analyst · Advanced Analyst Toolkit). **Phase 4** (separate
 > decision): cross-kit Cards/Practice/Glossary surfaces, a real Grain dark palette, React-vs-vanilla.
 >
 > **Per-kit Grain pattern (reused this session, proven on Chart Literacy):** link

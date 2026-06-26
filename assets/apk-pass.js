@@ -30,9 +30,9 @@
   var LAUNCH = 'August 1, 2026';
   var FOUNDING_PRICE = '$5.55';       // 555 = "change" (for career-changers)
   var LAUNCH_PRICE = '$11.11/mo';     // 11:11 = "new beginnings"
-  var ANNUAL_TRUE = '$133.32';        // $11.11 x 12 — the real first-year cost, struck through
-  var DISCOUNT = '95.837084%';        // ($133.32 - $5.55) / $133.32 off the true annual price
-  var SAVE = '95.8%';                 // punchy badge version
+  // For the record — discount framing was intentionally dropped (steep % cheapens the brand);
+  // the card sells value, not a fire-sale. True first-year cost $11.11 x 12 = $133.32;
+  // founding $5.55 works out to 95.837084% off, but we never say that to the buyer.
 
   function h(s) {
     var n = 5381;
@@ -74,13 +74,11 @@
       var offer = live
         ? ''
         : '<div class="apk-gate-offer">' +
-            '<div class="apk-gate-save">Save ' + SAVE + '</div>' +
             '<div class="apk-gate-offer-tag">Founding offer · ends at launch ' + LAUNCH + '</div>' +
+            '<div class="apk-gate-juice">A whole year of premium access — every interview track, mock-exam practice, the analyst job-sim, and the final exam.</div>' +
             '<div class="apk-gate-price"><span class="apk-gate-amt">' + FOUNDING_PRICE + '</span>' +
-            '<span class="apk-gate-was">' + ANNUAL_TRUE + '</span>' +
-            '<span class="apk-gate-per">first year</span></div>' +
-            '<div class="apk-gate-punch">Less than one wish-month. For a whole year.</div>' +
-            '<div class="apk-gate-strike">' + DISCOUNT + ' off the ' + LAUNCH_PRICE + ' launch price</div>' +
+            '<span class="apk-gate-per">for your first year</span></div>' +
+            '<div class="apk-gate-strike">Founding rate · ' + LAUNCH_PRICE + ' at launch</div>' +
           '</div>';
       var buyLabel = live
         ? 'Get the Interview Prep Pass — ' + LAUNCH_PRICE
@@ -91,7 +89,7 @@
         '<h2>' + heading + '</h2>' +
         '<p>' + blurb + '</p>' +
         offer +
-        '<a class="apk-gate-buy" href="https://buymeacoffee.com/michaelnocito/extras" target="_blank" rel="noopener" ' +
+        '<a class="apk-gate-buy" href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener" ' +
         'onclick="if(window.gtag)gtag(\'event\',\'pass_buy_click\',{kit:apkPass._kit,mode:\'' + MODE + '\'})">' + buyLabel + '</a>' +
         '<div class="apk-gate-unlock">' +
         '<input id="apk-code" type="text" placeholder="Have a code? Paste it here" autocomplete="off" ' +
@@ -130,15 +128,12 @@
     '.apk-gate-card p{color:var(--muted,#666);font-size:14px;line-height:1.55;margin:0 0 18px}' +
     '.apk-gate-offer{position:relative;background:var(--bg,#faf7f3);border:1px dashed var(--accent,#C5511F);border-radius:12px;' +
     'padding:16px 16px 14px;margin:0 0 18px}' +
-    '.apk-gate-save{position:absolute;top:-10px;right:14px;background:var(--good,#3b6d11);color:#fff;font-size:11px;' +
-    'font-weight:500;letter-spacing:.03em;padding:3px 10px;border-radius:99px}' +
     '.apk-gate-offer-tag{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--accent,#C5511F);margin-bottom:8px}' +
+    '.apk-gate-juice{font-size:13px;color:var(--muted,#555);line-height:1.5;margin-bottom:12px}' +
     '.apk-gate-price{display:flex;align-items:baseline;justify-content:center;gap:8px;flex-wrap:wrap}' +
     '.apk-gate-amt{font-size:38px;font-weight:500;color:var(--text,#222);line-height:1}' +
-    '.apk-gate-was{font-size:17px;color:var(--muted,#999);text-decoration:line-through}' +
     '.apk-gate-per{font-size:13px;color:var(--muted,#666)}' +
-    '.apk-gate-punch{font-size:14px;font-weight:500;color:var(--text,#222);margin-top:8px}' +
-    '.apk-gate-strike{font-size:12px;color:var(--muted,#888);margin-top:4px}' +
+    '.apk-gate-strike{font-size:12px;color:var(--muted,#888);margin-top:6px}' +
     '.apk-gate-buy{display:inline-block;background:var(--accent,#C5511F);color:#fff;text-decoration:none;' +
     'font-weight:500;padding:11px 20px;border-radius:8px;font-size:14px}' +
     '.apk-gate-buy:hover{background:var(--accent2,#A5411A)}' +
