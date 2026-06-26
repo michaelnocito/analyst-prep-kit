@@ -27,10 +27,12 @@
   var YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
   var MODE = 'founding';              // 'founding' (pre-launch) | 'live' (post-launch)
-  var LAUNCH = 'July 10, 2026';
+  var LAUNCH = 'August 1, 2026';
   var FOUNDING_PRICE = '$5.55';       // 555 = "change" (for career-changers)
   var LAUNCH_PRICE = '$11.11/mo';     // 11:11 = "new beginnings"
+  var ANNUAL_TRUE = '$133.32';        // $11.11 x 12 — the real first-year cost, struck through
   var DISCOUNT = '95.837084%';        // ($133.32 - $5.55) / $133.32 off the true annual price
+  var SAVE = '95.8%';                 // punchy badge version
 
   function h(s) {
     var n = 5381;
@@ -72,9 +74,12 @@
       var offer = live
         ? ''
         : '<div class="apk-gate-offer">' +
-            '<div class="apk-gate-offer-tag">Founding offer · ends at launch</div>' +
+            '<div class="apk-gate-save">Save ' + SAVE + '</div>' +
+            '<div class="apk-gate-offer-tag">Founding offer · ends at launch ' + LAUNCH + '</div>' +
             '<div class="apk-gate-price"><span class="apk-gate-amt">' + FOUNDING_PRICE + '</span>' +
-            '<span class="apk-gate-per">for your first year</span></div>' +
+            '<span class="apk-gate-was">' + ANNUAL_TRUE + '</span>' +
+            '<span class="apk-gate-per">first year</span></div>' +
+            '<div class="apk-gate-punch">Less than one wish-month. For a whole year.</div>' +
             '<div class="apk-gate-strike">' + DISCOUNT + ' off the ' + LAUNCH_PRICE + ' launch price</div>' +
           '</div>';
       var buyLabel = live
@@ -123,13 +128,17 @@
     'align-items:center;justify-content:center;background:var(--accent,#C5511F);color:#fff}' +
     '.apk-gate-card h2{margin:0 0 8px;font-size:20px}' +
     '.apk-gate-card p{color:var(--muted,#666);font-size:14px;line-height:1.55;margin:0 0 18px}' +
-    '.apk-gate-offer{background:var(--bg,#faf7f3);border:1px dashed var(--accent,#C5511F);border-radius:12px;' +
-    'padding:14px 16px;margin:0 0 18px}' +
-    '.apk-gate-offer-tag{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--accent,#C5511F);margin-bottom:6px}' +
-    '.apk-gate-price{display:flex;align-items:baseline;justify-content:center;gap:8px}' +
-    '.apk-gate-amt{font-size:34px;font-weight:500;color:var(--text,#222);line-height:1}' +
+    '.apk-gate-offer{position:relative;background:var(--bg,#faf7f3);border:1px dashed var(--accent,#C5511F);border-radius:12px;' +
+    'padding:16px 16px 14px;margin:0 0 18px}' +
+    '.apk-gate-save{position:absolute;top:-10px;right:14px;background:var(--good,#3b6d11);color:#fff;font-size:11px;' +
+    'font-weight:500;letter-spacing:.03em;padding:3px 10px;border-radius:99px}' +
+    '.apk-gate-offer-tag{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--accent,#C5511F);margin-bottom:8px}' +
+    '.apk-gate-price{display:flex;align-items:baseline;justify-content:center;gap:8px;flex-wrap:wrap}' +
+    '.apk-gate-amt{font-size:38px;font-weight:500;color:var(--text,#222);line-height:1}' +
+    '.apk-gate-was{font-size:17px;color:var(--muted,#999);text-decoration:line-through}' +
     '.apk-gate-per{font-size:13px;color:var(--muted,#666)}' +
-    '.apk-gate-strike{font-size:12px;color:var(--muted,#888);margin-top:6px}' +
+    '.apk-gate-punch{font-size:14px;font-weight:500;color:var(--text,#222);margin-top:8px}' +
+    '.apk-gate-strike{font-size:12px;color:var(--muted,#888);margin-top:4px}' +
     '.apk-gate-buy{display:inline-block;background:var(--accent,#C5511F);color:#fff;text-decoration:none;' +
     'font-weight:500;padding:11px 20px;border-radius:8px;font-size:14px}' +
     '.apk-gate-buy:hover{background:var(--accent2,#A5411A)}' +
