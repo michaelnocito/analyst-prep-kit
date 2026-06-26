@@ -89,7 +89,7 @@
         '<h2>' + heading + '</h2>' +
         '<p>' + blurb + '</p>' +
         offer +
-        '<a class="apk-gate-buy" href="https://buymeacoffee.com/michaelnocito/extras?extra=551812" target="_blank" rel="noopener" ' +
+        '<a class="apk-gate-buy" href="https://buymeacoffee.com/michaelnocito/e/551812" target="_blank" rel="noopener" ' +
         'onclick="if(window.gtag)gtag(\'event\',\'pass_buy_click\',{kit:apkPass._kit,mode:\'' + MODE + '\'})">' + buyLabel + '</a>' +
         '<div class="apk-gate-unlock">' +
         '<input id="apk-code" type="text" placeholder="Have a code? Paste it here" autocomplete="off" ' +
