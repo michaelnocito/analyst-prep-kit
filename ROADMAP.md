@@ -224,6 +224,13 @@ _(GR-A shipped June 2, 2026 — Bare Basics cross-kit handoff CTA across all 6 l
 
 _(SIOL rollout shipped May 28, 2026 — see CHANGELOG v1.3.0. Tableau and Stats use a sections-based render rather than the RAL chunk pattern; deferred — see new Parking Lot entry.)_
 
+- **Update all marketing copy & docs: remove "no login needed" language** _(added June 27, 2026 — 5:30 PM ET)_ — _PRE-LAUNCH_
+  - _What:_ Search and replace across: personal site (`michaelnocito.github.io`), hub meta description, README files, social blurbs, and any other external-facing copy that says "no install, no login" or "no sign-up required." Replace with accurate language: "Free to start, optional sign-in to sync across devices" or similar.
+  - _Why it's here:_ Auth is now live (Google OAuth + email/password). Marketing material that promises "no login" contradicts the actual product. Pre-launch polish before freemium launch.
+  - _Scope:_ Audit and update: (1) hub `<meta name="description">` tag, (2) GitHub repo README, (3) personal site copy, (4) any other public-facing docs. Language should emphasize "free to explore without signing in, but sign in to sync progress."
+  - _Definition of Done:_ All references to "no login" are removed. New copy accurately reflects that auth is optional but available. Verified on live URLs (site + GitHub).
+  - _Est. effort:_ Small (mostly find-replace).
+
 - **Per-kit mini exam at the end of each subject** _(added May 27, 2026 — 4:05 PM ET)_ — _SHIPPED June 2, 2026 (v1.19.0) via the reuse path: each kit's nav has an "📝 Exam" entry that deep-links to its Final Exam section (per-section submit from GR-C), no content duplication. REMAINING follow-on: mark the kit "complete" on the hub when passed._
   - _What:_ Each tool kit (Excel/SQL/Python/Tableau/Stats/Power BI/Interview) gets its own short closing exam — ~6–8 questions, the same MC + fill-in pattern as the Final Exam Kit. Lives as a new tab inside each kit (e.g. "Exam") so the user finishes a kit with a clear win condition. Reuses and extends the question pool already in `final/index.html`.
   - _Why it's here:_ User explicitly asked for this and suggested parking lot, but I'm promoting to Medium. Reasoning: it directly serves Vision #2 (after each mini exam, "what's next" is unambiguously the next kit) and reuses an existing pattern with minimal new structure. The Final Exam stays as the cross-subject capstone. Doesn't add UI clutter — slots into the existing kit tab bar.
