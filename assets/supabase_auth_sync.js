@@ -6,7 +6,7 @@
 // Configuration - REPLACE WITH YOUR PROJECT URL AND ANON KEY
 const SUPABASE_CONFIG = {
   url: 'https://liiivtbyyawueboeavmw.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpaXZ0Ynl5YXd1ZWJvZWF2bXciLCJyb2xlIjoiYW9uIiwiaWF0IjoxNzE3NzAxODc2LCJleHAiOjE4NzU0Njc4NzZ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9', // ← PASTE YOUR ANON KEY HERE (from Supabase Settings > API > Project API keys > anon)
+  anonKey: 'sb_publishable_O-6hDpC3l1KdDtHpcv6JVw_O5dSJQor', // Supabase publishable key — safe in the browser with RLS enabled
 };
 
 // Initialize Supabase client (requires supabase-js library loaded first)
