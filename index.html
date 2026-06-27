@@ -621,7 +621,16 @@ if (window.lucide) lucide.createIcons();
   fetch('assets/auth_modal.html')
     .then(r => r.text())
     .then(html => {
-      document.getElementById('authModal').innerHTML = html;
+      const container = document.getElementById('authModal');
+      container.innerHTML = html;
+      // innerHTML does NOT execute <script> tags — re-create them so the
+      // modal's openAuthModal()/handlers actually get defined.
+      container.querySelectorAll('script').forEach(old => {
+        const s = document.createElement('script');
+        if (old.src) s.src = old.src; else s.textContent = old.textContent;
+        document.body.appendChild(s);
+        old.remove();
+      });
     });
 
   async function handleLogout() {
