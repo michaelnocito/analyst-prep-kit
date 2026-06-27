@@ -16,10 +16,10 @@ Monetizing the Analyst Prep Kit via freemium. Free core (~156 lessons + games + 
 - **Covers**: `assets/cover-all-access-pass-{1080,1600x400}.{svg,png}` (render via `cd _shotkit && node` + sharp).
 - **BMC product** (`buymeacoffee.com/michaelnocito/e/551812`): "Analyst Prep Kit — All-Access Pass (Founding, 1 year)", $5.55, repositioned desc, code in confirmation msg, All-Access cover, "Data Analytics" category, **"Ask a question" OFF** (no checkout friction). Buy buttons wired to `/e/551812`.
 - **BMC page**: GA4 `G-6C09BL3WH1` added (tracks funnel); old gardening membership tiers gone.
+- **Final Exam gate** ✅ (2026-06-26): whole-kit entry gate in `final/index.html`. `apk-pass.js` linked; `apkPass.setKit('final')`; `render()` shows `apkPass.gateHTML({title:'Final Exam Kit'})` and returns early when `!isUnlocked()`. Gate is live NOW (locks the whole kit incl. study guide); `MODE` only changes paywall copy, not the lock. Headless syntax check clean. Full live click-test DEFERRED to ~launch (near-zero traffic now).
+- **BMC manual edits** ✅ (Mike, 2026-06-26): About text replaced w/ Analyst-Prep-Kit bio; cover banner swapped to all-access-pass 1600x400; "is creating" = "low-friction learning tools for data analysts". (Identity: learning-science + data-science, NOT "career-switcher" — see [[user_mike]], [[feedback_no_em_dashes]].)
 
 ## ⏳ Pending
-- **Final Exam gate** — the ONE premium piece still ungated (whole-kit entry gate, structurally different). Next obvious task.
-- **Mike-only manual (automation can't):** (1) BMC main-page **About text** still old gardening copy → replace w/ Analyst-Prep-Kit bio (in memory); (2) BMC main-page **cover banner** still old "Interview Prep Pass" → swap to `assets/cover-all-access-pass-1600x400.png`.
 - **Before $11.11/mo recurring launch:** add **Supabase accounts** (cross-device progress sync + proper entitlement; the export/import code is the stopgap). Also fill `excel-dry-run` question bank + publish `good-enough-analytics` to complete premium catalog.
 
 ## ⚠️ Gotchas
