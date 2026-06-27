@@ -12,7 +12,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Data Analyst Prep Kit · Free SQL, Excel, Python, Tableau, Interview</title>
-<meta name="description" content="Free browser-based prep for entry-level data analyst roles. 11 interactive kits, no install, no login. Practice SQL, Excel, Python, Tableau, Statistics, Power BI, and interviews.">
+<meta name="description" content="Free browser-based prep for entry-level data analyst roles. 11 interactive kits, no install. Practice SQL, Excel, Python, Tableau, Statistics, Power BI, and interviews.">
 <link rel="stylesheet" href="assets/grain/grain.css">
 <style>
 /* ===========================================================================
@@ -100,6 +100,16 @@ code,.mono{font-family:var(--font-mono)}
   cursor:pointer; padding:6px 10px; border-radius:8px; font-size:14px;
 }
 .icon-btn:hover{border-color:var(--accent); color:var(--accent)}
+.signin-btn{
+  background:var(--accent); border:1px solid var(--accent); color:#fff;
+  cursor:pointer; padding:7px 16px; border-radius:8px;
+  font:600 13px var(--font-sans); white-space:nowrap;
+}
+.signin-btn:hover{background:var(--accent-d); border-color:var(--accent-d)}
+.signin-btn.ghost{background:transparent; color:var(--dim); border-color:var(--line)}
+.signin-btn.ghost:hover{border-color:var(--accent); color:var(--accent)}
+.user-email{font-size:12px; color:var(--dim); max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+@media (max-width:520px){ .user-email{display:none} }
 
 /* ── Layout ── */
 main{max-width:760px; margin:0 auto; padding:28px 18px 0}
@@ -240,14 +250,17 @@ footer a:hover{color:var(--accent-d)}
     </span>
   </div>
   <div class="orient">
-    <span class="phase-chip">Free to start · No login</span>
+    <span class="phase-chip">Free to start</span>
+    <span class="user-email" id="userEmail" style="display:none"></span>
+    <button class="signin-btn" id="loginBtn" onclick="openAuthModal()" style="display:none">Sign in</button>
+    <button class="signin-btn ghost" id="logoutBtn" onclick="handleLogout()" style="display:none">Log out</button>
     <button class="icon-btn" onclick="toggleTheme()" title="Toggle light/dark" aria-label="Toggle light/dark"><span id="themeIcon"><i data-lucide="moon"></i></span></button>
   </div>
 </header>
 
 <main>
   <div class="welcome-card">
-    <div class="welcome-eyebrow">Free to start · No install · No login</div>
+    <div class="welcome-eyebrow">Free to start · No install · Sign in to sync across devices</div>
     <h1>Break into <span>data analytics</span>.<br>One skill at a time.</h1>
     <p class="welcome-sub">Nine hands-on learning apps — sequenced in the order an analyst actually learns them. Real practice, not slides.</p>
   </div>
@@ -278,7 +291,7 @@ footer a:hover{color:var(--accent-d)}
   </a>
 
   <div class="beta-banner">
-    <i data-lucide="wrench" style="width:15px;height:15px;vertical-align:-2px;color:var(--accent)"></i> <strong>Actively in development.</strong> Core modules are free — content and layout may change between sessions. Progress is saved locally in your browser and won't be affected.
+    <i data-lucide="wrench" style="width:15px;height:15px;vertical-align:-2px;color:var(--accent)"></i> <strong>Actively in development.</strong> Core modules are free — content and layout may change between sessions. Progress is saved in your browser, and syncs across devices when you sign in.
   </div>
 
   <!-- ── Teaching method — Say It Out Loud ── -->
@@ -610,32 +623,36 @@ if (window.lucide) lucide.createIcons();
     .then(html => {
       document.getElementById('authModal').innerHTML = html;
     });
-</script>
 
-<!-- Sign in/out buttons in your header -->
-<button id="loginBtn" onclick="openAuthModal()" style="display:none; position:fixed; top:20px; right:20px; padding:10px 20px; background:#58aaa2; color:white; border:none; border-radius:6px; cursor:pointer; z-index:999;">Sign In</button>
-<button id="logoutBtn" onclick="handleLogout()" style="display:none; position:fixed; top:20px; right:20px; padding:10px 20px; background:#666; color:white; border:none; border-radius:6px; cursor:pointer; z-index:999;">Log Out</button>
-
-<script>
   async function handleLogout() {
     await signOut();
     location.reload();
   }
 
+  // Reflect auth state in the topbar (Sign in vs. email + Log out)
   async function initAuthUI() {
-    const user = await getCurrentUser();
-    if (user) {
-      document.getElementById('loginBtn').style.display = 'none';
-      document.getElementById('logoutBtn').style.display = 'block';
-      console.log('Logged in as:', user.email);
-    } else {
-      document.getElementById('loginBtn').style.display = 'block';
-      document.getElementById('logoutBtn').style.display = 'none';
+    const loginBtn  = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const emailEl   = document.getElementById('userEmail');
+    try {
+      const user = await getCurrentUser();
+      if (user) {
+        loginBtn.style.display  = 'none';
+        logoutBtn.style.display = 'inline-block';
+        if (user.email) { emailEl.textContent = user.email; emailEl.style.display = 'inline-block'; }
+      } else {
+        loginBtn.style.display  = 'inline-block';
+        logoutBtn.style.display = 'none';
+        emailEl.style.display   = 'none';
+      }
+    } catch (e) {
+      // Auth unavailable — show the Sign in button as the safe default.
+      loginBtn.style.display = 'inline-block';
     }
   }
 
-  // Wait a moment for supabase_auth_sync.js to load, then initialize
-  setTimeout(initAuthUI, 500);
+  // Wait for supabase_auth_sync.js to finish loading the client, then init.
+  setTimeout(initAuthUI, 600);
 </script>
 
 <script src="assets/apk-sync.js" defer></script>
