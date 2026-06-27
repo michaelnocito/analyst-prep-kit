@@ -317,6 +317,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 /* -- End Hint System ---- */
 </style></head>
 <body>
+<script src="../assets/supabase_auth_sync.js"></script>
 
 <nav id="nav">
   <button class="nav-btn" onclick="window.location='../index.html'" title="Back to all kits">← All Kits</button>
@@ -1204,7 +1205,12 @@ function loadState(){
 }
 function saveState(){ localStorage.setItem(SK, JSON.stringify(state)); }
 function markDone(arr, id){
-  if(!state[arr].includes(id)){ state[arr].push(id); saveState(); }
+  if(!state[arr].includes(id)){
+    state[arr].push(id);
+    saveState();
+    // Sync to cloud
+    syncProgress('sqlkit-v1', id, arr, { done: true, timestamp: new Date().toISOString() }).catch(err => console.log('Sync failed (offline?):', err));
+  }
 }
 
 // ─── FLAG FOR REVIEW ────────────────────────────────────────────────────────
@@ -2530,6 +2536,18 @@ function showToast(msg){
 
 // ─── INIT ──────────────────────────────────────────────────────────────────
 loadState();
+
+// Load user's cloud progress if logged in
+async function initKitWithSync() {
+  const user = await getCurrentUser();
+  if (user) {
+    const cloudProgress = await fetchKitProgress('sqlkit-v1');
+    console.log('Loaded cloud progress for SQL kit:', cloudProgress);
+    // Cloud data is merged into state on lesson load
+  }
+}
+initKitWithSync();
+
 navigate('home');
 
 /* -- Hint System JS ---- */

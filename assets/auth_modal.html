@@ -1,0 +1,417 @@
+<!-- Login/Signup Modal Component for Analyst Prep Kit -->
+<style>
+  /* Auth Modal Styles */
+  .auth-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .auth-modal-overlay.open {
+    display: flex;
+  }
+
+  .auth-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .auth-modal h2 {
+    font-size: 24px;
+    margin: 0 0 8px 0;
+    color: #1a1a1a;
+    font-weight: 600;
+  }
+
+  .auth-modal p {
+    color: #666;
+    margin: 0 0 24px 0;
+    font-size: 14px;
+  }
+
+  .auth-form-group {
+    margin-bottom: 16px;
+  }
+
+  .auth-form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: #333;
+  }
+
+  .auth-form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+
+  .auth-form-group input:focus {
+    outline: none;
+    border-color: #58aaa2;
+    box-shadow: 0 0 0 3px rgba(88, 170, 162, 0.1);
+  }
+
+  .auth-button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+  }
+
+  .auth-button-primary {
+    background: #58aaa2;
+    color: white;
+  }
+
+  .auth-button-primary:hover {
+    background: #4a9a92;
+    transform: translateY(-1px);
+  }
+
+  .auth-button-secondary {
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #e0e0e0;
+  }
+
+  .auth-button-secondary:hover {
+    background: #e8e8e8;
+  }
+
+  .auth-divider {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 12px;
+    color: #999;
+  }
+
+  .auth-divider::before,
+  .auth-divider::after {
+    content: '';
+    display: inline-block;
+    width: 45%;
+    height: 1px;
+    background: #e0e0e0;
+    vertical-align: middle;
+  }
+
+  .auth-divider::before {
+    margin-right: 10px;
+  }
+
+  .auth-divider::after {
+    margin-left: 10px;
+  }
+
+  .auth-toggle {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .auth-toggle button {
+    background: none;
+    border: none;
+    color: #58aaa2;
+    cursor: pointer;
+    text-decoration: underline;
+    font-weight: 600;
+  }
+
+  .auth-error {
+    background: #ffebee;
+    border: 1px solid #ffcdd2;
+    color: #c62828;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+
+  .auth-loading {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .auth-success {
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
+    color: #2e7d32;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+</style>
+
+<!-- Modal HTML -->
+<div id="authModalOverlay" class="auth-modal-overlay">
+  <div class="auth-modal">
+    <h2 id="authModalTitle">Sign In</h2>
+    <p id="authModalSubtitle">Continue to your learning progress</p>
+
+    <div id="authError" class="auth-error" style="display: none;"></div>
+    <div id="authSuccess" class="auth-success" style="display: none;"></div>
+
+    <!-- Sign In Form -->
+    <div id="signInForm">
+      <div class="auth-form-group">
+        <label for="signInEmail">Email</label>
+        <input
+          id="signInEmail"
+          type="email"
+          placeholder="you@example.com"
+          required
+        />
+      </div>
+
+      <div class="auth-form-group">
+        <label for="signInPassword">Password</label>
+        <input
+          id="signInPassword"
+          type="password"
+          placeholder="••••••••"
+          required
+        />
+      </div>
+
+      <button id="signInButton" class="auth-button auth-button-primary">
+        Sign In
+      </button>
+
+      <div class="auth-divider">OR</div>
+
+      <button id="googleSignInButton" class="auth-button auth-button-secondary">
+        Continue with Google
+      </button>
+
+      <div class="auth-toggle">
+        Don't have an account?
+        <button type="button" onclick="toggleAuthForm()">Sign Up</button>
+      </div>
+    </div>
+
+    <!-- Sign Up Form -->
+    <div id="signUpForm" style="display: none;">
+      <div class="auth-form-group">
+        <label for="signUpEmail">Email</label>
+        <input
+          id="signUpEmail"
+          type="email"
+          placeholder="you@example.com"
+          required
+        />
+      </div>
+
+      <div class="auth-form-group">
+        <label for="signUpPassword">Password</label>
+        <input
+          id="signUpPassword"
+          type="password"
+          placeholder="••••••••"
+          required
+        />
+      </div>
+
+      <div class="auth-form-group">
+        <label for="signUpPasswordConfirm">Confirm Password</label>
+        <input
+          id="signUpPasswordConfirm"
+          type="password"
+          placeholder="••••••••"
+          required
+        />
+      </div>
+
+      <button id="signUpButton" class="auth-button auth-button-primary">
+        Create Account
+      </button>
+
+      <div class="auth-divider">OR</div>
+
+      <button id="googleSignUpButton" class="auth-button auth-button-secondary">
+        Sign Up with Google
+      </button>
+
+      <div class="auth-toggle">
+        Already have an account?
+        <button type="button" onclick="toggleAuthForm()">Sign In</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Auth Modal Logic
+  function openAuthModal() {
+    document.getElementById('authModalOverlay').classList.add('open');
+  }
+
+  function closeAuthModal() {
+    document.getElementById('authModalOverlay').classList.remove('open');
+  }
+
+  function toggleAuthForm() {
+    const signInForm = document.getElementById('signInForm');
+    const signUpForm = document.getElementById('signUpForm');
+    const title = document.getElementById('authModalTitle');
+    const subtitle = document.getElementById('authModalSubtitle');
+
+    if (signInForm.style.display === 'none') {
+      // Switch to Sign In
+      signInForm.style.display = 'block';
+      signUpForm.style.display = 'none';
+      title.textContent = 'Sign In';
+      subtitle.textContent = 'Continue to your learning progress';
+    } else {
+      // Switch to Sign Up
+      signInForm.style.display = 'none';
+      signUpForm.style.display = 'block';
+      title.textContent = 'Create Account';
+      subtitle.textContent = 'Start syncing your progress';
+    }
+
+    clearAuthMessages();
+  }
+
+  function showAuthError(message) {
+    const errorDiv = document.getElementById('authError');
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+  }
+
+  function showAuthSuccess(message) {
+    const successDiv = document.getElementById('authSuccess');
+    successDiv.textContent = message;
+    successDiv.style.display = 'block';
+  }
+
+  function clearAuthMessages() {
+    document.getElementById('authError').style.display = 'none';
+    document.getElementById('authSuccess').style.display = 'none';
+  }
+
+  // Sign In Handler
+  document.getElementById('signInButton').addEventListener('click', async () => {
+    clearAuthMessages();
+    const email = document.getElementById('signInEmail').value;
+    const password = document.getElementById('signInPassword').value;
+
+    if (!email || !password) {
+      showAuthError('Please fill in all fields');
+      return;
+    }
+
+    const btn = document.getElementById('signInButton');
+    btn.classList.add('auth-loading');
+    btn.textContent = 'Signing in...';
+
+    const result = await signInWithEmail(email, password);
+    if (result.success) {
+      showAuthSuccess('✓ Signed in! Redirecting...');
+      setTimeout(() => {
+        location.reload();
+      }, 1500);
+    } else {
+      showAuthError(result.error || 'Sign in failed');
+      btn.classList.remove('auth-loading');
+      btn.textContent = 'Sign In';
+    }
+  });
+
+  // Sign Up Handler
+  document.getElementById('signUpButton').addEventListener('click', async () => {
+    clearAuthMessages();
+    const email = document.getElementById('signUpEmail').value;
+    const password = document.getElementById('signUpPassword').value;
+    const confirm = document.getElementById('signUpPasswordConfirm').value;
+
+    if (!email || !password || !confirm) {
+      showAuthError('Please fill in all fields');
+      return;
+    }
+
+    if (password !== confirm) {
+      showAuthError('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 8) {
+      showAuthError('Password must be at least 8 characters');
+      return;
+    }
+
+    const btn = document.getElementById('signUpButton');
+    btn.classList.add('auth-loading');
+    btn.textContent = 'Creating account...';
+
+    const result = await signUpWithEmail(email, password);
+    if (result.success) {
+      showAuthSuccess('✓ Account created! Check your email to verify.');
+      setTimeout(() => {
+        toggleAuthForm();
+        btn.classList.remove('auth-loading');
+        btn.textContent = 'Create Account';
+      }, 2000);
+    } else {
+      showAuthError(result.error || 'Sign up failed');
+      btn.classList.remove('auth-loading');
+      btn.textContent = 'Create Account';
+    }
+  });
+
+  // Google Sign In/Up
+  document
+    .getElementById('googleSignInButton')
+    .addEventListener('click', async () => {
+      await signInWithGoogle();
+    });
+
+  document
+    .getElementById('googleSignUpButton')
+    .addEventListener('click', async () => {
+      await signInWithGoogle();
+    });
+
+  // Close modal when clicking overlay
+  document
+    .getElementById('authModalOverlay')
+    .addEventListener('click', (e) => {
+      if (e.target.id === 'authModalOverlay') {
+        closeAuthModal();
+      }
+    });
+</script>
