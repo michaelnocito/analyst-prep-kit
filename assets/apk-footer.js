@@ -21,7 +21,9 @@
     'font-size:13px;font-family:inherit;line-height:1.6}' +
     '.apk-eco-footer a{color:var(--muted,#888);text-decoration:none;transition:color .15s}' +
     '.apk-eco-footer a:hover{color:var(--accent,#C5511F)}' +
-    '.apk-eco-sep{margin:0 10px;opacity:.45}';
+    '.apk-eco-sep{margin:0 10px;opacity:.45}' +
+    '.apk-eco-tm{display:block;margin-top:10px;font-size:11px;opacity:.7;max-width:560px;' +
+    'margin-left:auto;margin-right:auto}';
   document.head.appendChild(css);
 
   var f = document.createElement('footer');
@@ -31,7 +33,9 @@
     '<span class="apk-eco-sep">·</span>' +
     '<a class="apk-eco-coffee" href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee ☕</a>' +
     '<span class="apk-eco-sep">·</span>' +
-    '<a href="../">← All kits</a>';
+    '<a href="../">← All kits</a>' +
+    '<span class="apk-eco-tm">Power BI and Excel are trademarks of Microsoft; Tableau is a trademark of Salesforce. ' +
+    'Used for identification only. The Analyst Prep Kit is independent and not affiliated with or endorsed by these companies.</span>';
   document.body.appendChild(f);
 
   f.querySelector('.apk-eco-coffee').addEventListener('click', function () {
