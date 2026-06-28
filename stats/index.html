@@ -144,8 +144,14 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .learn-more-link{display:inline-flex;align-items:center;gap:5px;background:rgba(47,109,240,.1);border:1.5px solid rgba(47,109,240,.3);color:var(--accent,#2f6df0);padding:6px 14px;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s}
 .learn-more-link:hover{background:rgba(47,109,240,.22)}
 /* -- End Hint System ---- */
+.signin-btn{background:var(--accent);border:1px solid var(--accent);color:#fff;cursor:pointer;padding:5px 12px;border-radius:6px;font:600 12px var(--font-sans,var(--font,system-ui));white-space:nowrap}
+.signin-btn:hover{opacity:.85}
+.signin-btn.ghost{background:transparent;color:var(--dim);border-color:var(--line,var(--border))}
+.signin-btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.user-email{font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
 </style></head>
 <body>
+<script src="../assets/supabase_auth_sync.js"></script>
 <nav>
   <button class="nav-link" onclick="window.location='../index.html'" title="Back to all kits">← All Kits</button>
   <span class="logo"><span class="logo-mark"><i data-lucide="sigma"></i></span>Stats Kit</span>
@@ -156,10 +162,14 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
   <button class="nav-link" onclick="show('cards')">Cards</button>
   <button class="nav-link" onclick="show('glossary')">Glossary</button>
   <a class="nav-link" href="../final/#exam-stats" style="text-decoration:none" title="Test yourself on Stats — the Final Exam's Stats section"><i data-lucide="clipboard-check" style="width:14px;height:14px;vertical-align:-2px"></i> Exam</a>
+  <span class="user-email" id="userEmail" style="display:none"></span>
+  <button class="signin-btn" id="loginBtn" onclick="openAuthModal()" style="display:none">Sign in</button>
+  <button class="signin-btn ghost" id="logoutBtn" onclick="handleLogout()" style="display:none">Log out</button>
   <div class="spacer"></div>
     <button class="settings-btn" onclick="openSettings()" title="Settings"><i data-lucide="settings" style="width:15px;height:15px;vertical-align:-3px"></i></button>
   <button class="theme-btn" onclick="toggleTheme()"><span id="themeIcon"><i data-lucide="sun" style="width:14px;height:14px;vertical-align:-2px"></i></span></button>
 </nav>
+<div id="authModal"></div>
 <main>
   <div id="view-home" class="view active"></div>
   <div id="view-lessons" class="view"></div>
@@ -1766,6 +1776,30 @@ function _fbCopy(t){var a=document.createElement('textarea');a.value=t;a.style.p
 localStorage.removeItem('apk-sprint');
 </script>
 <script src="../assets/apk-footer.js" defer></script>
+<script>
+/* --- Auth UI --- */
+fetch('../assets/auth_modal.html')
+  .then(r=>r.text())
+  .then(html=>{
+    const c=document.getElementById('authModal');
+    c.innerHTML=html;
+    c.querySelectorAll('script').forEach(old=>{
+      const s=document.createElement('script');
+      if(old.src)s.src=old.src;else s.textContent=old.textContent;
+      document.body.appendChild(s);old.remove();
+    });
+  });
+async function handleLogout(){await signOut();location.reload();}
+async function initAuthUI(){
+  const lb=document.getElementById('loginBtn'),lo=document.getElementById('logoutBtn'),em=document.getElementById('userEmail');
+  try{
+    const u=await getCurrentUser();
+    if(u){lb.style.display='none';lo.style.display='inline-block';if(u.email){em.textContent=u.email;em.style.display='inline-block';}}
+    else{lb.style.display='inline-block';lo.style.display='none';em.style.display='none';}
+  }catch(e){lb.style.display='inline-block';}
+}
+setTimeout(initAuthUI,600);
+</script>
 </body>
 </html>
 

@@ -181,11 +181,18 @@ footer{margin-top:50px;padding-top:24px;border-top:1px solid var(--border);text-
 .footer-links a{color:var(--dim)}
 .footer-links a:hover{color:var(--accent)}
 
+.signin-btn{background:var(--accent);border:1px solid var(--accent);color:#fff;cursor:pointer;padding:5px 12px;border-radius:6px;font:600 12px var(--font-sans,var(--font,system-ui));white-space:nowrap}
+.signin-btn:hover{opacity:.85}
+.signin-btn.ghost{background:transparent;color:var(--dim);border-color:var(--line,var(--border))}
+.signin-btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.user-email{font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.3);opacity:0;transition:.3s;z-index:300}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 </style>
 </head>
 <body>
+<script src="../assets/supabase_auth_sync.js"></script>
 <nav>
   <button class="nav-btn" onclick="window.location='../index.html'" title="Back to all kits">← All Kits</button>
   <span class="nav-title"><span class="logo-mark"><i data-lucide="clipboard-check"></i></span>Final Exam Kit</span>
@@ -193,10 +200,14 @@ footer{margin-top:50px;padding-top:24px;border-top:1px solid var(--border);text-
   <button class="nav-btn" id="navStudy" onclick="setView('study')">Study Guide</button>
   <button class="nav-btn" id="navExam" onclick="setView('exam')">Exam</button>
   <button class="nav-btn" id="navResults" onclick="setView('results')" style="display:none">Results</button>
+  <span class="user-email" id="userEmail" style="display:none"></span>
+  <button class="signin-btn" id="loginBtn" onclick="openAuthModal()" style="display:none">Sign in</button>
+  <button class="signin-btn ghost" id="logoutBtn" onclick="handleLogout()" style="display:none">Log out</button>
   <div class="nav-spacer"></div>
   <button class="nav-btn" onclick="resetAll()" title="Reset progress"><i data-lucide="rotate-ccw"></i>Reset</button>
   <button class="nav-btn" onclick="toggleTheme()"><span id="themeIcon"><i data-lucide="sun"></i></span></button>
 </nav>
+<div id="authModal"></div>
 
 <main id="app"></main>
 
@@ -1032,5 +1043,29 @@ function grainRefreshIcons(){
 })();
 </script>
 <script src="../assets/apk-footer.js" defer></script>
+<script>
+/* --- Auth UI --- */
+fetch('../assets/auth_modal.html')
+  .then(r=>r.text())
+  .then(html=>{
+    const c=document.getElementById('authModal');
+    c.innerHTML=html;
+    c.querySelectorAll('script').forEach(old=>{
+      const s=document.createElement('script');
+      if(old.src)s.src=old.src;else s.textContent=old.textContent;
+      document.body.appendChild(s);old.remove();
+    });
+  });
+async function handleLogout(){await signOut();location.reload();}
+async function initAuthUI(){
+  const lb=document.getElementById('loginBtn'),lo=document.getElementById('logoutBtn'),em=document.getElementById('userEmail');
+  try{
+    const u=await getCurrentUser();
+    if(u){lb.style.display='none';lo.style.display='inline-block';if(u.email){em.textContent=u.email;em.style.display='inline-block';}}
+    else{lb.style.display='inline-block';lo.style.display='none';em.style.display='none';}
+  }catch(e){lb.style.display='inline-block';}
+}
+setTimeout(initAuthUI,600);
+</script>
 </body>
 </html>
