@@ -85,23 +85,32 @@ seven dashboards.
 
 **Release cadence:**
 - **Q3 2026 (Nov 1, 2026)** — First premium drop: **Portfolio Projects** (guided capstone analytics projects — weather dashboard, spreadsheet cleaner, data generator, etc.). Build step-by-step deep-explanation pedagogy; exportable artifacts for GitHub/portfolio.
-- **Q4 2026 (Feb 1, 2027)** — TBD (candidate: industry tracks for premium, career-path job-search simulator, mock interview library, certificate/credential system, etc. — Mike to decide)
-- **Q1 2027 (May 1, 2027)** — TBD
+- **Q4 2026 (Feb 1, 2027)** — **Memory & Comprehension Tune-Up Module** (reading comprehension + retention techniques for data pros; memory palace methods applied to each lesson). Premium gate: clickable "boost this lesson" button on every lesson — premium users get the feature, free users get signup offer.
+- **Q1 2027 (May 1, 2027)** — TBD (candidates: AI Coach, industry tracks, certificates, career-path simulator, etc. — Mike to decide)
 - **Ongoing** — Each release gets a marketing push (email, social, changelog). The recurring schedule itself becomes a retention hook ("new premium feature every 3 months").
 
 **Strategy rationale:** Front-load the free tier with full course content (lessons, exams, basic drills). Paid tier = portfolio-building + job-getting value (projects, feedback, interviews, certificates, career coaching). Quarterly releases give enough time to polish each feature AND give marketing a predictable cadence to re-engage free users.
 
-**Premium feature candidates (not yet prioritized — scope per quarter as you choose):**
-- Portfolio Projects (Q3 2026) ✓
-- AI Coach (inline tutoring + interview prep)
-- Industry-specific tracks (healthcare, finance, etc.)
-- Career-path simulator / job-search playbook
-- Mock interview library + video feedback
-- Shareable certificate / credential system
-- Resume review + optimization guide
-- LinkedIn profile coaching
-- Paid unlock for the job-sim games (Spreadsheet Archaeology, Tableau Archaeology, Bullet-Time Test)
-- Advanced drills (harder difficulty tiers on existing lessons)
+**Premium feature candidates (locked and upcoming):**
+- Portfolio Projects (Q3 2026, Nov 1) ✓
+- Memory & Comprehension Tune-Up (Q4 2026, Feb 1) ✓
+- AI Coach (Q1 2027 candidate — inline tutoring + interview prep)
+- Industry-specific tracks (healthcare, finance, etc.) — Q1 2027 candidate
+- Career-path simulator / job-search playbook — Q1 2027 candidate
+- Mock interview library + video feedback — post-Q1 candidate
+- Shareable certificate / credential system — post-Q1 candidate
+- Resume review + optimization guide — post-Q1 candidate
+- LinkedIn profile coaching — post-Q1 candidate
+- Advanced drills (harder difficulty tiers on existing lessons) — post-Q1 candidate
+
+**Game ecosystem (cross-kit, with easter eggs):**
+- **Keygarden** (existing): calm typing trainer for analysts (web + mobile code-typing version). LIVE at michaelnocito.github.io/keygarden/
+- **Sprint series** (all skill kits): Excel Sprint + SQL Analyst Sprint currently live at michaelnocito.github.io/prep-companion-apps/; **rollout in progress** to Python, Power BI, Tableau, Stats (one kit per cycle).
+- **SQL Quest** (existing): sql.js tower-defense game, waves 1-3 live at michaelnocito.github.io/sql-quest/; **rollout to other kits planned** (Excel Quest, Python Quest, etc. adapted per tool).
+- **Mystery game** (in progress): Nexus SQL Mystery (Jekyll narrative); **finish this, then adapt across other kits** (Excel Mystery, Python Mystery, etc.).
+- **Nordic action RPG** (existing archived): Rune Wanderer (Godot 4.6 action-RPG, private repo); inspiration/story thread for easter eggs.
+- **Future space narrative** (Bullet-Time Test): Set in future; small visual/story callouts weave into Analyst Sprint SQL (Sabrina SQL Sprint) and other games as easter eggs (e.g., "this memory palace technique is used by space analysts in the future").
+- **Easter egg strategy:** each game/kit gets subtle nods to the overarching narrative (calm, mind-expanding journey through data). Links are cosmetic (a symbol, a skill name reference, an omen); they don't gate progress but reward attention (discovery, replay value).
 
 ---
 
