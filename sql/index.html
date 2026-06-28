@@ -2501,11 +2501,45 @@ function renderSettings(){
         <button class="btn btn-ghost btn-sm" onclick="toggleTheme()">${state.theme==='dark'?'Switch to Light':'Switch to Dark'}</button>
       </div>
       <div class="setting-row">
+        <div><div class="setting-label">Redeem Code</div><div class="setting-sub">Unlock premium content with your code</div></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <input id="settingsPromoCode" type="text" placeholder="Paste your unlock code" autocomplete="off" style="flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:13px">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="redeemCodeFromSettings()">Redeem</button>
+      </div>
+      <div id="settingsCodeMsg" style="font-size:12px;min-height:16px;margin-bottom:12px"></div>
+      <div class="setting-row">
         <div><div class="setting-label">Reset Progress</div><div class="setting-sub">Clear all lesson and drill progress</div></div>
         <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:var(--red)" onclick="resetProgress()">Reset</button>
       </div>
     </div>`;
+  // Allow Enter key to submit code
+  setTimeout(() => {
+    const inp = document.getElementById('settingsPromoCode');
+    if (inp) inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') redeemCodeFromSettings();
+    });
+  }, 0);
 }
+function redeemCodeFromSettings(){
+  const inp = document.getElementById('settingsPromoCode');
+  const msg = document.getElementById('settingsCodeMsg');
+  if (!inp || !msg) return;
+
+  if (window.apkPass && window.apkPass.unlock(inp.value)) {
+    msg.textContent = '✓ Code redeemed! Premium content unlocked.';
+    msg.style.color = 'var(--good)';
+    inp.value = '';
+    setTimeout(() => {
+      msg.textContent = '';
+    }, 4000);
+    if (window.gtag) gtag('event', 'pass_unlock', { location: 'settings', kit: 'sql' });
+  } else {
+    msg.textContent = "That code didn't match. Check for typos or spaces.";
+    msg.style.color = '#c0392b';
+  }
+}
+
 function resetProgress(){
   if(!confirm('Reset all progress? This cannot be undone.')) return;
   state.doneLessons=[]; state.doneFills=[]; state.doneBugs=[]; state.doneParsons=[]; state.doneCards=[];

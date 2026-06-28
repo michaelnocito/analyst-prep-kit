@@ -2666,6 +2666,13 @@ show('home');
       <span style="font-weight:700;font-size:.95rem">Settings</span>
       <button onclick="closeSettings()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:1.3rem;line-height:1;padding:0 4px">&times;</button>
     </div>
+    <p style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:12px">Redeem Code</p>
+    <p style="font-size:.75rem;color:var(--dim);margin-bottom:10px">Have an unlock code? Paste it to unlock premium content.</p>
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <input id="tableauPromoCode" type="text" placeholder="Paste your code" autocomplete="off" style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:12px">
+      <button type="button" onclick="redeemCodeFromSettings()" style="padding:8px 14px;border:1px solid var(--border);background:transparent;color:var(--text);border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;white-space:nowrap">Redeem</button>
+    </div>
+    <div id="tableauCodeMsg" style="font-size:.72rem;min-height:14px;margin-bottom:18px"></div>
     <p style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:12px">Reset Progress</p>
     <button id="resetKitBtn" onclick="handleResetKit(this)" style="display:block;width:100%;text-align:left;padding:11px 14px;background:var(--surf2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:.88rem;font-family:inherit;margin-bottom:6px;transition:all .2s">↺ Reset this kit</button>
     <p style="font-size:.75rem;color:var(--dim);margin-bottom:18px;padding:0 2px">Clears progress for this kit only. Other kits stay intact.</p>
@@ -2708,6 +2715,26 @@ function handleResetAll(btn){
     location.reload();
   }
 }
+
+function redeemCodeFromSettings(){
+  var inp=document.getElementById('tableauPromoCode');
+  var msg=document.getElementById('tableauCodeMsg');
+  if(!inp||!msg)return;
+  if(window.apkPass&&window.apkPass.unlock(inp.value)){
+    msg.textContent='✓ Code redeemed! Premium content unlocked.';
+    msg.style.color='var(--good)';
+    inp.value='';
+    setTimeout(function(){msg.textContent=''},4000);
+    if(window.gtag)gtag('event','pass_unlock',{location:'settings',kit:'tableau'});
+  }else{
+    msg.textContent="That code didn't match. Check for typos or spaces.";
+    msg.style.color='#c0392b';
+  }
+}
+document.addEventListener('DOMContentLoaded',function(){
+  var inp=document.getElementById('tableauPromoCode');
+  if(inp)inp.addEventListener('keydown',function(e){if(e.key==='Enter')redeemCodeFromSettings();});
+});
 
 /* -- Hint System JS ---- */
 var _hd={hint:'',ans:'',state:0};

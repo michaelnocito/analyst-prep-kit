@@ -280,6 +280,21 @@ footer a:hover{color:var(--accent-d)}
     </div>
   </a>
 
+  <!-- ── Redeem promo/unlock code ── -->
+  <div class="card" style="background:var(--accent-soft);border:1px solid var(--accent-soft-bd);margin-bottom:18px">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="flex:1;min-width:240px">
+        <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:4px"><i data-lucide="key" style="width:13px;height:13px;vertical-align:-2px;margin-right:5px"></i>Have a code?</div>
+        <div style="font-size:14px;color:var(--dim)">Already have an unlock code from a purchase? Paste it here to unlock premium content.</div>
+      </div>
+      <div style="flex-shrink:0;display:flex;gap:8px;width:100%;max-width:280px">
+        <input id="hubPromoCode" type="text" placeholder="Paste your code" autocomplete="off" style="flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:13px">
+        <button type="button" onclick="redeemCodeFromHub()" style="padding:9px 16px;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap">Redeem</button>
+      </div>
+    </div>
+    <div id="hubCodeMsg" style="font-size:12px;margin-top:10px;min-height:16px"></div>
+  </div>
+
   <!-- ── "Continue where you left off" — shown only when there's progress ── -->
   <a class="continue-card" id="continueCard" href="#">
     <div class="continue-icon"><i data-lucide="play"></i></div>
@@ -666,5 +681,36 @@ if (window.lucide) lucide.createIcons();
 </script>
 
 <script src="assets/apk-sync.js" defer></script>
+
+<!-- Promo code unlock (on home page + in kit settings) -->
+<script src="assets/apk-pass.js"></script>
+<script>
+  function redeemCodeFromHub() {
+    const inp = document.getElementById('hubPromoCode');
+    const msg = document.getElementById('hubCodeMsg');
+    if (!inp || !msg) return;
+
+    if (window.apkPass && window.apkPass.unlock(inp.value)) {
+      msg.textContent = '✓ Code redeemed! Premium content unlocked.';
+      msg.style.color = 'var(--good)';
+      inp.value = '';
+      setTimeout(() => {
+        msg.textContent = '';
+      }, 4000);
+      if (window.gtag) gtag('event', 'pass_unlock', { location: 'hub' });
+    } else {
+      msg.textContent = "That code didn't match. Check for typos or spaces.";
+      msg.style.color = '#c0392b';
+    }
+  }
+
+  // Allow Enter key to submit
+  document.addEventListener('DOMContentLoaded', () => {
+    const inp = document.getElementById('hubPromoCode');
+    if (inp) inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') redeemCodeFromHub();
+    });
+  });
+</script>
 </body>
 </html>
