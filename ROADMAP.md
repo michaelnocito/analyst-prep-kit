@@ -79,6 +79,32 @@ seven dashboards.
 
 ---
 
+## Quarterly Premium Release Strategy
+
+**Goal:** Launch with a solid free tier (Aug 1, 2026). Then release **one major premium feature per quarter** on a predictable schedule to keep marketing momentum, convert free users, and maintain buzz without launch-day pressure.
+
+**Release cadence:**
+- **Q3 2026 (Nov 1, 2026)** — First premium drop: **Portfolio Projects** (guided capstone analytics projects — weather dashboard, spreadsheet cleaner, data generator, etc.). Build step-by-step deep-explanation pedagogy; exportable artifacts for GitHub/portfolio.
+- **Q4 2026 (Feb 1, 2027)** — TBD (candidate: industry tracks for premium, career-path job-search simulator, mock interview library, certificate/credential system, etc. — Mike to decide)
+- **Q1 2027 (May 1, 2027)** — TBD
+- **Ongoing** — Each release gets a marketing push (email, social, changelog). The recurring schedule itself becomes a retention hook ("new premium feature every 3 months").
+
+**Strategy rationale:** Front-load the free tier with full course content (lessons, exams, basic drills). Paid tier = portfolio-building + job-getting value (projects, feedback, interviews, certificates, career coaching). Quarterly releases give enough time to polish each feature AND give marketing a predictable cadence to re-engage free users.
+
+**Premium feature candidates (not yet prioritized — scope per quarter as you choose):**
+- Portfolio Projects (Q3 2026) ✓
+- AI Coach (inline tutoring + interview prep)
+- Industry-specific tracks (healthcare, finance, etc.)
+- Career-path simulator / job-search playbook
+- Mock interview library + video feedback
+- Shareable certificate / credential system
+- Resume review + optimization guide
+- LinkedIn profile coaching
+- Paid unlock for the job-sim games (Spreadsheet Archaeology, Tableau Archaeology, Bullet-Time Test)
+- Advanced drills (harder difficulty tiers on existing lessons)
+
+---
+
 ## The workflow (one-man team, lightweight)
 
 This is the loop. Keep it tight. **One item in flight at a time.**
@@ -290,6 +316,19 @@ _(SIOL rollout shipped May 28, 2026 — see CHANGELOG v1.3.0. Tableau and Stats 
   - _Why it's here:_ User explicitly asked for this and suggested parking lot, but I'm promoting to Medium. Reasoning: it directly serves Vision #2 (after each mini exam, "what's next" is unambiguously the next kit) and reuses an existing pattern with minimal new structure. The Final Exam stays as the cross-subject capstone. Doesn't add UI clutter — slots into the existing kit tab bar.
   - _Definition of Done:_ Every tool kit has an "Exam" entry in its nav; passing the mini exam visibly marks the kit "complete" on the hub (ties to the High items above); failing points back to weak lessons. The Final Exam Kit's per-subject question pool is the source of truth — no content duplication.
   - _Est. effort:_ Medium-Large (likely 1–2 cycles depending on whether we factor a shared exam component or just clone the pattern).
+
+- **PREMIUM PORTFOLIO PROJECTS — guided step-by-step analytics deep-dives** _(added June 28, 2026 — 4:30 PM ET)_ — _⚠️ RESEARCH-GATED (bulk discovery phase when this roadmap item becomes active)_
+  - _What:_ A suite of premium capstone projects for paid-tier members; each is a guided, real-world analytics portfolio piece with step-by-step walkthroughs + deep conceptual explanations. Examples: **(1) Weather analytics dashboard builder** (EDA on weather datasets, predict patterns, build a viz-and-query dashboard), **(2) Spreadsheet cleaner CLI app** (import messy CSV → detect issues → guide fixes → export clean data with a reusable recipe), **(3) Data quality & documentation generator** (analyze datasets, auto-generate data dictionary + quality report + transformation log), **(4) E-commerce sales analyzer** (load transaction data, drill into customer/product/regional trends, surface anomalies, recommend actions). Each project is end-to-end: problem statement → read-aloud theory → sample dataset → guided solving (step hints + "stuck?" coach integration) → exportable portfolio artifact (clean CSV, dashboard export, report doc).
+  - _Why it's here:_ Directly serves **"get the job" value (gap #2 from STRATEGY)** — career switchers need portfolio proof, not just lessons. Competitive differentiator: step-by-step pedagogical walkthroughs (not raw project sandboxes) + deep-explanation scaffolding + reusable templates (e.g., "a data-cleaning playbook you built yourself"). Pairs naturally with the **AI Coach** (premium gate + coaching on stuck points). Real projects on GitHub look 10× better than "I passed an online course."
+  - _Scope decision needed:_ (a) **Excel-first MVP** (pick ONE project, ~3–5 lessons + a worked example, gated behind Interview Pass)? (b) **Multi-project tier** (2–4 projects spanning Excel/SQL/Python, one per tool track)? (c) **Skill-path alignment** (projects map to job JDs — e.g., "Entry Data Analyst" project suite includes cleaning + EDA + viz)?
+  - _Research gates (front-load when activating):_
+    1. **Job-market fit** — which portfolio pieces do job postings actually ask to see? (LinkedIn/Greenhouse job-post scrape; 10 recent analyst JDs, note "portfolio/projects/GitHub" requirements.)
+    2. **Scaffolding patterns** — how do successful guided-project platforms (DataCamp projects, Mode Analytics SQL School, Kaggle Learn) structure step-by-step walkthroughs? (Review 3–5 for pacing, hint layers, export/artifact design.)
+    3. **Dataset sourcing** — reuse public datasets (Kaggle, data.world, Google Dataset Search) or commission synthetic ones? (Feasibility + licensing check.)
+    4. **Coach integration economics** — estimate token cost for "stuck" coach calls on a typical project; does it blow the AI Coach budget? (Model-tier selection, prompt caching, per-project credit caps.)
+  - _Definition of Done (when built):_ at least 1 project complete end-to-end; includes problem intro + theory (plain English + worked example) + step-by-step guide (each step has hints + "ask coach" button, hint escalation working) + real dataset (clean downloadable CSV) + export artifact (clean CSV / dashboard export / doc) + "portfolio polish" notes (how to describe this on a resume/GitHub). Verified on live URL, dark + light, coach-gating confirmed, token budget held.
+  - _Est. effort:_ Very Large (multi-cycle per project; 1st project ≈ 60–80 hours once scope locked; subsequent projects reuse scaffolding).
+  - _Parking rationale:_ speculative ROI without traffic data; needs upfront research to avoid building the wrong thing. Promote to High once Aug 1 traffic patterns + AI Coach adoption confirm demand for portfolio-building features.
 
 ### 🟢 Low
 _Definition: ideas worth remembering, future features, "wouldn't it be
