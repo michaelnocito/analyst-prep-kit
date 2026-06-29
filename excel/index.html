@@ -869,7 +869,13 @@ LESSONS:[
  ],
  notes:"When you convert a range to a Table, Excel names it Table1, Table2, etc. Rename it something meaningful (like SalesData) in the Table Design tab — your formulas will read =SalesData[Revenue] instead. Much cleaner in two months when you've forgotten what Table3 was.",
  viz:{cols:["A","B","C","D"],grid:[["Product","Units","Price","Revenue"],["Latte",10,15,"=[@Units]*[@Price]"],["Espresso",12,12,"=[@Units]*[@Price]"],["Cold Brew",8,14,"=[@Units]*[@Price]"],["[Total]","","","=SUM(Table1[Revenue])"]],caption:"A Table with structured references: each formula in column D uses [@col] to reference its own row, and the Total row uses Table1[Revenue] to sum everything — including future rows."},
- quiz:{q:"What happens to a formula using Table1[Revenue] when you add a new row to the table?",opts:["You must manually extend the formula range","The formula automatically includes the new row","The formula breaks with a #REF! error","You must rename the table first"],ans:1,exp:"That's the whole point of Excel Tables — structured references like Table1[Revenue] always cover the entire column, including rows added later. No range maintenance needed."}
+ quiz:{q:"What happens to a formula using Table1[Revenue] when you add a new row to the table?",opts:["You must manually extend the formula range","The formula automatically includes the new row","The formula breaks with a #REF! error","You must rename the table first"],ans:1,exp:"That's the whole point of Excel Tables — structured references like Table1[Revenue] always cover the entire column, including rows added later. No range maintenance needed."},
+ flow:'v2',
+ orient:"Monday: 40 new rows pasted below your data. Your =SUM(B2:B50) misses all of them. Ctrl+T converts the range to a Table — and every formula expands automatically from that point on.",
+ try:{q:"Arrange a structured reference to sum the Revenue column of SalesData.",pieces:["[Revenue]","=SUM(","SalesData",")"],ans:["=SUM(","SalesData","[Revenue]",")"]},
+ compare:"Structured references replace column letters with column names: SalesData[Revenue] always means the Revenue column, no matter how many rows you add. The @ symbol means 'this row' inside a table formula — no row numbers, no $ signs needed.",
+ build:{q:"You add a new column 'Tax' to your Table. The formula in that column should multiply this row's Revenue by 0.1. Which formula?",ans:"=[@Revenue]*0.1",choices:["=[@Revenue]*0.1","=SalesData[Revenue]*0.1","=B2*0.1"]},
+ close:"You can now build auto-expanding tables that never need range maintenance. Next: nested IF and IFS for multi-tier decisions."
 },
 {id:14,unit:"Unit 4: Deeper Formulas",title:"Nested IF and IFS",slug:"nestedif",
  story:"Last week your manager loved the High/Low revenue flag you built with IF. Now she's back: \"Can you break it into four tiers? Under $100 is Low, $100–$199 is Medium, $200–$299 is High, and $300 and above is Premium.\" Your single =IF(A2>200,\"High\",\"Low\") can only make one decision. Time to stack them.",
@@ -901,7 +907,13 @@ LESSONS:[
  ],
  notes:"INDEX+MATCH can look left, right, or across sheets — VLOOKUP can only look right. XLOOKUP is the modern replacement, but INDEX+MATCH is faster in very large datasets and is universally supported. Learn to read it; you'll see it constantly in inherited workbooks.",
  viz:{cols:["A","B","C"],grid:[["Lookup value","Search column (B)","Return column (A)"],["SKU-204","SKU-204","Cold Brew"],["Formula","=MATCH(A2,B:B,0)","=INDEX(A:A,MATCH(A2,B:B,0))"],["Result","Row 3","Cold Brew"]],caption:"MATCH finds that SKU-204 is in row 3 of column B. INDEX then retrieves the value from row 3 of column A — returning Cold Brew."},
- quiz:{q:"What does MATCH return?",opts:["The value at the matched cell","The row (or column) number of the match","TRUE or FALSE","The column letter"],ans:1,exp:"MATCH returns a position number — for example, 3 means the match was found in the 3rd row of the search range. INDEX then uses that number to retrieve an actual value."}
+ quiz:{q:"What does MATCH return?",opts:["The value at the matched cell","The row (or column) number of the match","TRUE or FALSE","The column letter"],ans:1,exp:"MATCH returns a position number — for example, 3 means the match was found in the 3rd row of the search range. INDEX then uses that number to retrieve an actual value."},
+ flow:'v2',
+ orient:"You inherit a workbook that looks up product names from a column to the LEFT of the key. VLOOKUP only looks right. INDEX + MATCH is how analysts solved this before XLOOKUP existed — and it's still in every legacy workbook you'll touch.",
+ try:{q:"Arrange INDEX+MATCH to find A2 in column B and return the value from column A.",pieces:["MATCH(A2,B:B,0)","=INDEX(","A:A,",")"],ans:["=INDEX(","A:A,","MATCH(A2,B:B,0)",")"]},
+ compare:"MATCH returns a row number; INDEX uses that row number to fetch a value from any column. Reading it from the inside out: MATCH finds WHERE, INDEX fetches WHAT. That two-step mental model also explains XLOOKUP — it just collapses them into one function.",
+ build:{q:"You need the product name from column A where the SKU in column C matches cell D2. Which formula?",ans:"=INDEX(A:A,MATCH(D2,C:C,0))",choices:["=INDEX(A:A,MATCH(D2,C:C,0))","=MATCH(D2,C:C,INDEX(A:A,0))","=VLOOKUP(D2,A:C,1,FALSE)"]},
+ close:"You can now read and write INDEX+MATCH for any direction lookup. Next: SUMPRODUCT — multiply-then-sum without helper columns."
 },
 {id:16,unit:"Unit 4: Deeper Formulas",title:"SUMPRODUCT",slug:"sumproduct",
  story:"Your manager stops by your desk. 'What's the average price we're actually getting per unit — weighted by volume?' She doesn't want a simple AVERAGE of prices; she wants high-volume products to carry more weight. You could add a helper column, multiply price by units, sum it, then divide — or you could write a single SUMPRODUCT formula and skip the helper column entirely.",
@@ -914,7 +926,13 @@ LESSONS:[
  ],
  notes:"SUMPRODUCT arrays must be the same size or you'll get a #VALUE! error. A common mistake is accidentally including the header row in the range — start at row 2. Also note: (condition)*(values) inside SUMPRODUCT is a concise alternative to SUMIF for multi-condition sums.",
  viz:{cols:["A","B","C","D"],grid:[["Product","Price","Units","Revenue"],["Latte",15,10,150],["Espresso",12,20,240],["Cold Brew",13,8,104],["Weighted Avg","=SUMPRODUCT(B2:B4,C2:C4)/SUM(C2:C4)","","≈ 13.05"]],caption:"SUMPRODUCT multiplies each price by its units (15×10 + 12×20 + 13×8 = 494), then divides by total units (38) for a weighted average of ~$13.05 — not the simple average of 13.33."},
- quiz:{q:"What does =SUMPRODUCT(B2:B5,C2:C5) calculate?",opts:["The sum of column B plus the sum of column C","The average of columns B and C","The sum of (B2×C2) + (B3×C3) + (B4×C4) + (B5×C5)","The count of matching rows"],ans:2,exp:"SUMPRODUCT multiplies each pair of corresponding elements (B2×C2, B3×C3, etc.) and then adds all those products together. It's a multiply-then-sum in one step."}
+ quiz:{q:"What does =SUMPRODUCT(B2:B5,C2:C5) calculate?",opts:["The sum of column B plus the sum of column C","The average of columns B and C","The sum of (B2×C2) + (B3×C3) + (B4×C4) + (B5×C5)","The count of matching rows"],ans:2,exp:"SUMPRODUCT multiplies each pair of corresponding elements (B2×C2, B3×C3, etc.) and then adds all those products together. It's a multiply-then-sum in one step."},
+ flow:'v2',
+ orient:"Your manager asks for the true average price per unit — not a simple average, but one where high-volume products count more. That's a weighted average: SUMPRODUCT handles it without a helper column.",
+ try:{q:"Arrange the weighted average formula: total revenue divided by total units.",pieces:["SUM(C2:C10)","=SUMPRODUCT(B2:B10,C2:C10)","/"],ans:["=SUMPRODUCT(B2:B10,C2:C10)","/","SUM(C2:C10)"]},
+ compare:"SUMPRODUCT(prices, units) gives total revenue. Dividing by SUM(units) gives the weighted average price — each product's price is weighted by how many units it sold. The same pattern works for weighted scores, weighted ratings, or any multiply-then-aggregate operation.",
+ build:{q:"You want total revenue for West region only (D2:D10='West'), with revenue in B2:B10. Which formula?",ans:'=SUMPRODUCT((D2:D10="West")*(B2:B10))',choices:['=SUMPRODUCT((D2:D10="West")*(B2:B10))','=SUMIF(D2:D10,"West",B2:B10)','=SUMPRODUCT(B2:B10,D2:D10)']},
+ close:"You can now build weighted averages and conditional sums without helper columns. Unit 4 complete. Next: charts — turning your numbers into a visual argument."
 },
 {id:17,unit:"Unit 5: Charts & Formatting",title:"Your First Chart",slug:"firstchart",
  story:"Your manager appears in your doorway. 'Good work on that revenue summary. Now put it in the slide deck — a table won't land with this audience.' You've been living in formulas, but a spreadsheet full of numbers doesn't tell a story at a glance. Time to make your first chart.",
