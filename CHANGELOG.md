@@ -9,6 +9,12 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.79.0] — 2026-06-29 — 🧠 Excel Learning-Science Polish · Phase B (progressive v2 lesson flow)
+
+Rebuilt formula-spine lessons (SUM id:1, IF id:2, Nested IF id:14) with a new 7-stage progressive flow: Orient → Worked Example → Try (Parsons chip-ordering) → Compare → Build (tap-choice) → Own (quiz) → Close. Each stage is hidden until the previous step is completed — retrieval practice is now embedded in the lesson itself, not buried in a separate Practice screen. Parsons problems generate the formula from shuffled chips; Build is tap-to-choose with correct answer reveal; Own reuses the existing quiz system. Confidence rating (Still shaky / Getting there / Have it) added at Close to drive spaced-recall in Phase D. Phase B is backward-compatible: all 48 non-v2 lessons render through the unchanged original path.
+
+---
+
 ## [1.78.1] — 2026-06-29 — Home page "In this kit" nav grid (Excel)
 
 Added a compact tile grid on the Excel kit home page linking to every nav section: Lessons, Practice, Workspace, Pivot Lab, Cards, Glossary, and Exam. Users can now navigate to any part of the kit from the home page without hunting the header. Placed between the review list and the Lessons card. Cross-kit porting tracked in `EXCEL_POLISH_MASTER_PLAN.md` cross-kit changes log (entry #1).
