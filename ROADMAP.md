@@ -470,6 +470,8 @@ all other buckets are empty.
 
 ---
 
+- **"Hear it" speech button on recall prompts** _(parked June 29, 2026)_ — A small 🔊 button next to each recall-card cue that reads the prompt aloud via the Web Speech API (zero dependency, no API key). Rationale: text prompts for "say it out loud" don't actually compel speech — hearing it spoken first triggers call-and-response naturally and turns a silent read into an active verbal exercise. _Reason parked:_ feature-sized (not a one-liner); the base recall card is new and untested. Promote after Phase D ships and recall cards see real usage. _Est. effort:_ Small-Medium.
+
 - **🎨 GRAIN PHASE 4 — cross-kit surfaces + polish** _(parked June 25, 2026 — revisit ~July 25, 2026)_
   - _What:_ The post-rollout "nice-to-haves" from the Grain brief — (a) cross-kit
     **Cards / Practice / Glossary** surfaces (auto-generate from lesson data), (b)
