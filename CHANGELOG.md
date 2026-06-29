@@ -9,6 +9,18 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.82.0] — 2026-06-29 — 🧠 Excel Learning-Science Polish · Phase E (motivation layer)
+
+Phase E adds an honest, SDT-guarded motivation layer — no hearts, no streak anxiety, no cheerleading. Three tasks shipped across v1.81.1–v1.81.4:
+
+- **Honest unlock (E1, v1.81.1 + v1.81.2):** All 51 lessons now carry an `unlock:` field — a deeper "why," a real job insight, or a subtle gotcha that makes the concept click harder. The unlock card (`key` icon, accent border) appears in the Close stage only after the lesson is completed (`done === true`). The reward is more of the actual knowledge — permanent and revisitable — not points or tokens.
+- **Return-visit greeting (E2, v1.81.3):** On Home render, compares today's date to `localStorage['epk-last-visit']`. If returning after ≥1 day, a single quiet line appears in the resume card: "Good to have you back. Pick up where you left off." No streak counter, no flame emoji. One greeting per return visit (cleared on same-day reload).
+- **Mentor-voice audit (E3, no commit needed):** Scanned all 51 `close:` strings for cheerleading ("Great work!") or loss-framing ("Don't forget…"). None found — Phase C held the standard.
+
+Phase E is complete. Phase F (Focus/Detailed toggle) is next.
+
+---
+
 ## [1.81.0] — 2026-06-29 — 🧠 Excel Learning-Science Polish · Phase D (spaced recall + progressive spine + honesty layer)
 
 Phase D wires learning-science research directly into the lesson flow. Five sub-tasks shipped across v1.80.1–v1.81.0:
