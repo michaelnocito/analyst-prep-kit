@@ -1708,6 +1708,11 @@ function loadState(){
 }
 let S = loadState();
 function save(){ store.setItem('epk', JSON.stringify(S)); }
+function refreshIcons(){
+  if(!window.lucide) return;
+  lucide.createIcons();
+  document.querySelectorAll('svg[data-lucide]').forEach(s=>s.removeAttribute('data-lucide'));
+}
 
 // ─── REVIEW LIST (confidence-based — lessons rated low/mid appear on Home) ──────
 let _reviewOpen = true;
@@ -1773,7 +1778,7 @@ function _refreshRecalls(){
   if(!el) return;
   if(!_pendingRecalls.length){el.style.display='none';return;}
   el.innerHTML=_recallsHTML();
-  if(window.lucide) lucide.createIcons();
+  refreshIcons();
 }
 function recallGotIt(i){
   _pendingRecalls.splice(i,1);
@@ -1795,7 +1800,7 @@ function applyTheme(){
   document.getElementById('themeBtn').innerHTML = (S.theme==='dark'
     ? '<i data-lucide="sun" style="width:14px;height:14px;vertical-align:-2px"></i> Light'
     : '<i data-lucide="moon" style="width:14px;height:14px;vertical-align:-2px"></i> Dark');
-  if(window.lucide) lucide.createIcons();
+  refreshIcons();
 }
 function toggleTheme(){ S.theme = S.theme==='dark'?'light':'dark'; save(); applyTheme(); }
 applyTheme();
@@ -2085,7 +2090,7 @@ function renderLesson(){
       </div>
       <h1>${l.title}</h1>
       ${window.apkPass ? apkPass.gateHTML({title:'Premium lesson'}) : ''}`;
-    if(window.lucide) lucide.createIcons();
+    refreshIcons();
     return;
   }
   const pct = Math.round(lessonPos(l.id)/DATA.LESSONS.length*100);
@@ -2108,7 +2113,7 @@ function renderLesson(){
   if(l.flow==='v2'){
     html += v2Body(l, done);
     document.getElementById('lessonContent').innerHTML=html;
-    if(window.lucide) lucide.createIcons();
+    refreshIcons();
     return;
   }
   // Read-it-aloud (Grain "Say It Out Loud")
@@ -2166,7 +2171,7 @@ function renderLesson(){
     </div>`;
 
   document.getElementById('lessonContent').innerHTML = html;
-  if(window.lucide) lucide.createIcons();
+  refreshIcons();
 }
 function rateConf(lessonId, level, btn){
   S.confidence = S.confidence || {};
@@ -2174,7 +2179,7 @@ function rateConf(lessonId, level, btn){
   save();
   const wrap = btn.closest('.conf-chips');
   if(wrap) wrap.querySelectorAll('.conf-chip').forEach(c => c.classList.toggle('is-on', c===btn));
-  if(window.lucide) lucide.createIcons();
+  refreshIcons();
 }
 
 function renderQuiz(l){
@@ -2251,7 +2256,7 @@ function v2Continue(lid,stage){
   if(!el) return;
   el.style.display='';
   setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),60);
-  if(window.lucide) lucide.createIcons();
+  refreshIcons();
 }
 function v2ParsClick(lid,idx){
   const chip=document.getElementById(`v2pc-${lid}-${idx}`);
@@ -3139,8 +3144,7 @@ localStorage.removeItem('apk-sprint');
   // so it re-matches its own output. Strip it after rendering, otherwise the
   // MutationObserver below would re-fire on createIcons's own mutations forever.
   function refresh(){
-    if(!window.lucide) return;
-    lucide.createIcons();
+    refreshIcons();
     document.querySelectorAll('svg[data-lucide]').forEach(function(s){ s.removeAttribute('data-lucide'); });
   }
   refresh();
