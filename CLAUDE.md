@@ -6,7 +6,7 @@
 
 ---
 
-> ### 🧠 CURRENT INITIATIVE — EXCEL LEARNING-SCIENCE POLISH (Phase D next)
+> ### 🧠 CURRENT INITIATIVE — EXCEL LEARNING-SCIENCE POLISH (Phase E next)
 >
 > Full plan: `EXCEL_POLISH_MASTER_PLAN.md`. Phase roadmap:
 > - ✅ **Phase A (v1.78.0):** Foundation fixes (readiness score, tap-choice drills, inline SVG charts, mobile, skip button)
@@ -22,107 +22,97 @@
 
 ---
 
-## Phase D — Spaced recall + progressive spine guide (for the fresh session)
+## Phase E — Motivation layer (for the fresh session)
 
-**File:** `excel/index.html` (single file, ~2800 lines, CRLF line endings, no build step)
-**Starting version:** `v1.80.0` — all 51 lessons have `flow:'v2'` data. **Read `EXCEL_POLISH_MASTER_PLAN.md` first** for full Phase D rationale.
+**File:** `excel/index.html` (single file, ~2900 lines, CRLF line endings, no build step)
+**Starting version:** `v1.81.0`
+**Read `EXCEL_POLISH_MASTER_PLAN.md` first** — Part 3.4 and Part 4 row "Reward/unlock" are the design rationale.
 
----
-
-### D1 — Add `reinforces:[]` recall cards at +1/+3/+7
-
-Each lesson data object gets a `reinforces:[]` field listing 1–3 short recall cues for concepts this lesson introduces. When a learner rates a lesson "shaky" or "getting there" (low/mid confidence via `S.conf[id]`), the engine queues a recall card to surface at the next +1, +3, and +7 lessons in sequence.
-
-**Data shape — add to each lesson object after `close:`:**
-```js
-reinforces:[
-  "When should you use VLOOKUP vs INDEX/MATCH?",
-  "What does the 4th argument in VLOOKUP control?"
-]
-```
-One to three cues per lesson. Phrase as retrieval prompts (questions or "say X without looking").
-
-**+1/+3/+7 logic — how to queue:**
-- When `openLesson(id)` fires and `S.conf[id]` is `'low'` or `'mid'`, read `l.reinforces`.
-- Store a queue in `localStorage` key `'epk-recalls'` as an array of `{cues, dueAt}` objects where `dueAt` is the lesson position (`lessonPos(id)`) + 1, + 3, + 7 respectively:
-```js
-// e.g. lesson at position 5 queues recalls at positions 6, 8, 12
-const pos = lessonPos(id)
-const recalls = JSON.parse(localStorage.getItem('epk-recalls') || '[]')
-for (const offset of [1, 3, 7]) {
-  recalls.push({ cues: l.reinforces, dueAt: pos + offset })
-}
-localStorage.setItem('epk-recalls', JSON.stringify(recalls))
-```
-- At `openLesson(id)`, after queuing, also **dequeue**: filter for any entries where `dueAt === lessonPos(id)` and surface them as a recall card before the Orient stage.
-
-**Recall card UI:** A small card above the Orient section:
-```
-🔁 Quick recall — no peeking
-[cue text]
-[ I remembered it ] [ Nope, remind me again ]
-```
-"I remembered it" increments the recall-success counter (see D3) and removes that entry from the queue. "Nope" re-queues at current position + 1.
+### The one rule that governs all of Phase E (SDT)
+Every element must read as **informational / competence-affirming** — never controlling, never scarce, never loss-framed. Hollow token rewards (points, gems, hearts) trigger the overjustification effect and manufacture anxiety. The reward here is **more of the actual knowledge**, permanent and revisitable. If you're unsure whether something belongs, ask: "Does this tell the learner something real, or does it pressure them?" Pressure = cut it.
 
 ---
 
-### D2 — Progressive-artifact framing
+### E1 — Honest unlock: deeper-insight card at lesson Close
 
-At the top of each lesson's Orient stage, if the lesson is not Unit 0 and not the first lesson in its unit, prepend one sentence referencing the previous lesson's outcome:
+**What:** When a learner completes the Own (quiz) stage, the Close section reveals an extra `unlock:` block that was hidden before. The reward is a deeper "why," a real job context, or a subtle gotcha that makes the concept click harder. Not points — more of the concept.
 
+**Data shape — add to each lesson object (after `reinforces:`):**
 ```js
-// In v2Body render, before l.orient:
-if (prevLesson) {
-  html += `<p class="artifact-bridge">Last time you built: <strong>${prevLesson.title}</strong>. Now you'll add to it.</p>`
+unlock:"Most analysts reach for SUMIFS before they know COUNTIFS exists — once you know both, you stop writing extra helper columns just to count conditional rows."
+```
+One sentence to two sentences. Tone: peer-level, "here's something you now have access to." Not cheerful. Not "great job!" — just the knowledge.
+
+**Render logic — in `v2Body`, in the Close section (`// ⑦ Close`):**
+```js
+// Only show unlock when lesson is already done (not on first visit through)
+if (done && l.unlock) {
+  h += `<div class="unlock-card"><div class="unlock-header"><i data-lucide="key"></i> Unlocked</div><p>${l.unlock}</p></div>`
 }
 ```
+The `done` variable is already in scope in `v2Body(l, done)`.
 
-Use `prevLessonId(id)` (already exists) to get the prior lesson. If `null` (Unit 0 or first lesson), skip the bridge sentence.
+**CSS** (add near other v2 styles):
+```css
+.unlock-card{background:var(--surf2);border:1px solid var(--accent);border-radius:var(--radius);padding:14px 16px;margin-top:12px}
+.unlock-header{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.unlock-header .lucide{width:13px;height:13px}
+```
+
+**Commit:** `v1.81.1 Phase E: add unlock[] data to all 51 lessons`
+**Commit:** `v1.81.2 Phase E: unlock card renders in Close stage when lesson complete`
 
 ---
 
-### D3 — "This feels harder because it works" + recall-success counter
+### E2 — Return-streak: gentle "welcome back" on Home
 
-**Honesty message:** After the Try (Parsons) stage header, and after the Build (tap-choice) stage header, add a one-line honesty note in a subdued style:
+**What:** Track the last date the user visited in `localStorage['epk-last-visit']` (date string `YYYY-MM-DD`). On each Home render, compare to today. If they're returning after ≥1 day away, show a one-line competence-affirming message in the resume card — nothing lost, just acknowledged. Clear on same-day reload (so it's one greeting per return visit, not per page load).
 
-```html
-<p class="retrieval-note">This feels harder because it works — struggling to recall is how memory forms.</p>
-```
-
-CSS: small, muted (`color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.5rem;`)
-
-**Recall-success counter:** A persistent badge in the lesson header area (near the confidence rater) showing how many recall cards the learner has nailed:
-
+**Logic** (add to `renderHome()` or wherever the home view is built):
 ```js
-// In localStorage key 'epk-recall-wins' — increment when "I remembered it" is clicked
-const wins = parseInt(localStorage.getItem('epk-recall-wins') || '0') + 1
-localStorage.setItem('epk-recall-wins', String(wins))
+function checkReturnStreak(){
+  const today = new Date().toISOString().slice(0,10);
+  const last = localStorage.getItem('epk-last-visit');
+  localStorage.setItem('epk-last-visit', today);
+  if(last && last !== today){
+    const el = document.getElementById('returnGreeting');
+    if(el) el.textContent = 'Good to have you back. Pick up where you left off.';
+  }
+}
 ```
 
-Display: `🔁 ${wins} recalled` next to the lesson title or confidence rater. Update on every lesson open.
+Add a `<p id="returnGreeting" style="font-size:13px;color:var(--dim);margin-top:6px"></p>` inside the resume card (after the subtitle line). Call `checkReturnStreak()` inside `show('home')` (or in the existing `renderHome` function — grep for it).
+
+No streak counter display, no "🔥 3-day streak" — just the one quiet line. Keep it purely informational.
+
+**Commit:** `v1.81.3 Phase E: return-visit greeting on Home`
 
 ---
 
-### D4 — Remove dead flag code
+### E3 — Mentor voice audit (close lines only)
 
-The flag feature was removed in v1.72.0. Dead code left behind in `excel/index.html`:
-- Functions: `flagBtnHTML`, `toggleFlag`, `isFlagged`, `flagLabel`
-- CSS: `.flag-btn` and any `.flag-*` selectors
+Grep for `close:"` in `excel/index.html` and scan all 51 close strings. The standard is:
+- **Competence framing:** "You can now X" or "You have Y" — celebrates a real capability gained.
+- **Forward thread:** "Next: Z" — what the next lesson adds to what was just built.
+- **No cheerleading:** remove "Great work!", "Excellent!", or "Well done!" if any remain.
+- **No loss-framing:** no "Don't forget…" or "Make sure you…"
 
-Search with Grep for `flagBtnHTML` and `flag-btn` to find all instances. Remove function definitions and all CSS rules. Do NOT remove confidence-rater code (`S.conf`, `confGotIt`, etc.) — that is live.
+Most close lines were written in Phase C with this in mind, so this is a scan + spot-fix pass, not a full rewrite. Fix any that violate the rules above. One commit if any changes needed.
+
+**Commit (only if changes needed):** `v1.81.4 Phase E: mentor-voice audit on close lines`
 
 ---
 
 ### Commit pattern
 
-One commit per sub-task:
-- `v1.80.1 Phase D: add reinforces[] data to all 51 lessons`
-- `v1.80.2 Phase D: recall queue engine + recall card UI`
-- `v1.80.3 Phase D: progressive-artifact bridge sentences`
-- `v1.80.4 Phase D: retrieval-note + recall-success counter`
-- `v1.80.5 Phase D: remove dead flag code`
+```
+v1.81.1 Phase E: add unlock text to all 51 lessons
+v1.81.2 Phase E: unlock card renders in Close when lesson complete
+v1.81.3 Phase E: return-visit greeting on Home
+v1.81.4 Phase E: mentor-voice audit on close lines  ← only if fixes needed
+```
 
-Bump to `v1.81.0` when all five sub-tasks are done. Update `CHANGELOG.md`.
+Bump to **`v1.82.0`** when all sub-tasks are done. Update `CHANGELOG.md` and this file.
 
 ---
 
