@@ -1,17 +1,18 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 29, 2026 — 🧠 **Excel Learning-Science Polish Phase B COMPLETE + Mike-approved** (v1.78.0 → v1.79.0)
-**Current version:** `v1.79.0`
+**Last session ended:** June 29, 2026 — 🧠 **Excel Learning-Science Polish Phase C COMPLETE** (v1.79.0 → v1.80.0)
+**Current version:** `v1.80.0`
 **You are continuing an established collaboration with Mike Nocito.**
 
 ---
 
-> ### 🧠 CURRENT INITIATIVE — EXCEL LEARNING-SCIENCE POLISH (Phase C next)
+> ### 🧠 CURRENT INITIATIVE — EXCEL LEARNING-SCIENCE POLISH (Phase D next)
 >
 > Full plan: `EXCEL_POLISH_MASTER_PLAN.md`. Phase roadmap:
 > - ✅ **Phase A (v1.78.0):** Foundation fixes (readiness score, tap-choice drills, inline SVG charts, mobile, skip button)
 > - ✅ **Phase B (v1.79.0):** Progressive v2 lesson flow on formula-spine lessons (SUM id:1, IF id:2, Nested IF id:14). 7 stages: Orient→Worked Example→Try (Parsons)→Compare→Build (tap-choice)→Own (quiz)→Close. Mike-verified and approved.
-> - ➡️ **Phase C (NEXT):** Roll v2 flow to all remaining 48 lessons. Same `flow:'v2'` flag + `orient/try/compare/build/close` fields. Code is done — this is pure content authoring. Do lessons in unit order, commit per unit.
+> - ✅ **Phase C (v1.80.0):** v2 flow rolled to all 51 Excel lessons. All units 0–10 complete (v1.79.1–v1.79.11).
+> - ➡️ **Phase D (NEXT):** Spaced recall (`reinforces:[]` cards, +1/+3/+7 day prompts)
 > - Phase D: Spaced recall (`reinforces:[]` cards, +1/+3/+7 day prompts)
 > - Phase E: Honest unlock/motivation layer
 > - Phase F: Focus/Detailed toggle

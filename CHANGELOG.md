@@ -9,6 +9,12 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.80.0] — 2026-06-29 — 🧠 Excel Learning-Science Polish · Phase C (v2 flow rolled to all 51 lessons)
+
+Applied the Phase B v2 lesson flow (Orient → Try → Compare → Build → Own → Close) to all 48 remaining Excel lessons across Units 0–10. Every lesson now opens with a manager scenario, walks through a Parsons chip-ordering exercise, reveals the mental model, offers a tap-choice Build question, and closes with a forward teaser. Committed per unit (v1.79.1–v1.79.11). Phase C is complete; all 51 lessons carry `flow:'v2'`.
+
+---
+
 ## [1.79.0] — 2026-06-29 — 🧠 Excel Learning-Science Polish · Phase B (progressive v2 lesson flow)
 
 Rebuilt formula-spine lessons (SUM id:1, IF id:2, Nested IF id:14) with a new 7-stage progressive flow: Orient → Worked Example → Try (Parsons chip-ordering) → Compare → Build (tap-choice) → Own (quiz) → Close. Each stage is hidden until the previous step is completed — retrieval practice is now embedded in the lesson itself, not buried in a separate Practice screen. Parsons problems generate the formula from shuffled chips; Build is tap-to-choose with correct answer reveal; Own reuses the existing quiz system. Confidence rating (Still shaky / Getting there / Have it) added at Close to drive spaced-recall in Phase D. Phase B is backward-compatible: all 48 non-v2 lessons render through the unchanged original path.
