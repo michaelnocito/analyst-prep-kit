@@ -1,12 +1,12 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 29, 2026 — 🧠 **Excel Learning-Science Polish Phase E COMPLETE** (v1.81.0 → v1.82.0)
-**Current version:** `v1.82.0`
+**Last session ended:** June 29, 2026 — 🧠 **Excel Learning-Science Polish Phase F COMPLETE + free access until Aug 1** (v1.82.0 → v1.83.0)
+**Current version:** `v1.83.0`
 **You are continuing an established collaboration with Mike Nocito.**
 
 ---
 
-> ### 🧠 CURRENT INITIATIVE — EXCEL LEARNING-SCIENCE POLISH (Phase F next)
+> ### 🧠 CURRENT INITIATIVE — EXCEL LEARNING-SCIENCE POLISH (Phase G next)
 >
 > Full plan: `EXCEL_POLISH_MASTER_PLAN.md`. Phase roadmap:
 > - ✅ **Phase A (v1.78.0):** Foundation fixes (readiness score, tap-choice drills, inline SVG charts, mobile, skip button)
@@ -14,15 +14,15 @@
 > - ✅ **Phase C (v1.80.0):** v2 flow rolled to all 51 Excel lessons. All units 0–10 complete (v1.79.1–v1.79.11).
 > - ✅ **Phase D (v1.81.0):** Spaced-recall engine, progressive-artifact bridge, retrieval-honesty note, recall-wins counter, Lucide fix, rating-button radio group, 51-lesson Try-puzzle audit (8 fixed). Mike-verified.
 > - ✅ **Phase E (v1.82.0):** Honest unlock card (51 lessons, Close stage, done-gated), return-visit greeting on Home, mentor-voice audit (all 51 close strings passed — no changes needed).
-> - ➡️ **Phase F (NEXT):** Focus/Detailed toggle
-> - Phase G: AI Coach (premium, decision-gated)
+> - ✅ **Phase F (v1.83.0):** Focus/Details toggle in Worked Example — "More details" / "Less" hides/shows Gotcha + intro; persisted to `localStorage['epk-lesson-mode']`. Also: gates removed, free until Aug 1, 2026 — gate redesign parked for after Phase G/H.
+> - ➡️ **Phase G (NEXT):** AI Coach (premium, decision-gated)
 > - Phase H: Port to SQL, Python, Power BI, Tableau, Stats
 >
 > **Cross-kit changes log** (bulk-apply to other kits when Excel polish is done): tracked in `EXCEL_POLISH_MASTER_PLAN.md` → "Cross-kit changes" section.
 
 ---
 
-## Phase F — Focus / Details toggle (NEXT)
+## Phase F — Focus / Details toggle — COMPLETE (v1.83.0)
 
 **File:** `excel/index.html` (single file, ~3000 lines, CRLF line endings, no build step)
 **Starting version:** `v1.82.0`

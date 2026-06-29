@@ -44,6 +44,8 @@
     _kit: '',
     setKit: function (k) { this._kit = k || ''; },
     isUnlocked: function () {
+      // Free access until August 1, 2026 — gates removed while lessons/AI/coach are built
+      if (Date.now() < new Date('2026-08-01T00:00:00').getTime()) return true;
       try {
         if (localStorage.getItem(KEY) !== '1') return false;
         var exp = parseInt(localStorage.getItem(EXP) || '0', 10);

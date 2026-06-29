@@ -9,6 +9,28 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.83.0] — 2026-06-29 — 🧠 Phase F (focus/details toggle) + free access until Aug 1
+
+### Phase F — Focus/Details toggle (v1.82.1)
+
+Two-mode toggle on every Excel lesson's Worked Example stage. **Focus** (default) shows the RAL formula breakdown and grid visual only — zero noise. **"More details"** expands to also reveal the Gotcha card (`l.notes`, amber border) and the intro paragraph (`l.intro`). Preference is saved in `localStorage['epk-lesson-mode']` and persists across lessons and visits.
+
+- `getLessonMode()` / `setLessonMode()` helpers added near other state helpers
+- `v2ToggleMode(lid)` handler flips mode, updates both hidden divs and the button label
+- Bare `l.notes` render in the Worked Example block replaced with toggle wrappers; `l.intro` folded in alongside it
+- Toggle button: `btn-outline btn-sm`, label "More details" / "Less"
+
+### Free access until August 1 (v1.82.2)
+
+All premium gates removed until August 1, 2026. Content will be re-gated after Phase G (AI Coach) and Phase H (port to all kits) are complete and the full premium feature set is defined.
+
+- `apkPass.isUnlocked()` returns `true` before 2026-08-01 (code-check logic resumes after that date)
+- Hub founding-offer banner replaced with a plain "Everything is free until August 1" notice
+- "Have a code?" redeem section removed from hub (no gate to unlock)
+- Gate redesign added to ROADMAP Parking Lot — rebuild with actual premium features in hand
+
+---
+
 ## [1.82.0] — 2026-06-29 — 🧠 Excel Learning-Science Polish · Phase E (motivation layer)
 
 Phase E adds an honest, SDT-guarded motivation layer — no hearts, no streak anxiety, no cheerleading. Three tasks shipped across v1.81.1–v1.81.4:
