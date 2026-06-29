@@ -470,6 +470,8 @@ all other buckets are empty.
 
 ---
 
+- **PivotTable content — revisit after kit-by-kit redo** _(parked June 29, 2026)_ — The PivotTable lessons (Unit 2) are hard to teach without a live interactive PivotTable. Static grids and text descriptions convey the shape but not the feel. Revisit as part of the full kit content review pass — options include an embedded interactive drag-zone mockup, a screencast/GIF, or the Pivot Lab already in the nav put front-and-center as the learning medium. _Reason parked:_ content-design decision, not a quick fix; depends on the broader kit review direction Mike is working toward.
+
 - **"Hear it" speech button on recall prompts** _(parked June 29, 2026)_ — A small 🔊 button next to each recall-card cue that reads the prompt aloud via the Web Speech API (zero dependency, no API key). Rationale: text prompts for "say it out loud" don't actually compel speech — hearing it spoken first triggers call-and-response naturally and turns a silent read into an active verbal exercise. _Reason parked:_ feature-sized (not a one-liner); the base recall card is new and untested. Promote after Phase D ships and recall cards see real usage. _Est. effort:_ Small-Medium.
 
 - **🎨 GRAIN PHASE 4 — cross-kit surfaces + polish** _(parked June 25, 2026 — revisit ~July 25, 2026)_

@@ -330,6 +330,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .recall-cues li{margin-bottom:4px}
 .recall-btns{display:flex;gap:8px;flex-wrap:wrap}
 .artifact-bridge{font-size:13px;color:var(--dim);margin-bottom:12px;padding:0 2px}
+.retrieval-note{font-size:12px;color:var(--dim);font-style:italic;margin:0 0 10px}
 .v2-try-pool{display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:var(--surf2);border:1px solid var(--border);border-radius:8px;margin-top:10px}
 .v2-try-ans{display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:var(--surf);border:2px dashed var(--border);border-radius:8px;min-height:46px;margin-top:6px;align-items:center}
 </style></head>
@@ -2384,6 +2385,7 @@ function v2Body(l,done){
   if(l.try){
     h+=`<div class="v2-stage" id="v2s-try-${lid}"${hid()}>
       <div class="v2-badge"><i data-lucide="pencil"></i> Try it</div>
+      <p class="retrieval-note">This feels harder because it works — struggling to recall is how memory forms.</p>
       <div class="card">
         <p style="font-weight:600;margin-bottom:10px">${l.try.q}</p>
         <div style="font-size:12px;color:var(--dim);margin-bottom:4px">Tap pieces into the answer box in order:</div>
@@ -2407,6 +2409,7 @@ function v2Body(l,done){
   if(l.build){
     h+=`<div class="v2-stage" id="v2s-build-${lid}"${hid()}>
       <div class="v2-badge"><i data-lucide="hammer"></i> Build</div>
+      <p class="retrieval-note">This feels harder because it works — struggling to recall is how memory forms.</p>
       <div class="card">
         <p style="font-weight:600;margin-bottom:12px">${l.build.q}</p>
         <div class="quiz-opts">${done?`<div class="parsons-chip placed" style="background:var(--success);border-color:var(--success)">${enc(l.build.ans)}</div>`:_shuf([...l.build.choices]).map(c=>`<button class="quiz-opt" onclick="v2PickBuild(this,${lid})" data-correct="${c===l.build.ans?1:0}">${enc(c)}</button>`).join('')}</div>
@@ -2425,12 +2428,13 @@ function v2Body(l,done){
     </div>
   </div>`;
   // ⑦ Close
-  const nxtId=nextLessonId(lid),conf=(S.confidence||{})[lid];
+  const nxtId=nextLessonId(lid),conf=(S.confidence||{})[lid],_wins=parseInt(localStorage.getItem('epk-recall-wins')||'0');
   h+=`<div class="v2-stage" id="v2s-close-${lid}"${hid()}>
     <div class="v2-badge"><i data-lucide="check-circle"></i> Done</div>
     <div class="v2-close">${l.close}</div>
     <div style="margin-top:12px;background:var(--surf);border:2px solid var(--success);border-radius:var(--radius);padding:20px">
       <h2 style="color:var(--success);margin-bottom:6px">Lesson ${lessonPos(lid)+1} complete</h2>
+      ${_wins>0?`<p style="font-size:12px;color:var(--dim);margin-bottom:8px">🔁 ${_wins} recalled</p>`:''}
       <p style="margin-bottom:10px">Rate how well you know this${conf?` <span style="color:var(--dim);font-size:12px">— tap another to change</span>`:''}:</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px" id="v2-rate-${lid}">
         <button class="btn btn-sm ${conf==='low'?'btn-primary':'btn-outline'}" data-rating="low" onclick="v2RateConf(${lid},'low')">Still shaky</button>
