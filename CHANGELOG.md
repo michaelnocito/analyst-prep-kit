@@ -9,6 +9,12 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.78.1] — 2026-06-29 — Home page "In this kit" nav grid (Excel)
+
+Added a compact tile grid on the Excel kit home page linking to every nav section: Lessons, Practice, Workspace, Pivot Lab, Cards, Glossary, and Exam. Users can now navigate to any part of the kit from the home page without hunting the header. Placed between the review list and the Lessons card. Cross-kit porting tracked in `EXCEL_POLISH_MASTER_PLAN.md` cross-kit changes log (entry #1).
+
+---
+
 ## [1.78.0] — 2026-06-29 — 🧪 Excel Learning-Science Polish · Phase A (foundation fixes)
 
 First shippable slice of the Excel learning-science redesign (full plan in `EXCEL_POLISH_MASTER_PLAN.md`). Stand-alone foundation fixes that de-risk the mobile/correctness feedback before the bigger lesson-flow rebuild (Phase B, the exemplar). Content was authored and adversarially verified via multi-agent workflows. Excel kit only; pattern ports to the other kits later (Phase H).

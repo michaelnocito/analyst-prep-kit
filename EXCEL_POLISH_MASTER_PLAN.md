@@ -166,3 +166,13 @@ Each phase is independently testable under the strict workflow (one item in flig
 - Ryan & Deci (SDT/CET); Sailer & Homner (2023, gamification meta-analysis); Mar et al. (2021, narrative vs expository meta-analysis); seductive-details (Bender et al. 2021); Chou (white-hat/black-hat); Duolingo loss-aversion critiques.
 
 _Full URLs are in the June 29 research briefs (session transcript)._
+
+---
+
+## Cross-kit changes log
+
+Every change made to the Excel kit that must be ported to SQL · Python · Power BI · Tableau · Stats during Phase H. Running list — add an entry each session.
+
+| # | Change | Excel shipped | Notes for other kits |
+|---|--------|--------------|----------------------|
+| 1 | **"In this kit" nav grid on home page** — compact tile grid linking to every nav section (Lessons, Practice, Workspace/equivalent, Pivot Lab/equivalent, Cards, Glossary, Exam). | v1.78.1 | Each kit has different nav items — replace Workspace/Pivot Lab tiles with that kit's unique sections. Exam tile always links to `../final/#exam-<kit>`. Use same `path-tile` + `auto-fill` grid pattern. |
