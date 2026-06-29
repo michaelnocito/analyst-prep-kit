@@ -12,8 +12,7 @@
 > - ✅ **Phase A (v1.78.0):** Foundation fixes (readiness score, tap-choice drills, inline SVG charts, mobile, skip button)
 > - ✅ **Phase B (v1.79.0):** Progressive v2 lesson flow on formula-spine lessons (SUM id:1, IF id:2, Nested IF id:14). 7 stages: Orient→Worked Example→Try (Parsons)→Compare→Build (tap-choice)→Own (quiz)→Close. Mike-verified and approved.
 > - ✅ **Phase C (v1.80.0):** v2 flow rolled to all 51 Excel lessons. All units 0–10 complete (v1.79.1–v1.79.11).
-> - ➡️ **Phase D (NEXT):** Spaced recall (`reinforces:[]` cards, +1/+3/+7 day prompts)
-> - Phase D: Spaced recall (`reinforces:[]` cards, +1/+3/+7 day prompts)
+> - ➡️ **Phase D (NEXT):** Spacing + progressive spine + honesty messaging
 > - Phase E: Honest unlock/motivation layer
 > - Phase F: Focus/Detailed toggle
 > - Phase G: AI Coach (premium, decision-gated)
@@ -23,51 +22,107 @@
 
 ---
 
-## Phase C — v2 lesson authoring guide (for the fresh session)
+## Phase D — Spaced recall + progressive spine guide (for the fresh session)
 
-**File:** `excel/index.html` (single file, ~2800 lines, no build step)
+**File:** `excel/index.html` (single file, ~2800 lines, CRLF line endings, no build step)
+**Starting version:** `v1.80.0` — all 51 lessons have `flow:'v2'` data. **Read `EXCEL_POLISH_MASTER_PLAN.md` first** for full Phase D rationale.
 
-**What to add per lesson:** after the `quiz:{...}` field, append:
+---
+
+### D1 — Add `reinforces:[]` recall cards at +1/+3/+7
+
+Each lesson data object gets a `reinforces:[]` field listing 1–3 short recall cues for concepts this lesson introduces. When a learner rates a lesson "shaky" or "getting there" (low/mid confidence via `S.conf[id]`), the engine queues a recall card to surface at the next +1, +3, and +7 lessons in sequence.
+
+**Data shape — add to each lesson object after `close:`:**
 ```js
-flow:'v2',
-orient:"...",          // 2-3 sentence manager scenario that sets up WHY this formula matters
-try:{
-  q:"...",             // "Arrange the formula to ..."
-  pieces:[...],        // array of string tokens (shuffled pool shown to user)
-  ans:[...]            // correct order (subset or all of pieces)
-},
-compare:"...",         // 2-3 sentences explaining the pattern / mental model
-build:{
-  q:"...",             // scenario requiring them to write/choose a formula
-  ans:"...",           // correct answer (exact string)
-  choices:["...","...","..."]  // 3 options including correct one
-},
-close:"..."            // 1-2 sentences: what they can do now + teaser for next lesson
+reinforces:[
+  "When should you use VLOOKUP vs INDEX/MATCH?",
+  "What does the 4th argument in VLOOKUP control?"
+]
+```
+One to three cues per lesson. Phrase as retrieval prompts (questions or "say X without looking").
+
+**+1/+3/+7 logic — how to queue:**
+- When `openLesson(id)` fires and `S.conf[id]` is `'low'` or `'mid'`, read `l.reinforces`.
+- Store a queue in `localStorage` key `'epk-recalls'` as an array of `{cues, dueAt}` objects where `dueAt` is the lesson position (`lessonPos(id)`) + 1, + 3, + 7 respectively:
+```js
+// e.g. lesson at position 5 queues recalls at positions 6, 8, 12
+const pos = lessonPos(id)
+const recalls = JSON.parse(localStorage.getItem('epk-recalls') || '[]')
+for (const offset of [1, 3, 7]) {
+  recalls.push({ cues: l.reinforces, dueAt: pos + offset })
+}
+localStorage.setItem('epk-recalls', JSON.stringify(recalls))
+```
+- At `openLesson(id)`, after queuing, also **dequeue**: filter for any entries where `dueAt === lessonPos(id)` and surface them as a recall card before the Orient stage.
+
+**Recall card UI:** A small card above the Orient section:
+```
+🔁 Quick recall — no peeking
+[cue text]
+[ I remembered it ] [ Nope, remind me again ]
+```
+"I remembered it" increments the recall-success counter (see D3) and removes that entry from the queue. "Nope" re-queues at current position + 1.
+
+---
+
+### D2 — Progressive-artifact framing
+
+At the top of each lesson's Orient stage, if the lesson is not Unit 0 and not the first lesson in its unit, prepend one sentence referencing the previous lesson's outcome:
+
+```js
+// In v2Body render, before l.orient:
+if (prevLesson) {
+  html += `<p class="artifact-bridge">Last time you built: <strong>${prevLesson.title}</strong>. Now you'll add to it.</p>`
+}
 ```
 
-**Lessons that already have v2 data (skip these):**
-- id:1 "Your First Formula" (SUM/AVERAGE/COUNT)
-- id:2 "Make Decisions with IF"
-- id:14 "Nested IF and IFS"
+Use `prevLessonId(id)` (already exists) to get the prior lesson. If `null` (Unit 0 or first lesson), skip the bridge sentence.
 
-**Units and lesson ids** (use `lessonPos(id)` — ids are NOT sequential with display L-numbers):
-- Unit 0 (Before You Type): ids 101, 102, 103, 104
-- Unit 1 (Formulas): ids 1–9 (minus 1, 2 done)
-- Unit 2 (PivotTables): ids 10–12
-- Unit 3 (Data Cleaning): ids 13–16 (minus 14 done)
-- Unit 4 (Deeper Formulas): ids 17–20
-- Unit 5 (Charts & Formatting): ids 21–24
-- Unit 6 (Power Tools): ids 25–28
-- Unit 7 (Data Migration): ids 29–33
-- Unit 8 (From Question to Metric): ids 34–39
-- Unit 9 (Financial Analysis): ids 40–45
-- Unit 10 (Advanced Analyst Toolkit): ids 46–51
+---
 
-**Commit pattern:** one commit per unit, e.g. `v1.79.1 Phase C Unit 0: v2 flow (ids 101-104)`. Bump to `v1.80.0` when all 51 lessons have v2 data. Update `CHANGELOG.md` with each unit batch.
+### D3 — "This feels harder because it works" + recall-success counter
 
-**Lessons that have `viz:` or `charts:` data** — the Worked Example will render them automatically (v2Body calls `lessonGridHTML`/`chartCardHTML`). Don't remove existing viz/charts fields.
+**Honesty message:** After the Try (Parsons) stage header, and after the Build (tap-choice) stage header, add a one-line honesty note in a subdued style:
 
-**Lessons with no `ral:` (Say It Out Loud)** — the v2 Worked Example stage relies on `l.ral` to render the formula breakdown. If a lesson has no ral, add a minimal one (formula + say + lines) or the Worked Example stage will be blank. Check before committing.
+```html
+<p class="retrieval-note">This feels harder because it works — struggling to recall is how memory forms.</p>
+```
+
+CSS: small, muted (`color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.5rem;`)
+
+**Recall-success counter:** A persistent badge in the lesson header area (near the confidence rater) showing how many recall cards the learner has nailed:
+
+```js
+// In localStorage key 'epk-recall-wins' — increment when "I remembered it" is clicked
+const wins = parseInt(localStorage.getItem('epk-recall-wins') || '0') + 1
+localStorage.setItem('epk-recall-wins', String(wins))
+```
+
+Display: `🔁 ${wins} recalled` next to the lesson title or confidence rater. Update on every lesson open.
+
+---
+
+### D4 — Remove dead flag code
+
+The flag feature was removed in v1.72.0. Dead code left behind in `excel/index.html`:
+- Functions: `flagBtnHTML`, `toggleFlag`, `isFlagged`, `flagLabel`
+- CSS: `.flag-btn` and any `.flag-*` selectors
+
+Search with Grep for `flagBtnHTML` and `flag-btn` to find all instances. Remove function definitions and all CSS rules. Do NOT remove confidence-rater code (`S.conf`, `confGotIt`, etc.) — that is live.
+
+---
+
+### Commit pattern
+
+One commit per sub-task:
+- `v1.80.1 Phase D: add reinforces[] data to all 51 lessons`
+- `v1.80.2 Phase D: recall queue engine + recall card UI`
+- `v1.80.3 Phase D: progressive-artifact bridge sentences`
+- `v1.80.4 Phase D: retrieval-note + recall-success counter`
+- `v1.80.5 Phase D: remove dead flag code`
+
+Bump to `v1.81.0` when all five sub-tasks are done. Update `CHANGELOG.md`.
 
 ---
 
