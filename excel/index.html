@@ -2023,12 +2023,13 @@ function renderLessonList(){
   if(_sumEl) _sumEl.textContent = `${DATA.LESSONS.length} lessons across ${_unitCount} units.`;
 }
 
-// Per-lesson reset: clears just THIS lesson's completion and reopens the quiz.
+// Per-lesson reset: clears this lesson's completion + confidence so the rater reappears.
 function resetLessonProgress(){
   const id = (S.lessonStage==='done' && S.doneLesson!=null) ? S.doneLesson : S.currentLesson;
   S.currentLesson = id;
   const i = S.lessonsDone.indexOf(id);
   if(i > -1) S.lessonsDone.splice(i,1);
+  if(S.confidence) delete S.confidence[id];
   S.lessonStage = 'intro';
   save();
   renderLesson();
@@ -2329,6 +2330,9 @@ function v2RateConf(lid,rating){
   const rd=document.getElementById(`v2-rate-${lid}`);
   if(rd) rd.querySelectorAll('.btn').forEach(b=>{b.disabled=true;if(b.dataset.rating===rating){b.classList.remove('btn-outline');b.classList.add('btn-primary');}});
   renderFlagged();
+  // Queue spaced-recall cards now that we know this lesson's confidence
+  const _rl=DATA.LESSONS.find(x=>x.id===lid);
+  if(_rl) _queueRecalls(lid, _rl);
 }
 function v2Body(l,done){
   const lid=l.id,enc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -3058,6 +3062,8 @@ function handleResetKit(btn){
     setTimeout(function(){if(_kitConfirm){_kitConfirm=false;btn.textContent='↺ Reset this kit';btn.style.color='';btn.style.borderColor='';}  },4000);
   } else {
     localStorage.removeItem('epk');
+    localStorage.removeItem('epk-recalls');
+    localStorage.removeItem('epk-recall-wins');
     location.reload();
   }
 }
@@ -3068,7 +3074,7 @@ function handleResetAll(btn){
     btn.style.color='#e07c7c';btn.style.borderColor='#e07c7c';
     setTimeout(function(){if(_allConfirm){_allConfirm=false;btn.textContent='↺ Reset all kits';btn.style.color='';btn.style.borderColor='';}  },4000);
   } else {
-    ['sqlkit-v1','epk','ppk','tpk','spk'].forEach(function(k){localStorage.removeItem(k);});
+    ['sqlkit-v1','epk','ppk','tpk','spk','epk-recalls','epk-recall-wins'].forEach(function(k){localStorage.removeItem(k);});
     location.reload();
   }
 }
