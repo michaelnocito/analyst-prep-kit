@@ -588,6 +588,8 @@ localStorage.removeItem('apk-basics'); // Bare Basics mode removed
 if(window.apkPass) apkPass.setKit('excel');
 function isPremiumLesson(l){ return l && l.id >= 500; }            // Units 7-10 = interview tracks
 function isLockedLesson(l){ return isPremiumLesson(l) && !(window.apkPass && apkPass.isUnlocked()); }
+function getLessonMode(){ return localStorage.getItem('epk-lesson-mode')||'focus'; }
+function setLessonMode(m){ localStorage.setItem('epk-lesson-mode',m); }
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const DATA = {
 LESSONS:[
@@ -2323,6 +2325,17 @@ function skipLesson(lid){
 }
 
 // ─── V2 LESSON FLOW ──────────────────────────────────────────────────────────
+function v2ToggleMode(lid){
+  const m=getLessonMode()==='focus'?'details':'focus';
+  setLessonMode(m);
+  const show=m==='details';
+  ['v2-details-','v2-gotcha-'].forEach(p=>{
+    const el=document.getElementById(p+lid);
+    if(el) el.style.display=show?'':'none';
+  });
+  const btn=document.getElementById('v2-mode-btn-'+lid);
+  if(btn) btn.textContent=show?'Less':'More details';
+}
 const _v2parsAns={};
 function v2Continue(lid,stage){
   const el=document.getElementById(`v2s-${stage}-${lid}`);
@@ -2443,7 +2456,16 @@ function v2Body(l,done){
   h+=`</div>`;
   if(l.viz) h+=lessonGridHTML(l.viz);
   if(l.charts) l.charts.forEach(k=>{h+=chartCardHTML(k,'');});
+  // ── Focus/Details extras (shown only in 'details' mode) ──────────────
+  const _mode=getLessonMode();
+  const _detailsVis=_mode==='details';
+  h+=`<div id="v2-details-${lid}" style="${_detailsVis?'':'display:none'}">`;
+  if(l.intro) h+=`<div class="card card-sm" style="margin-top:8px;color:var(--dim);font-size:14px;line-height:1.65">${l.intro}</div>`;
+  h+=`</div>`;
+  h+=`<div id="v2-gotcha-${lid}" style="${_detailsVis?'':'display:none'}">`;
   if(l.notes) h+=`<div class="card card-sm" style="border-color:var(--warn);margin-top:8px"><span style="font-weight:700;color:var(--warn)">Gotcha:</span> ${l.notes}</div>`;
+  h+=`</div>`;
+  h+=`<div style="margin-top:10px"><button class="btn btn-outline btn-sm" onclick="v2ToggleMode(${lid})" id="v2-mode-btn-${lid}">${_detailsVis?'Less':'More details'}</button></div>`;
   h+=`${!done?`<div class="v2-continue"><button class="btn btn-primary" onclick="v2Continue(${lid},'try')">Now you try →</button></div>`:''}
   </div>`;
   // ③ Try (Parsons)
