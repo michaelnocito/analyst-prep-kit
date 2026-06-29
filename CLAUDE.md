@@ -6,7 +6,7 @@
 
 ---
 
-> ### 🧠 CURRENT INITIATIVE — EXCEL LEARNING-SCIENCE POLISH (Phase E next)
+> ### 🧠 CURRENT INITIATIVE — EXCEL LEARNING-SCIENCE POLISH (Phase F next)
 >
 > Full plan: `EXCEL_POLISH_MASTER_PLAN.md`. Phase roadmap:
 > - ✅ **Phase A (v1.78.0):** Foundation fixes (readiness score, tap-choice drills, inline SVG charts, mobile, skip button)
@@ -19,6 +19,88 @@
 > - Phase H: Port to SQL, Python, Power BI, Tableau, Stats
 >
 > **Cross-kit changes log** (bulk-apply to other kits when Excel polish is done): tracked in `EXCEL_POLISH_MASTER_PLAN.md` → "Cross-kit changes" section.
+
+---
+
+## Phase F — Focus / Details toggle (NEXT)
+
+**File:** `excel/index.html` (single file, ~3000 lines, CRLF line endings, no build step)
+**Starting version:** `v1.82.0`
+
+### What it is
+
+A two-mode toggle on every lesson's Worked Example stage. **Focus** (the default) shows just the RAL formula breakdown + the grid visual — the core teaching, zero noise. **Details** expands to also reveal:
+- The `l.notes` Gotcha card (edge case / subtle trap)
+- The `l.intro` paragraph (background / deeper context)
+
+Both of those fields exist in every lesson object already. The toggle is a thin wrapper — no content is rewritten, just shown or hidden. Preference is saved in `localStorage['epk-lesson-mode']` so it persists across lessons and visits.
+
+SDT rule (same as Phase E): never frame Details as "the real lesson" or Focus as "easy mode." The toggle label is purely functional: **"More details"** / **"Less"**. No star icons, no "Advanced" label.
+
+---
+
+### F1 — Toggle state + localStorage
+
+Add to the top of the page JS (near other state helpers):
+```js
+function getLessonMode(){ return localStorage.getItem('epk-lesson-mode')||'focus'; }
+function setLessonMode(m){ localStorage.setItem('epk-lesson-mode',m); }
+```
+
+---
+
+### F2 — Render the toggle + wire it into v2Body
+
+**In `v2Body`, inside the `// ② Worked Example` block**, after the RAL and viz are built but before closing the stage div, add the toggled content:
+
+```js
+// ── Focus/Details extras (shown only in 'details' mode) ──────────────
+const _mode = getLessonMode();
+const _detailsVis = _mode === 'details';
+h += `<div id="v2-details-${lid}" style="${_detailsVis?'':'display:none'}">`;
+if(l.intro) h += `<div class="card card-sm" style="margin-top:8px;color:var(--dim);font-size:14px;line-height:1.65">${l.intro}</div>`;
+h += `</div>`;
+// Move the Gotcha inside the details wrapper — replace the existing l.notes block
+// (see below: remove the old bare notes render and replace with this)
+h += `<div id="v2-gotcha-${lid}" style="${_detailsVis?'':'display:none'}">`;
+if(l.notes) h += `<div class="card card-sm" style="border-color:var(--warn);margin-top:8px"><span style="font-weight:700;color:var(--warn)">Gotcha:</span> ${l.notes}</div>`;
+h += `</div>`;
+// Toggle button
+h += `<div style="margin-top:10px"><button class="btn btn-outline btn-sm" onclick="v2ToggleMode(${lid})" id="v2-mode-btn-${lid}">${_detailsVis?'Less':'More details'}</button></div>`;
+```
+
+**Remove** the existing bare `l.notes` render (the one-liner at line ~2446) so it doesn't appear twice.
+
+**Toggle handler** (add near other v2 helpers):
+```js
+function v2ToggleMode(lid){
+  const m = getLessonMode()==='focus'?'details':'focus';
+  setLessonMode(m);
+  const show = m==='details';
+  ['v2-details-','v2-gotcha-'].forEach(p=>{
+    const el=document.getElementById(p+lid);
+    if(el) el.style.display=show?'':'none';
+  });
+  const btn=document.getElementById('v2-mode-btn-'+lid);
+  if(btn) btn.textContent=show?'Less':'More details';
+}
+```
+
+**Commit:** `v1.82.1 Phase F: focus/details toggle in Worked Example stage`
+
+Bump to **`v1.83.0`** when done. Update `CHANGELOG.md` and this file.
+
+---
+
+### Test checks (3, correct lesson POSITIONS not IDs)
+
+⚠️ Lesson POSITION = `lessonPos(id) + 1`. id:1 = position 5. id:9 = position 13. Never use the id as the position number.
+
+| # | Do this | Expect to see |
+|---|---------|---------------|
+| F1a | Open Excel Lesson 5 — "Your First Formula" → scroll to the Worked Example stage | RAL breakdown and grid are visible; Gotcha and intro are **hidden**; a small **"More details"** button appears below the grid |
+| F1b | Click "More details" on Lesson 5 | The Gotcha card (amber border, "Gotcha:") and intro paragraph slide into view; the button label changes to **"Less"** |
+| F1c | Navigate to Excel Lesson 6 — "Make Decisions with IF" (without refreshing) | The Worked Example on Lesson 6 opens in Details mode (persisted) — Gotcha and intro are already visible; button says **"Less"** |
 
 ---
 
