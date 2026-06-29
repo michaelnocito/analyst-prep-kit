@@ -243,12 +243,22 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 .streak-badge{display:inline-flex;align-items:center;gap:5px;background:var(--surf2);border:1px solid var(--border);border-radius:12px;padding:4px 10px;font-size:13px;font-family:var(--mono)}
 .unit-divider{border:none;border-top:1px solid var(--border);margin:8px 0 16px}
 
+/* Phase A (June 29, 2026) — mobile-safe wrapping so long formulas in tap-choice
+   buttons / Parsons chips / examples never clip off the card edge on a phone. */
+.bug-choice{overflow-wrap:anywhere;word-break:break-word}
+.parsons-chip{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
+.quiz-opt{overflow-wrap:anywhere}
+.example-box{overflow-wrap:anywhere;overflow-x:auto}
+.fill-choices{display:flex;flex-direction:column;gap:8px}
+
 @media(max-width:600px){
   .path-grid{grid-template-columns:1fr 1fr}
   .pivot-layout{grid-template-columns:1fr}
   .pivot-zones{grid-template-columns:1fr}
   nav{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:4px;padding:0 10px;scrollbar-width:none}
   nav::-webkit-scrollbar{display:none}
+  .check-row{flex-wrap:wrap}
+  .check-row .btn{flex:1 1 auto}
 }
 
 /* -- Sprint Bar ---------------------------------------- */
@@ -426,7 +436,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 <!-- LESSONS LIST -->
 <div id="view-lessons" class="view">
   <h1>Lessons</h1>
-  <p>28 lessons across seven units. Each one ends with a short quiz, then drills.</p>
+  <p><span id="lessonListSummary"></span> Each one ends with a short quiz, then drills.</p>
   <div id="lessonList" class="mt16"></div>
 </div>
 
@@ -759,6 +769,7 @@ LESSONS:[
  ],
  notes:"Resize a chart by dragging its corners. Move it to its own sheet (right-click → Move Chart) if it's covering your data. Always add a chart title — 'Chart 1' is not a title.",
  viz:{cols:["Region","Revenue"],grid:[["Region","Revenue ($)"],["East",711],["North",572],["South",540],["West",1181]],caption:"A simple two-column table is all Excel needs to create a bar chart. Select these two columns, go to Insert → Chart, and choose a clustered bar or column chart."},
+ charts:["lesson17-bar"],
  quiz:{q:"You want to show how monthly coffee sales changed over the past year. Which chart type is most appropriate?",opts:["Pie chart","Bar chart","Line chart","Scatter plot"],ans:2,exp:"Line charts are the standard choice for showing trends over time — each point represents a period and the connecting line makes the trend direction immediately visible."}
 },
 {id:18,unit:"Unit 5: Charts & Formatting",title:"Conditional Formatting",slug:"condformat",
@@ -1038,30 +1049,30 @@ LESSONS:[
 ],
 
 FILLS:[
- {id:1,q:"Complete the formula to sum cells B2 through B50.",partial:"=___(B2:B50)",ans:"=SUM(B2:B50)",hint:"The function that adds up a range of numbers."},
- {id:2,q:'Write a formula that returns "Pass" if C2 is >= 70, otherwise "Fail".',partial:'=IF(C2___70,"Pass","Fail")',ans:'=IF(C2>=70,"Pass","Fail")',hint:"Greater than or equal to is >="},
- {id:3,q:"Fill in the column index to return the product name (column 2) from a VLOOKUP.",partial:"=VLOOKUP(A2,products!A:C,___,FALSE)",ans:"=VLOOKUP(A2,products!A:C,2,FALSE)",hint:"Column index 2 = second column of the range."},
- {id:4,q:'Complete the XLOOKUP to look up A2 in column A of products, return from column B, show "—" if missing.',partial:"=XLOOKUP(A2,products!A:A,products!B:B,___)",ans:'=XLOOKUP(A2,products!A:A,products!B:B,"—")',hint:"The fourth argument is the not-found value, wrapped in quotes."},
- {id:5,q:'Count how many cells in D2:D100 equal "West".',partial:'=COUNTIF(D2:D100,___)',ans:'=COUNTIF(D2:D100,"West")',hint:'The condition goes in quotes since it\'s text.'},
- {id:6,q:"Sum the Revenue column (F2:F100) only where the Region column (C2:C100) is East.",partial:"=SUMIF(C2:C100,___,F2:F100)",ans:'=SUMIF(C2:C100,"East",F2:F100)',hint:"Second argument is the condition."},
- {id:7,q:"Remove extra spaces from cell A2.",partial:"=___(A2)",ans:"=TRIM(A2)",hint:"A text-cleaning function."},
- {id:8,q:"Convert text in A2 to Title Case.",partial:"=___(A2)",ans:"=PROPER(A2)",hint:"UPPER/LOWER/PROPER — which one is Title Case?"},
- {id:9,q:"Extract the first 4 characters from cell B2.",partial:"=LEFT(B2,___)",ans:"=LEFT(B2,4)",hint:"The second argument is the number of characters."},
- {id:10,q:"Extract the year from the date in cell A2.",partial:"=___(A2)",ans:"=YEAR(A2)",hint:"A date component function."},
- {id:11,q:"Wrap a VLOOKUP in IFERROR to show 0 instead of an error.",partial:'=___(VLOOKUP(A2,B:C,2,FALSE),___)',ans:"=IFERROR(VLOOKUP(A2,B:C,2,FALSE),0)",hint:"IFERROR takes two arguments: the formula and the fallback value."},
- {id:12,q:"Count entries in A2:A50 where the value is greater than 500.",partial:"=COUNTIF(A2:A50,___)",ans:'=COUNTIF(A2:A50,">500")',hint:'Comparison operators inside COUNTIF go inside quotes: ">500"'},
- {id:13,q:"Reference the Revenue column of a table named SalesData using a structured reference.",partial:"=SUM(___[Revenue])",ans:"=SUM(SalesData[Revenue])",hint:"Table structured references use TableName[ColumnName]."},
- {id:14,q:'Complete the IFS formula to return "Low" when A2 < 100, "High" otherwise.',partial:'=IFS(A2<100,___,TRUE,___)',ans:'=IFS(A2<100,"Low",TRUE,"High")',hint:"IFS takes condition–result pairs; TRUE is the catch-all."},
- {id:15,q:"Use MATCH to find the row position of A2 in the range products!B:B. Exact match.",partial:"=MATCH(A2,products!B:B,___)",ans:"=MATCH(A2,products!B:B,0)",hint:"0 means exact match in MATCH."},
- {id:16,q:"Complete the SUMPRODUCT weighted average: sum of (price × units) divided by total units.",partial:"=SUMPRODUCT(B2:B10,C2:C10)/___( C2:C10)",ans:"=SUMPRODUCT(B2:B10,C2:C10)/SUM(C2:C10)",hint:"Divide by total units using SUM."},
- {id:17,q:"Which chart type would you choose to show monthly revenue trend over 12 months?",partial:"Choose: ___ chart",ans:"Line chart",hint:"Line charts show how a value changes over time."},
- {id:18,q:"Apply conditional formatting to highlight cells in B2:B50 greater than 300. The menu path starts at Home → ___.",partial:"Home → ___ → Highlight Cells Rules → Greater Than",ans:"Home → Conditional Formatting → Highlight Cells Rules → Greater Than",hint:"The feature name is two words."},
- {id:19,q:"Restrict column B to a dropdown list of values: East, West, North, South. What Excel feature do you use?",partial:"Data → ___ → Allow: List",ans:"Data → Data Validation → Allow: List",hint:"The feature that controls what can be entered in a cell."},
- {id:20,q:"You named cell $H$1 as TaxRate. Complete the formula to multiply B2 by that named range.",partial:"=B2*___",ans:"=B2*TaxRate",hint:"Just use the name — no $ signs needed with named ranges."},
- {id:21,q:"After building a Power Query that cleans a CSV, how do you re-run it on the next week's file?",partial:"Right-click the output table → ___",ans:"Right-click the output table → Refresh",hint:"One word — the command that re-runs all recorded steps."},
- {id:22,q:"Complete the FILTER formula to return all rows from A2:D100 where column C equals West.",partial:"=FILTER(A2:D100,___)",ans:'=FILTER(A2:D100,C2:C100="West")',hint:"The second argument is the condition array."},
- {id:23,q:"Which shortcut inserts today's date as a static value (not a formula that updates)?",partial:"___",ans:"Ctrl+;",hint:"It uses a semicolon."},
- {id:24,q:"Before protecting a sheet, you must unlock the input cells. Where is the Locked checkbox?",partial:"Format Cells → ___ tab → uncheck Locked",ans:"Format Cells → Protection tab → uncheck Locked",hint:"The tab name matches the feature."}
+ {id:1,q:"Complete the formula to sum cells B2 through B50.",partial:"=___(B2:B50)",ans:"=SUM(B2:B50)",hint:"The function that adds up a range of numbers.",choices:["=SUM(B2:B50)","=SUM(B2,B50)","=COUNT(B2:B50)"]},
+ {id:2,q:'Write a formula that returns "Pass" if C2 is >= 70, otherwise "Fail".',partial:'=IF(C2___70,"Pass","Fail")',ans:'=IF(C2>=70,"Pass","Fail")',hint:"Greater than or equal to is >=",choices:['=IF(C2>=70,"Pass","Fail")','=IF(C2=>70,"Pass","Fail")','=IF(C2>=70,Pass,Fail)']},
+ {id:3,q:"Fill in the column index to return the product name (column 2) from a VLOOKUP.",partial:"=VLOOKUP(A2,products!A:C,___,FALSE)",ans:"=VLOOKUP(A2,products!A:C,2,FALSE)",hint:"Column index 2 = second column of the range.",choices:["=VLOOKUP(A2,products!A:C,2,FALSE)","=VLOOKUP(A2,products!A:C,3,FALSE)","=VLOOKUP(A2,products!A:C,2,TRUE)"]},
+ {id:4,q:'Complete the XLOOKUP to look up A2 in column A of products, return from column B, show "—" if missing.',partial:"=XLOOKUP(A2,products!A:A,products!B:B,___)",ans:'=XLOOKUP(A2,products!A:A,products!B:B,"—")',hint:"The fourth argument is the not-found value, wrapped in quotes.",choices:['=XLOOKUP(A2,products!A:A,products!B:B,"—")','=XLOOKUP(A2,products!B:B,products!A:A,"—")','=XLOOKUP(A2,products!A:A,products!B:B,—)']},
+ {id:5,q:'Count how many cells in D2:D100 equal "West".',partial:'=COUNTIF(D2:D100,___)',ans:'=COUNTIF(D2:D100,"West")',hint:'The condition goes in quotes since it\'s text.',choices:['=COUNTIF(D2:D100,"West")','=COUNTIF(D2:D100,West)','=SUMIF(D2:D100,"West")']},
+ {id:6,q:"Sum the Revenue column (F2:F100) only where the Region column (C2:C100) is East.",partial:"=SUMIF(C2:C100,___,F2:F100)",ans:'=SUMIF(C2:C100,"East",F2:F100)',hint:"Second argument is the condition.",choices:['=SUMIF(C2:C100,"East",F2:F100)','=SUMIF(F2:F100,"East",C2:C100)','=SUMIF(C2:C100,East,F2:F100)']},
+ {id:7,q:"Remove extra spaces from cell A2.",partial:"=___(A2)",ans:"=TRIM(A2)",hint:"A text-cleaning function.",choices:["=TRIM(A2)","=CLEAN(A2)","=TRIM(A2,1)"]},
+ {id:8,q:"Convert text in A2 to Title Case.",partial:"=___(A2)",ans:"=PROPER(A2)",hint:"UPPER/LOWER/PROPER — which one is Title Case?",choices:["=PROPER(A2)","=UPPER(A2)","=TITLE(A2)"]},
+ {id:9,q:"Extract the first 4 characters from cell B2.",partial:"=LEFT(B2,___)",ans:"=LEFT(B2,4)",hint:"The second argument is the number of characters.",choices:["=LEFT(B2,4)","=LEFT(4,B2)","=RIGHT(B2,4)"]},
+ {id:10,q:"Extract the year from the date in cell A2.",partial:"=___(A2)",ans:"=YEAR(A2)",hint:"A date component function.",choices:["=YEAR(A2)","=MONTH(A2)","=DATE(A2)"]},
+ {id:11,q:"Wrap a VLOOKUP in IFERROR to show 0 instead of an error.",partial:'=___(VLOOKUP(A2,B:C,2,FALSE),___)',ans:"=IFERROR(VLOOKUP(A2,B:C,2,FALSE),0)",hint:"IFERROR takes two arguments: the formula and the fallback value.",choices:["=IFERROR(VLOOKUP(A2,B:C,2,FALSE),0)","=IFERROR(VLOOKUP(A2,B:C,2,FALSE))","=IFERROR(0,VLOOKUP(A2,B:C,2,FALSE))"]},
+ {id:12,q:"Count entries in A2:A50 where the value is greater than 500.",partial:"=COUNTIF(A2:A50,___)",ans:'=COUNTIF(A2:A50,">500")',hint:'Comparison operators inside COUNTIF go inside quotes: ">500"',choices:['=COUNTIF(A2:A50,">500")','=COUNTIF(A2:A50,>500)','=COUNTIF(A2:A50,"500")']},
+ {id:13,q:"Reference the Revenue column of a table named SalesData using a structured reference.",partial:"=SUM(___[Revenue])",ans:"=SUM(SalesData[Revenue])",hint:"Table structured references use TableName[ColumnName].",choices:["=SUM(SalesData[Revenue])","=SUM(SalesData!Revenue)","=SUM(SalesData.Revenue)"]},
+ {id:14,q:'Complete the IFS formula to return "Low" when A2 < 100, "High" otherwise.',partial:'=IFS(A2<100,___,TRUE,___)',ans:'=IFS(A2<100,"Low",TRUE,"High")',hint:"IFS takes condition–result pairs; TRUE is the catch-all.",choices:['=IFS(A2<100,"Low",TRUE,"High")','=IFS(A2<100,"Low","High")','=IFS(A2<100,"Low",FALSE,"High")']},
+ {id:15,q:"Use MATCH to find the row position of A2 in the range products!B:B. Exact match.",partial:"=MATCH(A2,products!B:B,___)",ans:"=MATCH(A2,products!B:B,0)",hint:"0 means exact match in MATCH.",choices:["=MATCH(A2,products!B:B,0)","=MATCH(A2,products!B:B,1)","=MATCH(products!B:B,A2,0)"]},
+ {id:16,q:"Complete the SUMPRODUCT weighted average: sum of (price × units) divided by total units.",partial:"=SUMPRODUCT(B2:B10,C2:C10)/___( C2:C10)",ans:"=SUMPRODUCT(B2:B10,C2:C10)/SUM(C2:C10)",hint:"Divide by total units using SUM.",choices:["=SUMPRODUCT(B2:B10,C2:C10)/SUM(C2:C10)","=SUMPRODUCT(B2:B10)/SUM(C2:C10)","=SUM(B2:B10,C2:C10)/SUM(C2:C10)"]},
+ {id:17,q:"Which chart type would you choose to show monthly revenue trend over 12 months?",partial:"Choose: ___ chart",ans:"Line chart",hint:"Line charts show how a value changes over time.",choices:["Line chart","Pie chart","Bar chart"]},
+ {id:18,q:"Apply conditional formatting to highlight cells in B2:B50 greater than 300. The menu path starts at Home → ___.",partial:"Home → ___ → Highlight Cells Rules → Greater Than",ans:"Home → Conditional Formatting → Highlight Cells Rules → Greater Than",hint:"The feature name is two words.",choices:["Home → Conditional Formatting → Highlight Cells Rules → Greater Than","Insert → Conditional Formatting → Highlight Cells Rules → Greater Than","Home → Conditional Formatting → Top/Bottom Rules → Greater Than"]},
+ {id:19,q:"Restrict column B to a dropdown list of values: East, West, North, South. What Excel feature do you use?",partial:"Data → ___ → Allow: List",ans:"Data → Data Validation → Allow: List",hint:"The feature that controls what can be entered in a cell.",choices:["Data → Data Validation → Allow: List","Data → Filter → Allow: List","Home → Data Validation → Allow: List"]},
+ {id:20,q:"You named cell $H$1 as TaxRate. Complete the formula to multiply B2 by that named range.",partial:"=B2*___",ans:"=B2*TaxRate",hint:"Just use the name — no $ signs needed with named ranges.",choices:['=B2*TaxRate','=B2*"TaxRate"','=B2*$H$1']},
+ {id:21,q:"After building a Power Query that cleans a CSV, how do you re-run it on the next week's file?",partial:"Right-click the output table → ___",ans:"Right-click the output table → Refresh",hint:"One word — the command that re-runs all recorded steps.",choices:["Right-click the output table → Refresh","Right-click the output table → Edit","Right-click the output table → Reload"]},
+ {id:22,q:"Complete the FILTER formula to return all rows from A2:D100 where column C equals West.",partial:"=FILTER(A2:D100,___)",ans:'=FILTER(A2:D100,C2:C100="West")',hint:"The second argument is the condition array.",choices:['=FILTER(A2:D100,C2:C100="West")','=FILTER(A2:D100,C2:C99="West")','=FILTER(C2:C100="West",A2:D100)']},
+ {id:23,q:"Which shortcut inserts today's date as a static value (not a formula that updates)?",partial:"___",ans:"Ctrl+;",hint:"It uses a semicolon.",choices:["Ctrl+;","Ctrl+Shift+;","Ctrl+T"]},
+ {id:24,q:"Before protecting a sheet, you must unlock the input cells. Where is the Locked checkbox?",partial:"Format Cells → ___ tab → uncheck Locked",ans:"Format Cells → Protection tab → uncheck Locked",hint:"The tab name matches the feature.",choices:["Format Cells → Protection tab → uncheck Locked","Format Cells → Alignment tab → uncheck Locked","Review → Protection tab → uncheck Locked"]}
 ],
 
 BUGS:[
@@ -1108,7 +1119,7 @@ WRONG:[
  {id:14,q:"=IF(A2>100,\"High\",IF(A2>200,\"Premium\",\"Low\")) never returns Premium even when A2 is 300. Why?",opts:["Premium needs to be in uppercase","The first test (A2>100) catches all values above 100 — values above 200 are never tested","IF doesn't support nesting","A2>200 needs quotes around 200"],ans:1,exp:"The conditions are in the wrong order. A2>100 is TRUE for 300, so Excel returns High and never evaluates the nested IF. Reverse the order: test A2>200 first, then A2>100."},
  {id:15,q:"=MATCH(A2,B:B,0) returns 1 even though A2's value is clearly in row 5. What's the most likely cause?",opts:["MATCH always returns 1 for the first match","Row 1 is a header that matches A2 — the lookup is matching the header not the data","MATCH is 0-indexed","You need FALSE instead of 0"],ans:1,exp:"MATCH searches the entire column including row 1. If your header text accidentally matches the lookup value, MATCH returns 1 (the header row). Start your search range at B2 to exclude the header: =MATCH(A2,B2:B100,0)."},
  {id:16,q:"=SUMPRODUCT(B2:B10,C2:C11) returns a #VALUE! error. What is wrong?",opts:["SUMPRODUCT doesn't accept two arrays","The arrays are different sizes — B2:B10 has 9 rows and C2:C11 has 10 rows","One of the arrays contains text","SUMPRODUCT needs commas replaced with asterisks"],ans:1,exp:"SUMPRODUCT arrays must be identical in size. B2:B10 has 9 rows; C2:C11 has 10 rows. Fix: make both ranges the same — either B2:B10,C2:C10 or B2:B11,C2:C11."},
- {id:17,q:"You create a bar chart but the bars all look the same height. The data values are very different. What's likely wrong?",opts:["Bar charts can't handle large value differences","The vertical axis minimum is set to a large number, compressing the visual difference","You need to use a line chart instead","The chart title is missing"],ans:1,exp:"When the Y axis minimum is set to a high value (like 900 when values range from 950 to 1000), the bars look nearly identical. Right-click the axis → Format Axis → set Minimum to 0 to show the full scale."},
+ {id:17,svg:"wrong17-bar",q:"Your bar chart shows five revenue values between 950 and 1000, but every bar looks the same height. What's going on?",opts:["Bar charts can't display values that are close together","The axis starts at 0, so values bunched near the top (950–1000) barely differ in height","You should switch to a pie chart","The chart is missing a legend"],ans:1,exp:"When the axis runs from 0 and every value sits up near the top, the bars all fill ~95–100% of the height and look identical. Raise the axis Minimum (Format Axis → Minimum, e.g. 940) to zoom in and reveal the gaps — just label the axis clearly, since a non-zero baseline can also exaggerate differences."},
  {id:18,q:"You apply a green 'Greater Than 500' rule and a red 'Less Than 200' rule to the same column. Values between 200 and 500 turn red. Why?",opts:["Excel always applies the red rule to middle values","The red rule is listed above the green rule in Manage Rules — it takes priority and its condition is true for values under 200 only, but a third overlapping rule may be active","Two rules are conflicting — the lower rule is incorrectly formatted as Less Than 500 not Less Than 200","Conditional Formatting doesn't support two rules on the same range"],ans:2,exp:"Check Manage Rules carefully. If the red rule says Less Than 500 instead of Less Than 200, it catches everything below 500 — including your middle-range values. Edit the rule to Less Than 200 and the conflict resolves."},
  {id:19,q:"You set up a Data Validation dropdown but colleagues are still able to type free text into the cell. Why?",opts:["Data Validation only works on new rows","The Error Alert style is set to Warning or Information instead of Stop — those allow the entry after showing a message","Dropdowns only work if the sheet is protected","The source list is on a different sheet"],ans:1,exp:"Warning and Information alert styles let users override the validation and enter their own value after dismissing the message. Only Stop refuses the entry entirely. Change the Error Alert style to Stop to enforce the rule."},
  {id:20,q:"You delete the named range Revenue from Name Manager. Now =SUM(Revenue) shows #NAME?. Why?",opts:["=SUM doesn't work with named ranges","Revenue was deleted so Excel no longer recognizes the name — it treats it as an undefined function or label","You need to refresh the formula","Named ranges must be recreated each session"],ans:1,exp:"When a named range is deleted, every formula using that name shows #NAME? because Excel can't resolve the label anymore. Recreate the named range in Name Manager (or the Name Box) and the formula resolves immediately."},
@@ -1458,22 +1469,31 @@ function renderHome(){
   document.getElementById('resumeBtn').textContent = S.lessonsDone.includes(cur.id) ? 'Review →' : (done===0?'Start →':'Resume →');
   document.getElementById('resumeSub').textContent = cur.intro.split('.')[0]+'.';
 
-  // readiness
-  const skills = [
-    {label:'Basic Formulas', keys:['fills-0','fills-1','fills-2'], done: Math.min(S.fillsDone.filter(x=>x<3).length,3), total:3},
-    {label:'IF Logic', keys:[], done: S.lessonsDone.includes(2)?1:0, total:1},
-    {label:'VLOOKUP', keys:[], done: S.bugsDone.filter(x=>x===2||x===3).length, total:2},
-    {label:'XLOOKUP', keys:[], done: S.lessonsDone.includes(4)?1:0, total:1},
-    {label:'COUNTIF / SUMIF', keys:[], done: S.esqlDone.filter(x=>x>=4&&x<=5).length, total:2},
-    {label:'PivotTables', keys:[], done: [6,7,8].filter(id=>S.lessonsDone.includes(id)).length, total:3},
-    {label:'Data Cleaning', keys:[], done: [9,10,11,12].filter(id=>S.lessonsDone.includes(id)).length, total:4},
+  // Skill Readiness — derived from the LIVE lesson set so it always reflects
+  // every lesson (incl. newly added units/tracks). Each accessible lesson is
+  // counted once under the first skill area it matches; locked premium-track
+  // lessons only count once the All-Access Pass unlocks them.
+  const SKILL_AREAS = [
+    {label:'Foundations', match:u=>/Unit 0/.test(u)},
+    {label:'Formulas & Logic', match:u=>/Formulas/.test(u)},
+    {label:'PivotTables', match:u=>/Pivot/.test(u)},
+    {label:'Data Cleaning', match:u=>/Cleaning/.test(u)},
+    {label:'Charts, Formatting & Tools', match:u=>/Charts|Power Tools/.test(u)},
+    {label:'Interview Tracks', match:u=>/Unit (7|8|9|10)\b/.test(u)},
   ];
-  const totalPoints = skills.reduce((a,s)=>a+s.total,0);
-  const earnedPoints = skills.reduce((a,s)=>a+Math.min(s.done,s.total),0);
-  const pct = Math.round(earnedPoints/totalPoints*100);
+  const _accessible = DATA.LESSONS.filter(l=>!isLockedLesson(l));
+  const skills = SKILL_AREAS.map(a=>({label:a.label, total:0, done:0}));
+  _accessible.forEach(l=>{
+    const ai = SKILL_AREAS.findIndex(a=>a.match(l.unit));
+    if(ai>=0){ skills[ai].total++; if(S.lessonsDone.includes(l.id)) skills[ai].done++; }
+  });
+  const _visSkills = skills.filter(s=>s.total>0);
+  const totalPoints = _visSkills.reduce((a,s)=>a+s.total,0);
+  const earnedPoints = _visSkills.reduce((a,s)=>a+s.done,0);
+  const pct = totalPoints ? Math.round(earnedPoints/totalPoints*100) : 0;
   document.getElementById('readinessPct').textContent = pct+'%';
-  document.getElementById('readinessList').innerHTML = skills.map(s=>{
-    const p = Math.min(s.done,s.total)/s.total*100;
+  document.getElementById('readinessList').innerHTML = _visSkills.map(s=>{
+    const p = s.total ? Math.min(s.done,s.total)/s.total*100 : 0;
     return `<div class="readiness-row">
       <span class="readiness-label">${s.label}</span>
       <div class="readiness-bar-wrap"><div class="readiness-bar" style="width:${p}%"></div></div>
@@ -1489,8 +1509,10 @@ function renderHome(){
     const p=Math.round(d/ls.length*100);
     return `<div style="margin-bottom:10px"><div class="flex-between" style="margin-bottom:3px"><span style="font-size:13px;font-weight:600">${unit}</span><span style="font-size:12px;font-family:var(--mono);color:var(--dim)">${d}/${ls.length}</span></div><div class="prog-bar" style="height:5px"><div class="prog-fill" style="width:${p}%"></div></div></div>`;
   }).join('');
-  const _nxtL=DATA.LESSONS.filter(l=>!S.lessonsDone.includes(l.id)).slice(0,3);
-  document.getElementById('home-next-lessons').innerHTML=_nxtL.length?_nxtL.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 2px;border-top:1px solid var(--border);cursor:pointer" onclick="openLesson(${l.id})"><div><span style="font-size:11px;color:var(--dim);font-family:var(--mono);margin-right:8px">L${lessonPos(l.id)+1}</span><span style="font-size:14px;font-weight:600">${l.title}</span></div><span style="color:var(--accent);font-weight:700">→</span></div>`).join(''):`<p style="font-size:13px;color:var(--dim);margin:8px 0 0">All 16 lessons complete! 🎉</p>`;
+  // Next-up + the "all complete" copy track ACCESSIBLE lessons (same set as the
+  // readiness score) — never surface locked premium lessons to a free learner.
+  const _nxtL=_accessible.filter(l=>!S.lessonsDone.includes(l.id)).slice(0,3);
+  document.getElementById('home-next-lessons').innerHTML=_nxtL.length?_nxtL.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 2px;border-top:1px solid var(--border);cursor:pointer" onclick="openLesson(${l.id})"><div><span style="font-size:11px;color:var(--dim);font-family:var(--mono);margin-right:8px">L${lessonPos(l.id)+1}</span><span style="font-size:14px;font-weight:600">${l.title}</span></div><span style="color:var(--accent);font-weight:700">→</span></div>`).join(''):`<p style="font-size:13px;color:var(--dim);margin:8px 0 0">All ${_accessible.length} lessons complete! 🎉</p>`;
 }
 
 function resumeLesson(){
@@ -1516,6 +1538,10 @@ function renderLessonList(){
       </div>
     </div>`;
   }).join('');
+  // Keep the lessons-list summary line in sync with the live lesson set.
+  const _unitCount = [...new Set(DATA.LESSONS.map(l=>l.unit))].length;
+  const _sumEl = document.getElementById('lessonListSummary');
+  if(_sumEl) _sumEl.textContent = `${DATA.LESSONS.length} lessons across ${_unitCount} units.`;
 }
 
 // Per-lesson reset: clears just THIS lesson's completion and reopens the quiz.
@@ -1534,6 +1560,20 @@ function openLesson(id){
   save();
   show('lesson');
   renderLesson();
+}
+
+// Inline-SVG chart library (Phase A, June 29, 2026). Multimedia principle: show
+// the ACTUAL chart whenever a lesson/drill discusses one. All colors via CSS vars
+// so charts adapt to dark + light. No Chart.js dependency (stays zero-build/static).
+const CHART_SVG = {
+  'lesson17-bar': `<svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="l17bar-t l17bar-d" style="width:100%;height:auto;max-width:520px;display:block" font-family="system-ui,-apple-system,sans-serif"><title id="l17bar-t">Regional revenue clustered bar chart</title><desc id="l17bar-d">A vertical bar chart of revenue by region: East 711, North 572, South 540, West 1181 dollars. West is the tallest bar.</desc><text x="60" y="20" fill="var(--text)" font-size="12" font-weight="600">Revenue by region ($)</text><g stroke="var(--border)" stroke-width="1"><line x1="60" y1="30" x2="500" y2="30"/><line x1="60" y1="85" x2="500" y2="85"/><line x1="60" y1="140" x2="500" y2="140"/><line x1="60" y1="195" x2="500" y2="195"/></g><line x1="60" y1="250" x2="500" y2="250" stroke="var(--dim)" stroke-width="1.5"/><g fill="var(--dim)" font-size="11" text-anchor="end"><text x="54" y="34">1200</text><text x="54" y="89">900</text><text x="54" y="144">600</text><text x="54" y="199">300</text><text x="54" y="253">0</text></g><g fill="var(--accent)"><rect x="82" y="119.6" width="56" height="130.4" rx="2"/><rect x="192" y="145.1" width="56" height="104.9" rx="2"/><rect x="302" y="151.0" width="56" height="99.0" rx="2"/><rect x="412" y="33.5" width="56" height="216.5" rx="2"/></g><g fill="var(--text)" font-size="11" text-anchor="middle"><text x="110" y="112">711</text><text x="220" y="137.5">572</text><text x="330" y="143.5">540</text><text x="440" y="26">1181</text></g><g fill="var(--dim)" font-size="11" text-anchor="middle"><text x="110" y="266">East</text><text x="220" y="266">North</text><text x="330" y="266">South</text><text x="440" y="266">West</text></g></svg>`,
+  'wrong17-bar': `<svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="w17-t w17-d" style="width:100%;height:auto;max-width:520px;display:block" font-family="system-ui,-apple-system,sans-serif"><title id="w17-t">Misleading bar chart with bunched values</title><desc id="w17-d">Five revenue bars (950, 965, 980, 995, 1000) all reach nearly the same height because every value sits above 900, so real differences are invisible.</desc><text x="60" y="20" fill="var(--text)" font-size="12" font-weight="600">Bars look identical (all values &gt; 900)</text><g stroke="var(--border)" stroke-width="1"><line x1="60" y1="40" x2="500" y2="40"/><line x1="60" y1="145" x2="500" y2="145"/></g><line x1="60" y1="250" x2="500" y2="250" stroke="var(--err)" stroke-width="2"/><line x1="60" y1="250" x2="60" y2="40" stroke="var(--err)" stroke-width="2"/><g fill="var(--dim)" font-size="11" text-anchor="end"><text x="54" y="44">1000</text><text x="54" y="149">500</text><text x="54" y="253">0</text></g><g fill="var(--accent)"><rect x="80" y="50.5" width="52" height="199.5" rx="2"/><rect x="168" y="47.3" width="52" height="202.7" rx="2"/><rect x="256" y="44.2" width="52" height="205.8" rx="2"/><rect x="344" y="41.1" width="52" height="208.9" rx="2"/><rect x="432" y="40.0" width="52" height="210.0" rx="2"/></g><line x1="60" y1="61" x2="500" y2="61" stroke="var(--err)" stroke-width="1.5" stroke-dasharray="5 4"/><text x="498" y="57" fill="var(--err)" font-size="11" text-anchor="end">all data above 900</text><text x="40" y="65" fill="var(--err)" font-size="11" text-anchor="end">900</text><g fill="var(--dim)" font-size="11" text-anchor="middle"><text x="106" y="266">950</text><text x="194" y="266">965</text><text x="282" y="266">980</text><text x="370" y="266">995</text><text x="458" y="266">1000</text></g></svg>`
+};
+// Render an inline-SVG chart inside its own card with the "See the chart" eyebrow.
+function chartCardHTML(key, caption){
+  const svg = CHART_SVG[key];
+  if(!svg) return '';
+  return `<div class="card"><div class="lesson-eyebrow"><i data-lucide="bar-chart-3"></i> See the chart</div>${svg}${caption?`<p class="dim" style="margin-top:10px;font-size:.9rem;line-height:1.6">${caption}</p>`:''}</div>`;
 }
 
 // "See it on the sheet" — renders the formula's result on a mini Excel grid.
@@ -1602,6 +1642,8 @@ function renderLesson(){
 
   // See-it-on-screen visual
   if(l.viz) html += lessonGridHTML(l.viz);
+  // Inline-SVG chart(s) when the lesson is about a chart (multimedia principle).
+  if(l.charts) l.charts.forEach(k=>{ html += chartCardHTML(k); });
 
   // Workspace tour CTA on the very first lesson (no dedicated interface lesson in Excel)
   if(l.id===1) html += `<button class="btn btn-primary" style="margin-bottom:12px" onclick="show('workspace')"><i data-lucide="compass" style="width:15px;height:15px;vertical-align:-3px"></i> New to Excel? Tour the workspace first →</button>`;
@@ -1677,7 +1719,7 @@ function checkQuiz(lid, idx){
     celebrate(false, '✓ Correct!');
   } else {
     document.getElementById('quizFeedback').innerHTML = `<div class="quiz-feedback bad">${l.quiz.exp}</div>
-      <div class="mt12" style="display:flex;gap:10px"><button class="btn btn-primary" onclick="retryQuiz(${lid})">Try Again</button><button class="btn btn-ghost" onclick="finishLesson(${lid})">Continue anyway</button></div>`;
+      <div class="mt12" style="display:flex;gap:10px"><button class="btn btn-primary" onclick="retryQuiz(${lid})">Try Again</button><button class="btn btn-ghost" onclick="skipLesson(${lid})">Skip for now →</button></div>`;
   }
 }
 function retryQuiz(lid){
@@ -1711,9 +1753,17 @@ function finishLesson(lid){
   setTimeout(()=>document.querySelector('#lessonContent .card[style*="--success"]')?.scrollIntoView({behavior:'smooth',block:'center'}),0);
 }
 
+// "Skip for now" — move on WITHOUT marking the current lesson complete, so the
+// readiness score stays honest (a lesson only counts as done when its Quick Check
+// is passed). Still free to explore (Vision #3): you can move ahead anytime.
+function skipLesson(lid){
+  const nx = nextLessonId(lid);
+  if(nx!==null) openLesson(nx); else show('lessons');
+}
+
 // ─── DRILL LIST ───────────────────────────────────────────────────────────────
 const DRILL_TYPES = [
-  {key:'fills', label:'Fill in the Blank', desc:'Complete the partial formula.', data:'FILLS', done:'fillsDone'},
+  {key:'fills', label:'Fill in the Blank', desc:'Tap the choice that fills the blank.', data:'FILLS', done:'fillsDone'},
   {key:'bugs', label:'Fix the Formula', desc:'Find and correct the broken formula.', data:'BUGS', done:'bugsDone'},
   {key:'wrong', label:"What's Wrong?", desc:'Diagnose the mistake with 4 choices.', data:'WRONG', done:'wrongDone'},
   {key:'parsons', label:'Parsons Problems', desc:'Tap to arrange formula arguments in order.', data:'PARSONS', done:'parsDone'},
@@ -1911,17 +1961,18 @@ function _renderPartialSized(item){
   return `${m.prefix}<span style="font-family:var(--mono);letter-spacing:1px;color:var(--err);font-weight:700">${blank}</span>${m.suffix}`;
 }
 
-let _fillAttempts = {};
-
+// Fill in the Blank — tap the choice that fills the blank (no free typing, so a
+// correct-but-unmatched variation can never be marked wrong). correct = choices[0].
 function renderFill(item, idx, isDone){
   _hd={hint:item.hint,ans:item.ans,state:0};
+  const correct=item.choices[0];
   return `<div class="card">
     <h2>Fill in the Blank</h2>
     <p>${item.q}</p>
     <div class="example-box">${_renderPartialSized(item)}</div>
-    <input class="drill-input mt8 ${isDone?'ok':''}" id="fillInput" placeholder="Type the complete formula…" value="${isDone?item.ans:''}">
-    <div class="check-row">
-      <button class="btn btn-primary btn-sm" onclick="checkFill(${idx})">Check</button>
+    <p class="dim" style="font-size:.9rem;margin:12px 0 8px">Tap the answer that fills the blank:</p>
+    <div id="fillChoices" class="fill-choices">
+      ${_shuf(item.choices).map(c=>{const ok=c===correct;const st=isDone&&ok?'border-color:var(--success,#1a7f37);background:var(--success,#1a7f37);color:#fff':'border-color:var(--accent);background:rgba(91,140,245,.08);color:var(--accent)';return `<button class="bug-choice" data-correct="${ok?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid;border-radius:8px;${st};font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer" onclick="pickFill(this,${idx})" ${isDone?'disabled':''}>${c}</button>`;}).join('')}
     </div>
     <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button>
     <div class="hint-panel" id="drill-hint"></div>
@@ -1929,41 +1980,16 @@ function renderFill(item, idx, isDone){
     <div id="fillResult"></div>
   </div>`;
 }
-
-function normVal(s){
-  return (s+'').trim()
-    .replace(/[“”]/g,'"').replace(/[‘’]/g,"'")
-    .replace(/—/g,'-').replace(/–/g,'-')
-    .replace(/\s+/g,'').toLowerCase();
-}
-function checkFill(idx){
-  const input = document.getElementById('fillInput');
-  const item = DATA.FILLS[idx];
-  const val = normVal(input.value);
-  const correct = val === normVal(item.ans);
-  input.className = 'drill-input ' + (correct?'ok':'bad');
-  if(correct){
-    _fillAttempts[idx] = 0;
-    document.getElementById('fillResult').innerHTML = `<div class="result-msg ok">✓ Correct! ${item.ans}</div>`;
-    markDone('fillsDone', idx);
-    celebrate();
-    return;
+function pickFill(btn,idx){
+  if(btn.dataset.correct==='1'){
+    btn.style.background='var(--success,#1a7f37)';btn.style.color='#fff';btn.style.borderColor='var(--success,#1a7f37)';
+    document.querySelectorAll('#fillChoices .bug-choice').forEach(x=>x.disabled=true);
+    document.getElementById('fillResult').innerHTML='<div class="result-msg ok">✓ Correct!</div>';
+    markDone('fillsDone', idx); celebrate();
+  } else {
+    btn.style.opacity='.6';btn.style.borderColor='var(--err)';btn.style.color='var(--err)';btn.disabled=true;
+    document.getElementById('fillResult').innerHTML='<div class="result-msg bad">Not quite — try another, or use the hint.</div>';
   }
-  // Wrong → progressive scaffold (matches the SQL Lab pattern).
-  const att = (_fillAttempts[idx] || 0) + 1;
-  _fillAttempts[idx] = att;
-  const m = _fillMissing(item);
-  let msg = `Not quite. Check the hint: ${item.hint}`;
-  if(att >= 2 && m){
-    const half = m.prefix + m.missing.slice(0, Math.max(1, Math.ceil(m.missing.length/2))) + m.suffix;
-    input.value = half;
-    msg = `Still off — I filled in the <strong>first half</strong> of the answer. Finish it and Check again.`;
-  }
-  if(att >= 3){
-    input.value = item.ans;
-    msg = `<strong>Full answer filled in</strong> — read it, then Check again to lock it in.`;
-  }
-  document.getElementById('fillResult').innerHTML = `<div class="result-msg bad">${msg}</div>`;
 }
 
 // FIX THE BUG
@@ -2004,6 +2030,7 @@ function renderWrong(item, idx){
   return `<div class="card">
     <h2>What's Wrong?</h2>
     <div class="quiz-q">${item.q}</div>
+    ${item.svg&&CHART_SVG[item.svg]?`<div style="margin:10px 0 14px">${CHART_SVG[item.svg]}</div>`:''}
     <div class="quiz-opts" id="wrongOpts">
       ${item.opts.map((o,i)=>`<button class="quiz-opt ${isDone?(i===item.ans?'correct':''):''}" onclick="checkWrong(${idx},${i})" ${isDone?'disabled':''}>${o}</button>`).join('')}
     </div>

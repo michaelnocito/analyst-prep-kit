@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.78.0] — 2026-06-29 — 🧪 Excel Learning-Science Polish · Phase A (foundation fixes)
+
+First shippable slice of the Excel learning-science redesign (full plan in `EXCEL_POLISH_MASTER_PLAN.md`). Stand-alone foundation fixes that de-risk the mobile/correctness feedback before the bigger lesson-flow rebuild (Phase B, the exemplar). Content was authored and adversarially verified via multi-agent workflows. Excel kit only; pattern ports to the other kits later (Phase H).
+
+- **Skill Readiness now reflects every lesson.** Replaced the frozen 16-point hardcoded score (covered only a Unit 1–3 subset, never moved when lessons were added) with a live computation grouped into skill areas, derived from the actual lesson set + the learner's *accessible* lessons (premium tracks count once unlocked). The home "next up" list and "all complete" copy now track the same accessible set — no more surfacing locked lessons or a wrong total.
+- **Fill-in-the-Blank → gradable multiple choice.** The last free-text drill could mark a correct-but-unrecognized variation wrong; converted to tap-the-choice (24 items, each with 2 adversarially-verified distractors that are real Excel mistakes and never equivalent to the answer under normalization). Removing the text box also resolves the mobile submit-button-placement complaint for this drill. (`renderFill`/`pickFill`; removed `checkFill`/`normVal`/`_fillAttempts`/`#fillInput`.)
+- **Real charts where charts are discussed.** New zero-dependency inline-SVG chart library (themed via CSS vars, works dark + light): a regional bar chart on Lesson 17 "Your First Chart," and a misleading-axis bar chart on the "What's Wrong?" #17 drill (the chart-less item flagged in feedback). Also corrected WRONG#17's explanation, which was factually backwards about why values bunched near a 0-based axis look identical.
+- **Mobile overflow fixes.** `overflow-wrap`/`word-break` on tap-choice formula buttons, Parsons chips, and example boxes so long formulas no longer clip off the iPhone card edge; `.check-row` wraps on narrow screens.
+- **Honest completion.** A failed Quick Check now offers "Skip for now" (moves on *without* marking the lesson done) instead of "Continue anyway" (which falsely marked it complete) — keeps the readiness score honest while staying free to explore (Vision #3).
+- **Copy:** stale "28 lessons across seven units" / "All 16 lessons complete" now computed from the live lesson set.
+
+Verified: all inline scripts parse; private headless harness green (excl. 3 stale checks for the v1.72-removed flag feature); 5-dimension adversarial review (correctness / regression / mobile / data-integrity / SVG) returned **0 high findings**, and the 24 distractor sets were independently re-verified clean.
+
 ## [1.77.0] — 2026-06-25 — 📚 Phase 3: Python (42) + Power BI (39) tracks — **track rollout COMPLETE**
 
 Added the 4 interview tracks to the last two tool kits, finishing the additive-tracks

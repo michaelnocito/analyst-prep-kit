@@ -20,7 +20,7 @@ Source: full read of `excel/index.html` (2,497 lines). Key facts the plan builds
 - **Current lesson order** (`renderLesson`, L1559): story bridge → intro → on-the-job → **RAL "Say It Out Loud"** → "See it on the sheet" grid → Gotcha → Quick Check (quiz) → confidence rater. **Drills are NOT in the lesson** — they're reached via a "Practice this →" button after the quiz, and the guided "Next drill →" advances **unconditionally** (you can click through every drill solving nothing; L1814).
 - **Recognition-first today:** the plain-English answer and the worked formula are shown _before_ any attempt. The quiz and 4 of 5 drills are tap-the-choice (recognition). Only generation path is the lone surviving free-text drill.
 - **The concrete bugs (June 29 feedback, line-confirmed):**
-  - **One free-text drill remains** — "Fill in the Blank" (`#fillInput`, L1922; string-matched at L1943). This is the ungradable-variations risk Mike flagged.
+  - ~~**One free-text drill remains** — "Fill in the Blank" (`#fillInput`, string-matched). This is the ungradable-variations risk Mike flagged.~~ **✅ FIXED in Phase A (June 29, 2026):** converted to gradable tap-the-choice (`pickFill`, 24 adversarially-verified `choices` sets); `checkFill`/`normVal`/`_fillAttempts`/`#fillInput` removed.
   - **Skill-readiness score is hardcoded** to a 16-point scale over a Unit 1–3 subset (L1462–1473). It ignores Unit 0, Units 4–6, and ALL track lessons → never moves when new lessons are added. (The unit-progress bars below it _are_ dynamic and correct.)
   - **"On the job" blurbs are on core lessons 1–24 only, absent from tracks** (last at L844) — the _inverse_ of Mike's ask.
   - **Charts are never drawn** (kit has no Chart.js). "What's Wrong?" #17/#18 reference a chart with **no visual** (L1111); Lesson 17 / 803 / 804 / 805 describe charts as data tables.
@@ -145,13 +145,13 @@ Each phase is independently testable under the strict workflow (one item in flig
 
 ---
 
-## Part 7 — Open decisions for Mike (recommendations included)
+## Part 7 — Decisions (✅ ALL APPROVED by Mike, June 29, 2026 — ultra build mode ON)
 
-1. **Exemplar-first rollout?** Build the full redesigned flow on ~3 formula-spine lessons, you test the feel, _then_ roll to all 51. **Rec: yes** — protects against a 51-lesson redo in the wrong direction.
-2. **On-the-job gating.** Keep the concrete _scenario_ on every lesson (it's the worked-example framing — pedagogically essential) but show the role-specific "On the job" aside **only on track lessons**? **Rec: yes** — reconciles your ask with the research (don't strip concreteness from core lessons).
-3. **Charts.** Add lightweight **inline SVG** charts for the handful of chart-reference items (keeps the kit zero-dependency / static), rather than pulling in Chart.js? **Rec: inline SVG.**
-4. **Attempt input type.** The retrieval-first "Try" uses **Parsons / completion / MC** (gradable taps) rather than free-text typing, except where exact-match is safe — directly implements your fill-in-blank→MC ask. **Rec: yes.**
-5. **AI Coach timing.** Build the free attempt-capture + compare surface now (Phases B/C); slot the AI modes in Phase G after your go + the 3 AI decisions. **Rec: yes** (de-risks, keeps free tier strong).
+1. ✅ **Exemplar-first rollout** — build the full redesigned flow on ~3 formula-spine lessons, Mike tests the feel, _then_ roll to all 51.
+2. ✅ **On-the-job gating** — concrete _scenario_ stays on every lesson (worked-example framing); the role-specific "On the job" aside renders **only on track lessons**.
+3. ✅ **Charts** — lightweight **inline SVG** charts (zero-dependency / static), no Chart.js.
+4. ✅ **Attempt input** — the "Try" uses **Parsons / completion / MC** (gradable taps), not free-text, except where exact-match is truly safe.
+5. ✅ **AI Coach timing** — build the free attempt-capture + compare surface now (Phases B/C); AI modes slot in at Phase G.
 
 ---
 
