@@ -1,10 +1,76 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 25, 2026 (🎨 Grain Phase 2 COMPLETE + 🧹 cleanup + 📚 **Phase 3 started: SQL kit's 4 interview tracks added** (46 lessons), v1.73.0 → v1.75.0)
-**Current version:** `v1.77.0` (🎉 **Phase 3 track rollout COMPLETE.** All 4 tool kits have all 4 interview tracks: SQL 46 · Excel 51 · Python 42 · Power BI 39 (match Grain targets). Chart viz the kits can't draw → **data tables** (Mike's call). 🏷️ Hub labels accurate. Grain Phase 2 done (all 11 kits). ✅ Mike-verified: Interview, review-list. **Grain Phases 2 + 3 COMPLETE. Phase 4 is PARKED — revisit ~July 25, 2026 (traffic-gated; see Parking Lot for per-item verdicts). No active build work queued.**)
+**Last session ended:** June 29, 2026 — 🧠 **Excel Learning-Science Polish Phase B COMPLETE + Mike-approved** (v1.78.0 → v1.79.0)
+**Current version:** `v1.79.0`
 **You are continuing an established collaboration with Mike Nocito.**
 
-> ### 🎨 CURRENT INITIATIVE — GRAIN REDESIGN (in flight)
+---
+
+> ### 🧠 CURRENT INITIATIVE — EXCEL LEARNING-SCIENCE POLISH (Phase C next)
+>
+> Full plan: `EXCEL_POLISH_MASTER_PLAN.md`. Phase roadmap:
+> - ✅ **Phase A (v1.78.0):** Foundation fixes (readiness score, tap-choice drills, inline SVG charts, mobile, skip button)
+> - ✅ **Phase B (v1.79.0):** Progressive v2 lesson flow on formula-spine lessons (SUM id:1, IF id:2, Nested IF id:14). 7 stages: Orient→Worked Example→Try (Parsons)→Compare→Build (tap-choice)→Own (quiz)→Close. Mike-verified and approved.
+> - ➡️ **Phase C (NEXT):** Roll v2 flow to all remaining 48 lessons. Same `flow:'v2'` flag + `orient/try/compare/build/close` fields. Code is done — this is pure content authoring. Do lessons in unit order, commit per unit.
+> - Phase D: Spaced recall (`reinforces:[]` cards, +1/+3/+7 day prompts)
+> - Phase E: Honest unlock/motivation layer
+> - Phase F: Focus/Detailed toggle
+> - Phase G: AI Coach (premium, decision-gated)
+> - Phase H: Port to SQL, Python, Power BI, Tableau, Stats
+>
+> **Cross-kit changes log** (bulk-apply to other kits when Excel polish is done): tracked in `EXCEL_POLISH_MASTER_PLAN.md` → "Cross-kit changes" section.
+
+---
+
+## Phase C — v2 lesson authoring guide (for the fresh session)
+
+**File:** `excel/index.html` (single file, ~2800 lines, no build step)
+
+**What to add per lesson:** after the `quiz:{...}` field, append:
+```js
+flow:'v2',
+orient:"...",          // 2-3 sentence manager scenario that sets up WHY this formula matters
+try:{
+  q:"...",             // "Arrange the formula to ..."
+  pieces:[...],        // array of string tokens (shuffled pool shown to user)
+  ans:[...]            // correct order (subset or all of pieces)
+},
+compare:"...",         // 2-3 sentences explaining the pattern / mental model
+build:{
+  q:"...",             // scenario requiring them to write/choose a formula
+  ans:"...",           // correct answer (exact string)
+  choices:["...","...","..."]  // 3 options including correct one
+},
+close:"..."            // 1-2 sentences: what they can do now + teaser for next lesson
+```
+
+**Lessons that already have v2 data (skip these):**
+- id:1 "Your First Formula" (SUM/AVERAGE/COUNT)
+- id:2 "Make Decisions with IF"
+- id:14 "Nested IF and IFS"
+
+**Units and lesson ids** (use `lessonPos(id)` — ids are NOT sequential with display L-numbers):
+- Unit 0 (Before You Type): ids 101, 102, 103, 104
+- Unit 1 (Formulas): ids 1–9 (minus 1, 2 done)
+- Unit 2 (PivotTables): ids 10–12
+- Unit 3 (Data Cleaning): ids 13–16 (minus 14 done)
+- Unit 4 (Deeper Formulas): ids 17–20
+- Unit 5 (Charts & Formatting): ids 21–24
+- Unit 6 (Power Tools): ids 25–28
+- Unit 7 (Data Migration): ids 29–33
+- Unit 8 (From Question to Metric): ids 34–39
+- Unit 9 (Financial Analysis): ids 40–45
+- Unit 10 (Advanced Analyst Toolkit): ids 46–51
+
+**Commit pattern:** one commit per unit, e.g. `v1.79.1 Phase C Unit 0: v2 flow (ids 101-104)`. Bump to `v1.80.0` when all 51 lessons have v2 data. Update `CHANGELOG.md` with each unit batch.
+
+**Lessons that have `viz:` or `charts:` data** — the Worked Example will render them automatically (v2Body calls `lessonGridHTML`/`chartCardHTML`). Don't remove existing viz/charts fields.
+
+**Lessons with no `ral:` (Say It Out Loud)** — the v2 Worked Example stage relies on `l.ral` to render the formula breakdown. If a lesson has no ral, add a minimal one (formula + say + lines) or the Worked Example stage will be blank. Check before committing.
+
+---
+
+> ### 🎨 GRAIN REDESIGN — COMPLETE (archived context below)
 > Restyling the whole suite to the **Grain** design system (clay `#C5511F` primary, honey amber
 > accent, warm stone-on-cream; Space Grotesk + IBM Plex; **Lucide** line icons, no emoji) and,
 > later, adopting its normalized lesson content. **Brief + drop-in tokens + Phase-3 content live
