@@ -9,6 +9,22 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.81.0] — 2026-06-29 — 🧠 Excel Learning-Science Polish · Phase D (spaced recall + progressive spine + honesty layer)
+
+Phase D wires learning-science research directly into the lesson flow. Five sub-tasks shipped across v1.80.1–v1.81.0:
+
+- **Spaced-recall engine (D1 + D2):** Every lesson carries 1–3 `reinforces:[]` retrieval prompts. When a lesson is rated "Still shaky" or "Getting there", cues are queued at +1/+3/+7 lesson positions in `localStorage`. On the due lesson, a recall card appears above Orient with "I remembered it / Nope, remind me again" buttons. "I remembered it" increments a persistent win counter; "Nope" re-queues at +1.
+- **Progressive-artifact bridge (D2):** Non-Unit-0 lessons that are not first in their unit show a one-line bridge above Orient: "Last time you built: [prev lesson title]. Now you'll add to it." Wires consecutive lessons together cognitively.
+- **Retrieval-honesty note (D3):** Small italic line below both the Try and Build stage badges: "This feels harder because it works — struggling to recall is how memory forms." Primes the learner before each hard-recall moment.
+- **Recall-wins counter (D3):** Close section shows "🔁 N recalled" (suppressed at 0) — a running tally of successful recalls across the whole kit.
+- **Dead-code cleanup (D4):** Removed stale `flagged:[]` state default; Lucide `createIcons()` loop fixed via `refreshIcons()` wrapper that strips `data-lucide` from generated SVGs.
+- **Rating-button radio group fix:** Confidence rater is now a true radio group — one highlight at a time, always re-rateable, no baked-in default.
+- **Try-puzzle audit (all 51 lessons):** Full sweep of every Parsons puzzle against a 5-rule quality checklist. Fixed 8: 4 broken checkers (pieces/ans mismatch) + 4 bad-UX (numbered steps, trivial arrangements, concept mismatch).
+
+Phase D is complete. Phase E is next.
+
+---
+
 ## [1.80.0] — 2026-06-29 — 🧠 Excel Learning-Science Polish · Phase C (v2 flow rolled to all 51 lessons)
 
 Applied the Phase B v2 lesson flow (Orient → Try → Compare → Build → Own → Close) to all 48 remaining Excel lessons across Units 0–10. Every lesson now opens with a manager scenario, walks through a Parsons chip-ordering exercise, reveals the mental model, offers a tap-choice Build question, and closes with a forward teaser. Committed per unit (v1.79.1–v1.79.11). Phase C is complete; all 51 lessons carry `flow:'v2'`.

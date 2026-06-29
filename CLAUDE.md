@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 29, 2026 — 🧠 **Excel Learning-Science Polish Phase C COMPLETE** (v1.79.0 → v1.80.0)
-**Current version:** `v1.80.0`
+**Last session ended:** June 29, 2026 — 🧠 **Excel Learning-Science Polish Phase D COMPLETE** (v1.80.0 → v1.81.0)
+**Current version:** `v1.81.0`
 **You are continuing an established collaboration with Mike Nocito.**
 
 ---
@@ -12,8 +12,8 @@
 > - ✅ **Phase A (v1.78.0):** Foundation fixes (readiness score, tap-choice drills, inline SVG charts, mobile, skip button)
 > - ✅ **Phase B (v1.79.0):** Progressive v2 lesson flow on formula-spine lessons (SUM id:1, IF id:2, Nested IF id:14). 7 stages: Orient→Worked Example→Try (Parsons)→Compare→Build (tap-choice)→Own (quiz)→Close. Mike-verified and approved.
 > - ✅ **Phase C (v1.80.0):** v2 flow rolled to all 51 Excel lessons. All units 0–10 complete (v1.79.1–v1.79.11).
-> - ➡️ **Phase D (NEXT):** Spacing + progressive spine + honesty messaging
-> - Phase E: Honest unlock/motivation layer
+> - ✅ **Phase D (v1.81.0):** Spaced-recall engine, progressive-artifact bridge, retrieval-honesty note, recall-wins counter, Lucide fix, rating-button radio group, 51-lesson Try-puzzle audit (8 fixed). Mike-verified.
+> - ➡️ **Phase E (NEXT):** Honest unlock/motivation layer
 > - Phase F: Focus/Detailed toggle
 > - Phase G: AI Coach (premium, decision-gated)
 > - Phase H: Port to SQL, Python, Power BI, Tableau, Stats
