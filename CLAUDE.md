@@ -314,14 +314,30 @@ This is the loop we hammered out. Honor it.
    | 1 | Open Excel Lesson 10 — "Text Cleaning" | Reads TRIM on top, then A2 underneath  |
    ```
 
-   **Rules for "Do this" cells:** name the kit, lesson NUMBER, lesson
-   TITLE, and the section to scroll to. Lead with a verb. NOT
-   "the text-cleaning lesson" — *"Excel Lesson 10 — 'Text Cleaning'"*.
+   **Rules for "Do this" cells:** name the kit, lesson POSITION, lesson
+   TITLE, and the section to scroll to. Lead with a verb.
+
+   ⚠️ **LESSON POSITION ≠ LESSON ID.** The Excel kit has 4 Unit 0
+   lessons (ids 101–104) before id:1. So id:1 = Lesson 5, id:9 = Lesson
+   13, etc. Always compute position as `lessonPos(id) + 1` — the number
+   that appears in the lesson list UI next to the title. Mike has
+   corrected this 3× — never use the lesson `id` as the lesson number.
+
+   Example of correct format:
+   *"Open Excel Lesson 13 — 'Spot and Fix Dirty Data'"*
+
+   Example of WRONG format (uses id, not position):
+   ~~*"Open Excel Lesson 9 — 'Spot and Fix Dirty Data'"*~~
 
    **Rules for "Expect to see" cells:** literal expected text in the
    order it should appear, with **bold** on the strings Mike is
    verifying. NEVER "no regression" or "looks right" — those put the
    work on Mike. Spell out what "right" means.
+
+   **Rules for tech-step instructions (DevTools, localStorage, etc.):**
+   Never say "open DevTools console" bare. Write it out: "Press F12 →
+   click Console tab → paste X → press Enter → refresh." Mike is not a
+   developer — spell every step like it's the first time.
 
 3. **Mike tests, reports back:** pass / partial / fail.
 4. **If pass:** mark in CHANGELOG, move to next item.
@@ -427,6 +443,14 @@ These are things we got wrong in the last session and corrected:
   reading order while Excel was mixed.
 - **Never invent a feature past what was asked.** When Mike says
   "fix X" he means X — not X + Y.
+- **Never use lesson id as the lesson number in test steps.** The Excel
+  kit has 4 Unit 0 lessons (ids 101–104) before id:1. Always use
+  `lessonPos(id) + 1` — the number shown in the UI. id:1 = Lesson 5,
+  id:9 = Lesson 13. Mike corrected this 3 times. It must never happen
+  again.
+- **Never write bare "open DevTools" or "run in console" test steps.**
+  Write every technical step out fully: Press F12 → Console tab → paste
+  → Enter → refresh. Mike is not a developer.
 
 ---
 
