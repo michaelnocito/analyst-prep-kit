@@ -353,12 +353,15 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
     <div class="resume-card-watermark" id="resumeWM">1</div>
   </div>
 
-  <div class="card" id="flaggedCard" style="margin-bottom:16px;border-color:var(--warn,#d9963a);display:none">
-    <div class="flex-between mb12">
-      <h2 style="margin:0"><i data-lucide="flag" style="width:18px;height:18px;vertical-align:-2px;color:var(--warn)"></i> Your review list</h2>
-      <span style="font-size:12px;color:var(--dim)">Lessons you rated below “Have it”</span>
+  <div class=”card” id=”flaggedCard” style=”margin-bottom:16px;border-color:var(--warn,#d9963a);display:none”>
+    <div class=”flex-between” onclick=”toggleReviewList()” style=”cursor:pointer”>
+      <h2 style=”margin:0”><i data-lucide=”flag” style=”width:18px;height:18px;vertical-align:-2px;color:var(--warn)”></i> Your review list</h2>
+      <div style=”display:flex;align-items:center;gap:8px”>
+        <span style=”font-size:12px;color:var(--dim)” id=”flaggedCount”></span>
+        <i data-lucide=”chevron-down” id=”flaggedChevron” style=”width:16px;height:16px;color:var(--dim);transition:transform .2s”></i>
+      </div>
     </div>
-    <div id="flaggedList"></div>
+    <div id=”flaggedList” style=”margin-top:12px”></div>
   </div>
 
   <div class="card" style="margin-bottom:16px">
@@ -1335,6 +1338,14 @@ function save(){ store.setItem('epk', JSON.stringify(S)); }
 // ─── FLAG FOR REVIEW (🚩 "I got it right but I'm shaky on this") ─────────────
 // One tap on any lesson or drill saves it to a Review list on Home.
 // Keys: 'lesson:<id>' or '<drillKey>:<idx>' (e.g. 'fills:3').
+let _reviewOpen = true;
+function toggleReviewList(){
+  _reviewOpen = !_reviewOpen;
+  const list = document.getElementById('flaggedList');
+  const ch = document.getElementById('flaggedChevron');
+  if(list) list.style.display = _reviewOpen ? '' : 'none';
+  if(ch) ch.style.transform = _reviewOpen ? '' : 'rotate(-90deg)';
+}
 function renderFlagged(){
   const el = document.getElementById('flaggedList');
   if(!el) return;
@@ -1344,9 +1355,11 @@ function renderFlagged(){
     .map(id => DATA.LESSONS.find(x => x.id === +id)).filter(Boolean)
     .map(l => ({id:l.id, title:`Lesson ${lessonPos(l.id)+1} — ${l.title}`, sub: conf[l.id]==='low' ? 'Not yet' : 'Almost'}));
   if(wrap) wrap.style.display = rows.length ? '' : 'none';
+  const countEl = document.getElementById('flaggedCount');
+  if(countEl) countEl.textContent = rows.length ? `${rows.length} lesson${rows.length>1?'s':''}` : '';
   el.innerHTML = rows.map(r=>`<div class="flag-row" onclick="openLesson(${r.id})">
       <div><span style="font-size:11px;color:var(--warn,#d9963a);font-family:var(--mono);margin-right:8px">${r.sub}</span><span class="flag-row-title" style="font-size:14px;font-weight:600">${r.title}</span></div>
-      <div style="display:flex;gap:10px;align-items:center;flex-shrink:0"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();confGotIt(${r.id})" title="Mark as 'Have it' — removes from review list">✓ Got it now</button><span style="color:var(--accent);font-weight:700">→</span></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-shrink:0"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();confGotIt(${r.id})" title="Mark as 'Have it' — removes from review list">✓ Got it now</button><span style="color:var(--accent);font-weight:700">→</span></div>
     </div>`).join('');
 }
 function confGotIt(lessonId){
@@ -1760,7 +1773,7 @@ function checkQuiz(lid, idx){
     celebrate(false, '✓ Correct!');
   } else {
     document.getElementById('quizFeedback').innerHTML = `<div class="quiz-feedback bad">${l.quiz.exp}</div>
-      <div class="mt12" style="display:flex;gap:10px"><button class="btn btn-primary" onclick="retryQuiz(${lid})">Try Again</button><button class="btn btn-ghost" onclick="skipLesson(${lid})">Skip for now →</button></div>`;
+      <div class="mt12" style="display:flex;gap:10px"><button class="btn btn-primary" onclick="retryQuiz(${lid})">Try Again</button><button class="btn btn-outline" onclick="skipLesson(${lid})">Skip for now →</button></div>`;
   }
 }
 function retryQuiz(lid){
