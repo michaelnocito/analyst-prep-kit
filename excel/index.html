@@ -323,6 +323,12 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 [data-theme="dark"] .v2-compare,[data-theme="dark"] .v2-close{background:var(--surf2);border-color:var(--border);color:var(--text)}
 .v2-close{background:var(--surf2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;font-size:14px;line-height:1.6;color:var(--dim)}
 .v2-continue{padding:12px 0 4px}
+.recall-card{background:var(--surf);border:1.5px solid var(--warn,#d9963a);border-radius:var(--radius);padding:16px 18px;margin-bottom:10px}
+.recall-header{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--warn,#d9963a);display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.recall-header .lucide{width:14px;height:14px}
+.recall-cues{margin:0 0 12px 16px;padding:0;font-size:14px;line-height:1.65;color:var(--text)}
+.recall-cues li{margin-bottom:4px}
+.recall-btns{display:flex;gap:8px;flex-wrap:wrap}
 .v2-try-pool{display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:var(--surf2);border:1px solid var(--border);border-radius:8px;margin-top:10px}
 .v2-try-ans{display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:var(--surf);border:2px dashed var(--border);border-radius:8px;min-height:46px;margin-top:6px;align-items:center}
 </style></head>
@@ -1734,6 +1740,54 @@ function confGotIt(lessonId){
   save();
   renderFlagged();
 }
+// ─── RECALL QUEUE (spaced retrieval +1/+3/+7 lesson positions) ──────────────
+let _pendingRecalls = [];
+function _getRecallQ(){ return JSON.parse(localStorage.getItem('epk-recalls')||'[]'); }
+function _saveRecallQ(a){ localStorage.setItem('epk-recalls',JSON.stringify(a)); }
+function _queueRecalls(id, l){
+  if(!l.reinforces||!l.reinforces.length) return;
+  const conf=(S.confidence||{})[id];
+  if(conf!=='low'&&conf!=='mid') return;
+  const pos=lessonPos(id), arr=_getRecallQ();
+  for(const off of [1,3,7]) arr.push({cues:l.reinforces, srcId:id, dueAt:pos+off});
+  _saveRecallQ(arr);
+}
+function _dequeueRecalls(id){
+  const pos=lessonPos(id), arr=_getRecallQ();
+  const due=arr.filter(e=>e.dueAt===pos);
+  _saveRecallQ(arr.filter(e=>e.dueAt!==pos));
+  return due;
+}
+function _recallsHTML(){
+  return _pendingRecalls.map((e,i)=>`<div class="recall-card">
+    <div class="recall-header"><i data-lucide="repeat-2"></i> Quick recall — no peeking</div>
+    <ul class="recall-cues">${e.cues.map(c=>`<li>${c}</li>`).join('')}</ul>
+    <div class="recall-btns">
+      <button class="btn btn-sm btn-primary" onclick="recallGotIt(${i})">I remembered it</button>
+      <button class="btn btn-sm btn-outline" onclick="recallNope(${i})">Nope, remind me again</button>
+    </div>
+  </div>`).join('');
+}
+function _refreshRecalls(){
+  const el=document.getElementById('v2-recalls');
+  if(!el) return;
+  if(!_pendingRecalls.length){el.style.display='none';return;}
+  el.innerHTML=_recallsHTML();
+  if(window.lucide) lucide.createIcons();
+}
+function recallGotIt(i){
+  _pendingRecalls.splice(i,1);
+  const w=parseInt(localStorage.getItem('epk-recall-wins')||'0')+1;
+  localStorage.setItem('epk-recall-wins',String(w));
+  _refreshRecalls();
+}
+function recallNope(i){
+  const e=_pendingRecalls.splice(i,1)[0];
+  const arr=_getRecallQ();
+  arr.push({cues:e.cues, srcId:e.srcId, dueAt:lessonPos(S.currentLesson)+1});
+  _saveRecallQ(arr);
+  _refreshRecalls();
+}
 
 // ─── THEME ───────────────────────────────────────────────────────────────────
 function applyTheme(){
@@ -1975,6 +2029,9 @@ function resetLessonProgress(){
   renderLesson();
 }
 function openLesson(id){
+  const _l=DATA.LESSONS.find(x=>x.id===id);
+  if(_l) _queueRecalls(id, _l);
+  _pendingRecalls = _dequeueRecalls(id);
   S.currentLesson = id;
   S.lessonStage = 'intro';
   save();
@@ -2272,6 +2329,12 @@ function v2Body(l,done){
   const lid=l.id,enc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const hid=s=>done?'':` style="display:none"`;
   let h='';
+  // Recall cards (spaced-retrieval prompts due at this lesson position)
+  if(!done && _pendingRecalls.length){
+    h+=`<div id="v2-recalls" style="margin-bottom:16px">${_recallsHTML()}</div>`;
+  } else {
+    h+=`<div id="v2-recalls" style="display:none"></div>`;
+  }
   // ① Orient
   h+=`<div class="v2-stage"><div class="v2-badge"><i data-lucide="map-pin"></i> Orient</div>
     <div class="v2-orient"><p class="lead" style="margin:0">${l.orient}</p></div>
