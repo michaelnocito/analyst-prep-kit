@@ -218,8 +218,52 @@ _(GR-F-1, GR-F-2, GR-F-3 shipped May 28, 2026 — see CHANGELOG v1.4.1)_
 
 _(GR-H shipped June 12, 2026 (v1.54.1) — root cause was the top-anchored toast in Tableau/Excel/Python hiding via translateY(-80px) with no fade, leaving its bottom half over the sticky nav; now fades + fully clears. Other kits were never affected (they hide with opacity:0). Same release: Chart.js now `defer` in Tableau/Stats — was render-blocking and caused the intermittent page-load delay Mike reported.)_
 
+#### ⬇️ June 29, 2026 feedback batch (Mike's mobile playtest + voice memos) — triaged below across High / Medium + folded into the Learning-Science item
+
+- **MOBILE: submit/answer button placement in drills (portrait + keyboard up)** _(added June 29, 2026 — 12:13 PM ET)_ — _mobile UX, research-informed_
+  - _What:_ On a phone in portrait, after typing an answer with the keyboard up, the submit/"check" button sits in an awkward spot — the learner has to hunt for it. Research how leading learning apps (Duolingo, Mimo, Sololearn, Brilliant) position the submit/continue button for low-friction "type → submit" on mobile (sticky-above-keyboard bar, full-width bottom CTA, etc.) and adopt the pattern.
+  - _Why High:_ Mike hit this as the target user; drills are the core loop and this is friction on the most common device. Pre-launch.
+  - _Scope:_ Audit the drill/answer submit affordance on mobile across all kits; implement a consistent low-friction pattern (likely a sticky action bar that rides above the keyboard). Excel first, then roll.
+  - _DoD:_ On an iPhone in portrait with the keyboard open, the submit/check action is visible and reachable without scrolling, on every drill type, all kits. Verified live, dark + light.
+  - _Est:_ Medium.
+
+- **MOBILE: text overflow / cut-off sweep (MC answers + Excel lessons)** _(added June 29, 2026 — 12:13 PM ET)_ — _responsive bug, screenshot-confirmed_
+  - _What:_ Two symptoms, one root cause (mobile width handling): (a) in the Excel "Nested IF and IFS" tap-the-formula drill the long formula options don't wrap and run off the card's right edge (`…,"High")` clipped — confirmed in Mike's screenshot); (b) text is cut off on phone view in Excel lessons. Sweep ALL lessons + ALL drill choice rendering for horizontal overflow.
+  - _Why High:_ Clipped answers/text = unreadable = broken on mobile. Trust + learning hit. Pre-launch.
+  - _Scope:_ Fix choice-button / code-string rendering to wrap or scroll within the card on narrow viewports (word-break / overflow-wrap / horizontal scroll for code); audit every kit's lesson body + drill choices. Long formula/query strings are the usual offender.
+  - _DoD:_ On a 390px-wide viewport, no lesson text or drill choice is clipped or overflows its container in any kit; long formulas wrap or scroll cleanly. Verified live, dark + light.
+  - _Est:_ Medium.
+
+- **BUG: jumbled / overlapping title text on some kits** _(added June 29, 2026 — 12:13 PM ET)_ — _visible rendering bug_
+  - _What:_ Some kits have screens where the title text jumbles/overlaps. Mike's read: a title-rendering fix was applied to some kits but not all. Find the kits still showing it and apply the same fix everywhere.
+  - _Why High:_ Visible breakage on a header = immediate trust hit.
+  - _Scope:_ Identify which screens/kits jumble the title (likely the Space Grotesk heading + Lucide brand-mark interaction, or a long title wrapping under the nav); apply the known-good fix across all kits.
+  - _DoD:_ No kit shows overlapping/jumbled title text on any screen, mobile + desktop. Verified live.
+  - _Est:_ Small-Medium.
+
+- **CORRECTNESS: convert fragile fill-in-the-blank to multiple-choice (audit all kits)** _(added June 29, 2026 — 12:13 PM ET)_ — _grading-trust bug_
+  - _What:_ A fill-in-the-blank exercise expects a typed answer, but free text means a learner can type a correct variation we don't recognize and get marked wrong. Mike's call: where the answer space is open-ended (formula fragments, etc.), use multiple-choice instead of free-text fill-in-the-blank. Check ALL fill-in-the-blank / type-the-answer situations across every kit and convert the ungradable ones to tap-the-choice.
+  - _Why High:_ Marking a right answer wrong destroys trust faster than almost anything. (Note: v1.21–22 already removed free-text from Bug Hunt + Describe drills — this is a sweep for any remaining type-the-answer spots: guided steps / exam / Parsons gaps.)
+  - _Scope:_ Inventory every free-text answer input across all kits; for each, decide MC vs keep; convert the fragile ones. Keep tap-the-choice's "correct = index 0" pattern.
+  - _DoD:_ No exercise can mark a legitimately-correct answer wrong due to unmatched text variations; remaining free-text inputs are only where exact-match is truly safe. Verified live.
+  - _Est:_ Medium.
+
+- **BUG: skill-readiness score doesn't reflect the new lessons** _(added June 29, 2026 — 12:13 PM ET)_ — _progress-accuracy bug (Vision #1)_
+  - _What:_ The skill-readiness score/meter looks like it isn't counting the lessons added recently (the 4 interview tracks pushed kits to SQL 46 / Excel 51 / Python 42 / Power BI 39). The denominator/progress math is stale.
+  - _Why High:_ Vision #1 = "see your progress at a glance." A score that ignores new lessons is wrong and misleads the learner.
+  - _Scope:_ Find where readiness is computed (per-kit lesson counts / completion ratio); make it derive from the live lesson set so new lessons are included. Check every kit.
+  - _DoD:_ Readiness reflects all current lessons; completing a new track lesson moves the score; numbers match actual lesson counts. Verified live. (Coordinate with the "Check button completion model" decision below — same data.)
+  - _Est:_ Small-Medium.
+
+- **UX/DECISION: practice "Check" button lets you skip a lesson without completing it** _(added June 29, 2026 — 12:13 PM ET)_ — _completion-tracking model_
+  - _What:_ Many practice problems show a "Check" button (not "Submit"/"Complete"), and you can jump to the next lesson without ever completing the current one. Mike's open question: keep it or require completion? Decide the model — e.g. "Check" stays for low-stakes self-test, but a lesson only marks complete when its drills are done (feeds the readiness score + Vision #2 "what's next").
+  - _Why High:_ Touches completion tracking, the readiness score (item above), and Vision #2. Decide before building the readiness fix so they stay consistent.
+  - _Scope:_ Decision first (Mike), then align button labels + completion logic across kits.
+  - _DoD:_ Defined completion model; buttons + progress reflect it consistently. Verified live.
+  - _Est:_ Small (decision) + Medium (rollout).
+
 - **🤖 AI COACH — premium "stuck-help" tutor + interview back-and-forth** _(added June 28, 2026 — 4:19 PM ET)_ — _⚠️ DECISION-GATED: research complete, awaiting Mike's go before ANY build. Directly serves the STRATEGY item's gap #5 ("paid = get the job"). Pre-launch (Aug 1) candidate._
-  - _What:_ A premium-gated AI coach with two modes. **(1) Inline "help me finish this":** clickable on any lesson/drill — it sees the current problem + the learner's attempt and gives a scaffolded path to the answer plus the concept, hints-first (not a dump). **(2) Interview back-and-forth:** role- and skill-specific mock interviewing for the kit's 4 interview tracks — asks realistic questions, critiques answers, shows good-answer examples, and supports free chat like a live prep partner. **Tightly gated** to cap token spend (Mike's explicit requirement).
+  - _What:_ A premium-gated AI coach with three modes. **(1) Inline "help me finish this":** clickable on any lesson/drill — it sees the current problem + the learner's attempt and gives a scaffolded path to the answer plus the concept, hints-first (not a dump). **(2) Interview back-and-forth:** role- and skill-specific mock interviewing for the kit's 4 interview tracks — asks realistic questions, critiques answers, shows good-answer examples, and supports free chat like a live prep partner. **(3) Attempt-vs-correct gap analysis** _(added June 29, 2026 — 12:13 PM ET)_: after a learner submits, the coach compares their attempt to the correct answer and names the specific gaps (what they missed and why) — automating the "compare my attempt to the right answer" instinct Mike finds effective. The free tier shows attempt-vs-correct side-by-side (see the Medium item); the AI gap-read is the premium layer. **Tightly gated** to cap token spend (Mike's explicit requirement).
   - _Why High:_ The free tier is so complete the paid Pass can feel optional. An AI coach is the clearest "get the job" value-add and matches the proven monetization pattern (Exponent — the leading interview-prep platform — gates AI grading/feedback behind paid membership). The integrated, click-anywhere angle is a genuine differentiator over post-session grading. Mike's gating instinct isn't optional polish — it's what makes the economics survive a one-time pass (see below).
   - _Research findings (deep-research workflow, June 28; full report in chat):_
     - **Competitive:** Exponent gates AI interview feedback (per-attribute rubric scoring across behavioral/PM/system-design/data-science) behind paid membership — validates the gate-it-to-premium plan. The "stealth copilot / undetectable live-interview answers" end of the market (Final Round AI) is the dishonest-prep dark pattern and its claims failed verification — **do NOT go there**; honest prep is the right side and the differentiator.
@@ -258,6 +302,15 @@ _(GR-H shipped June 12, 2026 (v1.54.1) — root cause was the top-anchored toast
   - _Handoff sequence:_ (1) Claude designs + codes Excel restructure; (2) Mike tests the three gates above; (3) If pass: spin off Phase 2 items (SQL, Python, etc. as separate roadmap entries); (4) If partial/fail: fix and re-test before rollout.
   - _Est. effort:_ Large (multi-system refactor: lesson data, drill rendering, hint logic). 60–80 hours for Excel pilot.
   - _Reference:_ Gap analysis + roadmap = `/sql-quest-learning-science-review.md` (session June 28, 2026). Gaps: Spaced retrieval (1/5), Retrieval practice (2/5), Help escalation (1/5) — these are the movers.
+  - **➕ June 29, 2026 expansion (12:13 PM ET) — design these WITH the three gaps above (new feedback from Mike's mobile playtest + voice memos; research-gated, Excel pilot still first). This is the "restructure to meet the gaps AND the new feedback" pass:**
+    1. **Two reading modes — "Focus" + "Detailed":** add a trimmed **Focus / Targeted mode** (bare high-signal essentials + the question, low cognitive load) as the *default*, with a "More info" button that expands to today's full content; rename the current view **Detailed mode**. (Mike had a version once — Bare Basics, removed v1.58 — this is a cleaner, research-grounded redo; confirm it doesn't resurrect what he disliked.)
+    2. **Restructure Detailed mode for logical progression:** content feels piecemeal — condense, re-title headings, order it for productive reading + retention (check vs learning science).
+    3. **Reward / unlock framework:** present deeper info about each function/concept as something you *unlock* (Codecademy/Mimo feel) — a short "mini story" per function instead of an outline info-dump; unlocking = a motivating reward.
+    4. **Elevate practice → "practice-unlocks-knowledge":** actually writing the formula/query (today's quiet "Practice this") deserves a bigger role. Sequence practice modes — basic question → Parsons (put-in-order) → fill-the-blank/MC — so each unlocks a different piece of the concept. Research the loop's viability + fun first.
+    5. **Parsons problems — research + expand:** Mike finds them especially effective; research the evidence base and make them a more prominent, more detailed part of the kit (feeds the practice ladder in #4).
+    6. **Progressive formula-building across concepts (spiral):** the same formula grows across lessons (basic SUM → gains an IF → grows further) so each new concept reuses prior content — a built-in spacing/interleaving mechanic; pairs with the spaced-retrieval thread.
+    7. **Attempt-vs-correct comparison:** free side-by-side attempt/correct display (Medium item) + premium AI gap-analysis (AI Coach mode 3) — the corrective-feedback half of retrieval.
+    - _Note:_ #4–#7 overlap the original three gaps (retrieval-first, spacing, hint escalation). Treat the whole thing as ONE lesson-structure redesign to scope together, research-first, Excel pilot first. Several pieces need a Mike decision before build (Focus-mode go-ahead; how "unlock as reward" squares with the calm/no-gimmick vision).
 
 - **GR-G (EPIC): "Guided Path" — merge Learn + Practice into one linear flow, simplify home, tone down Bare Basics, Excel makeover** _(added June 1, 2026 — 12:40 AM ET — TOP PRIORITY per Mike; prototype on Excel first)_
   - _STATUS (June 2, 2026):_ Thread 1 (merged guided flow) **SHIPPED on all 6 lesson kits** (v1.10–v1.13). Thread 3 (tone down Bare Basics) effectively done — kits already show a quiet one-line "Turn on Bare Basics" link, not a full-width banner. **Remaining: Thread 2 (simplified home — drop the 3-tile grid, lead with one Start-learning entry) and Thread 4 (Excel layout makeover).** Both are visible redesigns — get Mike's design direction before executing.
@@ -288,6 +341,49 @@ _Definition: polish, batched improvements, OR features with good
 engagement ROI that don't bloat the core experience. Batched into
 planned cycles._
 _Response time: next planned cycle._
+
+#### ⬇️ June 29, 2026 feedback batch (continued — Medium-bucket items)
+
+- **CONTENT: real chart/pivot visuals in chart-based exercises (audit all kits)** _(added June 29, 2026 — 12:13 PM ET)_ — _learning-quality content sweep; Excel first_
+  - _What:_ When an exercise references a chart or pivot table (e.g. the Excel "what's wrong with this?" question), show an actual rendered visual, not just a description — so learners get used to reading charts/pivots. Go through ALL exercises across all kits and add the visual wherever a chart/pivot is mentioned, within the calm design principles.
+  - _Why Medium:_ Real learning-quality lift, but a broad multi-file content audit (big-overhaul flavor) → phase it. ⚠️ Tension with the Phase-3 decision to render track-lesson charts as DATA TABLES (where kits can't draw them); this item is the counter-pressure to bring real visuals where they matter most (exercises). Reconcile: real inline-SVG/Chart.js visuals for chart-centric exercises; tables stay only where a visual adds nothing.
+  - _Scope:_ Inventory every chart/pivot-referencing exercise; Excel first (the "what's wrong" charts + Pivot Lab), then SQL/Python/Tableau/Stats/Power BI. Reuse existing chart renderers where present.
+  - _DoD:_ Every exercise that mentions a chart/pivot shows a matching visual; no chart-based question is text-only. Verified live, dark + light.
+  - _Est:_ Large (phased).
+
+- **CONTENT: "On the job" blurbs only on applicable (role/track) lessons** _(added June 29, 2026 — 12:13 PM ET)_ — _noise reduction_
+  - _What:_ Show the "on the job" / role blurbs only when the lesson belongs to an applicable track (Analyst, Finance, etc.), not on general lessons where they're just noise. Gate the blurb on lesson applicability.
+  - _Why Medium:_ Serves the calm / low-noise vision; small and targeted.
+  - _Scope:_ Add an applicability check (track membership / a flag) so the on-the-job block only renders where relevant; audit lessons.
+  - _DoD:_ General lessons no longer show non-applicable on-the-job blurbs; track lessons still do. Verified live.
+  - _Est:_ Small.
+
+- **HUB: list the analyst skill-based games on the Analyst Prep Kit page** _(added June 29, 2026 — 12:13 PM ET)_ — _discovery / cross-promo_
+  - _What:_ The hub should list the applicable analyst skill-based games Mike built (e.g. SQL Quest, Excel/SQL Analyst Sprint, Spreadsheet Archaeology, Tableau Archaeology, …) so learners discover them.
+  - _Why Medium:_ Retention + cross-promotion across the ecosystem; low effort, real engagement upside.
+  - _Scope:_ Add a "Games / Practice arcade" section on the hub linking each game's live URL with a one-line hook; confirm the canonical list + URLs with Mike.
+  - _DoD:_ Hub shows a games section with working links to each shipped analyst game. Verified live.
+  - _Est:_ Small.
+
+- **PREMIUM: clearly mark unlocked premium features after purchase** _(added June 29, 2026 — 12:13 PM ET)_ — _post-purchase UX (freemium)_
+  - _What:_ After a user buys, visibly mark the now-unlocked premium features so it feels like "I unlocked something cool" — badges/highlights on the AI Coach, interview tracks, portfolio projects, etc., rather than them silently just working.
+  - _Why Medium:_ Reinforces purchase value + reduces buyer's remorse; pairs with the freemium launch + entitlements (`user_entitlements`, `hasInterviewPass()`).
+  - _Scope:_ Define an "unlocked" treatment (badge/glow/"Premium" pill + a one-time "You've unlocked…" moment) driven by entitlement state; apply to premium surfaces.
+  - _DoD:_ A purchaser sees premium features clearly marked as unlocked; a free user sees them clearly as locked/preview. Verified live, both states.
+  - _Est:_ Medium.
+
+- **LEARNING: attempt-vs-correct comparison (free display)** _(added June 29, 2026 — 12:13 PM ET)_ — _retrieval/compare pedagogy; free tier_
+  - _What:_ After a learner submits, show their attempt next to the correct answer so they can do the mental compare Mike finds effective (recall → see correction → compare). This is the free, non-AI display layer; the AI gap-analysis on top is the premium layer folded into the AI Coach item (mode 3, High).
+  - _Why Medium:_ Directly serves the learning-science thesis (retrieval + corrective feedback). Cheap to show; high pedagogical value. Pairs with the Learning-Science restructure (design together).
+  - _Scope:_ For drills that capture an attempt, render an attempt-vs-correct comparison panel post-submit.
+  - _DoD:_ Post-attempt, the learner sees their answer and the correct answer side-by-side on the drill types that capture an attempt. Verified live.
+  - _Est:_ Small-Medium.
+
+- **STRATEGY (decision-gated): free-tier model — daily "hearts/energy" limit vs current open-free** _(added June 29, 2026 — 12:13 PM ET)_ — _monetization decision, not a build yet_
+  - _What:_ Consider a Duolingo-style free model: free users get a limited number of "hearts"/attempts per day; deeper/unlimited use needs the paid Pass. Mike's open question — adopt it, and how does it square with the "free core is very complete" positioning + the one-time $15 Interview Pass?
+  - _Why here:_ A real monetization lever but a structural change to the free/paid line (Vision #3 "free to explore" + the freemium economics). Decision needed before any build; risks souring the calm, generous free experience if done heavy-handed.
+  - _Open decision for Mike:_ keep open-free (lessons free forever, paid = AI Coach / interview / projects) vs hearts-gated free vs hybrid (lessons open, but AI-coach/interview attempts metered). _Claude's lean: keep lessons open-free; meter only the expensive AI features — protects the calm on-ramp and matches where real cost is. Revisit with launch traffic._ Ties to the STRATEGY growth-plan item + `project_freemium_ecosystem` memory.
+  - _DoD:_ A decision recorded + the free/paid line documented in GROWTH.md. _Est:_ decision now, build TBD.
 
 - **GR-D: Real-world non-tech analogies in every help/explanation** _(added May 27, 2026 — 8:00 PM ET)_ — _PARTIALLY SHIPPED June 2, 2026 (v1.18.0): all 72 lesson intros/openers now lead with an analogy across all 6 kits. REMAINING: quiz explanations, glossary entries, `say` lines, and "Watch out"/"On the job" blocks._
   - _What:_ Every "intro" / "Think of it as" / "On the job" / "Watch out" / `say` / quiz-explanation / glossary block should anchor on a concrete real-world non-tech analogy, not just a clearer technical paraphrase. Example: instead of *"VLOOKUP pulls a value from another table by matching a key. Think of it as: find this ID in that list, then bring back the value from a specific column,"* something like *"VLOOKUP is like a phone book — you look up someone's name, and it brings back their phone number."*
