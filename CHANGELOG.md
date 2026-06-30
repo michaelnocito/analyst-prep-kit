@@ -9,6 +9,21 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.83.8] — 2026-06-30 — 🔍 Phase H2: SQL content review complete
+
+Five accuracy and friction fixes across the SQL kit (46 lessons) — no structural changes, content only.
+
+- **id:503 (Lesson 23)** — replaced PostgreSQL `COUNT(*) FILTER (WHERE …)` with MySQL-compatible `SUM(CASE WHEN phone IS NULL THEN 1 ELSE 0 END)`; updated chunk breakdown label to match
+- **id:606 (Lesson 34)** — fixed invalid SQL: `FIRST_VALUE(COUNT(…))` can't be applied in the same query level as `GROUP BY`; rewrote with a CTE that aggregates first, then applies the window function on the computed column; updated `lines` breakdown accordingly
+- **id:606 (Lesson 34)** — added `cohort_activity` table structure to story (columns `user_id`, `cohort_month`, `months_since_signup`) so learners aren't dropped cold into an unfamiliar schema
+- **id:803 (Lesson 43)** — added dialect note to `notes`: `PERCENTILE_CONT` is PostgreSQL / SQL Server / warehouse syntax; flagged MySQL 8.0+ behavior and workaround
+- **id:805 (Lesson 45)** — added dialect note to `notes`: `CORR()` is PostgreSQL / warehouse syntax; MySQL has no built-in equivalent; concept is fully portable
+- F2 finding (id:602 `GROUP BY 1`) was already addressed in the existing `lines` array — no change needed
+
+All 7 test checks passed (H2-1a through H2-3b). Content review phase complete; H1 structural port is next.
+
+---
+
 ## [1.83.5] — 2026-06-30 — 🤖 Phase G Mode 1 (AI Coach stuck-help, Try + Build stages)
 
 ### AI Coach stuck-help on Try stage (v1.83.5)
