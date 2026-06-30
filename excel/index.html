@@ -2428,10 +2428,14 @@ function v2RateConf(lid,rating){
   const _rl=DATA.LESSONS.find(x=>x.id===lid);
   if(_rl) _queueRecalls(lid, _rl);
 }
+const _coachCtx={};
 function getCoachKey(){return localStorage.getItem('apk-coach-key')||'';}
 function setCoachKey(k){localStorage.setItem('apk-coach-key',k);}
-function v2CoachStuck(lid){
-  const panel=document.getElementById('v2-coach-'+lid);
+function v2CoachStuck(lid,stage){
+  stage=stage||'build';
+  const panelId='v2-coach-'+(stage==='try'?'try-':'')+lid;
+  _coachCtx[lid]={stage,panelId};
+  const panel=document.getElementById(panelId);
   if(!panel) return;
   const key=getCoachKey();
   if(!key){
@@ -2447,20 +2451,26 @@ function v2CoachSaveKey(lid){
   v2CoachCall(lid,inp.value.trim());
 }
 async function v2CoachCall(lid,key){
+  const ctx=_coachCtx[lid]||{stage:'build',panelId:'v2-coach-'+lid};
   const l=DATA.LESSONS.find(x=>x.id===lid);
-  if(!l||!l.build) return;
-  const panel=document.getElementById('v2-coach-'+lid);
+  if(!l) return;
+  const panel=document.getElementById(ctx.panelId);
   if(!panel) return;
   panel.innerHTML=`<div class="coach-panel"><div class="coach-panel-hdr">AI Coach</div><p style="font-size:14px;color:var(--dim);margin:0">Thinking…</p></div>`;
-  const prompt=`You are an Excel formula coach. A learner is stuck on this practice problem:\n\n"${l.build.q}"\n\nGive them 1-2 short hints to help them think it through themselves. Do not reveal the answer. Be concise — a sentence or two, conversational tone, no bullet lists.`;
+  let prompt;
+  if(ctx.stage==='try'&&l.try){
+    prompt=`You are an Excel formula coach. A learner is arranging formula pieces in order for:\n\n"${l.try.q}"\n\nThe pieces are: ${l.try.pieces.map(p=>`"${p}"`).join(', ')}\n\nGive 1-2 hints about the correct ordering logic. Do not reveal the answer. Be concise — a sentence or two, conversational tone, no bullet lists.`;
+  }else if(l.build){
+    prompt=`You are an Excel formula coach. A learner is stuck on:\n\n"${l.build.q}"\n\nGive 1-2 hints to help them think it through. Do not reveal the answer. Be concise — a sentence or two, conversational tone, no bullet lists.`;
+  }else return;
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'x-api-key':key,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:250,messages:[{role:'user',content:prompt}]})});
     if(!r.ok){const e=await r.json().catch(()=>({error:{message:r.statusText}}));throw new Error(e.error&&e.error.message?e.error.message:r.statusText);}
     const d=await r.json();
     const txt=(d.content&&d.content[0]&&d.content[0].text)||'No response.';
-    panel.innerHTML=`<div class="coach-panel"><div class="coach-panel-hdr">AI Coach</div><div class="coach-response">${txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style="margin-top:10px;display:flex;gap:8px"><button class="btn btn-outline btn-sm" onclick="v2CoachCall(${lid},getCoachKey())">Ask again</button><button class="btn btn-ghost btn-sm" onclick="localStorage.removeItem('apk-coach-key');v2CoachStuck(${lid})" style="font-size:11px;color:var(--dim)">Change key</button></div></div>`;
+    panel.innerHTML=`<div class="coach-panel"><div class="coach-panel-hdr">AI Coach</div><div class="coach-response">${txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style="margin-top:10px;display:flex;gap:8px"><button class="btn btn-outline btn-sm" onclick="v2CoachCall(${lid},getCoachKey())">Ask again</button><button class="btn btn-ghost btn-sm" onclick="localStorage.removeItem('apk-coach-key');v2CoachStuck(${lid},'${ctx.stage}')" style="font-size:11px;color:var(--dim)">Change key</button></div></div>`;
   }catch(e){
-    panel.innerHTML=`<div class="coach-panel"><div class="coach-panel-hdr">AI Coach</div><p style="color:var(--err);font-size:14px;margin:0 0 8px">${(e.message||'Could not reach the API.').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p><button class="btn btn-outline btn-sm" onclick="localStorage.removeItem('apk-coach-key');v2CoachStuck(${lid})">Try different key</button></div>`;
+    panel.innerHTML=`<div class="coach-panel"><div class="coach-panel-hdr">AI Coach</div><p style="color:var(--err);font-size:14px;margin:0 0 8px">${(e.message||'Could not reach the API.').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p><button class="btn btn-outline btn-sm" onclick="localStorage.removeItem('apk-coach-key');v2CoachStuck(${lid},'${ctx.stage}')">Try different key</button></div>`;
   }
 }
 function v2Body(l,done){
@@ -2520,7 +2530,9 @@ function v2Body(l,done){
         <div style="margin-top:10px;display:flex;gap:8px">
           <button class="btn btn-primary btn-sm" onclick="v2ParsCheck(${lid})">Check order</button>
           <button class="btn btn-outline btn-sm" onclick="v2ParsReset(${lid})">Reset</button>
-        </div>`:''}
+        </div>
+        <div style="margin-top:10px"><button class="btn btn-outline btn-sm" onclick="v2CoachStuck(${lid},'try')">Stuck? Ask the coach →</button></div>
+        <div id="v2-coach-try-${lid}"></div>`:''}
       </div>
     </div>`;
   }
