@@ -16,12 +16,48 @@
 > - ✅ **Phase E (v1.82.0):** Honest unlock card (51 lessons, Close stage, done-gated), return-visit greeting on Home, mentor-voice audit (all 51 close strings passed — no changes needed).
 > - ✅ **Phase F (v1.83.0):** Focus/Details toggle in Worked Example — "More details" / "Less" hides/shows Gotcha + intro; persisted to `localStorage['epk-lesson-mode']`. Also: gates removed, free until Aug 1, 2026 — gate redesign parked for after Phase G/H.
 > - ✅ **Phase G Mode 1 (v1.83.3–v1.83.5):** AI Coach stuck-help on Try (Parsons) + Build stages. BYOK Anthropic key (localStorage), Haiku model, stage-aware context. Prompt tailors to Parsons ordering hints or Build multiple-choice hints. Error recovery: "Try different key" clears and re-prompts.
-> - ✅ **Phase G Mode 3 (v1.83.6):** Attempt-vs-correct comparison + AI gap analysis on Compare stage. Free side-by-side display; Sonnet reads the gaps. NEXT: improve discoverability (research ongoing).
-> - Phase G Mode 3 Discoverability: improve signal that AI feature exists; reduce friction on key entry; research findings → roadmap.
+> - ✅ **Phase G Mode 3 (v1.83.6–v1.83.7):** Attempt-vs-correct comparison + AI gap analysis on Compare stage. Free side-by-side display; Sonnet reads the gaps. UX polish: "Ask My Tutor" (not "AI Coach"), shows only on incorrect, improved key entry copy, sentiment buttons.
 > - Phase G Mode 2: Mock interview (separate after Modes 1+3)
 > - Phase H: Port to SQL, Python, Power BI, Tableau, Stats
+> - **AFTER kit updates → Data Migration Track Audit (all kits):** Comprehensive review of Data Migration track across SQL, Excel, Python, Power BI for interview readiness. Ensure coverage of real interview patterns (JOINs, schema changes, reconciliation, data quality). Findings feed into Interview kit mock questions.
 >
 > **Cross-kit changes log** (bulk-apply to other kits when Excel polish is done): tracked in `EXCEL_POLISH_MASTER_PLAN.md` → "Cross-kit changes" section.
+
+---
+
+## Proposed Roadmap Items (locked pending mike approval)
+
+### Data Migration Track Audit & Reinforcement (Post-Phase G, all kits)
+
+**Context:** Mike received real interview question: "Explain the difference between LEFT JOIN and INNER JOIN and give an example when to use them." Current Data Migration tracks (Unit 4) across kits lack domain-specific reinforcement on interview fundamentals.
+
+**Scope:** Three-phase work to ensure Data Migration track is interview-ready across all kits.
+
+**Phase 1: Kit-specific SQL/Excel/Python/PowerBI reinforcement (1 lesson per kit)**
+- SQL (id:504): "Comparing Old & New Schemas with JOINs" — LEFT vs INNER vs RIGHT in migration context (gap analysis, orphan detection, reconciliation)
+- Excel (id:?): Migration scenario + VLOOKUP/INDEX-MATCH for matching old/new records (reconciliation pattern)
+- Python (id:?): Pandas merge() left/inner/outer — find missing records, duplicates
+- Power BI (id:?): Relationship types (1-to-many, many-to-many) in schema migration
+
+**Phase 2: Cross-kit audit & gap analysis**
+- Review all 4 Data Migration tracks (Units 4) for coverage of interview patterns:
+  - Schema changes (adding/removing columns, type conversions)
+  - Data quality (duplicates, nulls, orphans)
+  - Reconciliation (old vs new, pre/post migration validation)
+  - Join types in practice (when to use each)
+  - Row count validation (grain warnings, duplicates)
+  - Backfill/default strategies (handle missing values)
+- Identify gaps: Which interview questions would learners fail on?
+- Recommend: Add, remove, or reinforce lessons
+
+**Phase 3: Interview Kit integration**
+- Proposed Data Migration mock-interview questions (based on Phase 2 audit)
+- Tie back to specific lessons learners should review
+- Create a "Data Migration Prep" quiz in Interview kit that hits all 4 kits' coverage
+
+**Effort:** Medium (4 lessons + 1 audit sweep + interview questions)
+**Priority:** High (real interview signal, ties to job readiness)
+**Timeline:** After Phase G ships (early August 2026 estimate)
 
 ---
 
