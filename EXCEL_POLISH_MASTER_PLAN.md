@@ -178,4 +178,5 @@ Every change made to the Excel kit that must be ported to SQL · Python · Power
 
 | # | Change | Excel shipped | Notes for other kits |
 |---|--------|--------------|----------------------|
+| 2 | **AI Coach button wording standard** — every AI Coach trigger must include "AI" in the label. Three fixed labels: Try/Build stages → `Stuck? Ask the AI Coach →`; Compare stage → `Ask the AI Tutor →`. Panel headers (`AI Coach` / `Your AI Tutor`) unchanged. | v1.83.9 (Excel) · v1.84.1 (SQL patch) | Apply these exact labels when wiring AI Coach in Python · Power BI · Tableau · Stats. SQL already patched. |
 | 1 | **"In this kit" nav grid on home page** — compact tile grid linking to every nav section (Lessons, Practice, Workspace/equivalent, Pivot Lab/equivalent, Cards, Glossary, Exam). | v1.78.1 | Each kit has different nav items — replace Workspace/Pivot Lab tiles with that kit's unique sections. Exam tile always links to `../final/#exam-<kit>`. Use same `path-tile` + `auto-fill` grid pattern. |
