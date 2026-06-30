@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 29, 2026 — 🧠 **Excel Learning-Science Polish Phase F COMPLETE + free access until Aug 1** (v1.82.0 → v1.83.0)
-**Current version:** `v1.83.0`
+**Last session ended:** June 30, 2026 — 🧠 **Phase F COMPLETE + gates removed (free until Aug 1)** (v1.82.0 → v1.83.2)
+**Current version:** `v1.83.2`
 **You are continuing an established collaboration with Mike Nocito.**
 
 ---
@@ -381,6 +381,18 @@ existed. Personal site: `michaelnocito.github.io` (separate repo at
 
 ---
 
+## ⚠️ Mistakes from the last session — do not repeat
+
+These are real errors from the June 30 session. Read them before touching any file.
+
+1. **Lucide icons inside `v2Body()` don't render.** `v2Body` builds an HTML string that gets injected via `innerHTML`. Lucide's `createIcons()` (called by `refreshIcons()`) runs once after the DOM is set — any `data-lucide` inside the injected string is NOT picked up unless `refreshIcons()` is called again after injection. The Phase F toggle button used `data-lucide="chevron-down"` and the chevron never appeared. Fix: use plain Unicode characters (`▼`/`▲`) or call `refreshIcons()` after injection — DO NOT assume Lucide renders inside dynamically-injected HTML strings.
+
+2. **Test steps were too verbose — Mike called it out twice.** "Expect" cells had multiple clauses, parenthetical explanations, and qualifiers. Mike could not use them. See the test-step rules below — they have been tightened. One short phrase per cell. Nothing else.
+
+3. **Always syntax-check before committing.** Run `node -e "..."` (the inline script extractor pattern already in use) before every `git commit`. This session had 3 commits in a row on the same feature because of avoidable UI bugs caught only after pushing. Catch them before they ship.
+
+---
+
 ## The workflow — STRICT, follow it exactly
 
 This is the loop we hammered out. Honor it.
@@ -411,10 +423,12 @@ This is the loop we hammered out. Honor it.
    Example of WRONG format (uses id, not position):
    ~~*"Open Excel Lesson 9 — 'Spot and Fix Dirty Data'"*~~
 
-   **Rules for "Expect to see" cells:** literal expected text in the
-   order it should appear, with **bold** on the strings Mike is
-   verifying. NEVER "no regression" or "looks right" — those put the
-   work on Mike. Spell out what "right" means.
+   **Rules for "Expect" cells — KEEP THEM SHORT. Mike has corrected this repeatedly.**
+   One short phrase. Bold the key thing he's looking for. Nothing else — no parentheticals,
+   no sub-clauses, no explanations. If you can't fit it in one line, it's too long.
+
+   Good: `Button flips to **"▲ Hide gotcha & background"**; Gotcha card visible`
+   Bad: `The Gotcha card (amber border, "Gotcha:") and intro paragraph slide into view; the button label changes to "Less"`
 
    **Rules for tech-step instructions (DevTools, localStorage, etc.):**
    Never say "open DevTools console" bare. Write it out: "Press F12 →
