@@ -18,8 +18,11 @@
 > - ✅ **Phase G Mode 1 (v1.83.3–v1.83.5):** AI Coach stuck-help on Try (Parsons) + Build stages. BYOK Anthropic key (localStorage), Haiku model, stage-aware context. Prompt tailors to Parsons ordering hints or Build multiple-choice hints. Error recovery: "Try different key" clears and re-prompts.
 > - ✅ **Phase G Mode 3 (v1.83.6–v1.83.7):** Attempt-vs-correct comparison + AI gap analysis on Compare stage. Free side-by-side display; Sonnet reads the gaps. UX polish: "Ask My Tutor" (not "AI Coach"), shows only on incorrect, improved key entry copy, sentiment buttons.
 > - Phase G Mode 2: Mock interview (separate after Modes 1+3)
-> - Phase H: Port to SQL, Python, Power BI, Tableau, Stats
-> - **AFTER kit updates → Data Migration Track Audit (all kits):** Comprehensive review of Data Migration track across SQL, Excel, Python, Power BI for interview readiness. Ensure coverage of real interview patterns (JOINs, schema changes, reconciliation, data quality). Findings feed into Interview kit mock questions.
+> - **Phase H — Port to SQL · Python · Power BI · Tableau · Stats (one kit per cycle):**
+>   - **H1 — Structural port:** v2 lesson flow (Orient→Worked Example→Try→Compare→Build→Own→Close) + AI Coach (Modes 1 & 3) + all cross-kit changes from `EXCEL_POLISH_MASTER_PLAN.md`
+>   - **H2 — Content review (runs BEFORE H1 for each kit):** accuracy audit (technically correct + up to date), relevance audit (real analyst job tasks), friction audit (no jargon/confusion on first read), style audit (mentor voice, consistent across all lessons). Fix content first, then port structure on top.
+>   - Kit order (recommended): SQL → Python → Power BI → Tableau → Stats
+> - **After Phase H → Data Migration Track Audit (all 4 tool kits):** Full interview-readiness review of the Data Migration track (Unit 4) across SQL, Excel, Python, Power BI. Add gap-filler lessons where needed (e.g. SQL id:509 "Comparing Old & New Schemas with JOINs" — LEFT/INNER/RIGHT JOIN in migration context). Audit findings feed Interview kit mock questions. _(Scoped June 30, 2026 — real interview signal: "Explain LEFT vs INNER JOIN with an example.")_
 >
 > **Cross-kit changes log** (bulk-apply to other kits when Excel polish is done): tracked in `EXCEL_POLISH_MASTER_PLAN.md` → "Cross-kit changes" section.
 
