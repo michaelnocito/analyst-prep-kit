@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.84.0] — 2026-06-30 — 🏗️ Phase H1-A: SQL v2 lesson flow — pilot (8 lessons)
+
+v2 stage flow (Orient → Example → Try → Compare → Build → Check → Close) live on Unit 0 (ids 101–104) and Unit 1 (ids 1–4). All other lessons remain on the legacy flat view until their v2 data is authored in subsequent cycles.
+
+- **Infrastructure** — `v2SqlBody`, `setSqlStage`/`getSqlStage`, `v2ParsChipTap`/`v2ParsCheck`, `v2BuildPick`, `v2QuizAnswer`/`v2QuizRetry`, `v2ResetLesson`; stage-bar progress indicator; Focus/Details toggle (`getSqlMode`/`v2SqlToggleMode`)
+- **AI Coach Mode 1** — Haiku stuck-hint on Try and Build stages (BYOK); Settings page gains AI Coach key field
+- **AI Coach Mode 3** — Sonnet gap analysis on Compare stage ("Ask My Tutor", shows only after a wrong parsons attempt)
+- **Lesson data** — added `parsons`, `compare`, `build`, `close`, `unlock` fields to all 8 pilot lessons; Unit 0 parsons authored from scratch; Unit 1 parsons adapted from existing `DATA.PARSONS` entries
+- **CSS** — `.v2-stage-bar/dot`, `.v2-stage-card`, `.v2-pool`, `.v2-answer-zone`, `.v2-pars-chip`, `.v2-compare-grid`, `.unlock-card`, `.v2-mode-btn`, `.v2-coach-btn/.resp`, `.v2-coach-key-row`
+- **Gate** — `renderLesson` dispatches to `v2SqlBody` when `l.parsons` is present; non-v2 lessons unchanged
+
+---
+
 ## [1.83.8] — 2026-06-30 — 🔍 Phase H2: SQL content review complete
 
 Five accuracy and friction fixes across the SQL kit (46 lessons) — no structural changes, content only.
