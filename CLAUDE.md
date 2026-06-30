@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 30, 2026 — 🧠 **Phase F COMPLETE + gates removed (free until Aug 1)** (v1.82.0 → v1.83.2)
-**Current version:** `v1.83.2`
+**Last session ended:** June 30, 2026 — 🤖 **Phase G Mode 1 COMPLETE (stuck-help on Try + Build)** (v1.83.2 → v1.83.5)
+**Current version:** `v1.83.5`
 **You are continuing an established collaboration with Mike Nocito.**
 
 ---
@@ -15,7 +15,9 @@
 > - ✅ **Phase D (v1.81.0):** Spaced-recall engine, progressive-artifact bridge, retrieval-honesty note, recall-wins counter, Lucide fix, rating-button radio group, 51-lesson Try-puzzle audit (8 fixed). Mike-verified.
 > - ✅ **Phase E (v1.82.0):** Honest unlock card (51 lessons, Close stage, done-gated), return-visit greeting on Home, mentor-voice audit (all 51 close strings passed — no changes needed).
 > - ✅ **Phase F (v1.83.0):** Focus/Details toggle in Worked Example — "More details" / "Less" hides/shows Gotcha + intro; persisted to `localStorage['epk-lesson-mode']`. Also: gates removed, free until Aug 1, 2026 — gate redesign parked for after Phase G/H.
-> - ➡️ **Phase G (NEXT):** AI Coach (premium, decision-gated)
+> - ✅ **Phase G Mode 1 (v1.83.3–v1.83.5):** AI Coach stuck-help on Try (Parsons) + Build stages. BYOK Anthropic key (localStorage), Haiku model, stage-aware context. Prompt tailors to Parsons ordering hints or Build multiple-choice hints. Error recovery: "Try different key" clears and re-prompts.
+> - ➡️ **Phase G Mode 3 (NEXT):** Attempt-vs-correct comparison + AI gap analysis on Compare stage. Free side-by-side display; Sonnet reads the gaps.
+> - Phase G Mode 2: Mock interview (separate after Modes 1+3)
 > - Phase H: Port to SQL, Python, Power BI, Tableau, Stats
 >
 > **Cross-kit changes log** (bulk-apply to other kits when Excel polish is done): tracked in `EXCEL_POLISH_MASTER_PLAN.md` → "Cross-kit changes" section.
@@ -101,6 +103,109 @@ Bump to **`v1.83.0`** when done. Update `CHANGELOG.md` and this file.
 | F1a | Open Excel Lesson 5 — "Your First Formula" → scroll to the Worked Example stage | RAL breakdown and grid are visible; Gotcha and intro are **hidden**; a small **"More details"** button appears below the grid |
 | F1b | Click "More details" on Lesson 5 | The Gotcha card (amber border, "Gotcha:") and intro paragraph slide into view; the button label changes to **"Less"** |
 | F1c | Navigate to Excel Lesson 6 — "Make Decisions with IF" (without refreshing) | The Worked Example on Lesson 6 opens in Details mode (persisted) — Gotcha and intro are already visible; button says **"Less"** |
+
+---
+
+## Phase G Mode 1 — AI Coach stuck-help — COMPLETE (v1.83.3–v1.83.5)
+
+**File:** `excel/index.html` (~3050 lines)
+**Starting version:** `v1.83.2`
+**Decisions locked (June 30, 2026):** Funding = Cap + BYOK escape hatch. Scope = Modes 1+3 first. Models = Haiku for Mode 1 / Sonnet for Mode 3.
+
+### What it is
+
+A learner-facing "Stuck? Ask the coach →" button on two attempt stages:
+- **Try it (Parsons):** learner is arranging formula pieces in order; coach hints at the ordering logic without revealing the answer.
+- **Build (tap-choice):** learner is choosing the correct formula; coach hints at how to think through the problem.
+
+Both use the same Anthropic key (BYOK via `localStorage['apk-coach-key']`), Haiku model, and stage-aware prompts. No hosted API proxy yet — that's Phase G Mode 3+ scope.
+
+### Implementation notes
+
+- `getCoachKey()` / `setCoachKey()` manage localStorage persistence
+- `v2CoachStuck(lid, stage)` opens the panel + prompts for key if missing
+- `v2CoachCall(lid, key)` makes the actual Haiku call; context-aware prompt based on `_coachCtx[lid].stage`
+- On API error, "Try different key" clears the saved key and re-prompts (fixes the retry bug from v1.83.3)
+- Panel ID differs per stage (`v2-coach-build-${lid}` vs `v2-coach-try-${lid}`)
+
+### Shipped commits
+
+```
+v1.83.3 Phase G: AI Coach Mode 1 — stuck-help on Build stage (BYOK, Haiku)
+v1.83.4 fix: error retry now clears key and re-prompts for new one
+v1.83.5 Phase G: add AI Coach to Try (Parsons) stage; stage-aware context
+```
+
+### Test checks (DONE ✓)
+
+| # | Do this | Expect to see |
+|---|---------|---------------|
+| G1a | Open Excel Lesson 5 → Try stage | **"Stuck? Ask the coach →"** button below Reset |
+| G1b | Click it → paste Anthropic key → Save & Ask | Coach panel shows 1-2 hints about piece ordering (Haiku, 250 tokens) |
+| G1c | Continue to Build stage | **"Stuck? Ask the coach →"** button there too; same key already saved; coach gives Build-specific hints |
+
+---
+
+## Phase G Mode 3 — Attempt-vs-correct gap analysis (NEXT)
+
+**File:** `excel/index.html`
+**Starting version:** `v1.83.5`
+**Scope:** Build the free **Compare surface** (attempt capture + side-by-side display), then wire Mode 3 AI gap-read on top.
+
+### What it is
+
+**Free tier:** After a learner solves the Try stage (Parsons), they advance to Compare. There, we show:
+- Their attempt (the pieces they ordered or the partial answer)
+- The correct answer side-by-side
+- A visual diff or named gap ("You ordered these 4, but the last two are reversed")
+
+**Premium tier (Mode 3):** A **"Why is that wrong?"** button that calls Sonnet to:
+- Read both attempts
+- Identify the specific gap ("You used SUMIF instead of SUMIFS — two conditions need -IFS")
+- Explain the why ("SUMIF handles one condition; SUMIFS handles multiple")
+- Suggest the fix ("Change SUMIF to SUMIFS and adjust the argument order")
+
+Sonnet instead of Haiku because gap analysis is heavier reasoning.
+
+### Build plan
+
+**G3a — Capture and pass attempt forward:**
+- In `v2ParsCheck()`, when learner gets Parsons right, save their ordered pieces to a state var or sessionStorage.
+- In `v2Body()` Compare stage, retrieve that attempt.
+- Do NOT render the full Compare yet — just confirm capture works.
+
+**G3b — Render free attempt-vs-correct side-by-side:**
+- Build a `compareHTML(attempt, correct, stage)` helper.
+- For Try (Parsons): show learner's pieces in one column, correct pieces in another, highlight diffs.
+- For Build (tap-choice): show their selected choice vs. the right choice.
+- Render both in the Compare stage before the `l.compare` text.
+- Test: does the side-by-side appear? Are attempt and correct both visible?
+
+**G3c — Wire Mode 3 AI button:**
+- Add **"Why is that wrong?"** button below the compare display (only on paid entitlement; BYOK for now, same as Mode 1).
+- Button calls `v2CoachGap(lid, attempt, correct, stage)`.
+- Sonnet prompt: "Here's what the learner tried: [attempt]. Here's the correct answer: [correct]. In 2-3 sentences, name the specific gap and explain why it matters."
+- Same error handling + key management as Mode 1.
+
+### Test checks (for implementation)
+
+| # | Do this | Expect to see |
+|---|---------|---------------|
+| G3a | Open Lesson 5 → Try stage → build a correct Parsons answer → click "Check order" | **✓ Correct!** message; advance to Compare stage |
+| G3b | Compare stage opens | **Attempt** (your pieces) and **Correct** (right pieces) shown side-by-side; `l.compare` text below |
+| G3c | Click **"Why is that wrong?"** (if BYOK key set) | Sonnet response: specific gap name + why + suggested fix (~100–150 tokens) |
+| G3d | Test wrong answer path: Try stage → wrong Parsons answer | "Not quite" feedback; Compare still shows attempt vs. correct; coach button works on the wrong attempt |
+
+### Integration notes
+
+- `_coachCtx` already tracks stage; extend it to also track `attempt` + `correct`.
+- `v2CoachCall()` routes based on stage — add a case for `stage==='compare'` with the gap prompt.
+- Attempt shape differs: Try = array of pieces (use `JSON.stringify` for display), Build = single choice (use the button label or choice text).
+- Sonnet call is higher-token (250–300); consider prompt caching if multiple learners hit the same lesson.
+
+### Decisions still open
+
+None for Mode 3 itself; funding/scope/model are locked. One design choice: Should the **"Why is that wrong?"** button appear unconditionally, or only if the attempt is incorrect? (Recommend: appear always, but the prompt adapts: "They did X, correct is Y. Why is that different?" works for both right and wrong.)
 
 ---
 
@@ -707,12 +812,13 @@ Extract each inline `<script>` block and syntax-check with
 ## First thing to do when you start
 
 1. Read this entire file (you just did).
-2. Read `ROADMAP.md` — confirm "Currently working" line + bucket
-   contents.
-3. Read the latest entry in `CHANGELOG.md` — confirm what shipped
-   most recently.
-4. `git log --oneline -10` to see recent commits.
-5. Wait for Mike's first message and respond per workflow.
+2. Read `ROADMAP.md` — confirm "Currently working" line + bucket contents.
+3. Read the latest entry in `CHANGELOG.md` — confirm what shipped most recently.
+4. Read **Phase G Mode 3** spec in this file (above).
+5. `git log --oneline -10` to see recent commits; confirm v1.83.5 is HEAD.
+6. **Next task:** Build Phase G Mode 3 — Attempt-vs-correct comparison + AI gap analysis on Compare stage. Start with G3a (capture & pass attempt forward).
+7. When ready, ask Mike for the go-ahead on the design choice: "Why is that wrong?" button on all attempts, or only wrong ones?
 
-Good luck. He's a great collaborator. Push back when you need to,
-ship small, test on the live URL, and keep the cycle tight.
+**Current state:** v1.83.5. Mode 1 (stuck-help) shipped on Try + Build. Mode 3 is the follow-up: free side-by-side display, then premium Sonnet gap-read.
+
+Good luck. He's a great collaborator. Push back when you need to, ship small, test on the live URL, and keep the cycle tight.
