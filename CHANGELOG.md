@@ -9,6 +9,40 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.83.5] — 2026-06-30 — 🤖 Phase G Mode 1 (AI Coach stuck-help, Try + Build stages)
+
+### AI Coach stuck-help on Try stage (v1.83.5)
+
+Expanded Phase G Mode 1 to the Try (Parsons) stage. Learners can now ask for hints when arranging formula pieces in order.
+
+- `v2CoachStuck(lid, stage)` refactored to be stage-aware; tracks context in `_coachCtx[lid]` with `{stage, panelId}`
+- `v2CoachCall()` routes prompt by stage: Try stage sends pieces array + ordering hints; Build stage sends the multiple-choice question + solving hints
+- "Stuck? Ask the coach →" button added below Reset button in Try stage
+- Coach panel ID differs per stage to avoid conflicts: `v2-coach-try-${lid}` for Try, `v2-coach-build-${lid}` for Build
+- Both stages share the same saved Anthropic key
+
+### Error recovery (v1.83.4)
+
+Fixed retry behavior when API key is rejected.
+
+- On API error, "Try different key" button now clears the saved key and re-prompts (previously just retried with the same bad key)
+- Allows learners to swap keys without clicking a small "Change key" link
+- "Ask again" button still works on success
+
+### AI Coach stuck-help (Mode 1 core, v1.83.3)
+
+Learners can ask for scaffolded hints on attempted problems. BYOK (bring your own Anthropic key) model; uses Haiku for low-latency, high-volume hint generation.
+
+- **Try stage:** Parsons ordering hints. Prompt sends question + all pieces; Haiku suggests ordering logic without revealing the answer
+- **Build stage:** Multiple-choice hints. Prompt sends the question; Haiku suggests how to think through it without revealing the answer
+- Key saved to `localStorage['apk-coach-key']` for session persistence
+- On first "Stuck?" click, prompts for key + offers "Get a key" link; subsequent clicks use saved key
+- Coach panels render below the practice buttons; "Thinking…" feedback while calling the API
+- Max 250 tokens per Haiku call; error messages include the API error so learners can debug key issues
+- "Hosted AI Coach (included with the pass) coming soon" notice indicates BYOK is temporary
+
+---
+
 ## [1.83.0] — 2026-06-29 — 🧠 Phase F (focus/details toggle) + free access until Aug 1
 
 ### Phase F — Focus/Details toggle (v1.82.1)
