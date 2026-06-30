@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 30, 2026 — 🗺️ **Phase H roadmap locked. Excel Phase G complete. Next: SQL Phase H (content review → structural port).**
-**Current version:** `v1.83.7`
+**Last session ended:** June 30, 2026 — 🏗️ **Phase H1 SQL structural port COMPLETE — all 46 SQL lessons on v2 flow. Next: browser test the 26 untested track lessons, then port Phase H to Python.**
+**Current version:** `v1.86.0`
 **You are continuing an established collaboration with Mike Nocito.**
 
 ---
@@ -657,7 +657,7 @@ respects that move; he gave you the discretion explicitly.
 | Changelog (shipped items) | `CHANGELOG.md` at repo root |
 | Vision principles | top of `ROADMAP.md` |
 | Workflow rules | also in `ROADMAP.md` |
-| This handoff | `CLAUDE.md` (you're reading it) |
+| This handoff | `apk_CLAUDE.md` (you're reading it) |
 | Mike's personal site repo | `C:\Users\Mike\Projects\michaelnocito.github.io` |
 | Marketing brief (for the other Claude project) | _generated in chat, not saved as file_ |
 | Dev-walkthrough audio script | `C:\Users\Mike\Projects\dev-walkthrough-script.md` |

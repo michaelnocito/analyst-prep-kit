@@ -9,6 +9,20 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.86.0] — 2026-06-30 — 🏗️ Phase H1-D: SQL v2 lesson data — Units 4–7, all 4 interview tracks (26 lessons)
+
+v2 stage flow (`parsons`, `compare`, `build`, `close`, `unlock`) extended to every remaining SQL lesson — the full Data Migration, From Question to Metric, Financial Analysis, and Advanced Analyst Toolkit tracks. **All 46 SQL lessons now route through `v2SqlBody`** — Phase H1 structural port is complete for the SQL kit.
+
+- **Unit 4: Data Migration** (ids 501–508) — Profiling (Counts/Uniqueness, Duplicates, Nulls/Format Chaos), Cleansing (Standardize Text), Mapping (CASE WHEN), Type Coercion & Defaults, Validation (Row Counts & Control Totals), Reconciliation (EXCEPT/LEFT JOIN orphan check)
+- **Unit 5: From Question to Metric** (ids 601–606) — Define the Metric, Segment with CASE, MoM Growth (LAG), Running Totals (window frame), Funnel Conversion, Cohort Retention (capstone)
+- **Unit 6: Financial Analysis** (ids 701–706) — Build the P&L, Margins, Liquidity & Leverage Ratios, NPV, Budget vs Actual Variance, Contribution Margin & Break-Even
+- **Unit 7: Advanced Analyst Toolkit** (ids 801–806) — Profile the Data First, Validate the Grain, Distribution & Outliers, Pareto, Correlation ≠ Causation, Sanity-Check & Reconcile
+- All `parsons` puzzles authored from scratch (no prior `DATA.PARSONS` entries existed for the track lessons); answer-index permutations and build/quiz answer indices verified programmatically
+- Repo handoff file renamed `CLAUDE.md` → `apk_CLAUDE.md` (project-named handoff convention)
+- All 26 lessons untested in browser (build sprint); test batch covers these in next session
+
+---
+
 ## [1.85.0] — 2026-06-30 — 🏗️ Phase H1-B+C: SQL v2 lesson data — Units 2+3 (12 lessons)
 
 v2 stage flow extended to all 12 free lessons in Units 2 and 3 (ids 5–16). Every lesson now has `parsons`, `compare`, `build`, `close`, and `unlock` fields; all route through `v2SqlBody` on load.
