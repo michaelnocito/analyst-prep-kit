@@ -1,8 +1,45 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 30, 2026 — 🏗️ **Phase H1 SQL structural port COMPLETE — all 46 SQL lessons on v2 flow. Next: browser test the 26 untested track lessons, then port Phase H to Python.**
+**Last session ended:** June 30, 2026 — 🏗️ **Phase H1 SQL structural port COMPLETE — all 46 SQL lessons on v2 flow. Next: walk Mike through the TESTING PLAN below (9 batches), triage results, then port Phase H to Python.**
 **Current version:** `v1.86.0`
 **You are continuing an established collaboration with Mike Nocito.**
+
+---
+
+## 🧪 TESTING PLAN — pending from the June 30 build sprint (DO THIS FIRST)
+
+Everything below is unverified in the browser. It covers every change from today (v1.83.6 → v1.86.0) that is NOT already marked tested in CHANGELOG.md. Already-tested-today and excluded: SQL H2 content review (v1.83.8, "7 test checks passed"), Excel Phase G Mode 1 (v1.83.3–v1.83.5, marked DONE ✓).
+
+Walk Mike through these batches **in order**, one at a time, waiting for pass/partial/fail before moving on (per the workflow rules below). If a batch fails or partials, triage it into its own roadmap item before continuing.
+
+### Batch 1 — Excel: Phase F toggle polish + Phase G Mode 3 (Lesson 5 only, ~3 min)
+Open Excel → Lesson 5 ("Your First Formula"). Worked Example stage: toggle button should read "More details" → click → "Less". Try stage: deliberately get the parsons puzzle wrong, Check. Compare stage: two-column "Your attempt" (red) vs "Correct answer" (green) box should appear, plus an "Ask the AI Tutor →" button (only shows on a wrong attempt) that calls Sonnet and names the specific gap.
+
+### Batch 2 — SQL Unit 0: Before You Query (Lessons 1–4, ~7 min)
+Deep-dive Lesson 1 ("What a Database Is") through all 7 stages: stage bar → Worked Example toggle ("More detail"/"Less detail") → Try (parsons chips, wrong-then-right, confirm "Stuck? Ask the AI Coach →" button + sparkles icon render) → Compare → Build (wrong-then-right) → Check quiz (wrong-then-right) → Close (unlock card). Spot-check Lessons 2–4 (open, click through every stage, confirm nothing blank/stuck).
+
+### Batch 3 — SQL Unit 1: Foundations (Lessons 5–8, ~5 min)
+Deep-dive Lesson 5 ("SELECT & FROM"), same 7-stage walk as Batch 2. Spot-check Lessons 6–8.
+
+### Batch 4 — SQL Unit 2: Aggregates & Joins (Lessons 9–14, ~7 min)
+Deep-dive Lesson 9 ("COUNT, SUM & GROUP BY"). Spot-check Lessons 10–14.
+
+### Batch 5 — SQL Unit 3: Advanced SQL (Lessons 15–20, ~7 min)
+Deep-dive Lesson 15 ("Subqueries"). Spot-check Lessons 16–18 plus 19–20 ("SQL Indexing", "Temp Tables vs Views" — these two had parsons authored from scratch with no prior data, worth a closer look at the Try stage).
+
+### Batch 6 — SQL Unit 4: Data Migration (Lessons 21–28, ~9 min)
+Deep-dive Lesson 21 ("Profiling: Counts & Uniqueness"). Spot-check Lessons 22–28 (the full Data Migration track — all new today).
+
+### Batch 7 — SQL Unit 5: From Question to Metric (Lessons 29–34, ~7 min)
+Deep-dive Lesson 34 ("Cohort Retention" — the unit capstone, longest parsons puzzle, sits on top of an H2 bug fix). Spot-check Lessons 29–33.
+
+### Batch 8 — SQL Unit 6: Financial Analysis (Lessons 35–40, ~7 min)
+Deep-dive Lesson 35 ("Build the P&L from the Ledger"). Spot-check Lessons 36–40.
+
+### Batch 9 — SQL Unit 7: Advanced Analyst Toolkit (Lessons 41–46, ~7 min)
+Deep-dive Lesson 41 ("Profile the Data First"). Spot-check Lessons 42–46 (43 "Distribution & Outliers" and 45 "Correlation ≠ Causation" each got a dialect note in H2 — worth a skim).
+
+**Total estimate: ~55–60 min.** Full copy-ready version with tables was given to Mike in chat at the end of the June 30 session — reference that if he asks for the table format again.
 
 ---
 
