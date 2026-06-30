@@ -9,6 +9,17 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.85.0] — 2026-06-30 — 🏗️ Phase H1-B+C: SQL v2 lesson data — Units 2+3 (12 lessons)
+
+v2 stage flow extended to all 12 free lessons in Units 2 and 3 (ids 5–16). Every lesson now has `parsons`, `compare`, `build`, `close`, and `unlock` fields; all route through `v2SqlBody` on load.
+
+- **Unit 2** (ids 5, 6, 7, 8, 13, 14) — COUNT/GROUP BY, LEFT JOIN, HAVING, CASE/COALESCE, RIGHT JOIN, Date Functions
+- **Unit 3** (ids 9, 10, 11, 12, 15, 16) — Subqueries, Window Functions, CTEs, Reconciliation, SQL Indexing, Temp Tables vs Views
+- **New parsons** — ids 15 and 16 had no prior PARSONS entry; authored from scratch inline on the lesson object
+- All 12 lessons untested in browser (build sprint); test batch covers these in next session
+
+---
+
 ## [1.84.0] — 2026-06-30 — 🏗️ Phase H1-A: SQL v2 lesson flow — pilot (8 lessons)
 
 v2 stage flow (Orient → Example → Try → Compare → Build → Check → Close) live on Unit 0 (ids 101–104) and Unit 1 (ids 1–4). All other lessons remain on the legacy flat view until their v2 data is authored in subsequent cycles.
