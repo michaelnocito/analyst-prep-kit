@@ -17,11 +17,12 @@
 > - ✅ **Phase F (v1.83.0):** Focus/Details toggle in Worked Example — "More details" / "Less" hides/shows Gotcha + intro; persisted to `localStorage['epk-lesson-mode']`. Also: gates removed, free until Aug 1, 2026 — gate redesign parked for after Phase G/H.
 > - ✅ **Phase G Mode 1 (v1.83.3–v1.83.5):** AI Coach stuck-help on Try (Parsons) + Build stages. BYOK Anthropic key (localStorage), Haiku model, stage-aware context. Prompt tailors to Parsons ordering hints or Build multiple-choice hints. Error recovery: "Try different key" clears and re-prompts.
 > - ✅ **Phase G Mode 3 (v1.83.6–v1.83.7):** Attempt-vs-correct comparison + AI gap analysis on Compare stage. Free side-by-side display; Sonnet reads the gaps. UX polish: "Ask My Tutor" (not "AI Coach"), shows only on incorrect, improved key entry copy, sentiment buttons.
-> - Phase G Mode 2: Mock interview (separate after Modes 1+3)
-> - **Phase H — Port to SQL · Python · Power BI · Tableau · Stats (one kit per cycle):**
->   - **H1 — Structural port:** v2 lesson flow (Orient→Worked Example→Try→Compare→Build→Own→Close) + AI Coach (Modes 1 & 3) + all cross-kit changes from `EXCEL_POLISH_MASTER_PLAN.md`
->   - **H2 — Content review (runs BEFORE H1 for each kit):** accuracy audit (technically correct + up to date), relevance audit (real analyst job tasks), friction audit (no jargon/confusion on first read), style audit (mentor voice, consistent across all lessons). Fix content first, then port structure on top.
->   - Kit order (recommended): SQL → Python → Power BI → Tableau → Stats
+> - **Phase H — Port to SQL · Python · Power BI · Tableau · Stats (one kit per cycle) — NEXT AFTER EXCEL G:**
+>   - **H2 first (content review):** accuracy audit (technically correct + up to date), relevance audit (real analyst job tasks), friction audit (no jargon/confusion on first read), style audit (mentor voice, consistent across all lessons). Fix content before porting structure. 🔒 LOCKED RULE.
+>   - **H1 second (structural port):** v2 lesson flow (Orient→Worked Example→Try→Compare→Build→Own→Close) + AI Coach (Modes 1 & 3) + all cross-kit changes from `EXCEL_POLISH_MASTER_PLAN.md`. 🔒 LOCKED RULE: content review always precedes structural port.
+>   - **Kit order:** SQL → Python → Power BI → Tableau → Stats
+>   - _(Phase H before Phase G Mode 2 — Mike's call June 30, 2026. Reason: Mode 2 mock interview is designed once for all kits after H is done, not bolted onto Excel alone first.)_
+> - **Phase G Mode 2 — Mock interview (after Phase H):** Designed to work across all kits simultaneously. Tied to interview-track units in each kit.
 > - **After Phase H → Data Migration Track Audit (all 4 tool kits):** Full interview-readiness review of the Data Migration track (Unit 4) across SQL, Excel, Python, Power BI. Add gap-filler lessons where needed (e.g. SQL id:509 "Comparing Old & New Schemas with JOINs" — LEFT/INNER/RIGHT JOIN in migration context). Audit findings feed Interview kit mock questions. _(Scoped June 30, 2026 — real interview signal: "Explain LEFT vs INNER JOIN with an example.")_
 >
 > **Cross-kit changes log** (bulk-apply to other kits when Excel polish is done): tracked in `EXCEL_POLISH_MASTER_PLAN.md` → "Cross-kit changes" section.
