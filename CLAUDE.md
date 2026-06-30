@@ -16,7 +16,8 @@
 > - ✅ **Phase E (v1.82.0):** Honest unlock card (51 lessons, Close stage, done-gated), return-visit greeting on Home, mentor-voice audit (all 51 close strings passed — no changes needed).
 > - ✅ **Phase F (v1.83.0):** Focus/Details toggle in Worked Example — "More details" / "Less" hides/shows Gotcha + intro; persisted to `localStorage['epk-lesson-mode']`. Also: gates removed, free until Aug 1, 2026 — gate redesign parked for after Phase G/H.
 > - ✅ **Phase G Mode 1 (v1.83.3–v1.83.5):** AI Coach stuck-help on Try (Parsons) + Build stages. BYOK Anthropic key (localStorage), Haiku model, stage-aware context. Prompt tailors to Parsons ordering hints or Build multiple-choice hints. Error recovery: "Try different key" clears and re-prompts.
-> - ➡️ **Phase G Mode 3 (NEXT):** Attempt-vs-correct comparison + AI gap analysis on Compare stage. Free side-by-side display; Sonnet reads the gaps.
+> - ✅ **Phase G Mode 3 (v1.83.6):** Attempt-vs-correct comparison + AI gap analysis on Compare stage. Free side-by-side display; Sonnet reads the gaps. NEXT: improve discoverability (research ongoing).
+> - Phase G Mode 3 Discoverability: improve signal that AI feature exists; reduce friction on key entry; research findings → roadmap.
 > - Phase G Mode 2: Mock interview (separate after Modes 1+3)
 > - Phase H: Port to SQL, Python, Power BI, Tableau, Stats
 >

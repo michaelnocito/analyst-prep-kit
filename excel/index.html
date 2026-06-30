@@ -2442,7 +2442,8 @@ function v2CoachStuck(lid,stage){
   if(!panel) return;
   const key=getCoachKey();
   if(!key){
-    panel.innerHTML=`<div class="coach-panel"><div class="coach-panel-hdr">AI Coach</div><p style="font-size:14px;margin:0 0 8px">Enter your Anthropic API key to get hints:</p><input id="coach-key-in" type="password" placeholder="sk-ant-..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;box-sizing:border-box;margin-bottom:8px"><div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="v2CoachSaveKey(${lid})">Save &amp; Ask</button><a class="btn btn-outline btn-sm" href="https://console.anthropic.com/settings/keys" target="_blank">Get a key</a></div><p style="font-size:12px;color:var(--dim);margin-top:10px;margin-bottom:0">Hosted AI Coach (included with the pass) coming soon.</p></div>`;
+    const keyLabel=stage==='compare'?'Get AI tutor feedback on what went wrong':'Get personalized hints';
+    panel.innerHTML=`<div class="coach-panel"><div class="coach-panel-hdr">Your AI Tutor</div><p style="font-size:14px;margin:0 0 8px">Connect your Anthropic account for ${keyLabel}.</p><input id="coach-key-in" type="password" placeholder="Paste your API key (sk-ant-...)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;box-sizing:border-box;margin-bottom:8px"><div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="v2CoachSaveKey(${lid})">Save &amp; Ask</button><a class="btn btn-outline btn-sm" href="https://console.anthropic.com/settings/keys" target="_blank" style="font-size:13px">Create a free key</a></div><p style="font-size:12px;color:var(--dim);margin-top:10px;margin-bottom:0">Your key is saved locally and never sent to our servers.</p></div>`;
     return;
   }
   if(stage==='compare'){
@@ -2515,7 +2516,7 @@ async function v2CoachGap(lid,key){
   const panelId=`v2-coach-gap-${lid}`;
   const panel=document.getElementById(panelId);
   if(!panel) return;
-  panel.innerHTML=`<div class="coach-panel"><div class="coach-panel-hdr">AI Coach</div><div style="color:var(--dim);font-size:13px">Analyzing your answer...</div></div>`;
+  panel.innerHTML=`<div class="coach-panel"><div class="coach-panel-hdr">Your AI Tutor</div><div style="color:var(--dim);font-size:13px">Analyzing your answer...</div></div>`;
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
@@ -2525,9 +2526,9 @@ async function v2CoachGap(lid,key){
     if(!r.ok){const e=await r.json().catch(()=>({error:{message:r.statusText}}));throw new Error(e.error&&e.error.message?e.error.message:r.statusText);}
     const d=await r.json();
     const txt=(d.content&&d.content[0]&&d.content[0].text)||'No response.';
-    panel.innerHTML=`<div class="coach-panel"><div class="coach-panel-hdr">AI Coach · Why?</div><div class="coach-response">${txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style="margin-top:10px;display:flex;gap:8px"><button class="btn btn-outline btn-sm" onclick="v2CoachGap(${lid},getCoachKey())">Ask again</button><button class="btn btn-ghost btn-sm" onclick="localStorage.removeItem('apk-coach-key');v2CoachStuck(${lid},'compare')" style="font-size:11px;color:var(--dim)">Change key</button></div></div>`;
+    panel.innerHTML=`<div class="coach-panel"><div class="coach-panel-hdr">Your AI Tutor</div><div class="coach-response">${txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div style="margin-top:12px;display:flex;gap:8px;font-size:13px"><button class="btn btn-sm" style="background:rgba(76,175,120,.2);border:1px solid var(--success);color:var(--success);flex:1" onclick="alert('Got it — your feedback helps!');this.parentElement.parentElement.style.opacity='0.6'">This helped ✓</button><button class="btn btn-sm btn-outline" style="flex:1" onclick="v2CoachGap(${lid},getCoachKey())">Try again</button></div></div>`;
   }catch(e){
-    panel.innerHTML=`<div class="coach-panel"><div class="coach-panel-hdr">AI Coach</div><p style="color:var(--err);font-size:14px;margin:0 0 8px">${(e.message||'Could not reach the API.').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p><button class="btn btn-outline btn-sm" onclick="localStorage.removeItem('apk-coach-key');v2CoachStuck(${lid},'compare')">Try different key</button></div>`;
+    panel.innerHTML=`<div class="coach-panel"><div class="coach-panel-hdr">Your AI Tutor</div><p style="color:var(--err);font-size:14px;margin:0 0 8px">${(e.message||'Could not reach the API.').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p><button class="btn btn-outline btn-sm" onclick="localStorage.removeItem('apk-coach-key');v2CoachStuck(${lid},'compare')">Try different key</button></div>`;
   }
 }
 function v2Body(l,done){
@@ -2596,11 +2597,12 @@ function v2Body(l,done){
   // ④ Compare
   const _attempt=_v2attempt[lid];
   const _compareDisplay=_attempt?compareHTML(lid,_attempt,l.try.ans,'try'):'';
+  const _isCorrect=_attempt&&JSON.stringify(_attempt)===JSON.stringify(l.try.ans);
   h+=`<div class="v2-stage" id="v2s-compare-${lid}"${hid()}>
     <div class="v2-badge"><i data-lucide="git-compare"></i> Compare</div>
     ${_compareDisplay}
     <div class="v2-compare">${l.compare}</div>
-    ${!done?`<div style="margin-top:12px"><button class="btn btn-outline btn-sm" onclick="v2CoachStuck(${lid},'compare')">Why is that wrong? →</button></div><div id="v2-coach-gap-${lid}"></div>`:''}
+    ${!done&&!_isCorrect?`<div style="margin-top:12px"><button class="btn btn-outline btn-sm" onclick="v2CoachStuck(${lid},'compare')" title="Get AI tutor feedback on what went wrong">Ask My Tutor →</button></div><div id="v2-coach-gap-${lid}"></div>`:''}
     ${!done?`<div class="v2-continue"><button class="btn btn-primary" onclick="v2Continue(${lid},'build')">Build one yourself →</button></div>`:''}
   </div>`;
   // ⑤ Build
