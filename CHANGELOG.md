@@ -9,6 +9,18 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.87.0] — 2026-06-30 — 🏗️ Phase H1-A: Python v2 lesson flow — infrastructure + pilot (7 lessons)
+
+The SQL kit's v2 stage flow (Orient → Example → Try → Compare → Build → Check → Close) ported to the Python kit, adapted to its architecture (`S`/`save()`/`openLesson()`/`#lessonContent`; ral is an array; viz renders via `lessonOutputHTML`).
+
+- **Infrastructure** — `v2PyBody`, `setPyStage`/`getPyStage` (stage store is `S.v2Stage` — separate from the legacy `S.lessonStage` string), `v2ParsChipTap`/`v2ParsCheck`, `v2BuildPick`, `v2QuizAnswer`/`v2QuizRetry`/`v2QuizDone`, `v2ResetLesson`; stage-bar; Focus/Details toggle (`ppk-lesson-mode`); Close stage keeps Python's "Practice this →" guided-drills CTA
+- **AI Coach Modes 1+3** — Haiku stuck-hints on Try/Build, Sonnet gap analysis on Compare; key field added to the Settings modal. Key is `localStorage['apk-coach-key']` — SHARED with the Excel kit (enter once, works in both). ⚠️ SQL still uses its own `sql-coach-key` — migration to the shared key noted for cleanup
+- **Grain-correct CSS** — v2 styles use `color-mix(in srgb, var(--accent) N%, transparent)` tints, not baked rgba. ⚠️ Noted: SQL's v2 CSS (shipped v1.84.0) carries baked-blue `rgba(47,109,240,…)` tints — cleanup item
+- **Pilot lesson data** (parsons/compare/build/close/unlock) — Unit 0 (ids 101–104) + Unit 1 (ids 1–3), all parsons authored from scratch with strict dependency chains (one valid order); validated programmatically
+- Untested in browser (build sprint)
+
+---
+
 ## [1.86.2] — 2026-06-30 — 🔍 Phase H2: Python content review complete
 
 Full accuracy / relevance / friction / style audit of all 42 Python lessons (per the locked content-review-first rule). Track Units 4–7 were clean (same Grain authoring batch as SQL); five fixes landed in the older Unit 0–2 content plus one in Unit 6:
