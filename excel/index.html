@@ -2371,6 +2371,8 @@ function v2ParsCheck(lid){
   const fb=document.getElementById(`v2p-fb-${lid}`);
   if(placed.length!==l.try.ans.length){if(fb)fb.innerHTML=`<span style="color:var(--warn)">Place all ${l.try.ans.length} pieces first.</span>`;return;}
   _v2attempt[lid]=placed;
+  const dyn=document.getElementById(`v2-compare-dyn-${lid}`);
+  if(dyn) dyn.innerHTML=v2CompareDynHTML(lid,l,false);
   if(JSON.stringify(placed)===JSON.stringify(l.try.ans)){
     if(fb)fb.innerHTML=`<span style="color:var(--success);font-weight:700">✓ Correct!</span>`;
     celebrate(false,'✓ Right order!');
@@ -2487,6 +2489,13 @@ async function v2CoachCall(lid,key){
     panel.innerHTML=`<div class="coach-panel"><div class="coach-panel-hdr">AI Coach</div><p style="color:var(--err);font-size:14px;margin:0 0 8px">${(e.message||'Could not reach the API.').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p><button class="btn btn-outline btn-sm" onclick="localStorage.removeItem('apk-coach-key');v2CoachStuck(${lid},'${ctx.stage}')">Try different key</button></div>`;
   }
 }
+function v2CompareDynHTML(lid,l,done){
+  const _attempt=_v2attempt[lid];
+  const _compareDisplay=_attempt?compareHTML(lid,_attempt,l.try.ans,'try'):'';
+  const _isCorrect=_attempt&&JSON.stringify(_attempt)===JSON.stringify(l.try.ans);
+  const tutorBtn=(!done&&!_isCorrect)?`<div style="margin-top:12px"><button class="btn btn-outline btn-sm" onclick="v2CoachStuck(${lid},'compare')" title="Get AI tutor feedback on what went wrong">Ask the AI Tutor →</button></div><div id="v2-coach-gap-${lid}"></div>`:'';
+  return _compareDisplay+tutorBtn;
+}
 function compareHTML(lid,attempt,correct,stage){
   if(!attempt||!correct) return '';
   const attemptStr=Array.isArray(attempt)?attempt.join(''):attempt;
@@ -2595,14 +2604,10 @@ function v2Body(l,done){
     </div>`;
   }
   // ④ Compare
-  const _attempt=_v2attempt[lid];
-  const _compareDisplay=_attempt?compareHTML(lid,_attempt,l.try.ans,'try'):'';
-  const _isCorrect=_attempt&&JSON.stringify(_attempt)===JSON.stringify(l.try.ans);
   h+=`<div class="v2-stage" id="v2s-compare-${lid}"${hid()}>
     <div class="v2-badge"><i data-lucide="git-compare"></i> Compare</div>
-    ${_compareDisplay}
+    <div id="v2-compare-dyn-${lid}">${v2CompareDynHTML(lid,l,done)}</div>
     <div class="v2-compare">${l.compare}</div>
-    ${!done&&!_isCorrect?`<div style="margin-top:12px"><button class="btn btn-outline btn-sm" onclick="v2CoachStuck(${lid},'compare')" title="Get AI tutor feedback on what went wrong">Ask the AI Tutor →</button></div><div id="v2-coach-gap-${lid}"></div>`:''}
     ${!done?`<div class="v2-continue"><button class="btn btn-primary" onclick="v2Continue(${lid},'build')">Build one yourself →</button></div>`:''}
   </div>`;
   // ⑤ Build

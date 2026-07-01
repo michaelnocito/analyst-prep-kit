@@ -9,6 +9,14 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.86.1] — 2026-06-30 — 🐛 fix: Excel Compare stage rendered stale attempt data
+
+Found during Batch 1 testing (v1.86.0 test plan). The Compare stage's "Your attempt vs Correct answer" display and the "Ask the AI Tutor" button were computed once at initial page load — before the learner had touched the Try stage — so they never reflected the real attempt. Extracted the dynamic part into `v2CompareDynHTML(lid,l,done)`, rendered into a `#v2-compare-dyn-${lid}` wrapper, and `v2ParsCheck()` now refreshes that wrapper live the instant an attempt is checked (right or wrong), instead of relying on the stale HTML baked at `v2Body()` render time.
+
+**Known gap, not fixed here (needs Mike's call):** the Try stage's "Check order" only advances to Compare on a CORRECT answer — a wrong answer just resets the chips for another try. There is no way to reach Compare with an incorrect attempt on record, so with this fix in place the comparison will always show a match and "Ask the AI Tutor" will correctly never appear. The button is real but currently unreachable through the UI.
+
+---
+
 ## [1.86.0] — 2026-06-30 — 🏗️ Phase H1-D: SQL v2 lesson data — Units 4–7, all 4 interview tracks (26 lessons)
 
 v2 stage flow (`parsons`, `compare`, `build`, `close`, `unlock`) extended to every remaining SQL lesson — the full Data Migration, From Question to Metric, Financial Analysis, and Advanced Analyst Toolkit tracks. **All 46 SQL lessons now route through `v2SqlBody`** — Phase H1 structural port is complete for the SQL kit.
