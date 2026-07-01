@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 30, 2026 — 🏗️ **SQL Phase H1 COMPLETE (all 46 lessons on v2 flow) + Python Phase H2 content review COMPLETE (v1.86.2, 5 fixes). Next: walk Mike through the TESTING PLAN below, then Python H1 structural port.**
-**Current version:** `v1.86.2`
+**Last session ended:** June 30, 2026 — 🏗️ **SQL Phase H1 COMPLETE (46 lessons) + Python Phase H2 review + Python Phase H1 COMPLETE (all 42 lessons on v2 flow, v1.87–v1.89). Next: walk Mike through the TESTING PLAN below (now includes Python batches 10–17), then Power BI H2 content review.**
+**Current version:** `v1.89.0`
 **You are continuing an established collaboration with Mike Nocito.**
 
 ---
@@ -39,7 +39,20 @@ Deep-dive Lesson 35 ("Build the P&L from the Ledger"). Spot-check Lessons 36–4
 ### Batch 9 — SQL Unit 7: Advanced Analyst Toolkit (Lessons 41–46, ~7 min)
 Deep-dive Lesson 41 ("Profile the Data First"). Spot-check Lessons 42–46 (43 "Distribution & Outliers" and 45 "Correlation ≠ Causation" each got a dialect note in H2 — worth a skim).
 
-**Total estimate: ~55–60 min.** Full copy-ready version with tables was given to Mike in chat at the end of the June 30 session — reference that if he asks for the table format again.
+### Batches 10–17 — PYTHON kit: full v2 flow (v1.87.0–v1.89.0, all 42 lessons untested)
+Same walk pattern as the SQL batches: one deep-dive per unit through all 7 stages (Orient → Worked Example w/ "More detail"/"Less detail" toggle → Try parsons w/ "Stuck? Ask the AI Coach →" on a wrong check → Compare w/ "Ask the AI Tutor →" after wrong → Build wrong-then-right → Quick Check wrong-then-right → Done card + unlock + Practice-this CTA). Spot-check the rest of each unit. ⚠️ Python lesson POSITION = list order: Unit 0 = Lessons 1–4 (ids 101–104), Unit 1 = 5–7 (ids 1–3), Unit 2 = 8–13 (ids 4–9), Unit 3 = 14–18 (ids 10–14), Unit 4 = 19–24, Unit 5 = 25–30, Unit 6 = 31–36, Unit 7 = 37–42.
+- **Batch 10** — Unit 0 (Lessons 1–4): deep-dive Lesson 1 "What Code Is"
+- **Batch 11** — Unit 1 (Lessons 5–7): deep-dive Lesson 5 "Variables & Data Types"; ALSO verify Settings modal (gear icon) now shows an "AI Coach" key field that saves
+- **Batch 12** — Unit 2 (Lessons 8–13): deep-dive Lesson 12 "GroupBy & Aggregation"
+- **Batch 13** — Unit 3 (Lessons 14–18): deep-dive Lesson 14 "Finding & Fixing Nulls"
+- **Batch 14** — Unit 4 (Lessons 19–24): deep-dive Lesson 19 "Profiling: Shape, Nulls & Uniqueness"
+- **Batch 15** — Unit 5 (Lessons 25–30): deep-dive Lesson 30 "Cohort Retention" (capstone)
+- **Batch 16** — Unit 6 (Lessons 31–36): deep-dive Lesson 31 "Build the P&L from a Ledger"
+- **Batch 17** — Unit 7 (Lessons 37–42): deep-dive Lesson 37 "Profile the Data First"
+- Cross-cut check (any one lesson): legacy "Quick Check on the intro page" flow must be GONE on v2 lessons — the quiz only appears at stage 6 of 7
+- AI Coach key is SHARED with Excel (`apk-coach-key`): saving it in the Python Settings should make Excel's coach work without re-entering (and vice versa)
+
+**Total estimate: ~100–115 min across both kits.** Full copy-ready SQL tables were given in chat June 30; Python batches follow the identical per-stage pattern.
 
 ---
 

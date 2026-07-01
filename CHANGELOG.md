@@ -9,6 +9,17 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.89.0] — 2026-06-30 — 🏗️ Phase H1-D: Python v2 lesson data — Units 4–7, all 4 tracks (24 lessons)
+
+v2 stage flow extended to every remaining Python lesson. **All 42 Python lessons now route through `v2PyBody` — Phase H1 structural port is complete for the Python kit** (second of five; SQL done, Power BI next after testing).
+
+- **Unit 4: Data Migration** (401–406) · **Unit 5: From Question to Metric** (601–606) · **Unit 6: Financial Analysis** (701–706) · **Unit 7: Advanced Analyst Toolkit** (801–806)
+- All parsons authored as strict dependency chains (each line uses the previous line's variable — one valid order); notable: the quick ratio derived FROM the current ratio, the funnel helper as a def-body puzzle, describe()'s max/Q3 tail-check
+- Build distractors are real pandas/finance mistakes: fillna vs dropna vs astype(str) on NOT NULL, keep='first' hiding originals, unsorted cumsum/Pareto, == on float sums
+- Untested in browser (build sprint)
+
+---
+
 ## [1.88.0] — 2026-06-30 — 🏗️ Phase H1-B+C: Python v2 lesson data — Units 2+3 (11 lessons)
 
 v2 stage flow extended to all core pandas and cleaning lessons (ids 4–14). 18 of 42 Python lessons now on v2.
