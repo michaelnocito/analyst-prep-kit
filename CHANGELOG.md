@@ -9,6 +9,17 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.89.1] — 2026-06-30 — 🔍 Phase H2: Power BI content review complete
+
+Full accuracy / relevance / friction / style audit of all 39 Power BI lessons. Cleanest kit yet — the DAX content verified accurate (no-native-CORR and no-native-NPV facts, TOTALYTD / DATEADD / SWITCH(TRUE()) / ALLSELECTED patterns all canonical). Two fixes:
+
+- **id:101 (Lesson 1)** — quiz was ambiguous: two of the four options described the same correct behavior (plain SUM is safe at line-item grain), so a learner picking either got inconsistent grading. Rewrote the question to ask WHERE line-item grain becomes dangerous (answer: relationships/fan-out, not plain SUM) with three genuinely wrong distractors
+- **id:11 (Lesson 15)** — story said "Two or three accent colors maximum" while the code card and say-line teach "1-2 accent colors max"; story now matches
+
+Content review phase complete for Power BI; H1 structural port (v2 flow) is next.
+
+---
+
 ## [1.89.0] — 2026-06-30 — 🏗️ Phase H1-D: Python v2 lesson data — Units 4–7, all 4 tracks (24 lessons)
 
 v2 stage flow extended to every remaining Python lesson. **All 42 Python lessons now route through `v2PyBody` — Phase H1 structural port is complete for the Python kit** (second of five; SQL done, Power BI next after testing).

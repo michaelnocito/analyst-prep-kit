@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 30, 2026 — 🏗️ **SQL Phase H1 COMPLETE (46 lessons) + Python Phase H2 review + Python Phase H1 COMPLETE (all 42 lessons on v2 flow, v1.87–v1.89). Next: walk Mike through the TESTING PLAN below (now includes Python batches 10–17), then Power BI H2 content review.**
-**Current version:** `v1.89.0`
+**Last session ended:** June 30, 2026 — 🏗️ **SQL H1 + Python H2/H1 + Power BI H2 all COMPLETE (v1.89.1). Next: walk Mike through the TESTING PLAN below (SQL batches 1–9, Python 10–17, Power BI H2 spot-check in batch 18), then Power BI H1 structural port.**
+**Current version:** `v1.89.1`
 **You are continuing an established collaboration with Mike Nocito.**
 
 ---
@@ -52,7 +52,11 @@ Same walk pattern as the SQL batches: one deep-dive per unit through all 7 stage
 - Cross-cut check (any one lesson): legacy "Quick Check on the intro page" flow must be GONE on v2 lessons — the quiz only appears at stage 6 of 7
 - AI Coach key is SHARED with Excel (`apk-coach-key`): saving it in the Python Settings should make Excel's coach work without re-entering (and vice versa)
 
-**Total estimate: ~100–115 min across both kits.** Full copy-ready SQL tables were given in chat June 30; Python batches follow the identical per-stage pattern.
+### Batch 18 — Power BI: H2 content-review spot-check (v1.89.1, ~2 min)
+- 18a: Open Power BI Lesson 1 ("How Power BI Sees Data") → Quick Check — question now asks **"Where does that grain actually become dangerous?"**; correct answer is the relationships/fan-out option
+- 18b: Open Power BI Lesson 15 ("Dashboard Design Principles") → story paragraph — reads **"One or two accent colors, maximum"** (matches the code card)
+
+**Total estimate: ~105–120 min across all three kits.** Full copy-ready SQL tables were given in chat June 30; Python batches follow the identical per-stage pattern.
 
 ---
 
