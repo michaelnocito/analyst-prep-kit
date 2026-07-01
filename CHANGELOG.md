@@ -9,6 +9,22 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.86.2] — 2026-06-30 — 🔍 Phase H2: Python content review complete
+
+Full accuracy / relevance / friction / style audit of all 42 Python lessons (per the locked content-review-first rule). Track Units 4–7 were clean (same Grain authoring batch as SQL); five fixes landed in the older Unit 0–2 content plus one in Unit 6:
+
+- **id:102 (Lesson 2)** — `int(x)` failure on unparseable text is a **ValueError**, not TypeError (chunk-line fix)
+- **id:102 (Lesson 2)** — quiz premise was factually wrong: pandas strips CSV quotes and still infers numerics, so quoted `'120'` loads as int64, NOT object. Rewrote the quiz around thousands-separators (`1,200`) — a real cause of numeric-as-object — and the exp now teaches `pd.read_csv(thousands=',')`
+- **id:104 (Lesson 4)** — grammar: "it's separate label" → "it's a separate label"
+- **id:5 (Lesson 9)** — a Series is not "a one-dimensional DataFrame"; now "a single labeled column of values"
+- **id:704 (Lesson 34)** — viz caption's IRR corrected from "about 18%" to "just under 20%" (actual ≈ 19.8%: NPV at 19% = +$9.3K, at 20% = −$2.3K); added setup note that numpy-financial is a separate `pip install numpy-financial` (guaranteed ModuleNotFoundError otherwise)
+
+Observation logged, no action (needs Mike's call): id:13 Deep Copy and id:14 Decorators sit in "Unit 3: Data Cleaning" but are general Python interview topics, not cleaning tasks — could move to a future "Python Interview Extras" grouping during H1.
+
+Content review phase complete for Python; H1 structural port (v2 flow) is next.
+
+---
+
 ## [1.86.1] — 2026-06-30 — 🐛 fix: Excel Compare stage rendered stale attempt data
 
 Found during Batch 1 testing (v1.86.0 test plan). The Compare stage's "Your attempt vs Correct answer" display and the "Ask the AI Tutor" button were computed once at initial page load — before the learner had touched the Try stage — so they never reflected the real attempt. Extracted the dynamic part into `v2CompareDynHTML(lid,l,done)`, rendered into a `#v2-compare-dyn-${lid}` wrapper, and `v2ParsCheck()` now refreshes that wrapper live the instant an attempt is checked (right or wrong), instead of relying on the stale HTML baked at `v2Body()` render time.
