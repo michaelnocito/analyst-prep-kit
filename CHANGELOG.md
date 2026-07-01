@@ -9,6 +9,17 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.88.0] — 2026-06-30 — 🏗️ Phase H1-B+C: Python v2 lesson data — Units 2+3 (11 lessons)
+
+v2 stage flow extended to all core pandas and cleaning lessons (ids 4–14). 18 of 42 Python lessons now on v2.
+
+- **Unit 2: pandas** (ids 4–9) — Your First DataFrame, Exploring Data, Filtering Rows, Sorting & Selecting, GroupBy & Aggregation, Merging DataFrames
+- **Unit 3: Data Cleaning** (ids 10–14) — Finding & Fixing Nulls, String Cleaning, Types/Duplicates/Export, Deep vs Shallow Copy, Decorators
+- All parsons authored from scratch as strict dependency chains or meaning-forced orders (one valid arrangement); build distractors are real pandas mistakes (missing parens on masks, `and` vs `&`, removed `df.sort()`, unassigned string methods)
+- Untested in browser (build sprint)
+
+---
+
 ## [1.87.0] — 2026-06-30 — 🏗️ Phase H1-A: Python v2 lesson flow — infrastructure + pilot (7 lessons)
 
 The SQL kit's v2 stage flow (Orient → Example → Try → Compare → Build → Check → Close) ported to the Python kit, adapted to its architecture (`S`/`save()`/`openLesson()`/`#lessonContent`; ral is an array; viz renders via `lessonOutputHTML`).
