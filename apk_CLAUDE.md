@@ -1,16 +1,20 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** June 30, 2026 — 🏗️ **SQL H1 + Python H2/H1 + Power BI H2 all COMPLETE (v1.89.1). Next: walk Mike through the TESTING PLAN below (SQL batches 1–9, Python 10–17, Power BI H2 spot-check in batch 18), then Power BI H1 structural port.**
+**Last session ended:** July 2, 2026 — 🏗️ **SQL H1 + Python H2/H1 + Power BI H2 all COMPLETE (v1.89.1). Testing handed off to Mike via a standalone spreadsheet (see below) — he tests independently, off-chat, at his own pace. NEXT BATCH FOR THIS CHAT: Power BI H1 structural port (v2 lesson flow — 4th kit of 5, after SQL/Excel/Python).**
 **Current version:** `v1.89.1`
 **You are continuing an established collaboration with Mike Nocito.**
 
 ---
 
-## 🧪 TESTING PLAN — pending from the June 30 build sprint (DO THIS FIRST)
+## 🧪 TESTING — now tracked in a spreadsheet, not in-chat
 
-Everything below is unverified in the browser. It covers every change from today (v1.83.6 → v1.86.0) that is NOT already marked tested in CHANGELOG.md. Already-tested-today and excluded: SQL H2 content review (v1.83.8, "7 test checks passed"), Excel Phase G Mode 1 (v1.83.3–v1.83.5, marked DONE ✓).
+Mike tests independently using a working checklist, NOT a batch-by-batch chat walkthrough. Do not re-walk him through these batches in chat unless he explicitly asks.
 
-Walk Mike through these batches **in order**, one at a time, waiting for pass/partial/fail before moving on (per the workflow rules below). If a batch fails or partials, triage it into its own roadmap item before continuing.
+**File:** `testing/APK_Testing_Checklist.xlsx` (local only — not committed to git; it's a working doc, not kit content)
+**Columns:** # | Kit | Item | Steps (numbered, one per line) | Result (dropdown: Pass/Partial/Fail/Not Tested) | Notes / Follow-up
+**Contents:** all 18 batches below, covering every unverified change from the June 30 – July 1 build sprint (v1.83.6 → v1.89.1): Excel Phase F/G Mode 3 polish, SQL H1 (all 46 lessons), Python H2+H1 (all 42 lessons), Power BI H2 content fixes.
+
+If Mike references results from that sheet (e.g. "batch 6 failed" or "row 12 partial"), ask him to paste the Notes/Follow-up content or describe what broke, then triage into a roadmap item before continuing new build work. The batch descriptions below are kept as the canonical source Mike's spreadsheet was generated from — useful if the sheet needs regenerating or a batch needs re-explaining.
 
 ### Batch 1 — Excel: Phase F toggle polish + Phase G Mode 3 (Lesson 5 only, ~3 min)
 Open Excel → Lesson 5 ("Your First Formula"). Worked Example stage: toggle button should read "More details" → click → "Less". Try stage: deliberately get the parsons puzzle wrong, Check. Compare stage: two-column "Your attempt" (red) vs "Correct answer" (green) box should appear, plus an "Ask the AI Tutor →" button (only shows on a wrong attempt) that calls Sonnet and names the specific gap.
@@ -71,10 +75,12 @@ Same walk pattern as the SQL batches: one deep-dive per unit through all 7 stage
 > - ✅ **Phase F (v1.83.0):** Focus/Details toggle in Worked Example — "More details" / "Less" hides/shows Gotcha + intro; persisted to `localStorage['epk-lesson-mode']`. Also: gates removed, free until Aug 1, 2026 — gate redesign parked for after Phase G/H.
 > - ✅ **Phase G Mode 1 (v1.83.3–v1.83.5):** AI Coach stuck-help on Try (Parsons) + Build stages. BYOK Anthropic key (localStorage), Haiku model, stage-aware context. Prompt tailors to Parsons ordering hints or Build multiple-choice hints. Error recovery: "Try different key" clears and re-prompts.
 > - ✅ **Phase G Mode 3 (v1.83.6–v1.83.7):** Attempt-vs-correct comparison + AI gap analysis on Compare stage. Free side-by-side display; Sonnet reads the gaps. UX polish: "Ask My Tutor" (not "AI Coach"), shows only on incorrect, improved key entry copy, sentiment buttons.
-> - **Phase H — Port to SQL · Python · Power BI · Tableau · Stats (one kit per cycle) — NEXT AFTER EXCEL G:**
+> - **Phase H — Port to SQL · Python · Power BI · Tableau · Stats (one kit per cycle):**
 >   - **H2 first (content review):** accuracy audit (technically correct + up to date), relevance audit (real analyst job tasks), friction audit (no jargon/confusion on first read), style audit (mentor voice, consistent across all lessons). Fix content before porting structure. 🔒 LOCKED RULE.
 >   - **H1 second (structural port):** v2 lesson flow (Orient→Worked Example→Try→Compare→Build→Own→Close) + AI Coach (Modes 1 & 3) + all cross-kit changes from `EXCEL_POLISH_MASTER_PLAN.md`. 🔒 LOCKED RULE: content review always precedes structural port.
 >   - **Kit order:** SQL → Python → Power BI → Tableau → Stats
+>   - **Progress:** ✅ SQL (H2 v1.83.8, H1 v1.86.0) · ✅ Python (H2 v1.86.2, H1 v1.87.0–v1.89.0) · ✅ Power BI H2 (v1.89.1) · **⏳ Power BI H1 — NEXT, start here** · ⬜ Tableau · ⬜ Stats
+>   - Power BI H1 pattern to follow (same as SQL/Python before it): port the v2 CSS block + engine functions (`v2PyBody`-equivalent, stage get/set, parsons chip tap/check, build pick, quiz answer/retry, reset, AI Coach Modes 1+3) adapted to Power BI's own render architecture, then author `parsons`/`compare`/`build`/`close`/`unlock` fields for all 39 lessons. Check the kit's existing state-object and render-dispatch pattern first (may differ from both SQL's `state`/`navigate` and Python's `S`/`openLesson`).
 >   - _(Phase H before Phase G Mode 2 — Mike's call June 30, 2026. Reason: Mode 2 mock interview is designed once for all kits after H is done, not bolted onto Excel alone first.)_
 > - **Phase G Mode 2 — Mock interview (after Phase H):** Designed to work across all kits simultaneously. Tied to interview-track units in each kit.
 > - **After Phase H → Data Migration Track Audit (all 4 tool kits):** Full interview-readiness review of the Data Migration track (Unit 4) across SQL, Excel, Python, Power BI. Add gap-filler lessons where needed (e.g. SQL id:509 "Comparing Old & New Schemas with JOINs" — LEFT/INNER/RIGHT JOIN in migration context). Audit findings feed Interview kit mock questions. _(Scoped June 30, 2026 — real interview signal: "Explain LEFT vs INNER JOIN with an example.")_
