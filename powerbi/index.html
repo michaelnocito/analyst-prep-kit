@@ -328,6 +328,35 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .signin-btn.ghost{background:transparent;color:var(--dim);border-color:var(--line,var(--border))}
 .signin-btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
 .user-email{font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+
+/* V2 LESSON FLOW */
+.v2-stage-bar{display:flex;gap:6px;align-items:center;margin:16px 0 22px}
+.v2-stage-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:.25s;flex-shrink:0}
+.v2-stage-dot.done{background:var(--green)}
+.v2-stage-dot.active{background:var(--accent);width:24px;border-radius:4px}
+.v2-stage-label{font-size:12px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.v2-stage-card{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-top:16px}
+.v2-stage-card h3{margin:0 0 12px;font-size:15px}
+.v2-stage-card h3 .lucide{width:16px;height:16px;color:var(--accent);vertical-align:-2px;margin-right:6px}
+.v2-pool{display:flex;flex-wrap:wrap;gap:8px;min-height:44px;border:2px dashed var(--border);border-radius:var(--r2);padding:10px;margin-bottom:10px;transition:.15s}
+.v2-answer-zone{min-height:44px;border:2px dashed var(--accent);border-radius:var(--r2);padding:10px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px;transition:.15s}
+.v2-pars-chip{font-family:var(--mono);font-size:13px;background:var(--surf);border:1.5px solid var(--border);border-radius:var(--r2);padding:9px 12px;cursor:pointer;user-select:none;transition:.15s;white-space:pre}
+.v2-pars-chip:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.v2-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:540px){.v2-compare-grid{grid-template-columns:1fr}}
+.v2-compare-col-head{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.unlock-card{background:color-mix(in srgb,var(--accent) 8%,transparent);border:1.5px solid color-mix(in srgb,var(--accent) 30%,transparent);border-radius:var(--r);padding:18px 20px;margin-top:16px}
+.unlock-card h4{margin:0 0 8px;font-size:14px;color:var(--accent);font-weight:700}
+.unlock-card p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.65}
+.v2-mode-btn{background:none;border:1px solid var(--border);border-radius:20px;color:var(--muted);font:inherit;font-size:12px;cursor:pointer;padding:4px 12px;transition:.15s;margin-left:auto}
+.v2-mode-btn:hover{border-color:var(--accent);color:var(--accent)}
+.v2-coach-btn{display:inline-flex;align-items:center;gap:7px;background:color-mix(in srgb,var(--accent) 10%,transparent);border:1.5px solid color-mix(in srgb,var(--accent) 32%,transparent);color:var(--accent);padding:8px 16px;border-radius:var(--r2);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;margin-top:10px}
+.v2-coach-btn:hover{background:color-mix(in srgb,var(--accent) 20%,transparent)}
+.v2-coach-resp{margin-top:10px;padding:14px 16px;background:var(--surf);border:1px solid var(--border);border-radius:var(--r2);font-size:14px;line-height:1.7;color:var(--muted);display:none}
+.v2-coach-resp.show{display:block}
+.v2-coach-key-row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.v2-coach-key-input{flex:1;min-width:0;background:var(--surf2);border:1px solid var(--border);border-radius:var(--r2);padding:9px 12px;color:var(--text);font:inherit;font-size:13px;outline:none}
+.v2-coach-key-input:focus{border-color:var(--accent)}
 </style></head>
 <body>
 <script src="../assets/supabase_auth_sync.js"></script>
@@ -376,7 +405,12 @@ LESSONS: [
      lines:[["Table","a 2D grid: rows × columns — the basic data unit in Power BI"],["Row (record)","one observation — one sale, one customer, one product"],["Column (field)","one attribute — Region, Revenue, Date, ProductID"],["Grain","what one row represents — state this before writing any measure"],["Double-counting","what happens when you join tables at different grains"]]},
    notes:"Power BI's star schema (one fact table + multiple dimension tables) is designed to keep grain consistent. Your Sales table should be at transaction grain; Products and Customers tables are at their own grain. Relating them correctly in the Model View is what prevents double-counting.",
    viz:{bars:[{label:"Sales",value:90,display:"1 row = 1 sale"},{label:"Customers",value:60,display:"1 row = 1 customer"},{label:"Products",value:40,display:"1 row = 1 SKU"}],title:"Each table — one grain",caption:"Three tables, three grains. Sales rows are at transaction level; Customers and Products are at entity level. Relate them on their shared keys and the measures stay correct."},
-   quiz:{q:"Your Sales table has one row per order LINE ITEM, not per order. Where does that grain actually become dangerous?",opts:["In relationships — joining another table on OrderID fans out and inflates totals","In plain SUM measures — SUM double-counts the line items","Everywhere — line-item grain is always wrong for a fact table","Nowhere — grain never affects a Power BI model"],ans:0,exp:"Plain SUM is safe at any grain — it adds every line row, so totals stay correct. The danger is relational: relate another table on OrderID (which repeats across line items) and rows fan out, inflating every measure that crosses that relationship. Line-item grain is a fine — even standard — fact-table grain; you just have to relate on keys that are unique on their 'one' side."}
+   quiz:{q:"Your Sales table has one row per order LINE ITEM, not per order. Where does that grain actually become dangerous?",opts:["In relationships — joining another table on OrderID fans out and inflates totals","In plain SUM measures — SUM double-counts the line items","Everywhere — line-item grain is always wrong for a fact table","Nowhere — grain never affects a Power BI model"],ans:0,exp:"Plain SUM is safe at any grain — it adds every line row, so totals stay correct. The danger is relational: relate another table on OrderID (which repeats across line items) and rows fan out, inflating every measure that crosses that relationship. Line-item grain is a fine — even standard — fact-table grain; you just have to relate on keys that are unique on their 'one' side."},
+   parsons:{prompt:"Arrange the grain check — count all rows, count the unique keys, then compare the two.",lines:["Total Rows = COUNTROWS(Sales)","Unique Orders = DISTINCTCOUNT(Sales[OrderID])","-- equal → one row per order · different → finer grain"],answer:[0,1,2]},
+   compare:"The grain check is two measures read side by side: COUNTROWS counts every row, DISTINCTCOUNT counts unique keys. The comparison comes last — neither number means anything on its own.",
+   build:{q:"You suspect the Sales table is at line-item grain, not order grain. Which pair of measures proves it?",opts:["COUNTROWS(Sales) vs DISTINCTCOUNT(Sales[OrderID]) — if they differ, rows are finer than orders","SUM(Sales[Revenue]) vs AVERAGE(Sales[Revenue])","COUNT(Sales[OrderID]) vs COUNTROWS(Sales) — these are always equal","MAX(Sales[OrderID]) vs MIN(Sales[OrderID])"],ans:0,exp:"COUNTROWS counts every row; DISTINCTCOUNT counts unique order IDs. If they differ, one order spans multiple rows — line-item grain. SUM/AVERAGE/MAX tell you about values, not grain."},
+   close:"You can state and prove the grain of any table before you build on it. Next: data types — the other thing to verify before a single measure gets written.",
+   unlock:"Analysts who state the grain out loud — 'one row is one line item' — catch fan-out bugs in the Model View before they ever ship a wrong total. It's the cheapest habit in Power BI and the one that saves the most rework."
   },
   {id:102, unit:"Unit 0: Before You Build", title:"Data Types & Why They Matter in Power BI", sub:"Why type mismatches break aggregations silently.",
    story:"You've got the table and grain concept down. Now the next thing Power BI checks before it does anything: data type. A number stored as text won't aggregate. A date column recognized as text won't let you use time intelligence. Power BI color-codes every column's type in the Data and Model views — checking and fixing types early saves hours of confusion later.",
@@ -386,7 +420,12 @@ LESSONS: [
      lines:[["Whole Number","integers — counts, IDs, quantities"],["Decimal Number","floating point — prices, rates, calculated fields"],["Text","strings — names, codes, region labels"],["Date","calendar dates — enables time intelligence functions"],["Wrong type","a revenue column typed as Text sums to blank — no error, just wrong"]]},
    notes:"Power Query flags type issues with the column header icon. A yellow triangle means mismatched or inferred type. Always verify types in the 'Changed Type' step — don't trust Power BI's auto-detection on imported data, especially from CSV or Excel where numbers often import as text.",
    viz:{bars:[{label:"Whole Number",value:100,display:"SUM, COUNT, AVERAGE ✓"},{label:"Decimal",value:100,display:"All math ✓"},{label:"Text",value:30,display:"SUM → blank ✗"},{label:"Date",value:80,display:"Time intelligence ✓"}],title:"What each type allows",caption:"Type determines capability. Text columns look like numbers but SUM returns blank — no error message. Fix the type in Power Query before you start building."},
-   quiz:{q:"Your Revenue column imports as type Text. You create a measure: Total Revenue = SUM(Sales[Revenue]). What does the measure return?",opts:["The correct sum","0","BLANK — SUM on a text column returns blank","An error message"],ans:2,exp:"SUM on a text column returns BLANK in Power BI — no error, just silence. The card visual shows empty. This is one of the most common beginner traps. Fix the type in Power Query before it reaches your model."}
+   quiz:{q:"Your Revenue column imports as type Text. You create a measure: Total Revenue = SUM(Sales[Revenue]). What does the measure return?",opts:["The correct sum","0","BLANK — SUM on a text column returns blank","An error message"],ans:2,exp:"SUM on a text column returns BLANK in Power BI — no error, just silence. The card visual shows empty. This is one of the most common beginner traps. Fix the type in Power Query before it reaches your model."},
+   parsons:{prompt:"Revenue imported as Text. Arrange the fix, start to finish.",lines:["Open Power Query (Transform Data)","Select the Revenue column","Change type: Text → Decimal Number","Close & Apply"],answer:[0,1,2,3]},
+   compare:"The fix happens in Power Query, before the data reaches the model — that's why opening the editor comes first and Close & Apply comes last. Fixing types after the fact (in DAX) treats the symptom, not the source.",
+   build:{q:"Your Date column imported as Text, so time intelligence fails. Where do you fix it?",opts:["Write a DAX calculated column that converts the text to a date","In Power Query — change the column type to Date, then Close & Apply","In the visual — change the field's summarization","Rename the column to 'Date' so Power BI detects it"],ans:1,exp:"Type fixes belong in Power Query, the Shape phase. A DAX conversion column works but leaves the broken text column in your model and doubles the storage. The column's name has nothing to do with its type."},
+   close:"You can spot and fix a wrong type before it silently blanks a measure. Next: aggregation — the single idea underneath every visual you'll ever build.",
+   unlock:"The 'Changed Type' step Power Query auto-inserts is a snapshot of its guesses, not the truth. Experienced analysts read that step like a checklist on every new source — it's where CSV imports quietly turn revenue into text."
   },
   {id:103, unit:"Unit 0: Before You Build", title:"What 'Aggregate' Means in Power BI", sub:"The one idea underneath every KPI card and bar chart.",
    story:"Types are correct. Your manager asks for 'total revenue.' The Revenue column has one row per transaction — thousands of them. An aggregation collapses those rows into one number: SUM totals them, COUNT counts them, AVERAGE averages them. Every visual in Power BI is an aggregation of an underlying table. This idea is what makes DAX measures finally click.",
@@ -396,7 +435,12 @@ LESSONS: [
      lines:[["Aggregation","collapsing many rows into one number: SUM, COUNT, AVERAGE, MIN, MAX"],["Implicit aggregation","drag Revenue into Values — Power BI defaults to SUM automatically"],["Explicit aggregation (measure)","write SUM(table[col]) yourself — full control"],["Filter context","the active filters (slicer, row context, visual filter) that determine which rows the aggregation sees"],["Why it matters","every wrong total in Power BI is a filter-context or aggregation mistake"]]},
    notes:"When you drag a numeric column directly into a visual, Power BI applies an implicit aggregation (usually SUM). That's often what you want — but not always. If you drag a Revenue column and it shows one number per row instead of a total, Power BI chose 'Don't summarize.' Right-click the field → Summarize → Sum to fix it.",
    viz:{bars:[{label:"West",value:412},{label:"East",value:388},{label:"North",value:195},{label:"South",value:284}],title:"SUM(Revenue) by Region — each bar is an aggregation",caption:"Each bar collapses all transaction rows for that region into one SUM. The visual doesn't show raw rows — it shows the aggregation. That's every Power BI visual, every time."},
-   quiz:{q:"You drag Revenue into the Values field of a bar chart and see one separate bar per transaction row instead of one total bar per region. What happened?",opts:["You need to add a Region field to the Axis","The Revenue column is set to 'Don't Summarize' — change it to Sum","The data model has no relationships","You need to write a DAX measure first"],ans:1,exp:"'Don't Summarize' means Power BI treats the column as a row identifier instead of an aggregate. Right-click the Revenue field in Values and change the summarization to Sum to get one aggregated bar per category."}
+   quiz:{q:"You drag Revenue into the Values field of a bar chart and see one separate bar per transaction row instead of one total bar per region. What happened?",opts:["You need to add a Region field to the Axis","The Revenue column is set to 'Don't Summarize' — change it to Sum","The data model has no relationships","You need to write a DAX measure first"],ans:1,exp:"'Don't Summarize' means Power BI treats the column as a row identifier instead of an aggregate. Right-click the Revenue field in Values and change the summarization to Sum to get one aggregated bar per category."},
+   parsons:{prompt:"Arrange what actually happens when a bar chart shows West's revenue — from raw rows to the number on screen.",lines:["1. Start: every row in the Sales table","2. Filter context: keep only Region = \"West\"","3. Aggregate: SUM(Sales[Revenue]) over those rows","4. Result: one number — the West bar"],answer:[0,1,2,3]},
+   compare:"Filter first, then aggregate. Power BI narrows the rows to the current context (the West bar, the active slicer) before SUM ever runs — that's why one measure can produce a different number in every bar of the same chart.",
+   build:{q:"Dragging Revenue into Values gives you an implicit SUM. Which measure is the explicit version of the same thing?",opts:["Revenue = Sales[Revenue]","Total Revenue = SUM(Sales[Revenue])","Total Revenue = COUNTROWS(Sales)","Total Revenue = AGGREGATE(Sales[Revenue])"],ans:1,exp:"SUM(Sales[Revenue]) is exactly what the implicit aggregation does — written out where you can see and control it. A bare column reference isn't a valid measure, COUNTROWS counts rows instead of summing, and AGGREGATE isn't a DAX function."},
+   close:"You can see the aggregation inside every visual now — the collapse from many rows to one number. Next: the three-phase loop that organizes every Power BI project.",
+   unlock:"Once you read every visual as 'filter context + aggregation,' debugging flips: a wrong number is never mysterious — either the wrong rows survived the filter, or the wrong math ran over them. Every DAX bug is one of those two."
   },
   {id:104, unit:"Unit 0: Before You Build", title:"Load vs Shape vs Analyze (The Power BI Loop)", sub:"The three-phase workflow every Power BI project follows.",
    story:"You understand aggregation. Now the Power BI loop that every dashboard is built on: Load (bring data in via Get Data), Shape (clean and transform in Power Query), Analyze (build measures and visuals on the Report canvas). Each phase has its own tools and its own mistakes. Knowing which phase you're in tells you where to look when something goes wrong.",
@@ -406,7 +450,12 @@ LESSONS: [
      lines:[["Get Data","Load phase — connect to CSV, Excel, SQL, SharePoint, APIs"],["Power Query","Shape phase — transform before data reaches your model"],["Model View","Analyze phase — define table relationships (star schema)"],["DAX measure","Analyze phase — write aggregations and calculations"],["Wrong phase","cleaning data in DAX instead of Power Query = slow, fragile reports"]]},
    notes:"The most common mistake is doing Shape work in the Analyze phase. Adding a clean-up calculated column in DAX when you should have fixed it in Power Query makes your model heavier and harder to maintain. Ask: 'Does this change the data before it reaches my model?' If yes — Power Query. If no — DAX.",
    viz:{html:`<div style="display:flex;gap:8px;font-size:11px;flex-wrap:wrap"><div style="flex:1;min-width:120px;border:1px solid var(--border);border-radius:8px;padding:10px"><div style="font-weight:700;color:var(--accent);margin-bottom:6px">1. Load</div><div style="color:var(--txt2)">Get Data → connect to source → tables appear in your model</div></div><div style="font-size:16px;color:var(--accent);align-self:center">→</div><div style="flex:1;min-width:120px;border:1px solid var(--border);border-radius:8px;padding:10px"><div style="font-weight:700;color:var(--accent);margin-bottom:6px">2. Shape</div><div style="color:var(--txt2)">Power Query → fix types, clean columns, remove blanks</div></div><div style="font-size:16px;color:var(--accent);align-self:center">→</div><div style="flex:1;min-width:120px;border:1px solid var(--border);border-radius:8px;padding:10px"><div style="font-weight:700;color:var(--accent);margin-bottom:6px">3. Analyze</div><div style="color:var(--txt2)">Model View → relationships · DAX → measures · Report canvas → visuals</div></div></div>`,caption:"The three-phase loop. Load → Shape → Analyze. Doing things out of order (fixing data in DAX, building visuals before relationships are set) causes the most common Power BI frustrations."},
-   quiz:{q:"You notice a column is named 'dt_order' and should be 'Order Date'. Where should you rename it?",opts:["In a DAX calculated column: Order Date = [dt_order]","In Power Query — rename the column in the Shape phase","In the Report canvas — rename the visual label","In the Model View — rename the table"],ans:1,exp:"Renaming a column is a Shape task — it should happen in Power Query before the data reaches your model. Doing it in DAX creates a duplicate column; doing it in the Report canvas only changes one visual's label, not the field name everywhere."}
+   quiz:{q:"You notice a column is named 'dt_order' and should be 'Order Date'. Where should you rename it?",opts:["In a DAX calculated column: Order Date = [dt_order]","In Power Query — rename the column in the Shape phase","In the Report canvas — rename the visual label","In the Model View — rename the table"],ans:1,exp:"Renaming a column is a Shape task — it should happen in Power Query before the data reaches your model. Doing it in DAX creates a duplicate column; doing it in the Report canvas only changes one visual's label, not the field name everywhere."},
+   parsons:{prompt:"Arrange the three phases of every Power BI project, in the order they happen.",lines:["Load: Get Data → connect to the source","Shape: Power Query → fix types, clean columns, remove blanks","Analyze: relationships, DAX measures, visuals on the canvas"],answer:[0,1,2]},
+   compare:"Load, then Shape, then Analyze — data flows one way. That order is also your debugging map: a wrong number in a visual traces backward through the phases until you find where it broke.",
+   build:{q:"Your imported CSV has 40 blank rows at the bottom that are polluting your counts. Which phase removes them?",opts:["Load — pick a different connector","Shape — remove the blank rows in Power Query","Analyze — write a DAX measure that skips blanks","Analyze — filter every visual to exclude blanks"],ans:1,exp:"Removing junk rows is a Shape task: do it once in Power Query and it re-runs on every refresh. A DAX workaround or per-visual filter has to be repeated everywhere and leaves the dirty rows in your model."},
+   close:"You can name which phase any task belongs to — and that tells you where to fix things. That's Unit 0 done: grain, types, aggregation, and the loop. Next: a tour of the Desktop interface where all of it happens.",
+   unlock:"'Which phase does this belong to?' is also an interview answer. Asked how you'd clean messy data in Power BI, leading with 'in Power Query, before it reaches the model — so the cleanup re-runs on refresh' signals you've actually shipped reports."
   },
   // UNIT 1
   {id:1, unit:"Unit 1: The Interface & Data", title:"The Power BI Interface", sub:"Navigate Desktop like a pro",
@@ -429,7 +478,12 @@ LESSONS: [
      <div style="width:104px;padding:9px;border-right:1px solid var(--border);background:var(--surf2)"><div style="font-weight:700">Visualizations</div><div style="margin-top:6px;color:var(--dim)">📊 📈 🥧 🔢</div><div style="color:var(--dim);margin-top:6px">Axis / Values / Legend</div></div>
      <div style="width:96px;padding:9px;background:var(--surf2)"><div style="font-weight:700">Fields</div><div style="margin-top:6px;color:var(--dim)">▸ Sales</div><div style="color:var(--dim)">▸ Customers</div><div style="color:var(--dim)">▸ Date</div></div>
    </div>`,caption:"Three panes you'll use constantly: the Report canvas (center) where visuals live, the Visualizations pane (pick a chart, fill its field wells), and the Fields pane listing every table and column."},
-   quiz:{q:"Which Power BI Desktop view lets you see and manage how tables are related to each other?",opts:["Report View","Data View","Model View","Filters Pane"],ans:2,exp:"Model View displays the relationship diagram. You drag between key columns here to create or edit relationships."}
+   quiz:{q:"Which Power BI Desktop view lets you see and manage how tables are related to each other?",opts:["Report View","Data View","Model View","Filters Pane"],ans:2,exp:"Model View displays the relationship diagram. You drag between key columns here to create or edit relationships."},
+   parsons:{prompt:"Fresh data just loaded. Arrange the sanity-check path through the three views: raw rows first, then relationships, then build.",lines:["Data View — spot-check the loaded rows and types","Model View — confirm the relationships connect correctly","Report View — build the visual on the canvas"],answer:[0,1,2]},
+   compare:"Rows first, relationships second, visuals last. Each view checks the layer the next one depends on — a visual built on an unchecked model is where 'the numbers look wrong' tickets come from.",
+   build:{q:"You need to connect Sales[CustomerID] to Customers[CustomerID]. Where do you go?",opts:["Report View — drag both fields into the same visual","Data View — sort both tables by CustomerID","Model View — drag between the two key columns","The Filters pane — add a filter on CustomerID"],ans:2,exp:"Relationships are created in Model View by dragging between key columns. Putting fields in one visual doesn't relate the tables — without the relationship, the visual shows the same repeated total instead of per-customer numbers."},
+   close:"You know where everything lives: Report to build, Data to inspect, Model to relate. Next: getting data in — Get Data and Power Query.",
+   unlock:"The fastest interface habit isn't a shortcut key — it's checking Model View immediately after loading data. Nearly every 'my visual repeats the same number' problem is visible there as a missing relationship line, before you've wasted time rebuilding charts."
   },
   {id:2, core:true, unit:"Unit 1: The Interface & Data", title:"Connecting to Data", sub:"Get Data and Power Query basics",
    story:"You know the layout. The first step in every project: Get Data — point Power BI at a source (CSV, Excel, SQL, SharePoint) and pull the tables in. Power Query is the shaping layer that opens automatically — rename columns, fix types, remove blanks — before the data ever touches your model.",
@@ -450,7 +504,12 @@ LESSONS: [
      <div style="border:1px solid var(--border);border-radius:6px;padding:9px;background:var(--surf2)"><div style="font-weight:700">Applied Steps</div><div style="margin-top:6px;color:var(--dim)">1. Source</div><div style="color:var(--dim)">2. Promoted Headers</div><div style="color:var(--dim)">3. Changed Type</div><div style="color:var(--dim)">4. Removed Duplicates</div></div>
      <div style="border:1px solid var(--border);border-radius:6px;padding:12px;color:var(--dim);display:flex;align-items:center">🔧 Clean and reshape the data here, then <b style="color:var(--accent);margin:0 4px">Close &amp; Apply</b> loads it into the model.</div>
    </div>`,caption:"Power Query is where data gets cleaned before it ever reaches your report. Each transform is recorded as an 'Applied Step', so the whole cleanup re-runs automatically every time the data refreshes."},
-   quiz:{q:"Where do you clean and transform data before it loads into the Power BI model?",opts:["Report View canvas","Model View","Power Query Editor","DAX formula bar"],ans:2,exp:"Power Query Editor (Transform Data) is the ETL layer. Changes here are recorded as Applied Steps and re-run on every refresh."}
+   quiz:{q:"Where do you clean and transform data before it loads into the Power BI model?",opts:["Report View canvas","Model View","Power Query Editor","DAX formula bar"],ans:2,exp:"Power Query Editor (Transform Data) is the ETL layer. Changes here are recorded as Applied Steps and re-run on every refresh."},
+   parsons:{prompt:"Arrange the data-loading workflow from first click to fresh data next month.",lines:["Home → Get Data → choose the source","Power Query Editor — clean and transform","Close & Apply — load into the model","Refresh — re-run the steps against new data"],answer:[0,1,2,3]},
+   compare:"Get Data starts it, Refresh keeps it alive. The middle two steps are the payoff: because cleanup lives in Power Query as Applied Steps, Refresh replays the whole cleanup automatically — you never re-clean by hand.",
+   build:{q:"Your source CSV has misnamed columns and text-typed numbers. When do you fix them?",opts:["After loading — fix them with DAX calculated columns","In Power Query, before Close & Apply","In each visual's formatting pane","Edit the CSV by hand before every refresh"],ans:1,exp:"Fix it once in Power Query and the Applied Steps re-run on every refresh. DAX fixes bloat the model, visual formatting only masks one chart, and hand-editing the source dies the first time someone else refreshes."},
+   close:"You can load data and clean it in a way that survives every refresh. Next: your first visual — chart type plus field wells.",
+   unlock:"Applied Steps make Power Query self-documenting: the step list IS the audit trail of everything done to the data. When a stakeholder asks 'did you exclude test orders?', the answer is a step name, not a memory."
   },
   {id:3, unit:"Unit 1: The Interface & Data", title:"Building Your First Visual", sub:"Drag, drop, and configure",
    story:"Data is loaded and shaped. Now the core Power BI move: click the visual type you want, then drag fields to assign them. A bar chart needs a category on the Axis and a measure in Values. Power BI aggregates automatically. That's the Analyze phase in practice.",
@@ -468,7 +527,12 @@ LESSONS: [
    },
    notes:"If you drag a numeric column to Axis instead of Values, Power BI will try to aggregate it. Use the dropdown next to the field in the well to change aggregation (Sum, Average, Count, etc.).",
    viz:{title:"Revenue by Region",bars:[{label:"West",value:412,display:"$412"},{label:"East",value:388,display:"$388"},{label:"South",value:284,display:"$284"},{label:"North",value:195,display:"$195"}],caption:"Drop Region on the axis and Revenue into Values — Power BI draws this bar chart for you, no formulas typed."},
-   quiz:{q:"In Power BI's field wells, which well controls the Y-axis (what gets measured)?",opts:["Axis","Values","Legend","Tooltips"],ans:1,exp:"Values is where you drop the numeric field being measured. Power BI automatically aggregates it (Sum by default). Axis controls grouping (the X-axis)."}
+   quiz:{q:"In Power BI's field wells, which well controls the Y-axis (what gets measured)?",opts:["Axis","Values","Legend","Tooltips"],ans:1,exp:"Values is where you drop the numeric field being measured. Power BI automatically aggregates it (Sum by default). Axis controls grouping (the X-axis)."},
+   parsons:{prompt:"Build 'Revenue by Region, split by Channel' — arrange the steps.",lines:["Click the bar-chart icon in the Visualizations pane","Drag Region to Axis","Drag Revenue to Values","Drag Channel to Legend"],answer:[0,1,2,3]},
+   compare:"Chart type first, then the wells: Axis is what you group by, Values is what you measure, Legend is the optional color split. Same three wells, every visual — only the chart icon changes.",
+   build:{q:"You want average order value by region, but the chart shows summed revenue. What do you change?",opts:["Move Revenue from Values to Axis","Open the dropdown on Revenue in the Values well and switch Sum to Average","Drag Region to Legend instead of Axis","Add a second Revenue field to Values"],ans:1,exp:"The aggregation lives on the field in the Values well — the dropdown switches Sum to Average, Count, Min, or Max. Moving fields between wells changes what's grouped or measured, not how it's aggregated."},
+   close:"You can build a visual and control its aggregation deliberately. Next: relationships — using fields from more than one table in the same visual.",
+   unlock:"The Legend well is the cheapest insight multiplier in Power BI: one drag turns 'revenue by region' into 'revenue by region AND channel' — the comparison view stakeholders usually wanted but didn't know to ask for."
   },
   {id:4, core:true, unit:"Unit 1: The Interface & Data", title:"Relationships & the Data Model", sub:"Star schema and how Power BI joins tables",
    story:"You can build visuals from one table. But your sales table doesn't have the product category — it's in a separate products table. The Data Model is where you tell Power BI how the tables relate. Connect Order's ProductID to Products' ID (a star schema), and every visual can use fields from both tables without any join syntax.",
@@ -490,7 +554,12 @@ LESSONS: [
      <div style="border:2px solid var(--accent);border-radius:6px;padding:8px 16px;display:inline-block;color:var(--accent);font-weight:700">⭐ Sales (fact)</div>
      <div style="display:flex;justify-content:center;gap:22px;margin-top:10px"><div style="border:1px solid var(--dim-blue);border-radius:6px;padding:6px 11px;color:var(--dim-blue)">📋 Products</div><div style="border:1px solid var(--dim-blue);border-radius:6px;padding:6px 11px;color:var(--dim-blue)">📋 Region</div></div>
    </div>`,caption:"A star schema: one central fact table (Sales — the numbers you measure) surrounded by dimension tables (Customers, Products, Date, Region — the descriptions). Relationships link them, so a slicer on any dimension filters the facts."},
-   quiz:{q:"In a star schema, what is the fact table?",opts:["A lookup table with category names","The central table containing numeric transactions or events","The date dimension table","Any table with a primary key"],ans:1,exp:"The fact table holds the measurable events — sales rows, clicks, orders. Dimension tables (customers, products, dates) are connected to it via keys and used for filtering and grouping."}
+   quiz:{q:"In a star schema, what is the fact table?",opts:["A lookup table with category names","The central table containing numeric transactions or events","The date dimension table","Any table with a primary key"],ans:1,exp:"The fact table holds the measurable events — sales rows, clicks, orders. Dimension tables (customers, products, dates) are connected to it via keys and used for filtering and grouping."},
+   parsons:{prompt:"Arrange the star-schema build, from identifying tables to setting filter direction.",lines:["Identify the fact table: Sales — the numeric events","Identify the dimensions: Customers, Products, Dates","Relate each dimension's key to its matching Sales column","Set cross-filter direction: single, dimension → fact"],answer:[0,1,2,3]},
+   compare:"Facts and dimensions get named before anything gets related — you can't wire tables correctly until you know which one is the hub. Filter direction comes last because it only exists once the relationship does.",
+   build:{q:"Customers has one row per customer; Sales has many rows per customer. What relationship should Power BI create on CustomerID?",opts:["Many-to-many, both directions","One-to-many: Customers (one side) → Sales (many side)","One-to-one — each table keeps its own rows","No relationship — use a merged table instead"],ans:1,exp:"One row per customer on the dimension side, many sales rows on the fact side — the classic one-to-many. Many-to-many with both-direction filtering creates ambiguous paths, and merging the tables throws away the star schema."},
+   close:"You can wire a star schema: facts in the middle, dimensions around it, filters flowing one way. That's Unit 1 done. Next: DAX — calculated columns versus measures.",
+   unlock:"When a model misbehaves, senior analysts read the relationship lines' 1 and * markers before touching any DAX. A * where a 1 should be means duplicate keys on the 'one' side — the fan-out from Lesson 1, drawn right on the diagram."
   },
   // UNIT 2
   {id:5, core:true, unit:"Unit 2: DAX & Measures", title:"Calculated Columns vs Measures", sub:"Row context vs filter context",
@@ -1497,6 +1566,8 @@ function renderLesson(id){
     return;
   }
   const done = state.doneLessons.includes(l.id);
+  if(l.parsons){ v2PbiBody(l, done); return; }
+
   const ralLines = l.ral.lines.map(([chunk, desc]) =>
     `<div class="ral-line"><span class="ral-chunk">${chunk}</span><span class="ral-arrow">→</span><span class="ral-desc">${desc}</span></div>`
   ).join('');
@@ -1589,6 +1660,303 @@ function finishLesson(id){
     qw.innerHTML += `<div class="mt row" style="gap:10px;flex-wrap:wrap">${practiceBtn}${nextBtn}<button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">All Lessons</button></div>`;
     qw.lastElementChild?.scrollIntoView({behavior:'smooth', block:'center'}); // bring the new action buttons into view
   }
+}
+
+// ─── V2 LESSON FLOW (Orient→Example→Try→Compare→Build→Check→Close) ──────────
+
+function getPbiStage(lid){ return ((state.lessonStage||{})[lid]) ?? 0; }
+function setPbiStage(lid, s){
+  state.lessonStage = state.lessonStage || {};
+  state.lessonStage[lid] = s;
+  saveState();
+  renderLesson(lid);
+}
+
+function getPbiMode(){ return localStorage.getItem('pbi-lesson-mode')||'focus'; }
+function v2PbiToggleMode(lid){
+  const next = getPbiMode()==='focus'?'details':'focus';
+  localStorage.setItem('pbi-lesson-mode', next);
+  const el = document.getElementById('v2pbi-details-'+lid);
+  if(el) el.style.display = next==='details' ? '' : 'none';
+  const btn = document.getElementById('v2pbi-mode-btn-'+lid);
+  if(btn) btn.textContent = next==='focus' ? 'More detail' : 'Less detail';
+}
+
+let _v2ParsAttempt = {};
+let _v2ParsWasWrong = {};
+
+function v2ParsChipTap(lid, chip){
+  const pool = document.getElementById('v2pbi-pool-'+lid);
+  const ans  = document.getElementById('v2pbi-ans-'+lid);
+  if(!pool||!ans) return;
+  if(pool.contains(chip)) ans.appendChild(chip);
+  else pool.appendChild(chip);
+}
+
+function v2ParsCheck(lid){
+  const l = DATA.LESSONS.find(x=>x.id===lid);
+  if(!l||!l.parsons) return;
+  const ans = document.getElementById('v2pbi-ans-'+lid);
+  if(!ans) return;
+  const chips = [...ans.querySelectorAll('.v2-pars-chip')];
+  if(chips.length !== l.parsons.answer.length){
+    const fb = document.getElementById('v2pbi-pars-fb-'+lid);
+    if(fb) fb.innerHTML='<span style="color:var(--warn);font-size:13px">Move all pieces to the answer area first.</span>';
+    return;
+  }
+  const userOrder = chips.map(c=>+c.dataset.idx);
+  const correct = l.parsons.answer.every((v,i)=>v===userOrder[i]);
+  _v2ParsAttempt[lid] = {lines: chips.map(c=>c.textContent)};
+  _v2ParsWasWrong[lid] = !correct;
+  if(correct){
+    delete _v2ParsWasWrong[lid];
+    celebrate();
+    setTimeout(()=>setPbiStage(lid,3), 900);
+  } else {
+    const fb = document.getElementById('v2pbi-pars-fb-'+lid);
+    if(fb) fb.innerHTML='<span style="color:var(--red);font-size:13px;font-weight:600">Not quite — try reordering the pieces.</span>';
+    const btn = document.getElementById('v2pbi-coach-try-'+lid);
+    if(btn) btn.style.display='';
+  }
+}
+
+function v2BuildPick(btn, lid){
+  const l = DATA.LESSONS.find(x=>x.id===lid);
+  if(!l||!l.build) return;
+  const wrap = document.getElementById('v2pbi-build-'+lid);
+  if(!wrap) return;
+  wrap.querySelectorAll('.quiz-opt').forEach(b=>b.disabled=true);
+  const isCorrect = btn.dataset.correct==='1';
+  btn.classList.add(isCorrect?'correct':'wrong');
+  if(!isCorrect) wrap.querySelectorAll('.quiz-opt')[l.build.ans].classList.add('correct');
+  const fb = document.getElementById('v2pbi-build-fb-'+lid);
+  if(fb) fb.innerHTML=`<div class="quiz-exp show" style="margin-top:10px">${l.build.exp}</div>`;
+  if(!isCorrect){ const cb=document.getElementById('v2pbi-coach-build-'+lid); if(cb) cb.style.display=''; }
+  setTimeout(()=>setPbiStage(lid,5), isCorrect?1200:2200);
+}
+
+function v2QuizAnswer(lid, chosen){
+  const l = DATA.LESSONS.find(x=>x.id===lid);
+  if(!l) return;
+  const wrap = document.getElementById('v2pbi-quiz-'+lid);
+  if(!wrap) return;
+  wrap.querySelectorAll('.quiz-opt').forEach((b,i)=>{
+    b.disabled=true;
+    if(i===l.quiz.ans) b.classList.add('correct');
+    else if(i===chosen) b.classList.add('wrong');
+  });
+  const exp = document.getElementById('v2pbi-quiz-exp-'+lid);
+  if(exp) exp.classList.add('show');
+  if(chosen===l.quiz.ans){
+    celebrate();
+    markDone('doneLessons', lid);
+    setTimeout(()=>setPbiStage(lid,6), 1200);
+  } else {
+    wrap.insertAdjacentHTML('beforeend',`<div class="row mt" style="gap:10px;margin-top:14px">
+      <button class="btn btn-primary btn-sm" onclick="v2QuizRetry(${lid})">Try Again</button>
+      <button class="btn btn-ghost btn-sm" onclick="markDone('doneLessons',${lid});setPbiStage(${lid},6)">Continue anyway</button>
+    </div>`);
+  }
+}
+
+function v2QuizRetry(lid){
+  const l = DATA.LESSONS.find(x=>x.id===lid);
+  if(!l) return;
+  const wrap = document.getElementById('v2pbi-quiz-'+lid);
+  if(!wrap) return;
+  wrap.innerHTML=`<h3><i data-lucide="circle-check-big"></i> Quick Check</h3>
+    <p class="text-muted text-sm" style="margin-bottom:14px">${l.quiz.q}</p>
+    ${l.quiz.opts.map((o,i)=>`<button class="quiz-opt" onclick="v2QuizAnswer(${lid},${i})">${o}</button>`).join('')}
+    <div class="quiz-exp" id="v2pbi-quiz-exp-${lid}">${l.quiz.exp}</div>`;
+  if(window.lucide) lucide.createIcons();
+}
+
+function v2ResetLesson(id){
+  const i = state.doneLessons.indexOf(id);
+  if(i>-1) state.doneLessons.splice(i,1);
+  state.lessonStage = state.lessonStage||{};
+  delete state.lessonStage[id];
+  delete _v2ParsAttempt[id];
+  delete _v2ParsWasWrong[id];
+  saveState();
+  showToast('↺ Lesson reset');
+  navigate('lesson', id);
+}
+
+// AI Coach — Mode 1 (Haiku, stuck-help) + Mode 3 (Sonnet, gap analysis)
+// Shares the Anthropic key with the Excel & Python kits via localStorage['apk-coach-key'].
+function getCoachKey(){ return localStorage.getItem('apk-coach-key')||''; }
+function setCoachKey(k){ localStorage.setItem('apk-coach-key', k.trim()); showToast('Key saved'); }
+
+async function _v2CoachCall(prompt, model, targetId){
+  const key = getCoachKey();
+  const el = document.getElementById(targetId);
+  if(!key){
+    if(el){ el.textContent='Add your Anthropic API key in Settings → AI Coach to enable hints.'; el.classList.add('show'); }
+    return;
+  }
+  if(el){ el.textContent='Thinking…'; el.classList.add('show'); }
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'x-api-key':key,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model,max_tokens:350,messages:[{role:'user',content:prompt}]})
+    });
+    const data = await res.json();
+    if(el) el.textContent = data.content?.[0]?.text || 'No response — check your key.';
+  } catch(e){ if(el) el.textContent='Request failed — check your key in Settings.'; }
+}
+
+function v2CoachStuck(lid, stageName){
+  const l = DATA.LESSONS.find(x=>x.id===lid);
+  if(!l) return;
+  const p = l.parsons;
+  const isTry = stageName==='try';
+  const prompt = isTry
+    ? `You are a concise Power BI & DAX tutor. A student is arranging lines in order. Puzzle: "${p.prompt}"\nLines available:\n${p.lines.map((t,i)=>`${i}: ${t}`).join('\n')}\nGive ONE short hint (1-2 sentences) that nudges them toward the right order without revealing it.`
+    : `You are a concise Power BI & DAX tutor. A student answered a multiple-choice question about "${l.title}" incorrectly. Question: "${l.build.q}"\nGive ONE short hint (1-2 sentences) pointing toward the correct answer without stating it.`;
+  _v2CoachCall(prompt, 'claude-haiku-4-5-20251001', `v2pbi-coach-resp-${isTry?'try':'build'}-${lid}`);
+}
+
+function v2CoachGap(lid){
+  const l = DATA.LESSONS.find(x=>x.id===lid);
+  if(!l) return;
+  const p = l.parsons;
+  const att = _v2ParsAttempt[lid];
+  const correctLines = p.answer.map(i=>p.lines[i]).join('\n');
+  const attemptLines = att ? att.lines.join('\n') : '(skipped)';
+  const prompt = `You are a Power BI & DAX tutor giving brief gap analysis. Lesson: "${l.title}".\nCorrect order:\n${correctLines}\nStudent's order:\n${attemptLines}\nIn 2-3 sentences, explain the key difference and why the correct order matters. Be direct — no filler.`;
+  _v2CoachCall(prompt, 'claude-sonnet-4-6', `v2pbi-coach-resp-gap-${lid}`);
+}
+
+function v2PbiBody(l, done){
+  const stage = getPbiStage(l.id);
+  const LABELS = ['Orient','Example','Try','Compare','Build','Check','Close'];
+  const dots = LABELS.map((_,i)=>`<div class="v2-stage-dot${i<stage?' done':i===stage?' active':''}"></div>`).join('');
+  const stageBar = `<div class="v2-stage-bar">${dots}<span class="v2-stage-label">${LABELS[stage]}</span></div>`;
+  const conf = (state.confidence||{})[l.id]||'';
+  const cc=(v,icon,label)=>`<button class="conf-chip${conf===v?' is-on':''}" data-v="${v}" onclick="rateConf(${l.id},'${v}',this)"><i data-lucide="${icon}"></i><span class="conf-label">${label}</span></button>`;
+  let body='';
+
+  if(stage===0){
+    const tourBtn = (l.title&&l.title.toLowerCase().includes('interface'))
+      ? `<button class="btn" style="margin:0 0 18px;background:var(--accent);color:#fff" onclick="navigate('workspace')"><i data-lucide="compass" style="width:15px;height:15px;vertical-align:-3px"></i> New here? Tour the workspace interactively →</button><br>`
+      : '';
+    body=`<div class="v2-stage-card">
+      <h3><i data-lucide="compass"></i> What's this about</h3>
+      ${l.story?`<div class="lesson-story" style="margin-bottom:16px"><i data-lucide="book-open"></i><span>${l.story}</span></div>`:''}
+      <p style="margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.65">${l.intro||l.sub||''}</p>
+      ${tourBtn}
+      <button class="btn btn-primary" onclick="setPbiStage(${l.id},1)">See how it works &rarr;</button>
+    </div>`;
+  } else if(stage===1){
+    const mode=getPbiMode();
+    const ralLines=l.ral.lines.map(([chunk,desc])=>`<div class="ral-line"><span class="ral-chunk">${chunk}</span><span class="ral-arrow">→</span><span class="ral-desc">${desc}</span></div>`).join('');
+    const detailsHTML=`${l.intro?`<p style="font-size:14px;color:var(--muted);line-height:1.65;margin:14px 0 0">${l.intro}</p>`:''}<div class="card" style="margin-top:14px"><h3><i data-lucide="lightbulb"></i>Gotcha</h3><p style="margin:0;font-size:14px">${l.notes}</p></div>`;
+    body=`<div class="v2-stage-card">
+      <div class="row" style="margin-bottom:14px">
+        <h3 style="margin:0"><i data-lucide="eye"></i> Worked Example</h3>
+        <button class="v2-mode-btn" id="v2pbi-mode-btn-${l.id}" onclick="v2PbiToggleMode(${l.id})">${mode==='focus'?'More detail':'Less detail'}</button>
+      </div>
+      <div class="ral-block">
+        <div class="ral-head"><i data-lucide="megaphone"></i> Say It Out Loud</div>
+        <div class="ral-code">${l.ral.code}</div>
+        <div class="ral-body">${l.ral.say?`<div class="ral-say"><i data-lucide="megaphone"></i><span>${l.ral.say}</span></div>`:''}${ralLines}</div>
+      </div>
+      ${l.viz?lessonPbiHTML(l.viz):''}
+      <div id="v2pbi-details-${l.id}" style="display:${mode==='details'?'':'none'}">${detailsHTML}</div>
+      <div class="row" style="margin-top:18px;gap:10px">
+        <button class="btn btn-ghost btn-sm" onclick="setPbiStage(${l.id},0)">← Back</button>
+        <button class="btn btn-primary" onclick="setPbiStage(${l.id},2)">Try it yourself &rarr;</button>
+      </div>
+    </div>`;
+  } else if(stage===2){
+    const p=l.parsons;
+    const idxs=[...p.lines.keys()];
+    for(let i=idxs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idxs[i],idxs[j]]=[idxs[j],idxs[i]];}
+    const pool=idxs.map(i=>`<div class="v2-pars-chip" data-idx="${i}" onclick="v2ParsChipTap(${l.id},this)">${p.lines[i]}</div>`).join('');
+    body=`<div class="v2-stage-card">
+      <h3><i data-lucide="list-ordered"></i> Try It</h3>
+      <p class="text-muted text-sm" style="margin-bottom:10px">${p.prompt}</p>
+      <p style="font-size:12px;color:var(--muted);margin:0 0 6px">Tap a piece to move it between the pool and your answer:</p>
+      <div class="v2-pool" id="v2pbi-pool-${l.id}">${pool}</div>
+      <div class="v2-answer-zone" id="v2pbi-ans-${l.id}"></div>
+      <div id="v2pbi-pars-fb-${l.id}" style="min-height:18px;margin-bottom:4px"></div>
+      <div class="row" style="gap:10px">
+        <button class="btn btn-ghost btn-sm" onclick="setPbiStage(${l.id},1)">← Back</button>
+        <button class="btn btn-primary" onclick="v2ParsCheck(${l.id})">Check order</button>
+        <button class="btn btn-ghost btn-sm" onclick="setPbiStage(${l.id},3)">Skip &rarr;</button>
+      </div>
+      <button class="v2-coach-btn" id="v2pbi-coach-try-${l.id}" style="display:none" onclick="v2CoachStuck(${l.id},'try')"><i data-lucide="sparkles"></i> Stuck? Ask the AI Coach →</button>
+      <div class="v2-coach-resp" id="v2pbi-coach-resp-try-${l.id}"></div>
+    </div>`;
+  } else if(stage===3){
+    const p=l.parsons;
+    const correctText=p.answer.map(i=>p.lines[i]).join('\n');
+    const att=_v2ParsAttempt[l.id];
+    const attemptText=att?att.lines.join('\n'):'(skipped — review the correct order)';
+    const wasWrong=!!_v2ParsWasWrong[l.id];
+    body=`<div class="v2-stage-card">
+      <h3><i data-lucide="diff"></i> Compare</h3>
+      <p class="text-muted text-sm" style="margin-bottom:14px">${l.compare||'How does the correct order compare to yours?'}</p>
+      <div class="v2-compare-grid">
+        <div><div class="v2-compare-col-head">Correct order</div><div class="ral-code" style="font-size:12.5px">${correctText}</div></div>
+        <div><div class="v2-compare-col-head">Your attempt</div><div class="ral-code" style="font-size:12.5px;${att?'':'opacity:.5'}">${attemptText}</div></div>
+      </div>
+      ${wasWrong?`<button class="v2-coach-btn" onclick="v2CoachGap(${l.id})"><i data-lucide="sparkles"></i> Ask the AI Tutor →</button><div class="v2-coach-resp" id="v2pbi-coach-resp-gap-${l.id}"></div>`:''}
+      <div class="row" style="margin-top:16px;gap:10px">
+        <button class="btn btn-ghost btn-sm" onclick="setPbiStage(${l.id},2)">← Try again</button>
+        <button class="btn btn-primary" onclick="setPbiStage(${l.id},4)">Build it &rarr;</button>
+      </div>
+    </div>`;
+  } else if(stage===4){
+    const b=l.build;
+    body=`<div class="v2-stage-card" id="v2pbi-build-${l.id}">
+      <h3><i data-lucide="wrench"></i> Build It</h3>
+      <p class="text-muted text-sm" style="margin-bottom:14px">${b.q}</p>
+      ${b.opts.map((o,i)=>`<button class="quiz-opt" data-correct="${i===b.ans?1:0}" onclick="v2BuildPick(this,${l.id})">${o}</button>`).join('')}
+      <div id="v2pbi-build-fb-${l.id}"></div>
+      <button class="v2-coach-btn" id="v2pbi-coach-build-${l.id}" style="display:none" onclick="v2CoachStuck(${l.id},'build')"><i data-lucide="sparkles"></i> Stuck? Ask the AI Coach →</button>
+      <div class="v2-coach-resp" id="v2pbi-coach-resp-build-${l.id}"></div>
+    </div>`;
+  } else if(stage===5){
+    body=`<div class="quiz-wrap" id="v2pbi-quiz-${l.id}">
+      <h3><i data-lucide="circle-check-big"></i> Quick Check</h3>
+      <p class="text-muted text-sm" style="margin-bottom:14px">${l.quiz.q}</p>
+      ${l.quiz.opts.map((o,i)=>`<button class="quiz-opt" onclick="v2QuizAnswer(${l.id},${i})">${o}</button>`).join('')}
+      <div class="quiz-exp" id="v2pbi-quiz-exp-${l.id}">${l.quiz.exp}</div>
+    </div>`;
+  } else {
+    const nextLesson=DATA.LESSONS.find(ll=>ll.id!==l.id&&!state.doneLessons.includes(ll.id));
+    const dc=(LESSON_DRILLS[l.id]||[]).length;
+    const practiceBtn=dc?`<button class="btn btn-outline btn-sm" onclick="startGuided(${l.id})">Practice this &rarr;</button>`:'';
+    const nextBtn=nextLesson
+      ?`<button class="btn btn-primary" onclick="navigate('lesson',${nextLesson.id})">Next: ${nextLesson.title} &rarr;</button>`
+      :`<button class="btn btn-primary" onclick="navigate('practice')">Start Practice &rarr;</button>`;
+    body=`<div class="v2-stage-card">
+      <h3><i data-lucide="badge-check"></i> Done</h3>
+      <p style="font-size:15px;line-height:1.7;margin-bottom:18px">${l.close}</p>
+      <div class="row" style="gap:10px;flex-wrap:wrap">${nextBtn}${practiceBtn}<button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">All Lessons</button></div>
+    </div>
+    ${done&&l.unlock?`<div class="unlock-card"><h4><i data-lucide="unlock" style="width:15px;height:15px;vertical-align:-2px"></i> Insight unlocked</h4><p>${l.unlock}</p></div>`:''}
+    <div class="conf-rater" style="margin-top:16px">
+      <div class="conf-head"><i data-lucide="gauge"></i> How well do you have this?</div>
+      <p class="conf-sub">Be honest — saying "not yet" is how the right lessons find their way back to you.</p>
+      <div class="conf-chips">${cc('low','circle-dashed','Not yet')}${cc('mid','circle-dot-dashed','Almost')}${cc('high','circle-check-big','Have it')}</div>
+    </div>`;
+  }
+
+  document.getElementById('main').innerHTML=`
+    <div class="row mb">
+      <button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">← Lessons</button>
+      <span class="badge badge-unit">${l.unit}</span>
+      ${done?'<span class="badge badge-done">✓ Done</span>':''}
+      ${done?`<button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="v2ResetLesson(${l.id})">↺ Reset</button>`:''}
+    </div>
+    <h1>${l.title}</h1>
+    ${stageBar}
+    ${body}`;
+  if(window.lucide) lucide.createIcons();
 }
 
 // ─── GUIDED PATH (lesson → its drills → next lesson) ────────────────────────
@@ -1940,6 +2308,13 @@ function renderSettings(){
       <div class="setting-row">
         <div><div class="setting-label">Theme</div><div class="setting-sub">Light or dark mode</div></div>
         <button class="btn btn-ghost btn-sm" onclick="toggleTheme()">${state.theme==='dark'?'Switch to Light':'Switch to Dark'}</button>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">AI Coach</div><div class="setting-sub">Paste your Anthropic API key to enable hints on Try &amp; Build stages</div></div>
+      </div>
+      <div class="v2-coach-key-row" style="margin-bottom:16px">
+        <input class="v2-coach-key-input" id="settingsCoachKey" type="password" placeholder="sk-ant-…" value="${getCoachKey()}" autocomplete="off">
+        <button class="btn btn-ghost btn-sm" onclick="setCoachKey(document.getElementById('settingsCoachKey').value)">Save</button>
       </div>
       <div class="setting-row">
         <div><div class="setting-label">Reset Progress</div><div class="setting-sub">Clear all lesson and drill progress</div></div>
