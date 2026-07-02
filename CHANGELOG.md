@@ -9,6 +9,31 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.95.0] — 2026-07-02 — 🏗️ Phase H1-C: Tableau v2 lesson data — Units 4+5 (7 lessons)
+
+v2 fields authored for the cert-domain units: Live vs Extract decision path, join/union/relationship fork (with the double-count trap as the Build), data-properties tidy pass, sets on Color vs Filters, hierarchy drill, parameter wiring, dual-axis synchronize rule. **All 32 Tableau lessons now route through `v2TabBody` — Tableau H1 is complete (fifth of five tool kits on the v2 flow; Stats next).** Untested in browser.
+
+---
+
+## [1.94.0] — 2026-07-02 — 🏗️ Phase H1-B: Tableau v2 lesson data — Units 2+3 (16 lessons)
+
+v2 fields (parsons/compare/build/close/unlock) authored for Building Better Vizzes and Dashboards & Best Practices. Parsons arrange real shelf workflows (Top-N + context filter order, scatter disaggregation via Detail, treemap build, geographic role before map); Build distractors are real Tableau mistakes (sorting months by value, syncing mismatched axes, 7-slice pies). Untested in browser.
+
+---
+
+## [1.93.0] — 2026-07-02 — 🏗️ Phase H1-A: Tableau v2 lesson flow — engine + Unit 0/1 pilot (9 lessons)
+
+The 7-stage v2 flow (Orient→Example→Try→Compare→Build→Check→Close) ported to the Tableau kit, adapted to its own architecture:
+
+- `v2TabBody` renders inside `view-lessons` via the existing `openLesson`/`renderLesson` path; stage state in `S.lessonStage` (`tpk` localStorage)
+- Worked Example stage renders Tableau's `ral` shelf-array (`{shelf,lines,html}` blocks) + the Chart.js "See it on screen" viz — `drawLessonChart` re-invoked after every stage-1 injection so canvases draw
+- AI Coach Modes 1+3 (Haiku stuck-help on Try/Build, Sonnet gap analysis on Compare) with the shared `localStorage['apk-coach-key']`; key field added to the Settings modal
+- Focus/Details toggle (`tab-lesson-mode`), honest unlock card, per-lesson reset extended to clear stage + attempts
+- Viz Builder, Workspace tour (still linked from the interface lesson's Orient stage), and all drill engines untouched
+- Unit 0 (foundations) + Unit 1 (fundamentals) authored: 9 lessons
+
+---
+
 ## [1.92.1] — 2026-07-02 — 📝 Phase H2: Tableau content review (accuracy · relevance · friction · style)
 
 Full four-audit content review of all 32 Tableau lessons plus the drill banks (fills, bugs, wrong-answer, parsons, ESQL, cards, glossary) — the fifth kit in the Phase H rollout, content review before structural port. The content held up well; four defects fixed, no rewrites needed:
