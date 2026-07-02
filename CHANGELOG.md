@@ -9,6 +9,36 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.92.0] — 2026-07-02 — 🏗️ Phase H1-C: Power BI v2 lesson data — Units 4–7, all 4 tracks (23 lessons)
+
+v2 stage flow extended to every remaining Power BI lesson. **All 39 Power BI lessons now route through `v2PbiBody` — Phase H1 structural port is complete for the Power BI kit** (fourth of five; Tableau next after testing).
+
+- **Unit 4: Data Migration** (401–405) · **Unit 5: From Question to Metric** (601–606) · **Unit 6: Financial Analysis** (701–706) · **Unit 7: Advanced Analyst Toolkit** (801–806)
+- Parsons arrange real DAX (CALCULATE arg order, VAR-before-RETURN, VAR capture before FILTER context shifts) or Power Query workflows (profile → dedupe → cleanse → type → reconcile)
+- Build distractors are real Power BI mistakes: SUM on an ID column, flipped conversion ratios, Left vs Right Anti direction, / instead of DIVIDE, measure-vs-column for slicers
+- Untested in browser (build sprint)
+
+---
+
+## [1.91.0] — 2026-07-02 — 🏗️ Phase H1-B: Power BI v2 lesson data — Units 2+3 (ids 5–12, 8 lessons)
+
+v2 fields (parsons/compare/build/close/unlock) authored for the DAX & Measures and Reports & Insights units. Parsons include the CALCULATE expression-then-filter order, the DIVIDE margin shape, the measure-stack YoY build, and the filter-scope ladder. Untested in browser.
+
+---
+
+## [1.90.0] — 2026-07-02 — 🏗️ Phase H1-A: Power BI v2 lesson flow — engine + Unit 0/1 pilot (8 lessons)
+
+Structural port of the v2 lesson flow (Orient→Example→Try→Compare→Build→Check→Close) to the Power BI kit, adapted to its `state`/`navigate`/`renderLesson` architecture:
+
+- v2 CSS block (Grain `color-mix` tints), stage engine (`getPbiStage`/`setPbiStage`, `v2pbi-` DOM ids), parsons chip tap/check, build pick, quiz answer/retry with Continue-anyway, per-lesson reset, Focus/Details toggle (`localStorage['pbi-lesson-mode']`)
+- AI Coach Modes 1+3 (Haiku stuck-help on Try/Build, Sonnet gap analysis on Compare) — key SHARED with Excel/Python via `localStorage['apk-coach-key']` (note: SQL still uses its own `sql-coach-key`)
+- Settings → AI Coach key field (save/persist)
+- Lesson 5 ("The Power BI Interface") keeps its interactive workspace-tour button, now on the Orient stage
+- v2 fields authored for Unit 0 (ids 101–104) + Unit 1 (ids 1–4)
+- Untested in browser (build sprint)
+
+---
+
 ## [1.89.1] — 2026-06-30 — 🔍 Phase H2: Power BI content review complete
 
 Full accuracy / relevance / friction / style audit of all 39 Power BI lessons. Cleanest kit yet — the DAX content verified accurate (no-native-CORR and no-native-NPV facts, TOTALYTD / DATEADD / SWITCH(TRUE()) / ALLSELECTED patterns all canonical). Two fixes:

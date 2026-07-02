@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** July 2, 2026 — 🏗️ **SQL H1 + Python H2/H1 + Power BI H2 all COMPLETE (v1.89.1). Testing handed off to Mike via a standalone spreadsheet (see below) — he tests independently, off-chat, at his own pace. NEXT BATCH FOR THIS CHAT: Power BI H1 structural port (v2 lesson flow — 4th kit of 5, after SQL/Excel/Python).**
-**Current version:** `v1.89.1`
+**Last session ended:** July 2, 2026 — 🏗️ **Power BI H1 structural port COMPLETE (v1.90.0–v1.92.0): all 39 lessons on the v2 flow + AI Coach (shared `apk-coach-key`). Testing stays with Mike via the spreadsheet — new batches 19–21 added below for the Power BI H1 work. NEXT BATCH FOR THIS CHAT: Tableau H2 content review (5th kit; 🔒 H2 before H1), unless Mike brings test results first.**
+**Current version:** `v1.92.0`
 **You are continuing an established collaboration with Mike Nocito.**
 
 ---
@@ -60,7 +60,15 @@ Same walk pattern as the SQL batches: one deep-dive per unit through all 7 stage
 - 18a: Open Power BI Lesson 1 ("How Power BI Sees Data") → Quick Check — question now asks **"Where does that grain actually become dangerous?"**; correct answer is the relationships/fan-out option
 - 18b: Open Power BI Lesson 15 ("Dashboard Design Principles") → story paragraph — reads **"One or two accent colors, maximum"** (matches the code card)
 
-**Total estimate: ~105–120 min across all three kits.** Full copy-ready SQL tables were given in chat June 30; Python batches follow the identical per-stage pattern.
+### Batches 19–21 — POWER BI kit: full v2 flow (v1.90.0–v1.92.0, all 39 lessons untested)
+Same walk pattern as the SQL/Python batches: one deep-dive per batch through all 7 stages, spot-check the rest. ⚠️ Power BI lesson POSITION = list order: Unit 0 = Lessons 1–4 (ids 101–104), Unit 1 = 5–8 (ids 1–4), Unit 2 = 9–12 (ids 5–8), Unit 3 = 13–16 (ids 9–12), Unit 4 = 17–21 (ids 401–405), Unit 5 = 22–27 (ids 601–606), Unit 6 = 28–33 (ids 701–706), Unit 7 = 34–39 (ids 801–806).
+- **Batch 19** — Units 0+1 (Lessons 1–8): deep-dive Lesson 1 "How Power BI Sees Data (Table & Grain)"; ALSO verify Settings (gear icon) shows an "AI Coach" key field that saves, AND that Lesson 5 "The Power BI Interface" still shows the "Tour the workspace interactively" button on its first (Orient) stage
+- **Batch 20** — Units 2+3 (Lessons 9–16): deep-dive Lesson 11 "CALCULATE & Filter Context" (Lesson position 11 = id:7)
+- **Batch 21** — Units 4–7 (Lessons 17–39): deep-dive Lesson 22 "Define the Measure Before You Compute It" (id:601); spot-check one lesson per unit (suggest 17, 28, 34)
+- Cross-cut check (any one lesson): legacy "Quick Check on the intro page" flow must be GONE — the quiz only appears at stage 6 of 7
+- AI Coach key is SHARED with Excel + Python (`apk-coach-key`); note SQL still uses its own `sql-coach-key` (divergence flagged, not yet unified)
+
+**Total estimate: ~105–120 min across all three kits (+~20 min for Power BI batches 19–21).** Full copy-ready SQL tables were given in chat June 30; Python batches follow the identical per-stage pattern.
 
 ---
 
@@ -79,7 +87,7 @@ Same walk pattern as the SQL batches: one deep-dive per unit through all 7 stage
 >   - **H2 first (content review):** accuracy audit (technically correct + up to date), relevance audit (real analyst job tasks), friction audit (no jargon/confusion on first read), style audit (mentor voice, consistent across all lessons). Fix content before porting structure. 🔒 LOCKED RULE.
 >   - **H1 second (structural port):** v2 lesson flow (Orient→Worked Example→Try→Compare→Build→Own→Close) + AI Coach (Modes 1 & 3) + all cross-kit changes from `EXCEL_POLISH_MASTER_PLAN.md`. 🔒 LOCKED RULE: content review always precedes structural port.
 >   - **Kit order:** SQL → Python → Power BI → Tableau → Stats
->   - **Progress:** ✅ SQL (H2 v1.83.8, H1 v1.86.0) · ✅ Python (H2 v1.86.2, H1 v1.87.0–v1.89.0) · ✅ Power BI H2 (v1.89.1) · **⏳ Power BI H1 — NEXT, start here** · ⬜ Tableau · ⬜ Stats
+>   - **Progress:** ✅ SQL (H2 v1.83.8, H1 v1.86.0) · ✅ Python (H2 v1.86.2, H1 v1.87.0–v1.89.0) · ✅ Power BI (H2 v1.89.1, H1 v1.90.0–v1.92.0) · **⏳ Tableau — NEXT (H2 first)** · ⬜ Stats
 >   - Power BI H1 pattern to follow (same as SQL/Python before it): port the v2 CSS block + engine functions (`v2PyBody`-equivalent, stage get/set, parsons chip tap/check, build pick, quiz answer/retry, reset, AI Coach Modes 1+3) adapted to Power BI's own render architecture, then author `parsons`/`compare`/`build`/`close`/`unlock` fields for all 39 lessons. Check the kit's existing state-object and render-dispatch pattern first (may differ from both SQL's `state`/`navigate` and Python's `S`/`openLesson`).
 >   - _(Phase H before Phase G Mode 2 — Mike's call June 30, 2026. Reason: Mode 2 mock interview is designed once for all kits after H is done, not bolted onto Excel alone first.)_
 > - **Phase G Mode 2 — Mock interview (after Phase H):** Designed to work across all kits simultaneously. Tied to interview-track units in each kit.
