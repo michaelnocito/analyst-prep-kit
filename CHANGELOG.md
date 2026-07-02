@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.92.1] — 2026-07-02 — 📝 Phase H2: Tableau content review (accuracy · relevance · friction · style)
+
+Full four-audit content review of all 32 Tableau lessons plus the drill banks (fills, bugs, wrong-answer, parsons, ESQL, cards, glossary) — the fifth kit in the Phase H rollout, content review before structural port. The content held up well; four defects fixed, no rewrites needed:
+
+- Lesson "What Aggregate Means": example math now consistent — SUM = $1,824 with AVG $152 × COUNT 12 (was $1,820)
+- Lesson "Aggregation in Tableau": viz table `COUNT(*)` → `COUNT(Units)` — `COUNT(*)` isn't Tableau syntax and now matches the RAL breakdown (132 ÷ 12 = 11 ✓)
+- Lesson "Build a Map": "Chloropleth" → "Choropleth" (spelling)
+- Cards: "Dual Axis" card said "two measures sharing one axis" — that's a combined axis; now reads "overlaid, each on its own axis," matching the Dual-Axis lesson
+
+Relevance, friction, and style audits passed clean: mentor voice consistent, story chain intact across all 32 lessons, no jargon-first explanations, drill answers verified against lesson content. Content-only; no UX change.
+
+---
+
 ## [1.92.0] — 2026-07-02 — 🏗️ Phase H1-C: Power BI v2 lesson data — Units 4–7, all 4 tracks (23 lessons)
 
 v2 stage flow extended to every remaining Power BI lesson. **All 39 Power BI lessons now route through `v2PbiBody` — Phase H1 structural port is complete for the Power BI kit** (fourth of five; Tableau next after testing).
