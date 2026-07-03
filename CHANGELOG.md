@@ -9,6 +9,24 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.97.0] — 2026-07-03 — 🏗️ Phase H1-B: Stats v2 lesson data — Units 2+3 (8 lessons) · **PHASE H COMPLETE**
+
+v2 fields (parsons/compare/build/close/unlock) authored for Probability Basics, Normal & Z-Scores, Sampling & Bias, Correlation vs Causation, Hypothesis Testing, P-Values, A/B Testing, Confidence Intervals. Builds are applied analyst judgment calls (peeking at an A/B test early, significant-but-negligible effects, self-selected reviews, firefighter confounding). **All 16 Stats lessons now route through `v2StatBody` — Stats H1 is complete, and with it the entire Phase H rollout: all 5 kits (SQL · Python · Power BI · Tableau · Stats) run the 7-stage v2 flow with AI Coach.** Untested in browser.
+
+---
+
+## [1.96.0] — 2026-07-03 — 🏗️ Phase H1-A: Stats v2 lesson flow — engine + Unit 0/1 pilot (8 lessons)
+
+The 7-stage v2 flow ported to the Stats kit, adapted to its section-based architecture:
+
+- `v2StatBody` renders inside `view-lessons` via the existing `openLesson`/`renderLesson` path; stage state in `S.lessonStage` (`spk` localStorage); `openLesson` already activates the view before render, so the Chart.js canvas-0×0 trap stays handled — `drawStatChart` re-invoked after every stage-1 injection
+- Worked Example renders `sections` (Stats has no `ral`): code sections show code + Step-by-step expanded; prose-only sections become the "More detail" layer (`stat-lesson-mode`); concept lessons (no code, Unit 0) show everything and hide the toggle
+- AI Coach Modes 1+3 (Haiku stuck-help on Try/Build, Sonnet gap analysis on Compare) with the shared `localStorage['apk-coach-key']`; key field added to the Settings modal
+- v2 CSS block mapped onto Stats vars (`--bord`/`--ok`/`--txt`), new `quiz-opt` + `unlock-card` styles, color-mix tints (no baked hex); `resetLesson` also clears stage + attempt state
+- Unit 0 + Unit 1 v2 data authored (8 lessons); Distribution Lab and all drills untouched
+
+---
+
 ## [1.95.1] — 2026-07-02 — 📝 Phase H2: Stats content review — 4 fixes
 
 Four-audit pass (accuracy / relevance / friction / style) over all 16 Stats lessons + drills, cards, glossary. Content-only:

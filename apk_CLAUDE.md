@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** July 3, 2026 — 📝 **Stats H2 COMPLETE (v1.95.1): four-audit content review of all 16 Stats lessons + drills/cards/glossary. 4 fixes, all content-only: `Hâ'€` mojibake → `H₀` (10 places), Lesson 7 percentile/IQR numbers corrected to real numpy output (Q1 122.5 / Q3 167.5 / IQR 45 / fences 55 & 235), Lesson 15 A/B-test p-value 0.098 → 0.18 (verified z ≈ 1.33), Lesson 16 CI corrected to SE 5.0 / ($135.3, $157.9). Relevance + style audits passed clean. NEXT BATCH FOR THIS CHAT: Stats H1 — port the v2 flow to the FINAL kit. ⚠️ Stats is section-based (`sections:[{heading,body,code,steps}]`, NO `ral`), vars `--txt/txt2/accdim/ok/bord`, `S`/`save`/`openLesson` state group, `lessonStatHTML`/`drawStatChart` Chart.js with the canvas-0×0 timing trap (view active BEFORE render), plus the Distribution Lab — read the cheat-sheet below before editing.**
-**Current version:** `v1.95.1`
+**Last session ended:** July 3, 2026 — 🏁 **Stats H1 COMPLETE (v1.96.0–v1.97.0) — and with it the ENTIRE PHASE H ROLLOUT: all 5 kits (SQL · Python · Power BI · Tableau · Stats) now run the 7-stage v2 flow with AI Coach Modes 1+3.** Stats port details: `v2StatBody` on the `S`/`save`/`openLesson` path (`v2st-` ids, `stat-lesson-mode`, shared `apk-coach-key` + Settings field). Worked Example renders `sections` (no `ral`): code sections show code + steps expanded; prose-only sections are the "More detail" layer; Unit-0 concept lessons (no code) show everything, no toggle. `drawStatChart` re-invoked after stage-1 injection (canvas-0×0 trap stays handled); Distribution Lab + all drills untouched. All 16 lessons validated (0 problems). Test batches 25–26 below. **NEXT FOR A FUTURE CHAT: Phase G Mode 2 — the mock interview, designed once across all kits (per the master plan) — unless Mike brings test results first.**
+**Current version:** `v1.97.0`
 **You are continuing an established collaboration with Mike Nocito.**
 
 ---
@@ -76,6 +76,13 @@ Same walk pattern as SQL/Python/Power BI: one deep-dive per batch through all 7 
 - Cross-cut: Viz Builder and Workspace tour must still work (nav → Viz Builder; interface lesson → tour button); legacy quiz-on-intro flow must be GONE (quiz only at stage 6 of 7)
 - AI Coach key SHARED with Excel + Python + Power BI (`apk-coach-key`); SQL still separate (`sql-coach-key`)
 
+### Batches 25–26 — STATS kit: full v2 flow (v1.96.0–v1.97.0, all 16 lessons untested)
+Same walk pattern as the other kits: deep-dive through all 7 stages (Orient → Worked Example → Try parsons w/ "Stuck? Ask the AI Coach →" on a wrong check → Compare w/ "Ask the AI Tutor →" after wrong → Build wrong-then-right → Quick Check wrong-then-right → Done card + unlock + Practice-this CTA). ⚠️ Stats lesson POSITION = list order: Unit 0 = Lessons 1–4 (ids 101–104), Unit 1 = 5–8 (ids 1–4), Unit 2 = 9–12 (ids 5–8), Unit 3 = 13–16 (ids 9–12).
+- **Batch 25** — Units 0+1 (Lessons 1–8): deep-dive Lesson 5 "Mean, Median & Mode" (id:1); ALSO verify Settings (gear) shows the "AI Coach" key field and saves, AND that on Lesson 1 "What Stats Is For" (a no-code concept lesson) the Worked Example shows ALL sections with NO "More detail" button, while Lesson 5 (a code lesson) shows the button and it toggles the prose sections
+- **Batch 26** — Units 2+3 (Lessons 9–16): deep-dive Lesson 16 "Confidence Intervals" (id:12) — its Worked Example must draw the Chart.js CI band (canvas not blank); spot-check Lesson 10 "Normal Distribution & Z-Scores" (id:6, line chart draws) and Lesson 13 "Hypothesis Testing" (id:9, html viz)
+- Cross-cut: the Distribution Lab (nav) must still work; legacy quiz-on-intro flow must be GONE (quiz only at stage 6 of 7); Lesson 9 "Probability Basics" (id:5) has no drills, so its Done card shows no "Practice this" button
+- AI Coach key SHARED with Excel + Python + Power BI + Tableau (`apk-coach-key`); SQL still separate (`sql-coach-key`)
+
 **Total estimate: ~105–120 min across all three kits (+~20 min for Power BI batches 19–21, +~20 min for Tableau batches 22–24).** Full copy-ready SQL tables were given in chat June 30; Python batches follow the identical per-stage pattern.
 
 ---
@@ -95,7 +102,7 @@ Same walk pattern as SQL/Python/Power BI: one deep-dive per batch through all 7 
 >   - **H2 first (content review):** accuracy audit (technically correct + up to date), relevance audit (real analyst job tasks), friction audit (no jargon/confusion on first read), style audit (mentor voice, consistent across all lessons). Fix content before porting structure. 🔒 LOCKED RULE.
 >   - **H1 second (structural port):** v2 lesson flow (Orient→Worked Example→Try→Compare→Build→Own→Close) + AI Coach (Modes 1 & 3) + all cross-kit changes from `EXCEL_POLISH_MASTER_PLAN.md`. 🔒 LOCKED RULE: content review always precedes structural port.
 >   - **Kit order:** SQL → Python → Power BI → Tableau → Stats
->   - **Progress:** ✅ SQL (H2 v1.83.8, H1 v1.86.0) · ✅ Python (H2 v1.86.2, H1 v1.87.0–v1.89.0) · ✅ Power BI (H2 v1.89.1, H1 v1.90.0–v1.92.0) · ✅ Tableau (H2 v1.92.1, H1 v1.93.0–v1.95.0) · ⏳ Stats (H2 ✅ v1.95.1 · **H1 NEXT — final port**)
+>   - **Progress:** ✅ SQL (H2 v1.83.8, H1 v1.86.0) · ✅ Python (H2 v1.86.2, H1 v1.87.0–v1.89.0) · ✅ Power BI (H2 v1.89.1, H1 v1.90.0–v1.92.0) · ✅ Tableau (H2 v1.92.1, H1 v1.93.0–v1.95.0) · ✅ Stats (H2 v1.95.1, H1 v1.96.0–v1.97.0) — **🏁 PHASE H COMPLETE. Next per plan: Phase G Mode 2 (mock interview, cross-kit).**
 >   - Power BI H1 pattern to follow (same as SQL/Python before it): port the v2 CSS block + engine functions (`v2PyBody`-equivalent, stage get/set, parsons chip tap/check, build pick, quiz answer/retry, reset, AI Coach Modes 1+3) adapted to Power BI's own render architecture, then author `parsons`/`compare`/`build`/`close`/`unlock` fields for all 39 lessons. Check the kit's existing state-object and render-dispatch pattern first (may differ from both SQL's `state`/`navigate` and Python's `S`/`openLesson`).
 >   - _(Phase H before Phase G Mode 2 — Mike's call June 30, 2026. Reason: Mode 2 mock interview is designed once for all kits after H is done, not bolted onto Excel alone first.)_
 > - **Phase G Mode 2 — Mock interview (after Phase H):** Designed to work across all kits simultaneously. Tied to interview-track units in each kit.
