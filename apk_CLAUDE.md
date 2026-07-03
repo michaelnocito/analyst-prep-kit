@@ -1,7 +1,7 @@
 # Session Handoff — Analyst Prep Kit
 
-**Last session ended:** July 2, 2026 — 🏗️ **Tableau H2 + H1 BOTH COMPLETE in one session. H2 (v1.92.1): four-audit content review, 4 fixes. H1 (v1.93.0–v1.95.0): all 32 lessons on the v2 flow via `v2TabBody` + AI Coach Modes 1+3 (shared `apk-coach-key`, Settings field added). Chart.js viz redraws per stage-1 injection; Viz Builder + Workspace tour untouched. Testing stays with Mike via the spreadsheet — new batches 22–24 below. NEXT BATCH FOR THIS CHAT: Stats H2 content review (final kit; 🔒 H2 before H1), unless Mike brings test results first.**
-**Current version:** `v1.95.0`
+**Last session ended:** July 3, 2026 — 📝 **Stats H2 COMPLETE (v1.95.1): four-audit content review of all 16 Stats lessons + drills/cards/glossary. 4 fixes, all content-only: `Hâ'€` mojibake → `H₀` (10 places), Lesson 7 percentile/IQR numbers corrected to real numpy output (Q1 122.5 / Q3 167.5 / IQR 45 / fences 55 & 235), Lesson 15 A/B-test p-value 0.098 → 0.18 (verified z ≈ 1.33), Lesson 16 CI corrected to SE 5.0 / ($135.3, $157.9). Relevance + style audits passed clean. NEXT BATCH FOR THIS CHAT: Stats H1 — port the v2 flow to the FINAL kit. ⚠️ Stats is section-based (`sections:[{heading,body,code,steps}]`, NO `ral`), vars `--txt/txt2/accdim/ok/bord`, `S`/`save`/`openLesson` state group, `lessonStatHTML`/`drawStatChart` Chart.js with the canvas-0×0 timing trap (view active BEFORE render), plus the Distribution Lab — read the cheat-sheet below before editing.**
+**Current version:** `v1.95.1`
 **You are continuing an established collaboration with Mike Nocito.**
 
 ---
@@ -95,7 +95,7 @@ Same walk pattern as SQL/Python/Power BI: one deep-dive per batch through all 7 
 >   - **H2 first (content review):** accuracy audit (technically correct + up to date), relevance audit (real analyst job tasks), friction audit (no jargon/confusion on first read), style audit (mentor voice, consistent across all lessons). Fix content before porting structure. 🔒 LOCKED RULE.
 >   - **H1 second (structural port):** v2 lesson flow (Orient→Worked Example→Try→Compare→Build→Own→Close) + AI Coach (Modes 1 & 3) + all cross-kit changes from `EXCEL_POLISH_MASTER_PLAN.md`. 🔒 LOCKED RULE: content review always precedes structural port.
 >   - **Kit order:** SQL → Python → Power BI → Tableau → Stats
->   - **Progress:** ✅ SQL (H2 v1.83.8, H1 v1.86.0) · ✅ Python (H2 v1.86.2, H1 v1.87.0–v1.89.0) · ✅ Power BI (H2 v1.89.1, H1 v1.90.0–v1.92.0) · ✅ Tableau (H2 v1.92.1, H1 v1.93.0–v1.95.0) · **⏳ Stats — NEXT (H2 first)**
+>   - **Progress:** ✅ SQL (H2 v1.83.8, H1 v1.86.0) · ✅ Python (H2 v1.86.2, H1 v1.87.0–v1.89.0) · ✅ Power BI (H2 v1.89.1, H1 v1.90.0–v1.92.0) · ✅ Tableau (H2 v1.92.1, H1 v1.93.0–v1.95.0) · ⏳ Stats (H2 ✅ v1.95.1 · **H1 NEXT — final port**)
 >   - Power BI H1 pattern to follow (same as SQL/Python before it): port the v2 CSS block + engine functions (`v2PyBody`-equivalent, stage get/set, parsons chip tap/check, build pick, quiz answer/retry, reset, AI Coach Modes 1+3) adapted to Power BI's own render architecture, then author `parsons`/`compare`/`build`/`close`/`unlock` fields for all 39 lessons. Check the kit's existing state-object and render-dispatch pattern first (may differ from both SQL's `state`/`navigate` and Python's `S`/`openLesson`).
 >   - _(Phase H before Phase G Mode 2 — Mike's call June 30, 2026. Reason: Mode 2 mock interview is designed once for all kits after H is done, not bolted onto Excel alone first.)_
 > - **Phase G Mode 2 — Mock interview (after Phase H):** Designed to work across all kits simultaneously. Tied to interview-track units in each kit.

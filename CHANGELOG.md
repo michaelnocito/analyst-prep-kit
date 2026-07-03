@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.95.1] — 2026-07-02 — 📝 Phase H2: Stats content review — 4 fixes
+
+Four-audit pass (accuracy / relevance / friction / style) over all 16 Stats lessons + drills, cards, glossary. Content-only:
+
+- **Encoding fix:** `Hâ'€` mojibake → `H₀` in 10 places (Lesson 13 quiz, a fill-in, two drills, a parsons explain, flashcard, glossary ×2)
+- **Lesson 7 (Percentiles & IQR):** corrected `np.percentile` outputs to what numpy actually returns with interpolation — Q1 122.5 / Q3 167.5 / IQR 45 / fences 55 & 235 (was 120/170/50/45/245) in code, steps, and viz caption
+- **Lesson 15 (A/B Testing):** `proportions_ztest` on 25/500 vs 35/500 gives p ≈ 0.18 (z ≈ 1.33, two-sided), not the claimed 0.098 — same "not significant" conclusion, right number
+- **Lesson 16 (Confidence Intervals):** SE = 5.0 (was 5.1) and CI = ($135.3, $157.9) (was $135.1–$158.1) — verified numerically
+
+Relevance and style audits passed with no changes: analyst-job framing (revenue, A/B tests, survey bias) and mentor voice are consistent across all 16 lessons.
+
+---
+
 ## [1.95.0] — 2026-07-02 — 🏗️ Phase H1-C: Tableau v2 lesson data — Units 4+5 (7 lessons)
 
 v2 fields authored for the cert-domain units: Live vs Extract decision path, join/union/relationship fork (with the double-count trap as the Build), data-properties tidy pass, sets on Color vs Filters, hierarchy drill, parameter wiring, dual-axis synchronize rule. **All 32 Tableau lessons now route through `v2TabBody` — Tableau H1 is complete (fifth of five tool kits on the v2 flow; Stats next).** Untested in browser.
