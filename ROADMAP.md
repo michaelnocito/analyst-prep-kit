@@ -223,6 +223,7 @@ _(GR-H shipped June 12, 2026 (v1.54.1) — root cause was the top-anchored toast
 #### ⬇️ June 29, 2026 feedback batch (Mike's mobile playtest + voice memos) — triaged below across High / Medium + folded into the Learning-Science item
 
 - **MOBILE: submit/answer button placement in drills (portrait + keyboard up)** _(added June 29, 2026 — 12:13 PM ET)_ — _mobile UX, research-informed_
+  - _STATUS (July 4, 2026):_ ✅ **Excel pilot SHIPPED (v1.98.0).** Finding: drills are all tap-based now (no free-text/keyboard), so the fix = full-width, thumb-height primary CTAs on mobile (the item's own "full-width bottom CTA" option). Remaining: roll to SQL/Python/Power BI/Tableau/Stats (each has its own v2 markup — see CHANGELOG v1.98.0 / apk_CLAUDE.md), then DoD is met.
   - _What:_ On a phone in portrait, after typing an answer with the keyboard up, the submit/"check" button sits in an awkward spot — the learner has to hunt for it. Research how leading learning apps (Duolingo, Mimo, Sololearn, Brilliant) position the submit/continue button for low-friction "type → submit" on mobile (sticky-above-keyboard bar, full-width bottom CTA, etc.) and adopt the pattern.
   - _Why High:_ Mike hit this as the target user; drills are the core loop and this is friction on the most common device. Pre-launch.
   - _Scope:_ Audit the drill/answer submit affordance on mobile across all kits; implement a consistent low-friction pattern (likely a sticky action bar that rides above the keyboard). Excel first, then roll.

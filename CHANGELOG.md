@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.98.0] — 2026-07-04 — 📱 Mobile submit/action button placement (Excel pilot) — High #1
+
+First High-bucket item from the June 29 mobile-playtest batch. Mike's complaint: on a phone the submit/Check button sits in an awkward spot and you have to hunt for it. **Finding:** every Excel drill is now tap-based (chips / multiple-choice) — no free-text inputs remain — so the literal "keyboard covers the button" case is gone; the real friction is the primary action not being a big, obvious, thumb-reachable target. Adopted the item's own **"full-width bottom CTA"** pattern (mobile ≤600px only, desktop unchanged):
+
+- `.v2-continue .btn` (every stage-advance CTA: "See the formula →", "Now you try →", "Build one yourself →", "Next lesson →") → full-width, 14px padding, 15px, thumb-height.
+- Try-stage Check/Reset row → new `.v2-drill-actions` class, buttons grow to fill with a 46px min tap target.
+- Close-stage actions → new `.v2-close-actions` class, stacked full-width (Next lesson is the hero).
+- Standalone-practice `.check-row .btn` → 46px min tap target.
+
+CSS-only + three class hooks; no logic touched. Verified: inline scripts parse clean (0 errors). **Excel is the pilot; rolls to SQL · Python · Power BI · Tableau · Stats next — but each kit has its own v2 markup (SQL/PBI/Stats render one stage-card at a time via `.v2-stage-card` + a stage index; Excel reveals all stages with `.v2-continue`), so the rollout is per-kit tailoring of the same full-width-CTA idea, not a copy-paste of these class names.** Untested in browser (Mike checks live).
+
+---
+
 ## [1.97.0] — 2026-07-03 — 🏗️ Phase H1-B: Stats v2 lesson data — Units 2+3 (8 lessons) · **PHASE H COMPLETE**
 
 v2 fields (parsons/compare/build/close/unlock) authored for Probability Basics, Normal & Z-Scores, Sampling & Bias, Correlation vs Causation, Hypothesis Testing, P-Values, A/B Testing, Confidence Intervals. Builds are applied analyst judgment calls (peeking at an A/B test early, significant-but-negligible effects, self-selected reviews, firefighter confounding). **All 16 Stats lessons now route through `v2StatBody` — Stats H1 is complete, and with it the entire Phase H rollout: all 5 kits (SQL · Python · Power BI · Tableau · Stats) run the 7-stage v2 flow with AI Coach.** Untested in browser.
