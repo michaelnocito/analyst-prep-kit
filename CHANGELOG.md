@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.99.2] — 2026-07-05 — 📱 Mobile nav overlapping the page title — **High #3 COMPLETE**
+
+Fixed the "jumbled / overlapping title text on some kits" bug. **Root cause:** SQL/Python/Power BI/Tableau/Stats set `nav{flex-wrap:wrap}` with a **fixed `height:56px`** (Tableau/Stats) — so on a narrow phone the tab bar wrapped to a second row that overflowed the fixed-height sticky nav and landed on top of the page `<h1>` below it. Exactly the "fix applied to some kits but not all" Mike flagged: **Excel already forced `nav{flex-wrap:nowrap;overflow-x:auto}` on mobile** (single scrollable row, the known-good pattern); SQL/Power BI only half-mitigated by hiding the brand; Python/Tableau/Stats had no fix.
+
+Added Excel's mobile rule to the other 5 kits' ≤600px block:
+```
+nav{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+```
+The tabs already carry `white-space:nowrap`, so their content min-width resists squishing and the row scrolls horizontally instead of wrapping — no second row, nothing overlaps the title. CSS-only, no logic. All 5 parse clean. **Diagnosed + fixed by inference (the fixed-height + wrap is a textbook overlap); Mike to confirm on the screen he saw.** Untested in browser.
+
+---
+
 ## [1.99.1] — 2026-07-05 — 📱 Mobile text-overflow sweep (all 6 kits) — **High #2 COMPLETE**
 
 Fixed long formula/query strings clipping off the right edge of cards on narrow viewports (Mike's June-29 screenshot: an Excel "Nested IF" tap-the-formula option ran off the card). Excel already had the wrap protections from v1.78.0; the other 5 kits never got that sweep. Added `overflow-wrap:anywhere` / `word-break:break-word` to the code-bearing elements so long tokens wrap or scroll instead of clipping:

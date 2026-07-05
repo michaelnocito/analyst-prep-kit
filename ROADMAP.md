@@ -239,6 +239,7 @@ _(GR-H shipped June 12, 2026 (v1.54.1) — root cause was the top-anchored toast
   - _Est:_ Medium.
 
 - **BUG: jumbled / overlapping title text on some kits** _(added June 29, 2026 — 12:13 PM ET)_ — _visible rendering bug_
+  - _STATUS (July 5, 2026):_ ✅ **DIAGNOSED + FIXED — all kits (v1.99.2), pending Mike's confirm.** Root cause: SQL/Python/PBI/Tableau/Stats had `nav{flex-wrap:wrap}` + fixed `height:56px`, so on mobile the tab bar wrapped to a 2nd row that overflowed the fixed-height nav onto the page `<h1>`. Excel already forced `nav{flex-wrap:nowrap;overflow-x:auto}` (single scrollable row) — applied that same known-good rule to the other 5. If Mike's "jumble" was a *different* screen, reopen with the specific kit/screen.
   - _What:_ Some kits have screens where the title text jumbles/overlaps. Mike's read: a title-rendering fix was applied to some kits but not all. Find the kits still showing it and apply the same fix everywhere.
   - _Why High:_ Visible breakage on a header = immediate trust hit.
   - _Scope:_ Identify which screens/kits jumble the title (likely the Space Grotesk heading + Lucide brand-mark interaction, or a long title wrapping under the nav); apply the known-good fix across all kits.
