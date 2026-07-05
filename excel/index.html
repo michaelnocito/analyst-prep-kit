@@ -2096,7 +2096,7 @@ function renderLessonList(){
       <div class="flex-between">
         <div>
           <span class="tag" style="margin-bottom:6px">L${lessonPos(l.id)+1}</span>
-          <h3 style="margin:0">${l.title}${isLockedLesson(l)?' <i class="lesson-lock" data-lucide="lock" style="width:13px;height:13px"></i>':''}</h3>
+          <h3 style="margin:0">${l.title}${isPremiumLesson(l)&&window.apkPass?' '+apkPass.lessonBadge():''}</h3>
         </div>
         <span style="color:${done?'var(--success)':'var(--border)'};font-size:20px">${done?'✓':'○'}</span>
       </div>
@@ -2192,6 +2192,7 @@ function renderLesson(){
       <div class="prog-bar mb12"><div class="prog-fill" style="width:${pct}%"></div></div>
       <h1>${l.title}</h1>
     </div>
+    ${isPremiumLesson(l)&&window.apkPass?apkPass.unlockedBanner():''}
     ${l.flow!=='v2'?(l.story?`<div class="lesson-story"><i data-lucide="book-open"></i><span>${l.story}</span></div>`:l.prereq?`<div class="lesson-story"><i data-lucide="corner-down-right"></i><span><strong>Before this:</strong> ${l.prereq}</span></div>`:''):''}
     ${l.flow!=='v2'&&l.intro?`<div class="card"><p class="lead">${l.intro}</p></div>`:''}`;
     // NOTE: legacy "On the job" briefcase blurb removed here (Medium #2, v1.101.1). All lessons are flow:'v2',
@@ -3254,6 +3255,9 @@ function filterGlossary(q){
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 renderHome();
+// Medium #5: fire the one-time "you've unlocked" moment (no-op unless a genuine
+// member who hasn't seen it), then async-hydrate the account entitlement.
+if(window.apkPass){ apkPass.celebrateUnlock(); apkPass.hydrateAcct(function(){ renderLessonList(); renderLesson(); }); }
 </script>
 <div id="settingsModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);align-items:center;justify-content:center" onclick="if(event.target===this)closeSettings()">
   <div style="background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:28px;min-width:300px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.4)">
