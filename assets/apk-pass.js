@@ -113,11 +113,13 @@
         return '<span class="apk-pill apk-pill-preview">Premium · free now</span>';
       return '<span class="apk-pill apk-pill-lock"><i data-lucide="lock"></i>Premium</span>';
     },
-    // Banner shown atop a premium lesson a member has unlocked.
-    unlockedBanner: function () {
+    // Banner shown atop a premium surface a member has unlocked. `noun` names
+    // the surface (default 'lesson'; e.g. 'exam kit').
+    unlockedBanner: function (noun) {
       if (!this.isMember()) return '';
+      noun = noun || 'lesson';
       return '<div class="apk-unlocked-banner"><i data-lucide="sparkles"></i>' +
-        '<span><strong>Unlocked.</strong> This premium lesson is part of your All-Access Pass.</span></div>';
+        '<span><strong>Unlocked.</strong> This premium ' + noun + ' is part of your All-Access Pass.</span></div>';
     },
     // One-time "You\'ve unlocked..." moment. Fires once per browser after a
     // genuine unlock (guarded by the CELEB flag). Call on every kit load — it
