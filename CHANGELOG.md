@@ -9,6 +9,20 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.100.0] — 2026-07-05 — ✅ Free-text drills → tap-the-choice (grading-trust) — **High #4 COMPLETE**
+
+Killed the last free-text drill inputs that graded by string match — where a legitimately-correct typed answer (a spacing/case/variant difference) could be marked wrong. Converted every surviving free-text practice drill to tap-the-choice with **hand-authored, verified distractors**, following Excel's existing `.bug-choice` pattern (`correct = choices[0]`, `_shuf` at render, tap → `data-correct` → disable-on-correct). Excel was already done (v1.78.0) and was the model.
+
+Converted (standalone practice / guided-path drills):
+- **SQL** — Fill-in-the-Blank (16 items): each blank now offers 4 SQL keywords (correct + 3 plausible-but-wrong, e.g. `LEFT/RIGHT/INNER/FULL`, `HAVING/WHERE/QUALIFY/FILTER`).
+- **Python** — Fill (14) **and** "Describe → Python" / ESQL (14, was "Write the code…" free text): 4 pandas/Python code-line options each.
+- **Power BI** — Fill (12): 4 DAX options each (e.g. `SUM/SUMX/TOTAL/ADD`, `DISTINCTCOUNT/COUNTDISTINCT/UNIQUECOUNT/DISTINCT`).
+- **Stats** — Fill (12): 4 stats-term options each (e.g. `mean/median/mode/range`, `0.05/0.01/0.10/0.50`).
+
+`renderFill`/`renderEsql` rewritten to tap; `checkFill`/`checkEsql` replaced with `pickFill`/`pickEsql` (per-kit: SQL/PBI use a `_fillAdvance` Next button + `markDone('doneFills',id)`; Python/Stats mirror their own `pickBug` with `markDone(...,idx)`). **Progress keys unchanged** (`doneFills`/`fillsDone`/`S.done['fills'+idx]`), so no saved progress is invalidated. All 4 kits parse clean (0 errors); no stale `checkFill`/input refs remain. Distractors were authored to be real-but-wrong for that specific blank (a too-obvious or actually-correct option would defeat the drill). **Minor leftover:** the now-unused `.fill-input`/`.drill-input`/`.correct-in`/`.wrong-in` CSS classes are harmless dead code (cleanup candidate). Untested in browser.
+
+---
+
 ## [1.99.2] — 2026-07-05 — 📱 Mobile nav overlapping the page title — **High #3 COMPLETE**
 
 Fixed the "jumbled / overlapping title text on some kits" bug. **Root cause:** SQL/Python/Power BI/Tableau/Stats set `nav{flex-wrap:wrap}` with a **fixed `height:56px`** (Tableau/Stats) — so on a narrow phone the tab bar wrapped to a second row that overflowed the fixed-height sticky nav and landed on top of the page `<h1>` below it. Exactly the "fix applied to some kits but not all" Mike flagged: **Excel already forced `nav{flex-wrap:nowrap;overflow-x:auto}` on mobile** (single scrollable row, the known-good pattern); SQL/Power BI only half-mitigated by hiding the brand; Python/Tableau/Stats had no fix.
