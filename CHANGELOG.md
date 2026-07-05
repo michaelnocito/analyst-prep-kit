@@ -9,6 +9,12 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.101.1] — 2026-07-05 — 🧹 Retire the dead "On the job" blurb render — **Medium #2 COMPLETE**
+
+Medium #2 asked to stop showing the "On the job" role blurb on general lessons (noise reduction). **Finding:** it was already invisible everywhere — the block existed only in the Excel kit and was gated `flow!=='v2'`, but all 51 Excel lessons are now `flow:'v2'` (Phase-H rollout), so it hadn't rendered for any user since the migration. No other kit has the block.
+- Removed the unreachable render line ([excel/index.html:2197](excel/index.html)); the string terminator moved up to the `intro` line. The 24 hand-written `onthejob` blurbs stay as **dormant data** on the core lessons (cheap, reusable) per Mike's call — not deleted.
+- DoD met: general lessons show no on-the-job blurb (they already didn't); nothing else changed. Parse gate clean (4/4).
+
 ## [1.101.0] — 2026-07-05 — 🎮 Hub "Practice arcade" section — **Medium #1 COMPLETE**
 
 Added a **Practice arcade** section to the hub (`index.html`), below the 12 kits, cross-promoting the six shipped analyst skill-games so learners discover them:

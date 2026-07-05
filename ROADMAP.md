@@ -360,7 +360,7 @@ _Response time: next planned cycle._
   - _DoD:_ Every exercise that mentions a chart/pivot shows a matching visual; no chart-based question is text-only. Verified live, dark + light.
   - _Est:_ Large (phased).
 
-- **CONTENT: "On the job" blurbs only on applicable (role/track) lessons** _(added June 29, 2026 — 12:13 PM ET)_ — _noise reduction_
+- **CONTENT: "On the job" blurbs only on applicable (role/track) lessons** — ✅ **DONE (v1.101.1, July 5, 2026 — Medium #2).** Already satisfied by the v2 migration: the block only existed in Excel, gated `flow!=='v2'`, and all lessons are v2 → it rendered nowhere. Removed the dead render line; kept the 24 `onthejob` blurbs as dormant data (Mike's call). _(added June 29, 2026 — 12:13 PM ET)_ — _noise reduction_
   - _What:_ Show the "on the job" / role blurbs only when the lesson belongs to an applicable track (Analyst, Finance, etc.), not on general lessons where they're just noise. Gate the blurb on lesson applicability.
   - _Why Medium:_ Serves the calm / low-noise vision; small and targeted.
   - _Scope:_ Add an applicability check (track membership / a flag) so the on-the-job block only renders where relevant; audit lessons.
