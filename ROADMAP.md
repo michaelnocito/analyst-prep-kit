@@ -367,7 +367,7 @@ _Response time: next planned cycle._
   - _DoD:_ General lessons no longer show non-applicable on-the-job blurbs; track lessons still do. Verified live.
   - _Est:_ Small.
 
-- **HUB: list the analyst skill-based games on the Analyst Prep Kit page** _(added June 29, 2026 — 12:13 PM ET)_ — _discovery / cross-promo_
+- **HUB: list the analyst skill-based games on the Analyst Prep Kit page** — ✅ **DONE (v1.101.0, July 5, 2026 — Medium #1).** Added a "Practice arcade" section below the kits linking all six live analyst games (SQL Quest · Analyst Sprint Excel/SQL · Spreadsheet + Tableau Archaeology · SQL Dry Run); URLs verified 200; list + placement confirmed with Mike. _(added June 29, 2026 — 12:13 PM ET)_ — _discovery / cross-promo_
   - _What:_ The hub should list the applicable analyst skill-based games Mike built (e.g. SQL Quest, Excel/SQL Analyst Sprint, Spreadsheet Archaeology, Tableau Archaeology, …) so learners discover them.
   - _Why Medium:_ Retention + cross-promotion across the ecosystem; low effort, real engagement upside.
   - _Scope:_ Add a "Games / Practice arcade" section on the hub linking each game's live URL with a one-line hook; confirm the canonical list + URLs with Mike.

@@ -9,6 +9,13 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.101.0] — 2026-07-05 — 🎮 Hub "Practice arcade" section — **Medium #1 COMPLETE**
+
+Added a **Practice arcade** section to the hub (`index.html`), below the 12 kits, cross-promoting the six shipped analyst skill-games so learners discover them:
+- **SQL Quest** (SQL tower-defense), **Analyst Sprint — Excel**, **Analyst Sprint — SQL** (timed formula/query drills), **Spreadsheet Archaeology** + **Tableau Archaeology** (narrative job-sims), **SQL Dry Run** (timed exam/interview rehearsal). All six URLs verified live (HTTP 200) before linking.
+- Reuses the existing `.kit-card` component + a new `.arcade-note` lead line; each card is an external `target="_blank" rel="noopener"` link with a one-line hook. Cards intentionally carry **no `data-kit`** so they don't hijack the "Continue where you left off" resume target or the progress renderer.
+- HTML/CSS only; inline-script parse gate clean (4/4 blocks). Placement + game list confirmed with Mike.
+
 ## [1.100.1] — 2026-07-05 — 📊 Readiness meter counts the new lessons — **High #5 COMPLETE**
 
 The home "skill readiness" meter ignored every lesson added after the original 12. **Root cause:** SQL, Python, and Power BI built their skill bars from **hardcoded lesson-id lists** (`[1,2,3,4]`, `[5,6,7,8]`, `[9,10,11,12]`) — so Unit 0 (foundations) and all four interview-track units (Data Migration · From Question to Metric · Financial Analysis · Advanced Analyst Toolkit) were invisible to both the bars and the % denominator. A learner could finish the whole track and the meter wouldn't budge.
