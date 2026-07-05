@@ -1637,7 +1637,7 @@ function renderLessons(){
       lastUnit = l.unit;
     }
     const done = state.doneLessons.includes(l.id);
-    const lock = isLockedLesson(l) ? ` <i class="lesson-lock" data-lucide="lock" style="width:13px;height:13px"></i>` : '';
+    const lock = isPremiumLesson(l)&&window.apkPass ? ' '+apkPass.lessonBadge() : '';
     html += `<div class="lesson-row${l.core?' sc-core':' sc-supporting'}" onclick="navigate('lesson',${l.id})">
       <div class="lesson-num ${done?'done':''}">${done ? '✓' : lessonPos(l.id)+1}</div>
       <div class="lesson-info">
@@ -2078,6 +2078,7 @@ function v2SqlBody(l, done){
       ${done?`<button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="v2ResetLesson(${l.id})">↺ Reset</button>`:''}
     </div>
     <h1>${l.title}</h1>
+    ${isPremiumLesson(l)&&window.apkPass?apkPass.unlockedBanner():''}
     ${stageBar}
     ${body}`;
   if(window.lucide) lucide.createIcons();
@@ -3119,6 +3120,8 @@ async function initKitWithSync() {
 initKitWithSync();
 
 navigate('home');
+// Medium #5: one-time "you've unlocked" moment + async account-entitlement hydrate.
+if(window.apkPass){ apkPass.celebrateUnlock(); apkPass.hydrateAcct(function(){ if(currentView==='lessons') renderLessons(); }); }
 
 /* -- Hint System JS ---- */
 var _hd={hint:'',ans:'',state:0};
