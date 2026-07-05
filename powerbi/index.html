@@ -1103,31 +1103,32 @@ LESSONS: [
   }
 ],
 
+// FILLS — tap-the-choice (choices[0] is correct; shuffled at render).
 FILLS: [
   {id:1, q:"Write a measure that sums the Revenue column from the Sales table.",
-   partial:"Total Revenue = ___(Sales[Revenue])", ans:"SUM", hint:"The basic aggregation function for adding up a column."},
+   partial:"Total Revenue = ___(Sales[Revenue])", ans:"SUM", choices:["SUM","SUMX","TOTAL","ADD"], hint:"The basic aggregation function for adding up a column."},
   {id:2, q:"Count the number of rows in the Orders table.",
-   partial:"Order Count = ___(Orders)", ans:"COUNTROWS", hint:"Use this instead of COUNT when you want to count rows in a table."},
+   partial:"Order Count = ___(Orders)", ans:"COUNTROWS", choices:["COUNTROWS","COUNT","COUNTA","ROWCOUNT"], hint:"Use this instead of COUNT when you want to count rows in a table."},
   {id:3, q:"Use safe division to calculate margin: (Revenue - Cost) / Revenue.",
-   partial:"Margin % = ___(Sales[Revenue] - Sales[Cost], Sales[Revenue])", ans:"DIVIDE", hint:"Always use this instead of / to avoid divide-by-zero errors."},
+   partial:"Margin % = ___(Sales[Revenue] - Sales[Cost], Sales[Revenue])", ans:"DIVIDE", choices:["DIVIDE","QUOTIENT","SAFEDIVIDE","DIV"], hint:"Always use this instead of / to avoid divide-by-zero errors."},
   {id:4, q:"Calculate total revenue only for the West region.",
-   partial:"West Revenue = CALCULATE(\n    SUM(Sales[Revenue]),\n    Sales[Region] ___ \"West\"\n)", ans:"=", hint:"Filter arguments use a standard equality comparison."},
+   partial:"West Revenue = CALCULATE(\n    SUM(Sales[Revenue]),\n    Sales[Region] ___ \"West\"\n)", ans:"=", choices:["=","==","IN","LIKE"], hint:"Filter arguments use a standard equality comparison."},
   {id:5, q:"Calculate year-to-date revenue using a Dates table.",
-   partial:"YTD Revenue = ___(SUM(Sales[Revenue]), Dates[Date])", ans:"TOTALYTD", hint:"This function accumulates from Jan 1 to the current date in context."},
+   partial:"YTD Revenue = ___(SUM(Sales[Revenue]), Dates[Date])", ans:"TOTALYTD", choices:["TOTALYTD","DATESYTD","TOTALMTD","YTD"], hint:"This function accumulates from Jan 1 to the current date in context."},
   {id:6, q:"Compare this period to the same period last year.",
-   partial:"LY Revenue = CALCULATE(\n    SUM(Sales[Revenue]),\n    ___(Dates[Date])\n)", ans:"SAMEPERIODLASTYEAR", hint:"This function shifts the date filter back exactly one year."},
+   partial:"LY Revenue = CALCULATE(\n    SUM(Sales[Revenue]),\n    ___(Dates[Date])\n)", ans:"SAMEPERIODLASTYEAR", choices:["SAMEPERIODLASTYEAR","PREVIOUSYEAR","LASTYEAR","PRIORYEAR"], hint:"This function shifts the date filter back exactly one year."},
   {id:7, q:"Count distinct customers in the Sales table.",
-   partial:"Unique Customers = ___(Sales[CustomerID])", ans:"DISTINCTCOUNT", hint:"Counts unique values — like COUNT DISTINCT in SQL."},
+   partial:"Unique Customers = ___(Sales[CustomerID])", ans:"DISTINCTCOUNT", choices:["DISTINCTCOUNT","COUNTDISTINCT","UNIQUECOUNT","DISTINCT"], hint:"Counts unique values — like COUNT DISTINCT in SQL."},
   {id:8, q:"Return 'High' if Revenue > 10000, otherwise 'Low'.",
-   partial:"Tier = IF(SUM(Sales[Revenue]) > 10000, \"High\", ___)", ans:"\"Low\"", hint:"The third argument of IF is the else value."},
+   partial:"Tier = IF(SUM(Sales[Revenue]) > 10000, \"High\", ___)", ans:"\"Low\"", choices:["\"Low\"","Low","'Low'","BLANK()"], hint:"The third argument of IF is the else value."},
   {id:9, q:"Reference the Total Revenue measure inside another measure.",
-   partial:"Revenue Goal Gap = [___] - [Revenue Goal]", ans:"Total Revenue", hint:"Measures are referenced with square brackets, not table[column] syntax."},
+   partial:"Revenue Goal Gap = [___] - [Revenue Goal]", ans:"Total Revenue", choices:["Total Revenue","Sales[Revenue]","Revenue","SUM(Revenue)"], hint:"Measures are referenced with square brackets, not table[column] syntax."},
   {id:10, q:"Remove all filters from the Sales table in a CALCULATE expression.",
-   partial:"All Sales Revenue = CALCULATE(SUM(Sales[Revenue]), ___(Sales))", ans:"ALL", hint:"This function removes filters from the specified table or column."},
+   partial:"All Sales Revenue = CALCULATE(SUM(Sales[Revenue]), ___(Sales))", ans:"ALL", choices:["ALL","ALLEXCEPT","FILTER","VALUES"], hint:"This function removes filters from the specified table or column."},
   {id:11, q:"Calculate average revenue per order.",
-   partial:"Avg Order Value = ___(Sales[Revenue])", ans:"AVERAGE", hint:"Sums and divides by the count of non-blank values."},
+   partial:"Avg Order Value = ___(Sales[Revenue])", ans:"AVERAGE", choices:["AVERAGE","AVERAGEX","MEAN","AVG"], hint:"Sums and divides by the count of non-blank values."},
   {id:12, q:"Create a calculated column showing profit (Revenue minus Cost) per row.",
-   partial:"Profit = Sales[Revenue] ___ Sales[Cost]", ans:"-", hint:"Calculated columns use standard arithmetic on row values."}
+   partial:"Profit = Sales[Revenue] ___ Sales[Cost]", ans:"-", choices:["-","+","*","/"], hint:"Calculated columns use standard arithmetic on row values."}
 ],
 
 BUGS: [
@@ -2224,33 +2225,39 @@ function renderFill(idx){
       <h2>Fill in the Blank</h2>
       <p class="fill-prompt">${f.q}</p>
       <div class="fill-partial">${f.partial}</div>
-      <input class="fill-input" id="fill-in" placeholder="Type your answer…" onkeydown="if(event.key==='Enter')checkFill(${idx})">
-      <div class="row mt">
-        <button class="btn btn-primary btn-sm" onclick="checkFill(${idx})">Check</button>
+      <p class="text-muted text-sm" style="margin-top:12px">Tap the piece that fills the blank:</p>
+      <div id="fillChoices" style="display:flex;flex-direction:column;gap:8px">
+        ${_shuf(f.choices).map(c=>`<button class="bug-choice" data-correct="${c===f.choices[0]?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:rgba(47,109,240,.08);color:var(--accent);font-family:var(--mono);font-size:14px;font-weight:600;cursor:pointer" onclick="pickFill(this,${idx})" ${done?'disabled':''}>${c}</button>`).join('')}
       </div>
+      <div id="fill-result" class="mt"></div>
       <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button>
       <div class="hint-panel" id="drill-hint"></div>
       <div class="answer-panel" id="drill-answer"></div>
-      <div id="fill-result" class="mt"></div>
+      <div id="fill-next" class="mt"></div>
     </div>`;
-  document.getElementById('fill-in').focus();
 }
 
-function checkFill(idx){
+// Fill in the Blank — tap the correct piece (no free typing).
+function _fillAdvance(idx){
+  return guided
+    ? `<button class="btn btn-primary btn-sm" onclick="guidedNext()">Next →</button>`
+    : idx+1 < DATA.FILLS.length
+      ? `<button class="btn btn-primary btn-sm" onclick="navigate('fill',${idx+1})">Next →</button>`
+      : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">All Done →</button>`;
+}
+function pickFill(btn, idx){
   const f = DATA.FILLS[idx];
-  const inp = document.getElementById('fill-in');
-  const val = inp.value.trim();
-  const correct = val.toLowerCase() === f.ans.toLowerCase();
-  inp.classList.toggle('correct-in', correct);
-  inp.classList.toggle('wrong-in', !correct);
   const res = document.getElementById('fill-result');
-  if(correct){
+  if(btn.dataset.correct === '1'){
+    btn.style.background='var(--green,#1a7f37)'; btn.style.color='#fff'; btn.style.borderColor='var(--green,#1a7f37)';
+    document.querySelectorAll('#fillChoices .bug-choice').forEach(x=>x.disabled=true);
     res.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Correct!</span>`;
     celebrate();
     markDone('doneFills', f.id);
-    setTimeout(() => { if(guided) guidedNext(); else if(idx+1 < DATA.FILLS.length) navigate('fill', idx+1); else navigate('practice'); }, 1000);
+    document.getElementById('fill-next').innerHTML = _fillAdvance(idx);
   } else {
-    res.innerHTML = `<span style="color:var(--red)">✗ Try again. Answer: <code style="font-family:var(--mono)">${f.ans}</code></span>`;
+    btn.style.background='rgba(207,34,46,.12)'; btn.style.borderColor='var(--red,#cf222e)'; btn.style.color='var(--red,#cf222e)'; btn.style.opacity='.8'; btn.disabled=true;
+    res.innerHTML = `<span style="color:var(--red)">Not quite — try another, or use the hint.</span>`;
   }
 }
 // ─── BUG DRILL ─────────────────────────────────────────────────────────────
