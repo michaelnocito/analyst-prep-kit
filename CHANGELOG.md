@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.102.0] — 2026-07-05 — 🔓 Premium-unlocked badges — **Medium #5 COMPLETE**
+
+Buying now *feels* like unlocking something instead of features silently working. All new state/badge logic is centralized in `assets/apk-pass.js`, so each premium surface gets a small, uniform change.
+
+**Source of truth (Mike's call): genuine redemption, not the pre-launch free bypass.** `apkPass.isUnlocked()` free-bypasses to `true` for everyone until Aug 1, so it can't drive an honest "you unlocked this" badge. New `apkPass.hasRedeemed()` reads the *real* local unlock (redeemed code, unexpired), and `apkPass.isMember()` = `hasRedeemed()` OR a signed-in account entitlement (`hasInterviewPass()`, hydrated async and cached in `_acctPass`).
+
+- **`apkPass.lessonBadge()`** — three-state pill on every premium lesson card: `✓ Unlocked` (member, green), `Premium · free now` (free-launch preview), `🔒 Premium` (locked). Replaces the old lock-icon-only treatment.
+- **`apkPass.unlockedBanner(noun)`** — green "Unlocked. This premium lesson is part of your All-Access Pass." banner atop a premium surface a member has opened.
+- **`apkPass.celebrateUnlock()`** — one-time "You've unlocked the All-Access Pass" toast, fired once per browser after a genuine unlock (guarded by an `apk-pass-celebrated` flag shared across all kits, so it shows once for the whole suite). Called on every kit load; no-ops unless a member who hasn't seen it.
+- **`apkPass.hydrateAcct(rerender)`** — async-checks the Supabase account entitlement; if it resolves true, caches it, re-renders, and fires the celebration. Safe no-op without the auth layer / when signed out.
+- **Applied to:** the 4 tool kits with interview tracks (Excel, SQL, Python, Power BI — card pill + lesson banner + init) and the fully-gated Final Exam kit (home banner + init). Tableau/Stats have no premium content (no `id≥500` tracks, don't load `apk-pass.js`) — correctly untouched. The Interview kit (free) and Simulator (BYOK) aren't pass-gated — no badge applies.
+- CSS for pills/banner/toast added to `apk-pass.js`'s injected `<style>`, themed via existing CSS vars with hard-coded fallbacks. Parse gate clean across all 5 touched kits + the shared JS.
+
 ## [1.101.4] — 2026-07-05 — ⚖️ Privacy & Terms: accurate about optional sign-in + sync
 
 Follow-up to Medium #4. With optional Supabase sign-in (email/password or Google) and cross-device progress sync live, the legal docs were factually inaccurate. Corrected against the real data model (`SUPABASE_INTEGRATION.md`: Auth stores email/identity; `user_progress` syncs progress; `user_entitlements` holds paid access; no-account use stays local):
