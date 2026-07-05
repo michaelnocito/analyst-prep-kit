@@ -255,6 +255,7 @@ _(GR-H shipped June 12, 2026 (v1.54.1) — root cause was the top-anchored toast
   - _Est:_ Medium.
 
 - **BUG: skill-readiness score doesn't reflect the new lessons** _(added June 29, 2026 — 12:13 PM ET)_ — _progress-accuracy bug (Vision #1)_
+  - _STATUS (July 5, 2026):_ ✅ **DONE (v1.100.1).** Root cause: SQL/Python/Power BI built the skill meter from hardcoded id lists (`[1,2,3,4]`…) = only the original 12 lessons; Unit 0 + the 4 track units were uncounted. Rewrote all three to derive from live `DATA.LESSONS` by unit (Excel's model; "Interview Tracks" bucket = Units 4–7). Completion = the Done-stage `doneLessons` flag (matches the #6 decision). Excel/Tableau already live; Stats has no breakdown. Stale "all 12 lessons" copy also fixed.
   - _What:_ The skill-readiness score/meter looks like it isn't counting the lessons added recently (the 4 interview tracks pushed kits to SQL 46 / Excel 51 / Python 42 / Power BI 39). The denominator/progress math is stale.
   - _Why High:_ Vision #1 = "see your progress at a glance." A score that ignores new lessons is wrong and misleads the learner.
   - _Scope:_ Find where readiness is computed (per-kit lesson counts / completion ratio); make it derive from the live lesson set so new lessons are included. Check every kit.
@@ -262,7 +263,7 @@ _(GR-H shipped June 12, 2026 (v1.54.1) — root cause was the top-anchored toast
   - _Est:_ Small-Medium.
 
 - **UX/DECISION: practice "Check" button lets you skip a lesson without completing it** _(added June 29, 2026 — 12:13 PM ET)_ — _completion-tracking model_
-  - _✅ DECISION (Mike, July 5, 2026):_ **A lesson counts as complete when the learner reaches the v2 "Done"/Close stage** (which already requires going through Try → Build → Quick Check). The standalone **practice drills stay OPTIONAL** and do NOT gate completion (Vision #3 — exploring/skipping extras costs nothing). Readiness (item #5) = % of live lessons that reached Done. Build #5 on this model. _Not yet implemented — this is the spec for the next session._
+  - _✅ RESOLVED (Mike decision, July 5, 2026):_ **A lesson counts as complete when the learner reaches the v2 "Done"/Close stage** (which already requires going through Try → Build → Quick Check). The standalone **practice drills stay OPTIONAL** and do NOT gate completion (Vision #3). **No code change was needed** — every v2 kit already sets its `doneLessons`/`S.done['lesson'+id]` flag exactly at the Done stage (verified while doing #5), and the practice "Check" buttons never touched lesson completion. So the current behavior already matches the decision; #5's readiness math is built on this same flag. Item closed.
   - _What:_ Many practice problems show a "Check" button (not "Submit"/"Complete"), and you can jump to the next lesson without ever completing the current one. Mike's open question: keep it or require completion? Decide the model — e.g. "Check" stays for low-stakes self-test, but a lesson only marks complete when its drills are done (feeds the readiness score + Vision #2 "what's next").
   - _Why High:_ Touches completion tracking, the readiness score (item above), and Vision #2. Decide before building the readiness fix so they stay consistent.
   - _Scope:_ Decision first (Mike), then align button labels + completion logic across kits.

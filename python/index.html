@@ -1365,18 +1365,23 @@ function renderHome(){
   document.getElementById('resumeBtn').textContent=S.lessonsDone.includes(cur.id)?'Review →':(done===0?'Start →':'Resume →');
   document.getElementById('resumeSub').textContent=cur.intro.split('.')[0]+'.';
 
-  const skills=[
-    {label:'Python Basics', done:[1,2,3].filter(id=>S.lessonsDone.includes(id)).length, total:3},
-    {label:'DataFrames', done:[4,5].filter(id=>S.lessonsDone.includes(id)).length, total:2},
-    {label:'Filtering', done:[6,7].filter(id=>S.lessonsDone.includes(id)).length, total:2},
-    {label:'GroupBy', done:[8,9].filter(id=>S.lessonsDone.includes(id)).length, total:2},
-    {label:'Data Cleaning', done:[10,11,12].filter(id=>S.lessonsDone.includes(id)).length, total:3},
+  // Readiness derived from the LIVE lesson set (by unit) so every lesson —
+  // Unit 0 and the interview-track units — is counted, not a frozen list of
+  // the original 12.
+  const SKILL_AREAS=[
+    {label:'Python Foundations', match:u=>/Unit [01]:/.test(u)},
+    {label:'pandas', match:u=>/Unit 2:/.test(u)},
+    {label:'Data Cleaning', match:u=>/Unit 3:/.test(u)},
+    {label:'Interview Tracks', match:u=>/Unit [4-7]:/.test(u)},
   ];
-  const earned=skills.reduce((a,s)=>a+Math.min(s.done,s.total),0);
-  const totalPts=skills.reduce((a,s)=>a+s.total,0);
-  document.getElementById('readinessPct').textContent=Math.round(earned/totalPts*100)+'%';
-  document.getElementById('readinessList').innerHTML=skills.map(s=>{
-    const p=Math.min(s.done,s.total)/s.total*100;
+  const skills=SKILL_AREAS.map(a=>({label:a.label,total:0,done:0}));
+  DATA.LESSONS.forEach(l=>{ const ai=SKILL_AREAS.findIndex(a=>a.match(l.unit)); if(ai>=0){ skills[ai].total++; if(S.lessonsDone.includes(l.id)) skills[ai].done++; } });
+  const _vis=skills.filter(s=>s.total>0);
+  const earned=_vis.reduce((a,s)=>a+s.done,0);
+  const totalPts=_vis.reduce((a,s)=>a+s.total,0);
+  document.getElementById('readinessPct').textContent=(totalPts?Math.round(earned/totalPts*100):0)+'%';
+  document.getElementById('readinessList').innerHTML=_vis.map(s=>{
+    const p=s.total?s.done/s.total*100:0;
     return `<div class="readiness-row">
       <span class="readiness-label">${s.label}</span>
       <div class="readiness-bar-wrap"><div class="readiness-bar" style="width:${p}%"></div></div>

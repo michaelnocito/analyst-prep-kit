@@ -1614,17 +1614,23 @@ function renderHome(){
       </div>`
     : `<div class="resume-card">
         <h2><i data-lucide="party-popper" style="width:20px;height:20px;vertical-align:-3px;color:#fff"></i> All Lessons Complete!</h2>
-        <p>You've finished all 12 Power BI lessons. Keep drilling to lock it in.</p>
+        <p>You've finished all ${total} Power BI lessons. Keep drilling to lock it in.</p>
         <button class="btn" onclick="navigate('practice')">Go to Practice →</button>
       </div>`;
 
-  const skillBars = [
-    {label:'Interface & Data', ids:[1,2,3,4]},
-    {label:'DAX & Measures', ids:[5,6,7,8]},
-    {label:'Reports & Insights', ids:[9,10,11,12]},
-  ].map(s => {
-    const d = s.ids.filter(id => state.doneLessons.includes(id)).length;
-    const p = Math.round(d / s.ids.length * 100);
+  // Skill bars derived from the LIVE lesson set (by unit) so every lesson —
+  // Unit 0 and the interview-track units — is counted, not a frozen list of
+  // the original 12.
+  const SKILL_AREAS = [
+    {label:'Interface & Data', match:u=>/Unit [01]:/.test(u)},
+    {label:'DAX & Measures', match:u=>/Unit 2:/.test(u)},
+    {label:'Reports & Insights', match:u=>/Unit 3:/.test(u)},
+    {label:'Interview Tracks', match:u=>/Unit [4-7]:/.test(u)},
+  ];
+  const _skills = SKILL_AREAS.map(a=>({label:a.label,total:0,done:0}));
+  DATA.LESSONS.forEach(l=>{ const ai=SKILL_AREAS.findIndex(a=>a.match(l.unit)); if(ai>=0){ _skills[ai].total++; if(state.doneLessons.includes(l.id)) _skills[ai].done++; } });
+  const skillBars = _skills.filter(s=>s.total>0).map(s => {
+    const p = Math.round(s.done / s.total * 100);
     return `<div class="skill-row">
       <div class="skill-label">${s.label}</div>
       <div class="skill-bar-wrap"><div class="skill-bar" style="width:${p}%"></div></div>

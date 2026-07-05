@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.100.1] — 2026-07-05 — 📊 Readiness meter counts the new lessons — **High #5 COMPLETE**
+
+The home "skill readiness" meter ignored every lesson added after the original 12. **Root cause:** SQL, Python, and Power BI built their skill bars from **hardcoded lesson-id lists** (`[1,2,3,4]`, `[5,6,7,8]`, `[9,10,11,12]`) — so Unit 0 (foundations) and all four interview-track units (Data Migration · From Question to Metric · Financial Analysis · Advanced Analyst Toolkit) were invisible to both the bars and the % denominator. A learner could finish the whole track and the meter wouldn't budge.
+
+Fixed all three to derive the meter from the **live** `DATA.LESSONS` set, bucketed by unit (Excel's model), so every lesson is counted and completing any lesson moves the score:
+- Skill areas now match on unit name (`Unit [01]:` → Foundations, `Unit 2:`, `Unit 3:`, `Unit [4-7]:` → a combined "Interview Tracks" bar), covering Units 0–7 with nothing dropped.
+- Completion still = the lesson's existing `doneLessons`/`lessonsDone` flag, which is set when the learner reaches the v2 **Done** stage (per the July-5 completion-model decision — practice drills stay optional).
+- Also fixed stale "You've finished all **12** lessons" copy in SQL/Power BI → live `${total}`.
+
+**Excel & Tableau were already live** (derive from units); **Stats** has no skill breakdown (simple live `done/total` card). CSS-only-adjacent (JS logic), all 3 parse clean. Untested in browser.
+
+---
+
 ## [1.100.0] — 2026-07-05 — ✅ Free-text drills → tap-the-choice (grading-trust) — **High #4 COMPLETE**
 
 Killed the last free-text drill inputs that graded by string match — where a legitimately-correct typed answer (a spacing/case/variant difference) could be marked wrong. Converted every surviving free-text practice drill to tap-the-choice with **hand-authored, verified distractors**, following Excel's existing `.bug-choice` pattern (`correct = choices[0]`, `_shuf` at render, tap → `data-correct` → disable-on-correct). Excel was already done (v1.78.0) and was the model.
