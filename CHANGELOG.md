@@ -9,6 +9,12 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.101.4] — 2026-07-05 — ⚖️ Privacy & Terms: accurate about optional sign-in + sync
+
+Follow-up to Medium #4. With optional Supabase sign-in (email/password or Google) and cross-device progress sync live, the legal docs were factually inaccurate. Corrected against the real data model (`SUPABASE_INTEGRATION.md`: Auth stores email/identity; `user_progress` syncs progress; `user_entitlements` holds paid access; no-account use stays local):
+- **privacy.html** — "The short version" no longer claims "no accounts, no logins… we don't ask for your email"; now: no-account use is local-only, optional sign-in stores your email + syncs progress. Added a new **"Account & sync data (only if you sign in)"** collection item naming Supabase as the backend. Qualified the on-device progress claim with "if you don't sign in." Added authentication/sync to the providers list and account-deletion to "Your choices." Bumped "Last updated" to July 5, 2026.
+- **terms.html** — dropped the false "runs entirely in your browser with no login" clause; kept the accurate unlock-code + local-storage access model and noted sign-in is optional (progress sync only). "Last updated" → July 5, 2026.
+
 ## [1.101.3] — 2026-07-05 — 🔑 Retire stale "no login / no telemetry" copy — **Medium #4 COMPLETE**
 
 Optional Supabase sign-in + cross-device sync and GA4 analytics are live, so "no login" / "no telemetry" marketing claims are outdated. Reframed to the hub's positioning ("free to start · optional sign-in to sync · progress syncs when you sign in"):
