@@ -9,6 +9,20 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.99.0] — 2026-07-05 — 📱 Mobile action-button rollout to the other 5 kits — **High #1 COMPLETE**
+
+Rolled the v1.98.0 Excel mobile-CTA pattern to **SQL · Python · Power BI · Tableau · Stats**, closing High-bucket item #1. Each kit's v2 lesson flow now makes the primary stage CTA (Orient's "See how it works", "Try it yourself", "Check order", "Build it", "Next lesson") a **full-width, 48px-min, 15px thumb-height button on mobile (≤600px), placed at the bottom of its button row (closest to the thumb)**; secondary Back/Skip stay small on the row above.
+
+Implementation notes (the kits are NOT uniform):
+
+- **SQL & Power BI** wrap their stage buttons in `.row` (already `flex-wrap:wrap`); **Python, Tableau, Stats** use inline `<div style="display:flex">` rows with no wrap. A CSS-only `.v2-stage-card div[style*="display:flex"]{flex-wrap:wrap}` forces those inline rows to wrap so the full-width primary drops to its own line — no template edits needed.
+- **Stats' primary CTA is plain `.btn`** (not `.btn-primary`) — targeted with `.btn:not(.btn-outline):not(.btn-sm)`; it also had no ≤600px media block, so one was added.
+- `order:2` on the primary pushes it below Back/Skip (bottom = thumb-reachable).
+
+CSS-only, no logic touched. All 5 kits' inline scripts parse clean (0 errors). **Scope note:** this covers the v2 lesson flow (the main loop). The older standalone *practice-drill* Check buttons (guided path) still use plain `.btn` mid-card and were left as a minor follow-up. Untested in browser (Mike verifies on his phone).
+
+---
+
 ## [1.98.0] — 2026-07-04 — 📱 Mobile submit/action button placement (Excel pilot) — High #1
 
 First High-bucket item from the June 29 mobile-playtest batch. Mike's complaint: on a phone the submit/Check button sits in an awkward spot and you have to hunt for it. **Finding:** every Excel drill is now tap-based (chips / multiple-choice) — no free-text inputs remain — so the literal "keyboard covers the button" case is gone; the real friction is the primary action not being a big, obvious, thumb-reachable target. Adopted the item's own **"full-width bottom CTA"** pattern (mobile ≤600px only, desktop unchanged):
