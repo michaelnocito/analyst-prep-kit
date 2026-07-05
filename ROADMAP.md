@@ -262,6 +262,7 @@ _(GR-H shipped June 12, 2026 (v1.54.1) — root cause was the top-anchored toast
   - _Est:_ Small-Medium.
 
 - **UX/DECISION: practice "Check" button lets you skip a lesson without completing it** _(added June 29, 2026 — 12:13 PM ET)_ — _completion-tracking model_
+  - _✅ DECISION (Mike, July 5, 2026):_ **A lesson counts as complete when the learner reaches the v2 "Done"/Close stage** (which already requires going through Try → Build → Quick Check). The standalone **practice drills stay OPTIONAL** and do NOT gate completion (Vision #3 — exploring/skipping extras costs nothing). Readiness (item #5) = % of live lessons that reached Done. Build #5 on this model. _Not yet implemented — this is the spec for the next session._
   - _What:_ Many practice problems show a "Check" button (not "Submit"/"Complete"), and you can jump to the next lesson without ever completing the current one. Mike's open question: keep it or require completion? Decide the model — e.g. "Check" stays for low-stakes self-test, but a lesson only marks complete when its drills are done (feeds the readiness score + Vision #2 "what's next").
   - _Why High:_ Touches completion tracking, the readiness score (item above), and Vision #2. Decide before building the readiness fix so they stay consistent.
   - _Scope:_ Decision first (Mike), then align button labels + completion logic across kits.
