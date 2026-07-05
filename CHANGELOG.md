@@ -9,6 +9,18 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.99.1] — 2026-07-05 — 📱 Mobile text-overflow sweep (all 6 kits) — **High #2 COMPLETE**
+
+Fixed long formula/query strings clipping off the right edge of cards on narrow viewports (Mike's June-29 screenshot: an Excel "Nested IF" tap-the-formula option ran off the card). Excel already had the wrap protections from v1.78.0; the other 5 kits never got that sweep. Added `overflow-wrap:anywhere` / `word-break:break-word` to the code-bearing elements so long tokens wrap or scroll instead of clipping:
+
+- **`.quiz-opt`** (SQL · Python · Power BI · Tableau · Stats) — build/quiz options that can hold formulas/queries → `overflow-wrap:anywhere`.
+- **`.v2-pars-chip`** (all 5) — Try-stage parsons chips were `white-space:pre` (no wrap) in SQL/Python/Power BI → switched to `pre-wrap` + `overflow-wrap:anywhere;word-break:break-word;max-width:100%` (Tableau/Stats were `pre-wrap`, added the break props).
+- **`.v2-compare-code`** (Tableau · Stats) and **`.code-block`** (Tableau) — `pre-wrap` with no long-token break → added `overflow-wrap:anywhere;word-break:break-word`.
+
+Code display blocks that were already safe were left alone (`.ral-sql`/`.ral-code`/`.code-block` with `white-space:pre;overflow-x:auto` scroll horizontally; Excel/`.v2-code-block` already had wrap). CSS-only, no logic. All 6 kits parse clean (0 errors). **Scope note:** covers the v2 lesson flow + shared code classes; the older standalone practice-drill drag pieces (`.pars-piece`) weren't touched. Untested in browser (Mike verifies on his phone).
+
+---
+
 ## [1.99.0] — 2026-07-05 — 📱 Mobile action-button rollout to the other 5 kits — **High #1 COMPLETE**
 
 Rolled the v1.98.0 Excel mobile-CTA pattern to **SQL · Python · Power BI · Tableau · Stats**, closing High-bucket item #1. Each kit's v2 lesson flow now makes the primary stage CTA (Orient's "See how it works", "Try it yourself", "Check order", "Build it", "Next lesson") a **full-width, 48px-min, 15px thumb-height button on mobile (≤600px), placed at the bottom of its button row (closest to the thumb)**; secondary Back/Skip stay small on the row above.

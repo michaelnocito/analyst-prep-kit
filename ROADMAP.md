@@ -231,6 +231,7 @@ _(GR-H shipped June 12, 2026 (v1.54.1) — root cause was the top-anchored toast
   - _Est:_ Medium.
 
 - **MOBILE: text overflow / cut-off sweep (MC answers + Excel lessons)** _(added June 29, 2026 — 12:13 PM ET)_ — _responsive bug, screenshot-confirmed_
+  - _STATUS (July 5, 2026):_ ✅ **DONE — all 6 kits (v1.99.1).** Excel already had the wrap fixes (v1.78.0); added `overflow-wrap`/`word-break` to the other 5 kits' `.quiz-opt`, `.v2-pars-chip` (switched `white-space:pre`→`pre-wrap` where needed), `.v2-compare-code`, `.code-block`. Code blocks already scrolling (`.ral-sql`/`.ral-code`) left as-is. Minor leftover: standalone practice drag pieces (`.pars-piece`). Awaiting Mike's phone check, then this block moves to CHANGELOG.
   - _What:_ Two symptoms, one root cause (mobile width handling): (a) in the Excel "Nested IF and IFS" tap-the-formula drill the long formula options don't wrap and run off the card's right edge (`…,"High")` clipped — confirmed in Mike's screenshot); (b) text is cut off on phone view in Excel lessons. Sweep ALL lessons + ALL drill choice rendering for horizontal overflow.
   - _Why High:_ Clipped answers/text = unreadable = broken on mobile. Trust + learning hit. Pre-launch.
   - _Scope:_ Fix choice-button / code-string rendering to wrap or scroll within the card on narrow viewports (word-break / overflow-wrap / horizontal scroll for code); audit every kit's lesson body + drill choices. Long formula/query strings are the usual offender.
