@@ -1,6 +1,6 @@
 # Analyst Prep Kit
 
-A free, browser-based learning suite for breaking into data analytics. Eleven self-contained apps, no install, no login, no telemetry.
+A free, browser-based learning suite for breaking into data analytics. Eleven self-contained apps, no install, free to start — with optional sign-in to sync your progress across devices.
 
 **Live:** https://michaelnocito.github.io/analyst-prep-kit/
 

@@ -9,6 +9,17 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.101.3] — 2026-07-05 — 🔑 Retire stale "no login / no telemetry" copy — **Medium #4 COMPLETE**
+
+Optional Supabase sign-in + cross-device sync and GA4 analytics are live, so "no login" / "no telemetry" marketing claims are outdated. Reframed to the hub's positioning ("free to start · optional sign-in to sync · progress syncs when you sign in"):
+- `README.md` — "no install, no login, no telemetry" → "no install, free to start — with optional sign-in to sync across devices."
+- `chart-literacy` + `forecasting` — meta description "No install, no login" → "No install, free to start"; footer "…no login. Your progress is saved only in this browser." → "…Your progress is saved in this browser, and syncs across devices when you sign in."
+- `final` + `simulator` footers — dropped the false "No telemetry" chip (both load GA4).
+- Hub arcade note — dropped "No sign-up."
+- Hub hero already said "Sign in to sync across devices" (unchanged). Parse gate clean across all touched kits.
+
+⚠️ **Out of scope, flagged separately (spawned task):** `privacy.html` + `terms.html` still claim "no accounts, no logins… progress never leaves your device" — now factually false with sign-in/sync live. Left untouched here because an accurate rewrite needs the real data-handling facts (what the sync stores/retains) + Mike's review — it's a legal doc, not marketing copy.
+
 ## [1.101.2] — 2026-07-05 — 🔍 Attempt-vs-correct: close the last Tableau gap — **Medium #3 COMPLETE**
 
 Medium #3 asked to show the learner's attempt beside the correct answer post-submit. **Finding:** already implemented broadly — the v2 **Compare** stage renders an explicit "Your attempt | Correct answer" grid for the Parsons drill in all 6 kits (`_v2ParsAttempt` / `compareHTML`), and the MC **Quick Checks** reveal the picked option + the correct option + an explanation in Excel, Python, SQL, Power BI, and Stats. The **one** gap: Tableau's Quick Check marked the wrong pick red but never revealed which option was correct (it showed the prose explanation, then reset for a retry).

@@ -388,6 +388,8 @@ _Response time: next planned cycle._
   - _DoD:_ Post-attempt, the learner sees their answer and the correct answer side-by-side on the drill types that capture an attempt. Verified live.
   - _Est:_ Small-Medium.
 
+- **MARKETING: remove "no login needed" copy** — ✅ **DONE (v1.101.3, July 5, 2026 — Medium #4).** Auth+sync + GA4 are live, so reframed README + chart-literacy/forecasting meta+footers to "free to start · optional sign-in to sync"; dropped false "No telemetry" chips from final/simulator footers + "No sign-up" from the hub arcade note. Hub hero was already correct. ⚠️ privacy.html + terms.html still make false "no accounts/no logins" claims — flagged as a separate task (needs the real data-handling facts + Mike's review; legal doc, not marketing).
+
 - **STRATEGY (decision-gated): free-tier model — daily "hearts/energy" limit vs current open-free** _(added June 29, 2026 — 12:13 PM ET)_ — _monetization decision, not a build yet_
   - _What:_ Consider a Duolingo-style free model: free users get a limited number of "hearts"/attempts per day; deeper/unlimited use needs the paid Pass. Mike's open question — adopt it, and how does it square with the "free core is very complete" positioning + the one-time $15 Interview Pass?
   - _Why here:_ A real monetization lever but a structural change to the free/paid line (Vision #3 "free to explore" + the freemium economics). Decision needed before any build; risks souring the calm, generous free experience if done heavy-handed.
