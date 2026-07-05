@@ -381,7 +381,7 @@ _Response time: next planned cycle._
   - _DoD:_ A purchaser sees premium features clearly marked as unlocked; a free user sees them clearly as locked/preview. Verified live, both states.
   - _Est:_ Medium.
 
-- **LEARNING: attempt-vs-correct comparison (free display)** _(added June 29, 2026 — 12:13 PM ET)_ — _retrieval/compare pedagogy; free tier_
+- **LEARNING: attempt-vs-correct comparison (free display)** — ✅ **DONE (v1.101.2, July 5, 2026 — Medium #3).** Already broad: v2 Compare stage shows an explicit "Your attempt | Correct answer" grid (Parsons) in all 6 kits; MC Quick Checks reveal pick + correct + explanation in Excel/Python/SQL/PBI/Stats. Closed the one gap — Tableau's Quick Check now reveals the correct option on a wrong pick too. _(added June 29, 2026 — 12:13 PM ET)_ — _retrieval/compare pedagogy; free tier_
   - _What:_ After a learner submits, show their attempt next to the correct answer so they can do the mental compare Mike finds effective (recall → see correction → compare). This is the free, non-AI display layer; the AI gap-analysis on top is the premium layer folded into the AI Coach item (mode 3, High).
   - _Why Medium:_ Directly serves the learning-science thesis (retrieval + corrective feedback). Cheap to show; high pedagogical value. Pairs with the Learning-Science restructure (design together).
   - _Scope:_ For drills that capture an attempt, render an attempt-vs-correct comparison panel post-submit.

@@ -9,6 +9,12 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.101.2] — 2026-07-05 — 🔍 Attempt-vs-correct: close the last Tableau gap — **Medium #3 COMPLETE**
+
+Medium #3 asked to show the learner's attempt beside the correct answer post-submit. **Finding:** already implemented broadly — the v2 **Compare** stage renders an explicit "Your attempt | Correct answer" grid for the Parsons drill in all 6 kits (`_v2ParsAttempt` / `compareHTML`), and the MC **Quick Checks** reveal the picked option + the correct option + an explanation in Excel, Python, SQL, Power BI, and Stats. The **one** gap: Tableau's Quick Check marked the wrong pick red but never revealed which option was correct (it showed the prose explanation, then reset for a retry).
+- Tableau ([tableau/index.html](tableau/index.html), `checkQuiz`): on a wrong answer, now also highlights the correct option (matching Stats' pattern) so the learner sees attempt-vs-correct before the retry reset. One-line behavior fix, parse clean (5/5).
+- DoD met: every drill type that captures an attempt now shows the attempt next to the correct answer, in all 6 kits.
+
 ## [1.101.1] — 2026-07-05 — 🧹 Retire the dead "On the job" blurb render — **Medium #2 COMPLETE**
 
 Medium #2 asked to stop showing the "On the job" role blurb on general lessons (noise reduction). **Finding:** it was already invisible everywhere — the block existed only in the Excel kit and was gated `flow!=='v2'`, but all 51 Excel lessons are now `flow:'v2'` (Phase-H rollout), so it hadn't rendered for any user since the migration. No other kit has the block.
