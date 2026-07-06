@@ -9,6 +9,10 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.103.2] — 2026-07-06 — fix: Project Studio "Generate with Claude" used a stale model ID
+
+`claude-sonnet-4-5-20250514` is a deprecated dated snapshot; the API returned a `not_found_error` whose message (just the model name) surfaced as the whole error, misleadingly. Switched to `claude-sonnet-4-5` (no date suffix) — matches the working model ID already used by Excel's Mode 3 coach and the Simulator kit.
+
 ## [1.103.1] — 2026-07-06 — fix: Project Studio Next button stuck disabled while typing
 
 Question/criteria textareas skip a full re-render on every keystroke (by design, to keep cursor focus), so the scope wizard's Next button never re-checked validity after the first render — it stayed disabled even once you'd typed a valid answer. Added `refreshNextBtn()`, called from `scType`/`scCrit`, which re-evaluates `scopeStepValid()` and toggles the button directly without re-rendering the view.
