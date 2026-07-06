@@ -9,6 +9,10 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.103.1] — 2026-07-06 — fix: Project Studio Next button stuck disabled while typing
+
+Question/criteria textareas skip a full re-render on every keystroke (by design, to keep cursor focus), so the scope wizard's Next button never re-checked validity after the first render — it stayed disabled even once you'd typed a valid answer. Added `refreshNextBtn()`, called from `scType`/`scCrit`, which re-evaluates `scopeStepValid()` and toggles the button directly without re-rendering the view.
+
 ## [1.103.0] — 2026-07-06 — 🧭 Project Studio — new "Projects" section
 
 New kit at `projects/`: a portfolio-project builder that walks a learner from a vague idea to an interview-ready project through four phases, teaching real analyst workflow along the way.

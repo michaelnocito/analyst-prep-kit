@@ -390,7 +390,7 @@ function scopeHTML(p){
   if(step==='review'){
     actions += `<button class="btn" onclick="scStamp()"><i data-lucide="stamp"></i> Stamp scoped → plan it</button>`;
   }else{
-    actions += `<button class="btn" onclick="scNext()" ${canNext?'':'disabled'}>Next <i data-lucide="chevron-right"></i></button>`;
+    actions += `<button class="btn" id="scNextBtn" onclick="scNext()" ${canNext?'':'disabled'}>Next <i data-lucide="chevron-right"></i></button>`;
   }
   actions += `</div>`;
   return `<div class="card">${dots}${body}${actions}</div>`;
@@ -425,8 +425,14 @@ function feasRows(sc){
 }
 function scP(){ return getProj(VIEW.id); }
 function scSet(k,v){ scP().scope[k]=v; saveProj(); render(); }
-function scType(k,v){ scP().scope[k]=v; saveProj(); } // no re-render mid-typing
-function scCrit(i,v){ scP().scope.criteria[i]=v; saveProj(); }
+function scType(k,v){ scP().scope[k]=v; saveProj(); refreshNextBtn(); } // no full re-render mid-typing (would drop cursor/focus)
+function refreshNextBtn(){
+  const btn = document.getElementById('scNextBtn');
+  if(!btn) return;
+  const canNext = scopeStepValid(scP().scope, SCOPE_STEPS[SSTEP]);
+  btn.disabled = !canNext;
+}
+function scCrit(i,v){ scP().scope.criteria[i]=v; saveProj(); refreshNextBtn(); }
 function scCritAdd(){ scP().scope.criteria.push(''); saveProj(); render(); }
 function scCritDel(i){ const sc=scP().scope; sc.criteria.splice(i,1); if(!sc.criteria.length)sc.criteria=['']; saveProj(); render(); }
 function scFeas(i,status){ const sc=scP().scope; const rows=feasRows(sc); rows[i]={...rows[i],status}; sc.feasibility=rows; saveProj(); render(); }
