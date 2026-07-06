@@ -139,6 +139,13 @@ input[type=range]{accent-color:var(--accent);width:150px;cursor:pointer}
 .unlock-card{background:var(--surf);border:1px solid var(--accent);border-radius:8px;padding:14px 16px;margin-top:12px}
 .unlock-card h4{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:0 0 6px}
 .unlock-card p{margin:0;font-size:14px;line-height:1.65;color:var(--txt2)}
+.recall-card{background:var(--surf);border:1.5px solid var(--warn,#d9963a);border-radius:8px;padding:16px 18px;margin-bottom:10px}
+.recall-header{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--warn,#d9963a);display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.recall-header .lucide{width:14px;height:14px}
+.recall-cues{margin:0 0 12px 16px;padding:0;font-size:14px;line-height:1.65;color:var(--text,var(--txt))}
+.recall-btns{display:flex;gap:8px;flex-wrap:wrap}
+.artifact-bridge{font-size:13px;color:var(--txt2);margin-bottom:12px;padding:0 2px}
+.retrieval-note{font-size:12px;color:var(--txt2);font-style:italic;margin:0 0 10px}
 
 /* -- Sprint Bar ---------------------------------------- */
 body{font-size:17px;line-height:1.65}
@@ -1221,9 +1228,16 @@ function renderHome(){
   });
   const overall=Math.round(skillScores.reduce((a,b)=>a+b,0)/skills.length);
 
+  // Return-visit greeting (Phase E): quiet one-liner on a new-day return.
+  const _today=new Date().toISOString().slice(0,10);
+  const _lastVisit=localStorage.getItem('spk-last-visit');
+  localStorage.setItem('spk-last-visit',_today);
+  const _greet=(_lastVisit&&_lastVisit!==_today)
+    ? `<p style="font-size:13px;color:var(--txt2);margin:-16px 0 24px">Good to have you back. Pick up where you left off.</p>` : '';
+
   document.getElementById('view-home').innerHTML=`
     <h2 style="margin-bottom:8px">Stats Prep Kit</h2>
-    <p style="color:var(--txt2);margin-bottom:24px">Master the statistics every data analyst interview tests — from mean/median to A/B testing.</p>
+    <p style="color:var(--txt2);margin-bottom:24px">Master the statistics every data analyst interview tests — from mean/median to A/B testing.</p>${_greet}
     <div class="card" id="flaggedCard" style="margin-bottom:16px;border-color:var(--warn,#d9963a);display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <h2 style="margin:0;font-size:1.1rem"><i data-lucide="flag" style="width:18px;height:18px;vertical-align:-2px;color:var(--warn)"></i> Your review list</h2>
@@ -1283,6 +1297,8 @@ function renderLessonList(){
 
 let lessonState={id:null};
 function openLesson(id){
+  const _l=DATA.LESSONS.find(x=>x.id===id);
+  if(_l) _syncRecalls(id, _l);
   S.lastLesson=id;save();
   lessonState={id};
   // View must be visible BEFORE renderLesson so the Chart.js canvas has real
@@ -1373,6 +1389,9 @@ function rateConf(lessonId, level, btn){
   const wrap = btn.closest('.conf-chips');
   if(wrap) wrap.querySelectorAll('.conf-chip').forEach(c => c.classList.toggle('is-on', c===btn));
   if(window.lucide) lucide.createIcons();
+  // Re-sync the spaced-recall queue to the (possibly changed) confidence.
+  const _rl = DATA.LESSONS.find(x=>x.id===lessonId);
+  if(_rl) _queueRecalls(lessonId, _rl);
 }
 function toggleRead(btn){
   const panel=btn.closest('.card').querySelector('.read-panel');
@@ -1430,6 +1449,89 @@ function finishLesson(id){
 }
 
 // ─── V2 LESSON FLOW (Orient→Example→Try→Compare→Build→Check→Close) ──────────
+// ─── SPACED-RECALL CUES (Phase D) ────────────────────────────────────────────
+// Two retrieval questions per lesson, resurfaced +1/+3/+7 lessons later when
+// the learner rated the lesson "Not yet"/"Almost". One auditable map; the merge
+// loop puts them on l.reinforces so the engine matches Excel's.
+const STAT_REINFORCES = {
+  101:["What is statistics FOR, in one sentence — what does it let you do with incomplete data?","What's the difference between a trustworthy conclusion and a lucky guess?"],
+  102:["What are a variable and an observation in a dataset?","In a table of survey answers, what does one row represent?"],
+  103:["What's the difference between a population and a sample?","Why do you almost never have the whole population — and what do you do instead?"],
+  104:["Describe vs infer — what are the two jobs statistics does?","Which job is a mean doing, and which is a p-value doing?"],
+  1:["Mean, median, mode — when does each one lie to you?","Which measure of center survives a billionaire walking into the room?"],
+  2:["What do variance and standard deviation measure?","Two teams average 80 — what does a bigger standard deviation say about one of them?"],
+  3:["What does a percentile tell you about a value's rank?","What is the IQR, and why is it outlier-resistant?"],
+  4:["What does skew do to the relationship between mean and median?","Why does a histogram tell you more than the mean ever could?"],
+  5:["What does a probability of 0.2 mean in plain language?","When do you multiply probabilities, and when do you add them?"],
+  6:["What does a z-score tell you about a value?","Roughly what share of data sits within 1 and 2 standard deviations on a normal curve?"],
+  7:["What makes a sample biased — name one common way it happens.","Why can a bigger sample still give a wrong answer if collection was biased?"],
+  8:["Two metrics move together — name two explanations besides causation.","What kind of study CAN establish causation, and why?"],
+  9:["What are the null and alternative hypotheses in a test?","What does 'reject the null' actually claim — and not claim?"],
+  10:["Say what a p-value means in plain language — carefully.","What does p = 0.03 NOT tell you about your hypothesis?"],
+  11:["What makes an A/B test the gold standard for measuring a change?","Why must you decide the sample size BEFORE running the test?"],
+  12:["What does a 95% confidence interval say — and not say?","Why is a range more honest than a single number?"]
+};
+DATA.LESSONS.forEach(l=>{ if(STAT_REINFORCES[l.id]) l.reinforces=STAT_REINFORCES[l.id]; });
+
+// ─── SPACED RECALL QUEUE (Phase D port from Excel: +1/+3/+7 lesson positions) ─
+let _pendingRecalls = [], _recallLesson = null;
+function _getRecallQ(){ return JSON.parse(localStorage.getItem('spk-recalls')||'[]'); }
+function _saveRecallQ(a){ localStorage.setItem('spk-recalls',JSON.stringify(a)); }
+function _queueRecalls(id, l){
+  if(!l.reinforces||!l.reinforces.length) return;
+  let arr=_getRecallQ().filter(e=>e.srcId!==id);
+  const conf=(S.confidence||{})[id];
+  if(conf==='low'||conf==='mid'){
+    const pos=lessonPos(id);
+    for(const off of [1,3,7]) arr.push({cues:l.reinforces, srcId:id, dueAt:pos+off});
+  }
+  _saveRecallQ(arr);
+}
+function _dequeueRecalls(id){
+  const pos=lessonPos(id), arr=_getRecallQ();
+  const due=arr.filter(e=>e.dueAt===pos);
+  _saveRecallQ(arr.filter(e=>e.dueAt!==pos));
+  return due;
+}
+// Dequeue only when the viewed lesson changes — stage advances re-render the
+// same lesson and must not re-consume the queue.
+function _syncRecalls(id, l){
+  if(_recallLesson===id) return;
+  if(l) _queueRecalls(id, l);
+  _pendingRecalls = _dequeueRecalls(id);
+  _recallLesson = id;
+}
+function _recallsHTML(){
+  return _pendingRecalls.map((e,i)=>`<div class="recall-card">
+    <div class="recall-header"><i data-lucide="repeat-2"></i> Quick recall — no peeking</div>
+    <ul class="recall-cues">${e.cues.map(c=>`<li>${c}</li>`).join('')}</ul>
+    <div class="recall-btns">
+      <button class="btn btn-sm" onclick="recallGotIt(${i})">I remembered it</button>
+      <button class="btn btn-outline btn-sm" onclick="recallNope(${i})">Nope, remind me again</button>
+    </div>
+  </div>`).join('');
+}
+function _refreshRecalls(){
+  const el=document.getElementById('v2-recalls');
+  if(!el) return;
+  if(!_pendingRecalls.length){el.style.display='none';return;}
+  el.innerHTML=_recallsHTML();
+  if(window.lucide) lucide.createIcons();
+}
+function recallGotIt(i){
+  _pendingRecalls.splice(i,1);
+  const w=parseInt(localStorage.getItem('spk-recall-wins')||'0')+1;
+  localStorage.setItem('spk-recall-wins',String(w));
+  _refreshRecalls();
+}
+function recallNope(i){
+  const e=_pendingRecalls.splice(i,1)[0];
+  const arr=_getRecallQ();
+  arr.push({cues:e.cues, srcId:e.srcId, dueAt:lessonPos(_recallLesson)+1});
+  _saveRecallQ(arr);
+  _refreshRecalls();
+}
+
 function getStatStage(lid){ return ((S.lessonStage||{})[lid]) ?? 0; }
 function setStatStage(lid, s){
   S.lessonStage = S.lessonStage || {};
@@ -1605,7 +1707,15 @@ function v2StatBody(l, done){
   let body='';
 
   if(stage===0){
-    body=`<div class="v2-stage-card">
+    // Spaced-recall cards due at this lesson position (Phase D)
+    const recallsBlock = (!done && _pendingRecalls.length)
+      ? `<div id="v2-recalls" style="margin-bottom:16px">${_recallsHTML()}</div>`
+      : `<div id="v2-recalls" style="display:none"></div>`;
+    // Progressive-artifact bridge: previous lesson in the same unit (unit is numeric; 0 = foundations, no bridge)
+    const _pp=lessonPos(l.id), _prevOL=_pp>0?DATA.LESSONS[_pp-1]:null;
+    const bridge=(_prevOL&&l.unit!==0&&_prevOL.unit===l.unit)
+      ? `<p class="artifact-bridge">Last time you built: <strong>${_prevOL.title}</strong>. Now you'll add to it.</p>` : '';
+    body=`${recallsBlock}${bridge}<div class="v2-stage-card">
       <h3><i data-lucide="compass"></i> What's this about</h3>
       ${l.story?`<div class="lesson-story" style="margin-bottom:16px"><i data-lucide="book-open"></i><span>${l.story}</span></div>`:''}
       <p style="margin:0 0 18px;color:var(--txt2);font-size:14px;line-height:1.65">${l.subtitle||''}</p>
@@ -1638,6 +1748,7 @@ function v2StatBody(l, done){
     const pool=idxs.map(i=>`<div class="v2-pars-chip" data-idx="${i}" onclick="v2ParsChipTap(${l.id},this)">${p.lines[i]}</div>`).join('');
     body=`<div class="v2-stage-card">
       <h3><i data-lucide="list-ordered"></i> Try It</h3>
+      <p class="retrieval-note">This feels harder because it works — struggling to recall is how memory forms.</p>
       <p style="color:var(--txt2);font-size:14px;margin-bottom:10px">${p.prompt}</p>
       <p style="font-size:12px;color:var(--txt2);margin:0 0 6px">Tap a piece to move it between the pool and your answer:</p>
       <div class="v2-pool" id="v2st-pool-${l.id}">${pool}</div>
@@ -1694,8 +1805,10 @@ function v2StatBody(l, done){
     const nextBtn=nextLesson
       ?`<button class="btn" onclick="openLesson(${nextLesson.id})">Next: ${nextLesson.title} &rarr;</button>`
       :`<a href="../final/" class="btn" style="text-decoration:none">Try the Final Exam &rarr;</a>`;
+    const _wins=parseInt(localStorage.getItem('spk-recall-wins')||'0');
     body=`<div class="v2-stage-card">
       <h3><i data-lucide="badge-check"></i> Done</h3>
+      ${_wins>0?`<p style="font-size:12px;color:var(--txt2);margin:0 0 10px"><i data-lucide="repeat-2" style="width:13px;height:13px;vertical-align:-2px"></i> ${_wins} concept${_wins===1?'':'s'} recalled from memory so far</p>`:''}
       <p style="font-size:15px;line-height:1.7;margin-bottom:18px">${l.close||''}</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap">${nextBtn}${practiceBtn}<button class="btn btn-outline btn-sm" onclick="renderLessonList()">All Lessons</button></div>
     </div>
@@ -2197,7 +2310,7 @@ function handleResetKit(btn){
     btn.style.color='#e07c7c';btn.style.borderColor='#e07c7c';
     setTimeout(function(){if(_kitConfirm){_kitConfirm=false;btn.textContent='↺ Reset this kit';btn.style.color='';btn.style.borderColor='';}  },4000);
   } else {
-    localStorage.removeItem('spk');
+    ['spk','spk-recalls','spk-recall-wins','spk-last-visit'].forEach(function(k){localStorage.removeItem(k);});
     location.reload();
   }
 }

@@ -182,6 +182,13 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 .unlock-card{background:var(--surf);border:1px solid var(--accent);border-radius:var(--radius);padding:14px 16px;margin-top:12px}
 .unlock-card h4{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:0 0 6px}
 .unlock-card p{margin:0;font-size:14px;line-height:1.65;color:var(--txt2)}
+.recall-card{background:var(--surf);border:1.5px solid var(--warn,#d9963a);border-radius:var(--radius);padding:16px 18px;margin-bottom:10px}
+.recall-header{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--warn,#d9963a);display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.recall-header .lucide{width:14px;height:14px}
+.recall-cues{margin:0 0 12px 16px;padding:0;font-size:14px;line-height:1.65;color:var(--text)}
+.recall-btns{display:flex;gap:8px;flex-wrap:wrap}
+.artifact-bridge{font-size:13px;color:var(--txt2);margin-bottom:12px;padding:0 2px}
+.retrieval-note{font-size:12px;color:var(--txt2);font-style:italic;margin:0 0 10px}
 .quiz-feedback{margin-top:12px;padding:10px 14px;border-radius:6px;font-size:14px;line-height:1.5}
 .quiz-feedback.ok{background:rgba(76,175,120,.1);border:1px solid var(--success);color:var(--success)}
 .quiz-feedback.bad{background:rgba(224,92,92,.1);border:1px solid var(--err);color:var(--err)}
@@ -1857,6 +1864,12 @@ function renderHome(){
   const cardsDone=Object.keys(S.done).filter(k=>k.startsWith('card')).length;
 
   const cur=resumeTarget();
+  // Return-visit greeting (Phase E): quiet one-liner on a new-day return.
+  const _today=new Date().toISOString().slice(0,10);
+  const _lastVisit=localStorage.getItem('tpk-last-visit');
+  localStorage.setItem('tpk-last-visit',_today);
+  const _greet=(_lastVisit&&_lastVisit!==_today)
+    ? `<p style="font-size:13px;opacity:.75;margin-top:4px">Good to have you back. Pick up where you left off.</p>` : '';
   const verb=lessonsDone===0?'Start':(S.done['lesson'+cur.id]?'Review':'Continue');
   const teaser=((cur.intro||'').replace(/<[^>]*>/g,'').split('. ')[0]+'.').slice(0,160);
 
@@ -1878,7 +1891,7 @@ function renderHome(){
       <div>
         <div class="tag" style="margin-bottom:8px;background:rgba(255,255,255,.18);border-color:transparent;color:#fff">LESSON ${lessonPos(cur.id)+1} OF ${lessonsTotal}</div>
         <h2>${cur.title}</h2>
-        <p>${teaser}</p>
+        <p>${teaser}</p>${_greet}
       </div>
       <button class="btn btn-ghost">${verb} →</button>
       <div class="resume-card-watermark">${lessonPos(cur.id)+1}</div>
@@ -1973,6 +1986,8 @@ function renderLessonList(){
 
 let lessonState={id:null,qIdx:0};
 function openLesson(id){
+  const _l=DATA.LESSONS.find(x=>x.id===id);
+  if(_l) _syncRecalls(id, _l);
   S.lastLesson=id;save();
   lessonState={id,qIdx:0};
   document.getElementById('view-lessons').classList.add('active');
@@ -2038,6 +2053,9 @@ function rateConf(lessonId, level, btn){
   const wrap = btn.closest('.conf-chips');
   if(wrap) wrap.querySelectorAll('.conf-chip').forEach(c => c.classList.toggle('is-on', c===btn));
   if(window.lucide) lucide.createIcons();
+  // Re-sync the spaced-recall queue to the (possibly changed) confidence.
+  const _rl = DATA.LESSONS.find(x=>x.id===lessonId);
+  if(_rl) _queueRecalls(lessonId, _rl);
 }
 // ─── LESSON VISUAL ("See it on screen") ──────────────────────────────────────
 // Shows the shelf config as pills + the chart it actually produces, so learners
@@ -2150,6 +2168,105 @@ function renderLessonComplete(id){
 }
 
 // ─── V2 LESSON FLOW (Orient→Example→Try→Compare→Build→Check→Close) ──────────
+// ─── SPACED-RECALL CUES (Phase D) ────────────────────────────────────────────
+// Two retrieval questions per lesson, resurfaced +1/+3/+7 lessons later when
+// the learner rated the lesson "Not yet"/"Almost". One auditable map; the merge
+// loop puts them on l.reinforces so the engine matches Excel's.
+const TAB_REINFORCES = {
+  21:["What does Tableau assume one row of your data represents?","Why does a badly shaped source table make every viz harder?"],
+  22:["Blue vs green fields — what does the color tell you?","Why does Tableau treat a discrete field differently from a continuous one?"],
+  23:["What does 'aggregate' mean when a measure lands on a shelf?","Why does the same Sales field show different numbers in different views?"],
+  24:["Name the steps of the analyst's loop in Tableau.","Why do you sketch the question before dragging any field?"],
+  1:["Name the main areas of the Tableau workspace: where are Data pane, shelves, and canvas?","What do the Columns and Rows shelves each control?"],
+  25:["What happens when you drag a dimension onto Rows — and a measure onto Columns?","Why does drag order not matter but shelf choice does?"],
+  2:["What's the difference between a dimension and a measure?","Which one slices the view into headers, and which one becomes an axis?"],
+  3:["Which two drags build a bar chart from nothing?","Why do bars beat a table for comparing categories?"],
+  4:["What does Tableau build when you drag a date onto Columns and a measure onto Rows?","What changes when you switch a date from discrete to continuous?"],
+  28:["What are the two ways to sort a view?","Why can a sort look 'broken' when a table calc or filter interferes?"],
+  5:["Name two ways to add a filter to a view.","What's the difference between filtering a dimension and filtering a measure?"],
+  6:["What do the Color, Size, and Label marks-card slots each encode?","When does adding color make a chart WORSE?"],
+  26:["Write (out loud) a simple calculated field for profit ratio.","Where do calculated fields live after you create them?"],
+  7:["What's the difference between a row-level and an aggregate calculation?","Why does SUM([Profit])/SUM([Sales]) beat [Profit]/[Sales] for a ratio?"],
+  8:["What does Tableau do to a measure the moment it hits a shelf?","How do you change SUM to AVG on a pill — and when should you?"],
+  9:["How do you combine members into a group, and where does the group live?","What's the difference between a group and a set?"],
+  30:["Which two measures build a scatter plot, and what does each axis show?","What does dragging a dimension onto Detail add to a scatter?"],
+  31:["What do size and color encode in a treemap?","When does a treemap beat a bar chart — and when doesn't it?"],
+  32:["What must a field have before Tableau can map it?","What does a filled map encode vs a symbol map?"],
+  27:["What's the difference between a worksheet, a dashboard, and a workbook?","Why build one chart per sheet instead of cramming?"],
+  10:["How do you bring two sheets onto one dashboard?","What does a dashboard filter action do when you click a mark?"],
+  11:["What belongs in a tooltip that doesn't belong on the chart?","When is an annotation better than a label?"],
+  29:["What does a trend line summarize, and what does a reference line mark?","Where do you drag from to add a reference line?"],
+  12:["Given 'compare categories' vs 'show change over time' — which chart types?","Why is a pie chart usually the wrong answer?"],
+  13:["What makes a dashboard tell a story instead of listing charts?","What question should the top-left element answer?"],
+  14:["Live vs Extract — what's the tradeoff?","When would you schedule an extract refresh instead of going live?"],
+  15:["Join vs union vs relationship — what does each combine?","Why do relationships (logical layer) avoid duplicate-row inflation?"],
+  16:["Name two data properties you'd set on a field before building (alias, default agg, geographic role…).","Why assign a geographic role before mapping a State column?"],
+  17:["What does a set's IN / OUT split show?","How is a set different from a group?"],
+  18:["What does a hierarchy let the viewer do in a viz?","Give an example hierarchy: which fields, in what order?"],
+  19:["What is a parameter, and what makes it different from a filter?","Name a case where a parameter swaps the measure a chart shows."],
+  20:["What's the difference between dual-axis and combined-axis?","What must you do after making a dual-axis chart so the scales compare honestly?"]
+};
+DATA.LESSONS.forEach(l=>{ if(TAB_REINFORCES[l.id]) l.reinforces=TAB_REINFORCES[l.id]; });
+
+// ─── SPACED RECALL QUEUE (Phase D port from Excel: +1/+3/+7 lesson positions) ─
+let _pendingRecalls = [], _recallLesson = null;
+function _getRecallQ(){ return JSON.parse(localStorage.getItem('tpk-recalls')||'[]'); }
+function _saveRecallQ(a){ localStorage.setItem('tpk-recalls',JSON.stringify(a)); }
+function _queueRecalls(id, l){
+  if(!l.reinforces||!l.reinforces.length) return;
+  let arr=_getRecallQ().filter(e=>e.srcId!==id);
+  const conf=(S.confidence||{})[id];
+  if(conf==='low'||conf==='mid'){
+    const pos=lessonPos(id);
+    for(const off of [1,3,7]) arr.push({cues:l.reinforces, srcId:id, dueAt:pos+off});
+  }
+  _saveRecallQ(arr);
+}
+function _dequeueRecalls(id){
+  const pos=lessonPos(id), arr=_getRecallQ();
+  const due=arr.filter(e=>e.dueAt===pos);
+  _saveRecallQ(arr.filter(e=>e.dueAt!==pos));
+  return due;
+}
+// Dequeue only when the viewed lesson changes — stage advances re-render the
+// same lesson and must not re-consume the queue.
+function _syncRecalls(id, l){
+  if(_recallLesson===id) return;
+  if(l) _queueRecalls(id, l);
+  _pendingRecalls = _dequeueRecalls(id);
+  _recallLesson = id;
+}
+function _recallsHTML(){
+  return _pendingRecalls.map((e,i)=>`<div class="recall-card">
+    <div class="recall-header"><i data-lucide="repeat-2"></i> Quick recall — no peeking</div>
+    <ul class="recall-cues">${e.cues.map(c=>`<li>${c}</li>`).join('')}</ul>
+    <div class="recall-btns">
+      <button class="btn btn-primary btn-sm" onclick="recallGotIt(${i})">I remembered it</button>
+      <button class="btn btn-outline btn-sm" onclick="recallNope(${i})">Nope, remind me again</button>
+    </div>
+  </div>`).join('');
+}
+function _refreshRecalls(){
+  const el=document.getElementById('v2-recalls');
+  if(!el) return;
+  if(!_pendingRecalls.length){el.style.display='none';return;}
+  el.innerHTML=_recallsHTML();
+  if(window.lucide) lucide.createIcons();
+}
+function recallGotIt(i){
+  _pendingRecalls.splice(i,1);
+  const w=parseInt(localStorage.getItem('tpk-recall-wins')||'0')+1;
+  localStorage.setItem('tpk-recall-wins',String(w));
+  _refreshRecalls();
+}
+function recallNope(i){
+  const e=_pendingRecalls.splice(i,1)[0];
+  const arr=_getRecallQ();
+  arr.push({cues:e.cues, srcId:e.srcId, dueAt:lessonPos(_recallLesson)+1});
+  _saveRecallQ(arr);
+  _refreshRecalls();
+}
+
 function getTabStage(lid){ return ((S.lessonStage||{})[lid]) ?? 0; }
 function setTabStage(lid, s){
   S.lessonStage = S.lessonStage || {};
@@ -2316,7 +2433,15 @@ function v2TabBody(l, done){
     const tourBtn = l.slug==='interface'
       ? `<button class="btn" style="margin:0 0 18px;background:var(--accent);color:#fff" onclick="show('workspace')"><i data-lucide="compass" style="width:15px;height:15px;vertical-align:-3px"></i> New here? Tour the workspace interactively →</button><br>`
       : '';
-    body=`<div class="v2-stage-card">
+    // Spaced-recall cards due at this lesson position (Phase D)
+    const recallsBlock = (!done && _pendingRecalls.length)
+      ? `<div id="v2-recalls" style="margin-bottom:16px">${_recallsHTML()}</div>`
+      : `<div id="v2-recalls" style="display:none"></div>`;
+    // Progressive-artifact bridge: previous lesson in the same unit
+    const _pp=lessonPos(l.id), _prevOL=_pp>0?DATA.LESSONS[_pp-1]:null;
+    const bridge=(_prevOL&&!l.unit.startsWith('Unit 0')&&_prevOL.unit===l.unit)
+      ? `<p class="artifact-bridge">Last time you built: <strong>${_prevOL.title}</strong>. Now you'll add to it.</p>` : '';
+    body=`${recallsBlock}${bridge}<div class="v2-stage-card">
       <h3><i data-lucide="compass"></i> What's this about</h3>
       ${l.story?`<div class="lesson-story" style="margin-bottom:16px"><i data-lucide="book-open"></i><span>${l.story}</span></div>`:l.prereq?`<div class="lesson-story" style="margin-bottom:16px"><i data-lucide="corner-down-right"></i><span><strong>Before this:</strong> ${l.prereq}</span></div>`:''}
       <p style="margin:0 0 18px;color:var(--txt2);font-size:14px;line-height:1.65">${l.intro||''}</p>
@@ -2353,6 +2478,7 @@ function v2TabBody(l, done){
     const pool=idxs.map(i=>`<div class="v2-pars-chip" data-idx="${i}" onclick="v2ParsChipTap(${l.id},this)">${p.lines[i]}</div>`).join('');
     body=`<div class="v2-stage-card">
       <h3><i data-lucide="list-ordered"></i> Try It</h3>
+      <p class="retrieval-note">This feels harder because it works — struggling to recall is how memory forms.</p>
       <p style="color:var(--txt2);font-size:14px;margin-bottom:10px">${p.prompt}</p>
       <p style="font-size:12px;color:var(--dim);margin:0 0 6px">Tap a piece to move it between the pool and your answer:</p>
       <div class="v2-pool" id="v2tab-pool-${l.id}">${pool}</div>
@@ -2409,8 +2535,10 @@ function v2TabBody(l, done){
     const nextBtn=nextLesson
       ?`<button class="btn btn-primary" onclick="openLesson(${nextLesson.id})">Next: ${nextLesson.title} &rarr;</button>`
       :`<a href="../final/" class="btn btn-primary" style="text-decoration:none">Try the Final Exam &rarr;</a>`;
+    const _wins=parseInt(localStorage.getItem('tpk-recall-wins')||'0');
     body=`<div class="v2-stage-card">
       <h3><i data-lucide="badge-check"></i> Done</h3>
+      ${_wins>0?`<p style="font-size:12px;color:var(--txt2);margin:0 0 10px"><i data-lucide="repeat-2" style="width:13px;height:13px;vertical-align:-2px"></i> ${_wins} concept${_wins===1?'':'s'} recalled from memory so far</p>`:''}
       <p style="font-size:15px;line-height:1.7;margin-bottom:18px">${l.close||''}</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap">${nextBtn}${practiceBtn}<button class="btn btn-outline btn-sm" onclick="renderLessonList()">All Lessons</button></div>
     </div>
@@ -3207,7 +3335,7 @@ function handleResetKit(btn){
     btn.style.color='#e07c7c';btn.style.borderColor='#e07c7c';
     setTimeout(function(){if(_kitConfirm){_kitConfirm=false;btn.textContent='↺ Reset this kit';btn.style.color='';btn.style.borderColor='';}  },4000);
   } else {
-    localStorage.removeItem('tpk');
+    ['tpk','tpk-recalls','tpk-recall-wins','tpk-last-visit'].forEach(function(k){localStorage.removeItem(k);});
     location.reload();
   }
 }

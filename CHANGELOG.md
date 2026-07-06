@@ -9,6 +9,36 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.108.0] — 2026-07-06 — 🧠 Stats kit: Phase D+E parity — 🏁 D+E ROLLOUT COMPLETE (all 6 kits)
+
+Final kit in the rollout. Stats specifics: numeric `unit` field (bridge condition adapted:
+no bridge on unit 0), section-based lessons (no `ral`), quiz explanation field is `explain`.
+Keys `spk-recalls`/`spk-recall-wins`/`spk-last-visit`.
+
+- Spaced-recall engine (+1/+3/+7) with **16 hand-authored cue sets** (`STAT_REINFORCES`) —
+  center/spread, sampling-bias, p-value-in-plain-language retrieval questions.
+- Artifact bridge, retrieval-honesty note, recall-wins counter, return-visit greeting
+  under the Home header; kit reset clears recall keys.
+
+**With this, every lesson kit (Excel · SQL · Python · Power BI · Tableau · Stats) runs the
+full learning-science stack: 7-stage retrieval-first flow + spaced recall + motivation layer.**
+Headless: 115 checks green across the 5 ported kits (`de-test.mjs`).
+
+## [1.107.0] — 2026-07-06 — 🧠 Tableau kit: Phase D+E learning-science parity
+
+Fourth kit in the D+E rollout (after SQL/Python/Power BI). Tableau specifics: `S`/`save`/
+`openLesson`+`lessonState`, renders into `view-lessons`; the Interface lesson's workspace-tour
+button and the `prereq` story-fallback are preserved on Orient. Keys `tpk-recalls`/
+`tpk-recall-wins`/`tpk-last-visit`.
+
+- Spaced-recall engine (+1/+3/+7) with **32 hand-authored cue sets** (`TAB_REINFORCES`) —
+  shelf-thinking, dimensions/measures, cert-domain retrieval questions.
+- Artifact bridge at Orient, retrieval-honesty note on Try, recall-wins counter in Close,
+  return-visit greeting on the Home resume card (already position-based — no fix needed).
+- Kit reset clears the recall keys.
+
+Headless: 92 checks green across SQL + Python + Power BI + Tableau.
+
 ## [1.106.0] — 2026-07-06 — 🧠 Power BI kit: Phase D+E learning-science parity
 
 Same layer as the SQL (v1.104.0) and Python (v1.105.0) ports; Power BI is a SQL-clone
