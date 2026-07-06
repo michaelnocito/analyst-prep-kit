@@ -1850,6 +1850,75 @@ function finishLesson(id){
 
 // ─── V2 LESSON FLOW (Orient→Example→Try→Compare→Build→Check→Close) ──────────
 
+// ─── INLINE-SVG CHARTS (Medium #6: real visuals on chart-centric lessons) ────
+// Zero-dependency parametric SVG (same generators as the SQL kit — PBI is a
+// SQL-clone so the CSS vars match). Rendered in the Worked Example stage AFTER
+// the output table — the table stays the ground truth; the chart is what an
+// analyst would put on the report page.
+const _svgNS='xmlns="http://www.w3.org/2000/svg" font-family="system-ui,-apple-system,sans-serif" style="width:100%;height:auto;max-width:520px;display:block"';
+function _chartScale(vals, H, pad){
+  const max=Math.max(...vals,0), min=Math.min(...vals,0), span=(max-min)||1;
+  return { y:v=>pad+(max-v)/span*(H-2*pad), zero:pad+(max-0)/span*(H-2*pad), max, min };
+}
+function svgLineChart(c){
+  const W=520,H=280,P=36,L=64,vals=c.values,n=vals.length;
+  const s=_chartScale(vals,H,P), x=i=>L+i*(W-L-20)/(n-1);
+  const pts=vals.map((v,i)=>`${x(i)},${s.y(v).toFixed(1)}`).join(' ');
+  const dots=vals.map((v,i)=>`<circle cx="${x(i)}" cy="${s.y(v).toFixed(1)}" r="3.5" fill="var(--accent)"/><text x="${x(i)}" y="${(s.y(v)-10).toFixed(1)}" fill="var(--text)" font-size="11" text-anchor="middle">${c.fmt?c.fmt(v):v}</text>`).join('');
+  const lbls=c.labels.map((t,i)=>`<text x="${x(i)}" y="${H-8}" fill="var(--muted)" font-size="11" text-anchor="middle">${t}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" ${_svgNS} role="img"><title>${c.title}</title><text x="${L}" y="20" fill="var(--text)" font-size="12" font-weight="600">${c.title}</text><line x1="${L}" y1="${H-P+6}" x2="${W-16}" y2="${H-P+6}" stroke="var(--border)" stroke-width="1.5"/><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>${dots}${lbls}</svg>`;
+}
+function svgBarChart(c){
+  const W=520,H=280,P=40,L=64,vals=c.values,n=vals.length;
+  const s=_chartScale(vals,H,P), bw=Math.min(72,(W-L-24)/n*0.62), gap=(W-L-24)/n;
+  const bars=vals.map((v,i)=>{
+    const bx=L+12+i*gap+(gap-bw)/2, y0=s.zero, y1=s.y(v);
+    const top=Math.min(y0,y1), h=Math.max(2,Math.abs(y0-y1));
+    const col=c.colors?`var(--${c.colors[i]})`:'var(--accent)';
+    return `<rect x="${bx.toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${col}"/>
+      <text x="${(bx+bw/2).toFixed(1)}" y="${(top-6).toFixed(1)}" fill="var(--text)" font-size="11" text-anchor="middle">${c.fmt?c.fmt(v):v}</text>
+      <text x="${(bx+bw/2).toFixed(1)}" y="${H-8}" fill="var(--muted)" font-size="11" text-anchor="middle">${c.labels[i]}</text>`;
+  }).join('');
+  const zero=`<line x1="${L}" y1="${s.zero.toFixed(1)}" x2="${W-12}" y2="${s.zero.toFixed(1)}" stroke="var(--muted)" stroke-width="1.5"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" ${_svgNS} role="img"><title>${c.title}</title><text x="${L}" y="20" fill="var(--text)" font-size="12" font-weight="600">${c.title}</text>${zero}${bars}</svg>`;
+}
+function svgParetoChart(c){
+  const W=520,H=280,P=40,L=64,vals=c.values,n=vals.length;
+  const s=_chartScale(vals,H,P), gap=(W-L-24)/n, bw=Math.min(64,gap*0.62);
+  const yPct=p=>P+(100-p)/100*(H-2*P);
+  const bars=vals.map((v,i)=>{
+    const bx=L+12+i*gap+(gap-bw)/2;
+    return `<rect x="${bx.toFixed(1)}" y="${s.y(v).toFixed(1)}" width="${bw}" height="${(s.zero-s.y(v)).toFixed(1)}" rx="2" fill="var(--accent)"/><text x="${(bx+bw/2).toFixed(1)}" y="${H-8}" fill="var(--muted)" font-size="11" text-anchor="middle">${c.labels[i]}</text>`;
+  }).join('');
+  const cx=i=>L+12+i*gap+gap/2;
+  const line=c.cumPct.map((p,i)=>`${cx(i).toFixed(1)},${yPct(p).toFixed(1)}`).join(' ');
+  const dots=c.cumPct.map((p,i)=>`<circle cx="${cx(i).toFixed(1)}" cy="${yPct(p).toFixed(1)}" r="3" fill="var(--warn)"/><text x="${cx(i).toFixed(1)}" y="${(yPct(p)-8).toFixed(1)}" fill="var(--warn)" font-size="10" text-anchor="middle">${p}%</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" ${_svgNS} role="img"><title>${c.title}</title><text x="${L}" y="20" fill="var(--text)" font-size="12" font-weight="600">${c.title}</text><line x1="${L}" y1="${s.zero.toFixed(1)}" x2="${W-12}" y2="${s.zero.toFixed(1)}" stroke="var(--muted)" stroke-width="1.5"/>${bars}<polyline points="${line}" fill="none" stroke="var(--warn)" stroke-width="2"/>${dots}</svg>`;
+}
+function pbiChartHTML(c){
+  const svg = c.type==='line'?svgLineChart(c) : c.type==='bar'?svgBarChart(c) : c.type==='pareto'?svgParetoChart(c) : '';
+  if(!svg) return '';
+  return `<div class="card" style="margin-top:16px"><div class="lesson-eyebrow"><i data-lucide="bar-chart-3"></i> See the chart</div>${svg}${c.caption?`<p class="text-muted text-sm" style="margin:10px 0 0">${c.caption}</p>`:''}</div>`;
+}
+// Chart specs — numbers MATCH each lesson's output table above them.
+const PBI_CHARTS = {
+  603:{type:'line', title:'Monthly sales ($K)', labels:['Jan','Feb','Mar','Apr','May','Jun'], values:[180,196,188,214,247,268],
+       caption:'The same numbers as the table — but the March dip and the post-April acceleration only jump out when you see the line.'},
+  604:{type:'line', title:'Sales YTD ($K)', labels:['Jan','Feb','Mar','Apr','May','Jun'], values:[180,376,564,778,1025,1293],
+       caption:'TOTALYTD always climbs within the year — what you read is the slope. Steeper = faster accumulation.'},
+  605:{type:'bar', title:'Signup funnel (distinct users)', labels:['Visited','Signed up','Activated','Paid'], values:[12000,4200,2100,760],
+       caption:'Each bar is a funnel step. The biggest drop is visit → signup (65% lost) — that’s where the fix money goes.'},
+  702:{type:'bar', title:'2024 margins (% of revenue)', labels:['Gross','Operating','Net'], values:[60,22,14], fmt:v=>v+'%',
+       caption:'Margins normalize each profit line to revenue — that’s what makes them comparable across quarters and companies.'},
+  705:{type:'bar', title:'Variance vs budget ($K)', labels:['Revenue','COGS','Marketing','Headcount'], values:[80,45,-16,30], colors:['green','red','green','red'],
+       caption:'Color is the verdict, not the sign: revenue over budget (green) is favorable, but COGS and headcount over budget (red) are not.'},
+  803:{type:'bar', title:'Order value distribution (count per bin)', labels:['$0','$40','$80','$120','$160','$200+'], values:[140,170,95,44,20,9],
+       caption:'A right-skewed histogram — most orders sit under $80, with a long tail of big ones. The average lands right of the typical order.'},
+  804:{type:'pareto', title:'Revenue by product ($K) with cumulative %', labels:['A','B','C','D','E','F'], values:[600,290,130,95,55,30], cumPct:[50,74,85,93,98,100],
+       caption:'Two products carry 74% of revenue. The bars rank; the line tells you where to stop caring.'}
+};
+DATA.LESSONS.forEach(l=>{ if(PBI_CHARTS[l.id]) l.chart=PBI_CHARTS[l.id]; });
+
 // ─── SPACED-RECALL CUES (Phase D) ────────────────────────────────────────────
 // Two retrieval questions per lesson, resurfaced +1/+3/+7 lessons later when
 // the learner rated the lesson "Not yet"/"Almost". One auditable map; the merge
@@ -2164,6 +2233,7 @@ function v2PbiBody(l, done){
         <div class="ral-body">${l.ral.say?`<div class="ral-say"><i data-lucide="megaphone"></i><span>${l.ral.say}</span></div>`:''}${ralLines}</div>
       </div>
       ${l.viz?lessonPbiHTML(l.viz):''}
+      ${l.chart?pbiChartHTML(l.chart):''}
       <div id="v2pbi-details-${l.id}" style="display:${mode==='details'?'':'none'}">${detailsHTML}</div>
       <div class="row" style="margin-top:18px;gap:10px">
         <button class="btn btn-ghost btn-sm" onclick="setPbiStage(${l.id},0)">← Back</button>

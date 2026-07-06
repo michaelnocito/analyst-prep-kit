@@ -9,6 +9,23 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.110.0] — 2026-07-06 — 📊 Python + Power BI: track-lesson charts (Medium #6 slices 2+3 — track-chart work COMPLETE)
+
+Same generators as v1.109.0's SQL slice, bundled because they share the component
+(cycle-scoping rule). 7 chart-centric track lessons per kit, spec numbers matching
+each lesson's own output table (kits intentionally have slightly different data):
+
+- **Python** (`PY_CHARTS`, vars adapted to `--dim`/`--success`/`--err`): pct_change line ·
+  cumsum line · funnel bars · margin bars (60/23/15) · variance diverging bars · box plot
+  ($510 outlier) · Pareto (540→30, 71% at B).
+- **Power BI** (`PBI_CHARTS`, SQL-clone vars): DATEADD MoM line · TOTALYTD line · funnel
+  bars · margin bars · variance diverging bars · **histogram bars** (its 803 has real bin
+  counts, so a histogram beats a box plot) · Pareto (600→30, 74% at B).
+
+**All four tool kits with interview tracks (SQL · Python · Power BI + Excel's existing
+charts) now show real visuals on chart-centric lessons.** Tableau draws its own Chart.js
+viz; Stats has Chart.js lesson charts — neither needed this. Headless: 121 checks green.
+
 ## [1.109.0] — 2026-07-06 — 📊 SQL kit: real inline-SVG charts on chart-centric track lessons (Medium #6, slice 1)
 
 The Phase-3 decision rendered track-lesson charts as data tables; this brings real
