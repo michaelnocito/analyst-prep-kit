@@ -9,6 +9,24 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.105.0] — 2026-07-06 — 🧠 Python kit: Phase D+E learning-science parity
+
+Same layer as v1.104.0's SQL port, adapted to Python's Excel-shaped architecture
+(`S`/`save`/`openLesson`, static Home resume card):
+
+- Spaced-recall engine (+1/+3/+7; keys `ppk-recalls`/`ppk-recall-wins`), recall cards at
+  Orient, got-it/nope buttons, "Have it" clears the queue.
+- **42 hand-authored recall cue sets** (`PY_REINFORCES`, 2 retrieval questions per lesson).
+- Artifact bridge at Orient (same-unit chains), retrieval-honesty note on Try,
+  recall-wins counter in Close, return-visit greeting on Home (`ppk-last-visit`).
+- Ride-alongs: Home resume card + watermark now show lesson **position** (was raw id —
+  "Lesson 101" for Unit 0); per-kit and all-kit resets clear the new recall/visit keys
+  (all-kit reset also clears Excel's and SQL's).
+
+Headless suite generalized to a kit-parameterized `de-test.mjs` (private): 46 checks
+across SQL + Python, all green. One cue rewritten (L13 Deep/Shallow Copy) after the
+cue-relevance heuristic flagged it.
+
 ## [1.104.0] — 2026-07-06 — 🧠 SQL kit: Phase D+E learning-science parity with Excel
 
 The Phase H structural port gave SQL the 7-stage v2 flow, but the Phase D (spaced recall)

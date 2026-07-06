@@ -303,6 +303,13 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .unlock-card{background:color-mix(in srgb,var(--accent) 8%,transparent);border:1.5px solid color-mix(in srgb,var(--accent) 30%,transparent);border-radius:var(--radius);padding:18px 20px;margin-top:16px}
 .unlock-card h4{margin:0 0 8px;font-size:14px;color:var(--accent);font-weight:700}
 .unlock-card p{margin:0;font-size:13.5px;color:var(--dim);line-height:1.65}
+.recall-card{background:var(--surf);border:1.5px solid var(--warn,#d9963a);border-radius:var(--radius);padding:16px 18px;margin-bottom:10px}
+.recall-header{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--warn,#d9963a);display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.recall-header .lucide{width:14px;height:14px}
+.recall-cues{margin:0 0 12px 16px;padding:0;font-size:14px;line-height:1.65;color:var(--text)}
+.recall-btns{display:flex;gap:8px;flex-wrap:wrap}
+.artifact-bridge{font-size:13px;color:var(--dim);margin-bottom:12px;padding:0 2px}
+.retrieval-note{font-size:12px;color:var(--dim);font-style:italic;margin:0 0 10px}
 .v2-mode-btn{background:none;border:1px solid var(--border);border-radius:20px;color:var(--dim);font:inherit;font-size:12px;cursor:pointer;padding:4px 12px;transition:.15s;margin-left:auto}
 .v2-mode-btn:hover{border-color:var(--accent);color:var(--accent)}
 .v2-coach-btn{display:inline-flex;align-items:center;gap:7px;background:color-mix(in srgb,var(--accent) 10%,transparent);border:1.5px solid color-mix(in srgb,var(--accent) 32%,transparent);color:var(--accent);padding:8px 16px;border-radius:8px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;margin-top:10px}
@@ -342,6 +349,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
       <div class="tag accent" style="margin-bottom:8px">LESSON <span id="resumeNum">1</span></div>
       <h2 id="resumeTitle">Variables &amp; Data Types</h2>
       <p id="resumeSub">Start here — Python stores data in variables.</p>
+      <p id="returnGreeting" style="font-size:13px;color:rgba(255,255,255,.7);margin-top:4px"></p>
     </div>
     <button class="btn btn-ghost" id="resumeBtn">Start →</button>
     <div class="resume-card-watermark" id="resumeWM">1</div>
@@ -1355,13 +1363,23 @@ function celebrate(gold=false, msg=''){
 }
 
 // ─── HOME ─────────────────────────────────────────────────────────────────────
+function checkReturnStreak(){
+  const today=new Date().toISOString().slice(0,10);
+  const last=localStorage.getItem('ppk-last-visit');
+  localStorage.setItem('ppk-last-visit',today);
+  if(last&&last!==today){
+    const el=document.getElementById('returnGreeting');
+    if(el) el.textContent='Good to have you back. Pick up where you left off.';
+  }
+}
 function renderHome(){
+  checkReturnStreak();
   renderFlagged();
   const done=S.lessonsDone.length, total=DATA.LESSONS.length;
   const cur=DATA.LESSONS.find(l=>l.id===S.currentLesson)||DATA.LESSONS[0];
-  document.getElementById('resumeNum').textContent=cur.id;
+  document.getElementById('resumeNum').textContent=lessonPos(cur.id)+1;
   document.getElementById('resumeTitle').textContent=cur.title;
-  document.getElementById('resumeWM').textContent=cur.id;
+  document.getElementById('resumeWM').textContent=lessonPos(cur.id)+1;
   document.getElementById('resumeBtn').textContent=S.lessonsDone.includes(cur.id)?'Review →':(done===0?'Start →':'Resume →');
   document.getElementById('resumeSub').textContent=cur.intro.split('.')[0]+'.';
 
@@ -1416,6 +1434,8 @@ function resetLessonProgress(){
   S.lessonStage='intro'; save(); renderLesson();
 }
 function openLesson(id){
+  const _l=DATA.LESSONS.find(x=>x.id===id);
+  if(_l) _syncRecalls(id, _l);
   S.currentLesson=id; S.lessonStage='intro'; save();
   show('lesson'); renderLesson();
 }
@@ -1517,6 +1537,9 @@ function rateConf(lessonId, level, btn){
   const wrap = btn.closest('.conf-chips');
   if(wrap) wrap.querySelectorAll('.conf-chip').forEach(c => c.classList.toggle('is-on', c===btn));
   if(window.lucide) lucide.createIcons();
+  // Re-sync the spaced-recall queue to the (possibly changed) confidence.
+  const _rl = DATA.LESSONS.find(x=>x.id===lessonId);
+  if(_rl) _queueRecalls(lessonId, _rl);
 }
 
 function checkQuiz(lid,idx){
@@ -1547,6 +1570,113 @@ function finishLesson(lid){
 // Ported from the SQL kit (H1). A lesson opts in by carrying a `parsons` field.
 // Stage state lives in S.v2Stage = {lessonId: stageNumber} — separate from the
 // legacy S.lessonStage string ('intro'/'done') which non-v2 lessons still use.
+
+// ─── SPACED-RECALL CUES (Phase D) ────────────────────────────────────────────
+// Two retrieval questions per lesson, resurfaced +1/+3/+7 lessons later when
+// the learner rated the lesson "Not yet"/"Almost". One auditable map; the merge
+// loop puts them on l.reinforces so the engine matches Excel's.
+const PY_REINFORCES = {
+  101:["What are a value and a variable, and what does code do top-to-bottom?","Why does line order matter in a script?"],
+  102:["Why is '7' (text) not the same as 7 (number) to Python?","What bug appears when a numeric column is stored as text?"],
+  103:["What is a library, and what does `import pandas as pd` actually do?","Why reach for pandas instead of plain Python lists for data work?"],
+  104:["Name the parts of a DataFrame: rows, columns, index — and its grain.","What question does 'what does one row represent?' protect you from?"],
+  1:["How do you store a number and a piece of text in variables?","What does type() tell you, and when would you check it?"],
+  2:["When do you reach for a list vs a dictionary?","How do you look up a value by key in a dict?"],
+  3:["What does a function let you avoid repeating?","Say the for-loop pattern that processes every item in a list."],
+  4:["What does pd.read_csv hand you back?","What do .head() and .shape tell you about a fresh DataFrame?"],
+  5:["Which three methods give you a first read on any DataFrame?","What does .describe() summarize, and for which columns?"],
+  6:["Say the boolean-mask pattern that keeps rows where amount > 100.","How do you combine two filter conditions in pandas — and which symbols?"],
+  7:["What's the difference between sort_values and sort_values(ascending=False)?","How do you select just two columns from a DataFrame?"],
+  8:["What does groupby('region')['sales'].sum() do to the rows?","What's the difference between .agg('mean') and .agg(['mean','count'])?"],
+  9:["Which column does pd.merge match on, and what does how='left' keep?","After a left merge, what fills the right table's columns for unmatched rows?"],
+  10:["How do you count the NULLs in every column in one line?","When do you fillna vs dropna?"],
+  11:["Which .str methods fix whitespace and case chaos?","How do you replace part of a string across a whole column?"],
+  12:["What does astype change, and what does drop_duplicates remove?","Say the line that writes a cleaned DataFrame to CSV without the index."],
+  13:["What's the difference between a shallow copy and a deep copy?","Why can editing a plain assignment (df2 = df) silently change the original DataFrame?"],
+  14:["What does a decorator wrap around a function?","What does @timer add to a function without changing its body?"],
+  401:["What do .shape, .isnull().sum() and .nunique() together tell you about a table?","Why profile a DataFrame before transforming it?"],
+  402:["Say the duplicated()/value_counts pattern that surfaces duplicate keys.","Why check duplicates BEFORE merging on a column?"],
+  403:["Which .str chain standardizes messy text before matching?","Why standardize case and whitespace before deduplicating?"],
+  404:["What does pd.to_numeric(errors='coerce') do with junk values?","Why pair a type coercion with a fillna default?"],
+  405:["What does .map({...}) translate in a migration?","How do you catch source values your mapping didn't expect?"],
+  406:["Which two totals do you compare between source and target after a load?","Say the indicator=True merge pattern that finds rows that didn't make it."],
+  601:["Name the three things a metric definition pins down before you compute it.","Why do two notebooks disagree on 'monthly active users' from the same data?"],
+  602:["What does pd.cut turn a numeric column into?","Why segment before averaging across customers?"],
+  603:["What does .pct_change() hand you on each row?","Month-over-month growth divides which two numbers?"],
+  604:["What does .cumsum() accumulate, and what must you do to the rows first?","How is a running total different from a plain sum?"],
+  605:["How does nunique count users at each funnel step?","A step's conversion rate divides which two counts?"],
+  606:["What defines a user's cohort in a retention table?","Why track cohorts by 'months since joining' instead of calendar month?"],
+  701:["How does a pivot_table turn a ledger into P&L lines?","Which two ledger fields drive each income-statement line?"],
+  702:["Why divide each profit line by revenue before comparing periods?","Gross, operating, net — what does each margin strip out?"],
+  703:["What question does the current ratio answer?","What does debt-to-equity say about how a company is funded?"],
+  704:["Why is a dollar next year worth less than a dollar today, in NPV terms?","What does IRR tell you that NPV doesn't?"],
+  705:["Variance = actual minus budget — when is a positive variance BAD?","Why report variance as both dollars and percent of budget?"],
+  706:["What is contribution margin, and which costs does it ignore?","Say the break-even formula in units."],
+  801:["What handful of measures profile a table's shape and health in one pass?","Why profile a table before trusting any analysis built on it?"],
+  802:["How do you prove what one row represents with pandas?","What happens to your sums if the grain is finer than you assumed?"],
+  803:["When does the mean lie about a column — and what do you read instead?","How do you pull the rows outside the typical range?"],
+  804:["What does a Pareto analysis rank and accumulate?","What share of items usually drives most of the total, and why care?"],
+  805:["Two columns move together — name two explanations besides causation.","What language keeps a correlation finding honest in a summary?"],
+  806:["What is a control total, and where does a trusted one come from?","What's the last check you run before a number leaves your hands?"]
+};
+DATA.LESSONS.forEach(l=>{ if(PY_REINFORCES[l.id]) l.reinforces=PY_REINFORCES[l.id]; });
+
+// ─── SPACED RECALL QUEUE (Phase D port from Excel: +1/+3/+7 lesson positions) ─
+let _pendingRecalls = [], _recallLesson = null;
+function _getRecallQ(){ return JSON.parse(localStorage.getItem('ppk-recalls')||'[]'); }
+function _saveRecallQ(a){ localStorage.setItem('ppk-recalls',JSON.stringify(a)); }
+function _queueRecalls(id, l){
+  if(!l.reinforces||!l.reinforces.length) return;
+  let arr=_getRecallQ().filter(e=>e.srcId!==id);
+  const conf=(S.confidence||{})[id];
+  if(conf==='low'||conf==='mid'){
+    const pos=lessonPos(id);
+    for(const off of [1,3,7]) arr.push({cues:l.reinforces, srcId:id, dueAt:pos+off});
+  }
+  _saveRecallQ(arr);
+}
+function _dequeueRecalls(id){
+  const pos=lessonPos(id), arr=_getRecallQ();
+  const due=arr.filter(e=>e.dueAt===pos);
+  _saveRecallQ(arr.filter(e=>e.dueAt!==pos));
+  return due;
+}
+function _syncRecalls(id, l){
+  if(_recallLesson===id) return;
+  if(l) _queueRecalls(id, l);
+  _pendingRecalls = _dequeueRecalls(id);
+  _recallLesson = id;
+}
+function _recallsHTML(){
+  return _pendingRecalls.map((e,i)=>`<div class="recall-card">
+    <div class="recall-header"><i data-lucide="repeat-2"></i> Quick recall — no peeking</div>
+    <ul class="recall-cues">${e.cues.map(c=>`<li>${c}</li>`).join('')}</ul>
+    <div class="recall-btns">
+      <button class="btn btn-primary btn-sm" onclick="recallGotIt(${i})">I remembered it</button>
+      <button class="btn btn-outline btn-sm" onclick="recallNope(${i})">Nope, remind me again</button>
+    </div>
+  </div>`).join('');
+}
+function _refreshRecalls(){
+  const el=document.getElementById('v2-recalls');
+  if(!el) return;
+  if(!_pendingRecalls.length){el.style.display='none';return;}
+  el.innerHTML=_recallsHTML();
+  if(window.lucide) lucide.createIcons();
+}
+function recallGotIt(i){
+  _pendingRecalls.splice(i,1);
+  const w=parseInt(localStorage.getItem('ppk-recall-wins')||'0')+1;
+  localStorage.setItem('ppk-recall-wins',String(w));
+  _refreshRecalls();
+}
+function recallNope(i){
+  const e=_pendingRecalls.splice(i,1)[0];
+  const arr=_getRecallQ();
+  arr.push({cues:e.cues, srcId:e.srcId, dueAt:lessonPos(_recallLesson)+1});
+  _saveRecallQ(arr);
+  _refreshRecalls();
+}
 
 function getPyStage(lid){ return ((S.v2Stage||{})[lid]) ?? 0; }
 function setPyStage(lid, s){
@@ -1740,7 +1870,15 @@ function v2PyBody(l, done){
   let body='';
 
   if(stage===0){
-    body=`<div class="v2-stage-card">
+    // Spaced-recall cards due at this lesson position (Phase D)
+    const recallsBlock = (!done && _pendingRecalls.length)
+      ? `<div id="v2-recalls" style="margin-bottom:16px">${_recallsHTML()}</div>`
+      : `<div id="v2-recalls" style="display:none"></div>`;
+    // Progressive-artifact bridge: previous lesson in the same unit
+    const _pp=lessonPos(l.id), _prevOL=_pp>0?DATA.LESSONS[_pp-1]:null;
+    const bridge=(_prevOL&&!l.unit.startsWith('Unit 0')&&_prevOL.unit===l.unit)
+      ? `<p class="artifact-bridge">Last time you built: <strong>${_prevOL.title}</strong>. Now you'll add to it.</p>` : '';
+    body=`${recallsBlock}${bridge}<div class="v2-stage-card">
       <h3><i data-lucide="compass"></i> What's this about</h3>
       ${l.story?`<div class="lesson-story" style="margin-bottom:16px"><i data-lucide="book-open"></i><span>${l.story}</span></div>`:''}
       <p style="margin:0 0 18px;color:var(--dim);font-size:14px;line-height:1.65">${l.intro||l.sub||''}</p>
@@ -1776,6 +1914,7 @@ function v2PyBody(l, done){
     const pool=idxs.map(i=>`<div class="v2-pars-chip" data-idx="${i}" onclick="v2ParsChipTap(${l.id},this)">${p.lines[i]}</div>`).join('');
     body=`<div class="v2-stage-card">
       <h3><i data-lucide="list-ordered"></i> Try It</h3>
+      <p class="retrieval-note">This feels harder because it works — struggling to recall is how memory forms.</p>
       <p style="color:var(--dim);font-size:14px;margin-bottom:10px">${p.prompt}</p>
       <p style="font-size:12px;color:var(--dim);margin:0 0 6px">Tap a piece to move it between the pool and your answer:</p>
       <div class="v2-pool" id="v2py-pool-${l.id}">${pool}</div>
@@ -1832,8 +1971,10 @@ function v2PyBody(l, done){
     const nextBtn=nextL
       ?`<button class="btn ${drillCount?'btn-outline btn-sm':'btn-primary'}" onclick="openLesson(${nextL.id})">Next: ${nextL.title} &rarr;</button>`
       :`<a href="../final/" class="btn ${drillCount?'btn-outline btn-sm':'btn-primary'}" style="text-decoration:none">Try the Final Exam &rarr;</a>`;
+    const _wins=parseInt(localStorage.getItem('ppk-recall-wins')||'0');
     body=`<div class="v2-stage-card">
       <h3><i data-lucide="badge-check"></i> Done</h3>
+      ${_wins>0?`<p style="font-size:12px;color:var(--dim);margin:0 0 10px"><i data-lucide="repeat-2" style="width:13px;height:13px;vertical-align:-2px"></i> ${_wins} concept${_wins===1?'':'s'} recalled from memory so far</p>`:''}
       <p style="font-size:15px;line-height:1.7;margin-bottom:18px">${l.close}</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
         ${drillCount?`<button class="btn btn-primary" onclick="startGuided(${l.id})">Practice this &rarr;</button>`:''}
@@ -2305,7 +2446,7 @@ function handleResetKit(btn){
     btn.style.color='#e07c7c';btn.style.borderColor='#e07c7c';
     setTimeout(function(){if(_kitConfirm){_kitConfirm=false;btn.textContent='↺ Reset this kit';btn.style.color='';btn.style.borderColor='';}  },4000);
   } else {
-    localStorage.removeItem('ppk');
+    ['ppk','ppk-recalls','ppk-recall-wins','ppk-last-visit'].forEach(function(k){localStorage.removeItem(k);});
     location.reload();
   }
 }
@@ -2316,7 +2457,7 @@ function handleResetAll(btn){
     btn.style.color='#e07c7c';btn.style.borderColor='#e07c7c';
     setTimeout(function(){if(_allConfirm){_allConfirm=false;btn.textContent='↺ Reset all kits';btn.style.color='';btn.style.borderColor='';}  },4000);
   } else {
-    ['sqlkit-v1','epk','ppk','tpk','spk'].forEach(function(k){localStorage.removeItem(k);});
+    ['sqlkit-v1','epk','ppk','tpk','spk','ppk-recalls','ppk-recall-wins','ppk-last-visit','sqlkit-recalls','sqlkit-recall-wins','sqlkit-last-visit','epk-recalls','epk-recall-wins','epk-last-visit'].forEach(function(k){localStorage.removeItem(k);});
     location.reload();
   }
 }
