@@ -9,6 +9,21 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.111.0] — 2026-07-06 — ✅ SQL kit: no auto-advance on lesson checks (playtest blocker)
+
+From Mike's playtest-tracker feedback (2 bugs, both about lesson-flow checks):
+
+- **Wrong answers no longer auto-advance.** The Build It step advanced to the next
+  stage ~2s after a wrong pick (reported on Unit 0 "Keys & Why Tables Relate",
+  question 5 of the lesson flow). It now shows **Try Again** (re-deals the question)
+  and **Continue anyway**, matching the Quick Check's existing pattern.
+- **Correct-answer explanations no longer vanish.** Quick Check, Build It, and the
+  Parsons reorder all auto-advanced ~1s after a correct answer, yanking the
+  explanation text off screen. All three now stay put and show a **Continue →**
+  button, so the explanation reads at the learner's pace.
+- Follow-up (roadmap): sweep the other kits for the same auto-advance patterns —
+  Mike flagged this as a check-all-kits item.
+
 ## [1.110.0] — 2026-07-06 — 📊 Python + Power BI: track-lesson charts (Medium #6 slices 2+3 — track-chart work COMPLETE)
 
 Same generators as v1.109.0's SQL slice, bundled because they share the component
