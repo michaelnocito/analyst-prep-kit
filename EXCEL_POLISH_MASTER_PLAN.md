@@ -1,5 +1,11 @@
 # Excel Kit — Learning-Science Polish: Master Development Plan
 
+> ## 🏁 STATUS (July 6, 2026): PLAN EXECUTED — ALL BUILD PHASES COMPLETE
+> - **Excel:** Phases A–F all shipped (A v1.78.0 · B–C v1.79–1.80 · D v1.81.0 · E v1.82.0 · F v1.83.0). Phase G Modes 1+3 shipped (v1.83.x); **Mode 2 (mock interview) is the only unbuilt piece — now parked with the AI Coach item** (Project Studio's AI flow gets proven first; see ROADMAP Parking Lot).
+> - **Phase H (port to other kits):** structural v2 port complete July 3 (SQL v1.86 · Python v1.89 · Power BI v1.92 · Tableau v1.95 · Stats v1.97), then the **D+E layers (spaced recall + motivation) reached full parity July 6** (SQL v1.104 · Python v1.105 · Power BI v1.106 · Tableau v1.107 · Stats v1.108).
+> - **Bonus (same sprint):** chart-centric interview-track lessons got real inline-SVG charts in SQL/Python/Power BI (v1.109–v1.110).
+> - **Open:** Mike's live playtest (test batches 27–33 in `apk_CLAUDE.md`). This document is now the historical spec + porting reference.
+
 _Created June 29, 2026 — 12:48 PM ET. Pilot kit = **Excel**, then port the proven pattern to SQL · Python · Power BI · Tableau · Stats. This plan folds together: yesterday's 7-gap SQL Quest learning-science review (`sql-quest-learning-science-review.md`), the June 29 mobile-playtest feedback, the 10 transcribed voice memos (`Downloads/prepkit_feedback_0629/TRANSCRIPTS.txt`), and four research/audit passes run June 29 (one full code audit of `excel/index.html`, three evidence-based learning-science briefs). The AI Coach is included as the premium layer this redesign is built to receive._
 
 ---

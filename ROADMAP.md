@@ -21,7 +21,7 @@
 **Prior:** `v1.68.1` (June 23, 2026 — 🐛 fix: Chart Literacy "Practice" drills did nothing on click — `freeDrill` `lessonId:null` → `renderGuidedStep` read `lesson.title` on undefined → threw. Fixed the no-lesson free-practice path. Verified live.)
 **Prior:** `v1.68.0` (June 23, 2026 — 🎨 Grain redesign Phase 2f: Chart Literacy restyled to Grain. Inline SVG, not Chart.js. Verified headless + live, dark + light.)
 
-> ### 🎨 GRAIN REDESIGN — IN FLIGHT (multi-phase, one phase per cycle)
+> ### 🎨 GRAIN REDESIGN — ✅ PHASES 0–3 COMPLETE (July 2026). Phase 4 parked (see Parking Lot; revisit ~July 25, traffic-gated). Historical plan below.
 > Restyling the suite to the **Grain** design system (clay primary `#C5511F`, honey amber accent,
 > warm stone neutrals on cream; Space Grotesk + IBM Plex type; **Lucide** line icons, no emoji).
 > Plan + tokens live in `C:\Users\Mike\Projects\excel-dry-run-handoff\Grain Design System\design_handoff_grain_redesign\`
@@ -336,6 +336,7 @@ _Response time: next planned cycle._
 #### ⬇️ June 29, 2026 feedback batch (continued — Medium-bucket items)
 
 - **CONTENT: real chart/pivot visuals in chart-based exercises (audit all kits)** _(added June 29, 2026 — 12:13 PM ET)_ — _learning-quality content sweep; Excel first_
+  - _STATUS (July 6, 2026):_ ✅ **Track-lesson slice COMPLETE** (the roadmap's reconciliation case): zero-dep inline-SVG generators (line · bar/diverging · Pareto combo · box plot) + 7 chart-centric track lessons each in SQL (v1.109.0), Python + Power BI (v1.110.0); Excel had its Phase-A charts; Tableau/Stats draw Chart.js natively. **Remaining scope = the broad ALL-exercise chart/pivot audit** (every exercise that merely mentions a chart/pivot) — still Large/phased; the generators are now built and reusable, so each future slice is mostly content-spec authoring. Test batches 32–33.
   - _What:_ When an exercise references a chart or pivot table (e.g. the Excel "what's wrong with this?" question), show an actual rendered visual, not just a description — so learners get used to reading charts/pivots. Go through ALL exercises across all kits and add the visual wherever a chart/pivot is mentioned, within the calm design principles.
   - _Why Medium:_ Real learning-quality lift, but a broad multi-file content audit (big-overhaul flavor) → phase it. ⚠️ Tension with the Phase-3 decision to render track-lesson charts as DATA TABLES (where kits can't draw them); this item is the counter-pressure to bring real visuals where they matter most (exercises). Reconcile: real inline-SVG/Chart.js visuals for chart-centric exercises; tables stay only where a visual adds nothing.
   - _Scope:_ Inventory every chart/pivot-referencing exercise; Excel first (the "what's wrong" charts + Pivot Lab), then SQL/Python/Tableau/Stats/Power BI. Reuse existing chart renderers where present.
