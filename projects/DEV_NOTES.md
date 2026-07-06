@@ -22,3 +22,9 @@ Portfolio-project builder inside the Analyst Prep Kit. Scope → Plan → Build 
 - Hidden Gem scoring view/CTE with thresholds set from real percentile distributions.
 - Tableau dashboard + Excel pivot leg for the Hidden Gems project specifically.
 - docx template for the final written scope/methodology deliverable.
+
+### Playtest feedback triage (2026-07-06, from Supabase `Project Studio` inbox — 6 items, all still `new`)
+- **Cross-device save** — currently `localStorage` only, no sync across browsers/machines. Real gap once Mike dogfoods on more than one device. Backlog — needs an account/sync layer (likely piggybacks on the Supabase project already used by [[project_playtest_tracker]]/freemium), not a quick add.
+- **Large-dataset handling guidance** (3 overlapping items: "how to profile a 400MB/125k-row CSV without choking Excel", "confirm data source has the 6 criteria fields", "add general large-file-load tips") — Mike drafted the actual content himself (Power Query preview-without-load approach, Load To → Only Create Connection, don't just double-click a huge CSV). This is real, already-written copy for the Build stage's **Prepare** step note field. Backlog: fold into the Prepare stage's help text, sourced verbatim from his Supabase inbox note (see `Project Studio` game row) so we don't re-derive it.
+- **Speech-to-text mic button** for the feedback/idea/bug capture fields — nice-to-have accessibility/speed feature, not blocking. Backlog.
+- **Spellcheck in feedback fields** — likely just missing `spellcheck="true"` on the relevant `<input>`/`<textarea>` in `projects/index.html`; small enough to grab in the next Project Studio pass. Backlog, low effort.
