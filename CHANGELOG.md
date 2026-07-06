@@ -9,6 +9,23 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.112.0] — 2026-07-06 — 🗄️ SQL kit: "Set Up a SQL Database" lesson + Project Studio "New to this?" links
+
+Both halves of Mike's portfolio-project feedback (he hit "import the raw CSV into
+steam_games_raw" with no coverage of how):
+
+- **SQL kit — new Unit 0 lesson (id 105, free): "Set Up a SQL Database."** The
+  CSV → table bridge: SQLite/DB Browser workflow, CREATE TABLE + column types,
+  the `_raw` untouched-original convention, and the COUNT(*) verify step. Full
+  7-stage flow (story/RAL/viz/quiz/parsons/build) + 2 spaced-recall cues.
+  SQL kit is now **47 lessons** (hub label updated).
+- **SQL kit — hash deep links:** `sql/#lesson-105` (any lesson id) opens that
+  lesson directly.
+- **Project Studio — "📚 New to this?" links on plan steps.** Every step tagged
+  with a tool now links to that tool's kit; the SQL load/import steps link
+  straight to the new lesson. Render-time, so existing saved plans (Mike's
+  Steam Hidden Gems project) get the links without re-generating the plan.
+
 ## [1.111.0] — 2026-07-06 — ✅ SQL kit: no auto-advance on lesson checks (playtest blocker)
 
 From Mike's playtest-tracker feedback (2 bugs, both about lesson-flow checks):

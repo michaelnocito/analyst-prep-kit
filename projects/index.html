@@ -720,7 +720,7 @@ function buildHTML(p){
         h += `<div class="step-row ${s.done?'done':''}">
           <input type="checkbox" ${s.done?'checked':''} onchange="stepDone('${sg.key}',${i},this.checked)">
           <div style="flex:1"><span class="txt">${esc(s.text)}</span>${s.skill?`<span class="skill-tag">${skillLabel(s.skill).toUpperCase()}</span>`:''}
-            <div><button class="note-btn" onclick="toggleNote('${s.id}')">${s.notes?'Edit note':'+ note'}</button></div>
+            <div><button class="note-btn" onclick="toggleNote('${s.id}')">${s.notes?'Edit note':'+ note'}</button> ${stepLearnLink(s)}</div>
             <textarea class="step-note" id="note-${s.id}" style="display:${s.notes?'block':'none'}" placeholder="What you did, what you found, decisions made..." oninput="stepNote('${sg.key}',${i},this.value)">${esc(s.notes)}</textarea>
           </div>
         </div>`;
@@ -738,6 +738,19 @@ function buildHTML(p){
 }
 function toggleStage(key){ OPEN_STAGE = OPEN_STAGE===key?null:key; render(); }
 function stepDone(key,i,v){ const st=peStage(key); st.steps[i].done=v; saveProj(); render(); }
+/* "New to this?" links — steps that assume technical prereq knowledge get a
+   pointer to the basics (Mike's playtest feedback: the SQL-load step assumed
+   you already knew how to make a database). Specific how-to lessons first,
+   then the step's tagged kit as the general fallback. */
+const KIT_HOME = {excel:'../excel/', sql:'../sql/', tableau:'../tableau/', powerbi:'../powerbi/', python:'../python/'};
+function stepLearnLink(s){
+  if(!s.skill || !KIT_HOME[s.skill]) return '';
+  let href = KIT_HOME[s.skill], label = skillLabel(s.skill)+' basics';
+  if(s.skill==='sql' && /\b(load|import|create|set ?up)\b/i.test(s.text) && /\b(database|table|csv|raw)\b/i.test(s.text)){
+    href = '../sql/#lesson-105'; label = 'How to set up a SQL database';
+  }
+  return `<a class="note-btn" href="${href}" target="_blank" rel="noopener" style="text-decoration:none">📚 New to this? ${label} →</a>`;
+}
 function stepNote(key,i,v){ peStage(key).steps[i].notes=v; saveProj(); }
 function toggleNote(id){ const el=document.getElementById('note-'+id); el.style.display = el.style.display==='none'?'block':'none'; if(el.style.display==='block')el.focus(); }
 function toPresent(){

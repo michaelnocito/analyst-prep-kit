@@ -455,6 +455,19 @@ LESSONS: [
    build:{q:"Which query finds rows where the email column is missing?",opts:["SELECT * FROM customers WHERE email IS NULL;","SELECT * FROM customers WHERE email = NULL;","SELECT * FROM customers WHERE email = '';","SELECT * FROM customers WHERE email != '';"],ans:0,exp:"IS NULL is the only correct test for missing values. = NULL always returns false — unknown can't equal anything, including itself. An empty string ('') is not the same as NULL."},
    close:"You know what SQL returns and how NULL behaves — that prevents a whole class of silent wrong answers. Next: your first real query.",
    unlock:"NULL propagation is the most silent source of wrong totals in SQL. Once you know that NULL + anything = NULL and that COUNT(col) skips NULLs, you'll catch calculation errors that fool most junior analysts."},
+  {id:105, unit:"Unit 0: Before You Query", title:"Set Up a SQL Database", sub:"Turn a raw CSV file into a real table you can query.",
+   story:"Everything so far assumed the data was already in a database. On a real project it usually isn't — you're handed a CSV file. The bridge is a one-time setup step: create a database, import the CSV into a table (analysts often name it something like steam_games_raw — 'raw' marks it as the untouched original), and verify it loaded. Once it's a table, every skill in this kit applies: filtering, joining, grouping. This is the exact step people hit on their first portfolio project.",
+   intro:"The easiest no-install-server path is <strong>SQLite</strong>: the whole database is a single file on your computer, and a free tool like <em>DB Browser for SQLite</em> imports a CSV in a few clicks (File → Import → Table from CSV). Two decisions matter: the <strong>table name</strong> (keep the raw import separate and named <code>_raw</code> — you clean into a new table later, never edit the original) and the <strong>column types</strong> (numbers stored as TEXT can't be summed or compared correctly). After any import, verify: count the rows and eyeball a few.",
+   ral:{sql:"CREATE TABLE steam_games_raw (\n  app_id INTEGER,\n  name TEXT,\n  price REAL,\n  release_date TEXT,\n  owners TEXT\n);\n-- then import the CSV into it, and verify:\nSELECT COUNT(*) FROM steam_games_raw;",say:"Make an empty table with the right column names and types, load the CSV into it, then count the rows to confirm everything arrived.",
+     lines:[["CREATE TABLE","makes a new, empty table with named, typed columns"],["steam_games_raw","the _raw suffix = untouched original; clean into a separate table later"],["INTEGER / REAL / TEXT","column types — whole numbers, decimals, text; wrong types break math and sorting"],["import","the GUI (DB Browser) or a command (.import in sqlite3) loads the CSV rows in"],["SELECT COUNT(*)","the verify step — the row count should match the source file"]]},
+   notes:"Import gotchas that bite everyone once: the CSV's first row is usually headers, not data (tick 'column names in first row'); numbers with $ signs or commas import as TEXT until cleaned; and a row count that's off by more than the header row means quoting/delimiter problems. Same idea elsewhere: MySQL uses LOAD DATA INFILE, Postgres uses COPY — the workflow (create table → import → verify) is identical.",
+   viz:{columns:["step","what you do","what can go wrong"],rows:[["1. Create the database","one .db file (SQLite) — no server needed","—"],["2. Import the CSV","DB Browser: File → Import → Table from CSV","headers read as a data row; types guessed wrong"],["3. Name it *_raw","steam_games_raw stays untouched","cleaning the original = no way back"],["4. Verify","SELECT COUNT(*) vs the file's row count","a mismatch means rows were dropped or split"]],caption:"The one-time setup workflow. After step 4 the data is a real table — every other lesson in this kit now applies to it."},
+   quiz:{q:"You import a 125,000-row CSV into steam_games_raw. What's the FIRST thing to run?",opts:["SELECT * to look at all the data","SELECT COUNT(*) — and compare it to the source file's row count","A JOIN to another table","DELETE the rows you don't need"],ans:1,exp:"Verify before you trust. COUNT(*) against the source row count catches silent import failures (dropped rows, delimiter problems) immediately. SELECT * on 125k rows tells you much less, and deleting from a _raw table breaks the whole point of keeping an untouched original."},
+   parsons:{prompt:"Arrange the setup workflow as SQL + verify.",lines:["SELECT COUNT(*) FROM steam_games_raw;","-- import the CSV into the table","CREATE TABLE steam_games_raw (app_id INTEGER, name TEXT, price REAL);"],answer:[2,1,0]},
+   compare:"Create the table first, load into it second, verify third. Importing before the table exists (or letting the tool guess every type) is how price columns end up as TEXT that won't sum.",
+   build:{q:"Your price column imported as TEXT and SUM(price) returns garbage. What went wrong?",opts:["The column type — values like \"$4.99\" imported as text, so math doesn't work on them","SUM only works on INTEGER columns","The table name has _raw in it","SQLite can't do SUM"],ans:0,exp:"Column types are the second big import decision. Currency symbols and thousands commas force a column to TEXT; you clean those into a REAL column (in a new table — never the _raw one) before doing math."},
+   close:"You can now take any CSV and make it queryable — the bridge between 'downloaded a dataset' and everything else in this kit. Next: your first real query.",
+   unlock:"The create → import → verify workflow is universal: SQLite today, Postgres COPY or MySQL LOAD DATA on the job. Keeping an untouched _raw table plus a cleaned working table is the habit that separates portfolio projects that survive scrutiny from ones that don't."},
   // UNIT 1
   {id:1, core:true, unit:"Unit 1: Foundations", title:"SELECT & FROM", sub:"Pull columns from a table",
    story:"You know the mental model: databases are tables, rows have a grain, keys connect tables, queries return tables. Now write your first actual question. SELECT names the columns you want; FROM names the table to get them from. That's the whole skeleton. Every query you'll ever write starts with these two words.",
@@ -1904,6 +1917,7 @@ const SQL_REINFORCES = {
   102:["What question does 'what is the grain of this table?' actually ask?","Why is knowing the grain the first step before summing or counting anything?"],
   103:["What is a primary key, and what makes a foreign key different?","What is a JOIN actually doing when it matches rows across two tables?"],
   104:["What shape does every SQL query return its answer in?","What does NULL mean — and why isn't it the same as 0 or an empty string?"],
+  105:["What are the three steps for turning a CSV into a queryable table?","Why keep the imported table untouched with a _raw name — and what do you run to verify an import?"],
   1:["Say the two clauses every query starts from, and what each one names.","How do you pull only the name and city columns from a customers table?"],
   2:["Which clause filters rows, and where does it sit relative to FROM?","Write (out loud) a WHERE condition for orders over 100 placed in Texas."],
   3:["Which clause sorts results, and what does DESC change?","Why must LIMIT come after ORDER BY to get a real 'top 5'?"],
@@ -3359,7 +3373,13 @@ async function initKitWithSync() {
 }
 initKitWithSync();
 
-navigate('home');
+// deep link: #lesson-105 opens that lesson directly (used by Project Studio's
+// "new to this?" links on technical plan steps)
+(function(){
+  const m = (location.hash||'').match(/^#lesson-(\d+)$/);
+  const l = m && DATA.LESSONS.find(x=>x.id===+m[1]);
+  if(l) navigate('lesson', l.id); else navigate('home');
+})();
 // Medium #5: one-time "you've unlocked" moment + async account-entitlement hydrate.
 if(window.apkPass){ apkPass.celebrateUnlock(); apkPass.hydrateAcct(function(){ if(currentView==='lessons') renderLessons(); }); }
 

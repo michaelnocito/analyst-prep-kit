@@ -5,11 +5,12 @@ Portfolio-project builder inside the Analyst Prep Kit. Scope → Plan → Build 
 - Live: https://michaelnocito.github.io/analyst-prep-kit/projects/
 - Source: `projects/index.html` (single-file, vanilla JS, GRAIN design system)
 - State: `localStorage['apk-projects-v1']`
-- Current version: v1.103.1
+- Current version: v1.112.0
 
 ## ROADMAP
 
 ### Shipped
+- v1.112.0 — "📚 New to this?" links on Build-phase plan steps: every tool-tagged step links to that tool's kit; SQL load/import steps deep-link to the SQL kit's new Unit 0 lesson "Set Up a SQL Database" (`../sql/#lesson-105`). Render-time, so saved plans get the links retroactively. (From Mike's playtest feedback: the steam_games_raw import step assumed prereq knowledge.)
 - v1.103.0 — Initial ship: Scope wizard (7 steps), Plan (template/paste-your-own/Claude BYOK draft), Build (accordion checklist over the 6 analysis stages), Present (deliverable checklist + .md export).
 - v1.103.1 — Fix: Next button on the Scope wizard stayed disabled while typing in the question/criteria fields (validity wasn't rechecked on keystroke, only on full re-render).
 
