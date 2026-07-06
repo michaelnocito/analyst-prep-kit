@@ -1809,7 +1809,9 @@ function v2ParsCheck(lid){
   if(correct){
     delete _v2ParsWasWrong[lid];
     celebrate();
-    setTimeout(()=>setPyStage(lid,3), 900);
+    const fb = document.getElementById('v2py-pars-fb-'+lid);
+    if(fb) fb.innerHTML=`<span style="color:var(--ok,#3a9d6a);font-size:13px;font-weight:600">Correct — that's the right order.</span>
+      <div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setPyStage(${lid},3)">Continue &rarr;</button></div>`;
   } else {
     const fb = document.getElementById('v2py-pars-fb-'+lid);
     if(fb) fb.innerHTML='<span style="color:var(--err);font-size:13px;font-weight:600">Not quite — try reordering the pieces.</span>';
@@ -1830,7 +1832,10 @@ function v2BuildPick(btn, lid){
   const fb = document.getElementById('v2py-build-fb-'+lid);
   if(fb) fb.innerHTML=`<div class="quiz-feedback ${isCorrect?'ok':'bad'}">${l.build.exp}</div>`;
   if(!isCorrect){ const cb=document.getElementById('v2py-coach-build-'+lid); if(cb) cb.style.display=''; }
-  setTimeout(()=>setPyStage(lid,5), isCorrect?1200:2600);
+  const row = isCorrect
+    ? `<div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setPyStage(${lid},5)">Continue &rarr;</button></div>`
+    : `<div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setPyStage(${lid},4)">Try Again</button><button class="btn btn-outline btn-sm" onclick="setPyStage(${lid},5)">Continue anyway</button></div>`;
+  if(fb) fb.insertAdjacentHTML('beforeend', row);
 }
 
 function v2QuizDone(lid){
@@ -1855,7 +1860,9 @@ function v2QuizAnswer(lid, chosen){
   if(exp) exp.innerHTML=`<div class="quiz-feedback ${chosen===l.quiz.ans?'ok':'bad'}">${l.quiz.exp}</div>`;
   if(chosen===l.quiz.ans){
     celebrate();
-    setTimeout(()=>v2QuizDone(lid), 1200);
+    wrap.insertAdjacentHTML('beforeend',`<div style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn btn-primary btn-sm" onclick="v2QuizDone(${lid})">Continue &rarr;</button>
+    </div>`);
   } else {
     wrap.insertAdjacentHTML('beforeend',`<div style="display:flex;gap:10px;margin-top:14px">
       <button class="btn btn-primary btn-sm" onclick="v2QuizRetry(${lid})">Try Again</button>

@@ -9,6 +9,31 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.113.0] — 2026-07-06 — ✅ All-kits sweep: no auto-advance on lesson checks
+
+Extends the v1.111.0 SQL fix (Mike's check-all-kits playtest blocker) to every
+other kit with the same `setTimeout(...advance...)` pattern:
+
+- **Python, Power BI, Tableau, Stats** (v2 stage flow, same shape as SQL):
+  - Parsons reorder: correct answers now show "Correct — that's the right order."
+    + a **Continue →** button instead of auto-jumping to the next stage after 900ms.
+  - Build It: correct gets **Continue →**; wrong keeps the explanation on screen
+    with **Try Again** + **Continue anyway** (was: auto-advance after 1.2–2.6s
+    either way, wiping the explanation).
+  - Quick Check: correct answers keep their explanation visible with a
+    **Continue →** button (was: auto-advance after 1.2s). Wrong-answer
+    Try Again / Continue anyway buttons already existed and are unchanged.
+- **Power BI practice Parsons** (`checkParsons`): "✓ Correct order!" now holds
+  with a **Continue →** button (guided mode and free mode both respected)
+  instead of auto-navigating after 1.2s.
+- **Excel** (older v2Continue flow): Parsons "✓ Correct!", Build "✓ That's it.",
+  and Quick Check correct-answer explanations all now hold with a **Continue →**
+  button instead of advancing 700ms later. Wrong-answer paths (Try Again /
+  Skip / auto-reset of the Parsons chips) already behaved correctly and are unchanged.
+- Swept clean (no auto-advance patterns found): interview, forecasting,
+  chart-literacy, final, and the separate excel-lessons repo.
+- All edited script blocks pass a headless Node syntax check.
+
 ## [1.112.0] — 2026-07-06 — 🗄️ SQL kit: "Set Up a SQL Database" lesson + Project Studio "New to this?" links
 
 Both halves of Mike's portfolio-project feedback (he hit "import the raw CSV into
