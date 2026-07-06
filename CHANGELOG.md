@@ -9,6 +9,24 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.109.0] — 2026-07-06 — 📊 SQL kit: real inline-SVG charts on chart-centric track lessons (Medium #6, slice 1)
+
+The Phase-3 decision rendered track-lesson charts as data tables; this brings real
+visuals back where they matter most — the chart-centric lessons — per the roadmap's
+reconciliation note (charts where a visual teaches; tables stay elsewhere).
+
+- **Zero-dependency parametric SVG generators** (line · bar with negative/diverging
+  support · Pareto combo · box plot), all colors via CSS vars (dark + light), with
+  `<title>` accessibility labels. No Chart.js — the kit stays static.
+- **7 lessons charted** (`SQL_CHARTS` map, numbers match each lesson's result table):
+  603 MoM line · 604 running-total line · 605 funnel bars · 702 margin bars ·
+  705 variance diverging bars (color = verdict, not sign) · 803 box plot with the
+  $540 outlier · 804 Pareto bars + cumulative % line.
+- Chart card renders in the Worked Example stage AFTER the query-result table —
+  the table stays the ground truth; the chart is the stakeholder view.
+- Harness: chart checks added (ids valid, SVG renders, no NaN coords); apkPass stub
+  added so premium track lessons render their real body headlessly. 117 checks green.
+
 ## [1.108.0] — 2026-07-06 — 🧠 Stats kit: Phase D+E parity — 🏁 D+E ROLLOUT COMPLETE (all 6 kits)
 
 Final kit in the rollout. Stats specifics: numeric `unit` field (bridge condition adapted:
