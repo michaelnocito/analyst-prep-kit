@@ -9,6 +9,21 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.106.0] — 2026-07-06 — 🧠 Power BI kit: Phase D+E learning-science parity
+
+Same layer as the SQL (v1.104.0) and Python (v1.105.0) ports; Power BI is a SQL-clone
+architecture so the port is 1:1 (keys `pbikt-recalls`/`pbikt-recall-wins`/`pbikt-last-visit`):
+
+- Spaced-recall engine (+1/+3/+7), recall cards at Orient (Lesson 1's workspace-tour
+  button preserved), got-it/nope, "Have it" clears.
+- **39 hand-authored recall cue sets** (`PBI_REINFORCES`) — Power Query, DAX, and
+  model-thinking retrieval questions.
+- Artifact bridge at Orient, retrieval-honesty note on Try, recall-wins counter in Close,
+  return-visit greeting on Home.
+- Ride-alongs: resume card shows lesson **position** (was raw id); reset clears recall keys.
+
+Headless: 69 checks green across SQL + Python + Power BI (`de-test.mjs`).
+
 ## [1.105.0] — 2026-07-06 — 🧠 Python kit: Phase D+E learning-science parity
 
 Same layer as v1.104.0's SQL port, adapted to Python's Excel-shaped architecture
