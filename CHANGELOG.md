@@ -9,6 +9,17 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.103.0] — 2026-07-06 — 🧭 Project Studio — new "Projects" section
+
+New kit at `projects/`: a portfolio-project builder that walks a learner from a vague idea to an interview-ready project through four phases, teaching real analyst workflow along the way.
+
+- **Scope** — 7-step intake wizard (domain → one-sentence question → measurable criteria → data-feasibility check per criterion (direct/proxy/cut) → define the deliverable → pick tools → stamped scoping doc). Job-first tool guidance: Excel/SQL/Tableau flagged as the recommended core, Power BI/Python optional.
+- **Plan** — the step-by-step, three sources: (a) a guided template generated from the scope + chosen tools, (b) paste/write your own (`## Stage` headings + `[skill]` tags parsed into stages), (c) optional Claude draft — BYOK direct-browser call (Sonnet, shared `apk-coach-key`), scope doc → strict-JSON plan. All three land in the same editor (edit/add/delete/tag steps) before locking.
+- **Build** — the plan as an accordion checklist over the six industry-standard analysis stages (Ask → Prepare → Process → Analyze → Share → Act), each stage with a best-practice mentor note (raw-data hygiene, cleaning logs, thresholds from real distributions, lead-with-the-answer). Per-step notes; progress bar; Present unlocks when all steps are done.
+- **Present** — deliverable checklist seeded from the scope (README, methodology, published dashboard link when relevant, .sql file, workbook hygiene), 90-second-walkthrough interview tip, and a one-click **project doc export** (copy or download .md: scope + full plan with notes + checklist — a ready README skeleton).
+- Hub: new Project Studio kit card (`data-kit="projects"`, amber accent, "Portfolio · New" badge) above Keygarden; excluded from progress/continue tracking by design.
+- Single-file vanilla JS, GRAIN design system, dark-mode via the cross-kit `apk-theme` contract, state in `localStorage['apk-projects-v1']`. Parse gate clean (projects + hub).
+
 ## [1.102.0] — 2026-07-05 — 🔓 Premium-unlocked badges — **Medium #5 COMPLETE**
 
 Buying now *feels* like unlocking something instead of features silently working. All new state/badge logic is centralized in `assets/apk-pass.js`, so each premium surface gets a small, uniform change.
