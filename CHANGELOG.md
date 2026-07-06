@@ -9,6 +9,30 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.104.0] — 2026-07-06 — 🧠 SQL kit: Phase D+E learning-science parity with Excel
+
+The Phase H structural port gave SQL the 7-stage v2 flow, but the Phase D (spaced recall)
+and Phase E (motivation) layers were Excel-only until now. Ported per `EXCEL_POLISH_MASTER_PLAN.md`:
+
+- **Spaced-recall engine** (+1/+3/+7 lesson positions): rating a lesson "Not yet"/"Almost"
+  queues its recall cues; they resurface as a "Quick recall — no peeking" card at the Orient
+  stage of later lessons. "I remembered it" counts a win; "Nope" re-queues at the next lesson.
+  Re-rating to "Have it" clears the queue for that lesson. Keys: `sqlkit-recalls`, `sqlkit-recall-wins`.
+- **46 hand-authored recall cue sets** (2 retrieval questions per lesson) in one auditable
+  `SQL_REINFORCES` map, merged onto lesson objects at boot (runtime shape matches Excel's `reinforces:[]`).
+- **Progressive-artifact bridge** at Orient ("Last time you built: X. Now you'll add to it.")
+  for same-unit lesson chains (not on unit openers / Unit 0).
+- **Retrieval-honesty note** on the Try stage ("This feels harder because it works…").
+- **Recall-wins counter** in the Close stage ("N concepts recalled from memory so far").
+- **Return-visit greeting** on Home on a new-day return (`sqlkit-last-visit`).
+- Fixes riding along: Home resume card now shows the lesson **position** (was raw id — showed
+  "Lesson 101" for Unit 0); AI Coach key migrated to the shared `apk-coach-key` (legacy
+  `sql-coach-key` still read as fallback); Reset-all clears the new recall/visit keys.
+
+Verified via a new private headless behavioral suite (23 checks: eval, cue coverage/shape/relevance,
+v2 field integrity across all 46 lessons, recall queue round-trip, 46×7 stage-render sweep,
+bridge/note/greeting rendering, link targets — all green). External links HEAD-checked 200.
+
 ## [1.103.2] — 2026-07-06 — fix: Project Studio "Generate with Claude" used a stale model ID
 
 `claude-sonnet-4-5-20250514` is a deprecated dated snapshot; the API returned a `not_found_error` whose message (just the model name) surfaced as the whole error, misleadingly. Switched to `claude-sonnet-4-5` (no date suffix) — matches the working model ID already used by Excel's Mode 3 coach and the Simulator kit.

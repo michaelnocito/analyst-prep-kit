@@ -347,6 +347,13 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .unlock-card{background:linear-gradient(135deg,rgba(47,109,240,.1),rgba(89,55,232,.1));border:1.5px solid rgba(47,109,240,.3);border-radius:var(--r);padding:18px 20px;margin-top:16px}
 .unlock-card h4{margin:0 0 8px;font-size:14px;color:var(--accent);font-weight:700}
 .unlock-card p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.65}
+.recall-card{background:var(--surf);border:1.5px solid var(--warn,#d9963a);border-radius:var(--r);padding:16px 18px;margin-bottom:10px}
+.recall-header{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--warn,#d9963a);display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.recall-header .lucide{width:14px;height:14px}
+.recall-cues{margin:0 0 12px 16px;padding:0;font-size:14px;line-height:1.65;color:var(--text)}
+.recall-btns{display:flex;gap:8px;flex-wrap:wrap}
+.artifact-bridge{font-size:13px;color:var(--muted);margin-bottom:12px;padding:0 2px}
+.retrieval-note{font-size:12px;color:var(--muted);font-style:italic;margin:0 0 10px}
 .v2-mode-btn{background:none;border:1px solid var(--border);border-radius:20px;color:var(--muted);font:inherit;font-size:12px;cursor:pointer;padding:4px 12px;transition:.15s;margin-left:auto}
 .v2-mode-btn:hover{border-color:var(--accent);color:var(--accent)}
 .v2-coach-btn{display:inline-flex;align-items:center;gap:7px;background:rgba(47,109,240,.1);border:1.5px solid rgba(47,109,240,.32);color:var(--accent);padding:8px 16px;border-radius:var(--r2);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;margin-top:10px}
@@ -1522,11 +1529,18 @@ function renderHome(){
   // Find next undone lesson
   const next = DATA.LESSONS.find(l => !state.doneLessons.includes(l.id));
 
+  // Return-visit greeting (Phase E): quiet one-liner on a new-day return.
+  const _today=new Date().toISOString().slice(0,10);
+  const _lastVisit=localStorage.getItem('sqlkit-last-visit');
+  localStorage.setItem('sqlkit-last-visit',_today);
+  const _greet=(_lastVisit&&_lastVisit!==_today)
+    ? `<p style="font-size:13px;opacity:.75;margin-top:4px">Good to have you back. Pick up where you left off.</p>` : '';
+
   let resumeHtml = '';
   if(next){
     resumeHtml = `<div class="resume-card">
       <h2>Continue Learning</h2>
-      <p>Up next: <strong>Lesson ${next.id} — ${next.title}</strong></p>
+      <p>Up next: <strong>Lesson ${lessonPos(next.id)+1} — ${next.title}</strong></p>${_greet}
       <button class="btn" onclick="navigate('lesson',${next.id})">▶ Resume →</button>
     </div>`;
   } else {
@@ -1665,6 +1679,7 @@ function renderLesson(id){
     return;
   }
   const done = state.doneLessons.includes(l.id);
+  _syncRecalls(l.id, l);
   if(l.parsons){ v2SqlBody(l, done); return; }
 
   const ralLines = l.ral.lines.map(([chunk, desc]) =>
@@ -1725,6 +1740,9 @@ function rateConf(lessonId, level, btn){
   const wrap = btn.closest('.conf-chips');
   if(wrap) wrap.querySelectorAll('.conf-chip').forEach(c => c.classList.toggle('is-on', c===btn));
   if(window.lucide) lucide.createIcons();
+  // Re-sync the spaced-recall queue to the (possibly changed) confidence.
+  const _rl = DATA.LESSONS.find(x=>x.id===lessonId);
+  if(_rl) _queueRecalls(lessonId, _rl);
 }
 
 // "See it on screen" — the result table a lesson's query returns.
@@ -1791,6 +1809,122 @@ function finishLesson(id){
     qw.innerHTML += `<div class="mt row" style="gap:10px;flex-wrap:wrap">${practiceBtn}${primaryBtn}${secondaryBtn}</div>`;
     qw.lastElementChild?.scrollIntoView({behavior:'smooth', block:'center'}); // bring the new action buttons into view
   }
+}
+
+// ─── SPACED-RECALL CUES (Phase D) ────────────────────────────────────────────
+// Two retrieval questions per lesson, resurfaced +1/+3/+7 lessons later when
+// the learner rated the lesson "Not yet"/"Almost". Kept in one map (instead of
+// inline reinforces: fields) so the whole set is auditable in one place; the
+// merge loop below puts them on l.reinforces so the engine matches Excel's.
+const SQL_REINFORCES = {
+  101:["In one sentence: what is a table, a row, and a column?","Why does a database beat a spreadsheet once several people need the same data?"],
+  102:["What question does 'what is the grain of this table?' actually ask?","Why is knowing the grain the first step before summing or counting anything?"],
+  103:["What is a primary key, and what makes a foreign key different?","What is a JOIN actually doing when it matches rows across two tables?"],
+  104:["What shape does every SQL query return its answer in?","What does NULL mean — and why isn't it the same as 0 or an empty string?"],
+  1:["Say the two clauses every query starts from, and what each one names.","How do you pull only the name and city columns from a customers table?"],
+  2:["Which clause filters rows, and where does it sit relative to FROM?","Write (out loud) a WHERE condition for orders over 100 placed in Texas."],
+  3:["Which clause sorts results, and what does DESC change?","Why must LIMIT come after ORDER BY to get a real 'top 5'?"],
+  4:["What happens to rows with no match in an INNER JOIN?","Say the ON line that connects orders.customer_id to customers.id."],
+  5:["What does GROUP BY do to the rows before COUNT or SUM runs?","What's the difference between COUNT(*) and COUNT(column)?"],
+  6:["Which rows does a LEFT JOIN keep that an INNER JOIN drops?","After a LEFT JOIN, what value appears in the right table's columns for unmatched rows?"],
+  7:["WHERE filters rows — what does HAVING filter, and why can't WHERE do it?","Name one way to spot duplicates with GROUP BY."],
+  8:["What does CASE WHEN let you do inside a query?","What does COALESCE(phone, email, 'none') return?"],
+  13:["A RIGHT JOIN keeps all rows from which table?","When would you reach for FULL OUTER JOIN instead of LEFT or RIGHT?"],
+  14:["How do you pull just the month out of a date column?","Why do date ranges usually use >= start AND < next-period instead of BETWEEN?"],
+  9:["What is a subquery, and where can one sit inside another query?","How would you find products priced above the average price — in one query?"],
+  10:["What can a window function do that GROUP BY can't?","What do PARTITION BY and ORDER BY each control inside OVER(...)?"],
+  11:["What does WITH give a query that nesting subqueries doesn't?","Why do CTEs make a long query easier to review and debug?"],
+  12:["What is a reconciliation query trying to prove?","Which JOIN pattern finds rows in table A with no match in table B?"],
+  15:["What does an index speed up — and what does it slow down?","Why can a function wrapped around an indexed column kill the index?"],
+  16:["What's the difference between a temp table and a view?","When does materializing an intermediate result beat recomputing a view?"],
+  501:["What do COUNT(*) vs COUNT(DISTINCT id) tell you about a key column?","What are the first two profiling queries you run on an unfamiliar table?"],
+  502:["Say the GROUP BY … HAVING pattern that surfaces duplicate keys.","Why check for duplicates BEFORE migrating or joining on a column?"],
+  503:["How do you count NULLs in a column?","What do MIN(LENGTH(col)) and MAX(LENGTH(col)) reveal about format chaos?"],
+  504:["Which three functions standardize messy text, and what does each fix?","Why standardize text BEFORE matching or deduplicating on it?"],
+  505:["What does a CASE WHEN mapping translate between in a migration?","What should the ELSE branch of a source→target mapping do with surprise values?"],
+  506:["What does CAST change, and what does COALESCE supply?","Why pair CAST with a NULL default when loading a target table?"],
+  507:["What two numbers do you compare between source and target after a load?","Why is SUM(amount) a stronger check than row count alone?"],
+  508:["What does EXCEPT/MINUS return when you compare source to target?","Say the LEFT JOIN … IS NULL pattern that finds orphaned rows."],
+  601:["Name the three things a metric definition must pin down before you compute it.","Why do two teams get different 'monthly active users' from the same table?"],
+  602:["How does CASE turn raw values into named segments you can GROUP BY?","Why segment customers before averaging anything across them?"],
+  603:["What does LAG(revenue) OVER (ORDER BY month) hand you on each row?","Say the month-over-month growth formula using current and previous values."],
+  604:["What turns a plain SUM into a running total?","What does the window frame 'ROWS UNBOUNDED PRECEDING' mean in plain English?"],
+  605:["How do you count distinct users at each funnel step in one query?","A step's conversion rate divides which two numbers?"],
+  606:["What defines a user's cohort in a retention query?","Why compare cohorts by 'months since joining' instead of calendar month?"],
+  701:["How do conditional sums pivot a ledger into P&L lines?","Which two GL fields drive each income-statement line?"],
+  702:["Why divide each profit line by revenue before comparing periods?","Gross, operating, net — what does each margin strip out?"],
+  703:["What question does the current ratio answer?","What does debt-to-equity say about how a company is funded?"],
+  704:["Why is a dollar next year worth less than a dollar today, in NPV terms?","What does a negative NPV tell you about a project?"],
+  705:["Variance = actual minus budget — when is a positive variance BAD?","Why report variance as both dollars and percent of budget?"],
+  706:["What is contribution margin, and what costs does it ignore?","Say the break-even formula in units."],
+  801:["What handful of measures profile a table's shape and health in one pass?","Why profile a table before trusting any query you run on it?"],
+  802:["How do you prove what one row represents with a query?","What happens to your sums if the grain is finer than you assumed?"],
+  803:["When does the average lie about a column — and what do you read instead?","How do you pull the rows sitting outside the typical range?"],
+  804:["What does a Pareto query rank and accumulate?","What share of items usually drives most of the total, and why does that matter?"],
+  805:["Two columns move together — name two explanations besides causation.","What language keeps a correlation finding honest in a stakeholder deck?"],
+  806:["What is a control total, and where does a trusted one come from?","What's the last check you run before a number leaves your hands?"]
+};
+DATA.LESSONS.forEach(l=>{ if(SQL_REINFORCES[l.id]) l.reinforces=SQL_REINFORCES[l.id]; });
+
+// ─── SPACED RECALL QUEUE (Phase D port from Excel: +1/+3/+7 lesson positions) ─
+let _pendingRecalls = [], _recallLesson = null;
+function _getRecallQ(){ return JSON.parse(localStorage.getItem('sqlkit-recalls')||'[]'); }
+function _saveRecallQ(a){ localStorage.setItem('sqlkit-recalls',JSON.stringify(a)); }
+function _queueRecalls(id, l){
+  if(!l.reinforces||!l.reinforces.length) return;
+  // Idempotent: drop any prior pending recalls for this lesson, then re-queue
+  // only if confidence is low/mid. Re-rating to 'high' clears them entirely.
+  let arr=_getRecallQ().filter(e=>e.srcId!==id);
+  const conf=(state.confidence||{})[id];
+  if(conf==='low'||conf==='mid'){
+    const pos=lessonPos(id);
+    for(const off of [1,3,7]) arr.push({cues:l.reinforces, srcId:id, dueAt:pos+off});
+  }
+  _saveRecallQ(arr);
+}
+function _dequeueRecalls(id){
+  const pos=lessonPos(id), arr=_getRecallQ();
+  const due=arr.filter(e=>e.dueAt===pos);
+  _saveRecallQ(arr.filter(e=>e.dueAt!==pos));
+  return due;
+}
+// Dequeue only when the viewed lesson changes — stage advances re-render the
+// same lesson and must not re-consume the queue.
+function _syncRecalls(id, l){
+  if(_recallLesson===id) return;
+  if(l) _queueRecalls(id, l);
+  _pendingRecalls = _dequeueRecalls(id);
+  _recallLesson = id;
+}
+function _recallsHTML(){
+  return _pendingRecalls.map((e,i)=>`<div class="recall-card">
+    <div class="recall-header"><i data-lucide="repeat-2"></i> Quick recall — no peeking</div>
+    <ul class="recall-cues">${e.cues.map(c=>`<li>${c}</li>`).join('')}</ul>
+    <div class="recall-btns">
+      <button class="btn btn-primary btn-sm" onclick="recallGotIt(${i})">I remembered it</button>
+      <button class="btn btn-ghost btn-sm" onclick="recallNope(${i})">Nope, remind me again</button>
+    </div>
+  </div>`).join('');
+}
+function _refreshRecalls(){
+  const el=document.getElementById('v2-recalls');
+  if(!el) return;
+  if(!_pendingRecalls.length){el.style.display='none';return;}
+  el.innerHTML=_recallsHTML();
+  if(window.lucide) lucide.createIcons();
+}
+function recallGotIt(i){
+  _pendingRecalls.splice(i,1);
+  const w=parseInt(localStorage.getItem('sqlkit-recall-wins')||'0')+1;
+  localStorage.setItem('sqlkit-recall-wins',String(w));
+  _refreshRecalls();
+}
+function recallNope(i){
+  const e=_pendingRecalls.splice(i,1)[0];
+  const arr=_getRecallQ();
+  arr.push({cues:e.cues, srcId:e.srcId, dueAt:lessonPos(_recallLesson)+1});
+  _saveRecallQ(arr);
+  _refreshRecalls();
 }
 
 // ─── V2 LESSON FLOW ──────────────────────────────────────────────────────────
@@ -1915,8 +2049,10 @@ function v2ResetLesson(id){
 }
 
 // AI Coach — Mode 1 (Haiku, stuck-help) + Mode 3 (Sonnet, gap analysis)
-function getCoachKey(){ return localStorage.getItem('sql-coach-key')||''; }
-function setCoachKey(k){ localStorage.setItem('sql-coach-key', k.trim()); showToast('Key saved'); }
+// Shared suite key first (apk-coach-key, same as Excel/Python/PBI/Tableau/Stats);
+// legacy sql-coach-key still read as a fallback for existing users.
+function getCoachKey(){ return localStorage.getItem('apk-coach-key')||localStorage.getItem('sql-coach-key')||''; }
+function setCoachKey(k){ localStorage.setItem('apk-coach-key', k.trim()); localStorage.removeItem('sql-coach-key'); showToast('Key saved'); }
 
 async function _v2CoachCall(prompt, model, targetId){
   const key = getCoachKey();
@@ -1969,7 +2105,15 @@ function v2SqlBody(l, done){
   let body='';
 
   if(stage===0){
-    body=`<div class="v2-stage-card">
+    // Spaced-recall cards due at this lesson position (Phase D)
+    const recallsBlock = (!done && _pendingRecalls.length)
+      ? `<div id="v2-recalls" style="margin-bottom:16px">${_recallsHTML()}</div>`
+      : `<div id="v2-recalls" style="display:none"></div>`;
+    // Progressive-artifact bridge: previous lesson in the same unit
+    const _pp=lessonPos(l.id), _prevOL=_pp>0?DATA.LESSONS[_pp-1]:null;
+    const bridge=(_prevOL&&!l.unit.startsWith('Unit 0')&&_prevOL.unit===l.unit)
+      ? `<p class="artifact-bridge">Last time you built: <strong>${_prevOL.title}</strong>. Now you'll add to it.</p>` : '';
+    body=`${recallsBlock}${bridge}<div class="v2-stage-card">
       <h3><i data-lucide="compass"></i> What's this about</h3>
       ${l.story?`<div class="lesson-story" style="margin-bottom:16px"><i data-lucide="book-open"></i><span>${l.story}</span></div>`:''}
       <p style="margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.65">${l.intro||l.sub||''}</p>
@@ -2003,6 +2147,7 @@ function v2SqlBody(l, done){
     const pool=idxs.map(i=>`<div class="v2-pars-chip" data-idx="${i}" onclick="v2ParsChipTap(${l.id},this)">${p.lines[i]}</div>`).join('');
     body=`<div class="v2-stage-card">
       <h3><i data-lucide="list-ordered"></i> Try It</h3>
+      <p class="retrieval-note">This feels harder because it works — struggling to recall is how memory forms.</p>
       <p class="text-muted text-sm" style="margin-bottom:10px">${p.prompt}</p>
       <p style="font-size:12px;color:var(--muted);margin:0 0 6px">Tap a piece to move it between the pool and your answer:</p>
       <div class="v2-pool" id="v2sql-pool-${l.id}">${pool}</div>
@@ -2057,8 +2202,10 @@ function v2SqlBody(l, done){
     const nextBtn=nextLesson
       ?`<button class="btn btn-primary" onclick="navigate('lesson',${nextLesson.id})">Next: ${nextLesson.title} &rarr;</button>`
       :`<button class="btn btn-primary" onclick="navigate('practice')">Start Practice &rarr;</button>`;
+    const _wins=parseInt(localStorage.getItem('sqlkit-recall-wins')||'0');
     body=`<div class="v2-stage-card">
       <h3><i data-lucide="badge-check"></i> Done</h3>
+      ${_wins>0?`<p style="font-size:12px;color:var(--muted);margin:0 0 10px"><i data-lucide="repeat-2" style="width:13px;height:13px;vertical-align:-2px"></i> ${_wins} concept${_wins===1?'':'s'} recalled from memory so far</p>`:''}
       <p style="font-size:15px;line-height:1.7;margin-bottom:18px">${l.close}</p>
       <div class="row" style="gap:10px;flex-wrap:wrap">${nextBtn}<button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">All Lessons</button></div>
     </div>
@@ -3080,6 +3227,8 @@ function redeemCodeFromSettings(){
 function resetProgress(){
   if(!confirm('Reset all progress? This cannot be undone.')) return;
   state.doneLessons=[]; state.doneFills=[]; state.doneBugs=[]; state.doneParsons=[]; state.doneCards=[];
+  ['sqlkit-recalls','sqlkit-recall-wins','sqlkit-last-visit'].forEach(k=>localStorage.removeItem(k));
+  _pendingRecalls=[]; _recallLesson=null;
   saveState();
   navigate('home');
 }
