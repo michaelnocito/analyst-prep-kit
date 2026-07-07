@@ -140,10 +140,6 @@ main{max-width:780px;margin:0 auto;padding:32px 20px 80px}
 .choice.wrong-answer .choice-letter{color:var(--bad)}
 .choice-text{flex:1}
 
-.fill-input{width:100%;background:var(--surf2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 14px;font-size:14px;color:var(--text);font-family:var(--mono);outline:none;transition:.15s}
-.fill-input:focus{border-color:var(--accent)}
-.fill-input:disabled{opacity:.7}
-.fill-hint{font-size:11px;color:var(--dim);margin-top:6px;font-style:italic}
 
 .explanation{display:none;margin-top:12px;padding:12px 14px;background:var(--surf2);border-left:3px solid var(--accent);border-radius:var(--r-md);font-size:13.5px;line-height:1.65;color:var(--text)}
 .explanation.show{display:block}
@@ -218,6 +214,9 @@ footer{margin-top:50px;padding-top:24px;border-top:1px solid var(--border);text-
 const STORE = 'apk-final';
 const state = JSON.parse(localStorage.getItem(STORE) || '{}');
 state.answers = state.answers || {};
+// Migration (v1.116.0): e3/s4/p4 were typed fill-ins, now multiple-choice — a
+// saved string answer would grade as wrong forever, so drop any non-numeric ones.
+for(const k of Object.keys(state.answers)){ if(typeof state.answers[k]!=='number') delete state.answers[k]; }
 state.submitted = state.submitted || false;
 state.submittedSections = state.submittedSections || {}; // {sectionKey:true} — per-section submit (GR-C)
 state.sectionScores = state.sectionScores || {}; // {sectionKey:{correct,total}} — persisted so the hub can show "Exam ✓"
@@ -316,9 +315,10 @@ const QUESTIONS = [
     choices:[`<code>SUMIF</code>`, `<code>COUNTIF</code>`, `<code>VLOOKUP</code> or <code>XLOOKUP</code>`, `A PivotTable`],
     correct:2,
     explain:`<code>XLOOKUP</code> is the modern, more flexible replacement for <code>VLOOKUP</code>. Both look up a key and return a value from another table.`},
-  {id:'e3', section:'excel', type:'fill', q:`Write the formula that counts cells in <code>A2:A100</code> equal to the text <code>"USA"</code>:`,
-    answer:`=COUNTIF(A2:A100,"USA")`, accept:[/^=?countif\(\s*a2:a100\s*,\s*"?usa"?\s*\)$/i],
-    explain:`<code>COUNTIF(range, criteria)</code> is the most common conditional aggregate. Quote text criteria.`},
+  {id:'e3', section:'excel', type:'mc', q:`Which formula counts cells in <code>A2:A100</code> equal to the text <code>"USA"</code>?`,
+    choices:[`=COUNT(A2:A100,"USA")`, `=SUMIF(A2:A100,"USA")`, `=COUNTIF(A2:A100,"USA")`, `=COUNTIF("USA",A2:A100)`],
+    correct:2,
+    explain:`<code>COUNTIF(range, criteria)</code> is the most common conditional aggregate — range first, criteria second, and text criteria in quotes. <code>COUNT</code> takes no criteria, and <code>SUMIF</code> sums instead of counting.`},
   {id:'e4', section:'excel', type:'mc', q:`A PivotTable is the right tool when you want to:`,
     choices:[`Clean inconsistent text values`, `Summarize and group a dataset interactively by dimensions`, `Write a custom function`, `Apply conditional formatting`],
     correct:1,
@@ -345,13 +345,13 @@ const QUESTIONS = [
       `Every possible combination of left and right rows.`
     ], correct:1,
     explain:`<code>LEFT JOIN</code> keeps every row from the left side regardless of whether the right side has a match — non-matches show <code>NULL</code>. <code>INNER JOIN</code> would drop those rows entirely.`},
-  {id:'s4', section:'sql', type:'fill', q:`Complete the query: get the top 5 products by total revenue, biggest first. Fill in the missing keywords (just the keywords, e.g. <code>ORDER BY x DESC LIMIT 5</code>):<br><pre>SELECT product, SUM(revenue) AS total
+  {id:'s4', section:'sql', type:'mc', q:`Complete the query: get the top 5 products by total revenue, biggest first. Which line fills the blank?<br><pre>SELECT product, SUM(revenue) AS total
 FROM sales
 GROUP BY product
 ________</pre>`,
-    answer:`ORDER BY total DESC LIMIT 5`,
-    accept:[/order\s+by\s+(total|sum\(revenue\))\s+desc\s+limit\s+5/i, /order\s+by\s+(total|sum\(revenue\))\s+desc[\s\S]*limit\s+5/i],
-    explain:`<code>ORDER BY total DESC</code> sorts biggest first, <code>LIMIT 5</code> takes only the top five. (Some databases use <code>TOP 5</code> or <code>FETCH FIRST 5 ROWS ONLY</code> instead of <code>LIMIT</code>.)`},
+    choices:[`ORDER BY total DESC LIMIT 5`, `ORDER BY total ASC LIMIT 5`, `LIMIT 5 ORDER BY total DESC`, `SORT BY total DESC TOP 5`],
+    correct:0,
+    explain:`<code>ORDER BY total DESC</code> sorts biggest first, <code>LIMIT 5</code> takes only the top five — and <code>LIMIT</code> must come after <code>ORDER BY</code>. (Some databases use <code>TOP 5</code> or <code>FETCH FIRST 5 ROWS ONLY</code> instead of <code>LIMIT</code>, but there's no <code>SORT BY</code>.)`},
 
   // PYTHON
   {id:'p1', section:'python', type:'mc', q:`The pandas method to load a CSV file is:`,
@@ -374,10 +374,10 @@ ________</pre>`,
       `<code>.iloc</code> is faster and should always be preferred.`
     ], correct:1,
     explain:`<code>.loc[0]</code> gives you the row labeled 0 (which may not be the first row); <code>.iloc[0]</code> always gives the first row positionally.`},
-  {id:'p4', section:'python', type:'fill', q:`Write the pandas one-liner that groups <code>df</code> by <code>region</code> and sums <code>revenue</code>:`,
-    answer:`df.groupby('region')['revenue'].sum()`,
-    accept:[/df\.groupby\(\s*['"]region['"]\s*\)\s*\[\s*['"]revenue['"]\s*\]\.sum\(\s*\)/i, /df\.groupby\(['"]region['"]\)\.revenue\.sum\(\)/i],
-    explain:`The <code>groupby → column → aggregate</code> pattern is the workhorse of pandas analysis. <code>.agg()</code> lets you do multiple aggregates at once.`},
+  {id:'p4', section:'python', type:'mc', q:`Which pandas one-liner groups <code>df</code> by <code>region</code> and sums <code>revenue</code>?`,
+    choices:[`df.groupby('revenue')['region'].sum()`, `df.groupby('region')['revenue'].sum()`, `df.sum('revenue').groupby('region')`, `df['region'].sum().groupby('revenue')`],
+    correct:1,
+    explain:`The <code>groupby → column → aggregate</code> pattern is the workhorse of pandas analysis: group by the DIMENSION (<code>region</code>), pick the MEASURE (<code>revenue</code>), then aggregate. The first option groups by the measure — a classic swap.`},
 
   // TABLEAU
   {id:'t1', section:'tableau', type:'mc', q:`The best chart for showing how a metric changes over time is:`,
@@ -787,14 +787,12 @@ function renderQuestion(q){
         <span class="choice-text">${c}</span>
       </button>`;
     }).join('')}</div>`;
-  } else {
-    const value = ans || '';
-    body = `<input class="fill-input" type="text" value="${escapeAttr(value)}" oninput="answerFill('${q.id}', this.value)" placeholder="Type your answer…" ${submitted?'disabled':''}>
-      <div class="fill-hint">Type the formula/code as you'd actually write it. Capitalization and spaces are flexible.</div>`;
   }
+  // (typed fill-in answers retired — every question is tap-the-choice now, so a
+  //  correct variation can never be marked wrong on a text mismatch)
 
   const explanation = submitted
-    ? `<div class="explanation show"><strong>${isCorrect(q) ? 'Correct.' : (q.type==='fill' ? `Expected something like: <code>${escapeHtml(q.answer)}</code>. ` : 'Heads up: ')}</strong> ${q.explain}</div>`
+    ? `<div class="explanation show"><strong>${isCorrect(q) ? 'Correct.' : 'Heads up: '}</strong> ${q.explain}</div>`
     : '';
 
   return `
@@ -813,38 +811,10 @@ function answerMc(qid, idx){
   save();
   render();
 }
-function answerFill(qid, val){
-  const sect = sectionOf(qid);
-  if(isSectionSubmitted(sect)) return;
-  if(val.trim()) state.answers[qid] = val;
-  else delete state.answers[qid];
-  save();
-  // Don't re-render on every keystroke (would drop input focus) — update live bits only.
-  const answered = Object.keys(state.answers).length;
-  const total = QUESTIONS.length;
-  document.querySelector('.exam-q-progress span').textContent = answered;
-  document.querySelector('.exam-progress-fill').style.width = (100*answered/total)+'%';
-  document.getElementById('q-'+qid)?.classList.toggle('answered', !!state.answers[qid]);
-  // Enable this section's submit button once all its questions are answered.
-  const sbtn = document.getElementById('secbtn-'+sect);
-  if(sbtn){
-    const ansd = sectionAnswered(sect);
-    sbtn.disabled = !ansd;
-    sbtn.textContent = ansd ? 'Submit this section' : ('Answer all '+QUESTIONS.filter(q=>q.section===sect).length);
-    if(ansd){ const c=SECTION_INFO[sect].color; sbtn.style.cursor='pointer'; sbtn.style.opacity=1; sbtn.style.color=c; sbtn.style.borderColor=c; }
-  }
-}
-
 function isCorrect(q){
   const ans = state.answers[q.id];
   if(ans === undefined) return false;
-  if(q.type === 'mc') return ans === q.correct;
-  // fill
-  const norm = String(ans).trim().replace(/\s+/g,' ');
-  if(q.accept){
-    return q.accept.some(rx => rx.test(norm));
-  }
-  return norm.toLowerCase() === q.answer.toLowerCase();
+  return ans === q.correct;
 }
 
 /* ===== Per-section submit (GR-C) ===== */
@@ -980,12 +950,6 @@ function attachFooter(app){
 }
 
 /* ============== UTIL ============== */
-function escapeHtml(s){
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-function escapeAttr(s){
-  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-}
 
 function toggleTheme(){
   const cur = document.documentElement.getAttribute('data-theme');
