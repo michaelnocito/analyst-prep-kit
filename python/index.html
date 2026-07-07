@@ -1879,7 +1879,8 @@ function v2QuizRetry(lid){
   wrap.innerHTML=`<h2><i data-lucide="circle-check-big"></i>Quick Check</h2>
     <div class="quiz-q">${l.quiz.q}</div>
     <div class="quiz-opts">${l.quiz.opts.map((o,i)=>`<button class="quiz-opt" onclick="v2QuizAnswer(${lid},${i})">${o}</button>`).join('')}</div>
-    <div id="v2py-quiz-exp-${lid}"></div>`;
+    <div id="v2py-quiz-exp-${lid}"></div>
+      <div class="row" style="margin-top:14px"><button class="btn btn-outline btn-sm" onclick="setPyStage(${lid},4)">&larr; Back</button></div>`;
   if(window.lucide) lucide.createIcons();
 }
 
@@ -1953,7 +1954,7 @@ function savePyCoachKey(){
 function v2PyBody(l, done){
   const stage = getPyStage(l.id);
   const LABELS = ['Orient','Example','Try','Compare','Build','Check','Close'];
-  const dots = LABELS.map((_,i)=>`<div class="v2-stage-dot${i<stage?' done':i===stage?' active':''}"></div>`).join('');
+  const dots = LABELS.map((L,i)=>{const can=(done||i<stage)&&i!==stage;return `<div class="v2-stage-dot${i<stage?' done':i===stage?' active':''}" title="${L}"${can?` style="cursor:pointer" onclick="setPyStage(${l.id},${i})"`:''}></div>`;}).join('');
   const stageBar = `<div class="v2-stage-bar">${dots}<span class="v2-stage-label">${LABELS[stage]}</span></div>`;
   const conf = (S.confidence||{})[l.id]||'';
   const cc=(v,icon,label)=>`<button class="conf-chip${conf===v?' is-on':''}" data-v="${v}" onclick="rateConf(${l.id},'${v}',this)"><i data-lucide="${icon}"></i><span class="conf-label">${label}</span></button>`;
@@ -2047,6 +2048,7 @@ function v2PyBody(l, done){
       <div id="v2py-build-fb-${l.id}"></div>
       <button class="v2-coach-btn" id="v2py-coach-build-${l.id}" style="display:none" onclick="v2CoachStuck(${l.id},'build')"><i data-lucide="sparkles"></i> Stuck? Ask the AI Coach →</button>
       <div class="v2-coach-resp" id="v2py-coach-resp-build-${l.id}"></div>
+      <div class="row" style="margin-top:14px"><button class="btn btn-outline btn-sm" onclick="setPyStage(${l.id},3)">&larr; Back</button></div>
     </div>`;
   } else if(stage===5){
     body=`<div class="card" id="v2py-quiz-${l.id}">
@@ -2054,6 +2056,7 @@ function v2PyBody(l, done){
       <div class="quiz-q">${l.quiz.q}</div>
       <div class="quiz-opts">${l.quiz.opts.map((o,i)=>`<button class="quiz-opt" onclick="v2QuizAnswer(${l.id},${i})">${o}</button>`).join('')}</div>
       <div id="v2py-quiz-exp-${l.id}"></div>
+      <div class="row" style="margin-top:14px"><button class="btn btn-outline btn-sm" onclick="setPyStage(${l.id},4)">&larr; Back</button></div>
     </div>`;
   } else {
     const nid=nextLessonId(l.id);
@@ -2070,7 +2073,7 @@ function v2PyBody(l, done){
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
         ${drillCount?`<button class="btn btn-primary" onclick="startGuided(${l.id})">Practice this &rarr;</button>`:''}
         ${nextBtn}
-        <button class="btn btn-outline btn-sm" onclick="show('lessons')">All Lessons</button>
+        <button class="btn btn-outline btn-sm" onclick="show('lessons')">All Lessons</button><button class="btn btn-outline btn-sm" onclick="setPyStage(${l.id},0)" title="Walk back through this lesson, your ✓ stays">&#8634; Review lesson</button>
       </div>
     </div>
     ${done&&l.unlock?`<div class="unlock-card"><h4><i data-lucide="unlock" style="width:15px;height:15px;vertical-align:-2px"></i> Insight unlocked</h4><p>${l.unlock}</p></div>`:''}

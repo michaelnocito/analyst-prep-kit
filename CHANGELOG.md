@@ -9,6 +9,24 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.114.0] — 2026-07-07 — ✅ All-kits: revisit completed lesson walkthroughs
+
+Playtest fix (Mike, sql inbox): once a staged lesson was completed, reopening it
+landed on the "Done" card with no way back to earlier steps short of a
+destructive Reset. Applies to SQL, Python, Power BI, Stats, Tableau (v2 stage
+flow); Excel already shows the full walkthrough when done, so it's unchanged.
+
+- **Stage dots are now clickable**: jump back to any stage you've already
+  passed — and once the lesson is done, jump to ANY stage (hover shows the
+  stage name). Non-destructive: your ✓ and quiz results stay.
+- **← Back buttons added** on the Build It and Quick Check stages (they were
+  the only stages without one), including the Quick Check retry re-render.
+- **↺ Review lesson button** on the Done card: walks back to the start of the
+  walkthrough without clearing completion (unlike ↺ Reset, which still exists
+  for a true redo).
+
+---
+
 ## [1.113.0] — 2026-07-06 — ✅ All-kits sweep: no auto-advance on lesson checks
 
 Extends the v1.111.0 SQL fix (Mike's check-all-kits playtest blocker) to every

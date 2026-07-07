@@ -2136,7 +2136,8 @@ function v2QuizRetry(lid){
   wrap.innerHTML=`<h3><i data-lucide="circle-check-big"></i> Quick Check</h3>
     <p class="text-muted text-sm" style="margin-bottom:14px">${l.quiz.q}</p>
     ${l.quiz.opts.map((o,i)=>`<button class="quiz-opt" onclick="v2QuizAnswer(${lid},${i})">${o}</button>`).join('')}
-    <div class="quiz-exp" id="v2sql-quiz-exp-${lid}">${l.quiz.exp}</div>`;
+    <div class="quiz-exp" id="v2sql-quiz-exp-${lid}">${l.quiz.exp}</div>
+      <div class="row" style="margin-top:14px"><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${lid},4)">&larr; Back</button></div>`;
   if(window.lucide) lucide.createIcons();
 }
 
@@ -2202,7 +2203,7 @@ function v2CoachGap(lid){
 function v2SqlBody(l, done){
   const stage = getSqlStage(l.id);
   const LABELS = ['Orient','Example','Try','Compare','Build','Check','Close'];
-  const dots = LABELS.map((_,i)=>`<div class="v2-stage-dot${i<stage?' done':i===stage?' active':''}"></div>`).join('');
+  const dots = LABELS.map((L,i)=>{const can=(done||i<stage)&&i!==stage;return `<div class="v2-stage-dot${i<stage?' done':i===stage?' active':''}" title="${L}"${can?` style="cursor:pointer" onclick="setSqlStage(${l.id},${i})"`:''}></div>`;}).join('');
   const stageBar = `<div class="v2-stage-bar">${dots}<span class="v2-stage-label">${LABELS[stage]}</span></div>`;
   const conf = (state.confidence||{})[l.id]||'';
   const cc=(v,icon,label)=>`<button class="conf-chip${conf===v?' is-on':''}" data-v="${v}" onclick="rateConf(${l.id},'${v}',this)"><i data-lucide="${icon}"></i><span class="conf-label">${label}</span></button>`;
@@ -2294,6 +2295,7 @@ function v2SqlBody(l, done){
       <div id="v2sql-build-fb-${l.id}"></div>
       <button class="v2-coach-btn" id="v2sql-coach-build-${l.id}" style="display:none" onclick="v2CoachStuck(${l.id},'build')"><i data-lucide="sparkles"></i> Stuck? Ask the AI Coach →</button>
       <div class="v2-coach-resp" id="v2sql-coach-resp-build-${l.id}"></div>
+      <div class="row" style="margin-top:14px"><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},3)">&larr; Back</button></div>
     </div>`;
   } else if(stage===5){
     body=`<div class="quiz-wrap" id="v2sql-quiz-${l.id}">
@@ -2301,6 +2303,7 @@ function v2SqlBody(l, done){
       <p class="text-muted text-sm" style="margin-bottom:14px">${l.quiz.q}</p>
       ${l.quiz.opts.map((o,i)=>`<button class="quiz-opt" onclick="v2QuizAnswer(${l.id},${i})">${o}</button>`).join('')}
       <div class="quiz-exp" id="v2sql-quiz-exp-${l.id}">${l.quiz.exp}</div>
+      <div class="row" style="margin-top:14px"><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},4)">&larr; Back</button></div>
     </div>`;
   } else {
     const nextLesson=DATA.LESSONS.find(ll=>ll.id!==l.id&&!state.doneLessons.includes(ll.id));
@@ -2312,7 +2315,7 @@ function v2SqlBody(l, done){
       <h3><i data-lucide="badge-check"></i> Done</h3>
       ${_wins>0?`<p style="font-size:12px;color:var(--muted);margin:0 0 10px"><i data-lucide="repeat-2" style="width:13px;height:13px;vertical-align:-2px"></i> ${_wins} concept${_wins===1?'':'s'} recalled from memory so far</p>`:''}
       <p style="font-size:15px;line-height:1.7;margin-bottom:18px">${l.close}</p>
-      <div class="row" style="gap:10px;flex-wrap:wrap">${nextBtn}<button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">All Lessons</button></div>
+      <div class="row" style="gap:10px;flex-wrap:wrap">${nextBtn}<button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">All Lessons</button><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},0)" title="Walk back through this lesson, your ✓ stays">&#8634; Review lesson</button></div>
     </div>
     ${done&&l.unlock?`<div class="unlock-card"><h4><i data-lucide="unlock" style="width:15px;height:15px;vertical-align:-2px"></i> Insight unlocked</h4><p>${l.unlock}</p></div>`:''}
     <div class="conf-rater" style="margin-top:16px">
