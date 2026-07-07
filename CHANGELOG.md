@@ -9,6 +9,31 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.115.0] — 2026-07-07 — 🧹 Finish-line polish sweep: open interface items closed + full stable-build test pass
+
+Pre-paywall stabilization pass — every open non-paywall lesson/interface item from the ROADMAP + cleanup lists, plus a full automated test sweep.
+
+**Interface items closed**
+- **Home "Lessons" section rollout complete (SQL · Power BI · Python):** per-unit progress bars + a 3-item "Next up" list on each kit's Home, matching Excel/Tableau. Next-up surfaces accessible lessons only (never locked premium ones).
+- **Stats home fixes:** Skill Readiness now derives from the LIVE lesson set by unit (was frozen to hardcoded lesson1–10 keys — Unit 0 and lessons 11–12 were uncounted); Resume button shows lesson POSITION, not raw id; added a "Next up" card.
+- **Excel resume card fix:** LESSON number + watermark now show position, not raw id (a Unit-0 resume read "LESSON 101") — the same fix the D+E ports applied everywhere else, backported to the source kit.
+- **Excel v2 Close stage:** now offers a lesson-bound "Practice this →" CTA (guided-primary), matching every other kit's Done card. Generic "Practice drills" button dropped in its favor.
+- **Mobile:** standalone practice Parsons Check buttons are full-width thumb-height CTAs on ≤600px, and Parsons chips/pieces wrap instead of clipping (SQL/Python/PBI/Tableau/Stats; Excel already had both).
+- **Cross-links:** Excel, Python, Interview, Simulator, and Final now link Chart Literacy + Forecasting in their sibling-kit lists (closes the Low-bucket consistency item).
+- **Dead CSS removed:** .fill-input/.drill-input blocks from the fill→MC conversion deleted in 6 kits (Final keeps its — the exam legitimately uses typed answers).
+- **README refreshed:** 12 apps incl. Project Studio, the 7-stage retrieval-first lesson flow + spaced recall, Practice-arcade links.
+- **sitemap.xml:** added the missing projects/ entry.
+
+**Verified (hub exam badges):** the per-kit mini-exam "✓ Exam" pass badge on the hub already satisfies the "mark kit complete on exam pass" follow-on — no change needed.
+
+**Full test sweep (all green)**
+- Parse gate: 51 inline scripts across 15 pages, 0 failures.
+- Behavioral suite (de-test.mjs): 121 checks green.
+- Legacy harness modernized (auth-sync + apkPass stubs; obsolete flag-feature checks removed; new tap-choice drill-integrity check; practice-this check now walks the v2 Close stage): 24 checks green.
+- NEW runtime render-smoke: all 13 pages boot and render in a stubbed DOM with no undefined/NaN leaks.
+- Link crawl: every internal href resolves; all 17 external URLs return HTTP 200.
+- Content scan: no mojibake, no template leaks.
+
 ## [1.114.0] — 2026-07-07 — ✅ All-kits: revisit completed lesson walkthroughs
 
 Playtest fix (Mike, sql inbox): once a staged lesson was completed, reopening it

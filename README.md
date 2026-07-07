@@ -1,6 +1,6 @@
 # Analyst Prep Kit
 
-A free, browser-based learning suite for breaking into data analytics. Eleven self-contained apps, no install, free to start — with optional sign-in to sync your progress across devices.
+A free, browser-based learning suite for breaking into data analytics. Twelve self-contained apps, no install, free to start — with optional sign-in to sync your progress across devices.
 
 **Live:** https://michaelnocito.github.io/analyst-prep-kit/
 
@@ -19,10 +19,15 @@ A free, browser-based learning suite for breaking into data analytics. Eleven se
 | [Interview](interview/) | STAR, behavioral prep, the hard moments that decide the offer | Answer Builder with self-scoring |
 | [Associate Data Analyst Simulator](simulator/) | A simulated first week as an associate analyst — 10 real assignments with AI manager review | Live Claude-API manager feedback per task |
 | [Final Exam Kit](final/) | A 28-question final exam across all 7 subjects, plus a bare-basics study guide for each | Per-section score breakdown that points back to the kit you should revisit |
+| [Project Studio](projects/) | Scope, plan, build, and present a real portfolio project — the workflow analysts actually follow | Guided 4-phase builder with an exportable project doc |
 
-## How every lesson works — "Say It Out Loud"
+## How every lesson works
 
-Every query, formula, or chart in this kit is broken down piece by piece into plain language. Read it back to yourself — in whatever language you think in — and if you can explain what each part is doing, you own it. The method works the same whether English is your first language or your fifth.
+Lessons run a seven-stage flow built on learning science — you attempt first, then see the answer:
+
+**Orient → Worked Example → Try → Compare → Build → Quick Check → Done**
+
+The Worked Example uses the "Say It Out Loud" method: every query, formula, or chart is broken down piece by piece into plain language. Read it back to yourself — in whatever language you think in — and if you can explain what each part is doing, you own it.
 
 Example:
 
@@ -34,7 +39,7 @@ SELECT name FROM customers WHERE status = 'active';
 - `FROM customers` → from the customers table
 - `WHERE status = 'active'` → only rows where status is active
 
-That's the whole methodology. Each lesson follows the same shape: see the code → read the breakdown → say it back → drill it.
+On top of that, the kits space your practice: concepts you rate as shaky come back as quick recall prompts one, three, and seven lessons later — retrieval, not re-reading, is where the learning happens.
 
 ## Tech
 
@@ -46,6 +51,8 @@ That's the whole methodology. Each lesson follows the same shape: see the code �
 ## Learn by playing
 
 The kit has companion games: the **[Analyst Sprint](https://michaelnocito.github.io/prep-companion-apps/)** series ([repo](https://github.com/michaelnocito/prep-companion-apps)) — ten-minute warm-up games matched unit-for-unit to the kits. Coach Srbina, a sales rep finding her analyst instincts, through the [Excel sprint](https://michaelnocito.github.io/prep-companion-apps/excel/) and the [SQL sprint](https://michaelnocito.github.io/prep-companion-apps/sql/), then come back here to go deeper.
+
+The hub's **Practice arcade** links the full set of skill games: [SQL Quest](https://michaelnocito.github.io/sql-quest/), both Analyst Sprints, [Spreadsheet Archaeology](https://michaelnocito.github.io/spreadsheet-archaeology/), [Tableau Archaeology](https://michaelnocito.github.io/tableau-archaeology/), and [SQL Dry Run](https://michaelnocito.github.io/sql-dry-run/).
 
 ## Suggested order
 

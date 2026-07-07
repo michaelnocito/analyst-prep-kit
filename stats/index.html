@@ -112,6 +112,10 @@ input[type=range]{accent-color:var(--accent);width:150px;cursor:pointer}
 .v2-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 @media(max-width:540px){.v2-compare-grid{grid-template-columns:1fr}}
 @media(max-width:600px){
+  /* Standalone practice Parsons: full-width Check CTA + wrapping pieces */
+  .card div[style*="display:flex"]:has(.pars-check){flex-wrap:wrap}
+  .pars-check{flex:1 1 100%;width:100%;min-height:48px;font-size:15px}
+  .pars-piece{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%}
   /* High #1: primary stage CTA = full-width, thumb-height button on mobile.
      Stats' primary CTA is plain .btn (not .btn-primary); secondaries are .btn-outline/.btn-sm. */
   .v2-stage-card div[style*="display:flex"]{flex-wrap:wrap}
@@ -1221,12 +1225,16 @@ function renderHome(){
   const lessDone=Object.keys(S.done).filter(k=>k.startsWith('lesson')).length;
   const drillDone=Object.keys(S.done).filter(k=>!k.startsWith('lesson')&&!k.startsWith('card')).length;
   const cardsDone=Object.keys(S.done).filter(k=>k.startsWith('card')).length;
-  const skills=['Measures of Center','Spread & Shape','Probability','Sampling & Correlation','Inference & Testing'];
-  const skillScores=skills.map((_,i)=>{
-    const keys=[`lesson${i*2+1}`,`lesson${i*2+2}`];
-    return Math.round(keys.filter(k=>S.done[k]).length/keys.length*100);
+  // Readiness derived from the LIVE lesson set (by unit) so every lesson —
+  // Unit 0 included — is counted, not a frozen list of the original ids.
+  const unames={0:'Unit 0: Before You Calculate',1:'Unit 1: Describing Data',2:'Unit 2: Probability & Distributions',3:'Unit 3: Inference & Testing'};
+  const _unitIds=[...new Set(DATA.LESSONS.map(l=>l.unit))];
+  const skills=_unitIds.map(u=>unames[u]||`Unit ${u}`);
+  const skillScores=_unitIds.map(u=>{
+    const ls=DATA.LESSONS.filter(l=>l.unit===u);
+    return ls.length?Math.round(ls.filter(l=>S.done['lesson'+l.id]).length/ls.length*100):0;
   });
-  const overall=Math.round(skillScores.reduce((a,b)=>a+b,0)/skills.length);
+  const overall=Math.round(DATA.LESSONS.filter(l=>S.done['lesson'+l.id]).length/DATA.LESSONS.length*100);
 
   // Return-visit greeting (Phase E): quiet one-liner on a new-day return.
   const _today=new Date().toISOString().slice(0,10);
@@ -1254,7 +1262,11 @@ function renderHome(){
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><strong>Skill Readiness</strong><span style="font-size:1.4rem;font-weight:700;color:var(--accent)">${overall}%</span></div>
       ${skills.map((s,i)=>`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:3px"><span>${s}</span><span style="color:var(--txt2)">${skillScores[i]}%</span></div><div style="background:var(--surf2);border-radius:4px;height:6px"><div style="background:var(--accent);border-radius:4px;height:6px;width:${skillScores[i]}%;transition:width .4s"></div></div></div>`).join('')}
     </div>
-    ${S.lastLesson?`<button class="btn" onclick="openLesson(${S.lastLesson})">▶ Resume Lesson ${S.lastLesson}</button>`:`<button class="btn" onclick="show('lessons')">▶ Start Learning</button>`}
+    <div class="card" style="margin-bottom:24px">
+      <strong>Next up</strong>
+      ${(()=>{const _nxt=DATA.LESSONS.filter(l=>!S.done['lesson'+l.id]).slice(0,3);return _nxt.length?_nxt.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 2px;border-top:1px solid var(--bord);cursor:pointer;margin-top:6px" onclick="openLesson(${l.id})"><div><span style="font-size:11px;color:var(--txt2);margin-right:8px">L${lessonPos(l.id)+1}</span><span style="font-size:.9rem;font-weight:600">${l.title}</span></div><span style="color:var(--accent);font-weight:700">→</span></div>`).join(''):`<p style="font-size:.85rem;color:var(--txt2);margin:8px 0 0">All ${DATA.LESSONS.length} lessons complete!</p>`})()}
+    </div>
+    ${S.lastLesson?`<button class="btn" onclick="openLesson(${S.lastLesson})">▶ Resume Lesson ${lessonPos(S.lastLesson)+1}</button>`:`<button class="btn" onclick="show('lessons')">▶ Start Learning</button>`}
     <div class="card" style="margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border-color:rgba(47,109,240,.3);background:rgba(47,109,240,.05)">
       <div>
         <strong style="font-size:1rem">Ready to test yourself?</strong>
@@ -1989,7 +2001,7 @@ function checkWrong(i){
 /* PARSONS */
 function renderParsons(item,done){
   if(done)return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p><div style="background:var(--surf2);border-radius:6px;padding:12px;font-size:.85rem">${item.solution.map(s=>`<div style="padding:4px 0">${s}</div>`).join('')}</div><div style="margin-top:10px;color:var(--accent)">✓ Complete. ${item.explain}</div></div>`;
-  return `<div class="card"><p style="margin-bottom:12px">${item.prompt}</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div style="font-size:.72rem;color:var(--txt2);margin-bottom:6px;text-transform:uppercase">Bank</div><div id="parsBank" style="min-height:80px;background:var(--surf2);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:6px"></div></div><div><div style="font-size:.72rem;color:var(--txt2);margin-bottom:6px;text-transform:uppercase">Your Order</div><div id="parsPlaced" style="min-height:80px;background:var(--surf2);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:6px"></div></div></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn" onclick="checkParsons()">Check Order</button><button class="btn btn-sm" style="opacity:.6" onclick="resetParsons()">Reset</button></div><div id="parsFb" style="margin-top:10px;display:none"></div></div>`;
+  return `<div class="card"><p style="margin-bottom:12px">${item.prompt}</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div style="font-size:.72rem;color:var(--txt2);margin-bottom:6px;text-transform:uppercase">Bank</div><div id="parsBank" style="min-height:80px;background:var(--surf2);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:6px"></div></div><div><div style="font-size:.72rem;color:var(--txt2);margin-bottom:6px;text-transform:uppercase">Your Order</div><div id="parsPlaced" style="min-height:80px;background:var(--surf2);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:6px"></div></div></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn pars-check" onclick="checkParsons()">Check Order</button><button class="btn btn-sm" style="opacity:.6" onclick="resetParsons()">Reset</button></div><div id="parsFb" style="margin-top:10px;display:none"></div></div>`;
 }
 function initParsons(item){
   drillState.parsBank=[...item.solution.map((_,i)=>i)].sort(()=>Math.random()-0.5);

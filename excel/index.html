@@ -162,10 +162,6 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 .quiz-feedback.bad{background:rgba(224,92,92,.1);border:1px solid var(--err);color:var(--err)}
 
 /* DRILLS */
-.drill-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-family:var(--mono);font-size:14px;outline:none;resize:vertical;min-height:44px}
-.drill-input:focus{border-color:var(--accent)}
-.drill-input.ok{border-color:var(--success)}
-.drill-input.bad{border-color:var(--err)}
 .check-row{display:flex;gap:8px;margin-top:8px;align-items:center}
 .result-msg{font-size:13px;padding:8px 12px;border-radius:6px;margin-top:8px}
 .flag-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 2px;border-top:1px solid var(--border);cursor:pointer}
@@ -501,6 +497,8 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
         <a href="../python/" class="btn btn-outline btn-sm">Python</a>
         <a href="../tableau/" class="btn btn-outline btn-sm">Tableau</a>
         <a href="../stats/" class="btn btn-outline btn-sm">Stats</a>
+        <a href="../chart-literacy/" class="btn btn-outline btn-sm">Chart Literacy</a>
+        <a href="../forecasting/" class="btn btn-outline btn-sm">Forecasting</a>
         <a href="../interview/" class="btn btn-outline btn-sm">Interview</a>
         <a href="../powerbi/" class="btn btn-outline btn-sm">Power BI</a>
         <a href="../simulator/" class="btn btn-outline btn-sm">Associate Data Analyst Simulator</a>
@@ -2026,9 +2024,9 @@ function renderHome(){
   const done = S.lessonsDone.length;
   const total = DATA.LESSONS.length;
   const cur = DATA.LESSONS.find(l=>l.id===S.currentLesson) || DATA.LESSONS[0];
-  document.getElementById('resumeNum').textContent = cur.id;
+  document.getElementById('resumeNum').textContent = lessonPos(cur.id)+1;
   document.getElementById('resumeTitle').textContent = cur.title;
-  document.getElementById('resumeWM').textContent = cur.id;
+  document.getElementById('resumeWM').textContent = lessonPos(cur.id)+1;
   document.getElementById('resumeBtn').textContent = S.lessonsDone.includes(cur.id) ? 'Review →' : (done===0?'Start →':'Resume →');
   document.getElementById('resumeSub').textContent = cur.intro.split('.')[0]+'.';
 
@@ -2656,8 +2654,8 @@ function v2Body(l,done){
         <button class="btn btn-sm ${conf==='high'?'btn-primary':'btn-outline'}" data-rating="high" onclick="v2RateConf(${lid},'high')">Have it ✓</button>
       </div>
       <div class="v2-close-actions" style="display:flex;gap:10px;flex-wrap:wrap">
-        ${nxtId!==null?`<button class="btn btn-primary" onclick="openLesson(${nxtId})">Next lesson →</button>`:`<button class="btn btn-primary" onclick="show('lessons')">All lessons →</button>`}
-        <button class="btn btn-outline" onclick="show('practice')">Practice drills →</button>
+        ${(LESSON_DRILLS[lid]||[]).length?`<button class="btn btn-primary" onclick="startGuided(${lid})">Practice this →</button>`:''}
+        ${nxtId!==null?`<button class="btn ${(LESSON_DRILLS[lid]||[]).length?'btn-outline':'btn-primary'}" onclick="openLesson(${nxtId})">Next lesson →</button>`:`<button class="btn ${(LESSON_DRILLS[lid]||[]).length?'btn-outline':'btn-primary'}" onclick="show('lessons')">All lessons →</button>`}
       </div>
     </div>
   </div>`;
@@ -2962,7 +2960,7 @@ function renderParsons(item, idx, isDone){
     <div class="parsons-label mt12">Your formula:</div>
     <div class="parsons-answer" id="parsAnswer"></div>
     <div class="check-row mt8">
-      <button class="btn btn-primary btn-sm" onclick="checkParsons(${idx})">Check</button>
+      <button class="btn btn-primary btn-sm pars-check" onclick="checkParsons(${idx})">Check</button>
       <button class="btn btn-outline btn-sm" onclick="resetParsons(${idx})">Reset</button>
       <button class="solution-toggle" onclick="toggleSol('parsSol')">show answer</button>
     </div>

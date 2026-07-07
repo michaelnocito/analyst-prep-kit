@@ -151,10 +151,6 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 
 
 .code-block{font-family:var(--mono);font-size:13px;background:var(--stone-900);border:1px solid var(--stone-700);border-radius:6px;padding:12px 14px;margin:10px 0;color:var(--stone-100);white-space:pre;overflow-x:auto;line-height:1.6}
-.drill-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;resize:vertical;min-height:44px}
-.drill-input:focus{border-color:var(--accent)}
-.drill-input.ok{border-color:var(--success)}
-.drill-input.bad{border-color:var(--err)}
 .check-row{display:flex;gap:8px;margin-top:8px;align-items:center}
 .result-msg{font-size:13px;padding:8px 12px;border-radius:6px;margin-top:8px}
 .result-msg.ok{background:rgba(76,175,120,.12);border:1px solid var(--success);color:var(--success)}
@@ -218,6 +214,10 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 .hidden{display:none!important}
 
 @media(max-width:600px){
+  /* Standalone practice Parsons: full-width Check CTA + wrapping chips */
+  .row:has(.pars-check){flex-wrap:wrap}
+  .pars-check{flex:1 1 100%;width:100%;min-height:48px;font-size:15px}
+  .parsons-chip{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
   /* High #1: primary stage CTA = full-width, thumb-height button on mobile */
   .v2-stage-card div[style*="display:flex"]{flex-wrap:wrap}
   .v2-stage-card .btn-primary{flex:1 1 100%;width:100%;min-height:48px;font-size:15px;order:2}
@@ -382,6 +382,13 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
   </div>
 
   <div class="card">
+    <h2 style="margin:0 0 12px">Lessons</h2>
+    <div id="home-lesson-units"></div>
+    <h3 style="margin:14px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)">Next up</h3>
+    <div id="home-next-lessons"></div>
+  </div>
+
+  <div class="card">
     <h3 style="margin-bottom:8px">Read It Aloud — how every lesson works</h3>
     <p>Every line of code is broken down into plain language. Once you can say it out loud — in any language — you own it.</p>
     <div class="ral-block">
@@ -401,6 +408,8 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
       <a href="../excel/" class="btn btn-outline btn-sm">Excel</a>
       <a href="../tableau/" class="btn btn-outline btn-sm">Tableau</a>
       <a href="../stats/" class="btn btn-outline btn-sm">Stats</a>
+      <a href="../chart-literacy/" class="btn btn-outline btn-sm">Chart Literacy</a>
+      <a href="../forecasting/" class="btn btn-outline btn-sm">Forecasting</a>
       <a href="../interview/" class="btn btn-outline btn-sm">Interview</a>
       <a href="../powerbi/" class="btn btn-outline btn-sm">Power BI</a>
       <a href="../simulator/" class="btn btn-outline btn-sm">Associate Data Analyst Simulator</a>
@@ -1406,6 +1415,19 @@ function renderHome(){
       <span class="readiness-pct">${Math.round(p)}%</span>
     </div>`;
   }).join('');
+
+  // Lessons overview: per-unit progress + next 3 lessons (Excel home parity).
+  // Next-up tracks ACCESSIBLE lessons only — never surface locked premium ones.
+  const _units=[...new Set(DATA.LESSONS.map(l=>l.unit))];
+  document.getElementById('home-lesson-units').innerHTML=_units.map(u=>{
+    const ls=DATA.LESSONS.filter(l=>l.unit===u);
+    const d=ls.filter(l=>S.lessonsDone.includes(l.id)).length;
+    const p=Math.round(d/ls.length*100);
+    return `<div style="margin-bottom:10px"><div class="flex-between" style="margin-bottom:3px"><span style="font-size:13px;font-weight:600">${u}</span><span style="font-size:12px;font-family:var(--mono);color:var(--dim)">${d}/${ls.length}</span></div><div class="prog-bar" style="height:5px"><div class="prog-fill" style="width:${p}%"></div></div></div>`;
+  }).join('');
+  const _accessible=DATA.LESSONS.filter(l=>!isLockedLesson(l));
+  const _nxtL=_accessible.filter(l=>!S.lessonsDone.includes(l.id)).slice(0,3);
+  document.getElementById('home-next-lessons').innerHTML=_nxtL.length?_nxtL.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 2px;border-top:1px solid var(--border);cursor:pointer" onclick="openLesson(${l.id})"><div><span style="font-size:11px;color:var(--dim);font-family:var(--mono);margin-right:8px">L${lessonPos(l.id)+1}</span><span style="font-size:14px;font-weight:600">${l.title}</span></div><span style="color:var(--accent);font-weight:700">→</span></div>`).join(''):`<p style="font-size:13px;color:var(--dim);margin:8px 0 0">All ${_accessible.length} lessons complete!</p>`;
 }
 function resumeLesson(){ openLesson(S.currentLesson); }
 
@@ -2304,7 +2326,7 @@ function renderParsons(item,idx,isDone){
     <div class="parsons-label mt12">Your answer:</div>
     <div class="parsons-answer" id="parsAnswer"></div>
     <div class="check-row mt8">
-      <button class="btn btn-primary btn-sm" onclick="checkParsons(${idx})">Check</button>
+      <button class="btn btn-primary btn-sm pars-check" onclick="checkParsons(${idx})">Check</button>
       <button class="btn btn-outline btn-sm" onclick="resetParsons(${idx})">Reset</button>
       <button class="solution-toggle" onclick="toggleSol('parsSol')">show answer</button>
     </div>

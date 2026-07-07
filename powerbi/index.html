@@ -184,10 +184,6 @@ p strong{color:var(--text)}
 /* FILLS */
 .fill-prompt{font-size:14px;color:var(--muted);margin-bottom:10px}
 .fill-partial{font-family:var(--mono);font-size:13px;background:var(--surf2);border:1px solid var(--border);border-radius:var(--r2);padding:12px 16px;margin-bottom:16px;white-space:pre}
-.fill-input{width:100%;font-family:var(--mono);font-size:14px;background:var(--surf2);border:1px solid var(--border);border-radius:var(--r2);padding:11px 14px;color:var(--text);outline:none;transition:.15s}
-.fill-input:focus{border-color:var(--accent)}
-.fill-input.correct-in{border-color:var(--green);background:var(--leaf-50);color:var(--leaf-700)}
-.fill-input.wrong-in{border-color:var(--red);background:var(--rust-50);color:var(--rust-700)}
 
 /* BUGS */
 .code-broken{font-family:var(--mono);font-size:13px;background:var(--rust-50);border:1px solid var(--red);border-radius:var(--r2);padding:14px 16px;margin:10px 0;white-space:pre;overflow-x:auto;color:var(--rust-700)}
@@ -270,6 +266,10 @@ p strong{color:var(--text)}
 .mt{margin-top:16px}
 .mb{margin-bottom:16px}
 @media(max-width:600px){
+  /* Standalone practice Parsons: full-width Check CTA + wrapping chips */
+  .row:has(.pars-check){flex-wrap:wrap}
+  .pars-check{flex:1 1 100%;width:100%;min-height:48px;font-size:15px}
+  .parsons-chip{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
   /* High #1: primary stage CTA = full-width, thumb-height button on mobile */
   .v2-stage-card div[style*="display:flex"]{flex-wrap:wrap}
   .v2-stage-card .btn-primary{flex:1 1 100%;width:100%;min-height:48px;font-size:15px;order:2}
@@ -1652,6 +1652,19 @@ function renderHome(){
     </div>`;
   }).join('');
 
+  // Lessons overview: per-unit progress + next 3 lessons (Excel home parity).
+  // Next-up tracks ACCESSIBLE lessons only — never surface locked premium ones.
+  const _units = [...new Set(DATA.LESSONS.map(l=>l.unit))];
+  const unitRows = _units.map(u=>{
+    const ls = DATA.LESSONS.filter(l=>l.unit===u);
+    const d = ls.filter(l=>state.doneLessons.includes(l.id)).length;
+    const p = Math.round(d/ls.length*100);
+    return `<div style="margin-bottom:10px"><div class="row" style="justify-content:space-between;margin-bottom:3px"><span style="font-size:13px;font-weight:600">${u}</span><span style="font-size:12px;font-family:var(--mono);color:var(--muted)">${d}/${ls.length}</span></div><div class="prog-wrap" style="height:5px"><div class="prog-bar" style="width:${p}%"></div></div></div>`;
+  }).join('');
+  const _accessible = DATA.LESSONS.filter(l=>!isLockedLesson(l));
+  const _nxtL = _accessible.filter(l=>!state.doneLessons.includes(l.id)).slice(0,3);
+  const nextUp = _nxtL.length ? _nxtL.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 2px;border-top:1px solid var(--border);cursor:pointer" onclick="navigate('lesson',${l.id})"><div><span style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-right:8px">L${lessonPos(l.id)+1}</span><span style="font-size:14px;font-weight:600">${l.title}</span></div><span style="color:var(--accent);font-weight:700">→</span></div>`).join('') : `<p class="text-sm text-muted" style="margin:8px 0 0">All ${_accessible.length} lessons complete!</p>`;
+
   document.getElementById('main').innerHTML = `
     ${resumeHtml}
     <div class="card" id="flaggedCard" style="margin-bottom:16px;border-color:var(--warn,#d9963a);display:none">
@@ -1684,6 +1697,12 @@ function renderHome(){
       <div class="prog-wrap mb"><div class="prog-bar" style="width:${pct}%"></div></div>
       <div class="text-sm text-muted mb">${done} of ${total} lessons complete (${pct}%)</div>
       ${skillBars}
+    </div>
+    <div class="card">
+      <h2>Lessons</h2>
+      ${unitRows}
+      <h3 style="margin:14px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Next up</h3>
+      ${nextUp}
     </div>
     <div class="card card-sm">
       <h3>Read-Aloud Demo</h3>
@@ -2567,7 +2586,7 @@ function renderParsons(idx){
         </div>
       </div>
       <div class="row mt">
-        <button class="btn btn-primary btn-sm" onclick="checkParsons(${idx})">Check Order</button>
+        <button class="btn btn-primary btn-sm pars-check" onclick="checkParsons(${idx})">Check Order</button>
         <button class="btn btn-ghost btn-sm" onclick="navigate('parsons',${idx})">Reset</button>
       </div>
       <div id="parsons-result" class="mt"></div>
