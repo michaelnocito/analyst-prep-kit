@@ -9,6 +9,18 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.118.0] — 2026-07-07 — 📖 GR-D COMPLETE: analogy-first openers on quiz explanations + Gotchas, all 6 lesson kits
+
+The remainder of GR-D (intros were done in v1.18.0): every quiz explanation (`exp:`/`explain:`) and Gotcha (`notes:`) now OPENS with a real-world non-tech analogy or concrete scenario — or already did and was left alone. ~730 strings reviewed, 92 rewritten (Excel 25 · Stats 16 · Tableau 15 · Power BI 15 · SQL 11 · Python 10). Opening-sentence-only edits; technical content preserved; `say`/ral lines exempt (literal formula readings). Sample anchors: WHERE = bouncer at the door · LEFT JOIN = class roster with an optional sign-up sheet · window functions = rank written on each report card · p-value = "how weird is 9 heads in 10 flips?" · H₀ = courtroom's innocent-until-proven-guilty · filter context = the room a question is asked in · TOTALYTD = trip odometer · `df2 = df` = two name tags on one box · VLOOKUP = reading a receipt left-to-right · named range = a contact in your phone. Bonus content fix: Tableau's Top-N quiz explanation claimed Top N evaluates AFTER other filters — corrected to match Tableau's real order of operations (and its own build exp). Interview/Simulator/Final already use scenario-based feedback (lighter pass not needed). All green: 51-script parse gate, 121 de-test, 24 legacy, 13-page render smoke.
+
+## [1.117.0] — 2026-07-07 — 📊 Tableau: What's-Wrong drills now SHOW the broken chart
+
+8 diagnostic What's-Wrong items (flat bars, single YEAR bar, truncated Y-axis, stacked scatter, crushed dual axis, no-trend-line discrete pill, one-dot scatter, equal treemap tiles) now render the misbehaving chart they describe — zero-dep inline SVGs in a new `TAB_WRONG_SVG` map, wired via Excel's `svg:` field pattern into `renderWrong`. Deliberate scope call closing the all-exercise chart audit: chart-CHOICE questions ("which chart type fits?") stay text-only ON PURPOSE — drawing the chart would reveal the answer. With this, every exercise where seeing the chart aids diagnosis has one; SQL/Python/PBI/Stats exercise banks had no text-only diagnostic chart items (their chart lessons already draw via SQL_CHARTS/PY_CHARTS/PBI_CHARTS/Chart.js).
+
+## [1.116.0] — 2026-07-07 — ✅ Final Exam: last free-text answers converted to tap-the-choice
+
+The exam's 3 typed fill-in questions (e3 COUNTIF, s4 ORDER BY/LIMIT, p4 pandas groupby) are now multiple-choice with hand-authored distractors — the last surface where a legitimately-correct answer variation could be marked wrong is gone. Fill machinery removed (input render branch, answerFill, regex grading, fill CSS, orphaned escape helpers); saved typed answers migrated out of localStorage so they can't grade as permanently wrong.
+
 ## [1.115.0] — 2026-07-07 — 🧹 Finish-line polish sweep: open interface items closed + full stable-build test pass
 
 Pre-paywall stabilization pass — every open non-paywall lesson/interface item from the ROADMAP + cleanup lists, plus a full automated test sweep.
