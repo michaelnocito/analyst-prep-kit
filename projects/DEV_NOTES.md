@@ -21,7 +21,11 @@ Portfolio-project builder inside the Analyst Prep Kit. Scope → Plan → Build 
 - Mike dogfooding with the Steam Hidden Gems project (dataset: `apk-portfolio-hidden-gems/handoff_bundle/games.csv`, 126k rows) — feedback drives the next iteration.
 
 ### Backlog (unscoped, pull forward as needed)
-- Scope → auto-generate a starter SQL/Excel file from the saved case.
+- **Scope → auto-generate a starter SQL/Excel file from the saved case ("level 3", scoped 2026-07-08).** Closes the loop between scoping in Studio and doing the work in an empty editor (the "blank page" stall). By end of Scope the app holds the question, the success criteria, and each criterion's direct/proxy/cut column mapping — enough to emit a real, commented scaffold pre-filled with the user's own project.
+  - **Output:** a downloadable `.sql` file: header with the project question; a Step 1 load/verify block linking the "Set Up a SQL Database" lesson (`../sql/#lesson-105`); then one commented `SELECT` stub per scoped criterion, tagged with its column mapping (`-- Criterion: "affordable" [direct → Price]`) and a WHERE skeleton. Same generator branches to an Excel/Power Query skeleton + pivot outline when the scope's tool is Excel.
+  - **Why higher effort than levels 1–2:** it's a code generator, not a copy edit — new function walking the scope object, branching on tool and on each criterion's direct/proxy/cut tag, emitting valid syntax + wiring a download. Edge cases: missing/empty criteria, "cut" items (comment-only, no stub), multi-tool projects.
+  - **Correctness risk = its own commit:** a subtly-wrong generated file teaches the wrong thing under Mike's name inside a learning product. Needs testing across several scope shapes before ship; do NOT tack onto an unrelated pass.
+  - **Priority:** deferred. Levels 1–2 already deliver most of the ROI. Pull forward only if Studio usage shows people scoping but not finishing (the exact stall this fixes). Related backlog rows below (SQLite load pipeline, scoring CTE) can share its generator work.
 - SQLite load pipeline + cleaning pass for the Hidden Gems dataset (owners range strings → numeric midpoints).
 - Hidden Gem scoring view/CTE with thresholds set from real percentile distributions.
 - Tableau dashboard + Excel pivot leg for the Hidden Gems project specifically.
