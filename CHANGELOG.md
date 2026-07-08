@@ -9,6 +9,16 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.119.0] — 2026-07-08 — 🎮 Project Studio: Steam Hidden Gems worked-example card
+
+Project Studio's home now shows a "Worked example" card above Your Projects:
+Steam Hidden Gems, the finished portfolio project built with this exact
+Scope → Plan → Build → Present workflow (SQL over ~125k Steam games → 175 gems).
+Card links to the public GitHub repo, whose README documents every stage —
+data-cleaning story, evidence-driven thresholds, scope/assumptions, validation.
+Gives new users a concrete "this is what done looks like" target before they
+scope their own project, and cross-links the portfolio repo from the kit.
+
 ## [1.118.0] — 2026-07-07 — 📖 GR-D COMPLETE: analogy-first openers on quiz explanations + Gotchas, all 6 lesson kits
 
 The remainder of GR-D (intros were done in v1.18.0): every quiz explanation (`exp:`/`explain:`) and Gotcha (`notes:`) now OPENS with a real-world non-tech analogy or concrete scenario — or already did and was left alone. ~730 strings reviewed, 92 rewritten (Excel 25 · Stats 16 · Tableau 15 · Power BI 15 · SQL 11 · Python 10). Opening-sentence-only edits; technical content preserved; `say`/ral lines exempt (literal formula readings). Sample anchors: WHERE = bouncer at the door · LEFT JOIN = class roster with an optional sign-up sheet · window functions = rank written on each report card · p-value = "how weird is 9 heads in 10 flips?" · H₀ = courtroom's innocent-until-proven-guilty · filter context = the room a question is asked in · TOTALYTD = trip odometer · `df2 = df` = two name tags on one box · VLOOKUP = reading a receipt left-to-right · named range = a contact in your phone. Bonus content fix: Tableau's Top-N quiz explanation claimed Top N evaluates AFTER other filters — corrected to match Tableau's real order of operations (and its own build exp). Interview/Simulator/Final already use scenario-based feedback (lighter pass not needed). All green: 51-script parse gate, 121 de-test, 24 legacy, 13-page render smoke.
