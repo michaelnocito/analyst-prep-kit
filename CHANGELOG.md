@@ -9,6 +9,15 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.120.0] — 2026-07-08 — 🎮 Project Studio: worked-example card now a per-stage guided tour
+
+Expanded the Steam Hidden Gems card from a repo link into a concrete stage
+walkthrough: the actual scope question used ("Which Steam games are hidden gems
+I'd love but have never heard of?"), plus how the real project handled Prepare
+(the broken-header catch), Analyze (evidence-driven threshold tuning, 5,175 →
+175), and Share/validate (catching Portal 2 / Batman: Arkham City as bad
+records). Turns the static example into a tour of a real project at each stage.
+
 ## [1.119.0] — 2026-07-08 — 🎮 Project Studio: Steam Hidden Gems worked-example card
 
 Project Studio's home now shows a "Worked example" card above Your Projects:

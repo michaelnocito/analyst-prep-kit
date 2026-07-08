@@ -5,11 +5,12 @@ Portfolio-project builder inside the Analyst Prep Kit. Scope → Plan → Build 
 - Live: https://michaelnocito.github.io/analyst-prep-kit/projects/
 - Source: `projects/index.html` (single-file, vanilla JS, GRAIN design system)
 - State: `localStorage['apk-projects-v1']`
-- Current version: v1.119.0
+- Current version: v1.120.0
 
 ## ROADMAP
 
 ### Shipped
+- v1.120.0 — Worked-example card expanded into a per-stage guided tour: actual scope question + how the real project handled Prepare (broken header), Analyze (threshold tuning), Share/validate (Portal 2 / Batman catches).
 - v1.119.0 — "Worked example" card on the Studio home: Steam Hidden Gems (finished project built with this workflow), linking to github.com/michaelnocito/steam-hidden-gems.
 - v1.112.0 — "📚 New to this?" links on Build-phase plan steps: every tool-tagged step links to that tool's kit; SQL load/import steps deep-link to the SQL kit's new Unit 0 lesson "Set Up a SQL Database" (`../sql/#lesson-105`). Render-time, so saved plans get the links retroactively. (From Mike's playtest feedback: the steam_games_raw import step assumed prereq knowledge.)
 - v1.103.0 — Initial ship: Scope wizard (7 steps), Plan (template/paste-your-own/Claude BYOK draft), Build (accordion checklist over the 6 analysis stages), Present (deliverable checklist + .md export).
