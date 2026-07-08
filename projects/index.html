@@ -98,6 +98,9 @@ input:focus,textarea:focus,select:focus{outline:none;box-shadow:var(--focus-ring
 .stage-body{border-top:1px solid var(--line);padding:6px 18px 16px}
 .bp{background:var(--info-bg);border:1px solid var(--info);border-radius:8px;padding:10px 13px;font-size:13.5px;margin:12px 0;color:var(--ink)}
 .bp b{color:var(--info)}
+.ex{border-left:3px solid var(--accent);background:var(--panel);border-radius:0 8px 8px 0;padding:9px 13px;font-size:13px;margin:12px 0;color:var(--ink)}
+.ex .ex-lbl{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:3px}
+.ex code{font-size:12px}
 .step-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px dashed var(--tint-bd)}
 .step-row:last-child{border-bottom:none}
 .step-row input[type=checkbox]{width:17px;height:17px;margin-top:2px;accent-color:var(--good);cursor:pointer;flex-shrink:0}
@@ -189,13 +192,17 @@ const STAGES = [
   {key:'ask', title:'Ask', mission:'Nail down the question and what "answered" looks like.',
    bp:'Analysts who skip this stage produce technically-correct answers to the wrong question. Your scope doc IS this stage — keep it open while you work, and re-read it any time you feel lost in the data.'},
   {key:'prepare', title:'Prepare', mission:'Get the data, understand every column, and record where it came from.',
-   bp:'Before writing a single formula or query, profile the data: row count, column list, what one row represents (the grain), and obvious gaps. A data dictionary — even a rough one — saves you hours later and impresses reviewers. Got a huge file (hundreds of MB, 100k+ rows)? Don\'t just double-click it — in Excel, use Data → Get Data → From File → From Text/CSV: the preview loads in seconds and lets you check your columns exist without importing anything. Cancel out once you\'ve confirmed the fields; if you do need it in a sheet, use Load To → Only Create Connection and pull a filtered subset via PivotTable rather than loading every row.'},
+   bp:'Before writing a single formula or query, profile the data: row count, column list, what one row represents (the grain), and obvious gaps. A data dictionary — even a rough one — saves you hours later and impresses reviewers. Got a huge file (hundreds of MB, 100k+ rows)? Don\'t just double-click it — in Excel, use Data → Get Data → From File → From Text/CSV: the preview loads in seconds and lets you check your columns exist without importing anything. Cancel out once you\'ve confirmed the fields; if you do need it in a sheet, use Load To → Only Create Connection and pull a filtered subset via PivotTable rather than loading every row.',
+   ex:'Profiling the 125k games, <code>MAX(Positive)</code> came back a flat <b>100</b> across every single game — impossible for Steam review counts. That one impossible number was the whole thread to pull. If a summary stat looks too clean to be real, it usually isn\'t.'},
   {key:'process', title:'Process', mission:'Clean the data and document every cleaning decision.',
-   bp:'Cleaning decisions ARE analysis decisions. Never overwrite the raw data — keep raw and cleaned versions separate, and write down each rule you applied (what you dropped, what you filled, why). Interviewers ask about this constantly.'},
+   bp:'Cleaning decisions ARE analysis decisions. Never overwrite the raw data — keep raw and cleaned versions separate, and write down each rule you applied (what you dropped, what you filled, why). Interviewers ask about this constantly.',
+   ex:'The flat-100 turned out to be a broken CSV header: the source file listed 39 columns for 40 fields, so every value after a fused column loaded one slot to the left. Fixed it in a <b>clean copy</b> (raw file left untouched), re-imported, and verified against one known record before trusting anything.'},
   {key:'analyze', title:'Analyze', mission:'Answer each scoped criterion with evidence.',
-   bp:'Work criterion by criterion from your scope, not wherever the data looks interesting. Sanity-check every result against a second method (a pivot vs. a query, a spot-check of raw rows). Set thresholds from the real distribution of your data, not gut feel.'},
+   bp:'Work criterion by criterion from your scope, not wherever the data looks interesting. Sanity-check every result against a second method (a pivot vs. a query, a spot-check of raw rows). Set thresholds from the real distribution of your data, not gut feel.',
+   ex:'Thresholds were set from the data, not gut feel — counting how many games survived each filter (5,175 → 175) until the list was a credible size. A reality-check against real-world knowledge then caught records the numbers alone trusted: Portal 2 sitting in the under-20k-owners tier with 153k reviews, and Batman: Arkham City listed as "free" — both corrupted/stale rows, cut and documented.'},
   {key:'share', title:'Share', mission:'Turn the findings into the deliverable you defined in scoping.',
-   bp:'Lead with the answer, not the process. One chart that makes the point beats five that show effort. Label everything so it reads without you in the room — that is the actual test of portfolio work.'},
+   bp:'Lead with the answer, not the process. One chart that makes the point beats five that show effort. Label everything so it reads without you in the room — that is the actual test of portfolio work.',
+   ex:'The write-up opens with the answer — a ranked top-25 table — before any of the how. Scope and assumptions (language-agnostic, so some titles are non-English) are stated up front so a stranger can judge the list without needing the author in the room.'},
   {key:'act', title:'Act', mission:'State the recommendation, the limitations, and what you would do next.',
    bp:'"So what?" is the analyst\'s final exam. A recommendation with honest limitations reads as senior; a wall of charts with no conclusion reads as junior. Always include what you would do next with more time or data.'}
 ];
@@ -731,6 +738,7 @@ function buildHTML(p){
       </div>`;
     if(open){
       h += `<div class="stage-body"><div class="bp"><b>Best practice —</b> ${sg.bp}</div>`;
+      if(sg.ex) h += `<div class="ex"><span class="ex-lbl">How Steam Hidden Gems handled this →</span>${sg.ex}</div>`;
       st.steps.forEach((s,i)=>{
         h += `<div class="step-row ${s.done?'done':''}">
           <input type="checkbox" ${s.done?'checked':''} onchange="stepDone('${sg.key}',${i},this.checked)">

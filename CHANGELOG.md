@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.121.0] — 2026-07-08 — 🎮 Project Studio: per-stage "How Steam Hidden Gems handled this" callouts
+
+The worked example now walks beside you through the Build phase instead of only
+living on the home screen. Added an `ex` field to four analysis stages, rendered
+as an accent callout under the best-practice note when that stage is expanded:
+- **Prepare** — the impossible flat `MAX(Positive)=100` that started it all.
+- **Process** — the broken-header fix in a clean copy, raw file untouched.
+- **Analyze** — threshold tuning (5,175 → 175) + the Portal 2 / Batman catches.
+- **Share** — leading with the top-25 table, scope/assumptions stated up front.
+Just-in-time: the real project's move for a stage shows exactly when the user is
+working that stage. Verified in-preview (all 6 stage cards render, callout shows
+per open stage, no console errors).
+
 ## [1.120.0] — 2026-07-08 — 🎮 Project Studio: worked-example card now a per-stage guided tour
 
 Expanded the Steam Hidden Gems card from a repo link into a concrete stage
