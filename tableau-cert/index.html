@@ -103,6 +103,17 @@ main{max-width:780px;margin:0 auto;padding:32px 20px 80px}
 .miscon{margin-top:14px;padding:12px 14px;background:var(--surf2);border-left:3px solid var(--warn);border-radius:var(--r-md);font-size:13.5px;line-height:1.65}
 .miscon strong{color:var(--warn)}
 
+/* Concept confidence rater + needs-review filter (mirrors the kits' rater) */
+.li-foot{display:flex;gap:10px;align-items:center;margin-top:7px;flex-wrap:wrap}
+.conf-chips{display:inline-flex;gap:5px}
+.conf-chip{font-size:11px;padding:2px 9px;border-radius:12px;border:1px solid var(--border);color:var(--dim);background:none;transition:.12s}
+.conf-chip:hover{border-color:var(--accent);color:var(--text)}
+.conf-chip.on.low{border-color:var(--bad);color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent)}
+.conf-chip.on.mid{border-color:var(--warn);color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,transparent)}
+.conf-chip.on.high{border-color:var(--good);color:var(--good);background:color-mix(in srgb,var(--good) 10%,transparent)}
+.lesson-link{font-size:12px;font-weight:600;white-space:nowrap}
+.expand-all.rf-on{border-color:var(--warn);color:var(--warn)}
+
 .expand-all{font-size:13px;background:none;border:1px solid var(--border);color:var(--dim);padding:6px 14px;border-radius:var(--r-md);margin-bottom:16px}
 .expand-all:hover{border-color:var(--accent);color:var(--text)}
 
@@ -220,6 +231,8 @@ const state = JSON.parse(localStorage.getItem(STORE) || '{}');
 state.answers = state.answers || {};          // {qid: number | number[] (ms)}
 state.submitted = state.submitted || false;
 state.openSections = state.openSections || {};
+state.conf = state.conf || {};              // {conceptId: 'low'|'mid'|'high'} — study-guide self-rating
+state.reviewFilter = !!state.reviewFilter;  // study guide shows only low/mid-rated concepts
 state.examStart = state.examStart || null;    // epoch ms when a timed run began
 state.timed = state.timed !== undefined ? state.timed : null; // null = not chosen yet
 state.view = location.hash ? (state.view || 'home') : 'home';
@@ -241,6 +254,20 @@ const DOMAIN_INFO = {
       kitPath:'../tableau/'}
 };
 const DOMAIN_ORDER = ['d1','d2','d3','d4'];
+
+/* Per-concept deep links into the Tableau Kit (#lesson-<id> opens the lesson).
+   Keyed '<domain>-<bullet index>' — bullets without a matching lesson stay unlinked. */
+const LESSON_LINKS = {
+  'd1-0':'../tableau/#lesson-14','d1-1':'../tableau/#lesson-14','d1-2':'../tableau/#lesson-14','d1-3':'../tableau/#lesson-14',
+  'd1-4':'../tableau/#lesson-15','d1-5':'../tableau/#lesson-15','d1-6':'../tableau/#lesson-15','d1-7':'../tableau/#lesson-15',
+  'd1-8':'../tableau/#lesson-16',
+  'd2-0':'../tableau/#lesson-12','d2-1':'../tableau/#lesson-20','d2-2':'../tableau/#lesson-9','d2-3':'../tableau/#lesson-17',
+  'd2-4':'../tableau/#lesson-9','d2-5':'../tableau/#lesson-18','d2-6':'../tableau/#lesson-5','d2-7':'../tableau/#lesson-5',
+  'd2-10':'../tableau/#lesson-7','d2-11':'../tableau/#lesson-19','d2-12':'../tableau/#lesson-29',
+  'd3-0':'../tableau/#lesson-6','d3-3':'../tableau/#lesson-6','d3-4':'../tableau/#lesson-10','d3-5':'../tableau/#lesson-10',
+  'd3-7':'../tableau/#lesson-13',
+  'd4-0':'../tableau/#lesson-2','d4-1':'../tableau/#lesson-2','d4-3':'../tableau/#lesson-4','d4-4':'../tableau/#lesson-8','d4-5':'../tableau/#lesson-8'
+};
 
 /* ============== STUDY GUIDE ============== */
 const STUDY = [
@@ -648,6 +675,7 @@ function handleHash(){
     return;
   }
   if(h === 'exam') setView('exam');
+  else if(h === 'review') openReview();
   else if(h === 'home') setView('home');
   else if(h === 'results' && state.submitted) setView('results');
 }
@@ -703,6 +731,10 @@ function renderHome(){
       <strong>🗣️ Say it out loud.</strong> The Specialist exam is closed-book and concept-first — no Tableau access during the test. If you can explain an idea in one plain sentence ("an extract is a photocopy, live is a phone call"), you can answer any way they phrase it. That's the same method the Tableau Kit teaches.
     </div>
 
+    ${needsReviewCount()>0?`<div class="method-callout" style="border-left-color:var(--warn)">
+      <strong>🔁 ${needsReviewCount()} concept${needsReviewCount()===1?'':'s'} flagged for review.</strong> You rated ${needsReviewCount()===1?'it':'them'} "Not yet" or "Almost" in the study guide — <a href="#" onclick="openReview();return false;">filter to just those →</a>
+    </div>`:''}
+
     <div class="method-callout" style="border-left-color:var(--c-d2)">
       <strong>New to these topics?</strong> The <a href="../tableau/">Tableau Kit</a> teaches them as interactive lessons — Units 4 and 5 were built for cert Domains 1 and 2. Do the lessons first, then come back here to drill the exam.
     </div>
@@ -716,9 +748,16 @@ function renderStudy(){
       <p>Percentages are the official domain weights — spend your study time proportionally.</p>
     </div>
     <button class="expand-all" onclick="toggleAllStudy()">${allStudyOpen() ? 'Collapse all' : 'Expand all'}</button>
+    <button class="expand-all ${state.reviewFilter?'rf-on':''}" onclick="toggleReviewFilter()">${state.reviewFilter ? `Showing needs-review only (${needsReviewCount()}) — show all` : `Filter: needs review (${needsReviewCount()})`}</button>
     ${STUDY.map(s=>{
       const d = DOMAIN_INFO[s.key];
-      const open = !!state.openSections[s.key];
+      const vis = s.must.map((m,i)=>({m,i})).filter(x=>{
+        if(!state.reviewFilter) return true;
+        const lvl = state.conf[s.key+'-'+x.i];
+        return lvl==='low' || lvl==='mid';
+      });
+      if(state.reviewFilter && vis.length===0) return '';
+      const open = state.reviewFilter ? true : !!state.openSections[s.key];
       return `
         <div class="study-section ${open?'open':''}" id="study-${s.key}">
           <div class="study-head" onclick="toggleStudy('${s.key}')">
@@ -727,9 +766,9 @@ function renderStudy(){
             <span class="study-toggle">▸</span>
           </div>
           <div class="study-body">
-            <div class="study-viz"><div class="sv-cap"><i data-lucide="monitor"></i> See it</div>${s.viz}</div>
-            <ul>${s.must.map(m=>`<li>${m}</li>`).join('')}</ul>
-            <div class="miscon">${s.miscon}</div>
+            ${state.reviewFilter?'':`<div class="study-viz"><div class="sv-cap"><i data-lucide="monitor"></i> See it</div>${s.viz}</div>`}
+            <ul>${vis.map(x=>studyItemHTML(s.key,x.i,x.m)).join('')}</ul>
+            ${state.reviewFilter?'':`<div class="miscon">${s.miscon}</div>`}
             <a class="study-link" href="${d.kitPath}">${d.hint} Open the Tableau Kit →</a>
           </div>
         </div>
@@ -737,6 +776,28 @@ function renderStudy(){
     }).join('')}
   `;
 }
+
+/* ===== Concept confidence + needs-review filter ===== */
+function studyItemHTML(key,i,m){
+  const id = key+'-'+i;
+  const lvl = state.conf[id];
+  const chip = (l,txt)=>`<button class="conf-chip ${lvl===l?('on '+l):''}" onclick="rateConf('${id}','${l}')">${txt}</button>`;
+  const href = LESSON_LINKS[id];
+  const link = href ? `<a class="lesson-link" href="${href}">Open the lesson →</a>` : '';
+  return `<li>${m}<div class="li-foot"><span class="conf-chips">${chip('low','✗ Not yet')}${chip('mid','~ Almost')}${chip('high','✓ Have it')}</span>${link}</div></li>`;
+}
+function rateConf(id,lvl){
+  if(state.conf[id]===lvl) delete state.conf[id];
+  else state.conf[id]=lvl;
+  save(); render();
+}
+function needsReviewCount(){ return Object.values(state.conf).filter(v=>v==='low'||v==='mid').length; }
+function toggleReviewFilter(){
+  if(!state.reviewFilter && needsReviewCount()===0){ toast('Rate a concept "Not yet" or "Almost" first — then filter to just those.'); return; }
+  state.reviewFilter = !state.reviewFilter;
+  save(); render();
+}
+function openReview(){ state.reviewFilter = true; save(); setView('study'); }
 
 function allStudyOpen(){ return STUDY.every(s => state.openSections[s.key]); }
 function toggleStudy(key){

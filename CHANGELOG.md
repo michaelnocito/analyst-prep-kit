@@ -9,6 +9,29 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.125.0] — 2026-07-10 — 🔁 Cert kits: per-concept confidence rater + needs-review filter + lesson deep links
+
+Closes the loop between the three cert kits and their parent kits (Mike's ask:
+low-friction visible links back to kit concepts + self-grading + filter to
+what needs reinforcing, like the kits' confidence rater):
+- **Every study-guide bullet is now a ratable concept**: ✗ Not yet · ~ Almost ·
+  ✓ Have it chips (same semantics as the kits' rater; click again to clear),
+  persisted in each cert kit's state (`state.conf`).
+- **Needs-review filter**: a second button beside Expand-all — "Filter: needs
+  review (N)" — collapses the study guide to ONLY low/mid-rated concepts
+  (sections force-open, See-it/misconception blocks hidden for focus; empty
+  domains drop out). Home shows a "🔁 N concepts flagged for review" callout
+  linking straight into the filtered view. Deep-linkable via `#review`.
+- **82 per-concept lesson deep links** (`LESSON_LINKS`, keyed domain-bulletIdx):
+  "Open the lesson →" on each bullet that has a matching parent-kit lesson,
+  e.g. Sets → tableau L17, CALCULATE → powerbi L7, Tables → excel L13. All
+  targets machine-validated against the parent kits' actual lesson ids.
+- **Parent kits gained `#lesson-<id>` deep-link support** (tableau/excel/
+  powerbi): a window-load hash handler calls `openLesson()` / `navigate('lesson')`
+  — on load (not setTimeout) so deferred Chart.js is ready for lesson vizzes.
+- Headless verified: syntax on all 6 touched files; every LESSON_LINKS key in
+  bullet-array bounds; every #lesson target exists in its kit.
+
 ## [1.124.0] — 2026-07-10 — 🎖️ TWO MORE CERT KITS: Power BI (PL-300) + Excel (MO-210); SQL cert skipped by design
 
 Cloned the Tableau Cert Prep shell (v1.123.0) for the two other worthwhile
