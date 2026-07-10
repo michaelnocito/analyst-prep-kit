@@ -456,12 +456,11 @@ LESSONS: [
    close:"You know what SQL returns and how NULL behaves — that prevents a whole class of silent wrong answers. Next: your first real query.",
    unlock:"NULL propagation is the most silent source of wrong totals in SQL. Once you know that NULL + anything = NULL and that COUNT(col) skips NULLs, you'll catch calculation errors that fool most junior analysts."},
   {id:105, unit:"Unit 0: Before You Query", title:"Set Up a SQL Database", sub:"Turn a raw CSV file into a real table you can query.",
-   story:"Good news first: this kit needs zero setup — every lesson, practice, and lab runs right here in your browser. This lesson is about the day you want SQL on YOUR OWN data: you downloaded a dataset and it's a CSV file, not a database. The bridge is a one-time, three-part move — create a database, import the CSV into a table, verify it loaded. You don't need to do it today; just learn the shape of it, and come back when your first portfolio project needs it.",
+   story:"Good news first: this kit needs zero setup — every lesson, practice, and lab runs right here in your browser. This lesson is about the day you want SQL on YOUR OWN data: you downloaded a dataset and it's a CSV file, not a database. The bridge is a one-time, three-part move — create a database, import the CSV into a table, verify it loaded. You don't need to do it today; just learn the shape of it, and come back when your first portfolio project needs it. Before you look at the example, commit to a guess: which has to happen first — importing the CSV, or creating the table? Even a wrong guess makes the answer stick.",
    intro:"<strong>What you're creating:</strong> with <strong>SQLite</strong>, a database is just one file on your computer (like <code>portfolio.db</code>) holding your tables. <strong>Where you type:</strong> a free desktop app called <em>DB Browser for SQLite</em> — its <em>Execute SQL</em> tab is where SQL like the example below gets typed, and its menus (File → Import → Table from CSV) do the importing for you. Name the imported table with a <code>_raw</code> suffix (the untouched original — clean into a copy later, never the original), then verify with a row count. <strong>Want the full click-by-click walkthrough?</strong> Follow the companion guide: <a href=\"../guides/set-up-a-sql-database/\" target=\"_blank\" rel=\"noopener\">Set Up a SQL Database for Beginners</a> — it takes about 15 minutes with free tools.",
    ral:{sql:"CREATE TABLE steam_games_raw (\n  app_id INTEGER,\n  name TEXT,\n  price REAL,\n  release_date TEXT,\n  owners TEXT\n);\n-- then import the CSV into it, and verify:\nSELECT COUNT(*) FROM steam_games_raw;",say:"Make an empty table with the right column names and types, load the CSV into it, then count the rows to confirm everything arrived.",
-     lines:[["CREATE TABLE","makes a new, empty table with named, typed columns"],["steam_games_raw","the _raw suffix = untouched original; clean into a separate table later"],["INTEGER / REAL / TEXT","column types — whole numbers, decimals, text; wrong types break math and sorting"],["import","the GUI (DB Browser) or a command (.import in sqlite3) loads the CSV rows in"],["SELECT COUNT(*)","the verify step — the row count should match the source file"]]},
-   notes:"Import gotchas that bite everyone once: the CSV's first row is usually headers, not data (tick 'column names in first row'); numbers with $ signs or commas import as TEXT until cleaned; and a row count that's off by more than the header row means quoting/delimiter problems. Same idea elsewhere: MySQL uses LOAD DATA INFILE, Postgres uses COPY — the workflow (create table → import → verify) is identical.",
-   viz:{columns:["step","what you do","what can go wrong"],rows:[["1. Create the database","one .db file (SQLite) — no server needed","—"],["2. Import the CSV","DB Browser: File → Import → Table from CSV","headers read as a data row; types guessed wrong"],["3. Name it *_raw","steam_games_raw stays untouched","cleaning the original = no way back"],["4. Verify","SELECT COUNT(*) vs the file's row count","a mismatch means rows were dropped or split"]],caption:"The one-time setup workflow. After step 4 the data is a real table — every other lesson in this kit now applies to it."},
+     lines:[["CREATE TABLE","makes a new, empty table with named, typed columns"],["steam_games_raw","the _raw suffix = untouched original; clean into a separate table later"],["INTEGER / REAL / TEXT","column types — whole numbers, decimals, text; wrong types break math and sorting"],["import","the GUI (DB Browser) or a command (.import in sqlite3) loads the CSV rows in"],["SELECT COUNT(*)","the verify step — the row count should match the source file"],["why this order?","(your guess from above) — the import needs typed columns to land in, so CREATE comes first, verify comes last"]]},
+   notes:"Import gotchas that bite everyone once: the CSV's first row is usually headers, not data (tick 'column names in first row'); numbers with $ signs or commas import as TEXT until cleaned; and a row count that's off by more than the header row means quoting/delimiter problems. Same idea elsewhere: MySQL uses LOAD DATA INFILE, Postgres uses COPY — the workflow (create table → import → verify) is identical. You'll know it worked when: the COUNT matches the source file's row count, and SELECT * FROM steam_games_raw LIMIT 5 shows real values in every column (no blank columns, no header text sitting in row 1).",
    quiz:{q:"You import a 125,000-row CSV into steam_games_raw. What's the FIRST thing to run?",opts:["SELECT * to look at all the data","SELECT COUNT(*) — and compare it to the source file's row count","A JOIN to another table","DELETE the rows you don't need"],ans:1,exp:"Verify before you trust. COUNT(*) against the source row count catches silent import failures (dropped rows, delimiter problems) immediately. SELECT * on 125k rows tells you much less, and deleting from a _raw table breaks the whole point of keeping an untouched original."},
    parsons:{prompt:"Arrange the setup workflow as SQL + verify.",lines:["SELECT COUNT(*) FROM steam_games_raw;","-- import the CSV into the table","CREATE TABLE steam_games_raw (app_id INTEGER, name TEXT, price REAL);"],answer:[2,1,0]},
    compare:"Create the table first, load into it second, verify third. Importing before the table exists (or letting the tool guess every type) is how price columns end up as TEXT that won't sum.",
@@ -1902,10 +1901,30 @@ function svgBoxPlot(c){ // {title,min,q1,med,q3,max,outliers:[],fmt}
     ${tick(c.min,'min')}${tick(c.med,'median')}${tick(c.max,'max')}
     <text x="${((x(c.q1)+x(c.q3))/2).toFixed(1)}" y="${mid-30}" fill="var(--muted)" font-size="10" text-anchor="middle">Q1 ${f(c.q1)} — Q3 ${f(c.q3)}</text>${outs}</svg>`;
 }
+function svgFlowDiagram(c){ // {type:'flow',title,steps:[{title,sub,warn,accent}],caption}
+  const W=520, top=34, rowH=70, gap=24, n=c.steps.length;
+  const H=top+n*rowH+(n-1)*gap+8;
+  const esc=t=>(''+t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const rows=c.steps.map((s,i)=>{
+    const y=top+i*(rowH+gap);
+    const stroke=s.accent?'var(--accent)':'var(--border)';
+    const fill=s.accent?'color-mix(in srgb, var(--accent) 10%, transparent)':'transparent';
+    const arrow=i<n-1?`<line x1="34" y1="${y+rowH}" x2="34" y2="${y+rowH+gap-7}" stroke="var(--muted)" stroke-width="1.5"/><path d="M 30 ${y+rowH+gap-9} L 34 ${y+rowH+gap-3} L 38 ${y+rowH+gap-9}" fill="none" stroke="var(--muted)" stroke-width="1.5"/>`:'';
+    return `<rect x="8" y="${y}" width="${W-16}" height="${rowH}" rx="8" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
+      <circle cx="34" cy="${y+rowH/2}" r="13" fill="var(--accent)"/>
+      <text x="34" y="${y+rowH/2+4.5}" fill="#fff" font-size="12.5" font-weight="700" text-anchor="middle">${i+1}</text>
+      <text x="60" y="${y+24}" fill="var(--text)" font-size="12.5" font-weight="600">${esc(s.title)}</text>
+      <text x="60" y="${y+41}" fill="var(--muted)" font-size="10.5">${esc(s.sub||'')}</text>
+      ${s.warn?`<text x="60" y="${y+58}" fill="var(--red)" font-size="10.5">⚠ ${esc(s.warn)}</text>`:s.ok?`<text x="60" y="${y+58}" fill="var(--green)" font-size="10.5">✓ ${esc(s.ok)}</text>`:''}
+      ${arrow}`;
+  }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" ${_svgNS} role="img"><title>${c.title}</title><text x="8" y="20" fill="var(--text)" font-size="12" font-weight="600">${c.title}</text>${rows}</svg>`;
+}
 function sqlChartHTML(c){
-  const svg = c.type==='line'?svgLineChart(c) : c.type==='bar'?svgBarChart(c) : c.type==='pareto'?svgParetoChart(c) : c.type==='box'?svgBoxPlot(c) : '';
+  const svg = c.type==='line'?svgLineChart(c) : c.type==='bar'?svgBarChart(c) : c.type==='pareto'?svgParetoChart(c) : c.type==='box'?svgBoxPlot(c) : c.type==='flow'?svgFlowDiagram(c) : '';
   if(!svg) return '';
-  return `<div class="card" style="margin-top:16px"><div class="lesson-eyebrow"><i data-lucide="bar-chart-3"></i> See the chart</div>${svg}${c.caption?`<p class="text-muted text-sm" style="margin:10px 0 0">${c.caption}</p>`:''}</div>`;
+  const eyebrow = c.type==='flow' ? '<i data-lucide="route"></i> See the workflow' : '<i data-lucide="bar-chart-3"></i> See the chart';
+  return `<div class="card" style="margin-top:16px"><div class="lesson-eyebrow">${eyebrow}</div>${svg}${c.caption?`<p class="text-muted text-sm" style="margin:10px 0 0">${c.caption}</p>`:''}</div>`;
 }
 // Chart specs — numbers MATCH each lesson's result table above them.
 const SQL_CHARTS = {
@@ -1921,6 +1940,14 @@ const SQL_CHARTS = {
        caption:'Color is the verdict, not the sign: revenue over budget (green) is favorable, but COGS and headcount over budget (red) are not.'},
   803:{type:'box', title:'Order value distribution ($)', min:5,q1:38,med:60,q3:95,max:180, outliers:[540], fmt:v=>'$'+v,
        caption:'The mean ($88) sits right of the median ($60), dragged by the $540 whale — exactly why you read the box, not the average.'},
+  105:{type:'flow', title:'CSV → queryable table: the one-time setup',
+       steps:[
+         {title:'Create the database', sub:'one .db file (like portfolio.db) — SQLite needs no server',},
+         {title:'Create the table, import the CSV', sub:'DB Browser: File → Import → Table from CSV', warn:'headers can read as a data row; $4.99 imports as TEXT'},
+         {title:'Name it *_raw and never touch it', sub:'steam_games_raw stays the untouched original — clean into a copy', warn:'cleaning the original = no way back'},
+         {title:'Verify before you trust', sub:'SELECT COUNT(*) vs the file’s row count, then SELECT * LIMIT 5 to eyeball it', ok:'count matches the source file = the table is real; every lesson in this kit now applies to it', accent:true}
+       ],
+       caption:'Four moves, one habit: step 4 is the analyst move. A mismatch means rows were dropped or split — catch it now, not after a week of analysis.'},
   804:{type:'pareto', title:'Revenue by product ($K) with cumulative %', labels:['A','B','C','D','E','F'], values:[480,250,110,80,50,30], cumPct:[48,73,84,92,97,100],
        caption:'Two products carry 73% of revenue. The bars rank; the line tells you where to stop caring.'}
 };

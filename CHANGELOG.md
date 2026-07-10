@@ -9,6 +9,29 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.122.0] — 2026-07-10 — 🧪 SQL Lesson 105 (Set Up a SQL Database): learning-science pass + workflow diagram
+
+Reviewed against the SQL Quest learning-science findings plus fresh research
+(Mayer multimedia principles, worked-example fading, pretesting effect, setup-
+lesson dropout patterns):
+- **New `flow` diagram type** (`svgFlowDiagram`) in the SQL kit's inline-SVG
+  chart system — numbered vertical step flow with per-step ⚠ failure and
+  ✓ success callouts attached to each node (spatial contiguity), final verify
+  step highlighted (signaling). Reusable via `SQL_CHARTS[id]`.
+- **Lesson 105 uses it**: create db → import CSV → name `_raw` → verify, with
+  each gotcha on the node it belongs to. The old "steps table" in the
+  "See it on screen" slot was removed (redundancy principle — it duplicated
+  the diagram and wasn't a query result).
+- **Pretest prompt** in the story ("commit to a guess: import first or CREATE
+  first?") — a low-stakes guess before the reveal improves retention even when
+  wrong — plus a matching "why this order?" line in the Say It Out Loud
+  breakdown to close the loop (self-explanation prompt).
+- **"You'll know it worked when…" success check** added to the Gotcha notes
+  (COUNT matches + SELECT * LIMIT 5 eyeballs clean) — the standard mitigation
+  for setup-lesson dropout.
+Competitor scan (SQLBolt, Select Star SQL, Khan Academy, Mode): none teach the
+CSV-import step at all — keeping it, well-scaffolded, is a differentiator.
+
 ## [1.121.0] — 2026-07-08 — 🎮 Project Studio: per-stage "How Steam Hidden Gems handled this" callouts
 
 The worked example now walks beside you through the Build phase instead of only
