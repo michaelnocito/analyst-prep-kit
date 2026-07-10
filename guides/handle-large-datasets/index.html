@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Handle Large Datasets (Files Too Big for Excel) — Analyst Prep Kit</title>
+<meta name="description" content="A file too big to open in Excel? Beginner guide to working with large datasets: what counts as large, why a database beats a spreadsheet, indexing, sampling, and the real quirks (zips, data types, disk space) using a 2 GB, 41-million-row example.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/handle-large-datasets/">
+<meta property="og:title" content="How to Handle Large Datasets (Files Too Big for Excel)">
+<meta property="og:description" content="What to do when a dataset is too big to open: use a database, index the key, sample first, and watch for the quirks that trip everyone up. Written for beginners.">
+<meta property="og:type" content="article">
+<style>
+  :root{--bg:#FAF3EC;--ink:#3D1A0F;--muted:#6E4A33;--accent:#C5511F;--line:#E68A66;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#F8D8C6;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F3E2D4;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#2E1608;color:#FFE7D6;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#F8D8C6}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a></p>
+  <h1>How to Handle Large Datasets</h1>
+  <p class="meta">When a file is too big for Excel · Free tools · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>You double-click a data file and Excel spins, freezes, or tells you it cannot open it. Real-world datasets are often far bigger than a spreadsheet can hold, and every beginner hits this wall the first time they grab a serious dataset. This guide is what to do next: how to recognize a "large" dataset, why you move it into a database, and the handful of real-world quirks that trip everyone up on the way.</p>
+
+  <div class="note"><strong>New to databases?</strong> This guide assumes you can create a SQLite database and import a CSV. If you have not done that yet, start with <a href="../set-up-a-sql-database/">How to Set Up a SQL Database</a> (about 15 minutes), then come back here.</div>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What actually counts as "large"</li>
+      <li>Why a database beats a spreadsheet here</li>
+      <li>The download quirk: it arrives zipped</li>
+      <li>Importing big files (patience and disk space)</li>
+      <li>The one step that makes big queries fast: an index</li>
+      <li>Sample first, then run on everything</li>
+      <li>Aggregate early, and check your data types</li>
+    </ol>
+  </div>
+
+  <h2>First: what counts as "large"?</h2>
+  <p>"Large" is not a vibe, it has real thresholds. A dataset is large enough to need this guide when any of these are true:</p>
+  <ul>
+    <li><strong>It has more than about a million rows.</strong> Excel and Google Sheets stop at <strong>1,048,576 rows</strong>. Past that, the file physically cannot fully open. Rows beyond the limit are silently dropped.</li>
+    <li><strong>It is hundreds of megabytes to several gigabytes on disk.</strong></li>
+    <li><strong>Your spreadsheet freezes, crashes, or says "not enough memory"</strong> when you try to open it.</li>
+  </ul>
+  <p>The running example in this guide is a real one: a public dataset of Steam game reviews, <code>recommendations.csv</code>, at about <strong>2 GB and 41 million rows</strong>. Excel will not open it. A database will handle it without blinking.</p>
+
+  <div class="step">
+    <h2>Step 1 — Move it into a database, not a spreadsheet</h2>
+    <p>The single most important move: stop trying to open large data in a spreadsheet. Put it in a database instead. <strong>SQLite</strong> (via the free DB Browser app) has no practical row limit. The same file that crashed Excel becomes a table you can query in seconds.</p>
+    <p>This is exactly the <em>create, import, verify</em> workflow from the <a href="../set-up-a-sql-database/">SQL database guide</a>. The steps are identical for a big file. It just takes longer, which is what the rest of this guide prepares you for.</p>
+  </div>
+
+  <div class="step">
+    <h2>Step 2 — Expect the download to be zipped (with extras you don't need)</h2>
+    <p>Large public datasets almost never download as a single clean CSV. They arrive as a <code>.zip</code> (often named something generic like <code>archive.zip</code>) that contains several files bundled together. In our example the zip held four files, and we only needed one.</p>
+    <ol>
+      <li>Right-click the downloaded zip and choose <strong>Extract All</strong>.</li>
+      <li>Open the extracted folder and use <strong>only the file you actually need</strong> (for us, <code>recommendations.csv</code>). Ignore the rest.</li>
+    </ol>
+    <div class="note"><strong>Why this matters:</strong> if you import the whole bundle blindly, you waste a lot of disk space and import time on files your analysis never touches. Extract, then pick.</div>
+  </div>
+
+  <div class="step">
+    <h2>Step 3 — Import is slow, and the file grows. That's normal.</h2>
+    <p>A 2 GB CSV does not import instantly. Give it time. Two things surprise people, and both are expected:</p>
+    <ul>
+      <li><strong>The import takes minutes, not seconds.</strong> DB Browser may look frozen while it works. Let it finish.</li>
+      <li><strong>Your <code>.db</code> file grows to several gigabytes.</strong> A 2 GB CSV can produce a multi-GB database. Make sure you have the free disk space before you start: the original CSV plus the database can easily total 4 to 6 GB.</li>
+    </ul>
+    <p>Import the file exactly as in the SQL guide (name the table something ending in <code>_raw</code>, tick "column names in first line"), then press <strong>Ctrl+S</strong> to save.</p>
+  </div>
+
+  <div class="step">
+    <h2>Step 4 — Build an index (the step that makes big queries fast)</h2>
+    <p>An <strong>index</strong> is a lookup shortcut on a column. Without one, every time you search or join on that column, the database reads all 41 million rows from top to bottom. With one, it jumps straight to the rows it needs. On a small table you never notice. On a big one, it is the difference between instant and unusable.</p>
+    <p>Build the index once, on the column you will join or filter on most (usually an id):</p>
+    <pre><code>CREATE INDEX IF NOT EXISTS idx_rec_appid ON recommendations(app_id);</code></pre>
+    <div class="note"><strong>Real numbers:</strong> on our 41-million-row table, building this index took about 3 minutes once. After that, joins that would have crawled ran instantly. Build it, press Ctrl+S, and you only ever pay that cost one time.</div>
+  </div>
+
+  <div class="step">
+    <h2>Step 5 — Write your query against a sample first</h2>
+    <p>You do not want to wait on 41 million rows every time you fix a typo in your query. Develop against a small slice, then run the finished query on everything.</p>
+    <ul>
+      <li>Add <code>LIMIT 1000</code> while you are writing and testing, so results come back instantly.</li>
+      <li>Or keep a small <strong>sample CSV</strong> (a few thousand rows) as a separate table for building queries.</li>
+    </ul>
+    <p>Once the query is correct on the sample, remove the <code>LIMIT</code> and run it for real.</p>
+  </div>
+
+  <div class="step">
+    <h2>Step 6 — Aggregate early, and never dump millions of raw rows to the screen</h2>
+    <p>Asking a tool to display 41 million rows is what freezes it. You almost never want the raw rows anyway, you want a <strong>summary</strong>. Use <code>GROUP BY</code> to collapse the data to one row per thing you care about:</p>
+    <pre><code>SELECT app_id, COUNT(*) AS num_reviews, AVG(hours) AS avg_hours
+FROM recommendations
+GROUP BY app_id;</code></pre>
+    <p>That turns 41 million review rows into one tidy row per game. Reach for <code>COUNT</code>, <code>AVG</code>, <code>SUM</code>, and <code>GROUP BY</code> before you ever reach for <code>SELECT *</code>.</p>
+  </div>
+
+  <h2>The quirk that quietly breaks a filter: data types</h2>
+  <p>Before you trust any filter on a big table, look at the actual values first (<code>SELECT * FROM recommendations LIMIT 10;</code>). Large real-world files love to store things in surprising ways. The classic: a true/false column stored as the <strong>text</strong> <code>'true'</code> and <code>'false'</code>, not the numbers <code>1</code> and <code>0</code>.</p>
+  <p>If you assume it is a number and write <code>WHERE is_recommended = 1</code>, it silently matches <strong>nothing</strong>, and you get a confidently wrong answer with no error message. The fix is simply to match how the data is really stored:</p>
+  <pre><code>WHERE is_recommended = 'true'</code></pre>
+  <div class="note"><strong>Rule of thumb:</strong> a query that returns zero rows or an impossible number is usually a data problem, not a logic problem. Peek at the real values before you blame your SQL.</div>
+
+  <h2>One more honest habit: mind the snapshot</h2>
+  <p>Large datasets are point-in-time snapshots. If you join two big datasets, they may have been collected on different dates (ours were), so they describe the same things at slightly different moments. That is fine, but say so in your write-up. Being upfront about where your data came from and where two sources do not perfectly line up is part of doing the analysis honestly.</p>
+
+  <h2>Cheat sheet</h2>
+  <table>
+    <tr><th>Situation</th><th>What to do</th></tr>
+    <tr><td>File will not open in Excel</td><td>It is over ~1M rows. Move it into a SQLite database.</td></tr>
+    <tr><td>Download is a zip with extra files</td><td>Extract, use only the one file you need.</td></tr>
+    <tr><td>Import seems frozen</td><td>A multi-GB file takes minutes. Let it finish. Check you have disk space.</td></tr>
+    <tr><td>Joins or filters are slow</td><td><code>CREATE INDEX</code> on the id column, once.</td></tr>
+    <tr><td>Query is slow to iterate on</td><td>Develop with <code>LIMIT 1000</code>, then remove it.</td></tr>
+    <tr><td>Tool freezes on results</td><td>Do not <code>SELECT *</code> millions of rows. <code>GROUP BY</code> to a summary.</td></tr>
+    <tr><td>Filter returns nothing / weird totals</td><td>Check data types. A boolean may be text <code>'true'</code>, not <code>1</code>.</td></tr>
+  </table>
+
+  <h2>When SQLite is not enough</h2>
+  <p>SQLite comfortably handles many-gigabyte files, which covers almost everything you will meet while learning and building a portfolio. If you ever outgrow it, the next tools are <strong>DuckDB</strong> (built for fast analytics on big files) and <strong>pandas with <code>chunksize</code></strong> in Python (read a huge file in pieces). The mindset you just learned carries straight over: put it in a database, index the key, sample while you build, aggregate before you display.</p>
+
+  <div class="cta">
+    <strong>Ready to put this to work?</strong>
+    <p style="margin:6px 0 0">The free <a href="../../sql/">SQL Kit</a> teaches the exact tools that tame big data: <code>JOIN</code>, <code>GROUP BY</code>, and aggregate functions, with worked examples, practice, and a mock exam. All in your browser, nothing to install.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+  </footer>
+</main>
+</body>
+</html>
