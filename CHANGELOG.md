@@ -9,6 +9,32 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.123.0] — 2026-07-10 — 🎖️ NEW KIT: Tableau Certification Prep (`tableau-cert/`)
+
+A dedicated Tableau Desktop Specialist cert-prep kit — the capstone item 8 from
+`TABLEAU_CERT_HANDOFF.md`, built in the Final Exam Kit's Grain shell:
+- **Home**: exam facts (45 Q / 40 scored / 60 min / 750 scaled to pass / $100 /
+  never expires) + official domain-weight bars + pointers into the Tableau Kit
+  (Units 4–5 were built for Domains 1–2).
+- **Study guide**: all four blueprint domains as collapsible sections in the
+  kit's teaching style — say-it-out-loud phrasings, "when to use which"
+  decision aids, See-it mini-visuals, and a **misconception-to-bust callout per
+  domain** (extract auto-updates ❌ · parameter filters by itself ❌ · story =
+  dashboard ❌ · blue = dimension ❌).
+- **Practice exam**: 45 questions weighted exactly to the blueprint
+  (D1 11 · D2 16 · D3 11 · D4 7), timed 60:00 with auto-submit (or untimed
+  practice mode), multiple-choice AND multiple-response ("choose all that
+  apply", exact-match grading like the real exam), grade-at-submit only,
+  estimated 100–1000 scaled score against the 750 pass line, per-domain
+  results bars with study-section deep links. All tap-the-choice, no free text.
+- Wired in everywhere: hub kit card + progress registry (`apk-tabcert`),
+  sitemap, GA4 tag, footer cross-links (Tableau Kit, Chart Literacy, Final
+  Exam, Tableau Archaeology). Free (no pass gate) — cert prep is an acquisition
+  page. Non-affiliation note in the footer.
+- Verified headless: `new Function` syntax check on all inline scripts +
+  structural checks (45 unique ids, per-domain counts, mc/ms answer-shape
+  validation) — all pass.
+
 ## [1.122.0] — 2026-07-10 — 🧪 SQL Lesson 105 (Set Up a SQL Database): learning-science pass + workflow diagram
 
 Reviewed against the SQL Quest learning-science findings plus fresh research
