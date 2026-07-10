@@ -9,6 +9,38 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.124.0] — 2026-07-10 — 🎖️ TWO MORE CERT KITS: Power BI (PL-300) + Excel (MO-210); SQL cert skipped by design
+
+Cloned the Tableau Cert Prep shell (v1.123.0) for the two other worthwhile
+analyst certifications, after web research verified current blueprints:
+- **`powerbi-cert/` — Microsoft PL-300 (Power BI Data Analyst Associate).**
+  Blueprint verified against the OFFICIAL Microsoft Learn study guide (skills
+  as of April 20, 2026): Prepare 25–30% · Model 25–30% · Visualize & Analyze
+  25–30% · Manage & Secure 15–20% (secondary sources disagreed; official guide
+  wins). Facts: 40–60 Q / 100 min / pass 700 / $165 / renews yearly via free
+  online assessment. 50-question practice exam (14/14/13/9), 100:00 timer,
+  mc + multiple-response, estimated /1000 scaled score vs 700. Study guide
+  misconceptions: clean-it-in-DAX-later ❌ · calculated column vs measure ❌ ·
+  drill down = drillthrough ❌ · RLS binds workspace editors ❌. localStorage
+  `apk-pbicert`.
+- **`excel-cert/` — MOS Excel Associate (MO-210, Microsoft 365 Apps).**
+  5 objective domains (Worksheets & Workbooks 25–30 · Cells & Ranges 25–30 ·
+  Tables 10–15 · Formulas & Functions 15–20 · Charts 15–20). 35-question drill
+  at the real exam's 50:00 pace (10/10/4/6/5). Because MO-210 is
+  PERFORMANCE-BASED (live tasks in real Excel), the kit carries an explicit
+  format warning + "rep it in-app" framing throughout; results framed as a
+  knowledge check, not a score prediction. Misconceptions: hidden-data travels
+  (Inspect Document) · Delete ≠ clear formats · formatted range ≠ Table ·
+  $ = currency ❌ · rebuild-the-chart ❌. localStorage `apk-excelcert`.
+- **SQL cert: deliberately NOT built.** Research verdict: no widely recognized
+  entry-level SQL certification exists; sources consistently rank practical
+  SQL + portfolio over any SQL credential, and point analysts at PL-300
+  instead. Documented here so it isn't re-litigated.
+- Wiring: hub cards (each beside its parent kit) + progress registry entries,
+  sitemap, hub meta 12→14 kits, cross-links among all three cert kits' footers.
+  Both kits headless-verified (script syntax, question counts/shapes, unique
+  ids, stray-character scan). Free, no pass gate, non-affiliation footers.
+
 ## [1.123.0] — 2026-07-10 — 🎖️ NEW KIT: Tableau Certification Prep (`tableau-cert/`)
 
 A dedicated Tableau Desktop Specialist cert-prep kit — the capstone item 8 from
