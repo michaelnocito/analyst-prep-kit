@@ -9,6 +9,27 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.126.0] — 2026-07-12 — 📣 Gems-style "Say It Out Loud" rewrite across all 7 lesson kits
+
+Read-aloud lines now narrate the actual displayed code line-by-line, in order,
+the way the Steam Hidden Gems portfolio SQL does (`--SELECT (display) the Name
+column`, `--WHERE (keep only) rows with at least 2,000 reviews`) — instead of
+loose vocabulary definitions untied to the shown query:
+- **Every chunk is a real fragment of the displayed code**, read in the order
+  it appears; multi-part expressions broken into their own rows.
+- **Plain-verb glosses** open each reading (display / pull from / keep only /
+  sort by / collapse rows sharing…), with concrete values read with meaning.
+- **Functions explained on first appearance, then phased out** — later lessons
+  use the plain reading (repetition to reinforce, then trust the learner).
+- Kept at most one or two essential vocabulary rows per lesson where the
+  reading itself doesn't cover them; purely conceptual read-alouds untouched.
+- Coverage: SQL 45 lessons · Power BI 20 · Excel 12 · Tableau 10 · Chart
+  Literacy 9 · Forecasting 5 · Python 5 (most Python lessons were already in
+  the style). `say` sentences and all other lesson fields unchanged.
+- Verified: inline-script parse gate on all 7 files, de-test suite (one
+  pre-existing SQL chart-eyebrow check unrelated to this change), legacy 24,
+  render-smoke all pages clean.
+
 ## [1.125.0] — 2026-07-10 — 🔁 Cert kits: per-concept confidence rater + needs-review filter + lesson deep links
 
 Closes the loop between the three cert kits and their parent kits (Mike's ask:
