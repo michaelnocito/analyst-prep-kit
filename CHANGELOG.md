@@ -9,6 +9,13 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.127.0] — 2026-07-12 — SQL Lesson 105: external deep-dive link
+
+- SQL kit, Lesson 105 (Set Up a SQL Database): intro now links a "second take"
+  AI walkthrough (Gemini share) that answers the lesson's two spaced-recall
+  questions in depth — CSV → queryable table steps, `_raw` rationale, and the
+  three post-import verification queries.
+
 ## [1.126.0] — 2026-07-12 — 📣 Gems-style "Say It Out Loud" rewrite across all 7 lesson kits
 
 Read-aloud lines now narrate the actual displayed code line-by-line, in order,
