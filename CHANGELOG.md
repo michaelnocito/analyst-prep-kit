@@ -9,6 +9,17 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.128.0] — 2026-07-13 — Flashcards definition-first + Bug Hunt spoiler fix
+
+- Flashcards now show the DEFINITION first; flipping reveals the term
+  (retrieval practice: recall the name from the meaning). Applied in 8 kits:
+  SQL, Power BI, Excel, Python, Stats, Tableau, Chart Literacy, Forecasting.
+  Interview kit left question-first (its cards are Q→A, so the question IS
+  the prompt side).
+- Bug Hunt (SQL + Power BI): the ⚠ issue line stated the answer right under
+  the broken code. It's now hidden until you pick the correct fix (or revisit
+  a completed bug). Prompt reworded to "Spot the bug, then tap the correct fix."
+
 ## [1.127.0] — 2026-07-12 — SQL Lesson 105: external deep-dive link
 
 - SQL kit, Lesson 105 (Set Up a SQL Database): intro now links a "second take"
