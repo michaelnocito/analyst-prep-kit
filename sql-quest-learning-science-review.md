@@ -1,4 +1,4 @@
-# SQL Quest Learning-Science Review → Analyst Prep Kit Gap Analysis
+﻿# SQL Quest Learning-Science Review → Analyst Prep Kit Gap Analysis
 
 _Session June 28, 2026. Reconstructed from the gap-analysis chat and saved here because ROADMAP.md references this file. This is the authoritative full analysis behind the Phase-1 Excel restructure item in ROADMAP.md._
 
@@ -9,7 +9,7 @@ _Session June 28, 2026. Reconstructed from the gap-analysis chat and saved here 
 ## What's working (the foundation is solid)
 
 1. **Real-world context (5/5)** — Each lesson opens with a grounded story bridge (e.g., "You're handed a legacy customers table to migrate…") that frames *why* the concept matters. Signal-over-noise advantage vs. abstract tutorials.
-2. **Pedagogical guidance (4/5)** — "Say It Out Loud" walks the chunk-by-chunk breakdown after the formula, grounding syntax in plain English. The confidence rater (Not Yet / Almost / Have It) is persisted and drives the "Your review list" home card.
+2. **Pedagogical guidance (4/5)** — "Say It Out Loud" walks the chunk-by-chunk breakdown after the formula, grounding syntax in Everyday words. The confidence rater (Not Yet / Almost / Have It) is persisted and drives the "Your review list" home card.
 3. **Feedback tiers (4/5)** — Quiz questions show correct (green) / wrong (red) clearly. Drills are tap-the-choice, no free-text guessing.
 4. **Action visibility (4/5)** — Lessons are front-and-center; nav is clean; the learner always knows what to do next.
 
@@ -31,7 +31,7 @@ Seven learning-science principles from SQL Quest are absent or underdeveloped:
 
 ### 3. Retrieval practice — **2/5**
 - **SQL Quest:** Hints are thinking-nudges, never syntax; the player still fires the correct query themselves.
-- **Prep Kit:** Read-Aloud tells the learner the plain-English answer *before* they see the code — encoding, not retrieval.
+- **Prep Kit:** Read-Aloud tells the learner the everyday-words answer *before* they see the code — encoding, not retrieval.
 - **Why it matters:** Retrieval = *generating* the answer, not recognizing it.
 
 ### 4. Player orientation — **2/5**
@@ -56,7 +56,7 @@ Seven learning-science principles from SQL Quest are absent or underdeveloped:
 
 **Phase 1 — High ROI, foundational (Q3 2026; Excel pilot first, then roll to other kits)**
 - **1a. Spaced-retrieval prompts** — inject recall cards reusing a `reinforces:[]` field per lesson; ~1/3/7 lesson spacing.
-- **3. Flip Read-Aloud from recognition to retrieval** — show story + plain-English goal, hide the code, learner attempts, *then* reveal the "Say It Out Loud" breakdown as post-attempt explanation.
+- **3. Flip Read-Aloud from recognition to retrieval** — show story + everyday-words goal, hide the code, learner attempts, *then* reveal the "Say It Out Loud" breakdown as post-attempt explanation.
 - **7. Progressive hint system** — Miss 1 nudge → Miss 2 partial syntax → Miss 3 full solution + "I give up" (learner still executes). Port SQL Quest's `revealFrac` logic.
 
 **Phase 2 — Learner experience (Q3–Q4 2026)**

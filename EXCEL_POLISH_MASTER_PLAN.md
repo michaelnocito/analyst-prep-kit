@@ -1,4 +1,4 @@
-# Excel Kit — Learning-Science Polish: Master Development Plan
+﻿# Excel Kit — Learning-Science Polish: Master Development Plan
 
 > ## 🏁 STATUS (July 6, 2026): PLAN EXECUTED — ALL BUILD PHASES COMPLETE
 > - **Excel:** Phases A–F all shipped (A v1.78.0 · B–C v1.79–1.80 · D v1.81.0 · E v1.82.0 · F v1.83.0). Phase G Modes 1+3 shipped (v1.83.x); **Mode 2 (mock interview) is the only unbuilt piece — now parked with the AI Coach item** (Project Studio's AI flow gets proven first; see ROADMAP Parking Lot).
@@ -12,7 +12,7 @@ _Created June 29, 2026 — 12:48 PM ET. Pilot kit = **Excel**, then port the pro
 
 ## TL;DR — what we're doing and why
 
-The Excel kit teaches well on the things it already does (real-world context 5/5, plain-English "Say It Out Loud" 4/5). The gap, proven by the SQL Quest review and confirmed by research, is that **the lesson is built for _recognition_ (read it, then take a quiz), not _generation_ (try it, get it wrong, compare, build it yourself)** — and generation is where memory and interview-readiness actually come from. We rebuild the lesson flow around that, fold in every June 29 fix, and add an honest motivation layer that never betrays the calm vision (no hearts, no loss, no guilt).
+The Excel kit teaches well on the things it already does (real-world context 5/5, everyday-words "Say It Out Loud" 4/5). The gap, proven by the SQL Quest review and confirmed by research, is that **the lesson is built for _recognition_ (read it, then take a quiz), not _generation_ (try it, get it wrong, compare, build it yourself)** — and generation is where memory and interview-readiness actually come from. We rebuild the lesson flow around that, fold in every June 29 fix, and add an honest motivation layer that never betrays the calm vision (no hearts, no loss, no guilt).
 
 **One sentence:** turn each lesson from _"explain → quiz"_ into _**Orient → Worked Example → Try → Compare → Build → Own → Close**_, with a progressive formula spine, position-based spaced recall, instructive-only visuals, a Focus/Detailed split (built last), and a gentle mentor voice — Excel first, then ported.
 
@@ -24,7 +24,7 @@ Source: full read of `excel/index.html` (2,497 lines). Key facts the plan builds
 
 - **51 lessons across 11 units.** Core Units 0–6 (IDs 101–104, 1–24); interview tracks Units 7–10 (IDs 521–806, premium-gated at `id>=500`).
 - **Current lesson order** (`renderLesson`, L1559): story bridge → intro → on-the-job → **RAL "Say It Out Loud"** → "See it on the sheet" grid → Gotcha → Quick Check (quiz) → confidence rater. **Drills are NOT in the lesson** — they're reached via a "Practice this →" button after the quiz, and the guided "Next drill →" advances **unconditionally** (you can click through every drill solving nothing; L1814).
-- **Recognition-first today:** the plain-English answer and the worked formula are shown _before_ any attempt. The quiz and 4 of 5 drills are tap-the-choice (recognition). Only generation path is the lone surviving free-text drill.
+- **Recognition-first today:** the everyday-words answer and the worked formula are shown _before_ any attempt. The quiz and 4 of 5 drills are tap-the-choice (recognition). Only generation path is the lone surviving free-text drill.
 - **The concrete bugs (June 29 feedback, line-confirmed):**
   - ~~**One free-text drill remains** — "Fill in the Blank" (`#fillInput`, string-matched). This is the ungradable-variations risk Mike flagged.~~ **✅ FIXED in Phase A (June 29, 2026):** converted to gradable tap-the-choice (`pickFill`, 24 adversarially-verified `choices` sets); `checkFill`/`normVal`/`_fillAttempts`/`#fillInput` removed.
   - **Skill-readiness score is hardcoded** to a 16-point scale over a Unit 1–3 subset (L1462–1473). It ignores Unit 0, Units 4–6, and ALL track lessons → never moves when new lessons are added. (The unit-progress bars below it _are_ dynamic and correct.)

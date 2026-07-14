@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to the Analyst Prep Kit. Loose Keep-a-Changelog
 conventions; semver where it makes sense for a static-site product:
@@ -1437,7 +1437,7 @@ schema all still execute live).
 
 **Lesson view rebuilt to the Grain "Say It Out Loud" anatomy:**
 - A single bordered card: **megaphone header → dark code block (the query) →
-  🗣️ one-line plain-English `say` → chunk-by-chunk `lines` breakdown** (clay
+  🗣️ one-line everyday-words `say` → chunk-by-chunk `lines` breakdown** (clay
   chunk chips) → **"See it on screen"** result table → **Gotcha** → **Quick
   Check** quiz → a new **confidence rater** ("Not yet / Almost / Have it",
   persisted to `state.confidence`, complements the 🚩 flag — never blocks
@@ -1706,7 +1706,7 @@ Added two tool-agnostic concept kits that teach the *thinking* the tool kits ass
 **New — Forecasting & Trend Modeling Kit (`forecasting/`)** — 13 lessons, 42 drills, 20 flashcards, 25 glossary terms.
 - Foundations: what forecasting is (and isn't) · time-series anatomy (trend/season/cycle/noise) · signal vs noise.
 - Trend & smoothing: moving averages · exponential smoothing (α) · linear trend (slope/R²) · seasonality & seasonal indices.
-- Models: regression on drivers · Holt-Winters (level/trend/season) · ARIMA in plain English.
+- Models: regression on drivers · Holt-Winters (level/trend/season) · ARIMA in Everyday words.
 - Evaluating & communicating: MAE/MAPE/RMSE + train/test split · prediction intervals (the fan chart) · common mistakes + presenting a forecast.
 
 **Tableau kit additions (shipped earlier this session, ids 29–32):**
@@ -2778,11 +2778,11 @@ Minor version (1.4.0) — visible UX change, no breaking behavior.
 
 ---
 
-## [1.3.0] — 2026-05-28 — "Say It Out Loud" plain-English sentence rolls out to SQL, Python, Power BI, and the hub demo
+## [1.3.0] — 2026-05-28 — "Say It Out Loud" everyday-words sentence rolls out to SQL, Python, Power BI, and the hub demo
 
 Closes the Medium-bucket follow-up to v1.2.2. Mike hit the gap in the
 wild (May 28, 12:08 AM ET) — opened the SQL kit, saw the line-by-line
-breakdown was still missing the plain-English leader sentence. Promoted
+breakdown was still missing the everyday-words leader sentence. Promoted
 from Medium to High and shipped same-cycle.
 
 ### Added
@@ -2844,18 +2844,18 @@ Single-line state-hydration change. Patch release.
 
 ---
 
-## [1.2.2] — 2026-05-27 — Excel RAL plain-English leading sentence
+## [1.2.2] — 2026-05-27 — Excel RAL everyday-words leading sentence
 
 _Verified pass on all three checks at May 27, 2026 — 8:03 PM ET._
 
 Closes the second half of the RAL feedback (May 27, 4:52 PM ET → 6:25 PM
 ET refinement → 7:42 PM ET re-clarification). v1.2.1 fixed the line
-order; this ships the plain-English sentence that should have been
+order; this ships the everyday-words sentence that should have been
 included in the same cycle.
 
 ### Added
 - A `say` field on every formula RAL block in Excel — a conversational
-  sentence that reads the formula's intent in plain English, using the
+  sentence that reads the formula's intent in Everyday words, using the
   actual cell refs from the formula. Examples:
   - `=SUM(B2:B10)` → "Give me the sum of everything in B2 to B10."
   - `=VLOOKUP(A2, products!A:D, 3, FALSE)` → "Find A2 in the products
