@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Data Is Never Fully Clean: How Analysts Document Limitations — Analyst Prep Kit</title>
+<meta name="description" content="Data cleaning never finishes — professionals ship anyway by documenting limitations. What a limitations section is, the three levels of data-quality accounting (deliverable, working record, quantified), and real examples from open portfolio projects.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/">
+<meta property="og:title" content="Your Data Is Never Fully Clean: How Analysts Document Limitations">
+<meta property="og:description" content="The professional standard isn't perfect data — it's documented, defensible imperfection. How limitations sections, quality logs, and quantified caveats work.">
+<meta property="og:type" content="article">
+<style>
+  :root{--bg:#FAF3EC;--ink:#3D1A0F;--muted:#6E4A33;--accent:#C5511F;--line:#E68A66;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#F8D8C6;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F3E2D4;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#2E1608;color:#FFE7D6;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#F8D8C6}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14px;color:var(--muted)}
+  .refs li{margin-bottom:8px}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../../sql/">SQL Kit</a></p>
+  <h1>Your Data Is Never Fully Clean — and Professionals Ship Anyway</h1>
+  <p class="meta">Limitations sections, quality logs, and quantified caveats · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>Here is a truth that surprises every beginner: <strong>data cleaning never finishes.</strong> You fix the import bug, standardize the messy names, handle the missing values — and there are <em>still</em> duplicates you chose not to merge, edge cases your rules miss, and quirks you haven't found yet. So how do professionals ever ship an analysis? Not by reaching perfection. By <strong>documenting every imperfection and making it defensible</strong>. This guide explains how that works, at the three levels real analysts use, with examples from open projects you can read.</p>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>The standard is fitness, not purity</li>
+      <li>Level 1: the limitations section (in the deliverable)</li>
+      <li>Level 2: the data-quality log (the working record)</li>
+      <li>Level 3: quantified caveats (limitations with numbers)</li>
+      <li>The trust paradox: admitting flaws makes you more credible</li>
+      <li>How to write yours: a starter template</li>
+      <li>References</li>
+    </ol>
+  </div>
+
+  <h2>The standard is fitness, not purity</h2>
+  <p>The data-quality research field settled this decades ago: quality is not an absolute property of data, it's <strong>fitness for use</strong> — whether the data is good enough for the specific decision it feeds (Wang &amp; Strong, 1996). The same customer table can be excellent for counting customers and useless for mailing them, if the addresses are stale. That reframing changes the analyst's job. The question is never "is this data clean?" (answer: no, nothing is). The question is "is it clean enough for THIS conclusion — and have I told the reader where it isn't?"</p>
+  <p>A concrete picture of why perfection is unreachable, from a real project: an analysis of Billboard chart history had to standardize artist names, because one artist can appear under seven different credit spellings. The cleaning rules fixed most of it — and deliberately left some of it. Duo names containing "&amp;" were never split (splitting would shred real bands like Hall &amp; Oates into fake solo artists), which means a duo member's work never merges with their solo career. That's not a bug someone missed. It's a <strong>documented tradeoff</strong>: the alternative rule caused worse damage, the cost was measured and written down, and the analysis proceeds with eyes open. Multiply that by every rule in every project and you see the professional reality — a finished analysis is a stack of defensible tradeoffs, not an absence of flaws.</p>
+
+  <h2>Level 1: the limitations section (in the deliverable)</h2>
+  <p>Every serious analytical deliverable — report, README, dashboard notes, academic paper — carries a section stating what the analysis can NOT claim and why. Common names: <em>Limitations</em>, <em>Scope &amp; Assumptions</em>, <em>Caveats</em>. Academic journals require one in every paper; industry analysts who skip it get their conclusions stretched past what the data supports, and then own the wreckage.</p>
+  <p>You can read real ones in the wild: the <a href="https://github.com/michaelnocito/steam-hidden-gems">Steam Hidden Gems project</a> and the <a href="https://github.com/michaelnocito/streaming-hidden-gems">Streaming Hidden Gems project</a> each carry a "Scope &amp; Assumptions" section in their READMEs, stating things like which records were excluded and why, what the source data cannot see, and which cleaning decisions carry known costs.</p>
+  <p>What belongs in it:</p>
+  <ul>
+    <li><strong>Deliberate tradeoffs</strong> — rules you chose knowing they have a cost (the "&amp;" decision above).</li>
+    <li><strong>Known unfixables</strong> — problems you found and could not resolve (aliases, gaps in the source's coverage).</li>
+    <li><strong>Boundary conditions</strong> — what the data structurally can't answer ("this dataset ends in June; nothing here speaks to later months").</li>
+    <li><strong>Population limits</strong> — who or what the data doesn't represent.</li>
+  </ul>
+
+  <h2>Level 2: the data-quality log (the working record)</h2>
+  <p>The limitations section is the public summary. Behind it, professionals keep a running log of every issue found while working: what the clue was, how it was confirmed, what was decided. Months later, when someone asks "why does artist X appear twice?", the answer is in the log instead of in a departed analyst's memory. In regulated industries this isn't optional — data lineage and decision audit trails are compliance requirements.</p>
+  <p>A useful format, per issue: <strong>the clue</strong> (what looked off), <strong>the validation</strong> (the query or check that confirmed it), <strong>the decision</strong> (what was done, or deliberately not done), and <strong>the concept</strong> (what class of problem this was, so you recognize it next time). An issue log written this way doubles as a learning document — each entry is a small case study in data forensics.</p>
+
+  <h2>Level 3: quantified caveats (limitations with numbers)</h2>
+  <p>The strongest limitation statements carry a measurement. Compare:</p>
+  <table>
+    <tr><th>Weak (a shrug)</th><th>Strong (a finding)</th></tr>
+    <tr><td>"Some song titles may not match between the two sources."</td><td>"The title join matched 84% of songs; the unmatched 16% skew toward titles with parenthetical suffixes, documented below."</td></tr>
+    <tr><td>"There may be some duplicate artists."</td><td>"Case-variant duplicates affect 12 of 1,570 roster artists (0.8%), listed in the appendix."</td></tr>
+    <tr><td>"Older data may be less reliable."</td><td>"Records before 1990 are missing genre in 31% of rows, vs 4% after."</td></tr>
+  </table>
+  <p>The pattern: when you find a limitation, spend one more query measuring its size. A limitation with a number is a deliverable in itself — it tells the reader exactly how much weight the conclusion can bear. A limitation without one forces the reader to guess, and readers guess pessimistically.</p>
+
+  <h2>The trust paradox: admitting flaws makes you more credible</h2>
+  <p>Beginners hide limitations, fearing they make the work look weak. Experienced reviewers read it exactly backwards. An analysis that claims no limitations wasn't examined closely; an analysis that says "here are the six problems I found, how I confirmed each one, what each cost, and why the conclusion survives them" was. <strong>A reader who finds a flaw you already documented trusts you more. A reader who finds a flaw you didn't mention stops trusting everything else.</strong></p>
+  <p>This is also an interview weapon. "Walk me through your project" answered with findings alone is a book report. Answered with findings <em>plus</em> "and here's what the data couldn't tell me, and how I bounded that" — that's the answer that sounds like a working analyst, because accounting for uncertainty is most of what working analysts do.</p>
+
+  <h2>How to write yours: a starter template</h2>
+  <pre><code>## Limitations &amp; Assumptions
+
+1. [Deliberate tradeoff] We did X instead of Y because Y caused
+   worse damage (evidence: ...). Cost of X: ... (measured: N rows /
+   M% affected).
+2. [Known unfixable] The source data cannot distinguish A from B.
+   Conclusions about A alone are therefore approximate.
+3. [Boundary] Data covers [range]. Nothing here speaks to [outside].
+4. [Match/coverage rate] Step Z joined/matched N% of records. The
+   unmatched remainder looks like: ...</code></pre>
+  <p>Write it as you work, not at the end — each entry takes one minute when the issue is fresh and an afternoon of archaeology when it isn't. The habit pairs with <a href="../exploratory-data-analysis/">exploratory data analysis</a>: exploration is how you <em>find</em> the issues; the limitations ledger is how you <em>account</em> for them. Finding without accounting wastes the find.</p>
+
+  <div class="cta">
+    <strong>Build the habit on a real project.</strong>
+    <p style="margin:6px 0 0">The <a href="../../projects/">Portfolio Projects</a> page shows how to turn a dataset into an employer-ready project — limitations section included. The free <a href="../../sql/">SQL Kit</a> teaches the queries every measurement above uses.</p>
+    <a class="btn" href="../../projects/">Open Portfolio Projects →</a>
+  </div>
+
+  <h2>References</h2>
+  <ol class="refs">
+    <li>Wang, R. Y., &amp; Strong, D. M. (1996). Beyond accuracy: What data quality means to data consumers. <em>Journal of Management Information Systems, 12</em>(4), 5–33. doi:10.1080/07421222.1996.11518099</li>
+    <li>Tukey, J. W. (1977). <em>Exploratory Data Analysis.</em> Addison-Wesley. (The exploratory tradition this guide's companion piece covers.)</li>
+  </ol>
+
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-case-expression/">SQL CASE Expression</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+  </footer>
+</main>
+</body>
+</html>
