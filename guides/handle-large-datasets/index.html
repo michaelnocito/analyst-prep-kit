@@ -108,6 +108,11 @@
     <p>Build the index once, on the column you will join or filter on most (usually an id):</p>
     <pre><code>CREATE INDEX IF NOT EXISTS idx_rec_appid ON recommendations(app_id);</code></pre>
     <div class="note"><strong>Real numbers:</strong> on our 41-million-row table, building this index took about 3 minutes once. After that, joins that would have crawled ran instantly. Build it, press Ctrl+S, and you only ever pay that cost one time.</div>
+    <h3>The trap: a function on the join key turns the index off</h3>
+    <p>One refinement that bites even people who know about indexes. An index on <code>title</code> helps a join <code>ON a.title = b.title</code> — but the moment you wrap the key in a function, like <code>ON LOWER(a.title) = LOWER(b.title)</code> (the standard move for case-insensitive matching of names), the plain index goes unused: it sorted the original values, not the lowercased ones. The database silently falls back to comparing every row against every row. Real numbers again: a join of 13,000 rows against 33,000 — small tables by this guide's standards! — is 427 million comparisons without an index, and ran over 30 minutes. The fix is an <strong>expression index</strong>, built on exactly the expression the join uses:</p>
+    <pre><code>CREATE INDEX IF NOT EXISTS idx_songs_lower
+  ON artist_songs (LOWER(primary_artist), LOWER(title));</code></pre>
+    <p>Same query afterward: seconds. The rule of thumb, upgraded: index not just the column your joins search by, but the <em>exact expression</em> they search by.</p>
   </div>
 
   <div class="step">
