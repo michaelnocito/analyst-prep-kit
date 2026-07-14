@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why Exploratory Data Analysis Matters (Explained From First Principles) — Analyst Prep Kit</title>
+<meta name="description" content="What exploratory data analysis (EDA) is, why John Tukey invented it, how Anscombe's quartet and the Datasaurus Dozen prove summary statistics can lie, and what exploration looks like in real portfolio projects — explained for beginners.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/exploratory-data-analysis/">
+<meta property="og:title" content="Why Exploratory Data Analysis Matters">
+<meta property="og:description" content="The detective phase of data work: why you must look at data before trusting it, backed by the classic research and shown on real projects.">
+<meta property="og:type" content="article">
+<style>
+  :root{--bg:#FAF3EC;--ink:#3D1A0F;--muted:#6E4A33;--accent:#C5511F;--line:#E68A66;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#F8D8C6;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F3E2D4;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#2E1608;color:#FFE7D6;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#F8D8C6}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14px;color:var(--muted)}
+  .refs li{margin-bottom:8px}
+  blockquote{border-left:4px solid var(--line);margin:18px 0;padding:4px 18px;color:var(--muted);font-style:italic}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../stats/">Statistics Kit</a></p>
+  <h1>Why Exploratory Data Analysis Matters</h1>
+  <p class="meta">The detective phase of data work, from first principles · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>Here is the most common way a data analysis goes wrong, and it has nothing to do with math: the analyst computes an answer from data they never actually looked at. The numbers come out precise, confident, and wrong — because the data had a quirk nobody checked for. <strong>Exploratory data analysis (EDA)</strong> is the discipline that prevents this. This guide explains what it is, the classic research showing why it's non-negotiable, and what it looks like in real projects you can open and read.</p>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>Detective work vs courtroom work</li>
+      <li>Where EDA came from (and why a famous statistician rebelled)</li>
+      <li>The proof that summaries lie: a quartet and a dinosaur</li>
+      <li>What exploration looks like in a real project</li>
+      <li>The habits, distilled</li>
+      <li>The honest limit: exploration finds suspects, not verdicts</li>
+      <li>References</li>
+    </ol>
+  </div>
+
+  <h2>Detective work vs courtroom work</h2>
+  <p>Data work has two distinct modes, and mixing them up causes most analytical failure:</p>
+  <table>
+    <tr><th></th><th>Exploratory (detective)</th><th>Confirmatory (courtroom)</th></tr>
+    <tr><td><strong>Question</strong></td><td>"What is going on here?"</td><td>"Is this specific claim true?"</td></tr>
+    <tr><td><strong>Attitude</strong></td><td>Open, skeptical, curious</td><td>Formal, rule-bound, pre-committed</td></tr>
+    <tr><td><strong>Output</strong></td><td>Hypotheses, surprises, data-quality discoveries</td><td>Evidence for or against one hypothesis</td></tr>
+  </table>
+  <p>A detective doesn't walk into a crime scene with a verdict; they look at everything, notice what's odd, and form theories. Only later does the courtroom test one theory formally. Exploratory analysis is the crime-scene phase — and skipping it means prosecuting a case you never investigated. The comparison isn't a modern teaching gimmick: John Tukey, who founded the field, framed exploratory work as inherently detective-like, and the research literature has used the analogy ever since (Behrens, 1997).</p>
+
+  <h2>Where EDA came from (and why a famous statistician rebelled)</h2>
+  <p>In 1962, John Tukey — a Princeton mathematician who also coined the words "bit" and "software" — published a 67-page argument called <em>The Future of Data Analysis</em> that scandalized his own field. Statistics, he argued, had become obsessed with the courtroom: elegant formal tests, applied to questions someone had already decided to ask. Almost nobody was studying the harder, earlier problem: <em>how you figure out what questions the data wants you to ask</em>. He proposed treating data analysis as its own empirical science, one that starts by looking (Tukey, 1962).</p>
+  <p>Fifteen years later his book <em>Exploratory Data Analysis</em> (1977) turned the argument into a toolkit — plots, summaries, and residual-checking habits designed to make the unexpected visible. Its most quoted line is the mission statement of the whole field:</p>
+  <blockquote>"The greatest value of a picture is when it forces us to notice what we never expected to see." (Tukey, 1977)</blockquote>
+  <p>Note what that sentence actually says: the payoff of looking is not confirming what you expected — it's being ambushed by what you didn't. Every technique in EDA is a machine for manufacturing productive ambushes.</p>
+
+  <h2>The proof that summaries lie: a quartet and a dinosaur</h2>
+  <p>Why isn't a table of averages enough? In 1973, statistician Francis Anscombe settled this with four small datasets, now called <strong>Anscombe's quartet</strong>. All four share nearly identical summary statistics — same average of x, same average of y, same variance, same correlation (0.816), same fitted trend line (Anscombe, 1973). By the numbers they're quadruplets. Graphed, they're strangers:</p>
+  <ul>
+    <li>One is a healthy, ordinary linear relationship — what the summary implies.</li>
+    <li>One is a smooth <em>curve</em> — the linear trend line is simply the wrong model.</li>
+    <li>One is a perfect line except for a single outlier that dragged the trend off course.</li>
+    <li>One is no relationship at all — a vertical stack of points plus one extreme value that <em>manufactured</em> the entire correlation.</li>
+  </ul>
+  <p>Four different realities, one identical scorecard. If your analysis stops at the scorecard, you cannot tell which reality you're in.</p>
+  <p>In 2017, researchers Justin Matejka and George Fitzmaurice pushed the point to its comic extreme: they showed you can gradually nudge a dataset's points into nearly any picture — including a hand-drawn <em>Tyrannosaurus rex</em> — while keeping mean, standard deviation, and correlation identical to two decimal places. Their "Datasaurus Dozen" is twelve wildly different plots (a dinosaur, a star, concentric circles...) with matching summary statistics (Matejka &amp; Fitzmaurice, 2017). The lesson is Anscombe's, updated for the modern era: <strong>never trust summary statistics alone; always visualize.</strong></p>
+
+  <h2>What exploration looks like in a real project</h2>
+  <p>The classics prove <em>why</em>; here is <em>what it looks like</em>, from open portfolio projects you can read end to end. None of this is glamorous. All of it changed the results.</p>
+
+  <div class="step">
+    <h2>Peek before you trust: the phantom-column catch</h2>
+    <p>Rule one of EDA is embarrassingly simple: look at actual rows before computing anything. In a project analyzing Billboard chart history, the very first look at the imported table showed two mystery columns the source file didn't have — and song titles chopped in half. Cause: a wrong import setting had split every title containing a comma (like <em>"Let It Snow, Let It Snow, Let It Snow"</em>) across columns. Every count run on that import would have been silently wrong. Cost of catching it: one <code>SELECT * ... LIMIT 20</code> and thirty seconds of reading. The <a href="https://github.com/michaelnocito/streaming-hidden-gems">Streaming Hidden Gems project</a> hit the same class of problem from another direction — its "CSV" files turned out to be tab-separated with no quoting at all, documented in the README's data-quality section.</p>
+  </div>
+
+  <div class="step">
+    <h2>Check the data against arithmetic it must obey</h2>
+    <p>Good exploration tests expectations the data has no excuse to fail. A chart that lists 100 songs a week must have a row count divisible by 100; weeks-times-100 must equal total rows exactly. When a check like this passes, the import earns trust; when it fails, you just found a problem at the cheapest possible moment. The <a href="https://github.com/michaelnocito/steam-hidden-gems">Steam Hidden Gems project</a> and <a href="https://github.com/michaelnocito/streaming-hidden-gems">Streaming Hidden Gems project</a> both carry a "Validation" section in their READMEs showing exactly these cross-checks — totals reconciled two independent ways before any conclusion was allowed to rest on them.</p>
+  </div>
+
+  <div class="step">
+    <h2>Interrogate the weird: why is a number stored as text?</h2>
+    <p>Exploration means treating oddities as leads, not annoyances. In the Billboard data, a chart-position column imported as text instead of numbers. A detective doesn't shrug at that; the follow-up queries found the culprit — thousands of rows carrying the letters <code>'NA'</code>, plus the discovery that "debut week" was marked two different ways in different eras of the archive. Every later query had to speak both dialects. Miss that during exploration and every debut-related count afterward is quietly wrong. (The same investigation pattern — hypothesis, targeted query, verdict, next hypothesis — is walked through step by step in the <a href="../sql-case-expression/">SQL CASE expression guide</a>, where exploring a messy artist-credit column ends up dictating the cleaning rule.)</p>
+  </div>
+
+  <div class="step">
+    <h2>Let distributions choose your thresholds</h2>
+    <p>Analyses constantly need cutoffs: how many reviews make a rating trustworthy? How many votes make a movie "known"? The lazy move is picking a round number from the gut. The exploratory move is asking the data first: plot or tabulate the distribution, find where behavior actually changes, and pick a cutoff you can defend. Both gems projects do this on camera — <a href="https://github.com/michaelnocito/steam-hidden-gems">Steam Hidden Gems</a> derives its review-count floor from the measured distribution of review volumes, and <a href="https://github.com/michaelnocito/streaming-hidden-gems">Streaming Hidden Gems</a> derives its vote-count band the same way, with the rejected alternatives documented. A threshold with a distribution behind it survives the question "why that number?" A guess doesn't.</p>
+  </div>
+
+  <h2>The habits, distilled</h2>
+  <table>
+    <tr><th>Habit</th><th>The move</th><th>What it catches</th></tr>
+    <tr><td>Look at rows</td><td><code>SELECT * ... LIMIT 20</code> before anything else</td><td>Import wrecks, swapped columns, mangled text</td></tr>
+    <tr><td>Count and reconcile</td><td>Row counts checked against arithmetic the data must obey</td><td>Silently dropped or duplicated rows</td></tr>
+    <tr><td>Profile every column</td><td>Distinct values, min/max, missing-value markers, type surprises</td><td>'NA' strings, two markers for one meaning, text-typed numbers</td></tr>
+    <tr><td>Visualize, don't summarize</td><td>Plot distributions and relationships before trusting averages</td><td>Everything Anscombe and the Datasaurus warned about</td></tr>
+    <tr><td>Chase oddities</td><td>Treat every "huh, weird" as a lead with a follow-up query</td><td>The era-stitched archives and duplicate entities real data is full of</td></tr>
+    <tr><td>Derive thresholds</td><td>Cutoffs from measured distributions, never from vibes</td><td>Indefensible analysis choices</td></tr>
+  </table>
+
+  <h2>The honest limit: exploration finds suspects, not verdicts</h2>
+  <p>One warning keeps EDA honest. When you explore freely, you <em>will</em> find patterns — including patterns that are pure coincidence, because looking at data from enough angles guarantees something eventually looks interesting. The detective/courtroom split exists precisely for this: a pattern discovered during exploration is a <strong>suspect</strong>, not a conviction. It earns a hypothesis, which then needs testing on evidence that didn't generate it — fresh data, a held-out sample, or a formal test specified in advance. Treating an exploratory find as a proven fact is the analytical equivalent of convicting the first person the detective happened to interview. Explore boldly; conclude carefully.</p>
+
+  <div class="cta">
+    <strong>See it, then do it.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> teaches the query skills every exploration above uses, the <a href="../../stats/">Statistics Kit</a> covers the distributions and correlations this guide leans on, and the <a href="../../projects/">Portfolio Projects</a> page shows how to turn an explored dataset into a project worth showing an employer. All free, all in your browser.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <h2>References</h2>
+  <ol class="refs">
+    <li>Tukey, J. W. (1962). The future of data analysis. <em>The Annals of Mathematical Statistics, 33</em>(1), 1–67. doi:10.1214/aoms/1177704711</li>
+    <li>Tukey, J. W. (1977). <em>Exploratory Data Analysis.</em> Addison-Wesley.</li>
+    <li>Anscombe, F. J. (1973). Graphs in statistical analysis. <em>The American Statistician, 27</em>(1), 17–21. doi:10.2307/2682899</li>
+    <li>Behrens, J. T. (1997). Principles and procedures of exploratory data analysis. <em>Psychological Methods, 2</em>(2), 131–160. doi:10.1037/1082-989X.2.2.131</li>
+    <li>Matejka, J., &amp; Fitzmaurice, G. (2017). Same stats, different graphs: Generating datasets with varied appearance and identical statistics through simulated annealing. <em>Proceedings of the 2017 CHI Conference on Human Factors in Computing Systems</em>, 1290–1294. ACM.</li>
+  </ol>
+
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-case-expression/">SQL CASE Expression</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+  </footer>
+</main>
+</body>
+</html>
