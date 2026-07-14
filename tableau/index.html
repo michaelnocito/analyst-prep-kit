@@ -2286,16 +2286,6 @@ function v2TabToggleMode(lid){
 
 let _v2ParsAttempt = {};
 let _v2ParsWasWrong = {};
-const _v2conf = {};
-function v2SetConf(lid, level){
-  _v2conf[lid] = level;
-  const box = document.getElementById(`v2conf-${lid}`);
-  if(box) box.querySelectorAll('button[data-cf]').forEach(b=>{
-    const on = b.dataset.cf===level;
-    b.classList.toggle('btn-primary', on);
-    b.classList.toggle('btn-outline', !on);
-  });
-}
 
 function v2ParsChipTap(lid, chip){
   const pool = document.getElementById('v2tab-pool-'+lid);
@@ -2316,12 +2306,6 @@ function v2ParsCheck(lid){
     if(fb) fb.innerHTML='<span style="color:var(--warn);font-size:13px">Move all pieces to the answer area first.</span>';
     return;
   }
-  const conf = _v2conf[lid];
-  if(!conf){
-    const fb = document.getElementById('v2tab-pars-fb-'+lid);
-    if(fb) fb.innerHTML='<span style="color:var(--warn);font-size:13px">Tap how sure you are first — commit before you check.</span>';
-    return;
-  }
   const userOrder = chips.map(c=>+c.dataset.idx);
   const correct = l.parsons.answer.every((v,i)=>v===userOrder[i]);
   _v2ParsAttempt[lid] = {lines: chips.map(c=>c.textContent)};
@@ -2330,17 +2314,11 @@ function v2ParsCheck(lid){
     delete _v2ParsWasWrong[lid];
     celebrate(true,'Correct! 🎉');
     const fb = document.getElementById('v2tab-pars-fb-'+lid);
-    const msg = conf==='unsure'
-      ? `Correct — and you weren't sure. That's real recall, not recognition.`
-      : `Correct — that's the right order.`;
-    if(fb) fb.innerHTML=`<span style="color:var(--ok,#3a9d6a);font-size:13px;font-weight:600">${msg}</span>
+    if(fb) fb.innerHTML=`<span style="color:var(--ok,#3a9d6a);font-size:13px;font-weight:600">Correct — that's the right order.</span>
       <div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setTabStage(${lid},3)">Continue &rarr;</button></div>`;
   } else {
     const fb = document.getElementById('v2tab-pars-fb-'+lid);
-    const msg = conf==='sure'
-      ? `Not quite — and you were confident. This is the moment corrections stick hardest. Look closely, then reorder.`
-      : `Not quite — try reordering the pieces.`;
-    if(fb) fb.innerHTML=`<span style="color:var(--err);font-size:13px;font-weight:600">${msg}</span>`;
+    if(fb) fb.innerHTML='<span style="color:var(--err);font-size:13px;font-weight:600">Not quite — try reordering the pieces.</span>';
     const btn = document.getElementById('v2tab-coach-try-'+lid);
     if(btn) btn.style.display='';
   }
@@ -2513,14 +2491,7 @@ function v2TabBody(l, done){
       <p style="font-size:12px;color:var(--dim);margin:0 0 6px">Tap a piece to move it between the pool and your answer:</p>
       <div class="v2-pool" id="v2tab-pool-${l.id}">${pool}</div>
       <div class="v2-answer-zone" id="v2tab-ans-${l.id}"></div>
-      <div class="v2-conf" id="v2conf-${l.id}" style="margin-top:12px">
-        <div style="font-size:12px;color:var(--dim);margin-bottom:6px">Before you check — how sure are you?</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-outline btn-sm" data-cf="sure" onclick="v2SetConf(${l.id},'sure')">Confident</button>
-          <button class="btn btn-outline btn-sm" data-cf="unsure" onclick="v2SetConf(${l.id},'unsure')">Not sure</button>
-        </div>
-      </div>
-      <div id="v2tab-pars-fb-${l.id}" style="min-height:18px;margin-bottom:4px;margin-top:12px"></div>
+      <div id="v2tab-pars-fb-${l.id}" style="min-height:18px;margin-bottom:4px"></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick="setTabStage(${l.id},1)">← Back</button>
         <button class="btn btn-primary" onclick="v2ParsCheck(${l.id})">Check order</button>
