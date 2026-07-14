@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How SQL and Python Work Together in Data Analysis (When to Use Which) — Analyst Prep Kit</title>
+<meta name="description" content="Beginner guide to how SQL and Python fit together in real analyst work: what each tool is actually for, the collect-analyze-present pipeline, a real example with a live API and SQLite, and which one to learn first.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-and-python/">
+<meta property="og:title" content="How SQL and Python Work Together in Data Analysis">
+<meta property="og:description" content="When do you need SQL, when do you need Python, and how do they hand off to each other? Explained with a real project that uses both.">
+<meta property="og:type" content="article">
+<style>
+  :root{--bg:#FAF3EC;--ink:#3D1A0F;--muted:#6E4A33;--accent:#C5511F;--line:#E68A66;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#F8D8C6;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F3E2D4;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#2E1608;color:#FFE7D6;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#F8D8C6}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../python/">Python Kit</a></p>
+  <h1>How SQL and Python Work Together in Data Analysis</h1>
+  <p class="meta">When you need which tool, and how they hand off · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>Every data analyst job posting asks for SQL and Python, which raises an honest beginner question nobody seems to answer directly: <strong>if both work with data, why do I need two tools?</strong> Aren't they competing? Which one do I reach for when? This guide answers that with a clear division of labor, a real project that uses both, and a straight recommendation on which to learn first.</p>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>The one-sentence answer</li>
+      <li>What SQL is actually for</li>
+      <li>What Python is actually for</li>
+      <li>The pipeline: how they hand off</li>
+      <li>A real example: one project, both tools</li>
+      <li>When to use which (the decision table)</li>
+      <li>Which to learn first</li>
+    </ol>
+  </div>
+
+  <h2>The one-sentence answer</h2>
+  <p><strong>SQL works on data that is already inside a database; Python does everything around the database.</strong> SQL cannot fetch data from the internet, read a folder of files, send an email, or draw a chart. Python can do all of that, but for the core analytical moves — filtering millions of rows, joining tables, grouping and counting — a database running SQL is faster, simpler, and closer to how companies actually store their data. They aren't rivals. They're two stations on the same assembly line.</p>
+
+  <h2>What SQL is actually for</h2>
+  <p>SQL (Structured Query Language) is a language for asking questions of tables that live in a database. It is unbeatable at:</p>
+  <ul>
+    <li><strong>Filtering</strong> — "only 2024 orders over $100" out of 50 million rows, in seconds.</li>
+    <li><strong>Joining</strong> — connecting the orders table to the customers table to the products table.</li>
+    <li><strong>Aggregating</strong> — revenue per region per month, computed where the data lives instead of hauling 50 million rows to your laptop.</li>
+    <li><strong>Defining truth</strong> — a saved SQL query is a precise, reviewable statement of how a metric is calculated.</li>
+  </ul>
+  <p>Its boundary is just as important: SQL only sees what's inside the database. If the data you need is on a website, behind an API, or spread across 40 spreadsheets in a folder, SQL has no way to reach it.</p>
+
+  <h2>What Python is actually for</h2>
+  <p>Python is a general-purpose programming language, and for analysts that means it handles everything the database can't see:</p>
+  <ul>
+    <li><strong>Collecting</strong> — calling web APIs, scraping pages, reading hundreds of files, pulling from cloud services.</li>
+    <li><strong>Automating</strong> — "do this same cleanup every Monday at 8am" is a Python script on a schedule.</li>
+    <li><strong>Analyzing beyond SQL's reach</strong> — statistics, forecasting, machine learning.</li>
+    <li><strong>Presenting</strong> — charts, dashboards, formatted Excel reports, emails with the numbers attached.</li>
+  </ul>
+  <p>Python <em>can</em> also filter, join, and aggregate (the pandas library does exactly this), which is where the confusion comes from. The practical rule: when the data already lives in a database, do the heavy row-crunching there with SQL and let Python work with the smaller result — not the other way around.</p>
+
+  <h2>The pipeline: how they hand off</h2>
+  <p>Most real analyst work follows the same three-stage shape:</p>
+  <table>
+    <tr><th>Stage</th><th>Tool</th><th>What happens</th></tr>
+    <tr><td>1. Collect</td><td>Python</td><td>Fetch from APIs, files, or exports; land the raw data in a database.</td></tr>
+    <tr><td>2. Analyze</td><td>SQL</td><td>Clean, join, filter, aggregate — inside the database, where the data is.</td></tr>
+    <tr><td>3. Present</td><td>Python (or a BI tool)</td><td>Turn the SQL results into charts, reports, or a model.</td></tr>
+  </table>
+  <p>Sometimes stage 1 is already done for you (the company database exists) and you live entirely in SQL. Sometimes stage 3 is Tableau or Power BI instead of Python. But when a job posting asks for both languages, this pipeline is why: they want someone who can go get data, not just query data someone else delivered.</p>
+
+  <h2 id="real-example">A real example: one project, both tools</h2>
+  <div class="step">
+    <h2>Finding songs the radio buried</h2>
+    <p>A portfolio project asks: which songs by well-known artists did radio overlook, even though listeners loved them? Answering takes two datasets — Billboard Hot 100 chart history (what radio rewarded) and Last.fm play statistics (what listeners actually replay). Watch the pipeline:</p>
+    <p><strong>Stage 1 — Python collects.</strong> The chart history is a CSV, easy. But the listener data only exists behind a live web API, and SQL cannot call the internet. So a ~60-line Python script reads a roster of 1,570 artists out of the SQLite database, asks the Last.fm API for each artist's top tracks (pausing politely between requests), and writes the answers to a CSV:</p>
+    <pre><code>import sqlite3
+import urllib.request
+
+# SQL inside Python: pull the artist roster from the database
+conn = sqlite3.connect("music_gems.db")
+roster = [row[0] for row in conn.execute(
+    "SELECT primary_artist FROM known_artists")]
+conn.close()
+
+# Python-only territory: call a web API, once per artist
+for artist in roster:
+    url = "https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&..."
+    reply = urllib.request.urlopen(url)   # SQL could never do this line
+    ...</code></pre>
+    <p>Notice the handoff in miniature: the script's second line runs a <em>SQL query</em> from <em>inside Python</em> (the built-in <code>sqlite3</code> library does the bridging). The two languages literally share a script.</p>
+    <p><strong>Stage 2 — SQL analyzes.</strong> The fetched CSV gets imported as a table, and every analytical question from there is SQL: which artists chart repeatedly (GROUP BY + HAVING), which tracks have high plays-per-listener, and the payoff query — a JOIN connecting the chart table to the listener table to find loved-but-never-charted songs. Filtering and joining hundreds of thousands of rows is exactly what the database is built for.</p>
+    <p><strong>Stage 3 — Present.</strong> The final gem list is small enough for anything: a README table, a chart, a web page.</p>
+  </div>
+  <div class="note"><strong>One habit that transfers between both languages:</strong> comments. SQL comments start with <code>--</code>, Python comments start with <code>#</code>. Same idea, different marker — and knowing which file you're in tells you which marker you need.</div>
+
+  <h2>When to use which (the decision table)</h2>
+  <table>
+    <tr><th>You need to…</th><th>Reach for</th><th>Why</th></tr>
+    <tr><td>Filter, join, or summarize tables in a database</td><td>SQL</td><td>The database does it fastest, right where the data lives.</td></tr>
+    <tr><td>Get data from a web API or website</td><td>Python</td><td>SQL cannot make internet requests.</td></tr>
+    <tr><td>Read/combine many files in a folder</td><td>Python</td><td>SQL only sees inside its database.</td></tr>
+    <tr><td>Define a metric everyone can review</td><td>SQL</td><td>A saved query is a precise, shareable definition.</td></tr>
+    <tr><td>Run statistics, forecasts, or ML</td><td>Python</td><td>Beyond SQL's math; this is pandas/scikit-learn territory.</td></tr>
+    <tr><td>Automate a recurring job</td><td>Python (running SQL)</td><td>Python schedules and orchestrates; SQL does the data work inside it.</td></tr>
+    <tr><td>Build charts or reports from results</td><td>Python or a BI tool</td><td>Presentation happens after the query.</td></tr>
+  </table>
+
+  <h2>Which to learn first</h2>
+  <p><strong>SQL first.</strong> Three reasons: it's the smaller language (a dozen keywords cover most analyst work), it appears in more analyst job postings than any other skill, and day one of a data job usually starts with "here's our database" — not "please build us a data pipeline." Get comfortable with SELECT, WHERE, JOIN, and GROUP BY, then add Python when you hit a wall SQL can't cross (usually: "the data I need isn't in a database yet"). That wall is the best Python motivation there is, because you'll know exactly why you're learning it.</p>
+
+  <div class="cta">
+    <strong>Learn both, free, in your browser.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> covers the core of analyst SQL — SELECT through JOINs — with worked examples, practice, flash cards, and a mock exam. The <a href="../../python/">Python Kit</a> picks up the other half: the language basics plus the pandas moves analysts actually use. Nothing to install for either.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>&nbsp; <a class="btn" href="../../python/">Open the Python Kit →</a>
+  </div>
+
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-case-expression/">SQL CASE Expression</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../python/">Python Kit</a>
+  </footer>
+</main>
+</body>
+</html>
