@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The SQL CASE Expression, Explained for Beginners (With a Real Messy-Data Example) — Analyst Prep Kit</title>
+<meta name="description" content="Beginner guide to the SQL CASE expression (CASE WHEN THEN ELSE END): how the ladder works, why rung order matters, and how analysts use it for cleaning, bucketing, flags, and conditional aggregation — shown on real messy Billboard chart data.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-expression/">
+<meta property="og:title" content="The SQL CASE Expression, Explained for Beginners">
+<meta property="og:description" content="CASE WHEN, THEN, ELSE, END — how SQL's if/else really works, taught with a real data-cleaning problem from Billboard chart history.">
+<meta property="og:type" content="article">
+<style>
+  :root{--bg:#FAF3EC;--ink:#3D1A0F;--muted:#6E4A33;--accent:#C5511F;--line:#E68A66;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#F8D8C6;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F3E2D4;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#2E1608;color:#FFE7D6;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#F8D8C6}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a></p>
+  <h1>The SQL CASE Expression, Explained for Beginners</h1>
+  <p class="meta">SQL's if/else, taught on real messy data · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>Sooner or later every analyst meets a query full of <code>WHEN</code> and <code>THEN</code> and wonders what they're looking at. That construct is the <strong>CASE expression</strong> — SQL's if/else — and it's one of the most-used tools in real analyst work: cleaning messy values, bucketing numbers into bands, building flags, and counting several things in one query. This guide explains how it thinks, the one rule that silently breaks it, and how a real cleaning rule gets built on real data.</p>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>What CASE is and how it decides</li>
+      <li>The rule that matters: order is logic</li>
+      <li>A real example: cleaning Billboard artist credits</li>
+      <li>The four jobs analysts use CASE for</li>
+      <li>How to build a CASE rule that's actually correct</li>
+    </ol>
+  </div>
+
+  <h2>What CASE is and how it decides</h2>
+  <p>CASE produces <strong>one value per row</strong> by checking a list of tests top to bottom:</p>
+  <pre><code>CASE
+  WHEN &lt;test 1&gt; THEN &lt;value 1&gt;
+  WHEN &lt;test 2&gt; THEN &lt;value 2&gt;
+  ELSE &lt;fallback value&gt;
+END</code></pre>
+  <p>The <strong>first test that passes wins</strong> — its THEN value becomes the result and everything below is skipped. If nothing passes, the ELSE value is used (no ELSE means the result is NULL). This multi-branch form is officially called a <strong>searched CASE expression</strong>; analysts informally call the shape a <strong>CASE ladder</strong> — a stack of WHEN/THEN rungs. If you know other languages, it's an if / else-if / else chain, or a switch statement.</p>
+  <div class="note"><strong>It's an expression, not a command.</strong> CASE produces a value the way a column does, so it can go anywhere a column can: in a SELECT (compute a new column), a WHERE (filter on the computed value), an ORDER BY (custom sort), inside <code>CREATE TABLE … AS</code> (save the computed value into a table), or inside SUM/COUNT (see conditional aggregation below).</div>
+
+  <h2>The rule that matters: order is logic</h2>
+  <p>Because the first matching rung wins, <strong>the order of the rungs changes the answer</strong>. Two rungs can each be individually correct and still give wrong results if the general one sits above the specific one. The rule that follows:</p>
+  <p><strong>Specific patterns go above the general patterns they contain.</strong></p>
+  <p>Abstract, until you watch it bite on real data:</p>
+
+  <div class="step">
+    <h2>A real example: cleaning Billboard artist credits</h2>
+    <p>The Billboard Hot 100's public chart history (a free CSV, back to 1958) prints artist credits like this:</p>
+    <pre><code>2 Chainz Featuring Drake
+Elvis Presley With The Jordanaires
+2Pac Duet With Mopreme
+Patti Austin A Duet With James Ingram</code></pre>
+    <p>To analyze by artist you need the <em>primary</em> artist — the text before the joiner word. A CASE ladder does the cut. The first attempt knew two joiners:</p>
+    <pre><code>CASE
+  WHEN INSTR(performer, ' Featuring ') &gt; 0
+    THEN SUBSTR(performer, 1, INSTR(performer, ' Featuring ') - 1)
+  WHEN INSTR(performer, ' With ') &gt; 0
+    THEN SUBSTR(performer, 1, INSTR(performer, ' With ') - 1)
+  ELSE performer
+END</code></pre>
+    <p>(<code>INSTR</code> finds where a text appears; <code>SUBSTR</code> cuts everything before it.) Previewing the rule on real rows caught a defect: <strong>"2Pac Duet With Mopreme" extracted as "2Pac Duet"</strong> — the credit joins with " Duet With ", the ladder only knew " With ", so it cut in the wrong place and invented a fake artist.</p>
+    <p>The fix: add a <code>' Duet With '</code> rung <em>above</em> <code>' With '</code>. Re-checking the exact rows the fix targeted caught one more: <strong>"Patti Austin A Duet With James Ingram" → "Patti Austin A"</strong> — that credit says " A Duet With ". One more rung, one level more specific, placed one rung higher. The finished ladder:</p>
+    <pre><code>CASE
+  WHEN INSTR(performer, ' A Duet With ') &gt; 0
+    THEN SUBSTR(performer, 1, INSTR(performer, ' A Duet With ') - 1)
+  WHEN INSTR(performer, ' Duet With ') &gt; 0
+    THEN SUBSTR(performer, 1, INSTR(performer, ' Duet With ') - 1)
+  WHEN INSTR(performer, ' Featuring ') &gt; 0
+    THEN SUBSTR(performer, 1, INSTR(performer, ' Featuring ') - 1)
+  WHEN INSTR(performer, ' With ') &gt; 0
+    THEN SUBSTR(performer, 1, INSTR(performer, ' With ') - 1)
+  ELSE performer
+END AS primary_artist</code></pre>
+    <p>Read top to bottom: each rung is more general than the one above it, so the specific cases get caught before a general rung can mangle them. On the full dataset this ladder merged 11,275 raw credit strings into 8,896 clean primary artists.</p>
+  </div>
+
+  <h2>The four jobs analysts use CASE for</h2>
+  <h3>1. Cleaning and normalizing</h3>
+  <p>Mapping messy source values onto clean ones — the Billboard ladder above. Any dataset where the same real-world thing appears under several spellings ends up needing one of these.</p>
+  <h3>2. Bucketing</h3>
+  <p>Turning a continuous number into named bands:</p>
+  <pre><code>CASE
+  WHEN age &lt; 18 THEN 'minor'
+  WHEN age &lt; 65 THEN 'adult'
+  ELSE 'senior'
+END AS age_band</code></pre>
+  <p>Revenue tiers, engagement bands, rating groups — all this shape. Note it's another order-matters ladder: <code>age &lt; 65</code> would also match a 10-year-old, but the more specific <code>age &lt; 18</code> above it catches them first.</p>
+  <h3>3. Flags</h3>
+  <p>A yes/no column computed from a test: <code>CASE WHEN peak_position &lt;= 10 THEN 1 ELSE 0 END AS top10_hit</code>. Flags make later filtering, joining, and counting simple.</p>
+  <h3>4. Conditional aggregation (the pivot trick)</h3>
+  <p>CASE inside SUM or COUNT counts different things in one pass over the table:</p>
+  <pre><code>SELECT
+  SUM(CASE WHEN genre = 'Country' THEN 1 ELSE 0 END) AS country_songs,
+  SUM(CASE WHEN genre = 'Pop'     THEN 1 ELSE 0 END) AS pop_songs
+FROM songs;</code></pre>
+  <p>One query, several tailored counts side by side — the workhorse behind most summary tables and dashboard tiles.</p>
+
+  <h2>How to build a CASE rule that's actually correct</h2>
+  <table>
+    <tr><th>Step</th><th>What you do</th></tr>
+    <tr><td>1. Draft</td><td>Write the ladder you believe in.</td></tr>
+    <tr><td>2. Preview</td><td>Run it on real rows BEFORE building anything from it: original value and computed value side by side, and read them.</td></tr>
+    <tr><td>3. Fix</td><td>When a wrong output appears, add the missing rung above the general rung that mis-handled it.</td></tr>
+    <tr><td>4. Confirm</td><td>Re-check the exact rows the fix targets — not just a random sample.</td></tr>
+    <tr><td>5. Iterate</td><td>Repeat until the exceptions stop appearing. That is genuinely how normalization rules get built in practice.</td></tr>
+  </table>
+
+  <div class="cta">
+    <strong>Make SELECT, WHERE, JOIN, and GROUP BY second nature too.</strong>
+    <p style="margin:6px 0 0">The free <a href="../../sql/">SQL Kit</a> teaches the core of analyst SQL with worked examples, practice, flash cards, and a mock exam — all in your browser, nothing to install.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+  </footer>
+</main>
+</body>
+</html>
