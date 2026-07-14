@@ -1457,6 +1457,8 @@ let state = {
   doneBugs: [],
   doneParsons: [],
   doneCards: [],
+  doneCardDrills: [],
+  doneCapstone: [],
   flagged: [],
   theme: 'light'
 };
@@ -1508,7 +1510,7 @@ function navigate(view, ...args){
   guided = null; // any normal navigation exits the guided practice flow
   currentView = view;
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const map = {home:0,lessons:1,practice:2,lab:3,'lab-join':3,'lab-agg':3,'lab-dates':3,'lab-clean':3,cards:4,glossary:5};
+  const map = {home:0,lessons:1,practice:2,lab:3,'lab-join':3,'lab-agg':3,'lab-dates':3,'lab-clean':3,'lab-cards':3,'card-drill':3,'lab-capstone':3,cards:4,glossary:5};
   const btns = document.querySelectorAll('.nav-btn');
   if(map[view] !== undefined && btns[map[view]]) btns[map[view]].classList.add('active');
   const main = document.getElementById('main');
@@ -1526,6 +1528,9 @@ function navigate(view, ...args){
   else if(view==='lab-agg') renderLabAgg();
   else if(view==='lab-dates') renderLabStub('dates');
   else if(view==='lab-clean') renderLabStub('clean');
+  else if(view==='lab-cards') renderLabCards();
+  else if(view==='card-drill') renderCardDrill(args[0]);
+  else if(view==='lab-capstone') renderLabCapstone();
   else if(view==='cards') renderCards();
   else if(view==='glossary') renderGlossary();
   else if(view==='settings') renderSettings();
@@ -2760,6 +2765,7 @@ async function ensureDb(statusEl){
     const SQL = await initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}` });
     sqlDb = new SQL.Database();
     sqlDb.run(DATA.SCHEMA);
+    seedSalesData(sqlDb);
     return true;
   } catch(e){
     if(statusEl) statusEl.innerHTML = `<span class="terminal-error">Failed to load SQL engine: ${e.message}</span>`;
@@ -2775,6 +2781,8 @@ function labTabsHTML(active){
     {id:'lab-agg',    key:'agg',   label:'<i data-lucide="bar-chart-3" style="width:14px;height:14px;vertical-align:-2px"></i> Aggregation Lab'},
     {id:'lab-dates',  key:'dates', label:'<i data-lucide="calendar" style="width:14px;height:14px;vertical-align:-2px"></i> Date & Time Lab'},
     {id:'lab-clean',  key:'clean', label:'<i data-lucide="brush" style="width:14px;height:14px;vertical-align:-2px"></i> Data Quality Lab'},
+    {id:'lab-cards',  key:'carddrills', label:'<i data-lucide="layers" style="width:14px;height:14px;vertical-align:-2px"></i> Card Drills'},
+    {id:'lab-capstone', key:'capstone', label:'<i data-lucide="trophy" style="width:14px;height:14px;vertical-align:-2px"></i> Put It All Together'},
   ];
   const btns = labs.map(l =>
     `<button onclick="navigate('${l.id}')" style="background:none;border:none;padding:10px 14px;font:600 13px var(--font);cursor:pointer;white-space:nowrap;flex-shrink:0;color:${active===l.key?'var(--accent)':'var(--muted)'};border-bottom:2px solid ${active===l.key?'var(--accent)':'transparent'};transition:.15s">${l.label}</button>`
@@ -2828,6 +2836,388 @@ function runSQL(){
   } catch(e){
     results.innerHTML = `<span class="terminal-error">Error: ${e.message}</span>`;
   }
+}
+
+// ─── CARD DRILLS + CAPSTONE DATASET ────────────────────────────────────────
+// Deterministic seeded generator (no Math.random) so every visitor gets the
+// exact same products/sales data — answers and row counts stay reproducible.
+function seedSalesData(db){
+  db.run(`
+    CREATE TABLE products (
+      product_id TEXT PRIMARY KEY,
+      name TEXT,
+      category TEXT,
+      price REAL
+    );
+    INSERT INTO products VALUES
+    ('P01','House Blend Beans','Coffee',14.00),
+    ('P02','Single Origin Ethiopia','Coffee',19.50),
+    ('P03','Decaf Dark Roast','Coffee',15.00),
+    ('P04','Cold Brew Concentrate','Coffee',11.00),
+    ('P05','Earl Grey Tin','Tea',9.50),
+    ('P06','Jasmine Green Tin','Tea',10.50),
+    ('P07','Chai Sampler','Tea',12.00),
+    ('P08','Pour-Over Kettle','Equipment',42.00),
+    ('P09','Burr Grinder','Equipment',89.00),
+    ('P10','French Press','Equipment',28.00),
+    ('P11','Logo Mug','Merch',13.00),
+    ('P12','Canvas Tote','Merch',18.00);
+    CREATE TABLE sales (
+      sale_id INTEGER PRIMARY KEY,
+      product_id TEXT,
+      customer_id TEXT,
+      sale_date TEXT,
+      qty INTEGER,
+      region TEXT,
+      amount REAL
+    );`);
+  const prices={P01:14,P02:19.5,P03:15,P04:11,P05:9.5,P06:10.5,P07:12,P08:42,P09:89,P10:28,P11:13,P12:18};
+  const pids=Object.keys(prices);
+  const custs=['C001','C002','C003','C004','C005','C006','C007','C008','C009','C010'];
+  const regions=['North','South','East','West'];
+  let s=42; const rnd=()=>{ s=(s*1103515245+12345)%2147483648; return s/2147483648; };
+  const rows=[];
+  for(let i=1;i<=180;i++){
+    const pid=pids[Math.floor(rnd()*pids.length)];
+    const cid=custs[Math.floor(rnd()*custs.length)];
+    const month=1+Math.floor(rnd()*6);
+    const day=1+Math.floor(rnd()*28);
+    const date=`2024-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const qty=1+Math.floor(rnd()*4);
+    const region=rnd()<0.08?null:regions[Math.floor(rnd()*4)];
+    const amount=Math.round(qty*prices[pid]*100)/100;
+    rows.push(`(${i},'${pid}','${cid}','${date}',${qty},${region?`'${region}'`:'NULL'},${amount})`);
+  }
+  db.run(`INSERT INTO sales VALUES ${rows.join(',')};`);
+}
+
+// One drill per flashcard. tries = graduated prompts on DIFFERENT columns/tables
+// so the concept is practiced, not memorized. sql = reference answer (revealed on demand).
+const CARD_DRILLS = {
+"SELECT":{tries:[
+ {p:"Return just the name column from products.",sql:"SELECT name FROM products;"},
+ {p:"Return name AND price from products.",sql:"SELECT name, price FROM products;"},
+ {p:"Return every column from sales (peek at the table).",sql:"SELECT * FROM sales LIMIT 10;"}]},
+"FROM":{tries:[
+ {p:"Count the rows in products.",sql:"SELECT COUNT(*) FROM products;"},
+ {p:"Now count the rows in sales — same query, different FROM.",sql:"SELECT COUNT(*) FROM sales;"},
+ {p:"And customers_old.",sql:"SELECT COUNT(*) FROM customers_old;"}]},
+"WHERE":{tries:[
+ {p:"Products in the 'Tea' category.",sql:"SELECT * FROM products WHERE category = 'Tea';"},
+ {p:"Products priced over 20.",sql:"SELECT * FROM products WHERE price > 20;"},
+ {p:"Sales in the North region with qty of 3 or more.",sql:"SELECT * FROM sales WHERE region = 'North' AND qty >= 3;"}]},
+"ORDER BY":{tries:[
+ {p:"Products from cheapest to most expensive.",sql:"SELECT name, price FROM products ORDER BY price;"},
+ {p:"Most expensive first (DESC).",sql:"SELECT name, price FROM products ORDER BY price DESC;"},
+ {p:"Sales sorted by region, then amount high-to-low within each region.",sql:"SELECT region, amount FROM sales ORDER BY region, amount DESC;"}]},
+"LIMIT":{tries:[
+ {p:"The 5 biggest sales by amount.",sql:"SELECT * FROM sales ORDER BY amount DESC LIMIT 5;"},
+ {p:"The 3 cheapest products.",sql:"SELECT name, price FROM products ORDER BY price LIMIT 3;"}]},
+"INNER JOIN":{tries:[
+ {p:"Each sale's amount with its product name.",sql:"SELECT p.name, s.amount FROM sales s INNER JOIN products p ON s.product_id = p.product_id LIMIT 15;"},
+ {p:"Each sale with the customer's name (customers table).",sql:"SELECT c.name, s.amount FROM sales s INNER JOIN customers c ON s.customer_id = c.id LIMIT 15;"}]},
+"LEFT JOIN":{tries:[
+ {p:"ALL customers_old rows with any sales they made — keep customers with none.",sql:"SELECT co.name, s.sale_id FROM customers_old co LEFT JOIN sales s ON co.id = s.customer_id LIMIT 20;"},
+ {p:"All products with their sales; a product with zero sales would still appear.",sql:"SELECT p.name, s.sale_id FROM products p LEFT JOIN sales s ON p.product_id = s.product_id LIMIT 20;"}]},
+"ON":{tries:[
+ {p:"Join sales to products — the ON clause connects product_id to product_id.",sql:"SELECT p.category, s.amount FROM sales s JOIN products p ON s.product_id = p.product_id LIMIT 10;"},
+ {p:"Join sales to customers — this time ON connects customer_id to customers.id (different column names!).",sql:"SELECT c.name, s.sale_date FROM sales s JOIN customers c ON s.customer_id = c.id LIMIT 10;"}]},
+"GROUP BY":{tries:[
+ {p:"Number of sales per region.",sql:"SELECT region, COUNT(*) AS n FROM sales GROUP BY region;"},
+ {p:"Number of products per category.",sql:"SELECT category, COUNT(*) AS n FROM products GROUP BY category;"},
+ {p:"Total revenue per product_id.",sql:"SELECT product_id, SUM(amount) AS revenue FROM sales GROUP BY product_id;"}]},
+"COUNT(*)":{tries:[
+ {p:"How many sales rows are there?",sql:"SELECT COUNT(*) FROM sales;"},
+ {p:"How many sales have a NULL region? (COUNT(*) counts them; COUNT(region) would not.)",sql:"SELECT COUNT(*) FROM sales WHERE region IS NULL;"},
+ {p:"Compare: COUNT(*) vs COUNT(region) over all sales — spot the NULL gap.",sql:"SELECT COUNT(*) AS all_rows, COUNT(region) AS with_region FROM sales;"}]},
+"SUM(col)":{tries:[
+ {p:"Total revenue across all sales.",sql:"SELECT SUM(amount) FROM sales;"},
+ {p:"Total units (qty) sold.",sql:"SELECT SUM(qty) FROM sales;"},
+ {p:"Total revenue for just the East region.",sql:"SELECT SUM(amount) FROM sales WHERE region = 'East';"}]},
+"AVG(col)":{tries:[
+ {p:"Average sale amount.",sql:"SELECT AVG(amount) FROM sales;"},
+ {p:"Average product price.",sql:"SELECT AVG(price) FROM products;"},
+ {p:"Average qty per region.",sql:"SELECT region, AVG(qty) FROM sales GROUP BY region;"}]},
+"HAVING":{tries:[
+ {p:"Regions with more than 40 sales.",sql:"SELECT region, COUNT(*) AS n FROM sales GROUP BY region HAVING COUNT(*) > 40;"},
+ {p:"Products (by product_id) whose total revenue exceeds 500.",sql:"SELECT product_id, SUM(amount) AS rev FROM sales GROUP BY product_id HAVING SUM(amount) > 500;"}]},
+"DISTINCT":{tries:[
+ {p:"The distinct regions in sales (note NULL shows up too).",sql:"SELECT DISTINCT region FROM sales;"},
+ {p:"Distinct customer_ids that actually bought something.",sql:"SELECT DISTINCT customer_id FROM sales ORDER BY customer_id;"}]},
+"CASE WHEN":{tries:[
+ {p:"Label each product 'premium' if price >= 25, else 'standard'.",sql:"SELECT name, price, CASE WHEN price >= 25 THEN 'premium' ELSE 'standard' END AS tier FROM products;"},
+ {p:"Bucket sales: 'big' if amount >= 100, 'medium' if >= 40, else 'small'.",sql:"SELECT amount, CASE WHEN amount >= 100 THEN 'big' WHEN amount >= 40 THEN 'medium' ELSE 'small' END AS size FROM sales LIMIT 15;"}]},
+"COALESCE":{tries:[
+ {p:"Show region, but replace NULL with 'Unassigned'.",sql:"SELECT sale_id, COALESCE(region, 'Unassigned') AS region FROM sales LIMIT 20;"},
+ {p:"Customers' email, falling back to '(no email)' — Eva has a NULL.",sql:"SELECT name, COALESCE(email, '(no email)') AS contact FROM customers;"}]},
+"NULL":{tries:[
+ {p:"Sales where region is missing.",sql:"SELECT * FROM sales WHERE region IS NULL;"},
+ {p:"Prove that = NULL finds nothing (0 rows) — then remember to use IS NULL.",sql:"SELECT COUNT(*) FROM sales WHERE region = NULL;"}]},
+"IS NULL":{tries:[
+ {p:"Customers with no email on file.",sql:"SELECT name FROM customers WHERE email IS NULL;"},
+ {p:"Sales that DO have a region (IS NOT NULL).",sql:"SELECT COUNT(*) FROM sales WHERE region IS NOT NULL;"}]},
+"Subquery":{tries:[
+ {p:"Sales above the average sale amount.",sql:"SELECT * FROM sales WHERE amount > (SELECT AVG(amount) FROM sales) LIMIT 15;"},
+ {p:"Products more expensive than the average product.",sql:"SELECT name, price FROM products WHERE price > (SELECT AVG(price) FROM products);"}]},
+"IN":{tries:[
+ {p:"Products in the Coffee or Tea categories.",sql:"SELECT name, category FROM products WHERE category IN ('Coffee','Tea');"},
+ {p:"Customers who appear in the sales table (IN + subquery).",sql:"SELECT name FROM customers WHERE id IN (SELECT DISTINCT customer_id FROM sales);"}]},
+"CTE (WITH)":{tries:[
+ {p:"CTE of revenue per product, then select the rows over 400 from it.",sql:"WITH product_rev AS (\n  SELECT product_id, SUM(amount) AS rev\n  FROM sales GROUP BY product_id\n)\nSELECT * FROM product_rev WHERE rev > 400;"},
+ {p:"CTE of monthly revenue (strftime '%m'), then pick the best month.",sql:"WITH monthly AS (\n  SELECT strftime('%m', sale_date) AS month, SUM(amount) AS rev\n  FROM sales GROUP BY month\n)\nSELECT * FROM monthly ORDER BY rev DESC LIMIT 1;"}]},
+"ROW_NUMBER()":{tries:[
+ {p:"Number every sale from biggest amount to smallest.",sql:"SELECT sale_id, amount, ROW_NUMBER() OVER (ORDER BY amount DESC) AS rn FROM sales LIMIT 10;"},
+ {p:"Rank products by price within the whole table.",sql:"SELECT name, price, ROW_NUMBER() OVER (ORDER BY price DESC) AS price_rank FROM products;"}]},
+"OVER (...)":{tries:[
+ {p:"Each sale next to the overall average amount (no GROUP BY needed).",sql:"SELECT sale_id, amount, AVG(amount) OVER () AS overall_avg FROM sales LIMIT 10;"},
+ {p:"Running total of revenue by date.",sql:"SELECT sale_date, amount, SUM(amount) OVER (ORDER BY sale_date, sale_id) AS running_total FROM sales LIMIT 15;"}]},
+"PARTITION BY":{tries:[
+ {p:"Number sales 1,2,3… restarting per region.",sql:"SELECT region, amount, ROW_NUMBER() OVER (PARTITION BY region ORDER BY amount DESC) AS rn FROM sales LIMIT 20;"},
+ {p:"Each product's price next to its category average.",sql:"SELECT name, category, price, AVG(price) OVER (PARTITION BY category) AS cat_avg FROM products;"}]},
+"Alias (AS)":{tries:[
+ {p:"Rename SUM(amount) to something readable.",sql:"SELECT SUM(amount) AS total_revenue FROM sales;"},
+ {p:"Table aliases: shorten sales to s and products to p in a join.",sql:"SELECT p.name, s.qty FROM sales AS s JOIN products AS p ON s.product_id = p.product_id LIMIT 10;"}]},
+"PRIMARY KEY":{tries:[
+ {p:"Inspect the products table definition — which column is the PK? (PRAGMA shows pk=1.)",sql:"PRAGMA table_info(products);"},
+ {p:"Prove uniqueness: count rows vs distinct product_ids — they match.",sql:"SELECT COUNT(*) AS rows_, COUNT(DISTINCT product_id) AS distinct_ids FROM products;"}]},
+"FOREIGN KEY":{tries:[
+ {p:"sales.customer_id references customers.id — find 'orphan' sales whose customer is NOT in customers (they're only in customers_old!).",sql:"SELECT DISTINCT s.customer_id FROM sales s LEFT JOIN customers c ON s.customer_id = c.id WHERE c.id IS NULL;"},
+ {p:"Follow the FK the happy direction: each sale with its customer's status.",sql:"SELECT s.sale_id, c.name, c.status FROM sales s JOIN customers c ON s.customer_id = c.id LIMIT 10;"}]},
+"Reconciliation":{tries:[
+ {p:"Do customers and customers_old agree on row counts?",sql:"SELECT (SELECT COUNT(*) FROM customers) AS current_, (SELECT COUNT(*) FROM customers_old) AS old_;"},
+ {p:"Who is in customers_old but missing from customers?",sql:"SELECT co.id, co.name FROM customers_old co LEFT JOIN customers c ON co.id = c.id WHERE c.id IS NULL;"},
+ {p:"Does SUM(amount) match SUM(qty × price)? A classic totals check.",sql:"SELECT ROUND(SUM(s.amount),2) AS stored, ROUND(SUM(s.qty * p.price),2) AS computed FROM sales s JOIN products p ON s.product_id = p.product_id;"}]},
+"RIGHT JOIN":{tries:[
+ {p:"RIGHT JOIN keeps every row of the RIGHT table: all customers_old, matched or not.",sql:"SELECT s.sale_id, co.name FROM sales s RIGHT JOIN customers_old co ON s.customer_id = co.id LIMIT 20;"},
+ {p:"Same result flipped as a LEFT JOIN — the usual rewrite.",sql:"SELECT s.sale_id, co.name FROM customers_old co LEFT JOIN sales s ON s.customer_id = co.id LIMIT 20;"}]},
+"FULL OUTER JOIN":{tries:[
+ {p:"All customers AND all customers_old, matched where possible.",sql:"SELECT c.id AS cur_id, co.id AS old_id FROM customers c FULL OUTER JOIN customers_old co ON c.id = co.id;"},
+ {p:"Filter that to mismatches only — rows missing on either side.",sql:"SELECT c.id AS cur_id, co.id AS old_id FROM customers c FULL OUTER JOIN customers_old co ON c.id = co.id WHERE c.id IS NULL OR co.id IS NULL;"}]},
+"CURDATE()":{note:"CURDATE() is MySQL. This lab runs SQLite, where the equivalent is <code>date('now')</code> — practice the idea with SQLite's spelling.",tries:[
+ {p:"Today's date (SQLite spelling).",sql:"SELECT date('now') AS today;"},
+ {p:"Sales made before today (all of them — data is from 2024).",sql:"SELECT COUNT(*) FROM sales WHERE sale_date < date('now');"}]},
+"DATE_SUB(date, INTERVAL n unit)":{note:"DATE_SUB is MySQL. SQLite uses date modifiers: <code>date('now','-30 day')</code>.",tries:[
+ {p:"The date 30 days ago.",sql:"SELECT date('now','-30 day') AS thirty_days_ago;"},
+ {p:"Sales in the 90 days after 2024-03-01 (date + modifier on a literal).",sql:"SELECT COUNT(*) FROM sales WHERE sale_date >= '2024-03-01' AND sale_date < date('2024-03-01','+90 day');"}]},
+"DATE_FORMAT(date, format)":{note:"DATE_FORMAT is MySQL. SQLite uses <code>strftime(format, date)</code> — %Y-%m gives '2024-03'.",tries:[
+ {p:"Each sale's month as '2024-03' style.",sql:"SELECT sale_date, strftime('%Y-%m', sale_date) AS month FROM sales LIMIT 10;"},
+ {p:"Revenue per month — the #1 analyst date pattern.",sql:"SELECT strftime('%Y-%m', sale_date) AS month, SUM(amount) AS revenue FROM sales GROUP BY month ORDER BY month;"}]},
+"DATEDIFF(date1, date2)":{note:"DATEDIFF is MySQL. SQLite: subtract julianday() values to get days between dates.",tries:[
+ {p:"Days between Jan 1 and Jun 30, 2024.",sql:"SELECT julianday('2024-06-30') - julianday('2024-01-01') AS days_between;"},
+ {p:"Days since each customer's first purchase, relative to 2024-07-01.",sql:"SELECT customer_id, CAST(julianday('2024-07-01') - julianday(MIN(sale_date)) AS INTEGER) AS days_since_first FROM sales GROUP BY customer_id;"}]},
+"Index":{tries:[
+ {p:"Check the query plan for a region filter — SCAN means full table scan.",sql:"EXPLAIN QUERY PLAN SELECT * FROM sales WHERE region = 'North';"},
+ {p:"Create an index on region, then re-run the plan — it becomes SEARCH … USING INDEX.",sql:"CREATE INDEX IF NOT EXISTS idx_sales_region ON sales(region);\nEXPLAIN QUERY PLAN SELECT * FROM sales WHERE region = 'North';"}]},
+"Composite index":{tries:[
+ {p:"Create a two-column index on (region, sale_date) and check the plan for a query filtering both.",sql:"CREATE INDEX IF NOT EXISTS idx_sales_region_date ON sales(region, sale_date);\nEXPLAIN QUERY PLAN SELECT * FROM sales WHERE region = 'East' AND sale_date >= '2024-03-01';"},
+ {p:"Column order matters: filtering ONLY sale_date can't use that index's front column.",sql:"EXPLAIN QUERY PLAN SELECT * FROM sales WHERE sale_date >= '2024-03-01';"}]},
+"Temporary Table":{tries:[
+ {p:"Create a temp table of big sales, then query it.",sql:"CREATE TEMP TABLE IF NOT EXISTS big_sales AS SELECT * FROM sales WHERE amount >= 100;\nSELECT COUNT(*) FROM big_sales;"},
+ {p:"Use the temp table in a join like any other table.",sql:"SELECT p.name, COUNT(*) AS big_sale_count FROM big_sales b JOIN products p ON b.product_id = p.product_id GROUP BY p.name ORDER BY big_sale_count DESC;"}]},
+"View":{tries:[
+ {p:"Create a view of revenue per category, then SELECT from it.",sql:"CREATE VIEW IF NOT EXISTS category_revenue AS\nSELECT p.category, SUM(s.amount) AS revenue\nFROM sales s JOIN products p ON s.product_id = p.product_id\nGROUP BY p.category;\nSELECT * FROM category_revenue ORDER BY revenue DESC;"},
+ {p:"Views re-run live: filter the view like a table.",sql:"SELECT * FROM category_revenue WHERE revenue > 900;"}]}
+};
+
+const DRILL_GROUPS = [
+ {label:"Core clauses", terms:["SELECT","FROM","WHERE","ORDER BY","LIMIT","DISTINCT","Alias (AS)"]},
+ {label:"Joins & keys", terms:["INNER JOIN","LEFT JOIN","RIGHT JOIN","FULL OUTER JOIN","ON","PRIMARY KEY","FOREIGN KEY"]},
+ {label:"Aggregates", terms:["GROUP BY","COUNT(*)","SUM(col)","AVG(col)","HAVING"]},
+ {label:"Logic & NULLs", terms:["CASE WHEN","COALESCE","NULL","IS NULL","IN"]},
+ {label:"Subqueries, CTEs & objects", terms:["Subquery","CTE (WITH)","Temporary Table","View"]},
+ {label:"Window functions", terms:["ROW_NUMBER()","OVER (...)","PARTITION BY"]},
+ {label:"Dates", terms:["CURDATE()","DATE_SUB(date, INTERVAL n unit)","DATE_FORMAT(date, format)","DATEDIFF(date1, date2)"]},
+ {label:"Data quality & performance", terms:["Reconciliation","Index","Composite index"]},
+];
+
+function cardDef(term){ const c = DATA.CARDS.find(c=>c[0]===term); return c ? c[1] : ''; }
+function drillTermList(){ return DRILL_GROUPS.flatMap(g=>g.terms); }
+
+function renderLabCards(){
+  const doneCount = state.doneCardDrills.length, total = drillTermList().length;
+  const groupsHtml = DRILL_GROUPS.map(g=>`
+    <h3 style="margin:18px 0 8px">${g.label}</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      ${g.terms.map(t=>{
+        const done = state.doneCardDrills.includes(t);
+        return `<button onclick="navigate('card-drill','${t.replace(/'/g,"\\'")}')" style="padding:8px 14px;border-radius:8px;border:1.5px solid ${done?'var(--green,#1a7f37)':'var(--border)'};background:${done?'rgba(26,127,55,.08)':'var(--surf)'};color:${done?'var(--green,#1a7f37)':'var(--text,inherit)'};font:600 13px var(--mono);cursor:pointer">${done?'✓ ':''}${t}</button>`;
+      }).join('')}
+    </div>`).join('');
+  document.getElementById('main').innerHTML = `
+    <h1>SQL Lab</h1>
+    ${labTabsHTML('carddrills')}
+    <p>Every flashcard concept, runnable. Pick a card, try it on different columns and tables, then finish with <strong>Put It All Together</strong>.</p>
+    <div class="card card-sm mb"><strong>${doneCount} / ${total}</strong> drills complete · Tables: <code style="font-family:var(--mono);font-size:13px">products</code>, <code style="font-family:var(--mono);font-size:13px">sales</code> (180 rows), plus <code style="font-family:var(--mono);font-size:13px">customers</code>, <code style="font-family:var(--mono);font-size:13px">orders</code>, <code style="font-family:var(--mono);font-size:13px">customers_old</code></div>
+    ${groupsHtml}
+    <div class="card mt" style="border:1.5px solid var(--accent)">
+      <h3>🏁 Put It All Together</h3>
+      <p class="text-muted text-sm">A 4-step mini-analysis that chains these concepts into one real answer.</p>
+      <button class="btn btn-primary btn-sm" onclick="navigate('lab-capstone')">Start the capstone →</button>
+    </div>`;
+}
+
+async function renderCardDrill(term){
+  const d = CARD_DRILLS[term];
+  if(!d) return navigate('lab-cards');
+  const terms = drillTermList();
+  const ti = terms.indexOf(term);
+  const done = state.doneCardDrills.includes(term);
+  const triesHtml = d.tries.map((t,i)=>`
+    <div class="card card-sm mb">
+      <p style="margin:0 0 8px"><strong>Try ${i+1}.</strong> ${t.p}</p>
+      <div class="row">
+        <button class="btn btn-primary btn-sm" onclick="loadDrillTry(${i})">Load into terminal</button>
+        <button class="btn btn-ghost btn-sm" onclick="const a=document.getElementById('drill-ans-${i}');a.style.display=a.style.display==='none'?'block':'none'">Show answer</button>
+      </div>
+      <div id="drill-ans-${i}" style="display:none;font-family:var(--mono);font-size:13px;white-space:pre;overflow-x:auto;background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:8px">${t.sql.replace(/</g,'&lt;')}</div>
+    </div>`).join('');
+  document.getElementById('main').innerHTML = `
+    <div class="row mb">
+      <button class="btn btn-ghost btn-sm" onclick="navigate('lab-cards')">← All card drills</button>
+      <span class="text-muted text-sm">${ti+1} / ${terms.length}</span>
+      ${done ? '<span class="badge badge-done">✓</span>' : ''}
+    </div>
+    <div class="card">
+      <h2 style="font-family:var(--mono)">${term}</h2>
+      <p class="text-muted">${cardDef(term)}</p>
+      ${d.note ? `<div style="background:rgba(191,135,0,.1);border:1px solid rgba(191,135,0,.4);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px">💡 ${d.note}</div>` : ''}
+      ${triesHtml}
+      <div class="terminal-wrap">
+        <div class="terminal-toolbar">
+          <div class="terminal-dot" style="background:#ff5f57"></div>
+          <div class="terminal-dot" style="background:#febc2e"></div>
+          <div class="terminal-dot" style="background:#28c840"></div>
+          <span class="terminal-title">SQL Terminal</span>
+        </div>
+        <textarea class="terminal-editor" id="sql-editor" spellcheck="false" placeholder="-- Load a Try above, or write your own"></textarea>
+        <div class="terminal-actions">
+          <button class="btn btn-primary btn-sm" onclick="runSQL();_drillRan=true">▶ Run</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('sql-editor').value=''">Clear</button>
+        </div>
+        <div class="terminal-results" id="sql-results"><span class="terminal-info">Results appear here…</span></div>
+      </div>
+      <div class="row mt">
+        <button class="btn btn-primary btn-sm" onclick="finishDrill('${term.replace(/'/g,"\\'")}')">${done?'✓ Done — revisit any time':'Mark this card practiced ✓'}</button>
+        ${ti+1<terms.length ? `<button class="btn btn-ghost btn-sm" onclick="navigate('card-drill','${terms[ti+1].replace(/'/g,"\\'")}')">Next card →</button>` : `<button class="btn btn-ghost btn-sm" onclick="navigate('lab-capstone')">Capstone →</button>`}
+      </div>
+    </div>`;
+  _drillTries = d.tries; _drillRan = false;
+  const ok = await ensureDb(document.getElementById('sql-results'));
+  if(ok){ const el=document.getElementById('sql-results'); if(el) el.innerHTML='<span class="terminal-info">Ready — load a Try and hit Run.</span>'; }
+}
+let _drillTries = [], _drillRan = false;
+function loadDrillTry(i){
+  const t = _drillTries[i];
+  const ed = document.getElementById('sql-editor');
+  if(ed){ ed.value = `-- ${t.p}\n`; ed.focus(); }
+}
+function finishDrill(term){
+  if(!_drillRan && !state.doneCardDrills.includes(term)){
+    showToast('Run at least one query first — that\'s the practice!');
+    return;
+  }
+  if(!state.doneCardDrills.includes(term)){
+    state.doneCardDrills.push(term); saveState(); celebrate();
+  }
+  navigate('lab-cards');
+}
+function practiceCard(i){
+  const term = DATA.CARDS[i][0];
+  if(CARD_DRILLS[term]) navigate('card-drill', term);
+  else navigate('lab-cards');
+}
+
+// ─── CAPSTONE: PUT IT ALL TOGETHER ─────────────────────────────────────────
+// Each step is checked by running the reference answer and comparing result
+// sets, so the check keeps working even if the seeded data ever changes.
+const CAPSTONE = {
+  brief: "The owner asks: <strong>“Which product category is carrying the business, and who are my top customers?”</strong> Answer it in four steps, each using concepts from the cards.",
+  steps: [
+    {title:"1 · Filter & sort (SELECT, WHERE, ORDER BY, LIMIT)",
+     p:"Warm up: the 10 biggest sales of Q1 (Jan–Mar 2024), largest first. Return sale_id, sale_date, amount.",
+     scaffold:"-- 10 biggest sales with sale_date < '2024-04-01'\n-- Columns: sale_id, sale_date, amount\n",
+     hint:"WHERE sale_date < '2024-04-01' then ORDER BY amount DESC LIMIT 10.",
+     sql:"SELECT sale_id, sale_date, amount FROM sales WHERE sale_date < '2024-04-01' ORDER BY amount DESC LIMIT 10;"},
+    {title:"2 · Join & aggregate (JOIN, GROUP BY, SUM, ORDER BY)",
+     p:"Revenue per CATEGORY, highest first. Return category and total revenue as 'revenue' (join sales to products).",
+     scaffold:"-- Revenue per category, highest first\n-- Columns: category, revenue\n",
+     hint:"JOIN products p ON s.product_id = p.product_id, GROUP BY p.category, SUM(s.amount) AS revenue.",
+     sql:"SELECT p.category, SUM(s.amount) AS revenue FROM sales s JOIN products p ON s.product_id = p.product_id GROUP BY p.category ORDER BY revenue DESC;"},
+    {title:"3 · Filter groups (HAVING) + labels (CASE WHEN)",
+     p:"Customers with at least 18 purchases, labeled 'VIP' if their total spend is 1100+, else 'regular'. Return customer_id, purchase count as n, total as spend, and the label as tier. Sort by spend, highest first.",
+     scaffold:"-- customer_id, n, spend, tier — only customers with 18+ purchases\n-- tier: 'VIP' when spend >= 1100 else 'regular'\n",
+     hint:"GROUP BY customer_id HAVING COUNT(*) >= 18, then CASE WHEN SUM(amount) >= 1100 THEN 'VIP' ELSE 'regular' END.",
+     sql:"SELECT customer_id, COUNT(*) AS n, SUM(amount) AS spend, CASE WHEN SUM(amount) >= 1100 THEN 'VIP' ELSE 'regular' END AS tier FROM sales GROUP BY customer_id HAVING COUNT(*) >= 18 ORDER BY spend DESC;"},
+    {title:"4 · CTE + window (WITH, ROW_NUMBER, PARTITION BY)",
+     p:"The single best-selling product IN EACH category by revenue. Use a CTE of product revenue, then ROW_NUMBER() partitioned by category, and keep rank 1. Return category, name, revenue.",
+     scaffold:"-- Best product per category by revenue\n-- CTE first, then ROW_NUMBER() OVER (PARTITION BY category ORDER BY revenue DESC)\n-- Columns: category, name, revenue — rank 1 only\n",
+     hint:"WITH prod_rev AS (SELECT p.category, p.name, SUM(s.amount) AS revenue … GROUP BY p.product_id) then filter ROW_NUMBER()=1 in an outer query.",
+     sql:"WITH prod_rev AS (SELECT p.category, p.name, SUM(s.amount) AS revenue FROM sales s JOIN products p ON s.product_id = p.product_id GROUP BY p.category, p.name), ranked AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY category ORDER BY revenue DESC) AS rn FROM prod_rev) SELECT category, name, revenue FROM ranked WHERE rn = 1 ORDER BY revenue DESC;"}
+  ]
+};
+
+async function renderLabCapstone(){
+  const stepsHtml = CAPSTONE.steps.map((st,i)=>{
+    const done = state.doneCapstone.includes(i);
+    return `
+    <div class="card mb" id="cap-step-${i}" style="${done?'border-color:var(--green,#1a7f37)':''}">
+      <h3>${done?'✅ ':''}${st.title}</h3>
+      <p>${st.p}</p>
+      <div class="terminal-wrap">
+        <textarea class="terminal-editor" id="cap-ed-${i}" spellcheck="false" style="min-height:90px">${st.scaffold}</textarea>
+        <div class="terminal-actions">
+          <button class="btn btn-primary btn-sm" onclick="checkCapstone(${i})">▶ Run & check</button>
+          <button class="btn btn-ghost btn-sm" onclick="const h=document.getElementById('cap-hint-${i}');h.style.display=h.style.display==='none'?'block':'none'">Hint</button>
+          <button class="btn btn-ghost btn-sm" onclick="const a=document.getElementById('cap-ans-${i}');a.style.display=a.style.display==='none'?'block':'none'">Show answer</button>
+        </div>
+        <div id="cap-hint-${i}" style="display:none;font-size:13px;padding:10px 14px;background:rgba(191,135,0,.1);border-radius:8px;margin:8px 0">💡 ${st.hint}</div>
+        <div id="cap-ans-${i}" style="display:none;font-family:var(--mono);font-size:12.5px;white-space:pre-wrap;background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:12px;margin:8px 0">${st.sql.replace(/</g,'&lt;')}</div>
+        <div class="terminal-results" id="cap-res-${i}"><span class="terminal-info">Results appear here…</span></div>
+      </div>
+    </div>`;}).join('');
+  const allDone = state.doneCapstone.length >= CAPSTONE.steps.length;
+  document.getElementById('main').innerHTML = `
+    <h1>SQL Lab</h1>
+    ${labTabsHTML('capstone')}
+    <div class="card card-sm mb">${CAPSTONE.brief}</div>
+    ${stepsHtml}
+    <div class="card" id="cap-finale" style="${allDone?'':'display:none'};border:1.5px solid var(--green,#1a7f37)">
+      <h3>🎉 Analysis complete</h3>
+      <p>You just did a real mini-analysis: filtered raw rows, joined two tables, sized up categories, flagged VIP customers, and ranked the best product in each category — every clause came straight off a flashcard. This four-step chain (filter → join+aggregate → segment → rank) is the backbone of most day-one analyst tickets.</p>
+    </div>`;
+  await ensureDb(null);
+}
+
+function _resKey(res){
+  if(!res.length) return 'EMPTY';
+  return JSON.stringify({c:res[0].columns.map(c=>c.toLowerCase()), v:res[0].values});
+}
+function checkCapstone(i){
+  const st = CAPSTONE.steps[i];
+  const ed = document.getElementById('cap-ed-'+i);
+  const out = document.getElementById('cap-res-'+i);
+  if(!sqlDb){ out.innerHTML='<span class="terminal-error">SQL engine not ready yet.</span>'; return; }
+  const sql = ed.value.trim();
+  if(!sql || sql.replace(/--[^\n]*/g,'').trim()===''){ out.innerHTML='<span class="terminal-info">Write your query below the comments first.</span>'; return; }
+  let userRes;
+  try { userRes = sqlDb.exec(sql); }
+  catch(e){ out.innerHTML=`<span class="terminal-error">Error: ${e.message}</span>`; return; }
+  // render user result
+  let html='';
+  if(userRes.length){
+    const {columns, values} = userRes[0];
+    html = `<table><thead><tr>${columns.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${values.map(r=>`<tr>${r.map(v=>`<td>${v==null?'<em style="color:var(--muted)">NULL</em>':v}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  } else html = '<span class="terminal-info">Query ran — no rows returned.</span>';
+  const refRes = sqlDb.exec(st.sql);
+  if(_resKey(userRes)===_resKey(refRes)){
+    html += `<div style="margin-top:8px;color:var(--green,#1a7f37);font-weight:700">✓ Correct — matches the reference result.</div>`;
+    if(!state.doneCapstone.includes(i)){ state.doneCapstone.push(i); saveState(); celebrate(); }
+    const stepCard=document.getElementById('cap-step-'+i); if(stepCard) stepCard.style.borderColor='var(--green,#1a7f37)';
+    if(state.doneCapstone.length>=CAPSTONE.steps.length){ const f=document.getElementById('cap-finale'); if(f) f.style.display=''; }
+  } else {
+    html += `<div style="margin-top:8px;color:var(--red,#cf222e)">Not a match yet — check the requested columns, order, and filters. Same data, different shape counts as different.</div>`;
+  }
+  out.innerHTML = html;
 }
 
 // ─── JOIN PRACTICE ─────────────────────────────────────────────────────────
@@ -3296,7 +3686,7 @@ function renderCardAt(i){
     <div class="flashcard-outer" onclick="flipCard()">
       <div class="flashcard-inner" id="fc-inner">
         <div class="flashcard-face flashcard-front"><div class="flashcard-def">${def}</div></div>
-        <div class="flashcard-face flashcard-back"><div class="flashcard-term">${term}</div></div>
+        <div class="flashcard-face flashcard-back"><div><div class="flashcard-term">${term}</div><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="event.stopPropagation();practiceCard(${i})">Practice it in the Lab →</button></div></div>
       </div>
     </div>
     <p class="fc-hint">Read the definition, recall the term, then click to check · ← → arrow keys to navigate</p>

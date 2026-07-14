@@ -9,6 +9,26 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.129.0] — 2026-07-13 — SQL kit: Card Drills lab + Put It All Together capstone
+
+- New Lab tab **Card Drills**: every one of the 38 flashcard concepts is now
+  runnable — each card gets 2-3 graduated prompts on different columns/tables,
+  a live terminal, reveal-on-demand answers, and per-card completion tracking.
+- Flashcards now link straight into their drill ("Practice it in the Lab →"
+  on the reveal face).
+- New Lab tab **Put It All Together**: a 4-step capstone mini-analysis
+  (filter/sort → join+aggregate → HAVING+CASE segmentation → CTE+window
+  ranking) answering a real business question; each step auto-checked by
+  comparing the learner's result set to the reference query's.
+- New embedded practice dataset: `products` (12 rows) + `sales` (180 rows,
+  deterministic seeded generator — same data for everyone, includes NULL
+  regions and customers that only exist in `customers_old` for gap/NULL/
+  reconciliation drills). Existing lab tables untouched, so all prior lab
+  tasks and expected row counts still hold. No hosted dataset needed —
+  research confirmed sql.js handles this size in-browser easily.
+- MySQL-flavored date cards (CURDATE, DATE_SUB, DATE_FORMAT, DATEDIFF) get a
+  callout in their drills teaching the SQLite equivalent the lab actually runs.
+
 ## [1.128.0] — 2026-07-13 — Flashcards definition-first + Bug Hunt spoiler fix
 
 - Flashcards now show the DEFINITION first; flipping reveals the term
