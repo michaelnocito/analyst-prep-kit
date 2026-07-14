@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data-Driven Thresholds: How Analysts Pick Cutoffs They Can Defend — Analyst Prep Kit</title>
+<meta name="description" content="Every analysis needs cutoffs — minimum reviews, minimum votes, 'active user' definitions. Beginner guide to choosing thresholds from the data instead of guessing: distribution first, price the candidates, defend the pick. Includes the small-sample trap that ruins ratio rankings.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/data-driven-thresholds/">
+<meta property="og:title" content="Data-Driven Thresholds: How Analysts Pick Cutoffs They Can Defend">
+<meta property="og:description" content="'Why that number?' is the question every threshold must survive. The measure-price-defend method, plus the most dangerous equation in statistics.">
+<meta property="og:type" content="article">
+<style>
+  :root{--bg:#FAF3EC;--ink:#3D1A0F;--muted:#6E4A33;--accent:#C5511F;--line:#E68A66;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#F8D8C6;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F3E2D4;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#2E1608;color:#FFE7D6;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#F8D8C6}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14px;color:var(--muted)}
+  .refs li{margin-bottom:8px}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../../sql/">SQL Kit</a></p>
+  <h1>Data-Driven Thresholds: Picking Cutoffs You Can Defend</h1>
+  <p class="meta">Because "why that number?" is always the first question · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>Every real analysis runs into the same quiet decision, over and over: <strong>where do you draw the line?</strong> How many reviews before a rating is trustworthy? How many purchases before a customer counts as "active"? How many chart appearances before an artist counts as "known"? These cutoffs shape every result downstream — and the difference between an amateur and a professional is not which number they pick. It's whether they can <em>defend</em> it. This guide covers the method, the classic statistical trap that makes floors mandatory, and worked examples from open projects.</p>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>The two ways to pick a number</li>
+      <li>The method: measure, price, defend, record</li>
+      <li>A worked example with real numbers</li>
+      <li>The small-sample trap (the most dangerous equation)</li>
+      <li>Why your gut can't be trusted with this</li>
+      <li>References</li>
+    </ol>
+  </div>
+
+  <h2>The two ways to pick a number</h2>
+  <p>Method one: it feels right. "Let's say 100 reviews minimum." Round number, sounds reasonable, took four seconds. Method two: ask the data. Measure how the values actually distribute, count what each candidate cutoff keeps and discards, then choose the one whose plain-English reading matches what you're trying to capture. Method one survives until the first person asks "why 100?" Method two <em>is</em> the answer to that question.</p>
+  <div class="note"><strong>The test of a good threshold:</strong> you can say it out loud with a reason attached, and the reason references the data. "5+ charted songs, because the measured distribution shows 57% of artists chart exactly once — 5+ means the industry demonstrably came back to this artist across a career." Not "5 felt right."</div>
+
+  <h2>The method: measure, price, defend, record</h2>
+  <table>
+    <tr><th>Step</th><th>What you do</th><th>The query shape</th></tr>
+    <tr><td>1. Measure</td><td>Map the distribution before proposing anything: how many entities sit at each value?</td><td>GROUP BY the count — a "distribution of a count," built with a GROUP BY on top of a GROUP BY</td></tr>
+    <tr><td>2. Price</td><td>For each plausible cutoff, count the survivors. A threshold is a decision about how much data to keep; see the bill first.</td><td>One query, several <code>SUM(value &gt;= candidate)</code> columns side by side</td></tr>
+    <tr><td>3. Defend</td><td>Choose the cutoff whose plain-English meaning matches the concept you're defining.</td><td>No query — a sentence you could say to a skeptical stakeholder</td></tr>
+    <tr><td>4. Record</td><td>Keep the rejected candidates' numbers in the file so a reader can disagree intelligently.</td><td>A comment block above the query that uses the chosen number</td></tr>
+  </table>
+
+  <div class="step">
+    <h2>A worked example with real numbers</h2>
+    <p>A project analyzing 68 years of Billboard chart history needed to define a "known artist" — someone radio demonstrably knows, as opposed to a one-time visitor. Watch the method run:</p>
+    <p><strong>Measure.</strong> Grouping artists by how many songs each charted revealed the distribution's shape: <strong>57% of all charting artists charted exactly one song.</strong> The chart is mostly brief visitors, so "known" clearly sits above 1 — but where?</p>
+    <p><strong>Price.</strong> One query put three candidate cutoffs side by side: artists with 3+ charted songs — 2,596 survive; with 5+ — 1,570; with 10+ — 740.</p>
+    <p><strong>Defend.</strong> The pick was 5+: strict enough to mean the industry returned to this artist repeatedly across a career (3+ can be one lucky album), wide enough to leave a meaningful population to analyze (10+ narrows to chart fixtures). There was even an operational reason: the next phase called a web API once per known artist, so the survivor count was also the size of a data pull.</p>
+    <p><strong>Record.</strong> All three candidates' numbers stayed in the project's SQL file, in the comment block above the query that builds the roster. Anyone who thinks 10+ was the better call can see exactly what that choice would have cost.</p>
+    <p>The same pattern runs through the <a href="https://github.com/michaelnocito/steam-hidden-gems">Steam Hidden Gems</a> and <a href="https://github.com/michaelnocito/streaming-hidden-gems">Streaming Hidden Gems</a> projects — each derives its "enough reviews / enough votes" floor from the measured distribution, with the rejected alternatives documented in the README.</p>
+  </div>
+
+  <h2>The small-sample trap (the most dangerous equation)</h2>
+  <p>One family of thresholds isn't optional at all: <strong>minimum-denominator floors under any ratio or average.</strong> Here's why. Rank songs by average plays per listener and the top of the list won't be the most beloved songs — it will be tracks with 40 listeners who happen to replay obsessively. Rank schools by test scores and the top performers will be tiny schools. So will the bottom performers. This is not bad luck; it's arithmetic: <strong>the smaller the sample, the wilder its averages swing</strong> — variability shrinks only with the square root of sample size, a result Abraham de Moivre proved in 1730. Statistician Howard Wainer called it "the most dangerous equation" because ignoring it keeps producing expensive real-world mistakes — his lead example is a foundation that spent billions promoting small schools after noticing they dominated the top of performance rankings, without noticing they dominated the <em>bottom</em> too (Wainer, 2007).</p>
+  <p>The consequence for analysts is blunt: <strong>every ranking built on a ratio or average needs a minimum-denominator floor, chosen from the measured distribution of denominators.</strong> A ratio over 40 people is an anecdote; the same ratio over 100,000 people is a finding. No cleverness in the numerator can rescue a starving denominator.</p>
+
+  <h2>Why your gut can't be trusted with this</h2>
+  <p>You might hope intuition could stand in for measurement. The research says the opposite: people — including trained scientists — systematically expect small samples to behave like big ones. Tversky and Kahneman documented the bias in 1971, showing that even professional researchers made confident judgments from sample sizes that couldn't support them, a bias they named "belief in the law of small numbers" (Tversky &amp; Kahneman, 1971). Your intuition genuinely cannot feel the difference between a ratio resting on 40 people and one resting on 40,000. The fix isn't better intuition; it's the four-step method above, which replaces feel with counting at every point where feel would fail.</p>
+
+  <div class="cta">
+    <strong>Practice the queries this method runs on.</strong>
+    <p style="margin:6px 0 0">Distribution-building (GROUP BY on a GROUP BY), survivor-pricing (SUM of comparisons), and HAVING-based cutoffs are all core moves in the free <a href="../../sql/">SQL Kit</a>. The <a href="../../stats/">Statistics Kit</a> covers distributions and variability from the ground up.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <h2>References</h2>
+  <ol class="refs">
+    <li>Wainer, H. (2007). The most dangerous equation. <em>American Scientist, 95</em>(3), 249–256.</li>
+    <li>Tversky, A., &amp; Kahneman, D. (1971). Belief in the law of small numbers. <em>Psychological Bulletin, 76</em>(2), 105–110. doi:10.1037/h0031322</li>
+    <li>Tukey, J. W. (1977). <em>Exploratory Data Analysis.</em> Addison-Wesley. (The look-first tradition the Measure step belongs to.)</li>
+  </ol>
+
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-case-expression/">SQL CASE Expression</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+  </footer>
+</main>
+</body>
+</html>
