@@ -2349,6 +2349,16 @@ function v2ToggleMode(lid){
 }
 const _v2parsAns={};
 const _v2attempt={};
+const _v2conf={};
+function v2SetConf(lid,level){
+  _v2conf[lid]=level;
+  const box=document.getElementById(`v2conf-${lid}`);
+  if(box) box.querySelectorAll('button[data-cf]').forEach(b=>{
+    const on=b.dataset.cf===level;
+    b.classList.toggle('btn-primary',on);b.classList.toggle('btn-outline',!on);
+  });
+  const fb=document.getElementById(`v2p-fb-${lid}`);if(fb) fb.textContent='';
+}
 function v2Continue(lid,stage){
   const el=document.getElementById(`v2s-${stage}-${lid}`);
   if(!el) return;
@@ -2377,15 +2387,19 @@ function v2ParsCheck(lid){
   const placed=(_v2parsAns[lid]||[]).map(i=>l.try.pieces[i]);
   const fb=document.getElementById(`v2p-fb-${lid}`);
   if(placed.length!==l.try.ans.length){if(fb)fb.innerHTML=`<span style="color:var(--warn)">Place all ${l.try.ans.length} pieces first.</span>`;return;}
+  const conf=_v2conf[lid];
+  if(!conf){if(fb)fb.innerHTML=`<span style="color:var(--warn)">Tap how sure you are first — committing before the reveal is what makes it stick.</span>`;return;}
   _v2attempt[lid]=placed;
   const dyn=document.getElementById(`v2-compare-dyn-${lid}`);
   if(dyn) dyn.innerHTML=v2CompareDynHTML(lid,l,false);
   if(JSON.stringify(placed)===JSON.stringify(l.try.ans)){
-    if(fb)fb.innerHTML=`<span style="color:var(--success);font-weight:700">✓ Correct!</span><div style="margin-top:10px"><button class="btn btn-primary btn-sm" onclick="v2Continue(${lid},'compare')">Continue &rarr;</button></div>`;
+    const okMsg=conf==='unsure'?'✓ Correct — and you weren\'t sure. That\'s real recall, not recognition.':'✓ Correct!';
+    if(fb)fb.innerHTML=`<span style="color:var(--success);font-weight:700">${okMsg}</span><div style="margin-top:10px"><button class="btn btn-primary btn-sm" onclick="v2Continue(${lid},'compare')">Continue &rarr;</button></div>`;
     celebrate(false,'✓ Right order!');
   } else {
-    if(fb)fb.innerHTML=`<span style="color:var(--err)">Not quite — try reordering.</span>`;
-    setTimeout(()=>v2ParsReset(lid),900);
+    const errMsg=conf==='sure'?'Not quite — and you were confident. This is the moment corrections stick hardest. Look closely, then reorder.':'Not quite — try reordering.';
+    if(fb)fb.innerHTML=`<span style="color:var(--err)">${errMsg}</span>`;
+    setTimeout(()=>v2ParsReset(lid),1400);
   }
 }
 function v2PickBuild(el,lid){
@@ -2599,6 +2613,13 @@ function v2Body(l,done){
         <div id="v2p-ans-${lid}" class="v2-try-ans">${done?l.try.ans.map(p=>`<div class="parsons-chip placed">${enc(p)}</div>`).join(''):'<span style="color:var(--dim);font-size:12px">Answer appears here</span>'}</div>
         ${!done?`<div id="v2p-pool-${lid}" class="v2-try-pool">${l.try.pieces.map((p,i)=>`<div class="parsons-chip" onclick="v2ParsClick(${lid},${i})" id="v2pc-${lid}-${i}">${enc(p)}</div>`).join('')}</div>
         <div id="v2p-fb-${lid}" style="min-height:18px;margin-top:8px;font-size:13px"></div>
+        <div class="v2-conf" id="v2conf-${lid}" style="margin-top:12px">
+          <div style="font-size:12px;color:var(--dim);margin-bottom:6px">Before you check — how sure are you?</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-outline btn-sm" data-cf="sure" onclick="v2SetConf(${lid},'sure')">Confident</button>
+            <button class="btn btn-outline btn-sm" data-cf="unsure" onclick="v2SetConf(${lid},'unsure')">Not sure</button>
+          </div>
+        </div>
         <div class="v2-drill-actions" style="margin-top:10px;display:flex;gap:8px">
           <button class="btn btn-primary btn-sm" onclick="v2ParsCheck(${lid})">Check order</button>
           <button class="btn btn-outline btn-sm" onclick="v2ParsReset(${lid})">Reset</button>
