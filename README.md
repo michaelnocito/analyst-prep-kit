@@ -1,4 +1,4 @@
-# Analyst Prep Kit
+﻿# Analyst Prep Kit
 
 A free, browser-based learning suite for breaking into data analytics. Twelve self-contained apps, no install, free to start — with optional sign-in to sync your progress across devices.
 
@@ -13,7 +13,7 @@ A free, browser-based learning suite for breaking into data analytics. Twelve se
 | [Python](python/) | pandas, basic scripting, file validation, data cleaning | Live Pyodide terminal (real CPython in the browser) |
 | [Tableau](tableau/) | Chart selection, dashboard design, visual hierarchy | Drag-and-drop Viz Builder (Chart.js) |
 | [Chart Literacy](chart-literacy/) | Tool-agnostic: what a chart encodes, the 6 charts you'll use most, how charts mislead, choosing & explaining | Question→chart decision path |
-| [Forecasting & Trend Modeling](forecasting/) | Tool-agnostic: trend & seasonality, moving averages & smoothing, regression, Holt-Winters, ARIMA in plain English, accuracy & intervals | Fan-chart uncertainty intuition |
+| [Forecasting & Trend Modeling](forecasting/) | Tool-agnostic: trend & seasonality, moving averages & smoothing, regression, Holt-Winters, ARIMA in everyday words, accuracy & intervals | Fan-chart uncertainty intuition |
 | [Statistics](stats/) | Distributions, A/B testing, p-values, regression intuition | Interactive Distribution Lab |
 | [Power BI](powerbi/) | DAX, time intelligence, dashboard design, the Microsoft stack | Lesson-driven walkthroughs |
 | [Interview](interview/) | STAR, behavioral prep, the hard moments that decide the offer | Answer Builder with self-scoring |

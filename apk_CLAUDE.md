@@ -712,8 +712,13 @@ JS, content all inline. Theme: dark teal default (`--accent:#58aaa2`),
 light toggle persisted via `localStorage['apk-theme']`.
 
 The signature pedagogy is **"Say It Out Loud"** — every formula/query
-gets a plain-English leading sentence + a chunk-by-chunk breakdown +
+gets an everyday-words leading sentence + a chunk-by-chunk breakdown +
 a quick check.
+
+⚠️ BANNED PHRASE (Mike, 2026-07-14): never write "plain English" /
+"plain-English" in ANY published text (pages, READMEs, comments). It
+offends readers. Use "everyday words", "in simple terms", "a sentence
+you can say out loud". Sweep before publishing.
 
 ---
 
@@ -731,7 +736,7 @@ existed. Personal site: `michaelnocito.github.io` (separate repo at
   because he wants the project to ship right.
 - He pushes back when you're wrong. You should push back when HE's
   wrong (with reasoning). He'll respect it.
-- He's smart but not a developer by training. Use plain-English
+- He's smart but not a developer by training. Use everyday-words
   analogies (per his own GR-D rule below). Don't lecture.
 
 ---
