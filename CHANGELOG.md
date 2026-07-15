@@ -9,6 +9,13 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.132.1] — 2026-07-15 — SQL kit: dark-mode text too faint (Mike)
+
+- Dark muted text brightened `#A6ABB3` → `#C3C7CE` (zinc-sky stone-300);
+  passed WCAG before but read faint on near-black.
+- Flashcard definitions are primary content — now full text color in
+  both modes instead of muted.
+
 ## [1.132.0] — 2026-07-15 — SQL kit: "Zinc & Sky" palette pilot
 
 Pilot of a new color direction on the SQL kit only, chosen after a
