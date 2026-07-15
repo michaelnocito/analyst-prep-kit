@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entity Resolution for Beginners: One Real Thing, Many Messy Names — Analyst Prep Kit</title>
+<meta name="description" content="Entity resolution and record linkage explained for beginner analysts: why one artist appears under seven names, how normalization rules get built and tested, match rates, clerical review, and when NOT to merge — a complete worked example on real chart data.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/entity-resolution/">
+<meta property="og:title" content="Entity Resolution: One Real Thing, Many Messy Names">
+<meta property="og:description" content="Elvis appears under seven different credits in Billboard history. Fixing that — without shredding Hall & Oates — is entity resolution, the messiest everyday skill in data work.">
+<meta property="og:type" content="article">
+<style>
+  :root{--bg:#FAF3EC;--ink:#3D1A0F;--muted:#6E4A33;--accent:#C5511F;--line:#E68A66;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#F8D8C6;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F3E2D4;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#2E1608;color:#FFE7D6;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#F8D8C6}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14px;color:var(--muted)}
+  .refs li{margin-bottom:8px}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../sql-case-expression/">SQL CASE Expression</a> · <a href="../../sql/">SQL Kit</a></p>
+  <h1>Entity Resolution: One Real Thing, Many Messy Names</h1>
+  <p class="meta">The messiest everyday skill in data work, on real data · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>Count the distinct artists in Billboard's public chart history and you get a number that is simply wrong — because "Elvis Presley", "Elvis Presley With The Jordanaires", and five other credit strings are all the same man. One real-world <em>entity</em>, seven database <em>strings</em>. Every dataset that touches human-entered names has this disease: customers who signed up twice, "IBM" vs "I.B.M." vs "International Business Machines", the same supplier in two systems with two spellings. The discipline of curing it is called <strong>entity resolution</strong> (also <strong>record linkage</strong> when matching across two datasets, or <strong>deduplication</strong> within one), and it's among the most common real-world analyst tasks that beginner courses never teach. This guide teaches it the way it actually goes: on real, uncooperative data, mistakes included.</p>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>The vocabulary map</li>
+      <li>Step 1: measure the fragmentation before fixing anything</li>
+      <li>Step 2: build rules by preview, catch, fix, re-check</li>
+      <li>Step 3: know when NOT to merge (the false-positive check)</li>
+      <li>Step 4: match rates — the honesty number</li>
+      <li>Step 5: clerical review — reading the leftovers</li>
+      <li>The principles, distilled</li>
+      <li>References</li>
+    </ol>
+  </div>
+
+  <h2>The vocabulary map</h2>
+  <table>
+    <tr><th>Term</th><th>Meaning</th></tr>
+    <tr><td><strong>Entity</strong></td><td>The real-world thing: one artist, one customer, one company</td></tr>
+    <tr><td><strong>Entity resolution</strong></td><td>Figuring out which records refer to the same entity</td></tr>
+    <tr><td><strong>Record linkage</strong></td><td>The same problem across two datasets ("is row 5 in file A the same person as row 90 in file B?") — formalized by Fellegi &amp; Sunter (1969)</td></tr>
+    <tr><td><strong>Deduplication</strong></td><td>The same problem inside one dataset</td></tr>
+    <tr><td><strong>Normalization / standardization</strong></td><td>Transforming values toward a canonical form (lowercasing, trimming, cutting suffixes) so equal things become equal strings</td></tr>
+    <tr><td><strong>Match key</strong></td><td>The cleaned column(s) you actually join on</td></tr>
+    <tr><td><strong>Match rate</strong></td><td>The share of records that successfully found their counterpart — the number that keeps the whole exercise honest</td></tr>
+    <tr><td><strong>Clerical review</strong></td><td>Human eyes on the records the rules couldn't decide — a formal stage of the classic framework, not an admission of failure</td></tr>
+  </table>
+
+  <div class="step">
+    <h2>Step 1: measure the fragmentation before fixing anything</h2>
+    <p>The worked example running through this guide: Billboard Hot 100 history, 1958 to present, where the goal is one clean row per artist. The amateur move is diving into fixes. The professional move is sizing the problem first:</p>
+    <ul>
+      <li><strong>Depth:</strong> pulling every credit containing "Elvis Presley" found <strong>seven</strong> distinct strings for one man, with his catalog split nearly in half between "Elvis Presley" (50 songs) and "Elvis Presley With The Jordanaires" (53). Counting by raw credit undercounts the King by half.</li>
+      <li><strong>Breadth:</strong> counting joiner patterns across all 11,275 distinct credits: " Featuring " appears in 2,662, " With " in 244, " &amp; " in 1,994 — up to <strong>43% of all credits</strong> carry a joiner. This is not edge-case cleanup; it's a core design requirement.</li>
+    </ul>
+    <p>Those two numbers decided everything downstream: fragmentation this widespread means normalization rules are mandatory, and any rule will touch thousands of rows, so the rules must be <em>tested</em>, not trusted.</p>
+  </div>
+
+  <div class="step">
+    <h2>Step 2: build rules by preview, catch, fix, re-check</h2>
+    <p>The extraction rule — "the primary artist is the text before the joiner word" — was built as a CASE ladder and proven on real rows before anything was built from it. The iteration is the lesson:</p>
+    <ol>
+      <li>First preview caught <strong>"2Pac Duet With Mopreme" → "2Pac Duet"</strong>: the credit joins with " Duet With ", the rule only knew " With ". A fake artist, invented by a cleaning rule.</li>
+      <li>The fix added a " Duet With " rung ABOVE " With " — in a CASE ladder, specific patterns must sit above the general patterns they contain. Re-checking the exact rows the fix targeted caught <strong>"Patti Austin A Duet With James Ingram" → "Patti Austin A"</strong>. One more rung: " A Duet With ".</li>
+      <li>Re-check again: clean. The ladder was frozen and used to build the artist table: 11,275 raw credits collapsed to 8,896 artists.</li>
+    </ol>
+    <p>Nobody writes the complete rule on the first try, and the data will not send an error message when your rule invents "2Pac Duet." Preview on real rows, catch, add a rung, re-check the exact targets — until the exceptions stop. (The full ladder, with every defect it caught, is walked through in the <a href="../sql-case-expression/">CASE expression guide</a>.)</p>
+  </div>
+
+  <div class="step">
+    <h2>Step 3: know when NOT to merge (the false-positive check)</h2>
+    <p>The "&amp;" joiner appeared in 1,994 credits — should it split too? Reading the highest-volume "&amp;" credits before writing the rule settled it: the list is dominated by <strong>permanent duos and bands</strong> — Kool &amp; The Gang, Earth, Wind &amp; Fire, Simon &amp; Garfunkel — with only a few temporary collaborations. Splitting on "&amp;" would shred real bands into artists that don't exist. <strong>Decision: don't split.</strong> The cost (a duo member's solo career never merges with their duo work) was written down as a limitation instead.</p>
+    <p>This is the half of entity resolution beginners miss: over-merging is as destructive as under-merging, and the mature output is sometimes a documented refusal. Related discoveries in the same project made the point again at other scales: the same duo credited as "¥$: Ye &amp; Ty Dolla $ign" AND "¥$: Kanye West &amp; Ty Dolla $ign" (aliases — no rule can know those are one act without a lookup dictionary), and three artists split purely by capitalization ("Tyler, The Creator" vs "Tyler, the Creator"), cured by lowercased match keys.</p>
+  </div>
+
+  <div class="step">
+    <h2>Step 4: match rates — the honesty number</h2>
+    <p>The project's payoff required linking the chart data to a second dataset (listener statistics from a music API) by artist + title text — classic record linkage. The discipline: <strong>measure the match rate before and after every cleaning rule.</strong></p>
+    <ul>
+      <li>Baseline, case-insensitive matching only: <strong>31.2%</strong> of tracks found their chart counterpart.</li>
+      <li>After one targeted rule — trimming " (feat. …)" / " (with …)" credit tails that the API's titles carry and chart titles don't: <strong>37.0%</strong>. The rule recovered 763 real matches.</li>
+      <li>Blanket-stripping ALL parentheses would have scored higher still — and been wrong: an eyeball check first showed parentheses are often part of the song's real name ("Single Ladies (Put a Ring on It)"). Same lesson as "&amp;": read before you rule.</li>
+    </ul>
+    <p>Note what the match rate is <em>for</em>. In this project it was never supposed to reach 100% — unmatched tracks were the whole point (songs that never charted). The rate's job is separating signal from defect: rules should recover the <em>spelling casualties</em> without inventing false matches, and the rate quantifies each rule's contribution so the cleaning stops when improvements do.</p>
+  </div>
+
+  <div class="step">
+    <h2>Step 5: clerical review — reading the leftovers</h2>
+    <p>The classic record-linkage framework classifies candidate pairs three ways: confident matches, confident non-matches, and a middle zone that goes to human review (Fellegi &amp; Sunter, 1969). In everyday analyst practice that third bucket is simpler and cheaper: <strong>after the rules run, read the unmatched rows — sorted so the most consequential come first.</strong> If the top of the unmatched list is full of records that obviously SHOULD have matched, your rules have a gap; if it reads as genuinely unmatched, the linkage is done and the residual becomes a documented, quantified limitation. Ten minutes of reading, and it's the difference between "the join ran" and "the join is right."</p>
+  </div>
+
+  <h2>The principles, distilled</h2>
+  <table>
+    <tr><th>Principle</th><th>One-line version</th></tr>
+    <tr><td>Measure first</td><td>Size the fragmentation (depth on one entity, breadth across the table) before writing any rule.</td></tr>
+    <tr><td>Preview every rule</td><td>Show original and transformed side by side on real rows; read them.</td></tr>
+    <tr><td>Specific above general</td><td>In any rule ladder, the narrow pattern outranks the broad pattern it contains.</td></tr>
+    <tr><td>Check false positives</td><td>Before merging or splitting, read the rows where a wrong rule does the most damage.</td></tr>
+    <tr><td>Sometimes: don't merge</td><td>Over-merging destroys real entities. A documented refusal is a valid output.</td></tr>
+    <tr><td>Match keys, stored and indexed</td><td>Compute normalized keys once into real columns; join on those, not on function-wrapped originals.</td></tr>
+    <tr><td>Match rate per rule</td><td>Measure before and after each rule; stop when the rate stops moving for honest reasons.</td></tr>
+    <tr><td>Clerical review</td><td>Read the leftovers before declaring victory.</td></tr>
+    <tr><td>Log everything</td><td>Every decision (including refusals) goes in the data-quality record and the <a href="../documenting-data-limitations/">limitations section</a>.</td></tr>
+  </table>
+
+  <div class="cta">
+    <strong>See it run end to end.</strong>
+    <p style="margin:6px 0 0">The <a href="https://github.com/michaelnocito/steam-hidden-gems">Steam Hidden Gems</a> and <a href="https://github.com/michaelnocito/streaming-hidden-gems">Streaming Hidden Gems</a> projects carry these habits through full analyses you can read, and the free <a href="../../sql/">SQL Kit</a> teaches the LIKE, CASE, LOWER, and JOIN moves every step above uses.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <h2>References</h2>
+  <ol class="refs">
+    <li>Fellegi, I. P., &amp; Sunter, A. B. (1969). A theory for record linkage. <em>Journal of the American Statistical Association, 64</em>(328), 1183–1210. doi:10.1080/01621459.1969.10501049</li>
+    <li>Wang, R. Y., &amp; Strong, D. M. (1996). Beyond accuracy: What data quality means to data consumers. <em>Journal of Management Information Systems, 12</em>(4), 5–33. (The fitness-for-use standard the merge/don't-merge tradeoffs answer to.)</li>
+  </ol>
+
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-case-expression/">SQL CASE Expression</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+  </footer>
+</main>
+</body>
+</html>
