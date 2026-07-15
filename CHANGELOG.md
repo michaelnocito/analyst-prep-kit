@@ -9,6 +9,16 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.133.0] — 2026-07-15 — Excel kit: Zinc & Sky rollout (kit 2 of the suite-wide rollout)
+
+- `excel/index.html` now loads `assets/grain/zinc-sky.css` (Mike approved
+  the SQL pilot: "perfect, love it, roll it out").
+- zinc-sky.css dark-component selectors generalized to cover BOTH theme
+  conventions: SQL-family (`html:not(.light):not([data-theme])`) and
+  Excel-family (`html[data-theme="dark"]`). Excel's glow targets its
+  fill classes (`.prog-fill`, `.readiness-bar` — its `.prog-bar` is a track).
+- Rollout plan + per-kit checklist: `HANDOFF-zinc-sky-rollout.md`.
+
 ## [1.132.1] — 2026-07-15 — SQL kit: dark-mode text too faint (Mike)
 
 - Dark muted text brightened `#A6ABB3` → `#C3C7CE` (zinc-sky stone-300);

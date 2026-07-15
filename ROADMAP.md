@@ -1,5 +1,26 @@
 ﻿# Analyst Prep Kit — Roadmap
 
+> ### 🎨 ZINC & SKY PALETTE ROLLOUT — IN PROGRESS (July 2026)
+> Mike rejected the Grain clay/amber colors ("Claude-branding-like, too neutral").
+> New palette chosen after a blue bake-off: **light = zinc neutrals + deep cyan
+> `#0E7490`; dark = zinc near-black `#09090B/#18181B` + electric sky `#38BDF8`**.
+> Mechanism: `assets/grain/zinc-sky.css` loaded AFTER grain.css re-points the
+> Grain primitive ramps — no markup changes per kit. Full plan, per-kit checklist,
+> and gotchas: **`HANDOFF-zinc-sky-rollout.md`** (authoritative for this effort).
+> Cadence: ONE kit per session, Mike checks in between.
+> - ✅ SQL (v1.132.0 pilot + v1.132.1 contrast patch)
+> - ✅ Excel (v1.133.0 — selectors generalized for its data-theme convention)
+> - ⬜ Python → PowerBI → Tableau → Stats → Chart Literacy → Forecasting →
+>   Interview → Simulator → Final → cert kits (tableau-cert / excel-cert /
+>   powerbi-cert) → excel-lessons → guides/* → hub `index.html` (last: it maps
+>   extra semantic vars, biggest visual audience) → privacy/terms.
+> - ⬜ THEN other applicable repos (same zinc-sky token approach where they use
+>   the calm-analyst/Grain look): personal site `michaelnocito.github.io`,
+>   prep-companion-apps (Sprint Excel/SQL), sql-dry-run, excel-dry-run,
+>   nexus-sql-mystery, keygarden (evaluate — has its own art-pack identity),
+>   spreadsheet/tableau-archaeology, draw-lab, excel-interview. Decide per repo
+>   with Mike; games (play-area, sql-quest) keep their own art directions.
+
 **Current version:** `v1.118.0` (shipped July 7, 2026 — 📖 **"Go for all": the three flagged finish-line items CLOSED.** `v1.116.0` Final Exam's last 3 typed fill-ins → tap-the-choice (fill machinery removed, stale typed answers migrated). `v1.117.0` Tableau's 8 diagnostic What's-Wrong items now RENDER the broken chart (inline-SVG `TAB_WRONG_SVG`, Excel's `svg:` pattern) — closes the all-exercise chart audit with a documented scope call: chart-CHOICE questions stay text-only on purpose (the visual would reveal the answer). `v1.118.0` **GR-D COMPLETE**: ~730 quiz explanations + Gotchas reviewed across all 6 lesson kits, 92 rewritten to open with a real-world analogy/concrete scenario (Excel 25 · Stats 16 · Tableau 15 · PBI 15 · SQL 11 · Python 10); bonus Tableau Top-N order-of-operations content fix. All suites green after each step. Test batches 35–36 in `apk_CLAUDE.md`.)
 **Prior:** `v1.115.0` (shipped July 7, 2026 — 🧹 **Finish-line polish sweep before the paywall work**: ALL open non-paywall interface items closed — home "Lessons" section (unit bars + Next up) rolled to SQL/PBI/Python + Stats next-up; Stats readiness un-frozen (was hardcoded lesson1–10, missed Unit 0 + L11–12) + position-based Resume; Excel resume card position fix (showed "LESSON 101") + lesson-bound "Practice this →" on the v2 Close stage (was generic, out of step with every other kit); mobile full-width Parsons Check CTAs + wrapping chips (5 kits); Chart Literacy/Forecasting cross-links added to Excel/Python/Interview/Simulator/Final (Low-bucket item CLOSED); dead fill-input CSS removed (6 kits); README refreshed (12 apps, v2 flow, arcade); sitemap +projects/. **Full test sweep all green:** 51-script parse gate · 121 de-test checks · 24 modernized legacy-harness checks (flag checks removed, drill-choices integrity added) · NEW 13-page runtime render-smoke · link crawl (internal all resolve, 17 externals HTTP 200) · no mojibake/template leaks. Hub "✓ Exam" badge verified as already satisfying the exam-pass follow-on.)
 **Prior:** `v1.113.0` (shipped July 6, 2026 — ✅ **All-kits no-auto-advance sweep** (Mike's check-all-kits playtest blocker): Python / Power BI / Tableau / Stats stage flows + Power BI practice Parsons + Excel v2Continue flow all hold on answers with Try Again / Continue buttons, matching the v1.111.0 SQL fix. interview / forecasting / chart-literacy / final / excel-lessons swept clean. Auto-advance sweep CLOSED.)
