@@ -9,6 +9,18 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.138.0] — 2026-07-15 — SQL kit: Close-stage order (reflect before you move on)
+
+- Playtest triage (Mike): on the lesson **Close** stage the "Next lesson"
+  buttons sat at the top, above the self-assessment and the insight — so a
+  learner could jump straight to the next lesson without ever seeing them.
+- Reordered `v2SqlBody` stage 6 to: **Done recap → "How well do you have this?"
+  self-assessment → Insight unlocked → Next lesson / All Lessons / Review**.
+  The reflect-and-rate step now comes before the exit, and the insight sits
+  right above the next-step buttons. No content or state-model changes.
+- SQL kit only for now; same reorder should roll to the other 5 lesson kits
+  (Excel/Python/Power BI/Tableau/Stats) pending Mike's look at the SQL version.
+
 ## [1.137.0] — 2026-07-15 — Tableau kit: Zinc & Sky rollout
 
 - `tableau/index.html` now loads `assets/grain/zinc-sky.css` (Excel-shaped
