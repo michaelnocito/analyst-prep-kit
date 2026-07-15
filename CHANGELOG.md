@@ -9,6 +9,17 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.137.0] — 2026-07-15 — Tableau kit: Zinc & Sky rollout
+
+- `tableau/index.html` now loads `assets/grain/zinc-sky.css` (Excel-shaped
+  `data-theme` convention — existing selectors cover it).
+- Viz Builder chart tick colors were baked warm clay grays (`#a09880`/`#5a5040`);
+  swapped to the zinc grays the lesson charts already use (`#98a3b2`/`#5b6470`).
+  Chart data-series palette left as-is (categorical data colors, not theme).
+- zinc-sky.css: dark-mode ink text on `.mark-btn.active` and `.sc-badge`, plus
+  a space-after-colon `[style*="background: var(--accent)"]` variant so quiz
+  answer buttons styled from JS (`element.style.background`) get ink too.
+
 ## [1.136.0] — 2026-07-15 — Hub home page: Zinc & Sky rollout (Mike pulled it forward in the queue)
 
 - Root `index.html` (the all-kits hub) now loads `assets/grain/zinc-sky.css`
