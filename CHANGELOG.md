@@ -9,6 +9,18 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.134.0] — 2026-07-15 — Python kit: Zinc & Sky rollout (kit 3 of the suite-wide rollout)
+
+- `python/index.html` now loads `assets/grain/zinc-sky.css` (Excel-shaped
+  `data-theme` convention — no new selector variant needed).
+- zinc-sky.css: dark-mode ink `#082032` extended to Python's other
+  accent-background components (`.tag.accent`, `.btn-run`,
+  `.parsons-chip.placed`, `.fc-back`, `.signin-btn`, sprint start
+  button) — same white-on-sky contrast fix as `.btn-primary`.
+- Verified light + dark computed styles on home (resume card, readiness
+  bars, progress fills w/ glow) and lesson surfaces (flashcard back,
+  Parsons chips).
+
 ## [1.133.0] — 2026-07-15 — Excel kit: Zinc & Sky rollout (kit 2 of the suite-wide rollout)
 
 - `excel/index.html` now loads `assets/grain/zinc-sky.css` (Mike approved
