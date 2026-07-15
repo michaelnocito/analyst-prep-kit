@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COUNT in SQL: COUNT(*) vs COUNT(column) vs COUNT(DISTINCT), for Beginners — Analyst Prep Kit</title>
+<meta name="description" content="Beginner guide to SQL COUNT: how COUNT(*), COUNT(column), and COUNT(DISTINCT column) differ, why NULLs make them disagree, how COUNT pairs with GROUP BY, and how analysts use COUNT to verify a data migration and check a real dataset.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-function/">
+<meta property="og:title" content="COUNT in SQL, Explained for Beginners">
+<meta property="og:description" content="COUNT(*) vs COUNT(column) vs COUNT(DISTINCT) — what each one really counts, why NULLs matter, and how analysts use COUNT to verify migrations and audit data.">
+<meta property="og:type" content="article">
+<style>
+  :root{--bg:#FAF3EC;--ink:#3D1A0F;--muted:#6E4A33;--accent:#C5511F;--line:#E68A66;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#F8D8C6;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F3E2D4;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#2E1608;color:#FFE7D6;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#F8D8C6}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a></p>
+  <h1>COUNT in SQL, Explained for Beginners</h1>
+  <p class="meta">The one function analysts run more than any other · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p><code>COUNT</code> looks like the simplest function in SQL, and it is the one that quietly trips up the most people in interviews and on the job. The confusion is almost always the same: <code>COUNT(*)</code>, <code>COUNT(column)</code>, and <code>COUNT(DISTINCT column)</code> look nearly identical but count three different things. Once you can say out loud what each one counts, you can verify a data migration, find duplicates, and measure how complete a column is, all with the same little function. This guide is that explanation, with lots of small examples you can copy.</p>
+
+  <div class="note"><strong>The one-sentence version.</strong> <code>COUNT(*)</code> counts <em>rows</em>. <code>COUNT(column)</code> counts <em>rows where that column is not NULL</em>. <code>COUNT(DISTINCT column)</code> counts <em>how many different non-NULL values</em> that column has. Everything below is just that sentence, slowed down.</p>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>The three forms of COUNT and what each one counts</li>
+      <li>The NULL rule that makes them disagree</li>
+      <li>COUNT(*) vs COUNT(DISTINCT): the difference interviewers ask about</li>
+      <li>COUNT with GROUP BY: counting per group</li>
+      <li>How analysts use COUNT in a data migration</li>
+      <li>Using COUNT on your own portfolio project</li>
+      <li>A COUNT cheat sheet</li>
+    </ol>
+  </div>
+
+  <h2>The three forms of COUNT and what each one counts</h2>
+  <p>Picture one small table, <code>customers</code>, with a <code>region</code> column where two rows were never filled in:</p>
+  <table>
+    <tr><th>id</th><th>name</th><th>region</th></tr>
+    <tr><td>1</td><td>Maya</td><td>North</td></tr>
+    <tr><td>2</td><td>Jordan</td><td>South</td></tr>
+    <tr><td>3</td><td>Alex</td><td>North</td></tr>
+    <tr><td>4</td><td>Sam</td><td><em>NULL</em></td></tr>
+    <tr><td>5</td><td>Taylor</td><td><em>NULL</em></td></tr>
+  </table>
+  <p>Now run the three forms on it:</p>
+  <pre><code>SELECT
+  COUNT(*)                 AS all_rows,
+  COUNT(region)            AS rows_with_region,
+  COUNT(DISTINCT region)   AS different_regions
+FROM customers;</code></pre>
+  <table>
+    <tr><th>all_rows</th><th>rows_with_region</th><th>different_regions</th></tr>
+    <tr><td>5</td><td>3</td><td>2</td></tr>
+  </table>
+  <ul>
+    <li><strong><code>COUNT(*)</code> = 5.</strong> Every row, no exceptions. The <code>*</code> means "the row itself," so NULLs never matter.</li>
+    <li><strong><code>COUNT(region)</code> = 3.</strong> Only the rows where <code>region</code> has a value. Sam and Taylor are skipped because their region is NULL.</li>
+    <li><strong><code>COUNT(DISTINCT region)</code> = 2.</strong> The different values are just <code>North</code> and <code>South</code>. The two Norths collapse to one, and NULL is not counted.</li>
+  </ul>
+
+  <h2>The NULL rule that makes them disagree</h2>
+  <p>Here is the whole trick in one line:</p>
+  <p><strong><code>COUNT(*)</code> counts rows. <code>COUNT(something)</code> counts non-NULL values of that something.</strong></p>
+  <p>So the moment a column has any NULLs, <code>COUNT(column)</code> comes back <em>smaller</em> than <code>COUNT(*)</code>. That gap is not a bug, it is information: it is exactly how many rows are missing a value in that column.</p>
+  <div class="note"><strong>Turn the gap into a missing-data check.</strong> The number of blanks in a column is just the difference between the two counts:
+  <pre style="margin:10px 0 0"><code>SELECT COUNT(*) - COUNT(region) AS missing_regions
+FROM customers;   -- returns 2</code></pre></div>
+  <p>One more consequence people forget: because <code>COUNT(column)</code> ignores NULLs, <code>COUNT(1)</code> and <code>COUNT(*)</code> are the same thing (the constant <code>1</code> is never NULL), but <code>COUNT(a_column_full_of_nulls)</code> can be <code>0</code>. When you just want "how many rows," reach for <code>COUNT(*)</code> and never think about it again.</p>
+
+  <h2>COUNT(*) vs COUNT(DISTINCT): the difference interviewers ask about</h2>
+  <p>This is the classic recall question, and it is worth being able to answer without hesitating:</p>
+  <table>
+    <tr><th>You write</th><th>You get back</th></tr>
+    <tr><td><code>COUNT(*)</code></td><td>How many rows there are.</td></tr>
+    <tr><td><code>COUNT(order_id)</code></td><td>How many rows have an order_id (non-NULL).</td></tr>
+    <tr><td><code>COUNT(DISTINCT order_id)</code></td><td>How many <em>different</em> order_ids there are.</td></tr>
+  </table>
+  <p>When those numbers differ, you have learned something. If <code>COUNT(*)</code> is bigger than <code>COUNT(DISTINCT order_id)</code>, some order_id appears more than once, meaning you have <strong>duplicate rows</strong>. That single comparison is the fastest duplicate check in SQL:</p>
+  <pre><code>SELECT
+  COUNT(*)                  AS total_rows,
+  COUNT(DISTINCT order_id)  AS unique_orders,
+  COUNT(*) - COUNT(DISTINCT order_id) AS duplicate_rows
+FROM orders;</code></pre>
+  <p>If <code>duplicate_rows</code> is <code>0</code>, every order is listed once. If it is anything above zero, that is how many extra copies are hiding in the table.</p>
+
+  <h2>COUNT with GROUP BY: counting per group</h2>
+  <p>On its own, <code>COUNT</code> gives one number for the whole table. Add <code>GROUP BY</code> and it gives one number <em>per group</em> instead. <code>GROUP BY</code> sorts the rows into bins by the column you name, and <code>COUNT</code> runs inside each bin:</p>
+  <pre><code>SELECT region, COUNT(*) AS customers
+FROM customers
+GROUP BY region
+ORDER BY customers DESC;</code></pre>
+  <table>
+    <tr><th>region</th><th>customers</th></tr>
+    <tr><td>North</td><td>2</td></tr>
+    <tr><td>South</td><td>1</td></tr>
+    <tr><td><em>NULL</em></td><td>2</td></tr>
+  </table>
+  <div class="note"><strong>Watch the NULL group.</strong> <code>GROUP BY</code> keeps NULL as its own bin, so the two blank-region customers show up as a NULL group of 2. That is different from <code>COUNT(region)</code>, which drops them entirely. Same data, two honest answers, because you asked two different questions.</div>
+  <p>A subtle but important pairing: <code>COUNT(*)</code> counts every row in the group, while <code>COUNT(column)</code> counts only the rows in the group where that column is filled in. Grouping customers by region and reading <code>COUNT(*)</code> next to <code>COUNT(email)</code> tells you, per region, how many customers you have and how many of them you can actually email.</p>
+
+  <h2>How analysts use COUNT in a data migration</h2>
+  <p>When data moves from one place to another (a CSV into a database, an old system into a new one, a raw table into a cleaned one), <code>COUNT</code> is the first thing you run on both sides. It is the cheapest way to answer "did everything arrive, and did anything sneak in twice?" Three checks cover most of it.</p>
+
+  <div class="step">
+    <h2>1. Did every row arrive? (row-count reconciliation)</h2>
+    <p>Count the source, count the destination, and compare. They should match exactly.</p>
+    <pre><code>SELECT COUNT(*) FROM customers_raw;   -- the imported original
+SELECT COUNT(*) FROM customers;       -- the cleaned copy</code></pre>
+    <p>If the cleaned table has fewer rows, a cleaning step dropped records (maybe a filter was too aggressive). If it has more, a join fanned out and multiplied rows. Either way, the two counts not matching is your signal to stop and look before you build anything on top.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. Did the migration create duplicates? (COUNT vs COUNT DISTINCT)</h2>
+    <p>Pick the column that is supposed to be unique (the key, like <code>customer_id</code>) and compare the two counts:</p>
+    <pre><code>SELECT
+  COUNT(*)                     AS rows,
+  COUNT(DISTINCT customer_id)  AS unique_ids
+FROM customers;</code></pre>
+    <p>If <code>rows</code> is larger than <code>unique_ids</code>, the same customer landed in the table more than once and every total you compute later will be inflated. This one comparison catches a whole class of migration bugs.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. How complete is each column? (COUNT(*) vs COUNT(column))</h2>
+    <p>For any column you care about, the fill rate is just the two counts side by side:</p>
+    <pre><code>SELECT
+  COUNT(*)                                       AS rows,
+  COUNT(email)                                   AS has_email,
+  ROUND(100.0 * COUNT(email) / COUNT(*), 1)      AS email_pct
+FROM customers;</code></pre>
+    <p>Now you can say "94% of migrated customers have an email" instead of guessing. Do this for the columns that matter and you have a completeness report before anyone asks for one.</p>
+  </div>
+
+  <h2>Using COUNT on your own portfolio project</h2>
+  <p>Every dataset you load for a portfolio project deserves the same opening move. Before you write a single insight, run COUNT to understand what you are holding. On a games dataset, for example:</p>
+  <pre><code>-- How big is it, and how many distinct studios and genres?
+SELECT
+  COUNT(*)                  AS games,
+  COUNT(DISTINCT developer)  AS studios,
+  COUNT(DISTINCT genre)      AS genres
+FROM games;
+
+-- Which columns are patchy? (compare each to the row count)
+SELECT
+  COUNT(*)             AS rows,
+  COUNT(price)         AS has_price,
+  COUNT(release_date)  AS has_date
+FROM games;</code></pre>
+  <p>Leading a project write-up with "the dataset has 83,201 games across 41 genres, and 6% are missing a release date" reads like an analyst, not a beginner. It also protects you: knowing where the NULLs are stops you from quietly under-counting later. This "count first, then analyze" habit is exactly what the <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> guide leans on, and what the <a href="../documenting-data-limitations/">Documenting Data Limitations</a> guide turns into a written record.</p>
+
+  <h2>A COUNT cheat sheet</h2>
+  <table>
+    <tr><th>You want to know…</th><th>Write</th></tr>
+    <tr><td>How many rows are in this table</td><td><code>COUNT(*)</code></td></tr>
+    <tr><td>How many rows have a value in this column</td><td><code>COUNT(column)</code></td></tr>
+    <tr><td>How many rows are missing that value</td><td><code>COUNT(*) - COUNT(column)</code></td></tr>
+    <tr><td>How many different values a column has</td><td><code>COUNT(DISTINCT column)</code></td></tr>
+    <tr><td>Whether a key column has duplicates</td><td><code>COUNT(*)</code> vs <code>COUNT(DISTINCT key)</code></td></tr>
+    <tr><td>A count for each category</td><td><code>COUNT(*) … GROUP BY category</code></td></tr>
+    <tr><td>What fraction of a column is filled in</td><td><code>COUNT(column) * 100.0 / COUNT(*)</code></td></tr>
+  </table>
+  <div class="note"><strong>Say it out loud.</strong> Before you run a COUNT, finish this sentence: "This will count the number of ___." If you can fill the blank with <em>rows</em>, <em>non-NULL values of X</em>, or <em>different values of X</em>, you have picked the right form. That sentence is the whole skill.</div>
+
+  <div class="cta">
+    <strong>Make COUNT, GROUP BY, JOIN, and the rest second nature.</strong>
+    <p style="margin:6px 0 0">The free <a href="../../sql/">SQL Kit</a> teaches the core of analyst SQL with worked examples, a live JOIN and Aggregation lab you run in the browser, flash cards, and a mock exam. Nothing to install.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-case-expression/">The CASE Expression</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+  </footer>
+</main>
+</body>
+</html>

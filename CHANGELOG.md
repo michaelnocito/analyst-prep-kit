@@ -9,6 +9,30 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.130.0] — 2026-07-15 — SQL kit: JOIN Lab redesigned as an explorer + new COUNT guide
+
+Playtest-triage batch (Mike's feedback via the tracker).
+
+- **JOIN Lab rebuilt as a flat "JOIN Explorer."** The old one-task-at-a-time
+  pager (with the small clickable dots that were easy to miss) is gone. The
+  Lab is now one live terminal plus everything visible at once:
+  - **Examples to try now** — a grid of six ready-to-run joins (INNER, LEFT,
+    LEFT+IS NULL gap, JOIN+COUNT, JOIN+SUM, JOIN+WHERE). One click loads the
+    query into the terminal, runs it, and shows a "what you'll see" line.
+  - **Walkthrough** — the INNER-vs-LEFT side-by-side comparison, now open by
+    default instead of hidden behind a task.
+  - **Now try these on your own** — four open challenges. Write each in the
+    same terminal; a per-challenge **Help** button reveals the approach and a
+    worked answer (with a one-click "load into terminal").
+  Same two tables, same sql.js engine; the change is purely presentation +
+  interaction. Removed the dead `_joinTaskIdx` / `runJoinQuery` / `toggleJoinHint`
+  paths; the Aggregation Lab's shared runner is untouched.
+- **New guide: COUNT in SQL** (`guides/sql-count-function/`). Beginner article
+  on `COUNT(*)` vs `COUNT(column)` vs `COUNT(DISTINCT)`, the NULL rule, COUNT
+  with GROUP BY, and how analysts use COUNT to verify a data migration
+  (row-count reconciliation, duplicate detection, completeness). Linked from
+  the GROUP BY lesson notes, the sitemap, and the guide cross-link footers.
+
 ## [1.129.0] — 2026-07-13 — SQL kit: Card Drills lab + Put It All Together capstone
 
 - New Lab tab **Card Drills**: every one of the 38 flashcard concepts is now
