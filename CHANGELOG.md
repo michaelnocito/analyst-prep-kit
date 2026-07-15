@@ -9,6 +9,22 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.132.0] — 2026-07-15 — SQL kit: "Zinc & Sky" palette pilot
+
+Pilot of a new color direction on the SQL kit only, chosen after a
+bake-off of 2026-modern palettes (Mike picked B for light, C for dark):
+- New `assets/grain/zinc-sky.css` token override, loaded after grain.css
+  in `sql/index.html`. Re-points the Grain primitive ramps, so no markup
+  or component CSS changed.
+- Light mode: cool zinc neutrals + deep cyan primary (replaces cream/clay).
+- Dark mode: zinc near-black surfaces + electric sky accent, micro-glow
+  on progress bars; resume-card text flips to deep ink on the light
+  sky gradient; sky buttons use ink text (contrast).
+- Semantic hues modernized: emerald success, red danger, amber warning,
+  indigo info (so info never collides with the cyan primary).
+- If the pilot sticks, roll the override into Grain tokens proper and
+  extend to the hub + remaining kits.
+
 ## [1.131.0] — 2026-07-15 — SQL kit: JOIN Lab reworked to challenge-first with progressive scaffold
 
 Mike follow-up on v1.130.0: focus should be the terminal + "try these on your own,"
