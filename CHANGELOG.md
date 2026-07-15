@@ -9,6 +9,20 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.135.0] — 2026-07-15 — Power BI kit: Zinc & Sky rollout (kit 4 of the suite-wide rollout)
+
+- `powerbi/index.html` now loads `assets/grain/zinc-sky.css` (SQL-shaped
+  `.light` convention — existing selectors cover it; fills follow SQL
+  naming, `.prog-bar`/`.skill-bar` glow confirmed).
+- zinc-sky.css: dark-mode ink `#082032` extended to Power BI's extra
+  accent/semantic-background components (`.lesson-num.done`, `#toast`,
+  `.conf-chip.is-on` + its icon, and inline-styled workspace-tour
+  buttons via `[style*="background:var(--accent)"]` with `!important`;
+  resume-card inline white icon likewise).
+- Verified light + dark computed styles on home (resume card ink-on-sky,
+  unit progress + skill bars w/ glow, muted `#C3C7CE`) and the workspace
+  tour surface (tour buttons ink-on-sky).
+
 ## [1.134.0] — 2026-07-15 — Python kit: Zinc & Sky rollout (kit 3 of the suite-wide rollout)
 
 - `python/index.html` now loads `assets/grain/zinc-sky.css` (Excel-shaped
