@@ -9,6 +9,23 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.136.0] — 2026-07-15 — Hub home page: Zinc & Sky rollout (Mike pulled it forward in the queue)
+
+- Root `index.html` (the all-kits hub) now loads `assets/grain/zinc-sky.css`
+  (Excel-shaped `data-theme` convention — existing selectors cover it).
+  The hub's semantic vars all sit on Grain primitives, so the whole page
+  followed the ramp re-point: zinc surfaces, cyan/sky accent, and the
+  `--phase-2` teal rails land on the new indigo info ramp.
+- zinc-sky.css: dark-mode glow extended to the hub's fill class
+  (`.kit-progress-fill`, scoped `:not(.done)` so completed kits keep a
+  clean emerald bar), and the inline accent-bg ink rule broadened to any
+  `button[style*="background:var(--accent)"]` (hub's sync Export button).
+- Verified light + dark computed styles on localhost: hero span, sign-in
+  and Export buttons ink-on-sky in dark, indigo phase-2 rails, glow on
+  in-progress fills only.
+- NOT included (decide with Mike): the boxed section-title "pop"
+  treatment from the mockups (charcoal→ink title plates, stat chips).
+
 ## [1.135.0] — 2026-07-15 — Power BI kit: Zinc & Sky rollout (kit 4 of the suite-wide rollout)
 
 - `powerbi/index.html` now loads `assets/grain/zinc-sky.css` (SQL-shaped
