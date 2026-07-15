@@ -227,6 +227,15 @@ _Definition: visible bug or UX miss that hurts trust or learning, OR
 a feature that directly serves a Vision Principle and has clear ROI._
 _Response time: current cycle. Clear before accepting new feedback._
 
+- **🔒 PAYWALL: server-side entitlement enforcement (harden the freemium gate) — DUE BEFORE AUG 1, 2026 LAUNCH** _(added July 15, 2026 — TOP PRIORITY this cycle)_
+  - _Why now:_ The current gate (`assets/apk-pass.js` + the `PREP-PASS-2026` code → `localStorage['apk-pass']`) is **client-side only** and trivially bypassable (view-source reveals every premium lesson; anyone can set the flag in devtools). Fine as a launch stopgap, NOT fine to charge $11.11/mo against. Revisit + decide the enforcement level before flipping `MODE='live'`.
+  - _Root fix (the real one):_ move the entitlement CHECK server-side. Premium lesson content stops shipping inside the static HTML; instead a **Supabase Edge Function** verifies the logged-in user's `user_entitlements` row (`hasInterviewPass()`) and returns the gated content only to entitled users. Reuses the LIVE Supabase backend (auth Google+email, `user_progress`/`user_entitlements`, `SUPABASE_INTEGRATION.md`) — same proxy pattern the AI Coach research already scoped. Site stays vanilla/static on GitHub Pages.
+  - _Hosting note:_ if the Edge Function path needs a friendlier home (custom domain, native edge functions), Cloudflare Pages / Netlify is the move — still free, and it also sidesteps GitHub Pages' "no primarily-commercial sites" ToS wrinkle ([[project_monetization_strategy]]). Not required for v1 (Supabase Edge Functions work from a GH-Pages front-end via fetch).
+  - _Scope decision to make with Mike (before build):_ (a) keep client-side gate through Aug 1 and ship server-side enforcement as a fast-follow, OR (b) block launch on it. Mike's call July 15: **revisit before Aug 1** — this item is the reminder + scoping home.
+  - _DoD:_ A non-purchaser cannot reach premium lesson CONTENT via view-source or devtools (content isn't in the payload); a purchaser (verified entitlement) gets it seamlessly across devices via their account. Verified live, both states.
+  - _Est:_ Medium (backend exists; the lift is content-splitting + the Edge Function + wiring the fetch into each kit's lesson render).
+  - _Related:_ [[project_freemium_ecosystem]], `SUPABASE_INTEGRATION.md`, the "premium-unlocked badges" Medium item (post-purchase UX pairs with this).
+
 _(GR-F-1, GR-F-2, GR-F-3 shipped May 28, 2026 — see CHANGELOG v1.4.1)_
 
 _(GR-H shipped June 12, 2026 (v1.54.1) — root cause was the top-anchored toast in Tableau/Excel/Python hiding via translateY(-80px) with no fade, leaving its bottom half over the sticky nav; now fades + fully clears. Other kits were never affected (they hide with opacity:0). Same release: Chart.js now `defer` in Tableau/Stats — was render-blocking and caused the intermittent page-load delay Mike reported.)_
