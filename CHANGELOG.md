@@ -9,6 +9,23 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.131.0] — 2026-07-15 — SQL kit: JOIN Lab reworked to challenge-first with progressive scaffold
+
+Mike follow-up on v1.130.0: focus should be the terminal + "try these on your own,"
+the rest optional. Reworked the JOIN Lab:
+- **Removed the "Examples to try now" grid** — the lab is now the challenges. Each of
+  the 4 challenges has its own terminal you type into.
+- **Progressive scaffold, no hint button.** A static callout tells the learner to give
+  each one at least 3 tries and explains the help. Every wrong Run escalates: miss 1
+  fills the first third of the answer into the editor + adds a guidance line, miss 2
+  fills two thirds + another line, miss 3 drops in the full answer. The light-grey help
+  block under each terminal is persistent and grows one line per miss. A correct run
+  greens and resets the counter. (Reuses the kit's `_labFillPartial` scaffold helper.)
+- **Schema + INNER-vs-LEFT walkthrough demoted to collapsed "Reference" cards** below the
+  challenges; a one-line table summary stays inline. Verified in-browser: miss 1/2/3 fill
+  1/3 → 2/3 → full with 1/2/3 grey help lines, correct run resets. Removed dead
+  `JOIN_EXAMPLES` / explorer functions.
+
 ## [1.130.0] — 2026-07-15 — SQL kit: JOIN Lab redesigned as an explorer + new COUNT guide
 
 Playtest-triage batch (Mike's feedback via the tracker).

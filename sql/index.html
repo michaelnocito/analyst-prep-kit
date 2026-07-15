@@ -2754,6 +2754,7 @@ function resetParsons(idx){ delete _parsonsAttempts[idx]; navigate('parsons', id
 // ─── LAB ───────────────────────────────────────────────────────────────────
 let sqlDb = null;
 let _joinCompareOpen = false;
+let _joinSchemaOpen = false;
 let _joinHintOpen = false;
 
 // Shared DB init — used by Free Query and JOIN Practice
@@ -3251,38 +3252,9 @@ const JOIN_TASKS = [
     note:"4 rows — one per customer who has orders. Alice leads because she placed 2 orders. GROUP BY collapsed her duplicate rows and SUM added their amounts together." }
 ];
 
-// JOIN Explorer (redesign): a flat set of ready-to-run examples the learner
-// clicks to load into the one terminal and run — practice joins over and over,
-// no hidden pager. Each is a real query against customers + orders.
-const JOIN_EXAMPLES = [
-  { tag:"INNER JOIN", title:"Match customers to their orders",
-    desc:"The everyday join. Each order row gets its customer's name glued on. Customers with no orders drop out.",
-    sql:"SELECT c.name, o.order_id, o.amount\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id;",
-    seeing:"5 rows — one per order. Alice shows up twice (she placed 2). Customers with no orders aren't here at all." },
-  { tag:"LEFT JOIN", title:"Keep every customer, matched or not",
-    desc:"Same tables, one keyword changed. Now all 8 customers stay — the ones with no orders show NULL.",
-    sql:"SELECT c.name, o.order_id, o.amount\nFROM customers c\nLEFT JOIN orders o ON c.id = o.customer_id;",
-    seeing:"9 rows — all 8 customers. Bob, Eva, Frank, Henry come back with NULL order columns." },
-  { tag:"LEFT + IS NULL", title:"Find who's missing (no orders)",
-    desc:"The classic 'what's missing' pattern: LEFT JOIN, then keep only the rows that found no match.",
-    sql:"SELECT c.name\nFROM customers c\nLEFT JOIN orders o ON c.id = o.customer_id\nWHERE o.customer_id IS NULL;",
-    seeing:"4 rows — Bob, Eva, Frank, Henry. Customers who exist but have never ordered." },
-  { tag:"JOIN + COUNT", title:"How many orders per customer",
-    desc:"LEFT JOIN so no-order customers still count (as 0). COUNT the order rows inside each name group.",
-    sql:"SELECT c.name, COUNT(o.order_id) AS orders\nFROM customers c\nLEFT JOIN orders o ON c.id = o.customer_id\nGROUP BY c.name\nORDER BY orders DESC;",
-    seeing:"8 rows — every customer with their order count. COUNT(o.order_id) is 0 for the four who never ordered." },
-  { tag:"JOIN + SUM", title:"Total revenue per customer",
-    desc:"Join, then roll it up. GROUP BY collapses Alice's two order rows into one; SUM adds their amounts.",
-    sql:"SELECT c.name, SUM(o.amount) AS total_revenue\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id\nGROUP BY c.name\nORDER BY total_revenue DESC;",
-    seeing:"4 rows — one per paying customer, highest spender first. Alice's two orders are summed into one total." },
-  { tag:"JOIN + WHERE", title:"Filter the joined rows",
-    desc:"You can filter across both tables after joining. Here: only orders that belong to an active customer.",
-    sql:"SELECT c.name, c.status, o.amount\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id\nWHERE c.status = 'active';",
-    seeing:"Only the orders whose customer is active. WHERE runs on the joined result, so it can test columns from either table." }
-];
-
 async function renderLabJoin(){
-  _joinCompareOpen = true; // walkthrough shows open by default in the explorer
+  _joinCompareOpen = false; // walkthrough is optional reference, collapsed by default
+  _joinSchemaOpen = false;
 
   const schemaHTML = `
     <div class="card card-sm" style="margin-bottom:16px">
@@ -3311,144 +3283,153 @@ async function renderLabJoin(){
       <div style="margin-top:10px;font-size:12px;color:var(--muted)">8 customers · 5 orders · joined on <code style="font-family:var(--mono)">customers.id = orders.customer_id</code></div>
     </div>`;
 
-  const exampleCards = JOIN_EXAMPLES.map((e,i) => `
-    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:15px 16px;display:flex;flex-direction:column;gap:8px">
-      <span style="align-self:flex-start;font-size:11px;font-weight:700;font-family:var(--mono);background:rgba(47,109,240,.12);color:var(--accent);border:1px solid rgba(47,109,240,.28);border-radius:20px;padding:2px 10px">${e.tag}</span>
-      <div style="font-weight:700;font-size:14px">${e.title}</div>
-      <p style="margin:0;font-size:12.5px;color:var(--muted);line-height:1.55">${e.desc}</p>
-      <button class="btn btn-primary btn-sm" style="align-self:flex-start;margin-top:2px" onclick="loadJoinExample(${i})">▶ Load &amp; Run</button>
-    </div>`).join('');
-
-  const challengeCards = JOIN_TASKS.map((t,i) => `
-    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:15px 16px;margin-bottom:12px">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
-        <span style="font-size:12px;font-weight:700;color:var(--accent)">Challenge ${i+1}</span>
-        <span style="font-weight:700;font-size:14px">${t.title}</span>
+  const challenges = JOIN_TASKS.map((t,i) => `
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+        <span style="font-size:12px;font-weight:700;color:var(--accent)">Challenge ${i+1} of ${JOIN_TASKS.length}</span>
+        <span style="font-weight:700;font-size:15px">${t.title}</span>
         <span style="margin-left:auto;font-size:11px;color:var(--muted)">${t.concept}</span>
       </div>
-      <p style="margin:0 0 12px;font-size:13px;line-height:1.6">${t.prompt}</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-outline btn-sm" onclick="loadJoinChallenge(${i})"><i data-lucide="terminal" style="width:13px;height:13px;vertical-align:-2px"></i> Try it in the terminal</button>
-        <button class="btn btn-ghost btn-sm" onclick="toggleJoinHelp(${i})"><i data-lucide="life-buoy" style="width:13px;height:13px;vertical-align:-2px"></i> Help</button>
+      <p style="margin:0 0 12px;font-size:13.5px;line-height:1.6">${t.prompt}</p>
+      <div class="terminal-wrap">
+        <div class="terminal-toolbar">
+          <div class="terminal-dot" style="background:#ff5f57"></div>
+          <div class="terminal-dot" style="background:#febc2e"></div>
+          <div class="terminal-dot" style="background:#28c840"></div>
+          <span class="terminal-title">Your query — Challenge ${i+1}</span>
+        </div>
+        <textarea class="terminal-editor" id="jc-editor-${i}" spellcheck="false" style="min-height:96px">${t.scaffold}</textarea>
+        <div class="terminal-actions">
+          <button class="btn btn-primary btn-sm" onclick="runJoinChallenge(${i})">▶ Run</button>
+          <button class="btn btn-ghost btn-sm" onclick="resetJoinChallenge(${i})">Reset</button>
+        </div>
+        <div class="terminal-results" id="jc-results-${i}"><span class="terminal-info">Loading SQL engine…</span></div>
       </div>
-      <div id="join-help-${i}" style="display:none;margin-top:12px;padding:13px 16px;background:var(--clay-50);border:1px solid var(--clay-200);border-radius:8px;font-size:13px;color:var(--stone-800);line-height:1.65">
-        <div style="margin-bottom:8px"><i data-lucide="lightbulb" style="width:14px;height:14px;vertical-align:-2px;color:var(--clay-600)"></i> <strong>How to think about it:</strong> ${t.hint}</div>
-        <div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--clay-600);margin-bottom:5px">One correct answer</div>
-        <pre style="margin:0 0 8px;font-family:var(--mono);font-size:12px;background:var(--stone-900);color:var(--stone-100);border-radius:6px;padding:10px 12px;overflow-x:auto;white-space:pre-wrap">${t.answer.replace(/</g,'&lt;')}</pre>
-        <button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="loadJoinAnswer(${i})"><i data-lucide="clipboard" style="width:12px;height:12px;vertical-align:-2px"></i> Load this into the terminal</button>
-        <div style="margin-top:8px;color:var(--stone-700)">${t.note}</div>
-      </div>
+      <div id="jc-help-${i}" style="display:none;margin-top:10px;padding:11px 15px;background:rgba(127,127,127,.08);border:1px solid var(--border);border-radius:8px;font-size:12.5px;line-height:1.65;color:var(--muted)"></div>
     </div>`).join('');
 
   document.getElementById('main').innerHTML = `
     <h1>SQL Lab</h1>
     ${labTabsHTML('join')}
-    <h2 style="margin-bottom:6px">JOIN Explorer</h2>
-    <p style="margin-bottom:18px">Two tables, one live terminal, unlimited practice. Start from an example, watch what it returns, then change it and run it again. When you feel ready, try the challenges at the bottom on your own.</p>
-    ${schemaHTML}
-    <div class="terminal-wrap" id="join-terminal">
-      <div class="terminal-toolbar">
-        <div class="terminal-dot" style="background:#ff5f57"></div>
-        <div class="terminal-dot" style="background:#febc2e"></div>
-        <div class="terminal-dot" style="background:#28c840"></div>
-        <span class="terminal-title">JOIN Terminal — run anything</span>
-      </div>
-      <textarea class="terminal-editor" id="join-editor" spellcheck="false" style="min-height:110px" placeholder="-- Load an example below, or write your own join and click Run\nSELECT c.name, o.amount\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id;">SELECT c.name, o.amount
-FROM customers c
-INNER JOIN orders o ON c.id = o.customer_id;</textarea>
-      <div class="terminal-actions">
-        <button class="btn btn-primary btn-sm" onclick="runJoinExplorer()">▶ Run</button>
-        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('join-editor').value='';document.getElementById('join-editor').focus()">Clear</button>
-      </div>
-      <div class="terminal-results" id="join-results"><span class="terminal-info">Loading SQL engine…</span></div>
+    <h2 style="margin-bottom:6px">JOIN practice</h2>
+    <p style="margin-bottom:6px">Joins only stick when you type them, so this lab <em>is</em> the challenges. Write each query yourself in its terminal and Run it.</p>
+    <p class="text-muted text-sm" style="margin-bottom:14px">Tables: <code style="font-family:var(--mono)">customers(id, name, email, status)</code> and <code style="font-family:var(--mono)">orders(order_id, customer_id, order_date, amount)</code>, joined on <code style="font-family:var(--mono)">customers.id = orders.customer_id</code>. Full diagram is in the reference at the bottom.</p>
+    <div style="display:flex;gap:10px;align-items:flex-start;background:rgba(47,109,240,.07);border:1px solid rgba(47,109,240,.2);border-radius:10px;padding:12px 15px;margin-bottom:24px;font-size:13px;line-height:1.6">
+      <i data-lucide="info" style="width:16px;height:16px;flex-shrink:0;margin-top:2px;color:var(--accent)"></i>
+      <div><strong>Give each one at least 3 tries.</strong> Every time you Run a query that isn't right yet, we fill a little more of it into the editor and add a line of guidance below the terminal. On the third miss we drop in the full answer, so you can run it and read it back against the prompt. The struggle before the answer is what makes it stick.</div>
     </div>
-
-    <h3 style="margin:26px 0 4px"><i data-lucide="play-circle" style="width:18px;height:18px;vertical-align:-3px;color:var(--accent)"></i> Examples to try now</h3>
-    <p class="text-muted text-sm" style="margin-bottom:14px">Click one to drop it in the terminal and run it. Read the result, then tweak the query and run it again.</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:26px">${exampleCards}</div>
-
-    <div class="card" style="margin-bottom:26px">
+    ${challenges}
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleJoinSchema()">
+        <div>
+          <h3 style="margin-bottom:2px"><i data-lucide="database" style="width:16px;height:16px;vertical-align:-3px"></i> Reference: the tables</h3>
+          <p class="text-muted text-sm" style="margin:0">Columns, keys, and the join between customers and orders</p>
+        </div>
+        <span id="schema-chev" style="color:var(--muted);font-size:20px;flex-shrink:0;margin-left:12px">▾</span>
+      </div>
+      <div id="schema-body" style="display:none;margin-top:16px">${schemaHTML}</div>
+    </div>
+    <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleJoinCompare()">
         <div>
-          <h3 style="margin-bottom:2px"><i data-lucide="git-compare" style="width:16px;height:16px;vertical-align:-3px"></i> Walkthrough: INNER vs LEFT, side by side</h3>
-          <p class="text-muted text-sm" style="margin:0">The one difference that trips everyone up — watch what happens to the unmatched rows</p>
+          <h3 style="margin-bottom:2px"><i data-lucide="git-compare" style="width:16px;height:16px;vertical-align:-3px"></i> Reference: INNER vs LEFT, side by side</h3>
+          <p class="text-muted text-sm" style="margin:0">The one difference that trips everyone up — what happens to the unmatched rows</p>
         </div>
-        <span id="compare-chev" style="color:var(--muted);font-size:20px;flex-shrink:0;margin-left:12px">▴</span>
+        <span id="compare-chev" style="color:var(--muted);font-size:20px;flex-shrink:0;margin-left:12px">▾</span>
       </div>
-      <div id="compare-body" style="display:block;margin-top:16px">
+      <div id="compare-body" style="display:none;margin-top:16px">
         <div id="compare-content"></div>
       </div>
-    </div>
+    </div>`;
 
-    <h3 style="margin:0 0 4px"><i data-lucide="dumbbell" style="width:18px;height:18px;vertical-align:-3px;color:var(--accent)"></i> Now try these on your own</h3>
-    <p class="text-muted text-sm" style="margin-bottom:14px">Write each one yourself in the terminal above. Stuck? Hit <strong>Help</strong> for the approach and a worked answer.</p>
-    ${challengeCards}`;
-
-  const ok = await ensureDb(document.getElementById('join-results'));
+  const ok = await ensureDb(document.getElementById('jc-results-0'));
   if(ok){
-    const el=document.getElementById('join-results'); if(el) el.innerHTML='<span class="terminal-info">Ready — click Run, or load an example below.</span>';
-    renderJoinCompare();
+    JOIN_TASKS.forEach((_,i)=>{ const el=document.getElementById('jc-results-'+i); if(el) el.innerHTML='<span class="terminal-info">Write your query above and Run.</span>'; });
   }
 }
 
-// Run whatever is in the JOIN Explorer editor against the live DB.
-function runJoinExplorer(){
-  const editor = document.getElementById('join-editor');
-  const results = document.getElementById('join-results');
+// ─── JOIN CHALLENGES: progressive scaffold, no hint button ─────────────────
+// Each wrong Run escalates: miss 1 fills the first third of the answer into the
+// editor + a first guidance line; miss 2 fills two thirds + another line; miss 3
+// drops in the full answer. The grey help block under each terminal is persistent
+// and grows one line per miss. A correct answer resets that challenge's counter.
+let _jcAttempts = {}, _jcHelp = {};
+
+function _jcResultTable(r){
+  const {columns, values} = r;
+  const thead = `<tr>${columns.map(c=>`<th>${c}</th>`).join('')}</tr>`;
+  const tbody = values.map(row=>`<tr>${row.map(v=>`<td>${v==null?'<em style="color:var(--red);font-style:italic">NULL</em>':v}</td>`).join('')}</tr>`).join('');
+  return `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>`;
+}
+
+function runJoinChallenge(i){
+  const t = JOIN_TASKS[i];
+  const editor = document.getElementById('jc-editor-'+i);
+  const results = document.getElementById('jc-results-'+i);
   if(!results) return;
   if(!sqlDb){ results.innerHTML = '<span class="terminal-error">SQL engine not ready yet.</span>'; return; }
   const sql = editor ? editor.value.trim() : '';
-  if(!sql){ results.innerHTML = '<span class="terminal-info">Enter a query above, or load an example.</span>'; return; }
-  try {
-    const res = sqlDb.exec(sql);
-    if(!res.length){ results.innerHTML = '<span class="terminal-info">Query ran — no rows returned. Check your JOIN condition and ON clause.</span>'; return; }
-    const {columns, values} = res[0];
-    const thead = `<tr>${columns.map(c=>`<th>${c}</th>`).join('')}</tr>`;
-    const tbody = values.map(row=>`<tr>${row.map(v=>`<td>${v==null?'<em style="color:var(--red);font-style:italic">NULL</em>':v}</td>`).join('')}</tr>`).join('');
-    results.innerHTML = `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table><div style="margin-top:8px;color:var(--muted);font-size:11px">${values.length} row${values.length!==1?'s':''}</div>`;
-  } catch(e){
-    results.innerHTML = `<span class="terminal-error">Error: ${e.message}</span>`;
+  // A run that is only the comment scaffold / whitespace doesn't burn an attempt.
+  if(!sql || /^(--[^\n]*\n?|\s)*$/.test(sql)){ results.innerHTML = '<span class="terminal-info">Write a query above first, then Run.</span>'; return; }
+
+  let res, err = null;
+  try { res = sqlDb.exec(sql); } catch(e){ err = e.message; res = []; }
+
+  let correct = false;
+  if(!err && res.length){
+    try { const ar = sqlDb.exec(t.answer); if(ar.length) correct = JSON.stringify(ar[0].values) === JSON.stringify(res[0].values); } catch(e){}
   }
+
+  if(correct){
+    _jcAttempts[i] = 0;
+    const n = res[0].values.length;
+    results.innerHTML = _jcResultTable(res[0]) +
+      `<div style="margin-top:10px"><span style="color:var(--green);font-weight:700">✓ Correct — ${n} row${n!==1?'s':''}</span> <span style="color:var(--muted);font-size:12px">— ${t.note}</span></div>`;
+    if(typeof celebrate === 'function') celebrate();
+    return;
+  }
+
+  const att = (_jcAttempts[i] || 0) + 1; _jcAttempts[i] = att;
+  const log = _jcHelp[i] || (_jcHelp[i] = []);
+  if(att === 1){
+    log.push(`<strong>Try 1.</strong> ${t.hint} <span style="opacity:.85">(I filled the opening of the query in above — build on it.)</span>`);
+    _labFillPartial('jc-editor-'+i, t.answer, 1/3);
+  } else if(att === 2){
+    log.push(`<strong>Try 2.</strong> Closer. I filled more of the query in above — carry on from where it stops. ${err ? 'Your last run had a syntax error, so check the SQL keywords.' : 'Compare your rows against what the prompt asks for.'}`);
+    _labFillPartial('jc-editor-'+i, t.answer, 2/3);
+  } else if(att === 3){
+    log.push(`<strong>Try 3 — here's the full answer.</strong> Run it, then read it line by line against the prompt. ${t.note}`);
+    if(editor){ editor.value = t.answer; editor.focus(); }
+  } else {
+    log.push(`<strong>The full answer is in the editor.</strong> Run it and compare it with what you had.`);
+  }
+
+  const head = err
+    ? `<div style="color:var(--red);font-family:var(--mono);font-size:12px">Error: ${err}</div>`
+    : (res.length
+        ? _jcResultTable(res[0]) + `<div style="margin-top:6px;color:var(--muted);font-size:11px">${res[0].values.length} row${res[0].values.length!==1?'s':''} — not a match yet (target is ~${t.expectedRows})</div>`
+        : `<div style="color:var(--muted)">Query ran — no rows returned. Check your JOIN condition and ON clause.</div>`);
+  results.innerHTML = head;
+
+  const help = document.getElementById('jc-help-'+i);
+  if(help){ help.style.display = 'block'; help.innerHTML = log.map(l=>`<div style="margin:5px 0">${l}</div>`).join(''); }
+  if(window.lucide && typeof grainRefreshIcons === 'function') grainRefreshIcons();
 }
 
-function _setJoinEditor(sql){
-  const ed = document.getElementById('join-editor');
-  if(ed){ ed.value = sql; }
-  const term = document.getElementById('join-terminal');
-  if(term) term.scrollIntoView({behavior:'smooth', block:'center'});
+function resetJoinChallenge(i){
+  _jcAttempts[i] = 0; _jcHelp[i] = [];
+  const ed = document.getElementById('jc-editor-'+i); if(ed){ ed.value = JOIN_TASKS[i].scaffold; ed.focus(); }
+  const help = document.getElementById('jc-help-'+i); if(help){ help.style.display = 'none'; help.innerHTML = ''; }
+  const results = document.getElementById('jc-results-'+i); if(results) results.innerHTML = '<span class="terminal-info">Write your query above and Run.</span>';
 }
 
-// Example: load its query and run it immediately (with a one-line "what you'll see").
-function loadJoinExample(i){
-  const e = JOIN_EXAMPLES[i];
-  _setJoinEditor(e.sql);
-  runJoinExplorer();
-  const results = document.getElementById('join-results');
-  if(results) results.insertAdjacentHTML('afterbegin',
-    `<div style="margin-bottom:8px;padding:7px 11px;background:rgba(47,109,240,.08);border-radius:6px;font-family:var(--font);font-size:12px;color:var(--muted)"><i data-lucide="eye" style="width:13px;height:13px;vertical-align:-2px"></i> What you'll see: ${e.seeing}</div>`);
-  if(window.lucide && typeof grainRefreshIcons==='function') grainRefreshIcons();
-}
-
-// Challenge: drop the prompt in as a comment so they write the query themselves.
-function loadJoinChallenge(i){
-  const t = JOIN_TASKS[i];
-  _setJoinEditor(`-- Challenge ${i+1}: ${t.prompt}\n-- Write your query below, then click Run.\n\n`);
-  const ed = document.getElementById('join-editor'); if(ed) ed.focus();
-  const results = document.getElementById('join-results');
-  if(results) results.innerHTML = '<span class="terminal-info">Write your query above and click Run. Hit Help on the challenge if you get stuck.</span>';
-}
-
-// Load the worked answer for a challenge into the terminal (from its Help panel).
-function loadJoinAnswer(i){
-  _setJoinEditor(JOIN_TASKS[i].answer);
-  runJoinExplorer();
-}
-
-function toggleJoinHelp(i){
-  const el = document.getElementById('join-help-'+i);
-  if(!el) return;
-  el.style.display = el.style.display==='none' ? 'block' : 'none';
-  if(el.style.display==='block' && window.lucide && typeof grainRefreshIcons==='function') grainRefreshIcons();
+function toggleJoinSchema(){
+  _joinSchemaOpen = !_joinSchemaOpen;
+  const body = document.getElementById('schema-body');
+  const chev = document.getElementById('schema-chev');
+  if(body) body.style.display = _joinSchemaOpen ? 'block' : 'none';
+  if(chev) chev.textContent = _joinSchemaOpen ? '▴' : '▾';
+  if(_joinSchemaOpen && window.lucide && typeof grainRefreshIcons === 'function') grainRefreshIcons();
 }
 
 // ─── SHARED LAB RUN + PROGRESSIVE SCAFFOLD ─────────────────────────────────
