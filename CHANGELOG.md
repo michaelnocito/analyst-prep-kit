@@ -9,6 +9,29 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.142.0] — 2026-07-16 — Excel kit: guided knowledge path (rollout kit 1 of N)
+
+First kit of the all-kit knowledge-path correction (decision record: ROADMAP.md
+High-bucket "Guided knowledge path" DECIDED block). Soft-guide, no gates.
+
+- **Recall cards on the path**: new `LESSON_CARDS` map tags all 36 flashcards
+  to the first lesson that teaches the concept; the guided flow now runs
+  lesson → recall cards ("no peeking" flip cards) → drills → next lesson
+  (`guidedSeqFor` builds the combined sequence).
+- **Path is the default Continue**: lesson-complete cards (classic + v2 flow)
+  lead with "Continue path →" into the guided sequence; "Skip to next lesson"
+  demoted to a small outline button. Concept lessons with no steps continue
+  straight through `gotoNextLesson`.
+- **Unit review nodes**: crossing a unit boundary triggers a once-per-unit,
+  fully skippable mixed review (3 recall cards + 3 drills of distinct types,
+  drawn at random from everything learned so far) with a "mixed review feels
+  harder — that's where it sticks" note. Tracked in `S.unitReviewsDone`.
+- **Skip valve everywhere**: every guided step has Skip →; review nodes have
+  Skip review. Nothing blocks forward progress (v1 decision).
+- Verified in-browser: sequence build, card flip, unit-boundary trigger,
+  once-per-unit guard, multi-unit mixing at later boundaries, finale path;
+  no console errors. Excel kit confirmed on Zinc & Sky.
+
 ## [1.141.0] — 2026-07-16 — Forecasting kit: Zinc & Sky palette
 
 - Forecasting kit joins the Zinc & Sky rollout: one `zinc-sky.css` link in
