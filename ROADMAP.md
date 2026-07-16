@@ -248,6 +248,12 @@ _Definition: visible bug or UX miss that hurts trust or learning, OR
 a feature that directly serves a Vision Principle and has clear ROI._
 _Response time: current cycle. Clear before accepting new feedback._
 
+- **Guided knowledge path (Duolingo-style) — thread the orphaned features into the lesson flow** _(added July 16, 2026 — 5:17 PM ET; from SQL-kit playtest inbox note, July 16)_
+  - _What:_ A single guided path that walks the learner step-to-step through everything, instead of the current core-lesson spine with cards, Parsons problems, and labs "hanging out by themselves" waiting for a click. The path should route the learner through the extra modes at the right moments so they actually get used to drive the material home.
+  - _Why it's here:_ Mike's direct playtest note on the SQL kit — the side features are important for retention but effectively invisible unless the user goes hunting. Also aligns with the spaced-retrieval gap in the learning-science gap analysis and the GR-A cross-kit-flow thread.
+  - _Definition of Done:_ From any lesson, the "next" action is unambiguous and the path visits cards/Parsons/labs at researched, pedagogically sensible points; the extra modes stop being optional dead-ends. Research pass first (how Duolingo/Brilliant sequence mixed activity types), then pilot on the SQL kit before rollout.
+  - _Est. effort:_ Large (research + structural nav change; pilot on SQL kit first)
+
 - **🔒 PAYWALL: server-side entitlement enforcement (harden the freemium gate) — DUE BEFORE AUG 1, 2026 LAUNCH** _(added July 15, 2026 — TOP PRIORITY this cycle)_
   - _Why now:_ The current gate (`assets/apk-pass.js` + the `PREP-PASS-2026` code → `localStorage['apk-pass']`) is **client-side only** and trivially bypassable (view-source reveals every premium lesson; anyone can set the flag in devtools). Fine as a launch stopgap, NOT fine to charge $11.11/mo against. Revisit + decide the enforcement level before flipping `MODE='live'`.
   - _Root fix (the real one):_ move the entitlement CHECK server-side. Premium lesson content stops shipping inside the static HTML; instead a **Supabase Edge Function** verifies the logged-in user's `user_entitlements` row (`hasInterviewPass()`) and returns the gated content only to entitled users. Reuses the LIVE Supabase backend (auth Google+email, `user_progress`/`user_entitlements`, `SUPABASE_INTEGRATION.md`) — same proxy pattern the AI Coach research already scoped. Site stays vanilla/static on GitHub Pages.
