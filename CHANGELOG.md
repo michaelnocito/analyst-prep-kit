@@ -9,6 +9,41 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.147.0] — 2026-07-16 — Tableau kit: guided knowledge path (stable frame)
+
+Fifth kit on the Duolingo-style soft-guide path (Excel v1.142.0, SQL v1.143–144.0,
+Python v1.145.0, Power BI v1.146.0). Tableau already had a lesson→drills guided chain
+with `guidedPrev()`, but it had no cards, no unit reviews, and its complete surfaces
+routed around the path; this release threads all three in on the stable frame:
+
+- **Recall-first cards**: new `LESSON_CARDS` map tags all 30 flashcards to the first
+  lesson that teaches them (each exactly once); `guidedSeqFor()` weaves them in ahead
+  of the drills as "Recall — no peeking" steps (retrieval, not re-reading).
+- **Unit reviews**: `startUnitReview()` fires one skippable mixed-review node at each
+  unit boundary (3 cards + 3 distinct-type drills drawn from all prior lessons), once
+  per unit via `S.unitReviewsDone`. Never blocks forward progress. Unit 0's review is
+  cards-only by design — its four concept lessons carry no drills to interleave.
+- **Stable frame**: `renderGuidedStep()` keeps one persistent layout (header row,
+  progress dots, step body, uniform bottom Back/Next bar); only the body swaps. The
+  five drill renderers already returned body-only markup, so no split was needed —
+  the standalone practice pages are untouched.
+- **Hand-off**: `LESSON_LABS` sends lesson 1 (The Tableau Interface) to Know Your
+  Workspace. Tableau's `show()` does not clear `guided`, so `guidedHandoff()` parks
+  the path and `guidedResume()` renders a "← Back to my path" card on the workspace
+  view, returning the learner to the exact step they left.
+- **CTAs**: "Continue path →" is now the primary action on BOTH lesson-complete
+  surfaces (the legacy card and the v2 flow's Done stage); "Skip to next lesson" is
+  demoted. The v2 Done stage previously jumped to the first unfinished lesson via
+  `openLesson()`, bypassing unit reviews — both surfaces now route through
+  `gotoNextLesson()`, so concept lessons with an empty sequence still trigger reviews.
+
+Verified in-browser: 30/30 cards mapped with no duplicates or gaps, full chain with
+prev/next, unit-review trigger + once-per-unit guard, review items drawn only from
+prior lessons, skip paths, guided Parsons chip init, hand-off resume, all five
+standalone drill pages unchanged, zero console errors.
+
+---
+
 ## [1.146.0] — 2026-07-16 — Power BI kit: guided knowledge path (stable frame)
 
 Fourth kit on the Duolingo-style soft-guide path (Excel v1.142.0, SQL v1.143–144.0,
