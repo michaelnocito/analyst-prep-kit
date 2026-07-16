@@ -9,6 +9,60 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.150.0] — 2026-07-16 — Tableau cert kit: re-verified against the official exam guide (renamed cert + 4 wrong facts + 3 missing objectives)
+
+Full audit of `tableau-cert/` against the **official** exam guide
+(help.salesforce.com article 005298988, read 2026-07-16). The kit had been built
+from secondary sources and had drifted. Everything below is now sourced from the
+official outline, which is linked from the hero.
+
+**The cert was renamed.** "Tableau Desktop Specialist" is now
+**Salesforce Certified Tableau Desktop Foundations**. Same content, same format,
+new name. Kit, hub card, and meta description updated; the old name is kept as
+an explicit "formerly" so search still lands.
+
+**Four exam facts were wrong** (all were stated as fact in the hero chips):
+| | was | actually |
+|---|---|---|
+| Time limit | 60 min | **70 min** |
+| Passing score | 750 / 1000 scaled | **48% raw** (English; 55% Japanese) |
+| Fee | $100 | **$75**, and the **retake is free** |
+| Questions | 45 (40 scored) | **40 scored + up to 5 unscored** |
+
+The 100–1000 scaled-score model is retired — Salesforce publishes a raw percent.
+Removed `scaledEstimate()`; `verdictFor()` now takes a percent and reports
+against the real `PASS_PCT = 48`, with `READY_PCT = 70` labeled in the UI as
+*our* margin recommendation, not the official bar. The old kit was calibrating
+learners to ~75% when the actual line is 48%.
+
+**Domain weights corrected** to the official outline: 23 / 37 / 25 / 15
+(was 25 / 35 / 25 / 15).
+
+**Three official objectives had zero coverage** — now in the study guide and the
+practice exam:
+- **1.1.5** data source with multiple connections / cross-database join (`q46`)
+- **2.3.1** manual vs. computed sort (`q47`) — was missing entirely from the
+  *largest* domain
+- **3.2.2** the Highlighter as distinct from a highlight action (`q49`)
+
+Also filled partial gaps: group creation from marks/headers/Data pane (`q48`)
+vs. set creation from marks/Data pane only (the asymmetry the exam tests), and
+the Boolean data type.
+
+Practice exam 45 → **49 questions**, mix `d1 12 · d2 18 · d3 12 · d4 7`
+(24.5 / 36.7 / 24.5 / 14.3) — within one question of official on every domain.
+Study-guide bullets were appended, never inserted, so `LESSON_LINKS` indices
+still resolve.
+
+Note: the exam **currently tests on Tableau 2022.3** — surfaced in the hero so
+learners don't study features newer than the exam.
+
+Verified: 3/3 inline scripts parse · all 49 answer keys in range and
+shape-correct, ids unique · live at localhost:4201 — `EXAM_MINUTES` 70,
+`PASS_PCT` 48, weights 23/37/25/15, all six hero chips correct, all new bullets
+render on expand-all, results screen exercised at 100% / 51% / 0% (verdict bands
++ pass colouring correct, no undefined/NaN), console clean.
+
 ## [1.149.0] — 2026-07-16 — SQL kit: curriculum reorder + Unit 0 diet (playtest Batch 4)
 
 Research-backed resequencing (plan + citations: ROADMAP.md top block). Lesson IDs
