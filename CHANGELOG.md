@@ -9,6 +9,41 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.146.0] — 2026-07-16 — Power BI kit: guided knowledge path (stable frame)
+
+Fourth kit on the Duolingo-style soft-guide path (Excel v1.142.0, SQL v1.143–144.0,
+Python v1.145.0). Power BI already had a lesson→drills guided chain, but it rendered
+each step as a standalone drill page with an injected header; this release rebuilds it
+on the stable frame and threads the cards and unit reviews in:
+
+- **Recall-first cards**: new `LESSON_CARDS` map tags all 28 flashcards to the first
+  lesson that teaches them (each exactly once); `guidedSeqFor()` weaves them in ahead
+  of the drills as "Recall — no peeking" steps.
+- **Stable frame**: `renderGuidedStep()` now owns one persistent layout — header row,
+  progress dots, step body, uniform bottom Back/Next bar — and only the step body
+  swaps. The drill renderers were split into body-only builders (`fillBody`/`bugBody`/
+  `parsonsBody`) with thin `renderFill`/`renderBug`/`renderParsons` wrappers for the
+  standalone practice pages, which are unchanged. No per-drill inline advance buttons
+  in guided mode; added `guidedPrev()`.
+- **Unit reviews**: `startUnitReview()` fires one skippable mixed review at each unit
+  boundary (3 cards + 3 distinct-type drills from prior lessons), once per unit via
+  `state.unitReviewsDone`. Review mode gets its own header label and Skip controls.
+- **Hand-off steps**: lesson 1 → Know Your Workspace, lesson 6 → DAX Lab (the kit's
+  lab equivalent of Python's terminal steps). Because Power BI's `navigate()` clears
+  `guided`, `guidedHandoff()`/`guidedResume()` hold the learner's place and offer one
+  tap back to the path.
+- **CTAs**: "Continue path →" is now the primary action on both lesson-complete
+  surfaces (`finishLesson()` and the v2 focus-mode Done stage); "Skip to next lesson"
+  demoted to outline. Concept lessons with an empty sequence (Unit 0, 3, 11, 12, and
+  the Unit 4–7 scenario lessons) route through `gotoNextLesson()` so unit reviews
+  still fire.
+- Confirmed on Zinc & Sky (grain.css + zinc-sky.css). Verified in-browser: card
+  coverage 28/28 with no dups or gaps, full chain with prev/next, unit-review trigger
+  and once-per-unit guard, skip paths, guided Parsons + hand-off resume, standalone
+  drills untouched, zero console errors.
+
+---
+
 ## [1.145.0] — 2026-07-16 — Python kit: guided knowledge path (stable frame)
 
 Third kit on the Duolingo-style soft-guide path (Excel v1.142.0, SQL v1.143–144.0).

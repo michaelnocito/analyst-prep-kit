@@ -1433,6 +1433,8 @@ let state = {
   doneBugs: [],
   doneParsons: [],
   flagged: [],
+  cardsReviewed: [],
+  unitReviewsDone: [],
   theme: 'light'
 };
 function loadState(){
@@ -1858,11 +1860,12 @@ function finishLesson(id){
   const next = DATA.LESSONS.find(l => !state.doneLessons.includes(l.id));
   const qw = document.getElementById('quiz-wrap');
   if(qw){
-    const dc = (LESSON_DRILLS[id] || []).length;
-    const practiceBtn = dc ? `<button class="btn btn-primary" onclick="startGuided(${id})">Practice this →</button>` : '';
-    const nextCls = dc ? 'btn-outline btn-sm' : 'btn-primary';
-    const nextBtn = next ? `<button class="btn ${nextCls}" onclick="navigate('lesson',${next.id})">Next: ${next.title} →</button>` : `<button class="btn ${nextCls}" onclick="navigate('practice')">Start Practice →</button>`;
-    qw.innerHTML += `<div class="mt row" style="gap:10px;flex-wrap:wrap">${practiceBtn}${nextBtn}<button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">All Lessons</button></div>`;
+    // Guided path is the primary route on. Concept lessons with no sequence
+    // still route through gotoNextLesson() so unit reviews fire.
+    const dc = guidedSeqFor(id).length;
+    const pathBtn = `<button class="btn btn-primary" onclick="${dc?`startGuided(${id})`:`gotoNextLesson(${id})`}">Continue path →</button>`;
+    const skipBtn = dc && next ? `<button class="btn btn-outline btn-sm" onclick="navigate('lesson',${next.id})">Skip to next lesson →</button>` : (!next ? `<button class="btn btn-outline btn-sm" onclick="navigate('practice')">Start Practice →</button>` : '');
+    qw.innerHTML += `<div class="mt row" style="gap:10px;flex-wrap:wrap">${pathBtn}${skipBtn}<button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">All Lessons</button></div>`;
     qw.lastElementChild?.scrollIntoView({behavior:'smooth', block:'center'}); // bring the new action buttons into view
   }
 }
@@ -2328,11 +2331,11 @@ function v2PbiBody(l, done){
     </div>`;
   } else {
     const nextLesson=DATA.LESSONS.find(ll=>ll.id!==l.id&&!state.doneLessons.includes(ll.id));
-    const dc=(LESSON_DRILLS[l.id]||[]).length;
-    const practiceBtn=dc?`<button class="btn btn-outline btn-sm" onclick="startGuided(${l.id})">Practice this &rarr;</button>`:'';
-    const nextBtn=nextLesson
-      ?`<button class="btn btn-primary" onclick="navigate('lesson',${nextLesson.id})">Next: ${nextLesson.title} &rarr;</button>`
-      :`<button class="btn btn-primary" onclick="navigate('practice')">Start Practice &rarr;</button>`;
+    const dc=guidedSeqFor(l.id).length;
+    const nextBtn=`<button class="btn btn-primary" onclick="${dc?`startGuided(${l.id})`:`gotoNextLesson(${l.id})`}">Continue path &rarr;</button>`;
+    const practiceBtn=dc&&nextLesson
+      ?`<button class="btn btn-outline btn-sm" onclick="navigate('lesson',${nextLesson.id})">Skip to next lesson &rarr;</button>`
+      :(!nextLesson?`<button class="btn btn-outline btn-sm" onclick="navigate('practice')">Start Practice &rarr;</button>`:'');
     const _wins=parseInt(localStorage.getItem('pbikt-recall-wins')||'0');
     body=`<div class="v2-stage-card">
       <h3><i data-lucide="badge-check"></i> Done</h3>
@@ -2367,12 +2370,12 @@ function v2PbiBody(l, done){
 // PARSONS ×12) appear exactly once. Concept lessons (1/3/11/12) have no DAX
 // drills, so the guided flow advances straight past them.
 const LESSON_DRILLS = {
-  1:  [],
+  1:  [['workspace']],
   2:  [['parsons',8]],
   3:  [],
   4:  [['bugs',11]],
   5:  [['fills',8],['fills',11],['bugs',0],['bugs',2],['bugs',4],['bugs',7]],
-  6:  [['fills',0],['fills',1],['fills',2],['fills',6],['fills',7],['fills',10],['bugs',1],['bugs',6],['parsons',0],['parsons',2],['parsons',5],['parsons',10]],
+  6:  [['fills',0],['fills',1],['fills',2],['fills',6],['fills',7],['fills',10],['bugs',1],['bugs',6],['parsons',0],['parsons',2],['parsons',5],['parsons',10],['lab']],
   7:  [['fills',3],['fills',9],['bugs',5],['bugs',9],['parsons',1],['parsons',7]],
   8:  [['fills',4],['fills',5],['bugs',3],['bugs',8],['bugs',10],['parsons',3],['parsons',4],['parsons',6]],
   9:  [['parsons',9]],
@@ -2380,49 +2383,176 @@ const LESSON_DRILLS = {
   11: [],
   12: []
 };
-let guided = null;
-function startGuided(lessonId){
+
+// Guided Path: flashcards per lesson (retrieval-first — testing effect).
+// Indices are 0-based into DATA.CARDS; every card is tagged to the FIRST
+// lesson that teaches its concept — all 28 appear exactly once. Unit 0 and
+// Units 4-7 are concept/scenario lessons with no cards of their own.
+const LESSON_CARDS = {
+  1:[0,1,2], 2:[3,4], 3:[26], 4:[5,6,7],
+  5:[8,9,10,11], 6:[14,17,18], 7:[12,13], 8:[15,16,24],
+  9:[19,25], 10:[20,21], 11:[], 12:[22,23,27]
+};
+
+// ─── GUIDED PATH (lesson → cards → its drills → hand-off → next lesson) ─────
+let guided = null; // { lessonId, seq:[[type,idx]], pos, review?, reviewUnit?, nextLid? }
+const _HANDOFFS = {
+  workspace: {title:'Find it in the Workspace', copy:'Tap through the real Power BI layout — panes, field wells, canvas — then come back and continue.', btn:'Open Workspace →', view:'workspace'},
+  lab: {title:'Look it up in the DAX Lab', copy:'Skim the DAX functions you just used in the searchable reference, then come back and continue.', btn:'Open DAX Lab →', view:'lab'}
+};
+function guidedSeqFor(lessonId){
   const M = {fills:'FILLS', bugs:'BUGS', parsons:'PARSONS'};
-  const seq = (LESSON_DRILLS[lessonId] || []).filter(s => M[s[0]] && DATA[M[s[0]]] && DATA[M[s[0]]][s[1]]);
+  const cards = (LESSON_CARDS[lessonId] || []).filter(i => DATA.CARDS[i]).map(i => ['cards', i]);
+  const drills = (LESSON_DRILLS[lessonId] || []).filter(s => {
+    if(_HANDOFFS[s[0]]) return true;
+    return M[s[0]] && DATA[M[s[0]]] && DATA[M[s[0]]][s[1]];
+  });
+  return cards.concat(drills);
+}
+function startGuided(lessonId){
+  const seq = guidedSeqFor(lessonId);
   if(!seq.length){ gotoNextLesson(lessonId); return; }
   guided = {lessonId, seq, pos:0};
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const pb = document.querySelectorAll('.nav-btn')[2]; if(pb) pb.classList.add('active');
   renderGuidedStep();
 }
+
+// Mixed review node at a unit boundary: ~6 items pulled from EARLIER lessons
+// (interleaved retrieval — Rohrer/Cepeda). Soft-guide: fully skippable,
+// never blocks the next lesson.
+function startUnitReview(finishedUnit, nextLid){
+  const nextPos = lessonPos(nextLid);
+  const priorLessons = DATA.LESSONS.filter((l,i) => i < nextPos);
+  let cardPool = [], drillPool = [];
+  priorLessons.forEach(l => {
+    (LESSON_CARDS[l.id] || []).forEach(i => { if(DATA.CARDS[i]) cardPool.push(['cards', i]); });
+    (LESSON_DRILLS[l.id] || []).forEach(s => { if(!_HANDOFFS[s[0]]) drillPool.push(s); });
+  });
+  const pick = (pool,n) => { const out=[]; while(pool.length && out.length<n){ out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]); } return out; };
+  // Prefer drills of distinct types so the review actually interleaves.
+  const pickDrills = (pool,n) => { const out=[],seen={}; const shuffled=pick(pool,pool.length);
+    for(const s of shuffled){ if(out.length>=n) break; if(!seen[s[0]]){ seen[s[0]]=1; out.push(s); } }
+    for(const s of shuffled){ if(out.length>=n) break; if(!out.includes(s)) out.push(s); }
+    return out; };
+  const seq = pick(cardPool,3).concat(pickDrills(drillPool,3));
+  if(!seq.length){ navigate('lesson', nextLid); return; }
+  guided = {lessonId:null, seq, pos:0, review:true, reviewUnit:finishedUnit, nextLid};
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const pb = document.querySelectorAll('.nav-btn')[2]; if(pb) pb.classList.add('active');
+  renderGuidedStep();
+}
+
+// Stable frame: the header row, progress dots, and the uniform bottom
+// Back/Next bar keep their exact position on every step — only the step body
+// (card / drill / hand-off pointer) swaps in the middle. No per-drill headers
+// or advance buttons in guided mode, no layout jump.
 function renderGuidedStep(){
   if(!guided) return;
-  const step = guided.seq[guided.pos];
-  if(step[0]==='fills') renderFill(step[1]);
-  else if(step[0]==='bugs') renderBug(step[1]);
-  else if(step[0]==='parsons') renderParsons(step[1]);
-  injectGuidedHeader();
-}
-function injectGuidedHeader(){
-  if(!guided) return;
-  const main = document.getElementById('main');
-  const row = main.querySelector('.row.mb');
-  if(!row) return;
-  const {seq, pos, lessonId} = guided;
-  const lesson = DATA.LESSONS.find(l => l.id === lessonId);
+  const {seq, pos, lessonId, review} = guided;
   const step = seq[pos];
-  const stepFlag = '';
-  row.innerHTML = `<button class="btn btn-ghost btn-sm" onclick="navigate('lesson',${lessonId})">← Back to lesson</button><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto">${stepFlag}<span class="text-muted text-sm">Practice ${pos+1}/${seq.length} · ${lesson.title}</span></div>`;
-  const dots = document.createElement('div');
-  dots.style.cssText = 'display:flex;gap:4px;align-items:center;margin:0 0 14px';
-  dots.innerHTML = seq.map((_,i) => `<span style="width:20px;height:6px;border-radius:3px;background:${i<=pos?'var(--accent)':'rgba(127,127,127,.28)'};opacity:${i<=pos?1:.5}"></span>`).join('') + `<button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="guidedNext()">Skip →</button>`;
-  row.after(dots);
+  const lesson = review ? null : DATA.LESSONS.find(l => l.id === lessonId);
+  const isLast = pos === seq.length-1;
+  const dots = seq.map((_,i) => `<span style="width:20px;height:6px;border-radius:3px;background:${i<pos?'var(--green)':i===pos?'var(--accent)':'rgba(127,127,127,.28)'};opacity:${i<=pos?1:.5}"></span>`).join('');
+  const backTop = review
+    ? `<button class="btn btn-ghost btn-sm" onclick="guidedSkipAll()">Skip review →</button>`
+    : `<button class="btn btn-ghost btn-sm" onclick="navigate('lesson',${lessonId})">← Back to lesson</button>`;
+  const label = review
+    ? `Unit review ${pos+1}/${seq.length} · mixing earlier skills`
+    : `Practice ${pos+1}/${seq.length} · ${lesson.title}`;
+  let body;
+  if(step[0]==='cards') body = guidedCardBody(step[1]);
+  else if(_HANDOFFS[step[0]]){
+    const h = _HANDOFFS[step[0]];
+    body = `<div class="card"><h2>${h.title}</h2><p class="text-muted text-sm" style="margin-bottom:14px">${h.copy}</p><button class="btn btn-primary btn-sm" onclick="guidedHandoff('${h.view}')">${h.btn}</button></div>`;
+  }
+  else if(step[0]==='fills') body = fillBody(step[1]);
+  else if(step[0]==='bugs') body = bugBody(step[1]);
+  else if(step[0]==='parsons') body = parsonsBody(step[1]);
+  const nextLabel = isLast
+    ? (review ? 'Finish review →' : 'Finish — next lesson →')
+    : (step[0]==='cards' ? 'Got it — next →' : 'Next →');
+  const backNav = pos > 0
+    ? `<button class="btn btn-ghost btn-sm" onclick="guidedPrev()">← Back</button>`
+    : (review
+      ? `<button class="btn btn-ghost btn-sm" onclick="guidedSkipAll()">Skip review</button>`
+      : `<button class="btn btn-ghost btn-sm" onclick="navigate('lesson',${lessonId})">← Lesson</button>`);
+  document.getElementById('main').innerHTML = `
+    <div class="row mb">
+      ${backTop}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto"><span class="text-muted text-sm">${label}</span></div>
+    </div>
+    <div style="display:flex;gap:4px;align-items:center;margin:0 0 14px">${dots}</div>
+    ${review?`<p class="text-muted text-sm" style="margin:0 0 12px">Mixed review feels harder than fresh practice — that's normal, and it's where the material sticks.</p>`:''}
+    ${body}
+    <div class="row mt" style="justify-content:space-between;gap:10px;margin-top:20px">${backNav}<button class="btn btn-primary" onclick="guidedNext()">${nextLabel}</button></div>`;
+  if(window.lucide) lucide.createIcons();
+  window.scrollTo(0,0);
 }
+
+// "Recall — no peeking" flashcard step: term shown, learner recalls out loud,
+// then flips to check (retrieval practice, not re-reading).
+function guidedCardBody(i){
+  const [term, def] = DATA.CARDS[i];
+  state.cardsReviewed = state.cardsReviewed || [];
+  if(!state.cardsReviewed.includes(i)){ state.cardsReviewed.push(i); saveState(); }
+  return `<div class="card" style="text-align:center;padding:28px">
+    <span class="badge badge-unit" style="margin-bottom:12px;display:inline-block">Recall — no peeking</span>
+    <h2 style="margin-bottom:10px">${term}</h2>
+    <p class="text-muted text-sm" style="margin-bottom:14px">Say what it does (and one gotcha) out loud, then check yourself.</p>
+    <div id="gcBack" style="display:none;text-align:left;background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;font-size:14px;line-height:1.6">${def}</div>
+    <button id="gcFlip" class="btn btn-ghost btn-sm" onclick="document.getElementById('gcBack').style.display='block';this.style.display='none'">Check yourself →</button>
+  </div>`;
+}
+
 function guidedNext(){
   if(!guided) return;
   if(guided.pos < guided.seq.length-1){ guided.pos++; renderGuidedStep(); }
-  else { gotoNextLesson(guided.lessonId); }
+  else if(guided.review){ const nl = guided.nextLid; guided = null; celebrate(); navigate('lesson', nl); }
+  else { const lid = guided.lessonId; guided = null; gotoNextLesson(lid); }
+}
+function guidedPrev(){ if(guided && guided.pos > 0){ guided.pos--; renderGuidedStep(); } }
+// Hand-off step: open the Workspace / DAX Lab for a real look, but hold the
+// learner's place in the path — navigate() clears `guided`, so stash it and
+// offer one tap back. Soft-guide: they can also just walk away.
+let _guidedResume = null;
+function guidedHandoff(view){
+  if(!guided) return;
+  _guidedResume = guided;
+  navigate(view);
+  const main = document.getElementById('main');
+  if(!main) return;
+  const bar = document.createElement('div');
+  bar.className = 'row mb';
+  bar.innerHTML = `<button class="btn btn-primary btn-sm" onclick="guidedResume()">← Back to the path</button>`;
+  main.prepend(bar);
+  if(window.lucide) lucide.createIcons();
+}
+function guidedResume(){
+  if(!_guidedResume) return;
+  guided = _guidedResume; _guidedResume = null;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const pb = document.querySelectorAll('.nav-btn')[2]; if(pb) pb.classList.add('active');
+  renderGuidedStep();
+}
+function guidedSkipAll(){
+  if(!guided) return;
+  const g = guided; guided = null;
+  if(g.review) navigate('lesson', g.nextLid); else gotoNextLesson(g.lessonId);
 }
 function gotoNextLesson(lid){
   guided = null;
   const _nxt=nextLessonId(lid);
-  if(_nxt!==null) navigate('lesson', _nxt);
-  else { navigate('home'); showToast('You finished every Power BI lesson!'); }
+  if(_nxt===null){ navigate('home'); showToast('You finished every Power BI lesson!'); return; }
+  // Unit boundary → one skippable mixed-review node (once per unit).
+  const cur = DATA.LESSONS.find(l => l.id === lid), nxt = DATA.LESSONS.find(l => l.id === _nxt);
+  state.unitReviewsDone = state.unitReviewsDone || [];
+  if(cur && nxt && cur.unit !== nxt.unit && !state.unitReviewsDone.includes(cur.unit)){
+    state.unitReviewsDone.push(cur.unit); saveState();
+    startUnitReview(cur.unit, _nxt);
+    return;
+  }
+  navigate('lesson', _nxt);
 }
 
 // ─── PRACTICE ──────────────────────────────────────────────────────────────
@@ -2451,17 +2581,14 @@ function renderPractice(){
 }
 
 // ─── FILL DRILL ────────────────────────────────────────────────────────────
-function renderFill(idx){
+// Body-only markup — the guided stable frame supplies its own header and nav,
+// so the drill returns just its card. renderFill() wraps it for standalone use.
+function fillBody(idx){
   const f = DATA.FILLS[idx];
-  if(!f) return navigate('practice');
+  if(!f) return '';
   _hd={hint:f.hint,ans:f.ans,state:0};
   const done = state.doneFills.includes(f.id);
-  document.getElementById('main').innerHTML = `
-    <div class="row mb">
-      <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
-      ${done ? '<span class="badge badge-done">✓</span>' : ''}
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto"><span class="text-muted text-sm">${idx+1} / ${DATA.FILLS.length}</span></div>
-    </div>
+  return `
     <div class="card">
       <h2>Fill in the Blank</h2>
       <p class="fill-prompt">${f.q}</p>
@@ -2477,11 +2604,24 @@ function renderFill(idx){
       <div id="fill-next" class="mt"></div>
     </div>`;
 }
+function renderFill(idx){
+  if(!DATA.FILLS[idx]) return navigate('practice');
+  const done = state.doneFills.includes(DATA.FILLS[idx].id);
+  document.getElementById('main').innerHTML = `
+    <div class="row mb">
+      <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
+      ${done ? '<span class="badge badge-done">✓</span>' : ''}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto"><span class="text-muted text-sm">${idx+1} / ${DATA.FILLS.length}</span></div>
+    </div>
+    ${fillBody(idx)}`;
+  if(window.lucide) lucide.createIcons();
+}
 
 // Fill in the Blank — tap the correct piece (no free typing).
+// In guided mode the stable frame's bottom bar advances, so no inline button.
 function _fillAdvance(idx){
   return guided
-    ? `<button class="btn btn-primary btn-sm" onclick="guidedNext()">Next →</button>`
+    ? ''
     : idx+1 < DATA.FILLS.length
       ? `<button class="btn btn-primary btn-sm" onclick="navigate('fill',${idx+1})">Next →</button>`
       : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">All Done →</button>`;
@@ -2502,17 +2642,12 @@ function pickFill(btn, idx){
   }
 }
 // ─── BUG DRILL ─────────────────────────────────────────────────────────────
-function renderBug(idx){
+function bugBody(idx){
   const b = DATA.BUGS[idx];
-  if(!b) return navigate('practice');
+  if(!b) return '';
   _hd={hint:b.hint,ans:b.fix,state:0};
   const done = state.doneBugs.includes(b.id);
-  document.getElementById('main').innerHTML = `
-    <div class="row mb">
-      <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
-      ${done ? '<span class="badge badge-done">✓</span>' : ''}
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto"><span class="text-muted text-sm">${idx+1} / ${DATA.BUGS.length}</span></div>
-    </div>
+  return `
     <div class="card">
       <h2>Bug Hunt</h2>
       <h3>${b.title}</h3>
@@ -2531,12 +2666,24 @@ function renderBug(idx){
       <div id="bug-next" class="mt"></div>
     </div>`;
 }
+function renderBug(idx){
+  if(!DATA.BUGS[idx]) return navigate('practice');
+  const done = state.doneBugs.includes(DATA.BUGS[idx].id);
+  document.getElementById('main').innerHTML = `
+    <div class="row mb">
+      <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
+      ${done ? '<span class="badge badge-done">✓</span>' : ''}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto"><span class="text-muted text-sm">${idx+1} / ${DATA.BUGS.length}</span></div>
+    </div>
+    ${bugBody(idx)}`;
+  if(window.lucide) lucide.createIcons();
+}
 
 // Bug Hunt — tap the correct fix (no free typing).
 function _shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function _bugAdvance(idx){
   return guided
-    ? `<button class="btn btn-primary btn-sm" onclick="guidedNext()">Next →</button>`
+    ? ''
     : idx+1 < DATA.BUGS.length
       ? `<button class="btn btn-primary btn-sm" onclick="navigate('bug',${idx+1})">Next Bug →</button>`
       : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">All Done →</button>`;
@@ -2560,16 +2707,11 @@ function pickBugFix(btn, idx){
 }
 
 // ─── PARSONS DRILL ─────────────────────────────────────────────────────────
-function renderParsons(idx){
+function parsonsBody(idx){
   const p = DATA.PARSONS[idx];
-  if(!p) return navigate('practice');
+  if(!p) return '';
   const done = state.doneParsons.includes(p.id);
-  document.getElementById('main').innerHTML = `
-    <div class="row mb">
-      <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
-      ${done ? '<span class="badge badge-done">✓</span>' : ''}
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto"><span class="text-muted text-sm">${idx+1} / ${DATA.PARSONS.length}</span></div>
-    </div>
+  return `
     <div class="card">
       <h2>Put in Order</h2>
       <h3>${p.title}</h3>
@@ -2588,10 +2730,22 @@ function renderParsons(idx){
       </div>
       <div class="row mt">
         <button class="btn btn-primary btn-sm pars-check" onclick="checkParsons(${idx})">Check Order</button>
-        <button class="btn btn-ghost btn-sm" onclick="navigate('parsons',${idx})">Reset</button>
+        <button class="btn btn-ghost btn-sm" onclick="guided?renderGuidedStep():navigate('parsons',${idx})">Reset</button>
       </div>
       <div id="parsons-result" class="mt"></div>
     </div>`;
+}
+function renderParsons(idx){
+  if(!DATA.PARSONS[idx]) return navigate('practice');
+  const done = state.doneParsons.includes(DATA.PARSONS[idx].id);
+  document.getElementById('main').innerHTML = `
+    <div class="row mb">
+      <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
+      ${done ? '<span class="badge badge-done">✓</span>' : ''}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto"><span class="text-muted text-sm">${idx+1} / ${DATA.PARSONS.length}</span></div>
+    </div>
+    ${parsonsBody(idx)}`;
+  if(window.lucide) lucide.createIcons();
 }
 
 let draggedChip = null;
@@ -2616,7 +2770,7 @@ function checkParsons(idx){
   const correct = p.answer.every((v,i) => v === userOrder[i]);
   if(correct){
     document.getElementById('parsons-result').innerHTML = `<span style="color:var(--green);font-weight:600">✓ Correct order!</span>
-      <div class="row mt" style="gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="if(guided){guidedNext();}else if(${idx}+1 < DATA.PARSONS.length){navigate('parsons', ${idx}+1);}else{navigate('practice');}">Continue &rarr;</button></div>`;
+      ${guided ? '' : `<div class="row mt" style="gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="if(${idx}+1 < DATA.PARSONS.length){navigate('parsons', ${idx}+1);}else{navigate('practice');}">Continue &rarr;</button></div>`}`;
     celebrate();
     markDone('doneParsons', p.id);
   } else {
