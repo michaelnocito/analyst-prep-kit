@@ -9,6 +9,18 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.139.0] — 2026-07-16 — Stats kit: Zinc & Sky palette
+
+- Stats kit joins the Zinc & Sky rollout: one `zinc-sky.css` link in
+  `stats/index.html` (Excel-shaped `data-theme` convention, already covered).
+- Kit-local dark-mode ink rules for the stats accent-filled `.btn`
+  (colorless in other kits, so not a shared rule), `.btn-outline:hover`,
+  and `.dist-btn.active` — deep ink `#082032` instead of white on sky.
+- `zinc-sky.css`: `.conf-chip.is-on` (+ icon) ink rule extended to the
+  `data-theme="dark"` selector family (was SQL-family only).
+- Chart tick/grid colors were already zinc (`#98a3b2`/`#5b6470`) — no chart
+  changes; Chart.js series colors kept as categorical data colors.
+
 ## [1.138.0] — 2026-07-15 — SQL kit: Close-stage order (reflect before you move on)
 
 - Playtest triage (Mike): on the lesson **Close** stage the "Next lesson"
