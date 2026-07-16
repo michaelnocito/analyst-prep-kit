@@ -9,6 +9,28 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.145.0] — 2026-07-16 — Python kit: guided knowledge path (stable frame)
+
+Third kit on the Duolingo-style soft-guide path (Excel v1.142.0, SQL v1.143–144.0).
+Python already had a lesson→drills guided chain with a stable frame; this release
+completes the pattern:
+
+- **Recall-first cards**: new `LESSON_CARDS` map tags all 33 flashcards to the
+  first lesson that teaches them (each exactly once); `guidedSeqFor()` weaves
+  them in ahead of the drills as "Recall — no peeking" steps with a
+  check-yourself flip. Terminal hand-off steps kept.
+- **Unit reviews**: at each unit boundary the path inserts one skippable mixed
+  review (3 cards + 3 distinct-type drills from all prior lessons), once per
+  unit via `S.unitReviewsDone` — soft-guide, never blocks.
+- **Continue path →** is now the primary CTA on both lesson-complete surfaces;
+  "Skip to next lesson" demoted. Concept lessons without steps route through
+  `gotoNextLesson()` so unit reviews still trigger.
+- Stable frame extended: review mode gets its own header label, "Skip review"
+  controls, and the mixed-practice framing line. Standalone Practice pages
+  untouched.
+
+---
+
 ## [1.144.0] — 2026-07-16 — SQL kit: stable-frame guided path (matches Excel)
 
 Mike's call: Excel's in-place step model is the better UX — standardized on it.

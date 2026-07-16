@@ -1294,7 +1294,7 @@ function loadState(){
   return Object.assign({
     theme:'light', lessonsDone:[], fillsDone:[], bugsDone:[], wrongDone:[],
     parsDone:[], esqlDone:[], cardsReviewed:[], currentLesson:1, lessonStage:'intro',
-    doneLesson:null, flagged:[]
+    doneLesson:null, flagged:[], unitReviewsDone:[]
   }, JSON.parse(localStorage.getItem('ppk')||'{}'));
 }
 let S = loadState();
@@ -1529,14 +1529,14 @@ function renderLesson(){
       <div id="quizFeedback"></div></div>`;
   } else {
     const isLast=lessonPos(l.id)>=DATA.LESSONS.length-1;
-    const drillCount=(LESSON_DRILLS[l.id]||[]).length;
+    const drillCount=guidedSeqFor(l.id).length;
     html+=`<div class="card" style="border-color:var(--success);text-align:center;padding:28px">
       <div style="margin-bottom:8px"><i data-lucide="circle-check-big" style="width:34px;height:34px;color:var(--success)"></i></div>
       <h2 style="color:var(--success);margin-bottom:6px">Lesson ${lessonPos(l.id)+1} complete</h2>
-      <p>${drillCount?`Now lock it in — practice this lesson's drills before moving on (${drillCount} quick exercises).`:`This one is a concept lesson — no drills, so head straight to the next lesson.`}</p>
+      <p>${drillCount?`Now lock it in — recall the key ideas and work this lesson's drills before moving on (${drillCount} quick steps).`:`This one is a concept lesson — no drills, so continue the path.`}</p>
       <div class="flex" style="justify-content:center;gap:10px;margin-top:16px;flex-wrap:wrap">
-        ${drillCount?`<button class="btn btn-primary" onclick="startGuided(${l.id})">Practice this →</button>`:''}
-        ${isLast?`<a href="../final/" class="btn ${drillCount?'btn-outline':'btn-primary'}" style="text-decoration:none">Try the Final Exam →</a>`:`<button class="btn ${drillCount?'btn-outline':'btn-primary'}" onclick="openLesson(${nextLessonId(l.id)})">Next Lesson →</button>`}
+        ${drillCount?`<button class="btn btn-primary" onclick="startGuided(${l.id})">Continue path →</button>`:''}
+        ${isLast?`<a href="../final/" class="btn ${drillCount?'btn-outline':'btn-primary'}" style="text-decoration:none">Try the Final Exam →</a>`:(drillCount?`<button class="btn btn-outline btn-sm" onclick="openLesson(${nextLessonId(l.id)})">Skip to next lesson →</button>`:`<button class="btn btn-primary" onclick="gotoNextLesson(${l.id})">Continue path →</button>`)}
         <button class="btn btn-outline btn-sm" onclick="show('lessons')">All lessons</button>
       </div></div>`;
   }
@@ -2084,9 +2084,11 @@ function v2PyBody(l, done){
   } else {
     const nid=nextLessonId(l.id);
     const nextL=nid!==null?DATA.LESSONS.find(x=>x.id===nid):null;
-    const drillCount=(LESSON_DRILLS[l.id]||[]).length;
+    const drillCount=guidedSeqFor(l.id).length;
     const nextBtn=nextL
-      ?`<button class="btn ${drillCount?'btn-outline btn-sm':'btn-primary'}" onclick="openLesson(${nextL.id})">Next: ${nextL.title} &rarr;</button>`
+      ?(drillCount
+        ?`<button class="btn btn-outline btn-sm" onclick="openLesson(${nextL.id})">Skip to next lesson &rarr;</button>`
+        :`<button class="btn btn-primary" onclick="gotoNextLesson(${l.id})">Continue path &rarr;</button>`)
       :`<a href="../final/" class="btn ${drillCount?'btn-outline btn-sm':'btn-primary'}" style="text-decoration:none">Try the Final Exam &rarr;</a>`;
     const _wins=parseInt(localStorage.getItem('ppk-recall-wins')||'0');
     body=`<div class="v2-stage-card">
@@ -2094,7 +2096,7 @@ function v2PyBody(l, done){
       ${_wins>0?`<p style="font-size:12px;color:var(--dim);margin:0 0 10px"><i data-lucide="repeat-2" style="width:13px;height:13px;vertical-align:-2px"></i> ${_wins} concept${_wins===1?'':'s'} recalled from memory so far</p>`:''}
       <p style="font-size:15px;line-height:1.7;margin-bottom:18px">${l.close}</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        ${drillCount?`<button class="btn btn-primary" onclick="startGuided(${l.id})">Practice this &rarr;</button>`:''}
+        ${drillCount?`<button class="btn btn-primary" onclick="startGuided(${l.id})">Continue path &rarr;</button>`:''}
         ${nextBtn}
         <button class="btn btn-outline btn-sm" onclick="show('lessons')">All Lessons</button><button class="btn btn-outline btn-sm" onclick="setPyStage(${l.id},0)" title="Walk back through this lesson, your ✓ stays">&#8634; Review lesson</button>
       </div>
@@ -2157,25 +2159,75 @@ const LESSON_DRILLS = {
   14: [['fills',13],['esql',13],['bugs',13],['wrong',13],['parsons',13]]
 };
 
-// ─── GUIDED PATH (lesson → its drills → next lesson) ────────────────────────
-let guided = null;
-function startGuided(lessonId){
-  const seq=(LESSON_DRILLS[lessonId]||[]).filter(s=>{
+// Guided Path: flashcards per lesson (retrieval-first — testing effect).
+// Indices are 0-based into DATA.CARDS; every card is tagged to the FIRST
+// lesson that teaches its concept — all 33 appear exactly once.
+const LESSON_CARDS = {
+  102:[0,1,2,3], 103:[7],
+  2:[4,5], 3:[6], 4:[8,9], 5:[10,11,12,16], 6:[14], 7:[13,15],
+  8:[17,18,27], 9:[19], 10:[20,21,22,28], 11:[23], 12:[24,25,26,29],
+  13:[30,31], 14:[32]
+};
+
+// ─── GUIDED PATH (lesson → cards → its drills → next lesson) ─────────────────
+let guided = null; // { lessonId, seq:[[type,idx]], pos, review?, reviewUnit?, nextLid? }
+function guidedSeqFor(lessonId){
+  const cards=(LESSON_CARDS[lessonId]||[]).filter(i=>DATA.CARDS[i]).map(i=>['cards',i]);
+  const drills=(LESSON_DRILLS[lessonId]||[]).filter(s=>{
     if(s[0]==='terminal')return true;
     const dt=DRILL_TYPES.find(d=>d.key===s[0]);
     return dt&&DATA[dt.data]&&DATA[dt.data][s[1]];
   });
+  return cards.concat(drills);
+}
+function startGuided(lessonId){
+  const seq=guidedSeqFor(lessonId);
   if(!seq.length){ gotoNextLesson(lessonId); return; }
   guided={lessonId,seq,pos:0}; show('drill'); renderGuidedStep();
 }
+
+// Mixed review node at a unit boundary: ~6 items pulled from EARLIER lessons
+// (interleaved retrieval — Rohrer/Cepeda). Soft-guide: fully skippable,
+// never blocks the next lesson.
+function startUnitReview(finishedUnit, nextLid){
+  const nextPos=lessonPos(nextLid);
+  const priorLessons=DATA.LESSONS.filter((l,i)=>i<nextPos);
+  let cardPool=[], drillPool=[];
+  priorLessons.forEach(l=>{
+    (LESSON_CARDS[l.id]||[]).forEach(i=>{ if(DATA.CARDS[i]) cardPool.push(['cards',i]); });
+    (LESSON_DRILLS[l.id]||[]).forEach(s=>{ if(s[0]!=='terminal') drillPool.push(s); });
+  });
+  const pick=(pool,n)=>{ const out=[]; while(pool.length && out.length<n){ out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]); } return out; };
+  // Prefer drills of distinct types so the review actually interleaves.
+  const pickDrills=(pool,n)=>{ const out=[],seen={}; const shuffled=pick(pool,pool.length);
+    for(const s of shuffled){ if(out.length>=n) break; if(!seen[s[0]]){ seen[s[0]]=1; out.push(s); } }
+    for(const s of shuffled){ if(out.length>=n) break; if(!out.includes(s)) out.push(s); }
+    return out; };
+  const seq=pick(cardPool,3).concat(pickDrills(drillPool,3));
+  if(!seq.length){ openLesson(nextLid); return; }
+  guided={lessonId:null,seq,pos:0,review:true,reviewUnit:finishedUnit,nextLid};
+  show('drill'); renderGuidedStep();
+}
+// Excel-style stable frame: the header row, progress dots, and the uniform
+// bottom Back/Next bar keep their exact position on every step — only the
+// step body (card / drill / terminal pointer) swaps in the middle. No
+// per-drill headers or advance buttons in guided mode, no layout jump.
 function renderGuidedStep(){
   if(!guided)return;
-  const {seq,pos,lessonId}=guided; const step=seq[pos];
-  const lesson=DATA.LESSONS.find(l=>l.id===lessonId); const isLast=pos===seq.length-1;
+  const {seq,pos,lessonId,review}=guided; const step=seq[pos];
+  const lesson=review?null:DATA.LESSONS.find(l=>l.id===lessonId); const isLast=pos===seq.length-1;
   const dots=seq.map((_,i)=>`<div style="width:24px;height:6px;border-radius:3px;background:${i<pos?'var(--success)':i===pos?'var(--accent)':'var(--surf2)'}"></div>`).join('');
-  const header=`<div class="flex-between mb12"><button class="btn btn-outline btn-sm" onclick="openLesson(${lessonId})">← Back to lesson</button><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><span class="tag accent">Practice ${pos+1}/${seq.length} · ${lesson.title}</span></div></div><div class="flex" style="gap:8px;margin-bottom:16px">${dots}</div>`;
+  const backTop=review
+    ?`<button class="btn btn-outline btn-sm" onclick="guidedSkipAll()">Skip review →</button>`
+    :`<button class="btn btn-outline btn-sm" onclick="openLesson(${lessonId})">← Back to lesson</button>`;
+  const label=review
+    ?`Unit review ${pos+1}/${seq.length} · mixing earlier skills`
+    :`Practice ${pos+1}/${seq.length} · ${lesson.title}`;
+  const header=`<div class="flex-between mb12">${backTop}<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><span class="tag accent">${label}</span></div></div><div class="flex" style="gap:8px;margin-bottom:16px">${dots}</div>${review?`<p class="dim" style="font-size:.85rem;margin:0 0 12px">Mixed review feels harder than fresh practice — that's normal, and it's where the material sticks.</p>`:''}`;
   let body;
-  if(step[0]==='terminal'){
+  if(step[0]==='cards'){
+    body=guidedCardBody(step[1]);
+  } else if(step[0]==='terminal'){
     body=`<div class="card"><h2>Try it in the Terminal</h2><p>Run real pandas against the dataset to lock this in, then come back and continue.</p><button class="btn btn-primary" onclick="show('terminal')">Open Terminal →</button></div>`;
   } else {
     const dt=DRILL_TYPES.find(d=>d.key===step[0]); const idx=step[1]; const item=DATA[dt.data][idx]; const isDone=S[dt.done].includes(idx);
@@ -2186,14 +2238,60 @@ function renderGuidedStep(){
     else if(step[0]==='parsons')body=renderParsons(item,idx,isDone);
     else if(step[0]==='esql')body=renderEsql(item,idx,isDone);
   }
-  const nav=`<div class="flex mt20" style="justify-content:space-between;gap:10px"><button class="btn btn-ghost btn-sm" onclick="${pos>0?'guidedPrev()':'openLesson('+lessonId+')'}">${pos>0?'← Back':'← Lesson'}</button><button class="btn btn-primary" onclick="guidedNext()">${isLast?'Finish — next lesson →':'Next drill →'}</button></div>`;
+  const nextLabel=isLast
+    ?(review?'Finish review →':'Finish — next lesson →')
+    :(step[0]==='cards'?'Got it — next →':'Next →');
+  const backNav=pos>0
+    ?`<button class="btn btn-ghost btn-sm" onclick="guidedPrev()">← Back</button>`
+    :(review
+      ?`<button class="btn btn-ghost btn-sm" onclick="guidedSkipAll()">Skip review</button>`
+      :`<button class="btn btn-ghost btn-sm" onclick="openLesson(${lessonId})">← Lesson</button>`);
+  const nav=`<div class="flex mt20" style="justify-content:space-between;gap:10px">${backNav}<button class="btn btn-primary" onclick="guidedNext()">${nextLabel}</button></div>`;
   document.getElementById('drillContent').innerHTML=header+body+nav;
   if(step[0]==='parsons')initParsons(DATA.PARSONS[step[1]],step[1]);
   window.scrollTo(0,0);
 }
-function guidedNext(){ if(!guided)return; if(guided.pos<guided.seq.length-1){guided.pos++;renderGuidedStep();} else {const lid=guided.lessonId;guided=null;gotoNextLesson(lid);} }
+
+// "Recall — no peeking" flashcard step: term shown, learner recalls out loud,
+// then flips to check (retrieval practice, not re-reading).
+function guidedCardBody(i){
+  const c=DATA.CARDS[i];
+  if(!S.cardsReviewed.includes(i)){S.cardsReviewed.push(i);save();}
+  return `<div class="card" style="text-align:center;padding:28px">
+    <div class="tag accent" style="margin-bottom:12px;display:inline-block">Recall — no peeking</div>
+    <h2 style="font-family:var(--mono);margin-bottom:10px">${c.front}</h2>
+    <p class="dim" style="margin-bottom:14px">Say what it does (and one gotcha) out loud, then check yourself.</p>
+    <div id="gcBack" style="display:none;text-align:left;background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;white-space:pre-wrap;font-size:14px;line-height:1.6">${c.back}</div>
+    <button id="gcFlip" class="btn btn-outline btn-sm" onclick="document.getElementById('gcBack').style.display='block';this.style.display='none'">Check yourself →</button>
+  </div>`;
+}
+
+function guidedNext(){
+  if(!guided)return;
+  if(guided.pos<guided.seq.length-1){guided.pos++;renderGuidedStep();}
+  else if(guided.review){const nl=guided.nextLid;guided=null;celebrate();openLesson(nl);}
+  else {const lid=guided.lessonId;guided=null;gotoNextLesson(lid);}
+}
 function guidedPrev(){ if(guided&&guided.pos>0){guided.pos--;renderGuidedStep();} }
-function gotoNextLesson(lid){ const _nxt=nextLessonId(lid); if(_nxt!==null){openLesson(_nxt);} else {show('home');celebrate(true,'🎉 You finished every Python lesson!');} }
+function guidedSkipAll(){
+  if(!guided)return;
+  const g=guided; guided=null;
+  if(g.review) openLesson(g.nextLid); else gotoNextLesson(g.lessonId);
+}
+function gotoNextLesson(lid){
+  guided=null;
+  const _nxt=nextLessonId(lid);
+  if(_nxt===null){show('home');celebrate(true,'🎉 You finished every Python lesson!');return;}
+  // Unit boundary → one skippable mixed-review node (once per unit).
+  const cur=DATA.LESSONS.find(l=>l.id===lid), nxt=DATA.LESSONS.find(l=>l.id===_nxt);
+  S.unitReviewsDone=S.unitReviewsDone||[];
+  if(cur&&nxt&&cur.unit!==nxt.unit&&!S.unitReviewsDone.includes(cur.unit)){
+    S.unitReviewsDone.push(cur.unit); save();
+    startUnitReview(cur.unit,_nxt);
+    return;
+  }
+  openLesson(_nxt);
+}
 
 function renderDrillList(){
   document.getElementById('drillList').innerHTML=DRILL_TYPES.map(dt=>{
