@@ -3309,9 +3309,106 @@ function practiceCard(i){
 // ─── CAPSTONE: PUT IT ALL TOGETHER ─────────────────────────────────────────
 // Each step is checked by running the reference answer and comparing result
 // sets, so the check keeps working even if the seeded data ever changes.
+// 18 steps, backward-faded worked example: steps 1–3 arrive fully worked and
+// annotated (run + read), 4–8 arrive with only the LAST clause missing, 9–13
+// give a comment skeleton, 14–18 are bare business questions. Each step adds
+// exactly ONE new construct, in the order the lessons teach them.
 const CAPSTONE = {
-  brief: "The owner asks: <strong>“Which product category is carrying the business, and who are my top customers?”</strong> Answer it in four steps, each using concepts from the cards.",
+  brief: "The owner asks: <strong>“Which product category is carrying the business, and who are my top customers?”</strong> You'll answer it by building the full analyst toolkit one clause at a time — 18 steps, from your first SELECT to a windowed ranking. Early steps are written for you; by the end you write everything. Already fluent? Tap any step header to jump ahead.",
   steps: [
+    {stage:"Worked — run it, read every line", title:"1 · SELECT * — look at the raw table",
+     p:"Run the query as written, then read the comments. Every analysis starts by looking at raw rows.",
+     scaffold:"-- Fully worked: just press Run & check, then read.\nSELECT *          -- * means: every column\nFROM sales        -- the table to read from\nLIMIT 10;         -- only show the first 10 rows\n",
+     hint:"This one is done for you — press Run & check, then look at each column the table returns.",
+     sql:"SELECT * FROM sales LIMIT 10;"},
+    {stage:"Worked — run it, read every line", title:"2 · Name the columns you want",
+     p:"Same table, but only the columns that matter. Run it and compare with step 1's output.",
+     scaffold:"-- Fully worked: Run & check, then read.\nSELECT sale_id, sale_date, amount   -- name columns instead of *\nFROM sales\nLIMIT 10;\n",
+     hint:"Done for you — notice the result now has exactly the three named columns.",
+     sql:"SELECT sale_id, sale_date, amount FROM sales LIMIT 10;"},
+    {stage:"Worked — run it, read every line", title:"3 · WHERE — keep only the rows you want",
+     p:"Only the big sales: rows where amount is at least 100. Run it and read how WHERE sits after FROM.",
+     scaffold:"-- Fully worked: Run & check, then read.\nSELECT sale_id, sale_date, amount\nFROM sales\nWHERE amount >= 100;   -- filter: keep rows only where this is true\n",
+     hint:"Done for you — WHERE filters ROWS before anything else happens.",
+     sql:"SELECT sale_id, sale_date, amount FROM sales WHERE amount >= 100;"},
+    {stage:"Finish the last clause", title:"4 · AND — a second condition",
+     p:"Big sales in the North only: amount at least 100 AND region = 'North'. The query is written except the second condition — finish the WHERE.",
+     scaffold:"SELECT sale_id, sale_date, amount\nFROM sales\nWHERE amount >= 100\n  -- add: AND region = 'North'\n;\n",
+     hint:"Replace the comment line with: AND region = 'North' (before the semicolon).",
+     sql:"SELECT sale_id, sale_date, amount FROM sales WHERE amount >= 100 AND region = 'North';"},
+    {stage:"Finish the last clause", title:"5 · ORDER BY — sort the result",
+     p:"Same North big-sales list, largest amount first. Add the sort.",
+     scaffold:"SELECT sale_id, sale_date, amount\nFROM sales\nWHERE amount >= 100 AND region = 'North'\n-- add: ORDER BY amount, biggest first\n;\n",
+     hint:"ORDER BY amount DESC — DESC means descending (biggest first).",
+     sql:"SELECT sale_id, sale_date, amount FROM sales WHERE amount >= 100 AND region = 'North' ORDER BY amount DESC;"},
+    {stage:"Finish the last clause", title:"6 · LIMIT — cap it at a top-N",
+     p:"Just the top 5 of that sorted list. Add the cap.",
+     scaffold:"SELECT sale_id, sale_date, amount\nFROM sales\nWHERE amount >= 100 AND region = 'North'\nORDER BY amount DESC\n-- add: keep only the first 5 rows\n;\n",
+     hint:"LIMIT 5 goes last, after ORDER BY.",
+     sql:"SELECT sale_id, sale_date, amount FROM sales WHERE amount >= 100 AND region = 'North' ORDER BY amount DESC LIMIT 5;"},
+    {stage:"Finish the last clause", title:"7 · Expression + AS — compute a new column",
+     p:"Each sale's unit price: amount divided by qty, rounded to 2 decimals, named unit_price (first 10 rows). Finish the SELECT list.",
+     scaffold:"SELECT sale_id, qty, amount,\n  -- add: ROUND(amount / qty, 2) AS unit_price\nFROM sales\nLIMIT 10;\n",
+     hint:"ROUND(amount / qty, 2) AS unit_price — AS names the computed column.",
+     sql:"SELECT sale_id, qty, amount, ROUND(amount / qty, 2) AS unit_price FROM sales LIMIT 10;"},
+    {stage:"Finish the last clause", title:"8 · COUNT — how many rows?",
+     p:"One number: how many sales happened in the North, named north_sales. Finish the SELECT.",
+     scaffold:"SELECT\n  -- add: COUNT(*) AS north_sales\nFROM sales\nWHERE region = 'North';\n",
+     hint:"COUNT(*) AS north_sales — an aggregate collapses all matching rows into one answer row.",
+     sql:"SELECT COUNT(*) AS north_sales FROM sales WHERE region = 'North';"},
+    {stage:"Build from a skeleton", title:"9 · SUM — total revenue",
+     p:"One number: total revenue across all sales, named revenue.",
+     scaffold:"-- SELECT the SUM of amount, named revenue\n-- FROM sales\n",
+     hint:"SELECT SUM(amount) AS revenue FROM sales;",
+     sql:"SELECT SUM(amount) AS revenue FROM sales;"},
+    {stage:"Build from a skeleton", title:"10 · GROUP BY — revenue per region",
+     p:"Revenue per region, highest first. Return region and revenue. (Notice the NULL region row — that's real data mess.)",
+     scaffold:"-- SELECT region and SUM(amount) AS revenue\n-- FROM sales\n-- GROUP BY region\n-- ORDER BY revenue, highest first\n",
+     hint:"GROUP BY region makes one row per region; the SUM then runs per group.",
+     sql:"SELECT region, SUM(amount) AS revenue FROM sales GROUP BY region ORDER BY revenue DESC;"},
+    {stage:"Build from a skeleton", title:"11 · HAVING — filter the groups",
+     p:"Only the regions whose revenue tops 1,500. Same columns as step 10.",
+     scaffold:"-- Same query as step 10, plus:\n-- HAVING SUM(amount) > 1500   (after GROUP BY, before ORDER BY)\n",
+     hint:"WHERE filters rows BEFORE grouping; HAVING filters the groups AFTER. HAVING SUM(amount) > 1500.",
+     sql:"SELECT region, SUM(amount) AS revenue FROM sales GROUP BY region HAVING SUM(amount) > 1500 ORDER BY revenue DESC;"},
+    {stage:"Build from a skeleton", title:"12 · CASE — label rows",
+     p:"Label each sale 'big' when amount is 100+, else 'small'. Return sale_id, amount, and the label as size (first 10 rows).",
+     scaffold:"-- SELECT sale_id, amount, and a CASE label AS size\n-- CASE WHEN amount >= 100 THEN 'big' ELSE 'small' END\n-- FROM sales, LIMIT 10\n",
+     hint:"CASE WHEN amount >= 100 THEN 'big' ELSE 'small' END AS size.",
+     sql:"SELECT sale_id, amount, CASE WHEN amount >= 100 THEN 'big' ELSE 'small' END AS size FROM sales LIMIT 10;"},
+    {stage:"Build from a skeleton", title:"13 · INNER JOIN — bring in the product",
+     p:"Each sale with its product's name and category: sale_id, name, category, amount (first 10 rows). sales carries product_id; products carries the names.",
+     scaffold:"-- SELECT s.sale_id, p.name, p.category, s.amount\n-- FROM sales s\n-- JOIN products p ON s.product_id = p.product_id\n-- LIMIT 10\n",
+     hint:"The aliases: s = sales, p = products. Match them ON s.product_id = p.product_id.",
+     sql:"SELECT s.sale_id, p.name, p.category, s.amount FROM sales s JOIN products p ON s.product_id = p.product_id LIMIT 10;"},
+    {stage:"On your own", title:"14 · Join + GROUP BY — revenue per category",
+     p:"The owner's first real answer: revenue per CATEGORY, highest first. Return category and revenue. No scaffold this time — you've built every piece.",
+     scaffold:"-- Your turn: revenue per category, highest first.\n",
+     hint:"Join sales s to products p, GROUP BY p.category, SUM(s.amount) AS revenue, ORDER BY revenue DESC.",
+     sql:"SELECT p.category, SUM(s.amount) AS revenue FROM sales s JOIN products p ON s.product_id = p.product_id GROUP BY p.category ORDER BY revenue DESC;"},
+    {stage:"On your own", title:"15 · LEFT JOIN + IS NULL — find the orphans",
+     p:"Data quality check: which customer_ids in sales have NO matching row in customers? Return the distinct orphan customer_ids. (They live only in customers_old — a classic migration leftover.)",
+     scaffold:"-- Your turn: DISTINCT sales.customer_id with no match in customers.\n",
+     hint:"LEFT JOIN customers c ON s.customer_id = c.id, then WHERE c.id IS NULL — the unmatched rows are the gap.",
+     sql:"SELECT DISTINCT s.customer_id FROM sales s LEFT JOIN customers c ON s.customer_id = c.id WHERE c.id IS NULL;"},
+    {stage:"On your own", title:"16 · Subquery — above-average sales",
+     p:"All sales bigger than the average sale amount: sale_id, amount, sorted highest first.",
+     scaffold:"-- Your turn: sales above the average amount.\n",
+     hint:"WHERE amount > (SELECT AVG(amount) FROM sales) — the inner query computes one number first.",
+     sql:"SELECT sale_id, amount FROM sales WHERE amount > (SELECT AVG(amount) FROM sales) ORDER BY amount DESC;"},
+    {stage:"On your own", title:"17 · CTE + window — best product per category",
+     p:"The single best-selling product IN EACH category by revenue. Return category, name, revenue.",
+     scaffold:"-- Your turn: best product per category by revenue.\n-- (CTE of product revenue, then ROW_NUMBER() OVER (PARTITION BY category ORDER BY revenue DESC), keep rank 1.)\n",
+     hint:"WITH prod_rev AS (SELECT p.category, p.name, SUM(s.amount) AS revenue … GROUP BY p.category, p.name), then filter ROW_NUMBER()=1 in an outer query.",
+     sql:"WITH prod_rev AS (SELECT p.category, p.name, SUM(s.amount) AS revenue FROM sales s JOIN products p ON s.product_id = p.product_id GROUP BY p.category, p.name), ranked AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY category ORDER BY revenue DESC) AS rn FROM prod_rev) SELECT category, name, revenue FROM ranked WHERE rn = 1 ORDER BY revenue DESC;"},
+    {stage:"On your own", title:"18 · The full answer — top customers, tiered",
+     p:"The owner's second question: the top customers. Customers with at least 18 purchases, labeled 'VIP' when total spend is 1100+, else 'regular'. Return customer_id, purchase count as n, total as spend, tier. Sort by spend, highest first.",
+     scaffold:"-- Your turn: the full chain — aggregate, HAVING, CASE, ORDER BY.\n",
+     hint:"GROUP BY customer_id HAVING COUNT(*) >= 18, then CASE WHEN SUM(amount) >= 1100 THEN 'VIP' ELSE 'regular' END AS tier.",
+     sql:"SELECT customer_id, COUNT(*) AS n, SUM(amount) AS spend, CASE WHEN SUM(amount) >= 1100 THEN 'VIP' ELSE 'regular' END AS tier FROM sales GROUP BY customer_id HAVING COUNT(*) >= 18 ORDER BY spend DESC;"}
+  ]
+};
+/* legacy 4-step capstone removed in v1.151.0; steps below kept nowhere — see git history
     {title:"1 · Filter & sort (SELECT, WHERE, ORDER BY, LIMIT)",
      p:"Warm up: the 10 biggest sales of Q1 (Jan–Mar 2024), largest first. Return sale_id, sale_date, amount.",
      scaffold:"-- 10 biggest sales with sale_date < '2024-04-01'\n-- Columns: sale_id, sale_date, amount\n",
@@ -3334,13 +3431,22 @@ const CAPSTONE = {
      sql:"WITH prod_rev AS (SELECT p.category, p.name, SUM(s.amount) AS revenue FROM sales s JOIN products p ON s.product_id = p.product_id GROUP BY p.category, p.name), ranked AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY category ORDER BY revenue DESC) AS rn FROM prod_rev) SELECT category, name, revenue FROM ranked WHERE rn = 1 ORDER BY revenue DESC;"}
   ]
 };
+*/
 
 async function renderLabCapstone(){
+  // First not-done step is expanded; done steps collapse with a ✓; future steps
+  // collapse but stay tappable (soft skip-ahead — expertise-reversal guard).
+  const current = CAPSTONE.steps.findIndex((_,i)=>!state.doneCapstone.includes(i));
+  let lastStage = null;
   const stepsHtml = CAPSTONE.steps.map((st,i)=>{
     const done = state.doneCapstone.includes(i);
-    return `
-    <div class="card mb" id="cap-step-${i}" style="${done?'border-color:var(--green,#1a7f37)':''}">
-      <h3>${done?'✅ ':''}${st.title}</h3>
+    const open = i === current;
+    const stageHdr = st.stage !== lastStage ? `<div class="unit-label">${st.stage}</div>` : '';
+    lastStage = st.stage;
+    return `${stageHdr}
+    <div class="card mb cap-card" id="cap-step-${i}" style="${done?'border-color:var(--green,#1a7f37);':''}${open?'':'padding-bottom:10px'}">
+      <h3 style="cursor:pointer;margin-bottom:${open?'':'0'}" onclick="toggleCapStep(${i})">${done?'✅ ':''}${st.title} <span class="text-muted" style="font-size:12px;font-weight:400">${open?'':'· tap to open'}</span></h3>
+      <div id="cap-body-${i}" style="${open?'':'display:none'}">
       <p>${st.p}</p>
       <div class="terminal-wrap">
         <textarea class="terminal-editor" id="cap-ed-${i}" spellcheck="false" style="min-height:90px">${st.scaffold}</textarea>
@@ -3353,18 +3459,28 @@ async function renderLabCapstone(){
         <div id="cap-ans-${i}" style="display:none;font-family:var(--mono);font-size:12.5px;white-space:pre-wrap;background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:12px;margin:8px 0">${st.sql.replace(/</g,'&lt;')}</div>
         <div class="terminal-results" id="cap-res-${i}"><span class="terminal-info">Results appear here…</span></div>
       </div>
+      </div>
     </div>`;}).join('');
-  const allDone = state.doneCapstone.length >= CAPSTONE.steps.length;
+  const nDone = state.doneCapstone.filter(i=>i<CAPSTONE.steps.length).length;
+  const allDone = nDone >= CAPSTONE.steps.length;
   document.getElementById('main').innerHTML = `
     <h1>SQL Lab</h1>
     ${labTabsHTML('capstone')}
     <div class="card card-sm mb">${CAPSTONE.brief}</div>
+    <div class="card card-sm mb" style="display:flex;align-items:center;gap:12px">
+      <div style="flex:1;height:8px;border-radius:4px;background:var(--surf2);overflow:hidden"><div style="height:100%;width:${Math.round(nDone/CAPSTONE.steps.length*100)}%;background:var(--accent)"></div></div>
+      <span class="text-muted text-sm" style="white-space:nowrap">${nDone} / ${CAPSTONE.steps.length} steps</span>
+    </div>
     ${stepsHtml}
     <div class="card" id="cap-finale" style="${allDone?'':'display:none'};border:1.5px solid var(--green,#1a7f37)">
       <h3>🎉 Analysis complete</h3>
-      <p>You just did a real mini-analysis: filtered raw rows, joined two tables, sized up categories, flagged VIP customers, and ranked the best product in each category — every clause came straight off a flashcard. This four-step chain (filter → join+aggregate → segment → rank) is the backbone of most day-one analyst tickets.</p>
+      <p>You just walked the whole analyst toolkit: raw rows → filters → sorting → computed columns → aggregates → groups → labels → joins → the gap check → subqueries → a windowed ranking — and by the last five steps you were writing everything yourself. That chain is the backbone of most day-one analyst tickets. Come back tomorrow and re-run the "On your own" stage cold — spaced repeats are what make it stick.</p>
     </div>`;
   await ensureDb(null);
+}
+function toggleCapStep(i){
+  const b = document.getElementById('cap-body-'+i);
+  if(b) b.style.display = b.style.display === 'none' ? '' : 'none';
 }
 
 function _resKey(res){
@@ -3392,7 +3508,11 @@ function checkCapstone(i){
     html += `<div style="margin-top:8px;color:var(--green,#1a7f37);font-weight:700">✓ Correct — matches the reference result.</div>`;
     if(!state.doneCapstone.includes(i)){ state.doneCapstone.push(i); saveState(); celebrate(); }
     const stepCard=document.getElementById('cap-step-'+i); if(stepCard) stepCard.style.borderColor='var(--green,#1a7f37)';
-    if(state.doneCapstone.length>=CAPSTONE.steps.length){ const f=document.getElementById('cap-finale'); if(f) f.style.display=''; }
+    const hdr=document.querySelector('#cap-step-'+i+' h3'); if(hdr && !hdr.textContent.startsWith('✅')) hdr.insertAdjacentText('afterbegin','✅ ');
+    // collapse this step, open + scroll to the next not-done one (keeps other editors' text intact — no re-render)
+    const nxt=CAPSTONE.steps.findIndex((_,k)=>k>i && !state.doneCapstone.includes(k));
+    if(nxt>=0){ setTimeout(()=>{ toggleCapStep(i); const nb=document.getElementById('cap-body-'+nxt); if(nb) nb.style.display=''; const nc=document.getElementById('cap-step-'+nxt); if(nc) nc.scrollIntoView({behavior:'smooth',block:'start'}); }, 900); }
+    if(state.doneCapstone.filter(k=>k<CAPSTONE.steps.length).length>=CAPSTONE.steps.length){ const f=document.getElementById('cap-finale'); if(f) f.style.display=''; }
   } else {
     html += `<div style="margin-top:8px;color:var(--red,#cf222e)">Not a match yet — check the requested columns, order, and filters. Same data, different shape counts as different.</div>`;
   }

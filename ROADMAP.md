@@ -18,7 +18,7 @@
 >   at the first aggregate; table aliases (`o`, `s`) inline at the first join that
 >   uses them.
 >
-> **Batch 2 — "Put It All Together" v2 (flagship, template for all kits)**
+> **Batch 2 — "Put It All Together" v2 — ✅ SHIPPED v1.151.0 (2026-07-16), awaiting Mike's retest; this 18-step faded-capstone pattern is the template for the other kits**
 > - Backward-faded worked-example capstone, 15–20 steps, exactly ONE new clause or
 >   one removed scaffold per step; starts fully worked + annotated, ends with bare
 >   business questions; skip-ahead for confident users (expertise-reversal guard).

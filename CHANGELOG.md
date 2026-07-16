@@ -9,6 +9,31 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.151.0] — 2026-07-16 — SQL kit: "Put It All Together" v2 — 18-step backward-faded capstone (playtest Batch 2)
+
+The 4-step capstone is now an 18-step progressive build (research: fading worked
+examples, one increment per step — see ROADMAP Batch 2 citations). Each step adds
+exactly ONE new construct, in the same order the reordered lessons teach them:
+SELECT * → named columns → WHERE → AND → ORDER BY → LIMIT → expression+AS →
+COUNT → SUM → GROUP BY → HAVING → CASE → INNER JOIN → join+GROUP BY →
+LEFT JOIN+IS NULL orphan check → subquery → CTE+window → full-chain finale.
+
+- **Four fading stages**: steps 1–3 arrive fully worked and annotated (run + read);
+  4–8 arrive with only the last clause missing; 9–13 give a comment skeleton;
+  14–18 are bare business questions.
+- **Collapse + skip-ahead UI**: first unfinished step is expanded, done steps
+  collapse with a ✓, any step header taps open (soft skip for confident users —
+  expertise-reversal guard). Progress bar (n/18) at the top.
+- On a correct check the step collapses and the next one opens and scrolls into
+  view WITHOUT re-rendering, so text typed in other steps survives.
+- Same result-set comparison checker as before (reference SQL runs live, so
+  checks survive data changes). Old capstone progress indices carry over.
+- Finale copy nudges a spaced re-run of the "On your own" stage.
+
+Verified live on localhost: all 18 reference queries execute and return rows
+(including the customers_old orphan check), correct-answer advance, wrong-answer
+message, skip-ahead toggle, stage headers; parse gate 3/3; console clean.
+
 ## [1.150.0] — 2026-07-16 — Tableau cert kit: re-verified against the official exam guide (renamed cert + 4 wrong facts + 3 missing objectives)
 
 Full audit of `tableau-cert/` against the **official** exam guide
