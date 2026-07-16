@@ -9,6 +9,36 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.149.0] — 2026-07-16 — SQL kit: curriculum reorder + Unit 0 diet (playtest Batch 4)
+
+Research-backed resequencing (plan + citations: ROADMAP.md top block). Lesson IDs
+are unchanged — progress, deep links, cards/drills/labs maps, and cert-kit links
+all key off IDs — only array order and unit assignments moved.
+
+New path: **Unit 0: Orientation** (101 What a Database Is · 105 Set Up a SQL
+Database) → **Unit 1: First Queries** (1 SELECT & FROM · 2 WHERE · 104 A Query
+Returns a Table; NULL · 3 ORDER BY & LIMIT) → **Unit 2: Aggregation & Shaping**
+(102 Grain of a Table · 5 COUNT/SUM & GROUP BY · 7 HAVING & Duplicates · 8 CASE
+& COALESCE) → **Unit 3: Joins** (103 Keys & Why Tables Relate · 4 INNER JOIN ·
+6 LEFT JOIN & NULLs · 13 RIGHT/FULL OUTER) → **Unit 4: Advanced SQL** (14 Dates ·
+9 Subqueries · 11 CTEs · 10 Window Functions · 12 Reconciliation · 15 Indexing ·
+16 Temp Tables vs Views). Interview-track units renumbered 5–8 (labels only).
+
+- Aggregates now come BEFORE joins (single-table, lower element interactivity);
+  the complex-join-in-Unit-1 problem is gone.
+- Unit 0 dieted from 5 dense lessons to a 2-lesson orientation; the other three
+  foundations moved just-in-time: Grain opens the Aggregation unit, Keys/Relates
+  opens the Joins unit, NULL/output-shape sits in Unit 1 right after WHERE.
+- Subqueries → CTEs → Window Functions (was Subqueries → Windows → CTEs).
+- Home skill bars updated (Aggregation & Shaping / Joins / Advanced SQL / tracks
+  Unit 5–8); two lesson stories' stale "from Unit 0" references retargeted.
+
+Verified: parse gate 3/3; live localhost checks (array order, nextLessonId chain
+101→…→16, guided seq for lesson 5 ends in Aggregation Lab hand-off, all
+LESSON_CARDS/DRILLS/LABS keys still valid, unit labels render, deep-link opens
+lesson 102, console clean); private de-test suite 24/25 — the one failure
+(L105 chart eyebrow) pre-dates this change, verified against the prior tree.
+
 ## [1.148.0] — 2026-07-16 — SQL kit: playtest Batch 1 (quick fixes + content glue)
 
 First build batch from the 2026-07-16 playtest triage (plan: ROADMAP.md top block).

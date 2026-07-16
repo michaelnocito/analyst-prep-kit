@@ -40,7 +40,7 @@
 >   2005, doi:10.1002/acp.1083) → pair with next-day recall prompts, don't push
 >   many immediate reps.
 >
-> **Batch 4 — curriculum reorder + Unit 0 diet (biggest content lift)**
+> **Batch 4 — curriculum reorder + Unit 0 diet — ✅ SHIPPED v1.149.0 (2026-07-16), awaiting Mike's retest. IDs unchanged; see CHANGELOG for the new unit map.**
 > - Playtest instinct confirmed: no respected curriculum (SQLBolt, Mode, university
 >   syllabi) puts a complex join before single-table fluency. For analysts:
 >   aggregates BEFORE joins (lower element interactivity — Sweller 1988,
