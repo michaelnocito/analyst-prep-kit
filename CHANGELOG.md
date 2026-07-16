@@ -9,6 +9,16 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.141.0] — 2026-07-16 — Forecasting kit: Zinc & Sky palette
+
+- Forecasting kit joins the Zinc & Sky rollout: one `zinc-sky.css` link in
+  `forecasting/index.html` (Excel-shaped `data-theme` convention, `fmk-v1`
+  state key, already covered).
+- All inline SVG charts already use theme tokens — no chart edits needed.
+- Train/Test split diagram (Holdout Evaluation lesson): moved the white label
+  color onto the accent-filled segments themselves so dark mode renders the
+  labels in ink on sky instead of white on sky.
+
 ## [1.140.0] — 2026-07-16 — Chart Literacy kit: Zinc & Sky palette
 
 - Chart Literacy kit joins the Zinc & Sky rollout: one `zinc-sky.css` link in
