@@ -9,6 +9,17 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.140.0] — 2026-07-16 — Chart Literacy kit: Zinc & Sky palette
+
+- Chart Literacy kit joins the Zinc & Sky rollout: one `zinc-sky.css` link in
+  `chart-literacy/index.html` (Excel-shaped `data-theme` convention, `clk-v1`
+  state key, already covered).
+- All the kit's SVG charts already use theme tokens (`var(--accent)` etc.), so
+  they follow the palette with no chart edits.
+- `zinc-sky.css`: dark-mode ink rule for inline-styled chart-mockup bars
+  (accent/accent2 background + white label in one `style` attribute — the
+  Treemap lesson's tiles), scoped to elements carrying both declarations.
+
 ## [1.139.0] — 2026-07-16 — Stats kit: Zinc & Sky palette
 
 - Stats kit joins the Zinc & Sky rollout: one `zinc-sky.css` link in
