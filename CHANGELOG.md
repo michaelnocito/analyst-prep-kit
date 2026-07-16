@@ -9,6 +9,50 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.153.0] — 2026-07-16 — Tableau cert kit: one-at-a-time exam stepper + Zinc & Sky
+
+Two Mike-directed changes to `tableau-cert/`.
+
+**Practice exam is now one locked-in question at a time.** It used to render all
+49 questions stacked in one page grouped by domain, so answering meant scrolling
+the whole exam. Now it follows the Excel kit's drill pattern:
+- A **dot strip** at the top — one bar per question, click any to jump. Grey =
+  unanswered, accent = answered, and after submit red/green so you can jump
+  straight to your misses.
+- **One `.q-card` on screen.** Pick an answer on a multiple-choice question and
+  it locks in and advances you. Multiple-response ("choose all that apply") has
+  no natural end-of-input signal, so it stays put and gets an explicit
+  **Lock in & continue** button.
+- **Prev / Next** nav, so answers stay changeable before submit.
+- Last question exposes **Submit** rather than auto-advancing off the end.
+- Grading still happens all at once on submit — unchanged, that's real-exam
+  behaviour. Review after submit reuses the same stepper with choices disabled
+  and explanations shown.
+
+New state: `state.qIdx` (persisted), `gotoQ()`, `clampQIdx()`, `hasAnswer()`.
+`startExam()` resets the cursor to 0; `submitExam()` resets it so review starts
+at the top.
+
+Also fixed a stale **"Start timed — 60:00"** button left over from v1.150.0's
+60→70 minute correction; it now reads from `EXAM_MINUTES`.
+
+**Zinc & Sky palette** (rollout item — Mike pulled the cert kits forward, out of
+the documented order). Excel-shaped `data-theme`, so the one `<link>` line to
+`assets/grain/zinc-sky.css` converted the kit. One new shared rule was needed:
+`.exam-submit-btn` is accent-filled and was white-on-sky in dark mode → ink
+`#082032`. That rule lives in `zinc-sky.css` and covers **all three cert kits**,
+which share this shell, so excel-cert and powerbi-cert should follow nearly free.
+`.q-dot.cur` deliberately keeps `--text` — it stays legible in both themes and
+must not collapse into `.q-dot.done`'s accent.
+
+Verified: 3/3 inline scripts parse · light `#0E7490` on `#F5F7F8`, dark `#38BDF8`
+on `#09090B` · full sweep of every rendered node for white-on-sky = 0 failures ·
+1 card on screen (not 49), 49 dots, MC auto-advances, MS does not, lock-in
+advances, Prev works, last question exposes Submit and Next is disabled, review
+shows 49 graded dots with choices disabled + explanations, no undefined/NaN ·
+console clean. (`computer{screenshot}` timed out on this page; computed styles
+used as ground truth per the handoff's verification note.)
+
 ## [1.152.0] — 2026-07-16 — SQL kit: labs joined to the guided path (playtest Batch 3)
 
 Labs now launch FROM and RETURN TO the exact path position (contiguity fix for

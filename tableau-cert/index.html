@@ -14,6 +14,7 @@
 <title>Tableau Certification Prep · Analyst Prep Kit</title>
 <meta name="description" content="Free prep for the Salesforce Certified Tableau Desktop Foundations certification (formerly Tableau Desktop Specialist). A domain-by-domain study guide plus a full 49-question, 70-minute practice exam weighted to the official exam outline.">
 <link rel="stylesheet" href="../assets/grain/grain.css">
+<link rel="stylesheet" href="../assets/grain/zinc-sky.css"><!-- Zinc & Sky palette rollout -->
 <style>
 /* GRAIN design system — same token re-pointing as the Final Exam Kit. */
 :root{--bg:var(--stone-900);--surf:var(--stone-800);--surf2:var(--stone-700);--surf3:var(--stone-600);--accent:var(--clay-400);--accdim:var(--clay-700);--text:var(--stone-50);--dim:var(--stone-300);--dim2:var(--stone-400);--border:var(--stone-700);--border2:var(--stone-600);--good:var(--leaf-400);--warn:var(--amber-300);--bad:var(--rust-400);--font:var(--font-sans);--mono:var(--font-mono);--r-sm:6px;--r-md:8px;--r-lg:12px}
@@ -143,6 +144,17 @@ main{max-width:780px;margin:0 auto;padding:32px 20px 80px}
 .section-header .section-name{font-size:15px;font-weight:600;color:var(--text)}
 .section-header .section-count{font-size:12px;color:var(--dim);margin-left:auto}
 
+/* ONE-AT-A-TIME EXAM STEPPER (Excel-kit drill pattern: dot strip + single card + prev/next) */
+.q-dots{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:16px}
+.q-dot{width:22px;height:6px;border-radius:3px;border:none;padding:0;background:var(--surf2);cursor:pointer;transition:.15s}
+.q-dot:hover{transform:scaleY(1.6)}
+.q-dot.done{background:var(--accent)}
+.q-dot.cur{background:var(--text);transform:scaleY(1.6)}
+.q-dot.ok{background:var(--good)}
+.q-dot.no{background:var(--bad)}
+.q-nav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:18px}
+.q-nav .spacer{flex:1}
+.lockin-hint{font-size:12.5px;color:var(--dim);margin-top:14px}
 .q-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 22px;margin-bottom:14px;transition:border-color .2s}
 .q-card.answered{border-color:var(--accent)}
 .q-card.correct{border-color:var(--good);background:linear-gradient(180deg,var(--surf),color-mix(in srgb,var(--accent) 4%,transparent))}
@@ -868,6 +880,7 @@ function syncTimerLoop(){
 function startExam(timed){
   state.timed = timed;
   state.examStart = Date.now();
+  state.qIdx = 0;
   save();
   render();
   window.scrollTo({top:0,behavior:'smooth'});
@@ -879,9 +892,9 @@ function renderExam(){
     return `
       <div class="start-card">
         <h2>Practice Exam · 49 questions</h2>
-        <p>Weighted to the official blueprint: ${DOMAIN_ORDER.map(k=>`${DOMAIN_INFO[k].weight}% ${DOMAIN_INFO[k].name}`).join(' · ')}. Includes multiple-response questions ("choose all that apply") — the real exam has them too, and there's no partial credit. Your answers grade all at once when you submit, like the real thing.</p>
+        <p>Weighted to the official exam outline: ${DOMAIN_ORDER.map(k=>`${DOMAIN_INFO[k].weight}% ${DOMAIN_INFO[k].name}`).join(' · ')}. One question at a time — pick an answer and it locks in and moves you on. Includes multiple-response questions ("choose all that apply") — the real exam has them too, and there's no partial credit. Everything grades at once when you submit, like the real thing.</p>
         <div class="start-actions">
-          <button class="btn btn-primary" onclick="startExam(true)">Start timed — 60:00 ⏱</button>
+          <button class="btn btn-primary" onclick="startExam(true)">Start timed — ${EXAM_MINUTES}:00 ⏱</button>
           <button class="btn btn-ghost" onclick="startExam(false)">Start untimed practice</button>
         </div>
       </div>
@@ -900,6 +913,19 @@ function renderExam(){
   if(state.submitted) topBtn = `<button class="exam-submit-btn" onclick="setView('results')">View results →</button>`;
   else topBtn = `<button class="exam-submit-btn" onclick="submitExam()" ${answered===0?'disabled':''}>${answered===total?'Submit exam':'Submit ('+answered+'/'+total+' answered)'}</button>`;
 
+  // One question at a time. state.qIdx is the cursor; the dot strip is the map.
+  const i = clampQIdx();
+  const q = QUESTIONS[i];
+  const d = DOMAIN_INFO[q.domain];
+
+  const dots = QUESTIONS.map((qq, n) => {
+    let cls = 'q-dot';
+    if(state.submitted) cls += isCorrect(qq) ? ' ok' : ' no';
+    else if(hasAnswer(qq)) cls += ' done';
+    if(n === i) cls += ' cur';
+    return `<button class="${cls}" onclick="gotoQ(${n})" title="Question ${n+1}"></button>`;
+  }).join('');
+
   let html = `
     <div class="exam-header">
       <div class="exam-header-row">
@@ -911,27 +937,65 @@ function renderExam(){
         ${topBtn}
       </div>
       <div class="exam-progress-bar"><div class="exam-progress-fill" style="width:${pct}%"></div></div>
-      ${state.submitted?'':'<div style="font-size:13px;color:var(--dim);margin-top:8px">Answers grade all at once on submit — no feedback until then, just like the real exam. Multiple-response questions need every correct option and no wrong ones.</div>'}
+    </div>
+    <div class="q-dots">${dots}</div>
+    <div class="section-header">
+      <span class="section-pill" style="color:${d.color}">${d.label} · ${d.weight}%</span>
+      <span class="section-name">${d.name}</span>
+    </div>
+    ${renderQuestion(q)}
+  `;
+
+  // Nav. MC locks in and auto-advances on pick; MS needs an explicit lock-in
+  // because "choose all that apply" has no natural end-of-input signal.
+  const isLast = i === QUESTIONS.length - 1;
+  let primary = '';
+  if(!state.submitted){
+    if(q.type === 'ms' && hasAnswer(q)){
+      primary = isLast
+        ? `<button class="btn btn-primary" onclick="submitExam()">Lock in & submit →</button>`
+        : `<button class="btn btn-primary" onclick="gotoQ(${i+1})">Lock in & continue →</button>`;
+    } else if(isLast && answered > 0){
+      primary = `<button class="btn btn-primary" onclick="submitExam()">Submit exam →</button>`;
+    }
+  }
+
+  html += `
+    <div class="q-nav">
+      <button class="btn btn-outline btn-sm" onclick="gotoQ(${i-1})" ${i===0?'disabled':''}>← Prev</button>
+      <div class="spacer"></div>
+      ${primary}
+      <button class="btn btn-outline btn-sm" onclick="gotoQ(${i+1})" ${isLast?'disabled':''}>Next →</button>
     </div>
   `;
 
-  for(const dkey of DOMAIN_ORDER){
-    const d = DOMAIN_INFO[dkey];
-    const qs = QUESTIONS.filter(q => q.domain === dkey);
-    html += `
-      <div class="section-header" id="sec-${dkey}">
-        <span class="section-pill" style="color:${d.color}">${d.label} · ${d.weight}%</span>
-        <span class="section-name">${d.name}</span>
-        <span class="section-count">${qs.length} questions</span>
-      </div>
-      ${qs.map(q => renderQuestion(q)).join('')}
-    `;
-  }
-
   if(!state.submitted){
-    html += `<div style="text-align:center;margin-top:24px"><button class="exam-submit-btn" onclick="submitExam()" ${answered===0?'disabled':''}>${answered===total?'Submit exam & see results':'Submit ('+answered+' of '+total+' answered)'}</button></div>`;
+    html += `<div class="lockin-hint">${q.type==='ms'
+      ? 'Choose every option that applies, then lock it in. No partial credit — you need all the right ones and none of the wrong ones.'
+      : 'Pick an answer and it locks in, then moves you on. Use Prev or the bars above to change it before you submit.'}
+      Nothing is graded until you submit, just like the real exam.</div>`;
   }
   return html;
+}
+
+function hasAnswer(q){
+  const a = state.answers[q.id];
+  return q.type === 'ms' ? (Array.isArray(a) && a.length > 0) : a !== undefined;
+}
+
+function clampQIdx(){
+  let i = Number.isInteger(state.qIdx) ? state.qIdx : 0;
+  if(i < 0) i = 0;
+  if(i > QUESTIONS.length - 1) i = QUESTIONS.length - 1;
+  state.qIdx = i;
+  return i;
+}
+
+function gotoQ(n){
+  state.qIdx = Math.max(0, Math.min(QUESTIONS.length - 1, n));
+  save();
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
 function renderQuestion(q){
@@ -979,6 +1043,9 @@ function answerMc(qid, idx){
   if(state.submitted) return;
   state.answers[qid] = idx;
   save();
+  // Lock in and move on. Last question stays put so the Submit button is reachable.
+  const at = QUESTIONS.findIndex(x => x.id === qid);
+  if(at > -1 && at < QUESTIONS.length - 1){ gotoQ(at + 1); return; }
   render();
 }
 function answerMs(qid, idx){
@@ -1010,6 +1077,7 @@ function submitExam(auto){
     if(!confirm(`You've answered ${answered} of ${QUESTIONS.length}. Unanswered questions count as wrong (like the real exam). Submit anyway?`)) return;
   }
   state.submitted = true;
+  state.qIdx = 0; // review starts at the top; the dot strip colors red/green for jumping to misses
   save();
   setView('results');
 }
