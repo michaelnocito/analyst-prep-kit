@@ -1,5 +1,83 @@
 ﻿# Analyst Prep Kit — Roadmap
 
+> ### 🧪 SQL-KIT PLAYTEST TRIAGE 2026-07-16 — RESEARCH-BACKED BATCH PLAN (DECIDED: research done, builds pending Mike's batch go)
+> 13 inbox items from Mike's 2026-07-16 SQL-kit playtest, triaged same day with three
+> focused research passes (lab placement / progressive capstone / SQL sequencing /
+> path-map + badges + return engagement). Decisions written back to the playtest
+> tracker (Supabase, all 13 items → roadmap/noted). **SQL kit is the polish bench —
+> every batch here becomes a template for the other kits, riding the same
+> one-kit-per-chat rollout train as the knowledge path.**
+>
+> **Batch 1 — quick fixes + content glue (small)**
+> - 🐛 Hint text unreadable in light mode.
+> - 🐛 Parsons "put in order" drag friction (desktop + mobile) → low-friction
+>   tap-to-place ordering.
+> - Every query exercise must state its table names (+ schema glance) in the prompt.
+> - Aliasing: NO standalone page (research call — just-in-time principle, Mayer &
+>   Moreno 2003, doi:10.1207/S15326985EP3801_6). Teach column aliases (`AS`) inline
+>   at the first aggregate; table aliases (`o`, `s`) inline at the first join that
+>   uses them.
+>
+> **Batch 2 — "Put It All Together" v2 (flagship, template for all kits)**
+> - Backward-faded worked-example capstone, 15–20 steps, exactly ONE new clause or
+>   one removed scaffold per step; starts fully worked + annotated, ends with bare
+>   business questions; skip-ahead for confident users (expertise-reversal guard).
+> - Research: fading worked examples (Renkl & Atkinson 2003, doi:10.1207/S15326985EP3801_3;
+>   Atkinson, Renkl & Merrill 2003, J Ed Psych, doi:10.1037/0022-0663.95.4.774);
+>   expertise reversal (Kalyuga et al. 2003, doi:10.1207/S15326985EP3801_4).
+>
+> **Batch 3 — lab integration into the guided path**
+> - End-of-unit cumulative "Make it stick" lab nodes on the path: mix the unit's
+>   constructs with earlier units' (interleaving ~doubles test performance,
+>   Rohrer & Taylor 2007, Instr Sci, doi:10.1007/s11251-007-9015-8; spacing:
+>   Cepeda et al. 2006, Psych Bull, doi:10.1037/0033-2909.132.3.354).
+> - Per-unit Put-It-All-Together versions (Mike's ask) = these unit-boundary labs.
+> - Hand-off friction fix: labs launch FROM and RETURN TO the exact path position;
+>   persistent breadcrumb ("Unit 3 • Lab • then Lesson 3.4") + "Continue path →"
+>   on lab completion; same dataset/schema as the unit (contiguity, Ginns 2006,
+>   doi:10.1016/j.learninstruc.2006.10.001).
+> - "Repeat until fluid" framing only pays if repeats are SPACED (Rohrer et al.
+>   2005, doi:10.1002/acp.1083) → pair with next-day recall prompts, don't push
+>   many immediate reps.
+>
+> **Batch 4 — curriculum reorder + Unit 0 diet (biggest content lift)**
+> - Playtest instinct confirmed: no respected curriculum (SQLBolt, Mode, university
+>   syllabi) puts a complex join before single-table fluency. For analysts:
+>   aggregates BEFORE joins (lower element interactivity — Sweller 1988,
+>   doi:10.1207/s15516709cog1202_4; prerequisite ordering — Doignon & Falmagne 1985,
+>   doi:10.1016/S0020-7373(85)80031-6).
+> - Canonical 12-lesson core order: SELECT → WHERE → ORDER/LIMIT/DISTINCT →
+>   expressions+AS → aggregates → GROUP BY → HAVING+order-of-execution (spiral
+>   review) → INNER JOIN+table aliases → LEFT JOIN+NULLs → join+GROUP BY combined
+>   (spiral) → subqueries/CTEs → window functions.
+> - Unit 0: shrink to a 5-minute orientation; redistribute the rest as short
+>   just-in-time preambles inside the lessons that need them (pretraining +
+>   segmenting, Mayer & Moreno 2003). ⚠️ Touches lesson ids/cards/drills maps —
+>   coordinate with the knowledge-path data (`LESSON_CARDS`/`LESSON_DRILLS`/`LESSON_LABS`).
+>
+> **Batch 5 — visual path map + badges + return engagement**
+> - Duolingo-style single vertical rail per kit: done/current/upcoming (dimmed,
+>   NEVER locked — soft-guide rule), unit headers with progress rings, current
+>   node = Continue.
+> - Badges: competence-framed mastery badges with visible progress ("3/5 join
+>   lessons") + a few unexpected delight badges; NO attendance trinkets
+>   (badges work when monitored — Hamari 2017, CHB, doi:10.1016/j.chb.2015.03.036;
+>   expected contingent rewards undermine intrinsic motivation — Deci, Koestner &
+>   Ryan 1999, Psych Bull, doi:10.1037/0033-2909.125.6.627).
+> - Return loop (localStorage-feasible, no push): review-due queue as the primary
+>   hook (spaced retrieval is real learning, not retention theater — Roediger &
+>   Karpicke 2006, doi:10.1111/j.1467-9280.2006.01693.x), streak with 1 free
+>   freeze/week as secondary (broken-streak demotivation — Silverman & Barasch
+>   2023, JCR, doi:10.1093/jcr/ucac029), soft "2 reviews due tomorrow" sign-off
+>   copy. Mirror to Supabase when signed in.
+>
+> **Suggested sequencing vs the two in-flight initiatives:** Batch 1 anytime
+> (small). Batch 4 (reorder) BEFORE Batches 2–3 get templated to other kits, so
+> the capstone/lab pattern lands on the corrected order once. Knowledge-path
+> rollout (next kit: Stats) and Zinc & Sky rollout (next kit: Interview) continue
+> on their own one-kit-per-chat tracks; Batch 3 extends the path pattern, so any
+> kit that gets the path AFTER Batch 3 ships should get lab nodes in the same pass.
+
 > ### 🎨 ZINC & SKY PALETTE ROLLOUT — IN PROGRESS (July 2026)
 > Mike rejected the Grain clay/amber colors ("Claude-branding-like, too neutral").
 > New palette chosen after a blue bake-off: **light = zinc neutrals + deep cyan
@@ -10,10 +88,12 @@
 > Cadence: ONE kit per session, Mike checks in between.
 > - ✅ SQL (v1.132.0 pilot + v1.132.1 contrast patch)
 > - ✅ Excel (v1.133.0 — selectors generalized for its data-theme convention)
-> - ⬜ Python → PowerBI → Tableau → Stats → Chart Literacy → Forecasting →
->   Interview → Simulator → Final → cert kits (tableau-cert / excel-cert /
->   powerbi-cert) → excel-lessons → guides/* → hub `index.html` (last: it maps
->   extra semantic vars, biggest visual audience) → privacy/terms.
+> - ✅ Python (v1.134.0) · ✅ Power BI (v1.135.0) · ✅ Hub (v1.136.0, pulled
+>   forward) · ✅ Tableau (v1.137.0) · ✅ Stats (v1.139.0) · ✅ Chart Literacy
+>   (v1.140.0) · ✅ Forecasting (v1.141.0)
+> - ⬜ REMAINING: Interview → Simulator → Final → cert kits (tableau-cert /
+>   excel-cert / powerbi-cert) → excel-lessons → guides/* → privacy/terms →
+>   fold zinc-sky into Grain tokens. (Hub already done.)
 > - ⬜ THEN other applicable repos (same zinc-sky token approach where they use
 >   the calm-analyst/Grain look): personal site `michaelnocito.github.io`,
 >   prep-companion-apps (Sprint Excel/SQL), sql-dry-run, excel-dry-run,
