@@ -2490,74 +2490,85 @@ function startUnitReview(finishedUnit, nextLid){
   renderGuidedStep();
 }
 
+// Excel-style stable frame: the header row, progress dots, and the uniform
+// bottom Back/Next bar keep their exact position on every step — only the
+// step body (card / drill / lab pointer) swaps in the middle. No per-drill
+// headers or advance buttons in guided mode, no layout jump between steps.
 function renderGuidedStep(){
   if(!guided) return;
-  const step = guided.seq[guided.pos];
-  if(step[0]==='cards') renderGuidedCard(step[1]);
-  else if(step[0]==='lab') renderGuidedLab(step[1]);
-  else if(step[0]==='fills') renderFill(step[1]);
-  else if(step[0]==='bugs') renderBug(step[1]);
-  else if(step[0]==='parsons') renderParsons(step[1]);
-  injectGuidedHeader();
+  const {seq, pos, lessonId, review} = guided;
+  const step = seq[pos];
+  const isLast = pos === seq.length-1;
+
+  const backTop = review
+    ? `<button class="btn btn-ghost btn-sm" onclick="guidedSkipAll()">Skip review →</button>`
+    : `<button class="btn btn-ghost btn-sm" onclick="navigate('lesson',${lessonId})">← Back to lesson</button>`;
+  const label = review
+    ? `Unit review ${pos+1}/${seq.length} · mixing earlier skills`
+    : `Practice ${pos+1}/${seq.length} · ${DATA.LESSONS.find(l=>l.id===lessonId).title}`;
+  const dots = seq.map((_,i) => `<span style="width:20px;height:6px;border-radius:3px;background:${i<pos?'var(--green,#1a7f37)':i===pos?'var(--accent)':'rgba(127,127,127,.28)'};opacity:${i<=pos?1:.5}"></span>`).join('');
+
+  let body;
+  if(step[0]==='cards') body = guidedCardBody(step[1]);
+  else if(step[0]==='lab') body = guidedLabBody(step[1]);
+  else if(step[0]==='fills') body = renderFill(step[1]);
+  else if(step[0]==='bugs') body = renderBug(step[1]);
+  else body = renderParsons(step[1]);
+
+  const nextLabel = isLast
+    ? (review ? 'Finish review →' : 'Finish — next lesson →')
+    : (step[0]==='cards' ? 'Got it — next →' : 'Next →');
+  const backNav = pos>0
+    ? `<button class="btn btn-ghost btn-sm" onclick="guidedPrev()">← Back</button>`
+    : (review
+      ? `<button class="btn btn-ghost btn-sm" onclick="guidedSkipAll()">Skip review</button>`
+      : `<button class="btn btn-ghost btn-sm" onclick="navigate('lesson',${lessonId})">← Lesson</button>`);
+
+  document.getElementById('main').innerHTML = `
+    <div class="row mb">${backTop}<span class="text-muted text-sm" style="margin-left:auto">${label}</span></div>
+    <div style="display:flex;gap:4px;align-items:center;margin:0 0 14px;flex-wrap:wrap">${dots}</div>
+    ${review?`<p class="text-muted text-sm" style="margin:0 0 10px">Mixed review feels harder than fresh practice — that's normal, and it's where the material sticks.</p>`:''}
+    ${body}
+    <div class="row" style="justify-content:space-between;gap:10px;margin-top:20px">
+      ${backNav}
+      <button class="btn btn-primary" onclick="guidedNext()">${nextLabel}</button>
+    </div>`;
+  if(window.lucide) lucide.createIcons();
   window.scrollTo(0,0);
 }
 
 // "Recall — no peeking" flashcard step: term shown, learner recalls out loud,
 // then flips to check (retrieval practice, not re-reading).
-function renderGuidedCard(i){
+function guidedCardBody(i){
   const [term, def] = DATA.CARDS[i];
   if(!state.doneCards.includes(i)){ state.doneCards.push(i); saveState(); }
-  document.getElementById('main').innerHTML = `
-    <div class="row mb"></div>
+  return `
     <div class="card" style="text-align:center;padding:28px">
       <div class="badge badge-unit" style="margin-bottom:12px">Recall — no peeking</div>
       <h2 style="font-family:var(--mono);margin-bottom:10px">${term}</h2>
       <p class="text-muted" style="margin-bottom:14px">Say what it does (and one gotcha) out loud, then check yourself.</p>
       <div id="gcBack" style="display:none;text-align:left;background:var(--surf,rgba(127,127,127,.08));border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px">${def}</div>
       <button id="gcFlip" class="btn btn-ghost" onclick="document.getElementById('gcBack').style.display='block';this.style.display='none'">Check yourself →</button>
-      <div class="mt"><button class="btn btn-primary btn-sm" onclick="guidedNext()">Got it — next →</button></div>
     </div>`;
 }
 
 // Hands-on lab pointer step: the guided path hands off to the matching lab
 // track, then the learner comes back and continues.
-function renderGuidedLab(track){
+function guidedLabBody(track){
   const meta = track==='join'
     ? {view:'lab-join', label:'JOIN Lab', pitch:'The best way to lock in JOINs is to run them against real tables yourself.'}
     : {view:'lab-agg', label:'Aggregation Lab', pitch:'The best way to lock in GROUP BY is to aggregate real rows yourself.'};
-  document.getElementById('main').innerHTML = `
-    <div class="row mb"></div>
+  return `
     <div class="card">
       <h2>Build it in the ${meta.label}</h2>
       <p>${meta.pitch} Open the lab, work a task or two, then come back and continue the path.</p>
-      <div class="row" style="gap:10px;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="navigate('${meta.view}')">Open ${meta.label} →</button>
-        <button class="btn btn-ghost btn-sm" onclick="guidedNext()">Continue path →</button>
-      </div>
+      <button class="btn btn-primary" onclick="navigate('${meta.view}')">Open ${meta.label} →</button>
     </div>`;
 }
 
-function injectGuidedHeader(){
-  if(!guided) return;
-  const main = document.getElementById('main');
-  const row = main.querySelector('.row.mb');
-  if(!row) return;
-  const {seq, pos, lessonId, review} = guided;
-  const step = seq[pos];
-  if(review){
-    row.innerHTML = `<button class="btn btn-ghost btn-sm" onclick="guidedSkipAll()">Skip review →</button><span style="margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="text-muted text-sm">Unit review ${pos+1}/${seq.length} · mixing earlier skills</span></span>`;
-  } else {
-    const lesson = DATA.LESSONS.find(l => l.id === lessonId);
-    row.innerHTML = `<button class="btn btn-ghost btn-sm" onclick="navigate('lesson',${lessonId})">← Back to lesson</button><span style="margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="text-muted text-sm">Practice ${pos+1}/${seq.length} · ${lesson.title}</span></span>`;
-  }
-  const dots = document.createElement('div');
-  dots.style.cssText = 'display:flex;gap:4px;align-items:center;margin:0 0 14px;flex-wrap:wrap';
-  dots.innerHTML = seq.map((_,i) => `<span style="width:20px;height:6px;border-radius:3px;background:${i<=pos?'var(--accent)':'rgba(127,127,127,.28)'};opacity:${i<=pos?1:.5}"></span>`).join('')
-    + (step[0]==='cards'||step[0]==='lab' ? '' : `<button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="guidedNext()">Skip →</button>`)
-    + (review ? `<span class="text-muted text-sm" style="flex-basis:100%;margin-top:6px">Mixed review feels harder than fresh practice — that's normal, and it's where the material sticks.</span>` : '');
-  row.after(dots);
+function guidedPrev(){
+  if(guided && guided.pos>0){ guided.pos--; renderGuidedStep(); }
 }
-
 function guidedNext(){
   if(!guided) return;
   if(guided.pos < guided.seq.length-1){ guided.pos++; renderGuidedStep(); }
@@ -2616,14 +2627,10 @@ function renderPractice(){
 // ─── FILL DRILL ────────────────────────────────────────────────────────────
 function renderFill(idx){
   const f = DATA.FILLS[idx];
-  if(!f) return navigate('practice');
+  if(!f){ if(!guided) navigate('practice'); return ''; }
   _hd={hint:f.hint,ans:f.ans,state:0};
   const done = state.doneFills.includes(f.id);
-  document.getElementById('main').innerHTML = `
-    <div class="row mb">
-      <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
-      <span class="text-muted text-sm">${idx+1} / ${DATA.FILLS.length}</span>      ${done ? '<span class="badge badge-done">✓</span>' : ''}
-    </div>
+  const body = `
     <div class="card">
       <h2>Fill in the Blank</h2>
       <p class="fill-prompt">${f.q}</p>
@@ -2638,12 +2645,19 @@ function renderFill(idx){
       <div class="answer-panel" id="drill-answer"></div>
       <div id="fill-next" class="mt"></div>
     </div>`;
+  if(guided) return body;
+  document.getElementById('main').innerHTML = `
+    <div class="row mb">
+      <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
+      <span class="text-muted text-sm">${idx+1} / ${DATA.FILLS.length}</span>      ${done ? '<span class="badge badge-done">✓</span>' : ''}
+    </div>` + body;
 }
 
 // Fill in the Blank — tap the correct piece (no free typing).
+// In guided mode the shell's uniform bottom nav is the advance control.
 function _fillAdvance(idx){
   return guided
-    ? `<button class="btn btn-primary btn-sm" onclick="guidedNext()">Next →</button>`
+    ? ''
     : idx+1 < DATA.FILLS.length
       ? `<button class="btn btn-primary btn-sm" onclick="navigate('fill',${idx+1})">Next →</button>`
       : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">All Done →</button>`;
@@ -2666,14 +2680,10 @@ function pickFill(btn, idx){
 // ─── BUG DRILL ─────────────────────────────────────────────────────────────
 function renderBug(idx){
   const b = DATA.BUGS[idx];
-  if(!b) return navigate('practice');
+  if(!b){ if(!guided) navigate('practice'); return ''; }
   _hd={hint:b.hint,ans:b.fix,state:0};
   const done = state.doneBugs.includes(b.id);
-  document.getElementById('main').innerHTML = `
-    <div class="row mb">
-      <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
-      <span class="text-muted text-sm">${idx+1} / ${DATA.BUGS.length}</span>      ${done ? '<span class="badge badge-done">✓</span>' : ''}
-    </div>
+  const body = `
     <div class="card">
       <h2>Bug Hunt</h2>
       <h3>${b.title}</h3>
@@ -2691,13 +2701,20 @@ function renderBug(idx){
       <div class="code-fixed${done?' show':''}" id="bug-fix">${b.fix}</div>
       <div id="bug-next" class="mt"></div>
     </div>`;
+  if(guided) return body;
+  document.getElementById('main').innerHTML = `
+    <div class="row mb">
+      <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
+      <span class="text-muted text-sm">${idx+1} / ${DATA.BUGS.length}</span>      ${done ? '<span class="badge badge-done">✓</span>' : ''}
+    </div>` + body;
 }
 
 // Bug Hunt — tap the correct fix (no free typing).
 function _shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+// In guided mode the shell's uniform bottom nav is the advance control.
 function _bugAdvance(idx){
   return guided
-    ? `<button class="btn btn-primary btn-sm" onclick="guidedNext()">Next →</button>`
+    ? ''
     : idx+1 < DATA.BUGS.length
       ? `<button class="btn btn-primary btn-sm" onclick="navigate('bug',${idx+1})">Next Bug →</button>`
       : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">All Done →</button>`;
@@ -2723,17 +2740,13 @@ function pickBugFix(btn, idx){
 // ─── PARSONS DRILL ─────────────────────────────────────────────────────────
 function renderParsons(idx){
   const p = DATA.PARSONS[idx];
-  if(!p) return navigate('practice');
+  if(!p){ if(!guided) navigate('practice'); return ''; }
   const done = state.doneParsons.includes(p.id);
 
   // Shuffle pool display (just show all lines in original order in pool)
   const poolLines = [...p.lines];
 
-  document.getElementById('main').innerHTML = `
-    <div class="row mb">
-      <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
-      <span class="text-muted text-sm">${idx+1} / ${DATA.PARSONS.length}</span>      ${done ? '<span class="badge badge-done">✓</span>' : ''}
-    </div>
+  const body = `
     <div class="card">
       <h2>Put in Order</h2>
       <h3>${p.title}</h3>
@@ -2756,6 +2769,12 @@ function renderParsons(idx){
       </div>
       <div id="parsons-result" class="mt"></div>
     </div>`;
+  if(guided) return body;
+  document.getElementById('main').innerHTML = `
+    <div class="row mb">
+      <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
+      <span class="text-muted text-sm">${idx+1} / ${DATA.PARSONS.length}</span>      ${done ? '<span class="badge badge-done">✓</span>' : ''}
+    </div>` + body;
 }
 
 let draggedChip = null;
@@ -2808,7 +2827,7 @@ function checkParsons(idx){
       // 2nd wrong: show the full correct answer locked
       scaffoldParsons(idx, p.answer.length);
       const nxtBtn = guided
-        ? `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="guidedNext()">Next →</button>`
+        ? '' // shell's uniform bottom nav is the advance control
         : idx+1 < DATA.PARSONS.length
           ? `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="navigate('parsons',${idx+1})">Next →</button>`
           : `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="navigate('practice')">Done →</button>`;
@@ -2864,7 +2883,7 @@ function scaffoldParsons(idx, count){
     }
   }
 }
-function resetParsons(idx){ delete _parsonsAttempts[idx]; navigate('parsons', idx); }
+function resetParsons(idx){ delete _parsonsAttempts[idx]; if(guided) renderGuidedStep(); else navigate('parsons', idx); }
 
 // ─── LAB ───────────────────────────────────────────────────────────────────
 let sqlDb = null;

@@ -9,6 +9,25 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.144.0] — 2026-07-16 — SQL kit: stable-frame guided path (matches Excel)
+
+Mike's call: Excel's in-place step model is the better UX — standardized on it.
+
+- **Stable frame**: the guided path now renders one persistent layout — header
+  row ("Practice x/y · lesson"), progress dots, step body, uniform bottom
+  Back/Next bar — and only the body (recall card / drill / lab pointer) swaps
+  between steps. Previously each SQL step was a full standalone drill page with
+  its own header and its own next button in a different spot.
+- Per-drill inline advance buttons removed in guided mode (the shell's bottom
+  bar is the single advance control); added `guidedPrev()` (← Back) to match
+  Excel. Progress dots now show done (green) / current (accent) / upcoming.
+- Drill renderers (`renderFill`/`renderBug`/`renderParsons`) return body-only
+  markup under guided; standalone Practice pages unchanged.
+- **This stable-frame shell is now part of the rollout pattern spec** for the
+  remaining kits (Python next).
+- Verified in-browser: guided chain, prev/next, no inline dupes, unit review,
+  standalone drill pages, parsons reset in-path; zero console errors.
+
 ## [1.143.0] — 2026-07-16 — SQL kit: guided knowledge path (rollout kit 2 of N)
 
 Ports the Excel v1.142.0 pattern to the SQL kit (soft-guide, no gates; decision
