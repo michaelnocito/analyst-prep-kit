@@ -55,7 +55,7 @@
 >   segmenting, Mayer & Moreno 2003). ⚠️ Touches lesson ids/cards/drills maps —
 >   coordinate with the knowledge-path data (`LESSON_CARDS`/`LESSON_DRILLS`/`LESSON_LABS`).
 >
-> **Batch 5 — visual path map + badges + return engagement**
+> **Batch 5 — visual path map + badges + return engagement — ✅ SHIPPED v1.154.0 (2026-07-16), awaiting Mike's retest. ALL 5 BATCHES SHIPPED.**
 > - Duolingo-style single vertical rail per kit: done/current/upcoming (dimmed,
 >   NEVER locked — soft-guide rule), unit headers with progress rings, current
 >   node = Continue.

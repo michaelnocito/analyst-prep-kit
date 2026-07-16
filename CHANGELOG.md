@@ -9,6 +9,41 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.154.0] — 2026-07-16 — SQL kit playtest Batch 5: path map + mastery badges + return loop
+
+Final batch of the 2026-07-16 playtest triage (see ROADMAP top block for the
+research citations). All in `sql/index.html`; template for the other kits.
+
+**The Lessons view is now a Duolingo-style vertical path map.** One rail, a
+node per lesson plus a "Make it stick" unit-lab node at the end of each core
+unit. Node states: done (filled ✓), current (highlighted, carries the
+▶ Continue button), upcoming (dimmed — NEVER locked, per the soft-guide rule).
+Unit headers get SVG progress rings. Lab nodes launch the unit's capstone
+slice with the existing guided-path breadcrumb and count as visited once
+opened, same as the boundary-flow offer.
+
+**Competence-framed mastery badges on Home.** Eight visible badges, each
+marking a skill with live progress counts (unit mastery ×4, all drills,
+capstone, unit labs, 25 recall wins) plus three surprise badges hidden until
+earned (before-8am / after-10pm / weekend lesson finishes). Earned badges
+toast once and persist in `state.badgesEarned`. Deliberately no attendance
+trinkets.
+
+**Return loop.** The resume card now surfaces (a) a review-due chip counting
+spaced-recall items that will fire on the next lesson (reuses the existing
+`sqlkit-recalls` +1/+3/+7 queue), (b) a streak chip — one count per local
+calendar day the kit is opened, with ONE free freeze per rolling week that
+absorbs a single missed day ("a free freeze kept it alive"), and (c) soft
+sign-off copy ("Come back tomorrow — N quick reviews will be waiting") shown
+when nothing is due now but reviews are queued; the same sign-off appears on
+the unit-boundary card. All localStorage (`sqlkit-streak`); reset clears the
+new keys.
+
+Verified: parse gate clean, live checks on localhost:4201 (path states,
+badge earn toast, streak freeze/reset/increment cases, sign-off branch, lab
+crumb), private de-test suite 24/25 (the L105 chart-eyebrow failure is
+pre-existing and tracked separately).
+
 ## [1.153.0] — 2026-07-16 — Tableau cert kit: one-at-a-time exam stepper + Zinc & Sky
 
 Two Mike-directed changes to `tableau-cert/`.

@@ -117,6 +117,37 @@ p strong{color:var(--text)}
 .lesson-sub{font-size:12px;color:var(--muted)}
 .lesson-arrow{color:var(--muted);font-size:18px}
 
+/* PATH MAP (playtest Batch 5) — Duolingo-style vertical rail. States are
+   done / current / upcoming; upcoming is DIMMED, never locked (soft-guide). */
+.pmap{position:relative}
+.pmap:before{content:'';position:absolute;left:24px;top:8px;bottom:8px;width:3px;background:var(--surf2);border-radius:2px}
+.pmap-unit{display:flex;align-items:center;gap:12px;position:relative;padding:16px 0 8px;margin-top:6px}
+.pmap-unit-name{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.pmap-unit-sub{font-size:12px;color:var(--muted)}
+.pmap-ring{flex-shrink:0;background:var(--bg);border-radius:50%;position:relative;z-index:1;margin-left:8px}
+.pmap-node{display:flex;gap:14px;align-items:flex-start;position:relative;padding:10px 12px 10px 0;margin:4px 0;cursor:pointer;border-radius:var(--r2);transition:.15s}
+.pmap-node:hover .pmap-title{color:var(--accent)}
+.pmap-dot{width:34px;height:34px;border-radius:50%;background:var(--surf2);color:var(--muted);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;border:2px solid var(--border);position:relative;z-index:1;margin-left:8px}
+.pmap-node.done .pmap-dot{background:var(--accent);border-color:var(--accent);color:#fff}
+.pmap-node.current{background:var(--surf);border:1px solid var(--accent);padding:12px;margin-left:-4px;box-shadow:var(--shadow)}
+.pmap-node.current .pmap-dot{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 22%, transparent)}
+.pmap-node.up{opacity:.55}
+.pmap-node.up:hover{opacity:.9}
+.pmap-title{font-weight:600;font-size:14px}
+.pmap-sub{font-size:12px;color:var(--muted)}
+
+/* MASTERY BADGES (playtest Batch 5) — competence-framed, visible progress */
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:10px}
+.badge-tile{border:1px solid var(--border);border-radius:var(--r2);padding:12px 8px;text-align:center;background:var(--surf2);opacity:.75}
+.badge-tile.got{background:var(--surf);border-color:var(--accent);opacity:1}
+.badge-tile.secret{border-style:dashed}
+.badge-ico{font-size:22px;line-height:1.2}
+.badge-name{font-size:12px;font-weight:700;margin-top:4px}
+.badge-prog{font-size:11px;color:var(--muted);font-family:var(--mono)}
+
+/* STREAK + REVIEW CHIPS on the resume card (playtest Batch 5) */
+.loop-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:20px;padding:3px 12px;font-size:12.5px;font-weight:600;color:#fff;margin:0 6px 10px 0}
+
 /* READ-ALOUD → Grain "Say It Out Loud" card */
 .ral-block{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:0;box-shadow:var(--shadow)}
 .ral-head{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--surf2);border-bottom:1px solid var(--border);font-family:var(--font);font-weight:600;font-size:13px;color:var(--text)}
@@ -1476,7 +1507,16 @@ function saveState(){ localStorage.setItem(SK, JSON.stringify(state)); }
 function markDone(arr, id){
   if(!state[arr].includes(id)){
     state[arr].push(id);
+    // Surprise-badge marks (Batch 5): record when-you-learn facts on lesson finishes.
+    if(arr === 'doneLessons'){
+      const h = new Date().getHours(), dw = new Date().getDay();
+      state.badgeMarks = state.badgeMarks || {};
+      if(h < 8) state.badgeMarks.early = true;
+      if(h >= 22) state.badgeMarks.night = true;
+      if(dw === 0 || dw === 6) state.badgeMarks.weekend = true;
+    }
     saveState();
+    if(typeof checkBadges === 'function') checkBadges();
     // Sync to cloud
     syncProgress('sqlkit-v1', id, arr, { done: true, timestamp: new Date().toISOString() }).catch(err => console.log('Sync failed (offline?):', err));
   }
@@ -1571,11 +1611,22 @@ function renderHome(){
   const _greet=(_lastVisit&&_lastVisit!==_today)
     ? `<p style="font-size:13px;opacity:.75;margin-top:4px">Good to have you back. Pick up where you left off.</p>` : '';
 
+  // Return loop (Batch 5): streak chip + review-due chip + soft sign-off copy.
+  const _streak = getStreak();
+  const _due = reviewsDue();
+  checkBadges(true); // catch up quietly (e.g. progress earned before badges existed)
+  const _chips =
+    (_streak.n > 1 ? `<span class="loop-chip">🔥 ${_streak.n}-day streak${_streak.froze ? ' · a free freeze kept it alive' : ''}</span>` : '') +
+    (_due.now > 0 ? `<span class="loop-chip">🔁 ${_due.now} review${_due.now>1?'s':''} due — they'll pop up as you go</span>` : '');
+  const _signoff = (_due.now === 0 && _due.soon > 0)
+    ? `<p style="font-size:13px;opacity:.75;margin-top:4px">Come back tomorrow — ${_due.soon} quick review${_due.soon>1?'s':''} will be waiting.</p>` : '';
+
   let resumeHtml = '';
   if(next){
     resumeHtml = `<div class="resume-card">
+      ${_chips ? `<div>${_chips}</div>` : ''}
       <h2>Continue Learning</h2>
-      <p>Up next: <strong>Lesson ${lessonPos(next.id)+1} — ${next.title}</strong></p>${_greet}
+      <p>Up next: <strong>Lesson ${lessonPos(next.id)+1} — ${next.title}</strong></p>${_greet}${_signoff}
       <button class="btn" onclick="navigate('lesson',${next.id})">▶ Resume →</button>
     </div>`;
   } else {
@@ -1652,6 +1703,7 @@ function renderHome(){
       <div class="text-sm text-muted mb">${done} of ${totalLessons} lessons complete (${pct}%)</div>
       ${skillBars}
     </div>
+    ${badgesCardHTML()}
     <div class="card">
       <h2>Lessons</h2>
       ${unitRows}
@@ -1697,25 +1749,59 @@ function renderHome(){
 // ─── LESSONS LIST ──────────────────────────────────────────────────────────
 function lessonPos(id){return DATA.LESSONS.findIndex(l=>l.id===id);}
 function nextLessonId(id){const p=lessonPos(id);return(p>=0&&p<DATA.LESSONS.length-1)?DATA.LESSONS[p+1].id:null;}
+// Playtest Batch 5: the Lessons view is a Duolingo-style vertical path map.
+// One rail, nodes for lessons + unit "Make it stick" labs. done / current /
+// upcoming states — upcoming is dimmed, NEVER locked (soft-guide rule);
+// the current node carries the Continue action. Template for the other kits.
+function _ringSVG(done, total){
+  const r=14, c=2*Math.PI*r, p=total?done/total:0;
+  return `<svg class="pmap-ring" width="34" height="34" viewBox="0 0 34 34">
+    <circle cx="17" cy="17" r="${r}" fill="none" stroke="var(--surf2)" stroke-width="4"/>
+    <circle cx="17" cy="17" r="${r}" fill="none" stroke="var(--accent)" stroke-width="4"
+      stroke-linecap="round" stroke-dasharray="${(p*c).toFixed(1)} ${c.toFixed(1)}"
+      transform="rotate(-90 17 17)"/>
+    ${p>=1?'<text x="17" y="21" text-anchor="middle" font-size="13" fill="var(--accent)">✓</text>':''}
+  </svg>`;
+}
 function renderLessons(){
-  let html = `<h1>Lessons</h1>`;
-  let lastUnit = '';
-  DATA.LESSONS.forEach(l => {
-    if(l.unit !== lastUnit){
-      html += `<div class="unit-label">${l.unit}</div>`;
-      lastUnit = l.unit;
+  const cur = DATA.LESSONS.find(l => !state.doneLessons.includes(l.id));
+  const units = [...new Set(DATA.LESSONS.map(l=>l.unit))];
+  let html = `<h1>Your Path</h1>
+    <p class="text-sm text-muted" style="margin:-6px 0 14px">One step at a time, top to bottom. Nothing ahead is locked — dimmed just means it's coming up. The highlighted node is your next step.</p>
+    <div class="pmap">`;
+  units.forEach(u => {
+    const ls = DATA.LESSONS.filter(l=>l.unit===u);
+    const d = ls.filter(l=>state.doneLessons.includes(l.id)).length;
+    html += `<div class="pmap-unit">${_ringSVG(d, ls.length)}<div>
+      <div class="pmap-unit-name">${u}</div>
+      <div class="pmap-unit-sub">${d}/${ls.length} lessons</div></div></div>`;
+    ls.forEach(l => {
+      const done = state.doneLessons.includes(l.id);
+      const isCur = cur && l.id === cur.id;
+      const lock = isPremiumLesson(l)&&window.apkPass ? ' '+apkPass.lessonBadge() : '';
+      html += `<div class="pmap-node ${done?'done':isCur?'current':'up'}" onclick="navigate('lesson',${l.id})">
+        <div class="pmap-dot">${done?'✓':lessonPos(l.id)+1}</div>
+        <div class="pmap-info">
+          <div class="pmap-title">${l.title}${lock}</div>
+          <div class="pmap-sub">${l.sub}</div>
+          ${isCur?`<button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="event.stopPropagation();navigate('lesson',${l.id})">▶ Continue</button>`:''}
+        </div>
+      </div>`;
+    });
+    // Unit-lab node: this unit's Make-it-stick slice of Put It All Together.
+    if(UNIT_LABS[u]){
+      const labDone = (state.unitLabsDone||[]).includes(u);
+      const nextL = DATA.LESSONS[lessonPos(ls[ls.length-1].id)+1] || ls[ls.length-1];
+      html += `<div class="pmap-node lab ${labDone?'done':(d===ls.length?'current':'up')}" onclick="startUnitLab('${u.replace(/'/g,"\\'")}',${nextL.id})">
+        <div class="pmap-dot">${labDone?'✓':'🔨'}</div>
+        <div class="pmap-info">
+          <div class="pmap-title">Make it stick — unit lab</div>
+          <div class="pmap-sub">${u.replace(/^Unit \d+: /,'')} slice of Put It All Together${labDone?' · run it again cold anytime':''}</div>
+        </div>
+      </div>`;
     }
-    const done = state.doneLessons.includes(l.id);
-    const lock = isPremiumLesson(l)&&window.apkPass ? ' '+apkPass.lessonBadge() : '';
-    html += `<div class="lesson-row${l.core?' sc-core':' sc-supporting'}" onclick="navigate('lesson',${l.id})">
-      <div class="lesson-num ${done?'done':''}">${done ? '✓' : lessonPos(l.id)+1}</div>
-      <div class="lesson-info">
-        <div class="lesson-title">${l.title}${lock}</div>
-        <div class="lesson-sub">${l.sub}</div>
-      </div>
-      <div class="lesson-arrow">›</div>
-    </div>`;
   });
+  html += '</div>';
   document.getElementById('main').innerHTML = html;
 }
 
@@ -2092,6 +2178,113 @@ function recallNope(i){
   arr.push({cues:e.cues, srcId:e.srcId, dueAt:lessonPos(_recallLesson)+1});
   _saveRecallQ(arr);
   _refreshRecalls();
+}
+
+// ─── RETURN LOOP + MASTERY BADGES (playtest Batch 5) ────────────────────────
+// Review-due queue is the primary return hook (spaced retrieval is real
+// learning); streak with one free freeze/week is secondary. All localStorage.
+// Template for the other kits.
+
+// The recall queue is keyed by LESSON POSITION (dueAt = pos + 1/3/7), so
+// "due" means: will surface on or before the lesson you'd open next.
+function _pathPos(){
+  const n = DATA.LESSONS.find(l => !state.doneLessons.includes(l.id));
+  return n ? lessonPos(n.id) : DATA.LESSONS.length;
+}
+function reviewsDue(){
+  const p = _pathPos(), q = _getRecallQ();
+  return {
+    now:  q.filter(e => e.dueAt <= p).length,      // fires on your next lesson
+    soon: q.filter(e => e.dueAt <= p + 1).length,  // fires within the next two
+  };
+}
+
+// Streak: one count per LOCAL calendar day the kit is opened. A single missed
+// day is absorbed by one free freeze per rolling week (gentle copy — a broken
+// streak should never feel like a reset of the learning itself).
+function getStreak(){
+  try { return JSON.parse(localStorage.getItem('sqlkit-streak')) || {}; } catch(e){ return {}; }
+}
+function _localDay(d = new Date()){
+  const p = n => String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+function _dayDiff(a, b){ return Math.round((new Date(b+'T12:00') - new Date(a+'T12:00')) / 86400000); }
+function bumpStreak(){
+  const s = getStreak(), today = _localDay();
+  if(s.last === today) return s;
+  delete s.froze;
+  if(!s.last){ s.n = 1; }
+  else {
+    const gap = _dayDiff(s.last, today);
+    if(gap === 1) s.n = (s.n||0) + 1;
+    else if(gap === 2 && (!s.lastFreeze || _dayDiff(s.lastFreeze, today) >= 7)){
+      s.n = (s.n||0) + 1; s.lastFreeze = today; s.froze = true; // freeze absorbed the missed day
+    }
+    else s.n = 1;
+  }
+  s.last = today;
+  localStorage.setItem('sqlkit-streak', JSON.stringify(s));
+  return s;
+}
+
+// Competence-framed mastery badges: each marks something you can now DO, with
+// visible progress toward it. A few surprise badges (hidden until earned) for
+// delight. Deliberately NO attendance trinkets — the streak above is shown as
+// a count, never converted into a reward.
+function _unitProg(re){
+  let d=0, t=0;
+  DATA.LESSONS.forEach(l => { if(re.test(l.unit)){ t++; if(state.doneLessons.includes(l.id)) d++; } });
+  return [d, t];
+}
+const BADGES = [
+  {id:'u1',      icon:'🔍', label:'Query Runner',     desc:'Finish every First Queries lesson',                 prog:()=>_unitProg(/Unit 1:/)},
+  {id:'u2',      icon:'📊', label:'Shape Shifter',    desc:'Finish every Aggregation & Shaping lesson',          prog:()=>_unitProg(/Unit 2:/)},
+  {id:'u3',      icon:'🔗', label:'Join Master',      desc:'Finish every Joins lesson',                          prog:()=>_unitProg(/Unit 3:/)},
+  {id:'u4',      icon:'🪟', label:'Window Walker',    desc:'Finish every Advanced SQL lesson',                   prog:()=>_unitProg(/Unit 4:/)},
+  {id:'drills',  icon:'🛠️', label:'Drill Polisher',   desc:'Complete every fill, bug hunt, and ordering drill',
+    prog:()=>[state.doneFills.length + state.doneBugs.length + state.doneParsons.length,
+              DATA.FILLS.length + DATA.BUGS.length + DATA.PARSONS.length]},
+  {id:'capstone',icon:'🏗️', label:'Capstone Analyst', desc:'Work every step of Put It All Together',
+    prog:()=>[(state.doneCapstone||[]).length, (typeof CAPSTONE!=='undefined'&&CAPSTONE.length)||18]},
+  {id:'labs',    icon:'🔨', label:'Make-It-Stick',    desc:'Run all four unit labs',
+    prog:()=>[(state.unitLabsDone||[]).length, Object.keys(UNIT_LABS).length]},
+  {id:'recall25',icon:'🧠', label:'Steel Trap',       desc:'Nail 25 spaced-recall checks from memory',
+    prog:()=>[Math.min(25, parseInt(localStorage.getItem('sqlkit-recall-wins')||'0')), 25]},
+  {id:'early',   icon:'🌅', label:'Early Bird',       desc:'Finish a lesson before 8am',        secret:true, prog:()=>[(state.badgeMarks||{}).early?1:0, 1]},
+  {id:'night',   icon:'🌙', label:'Night Owl',        desc:'Finish a lesson after 10pm',        secret:true, prog:()=>[(state.badgeMarks||{}).night?1:0, 1]},
+  {id:'weekend', icon:'🧺', label:'Weekend Analyst',  desc:'Finish a lesson on a weekend',      secret:true, prog:()=>[(state.badgeMarks||{}).weekend?1:0, 1]},
+];
+function checkBadges(quiet){
+  state.badgesEarned = state.badgesEarned || [];
+  let changed = false;
+  BADGES.forEach(b => {
+    const [d, t] = b.prog();
+    if(t > 0 && d >= t && !state.badgesEarned.includes(b.id)){
+      state.badgesEarned.push(b.id);
+      changed = true;
+      if(!quiet) showToast(`${b.icon} Badge earned: ${b.label}!`);
+    }
+  });
+  if(changed) saveState();
+}
+function badgesCardHTML(){
+  const earned = state.badgesEarned || [];
+  const tiles = BADGES.filter(b => !b.secret || earned.includes(b.id)).map(b => {
+    const [d, t] = b.prog();
+    const got = earned.includes(b.id) || (t > 0 && d >= t);
+    return `<div class="badge-tile${got?' got':''}" title="${b.desc}">
+      <div class="badge-ico">${got ? b.icon : '○'}</div>
+      <div class="badge-name">${b.label}</div>
+      <div class="badge-prog">${got ? 'Earned' : d+'/'+t}</div>
+    </div>`;
+  }).join('');
+  const secretN = BADGES.filter(b => b.secret && !earned.includes(b.id)).length;
+  return `<div class="card">
+    <h2>Badges</h2>
+    <p class="text-sm text-muted" style="margin:0 0 10px">Each badge marks a skill you can now do — the count fills as you learn, not as you show up.</p>
+    <div class="badge-grid">${tiles}${secretN ? `<div class="badge-tile secret"><div class="badge-ico">✦</div><div class="badge-name">${secretN} surprise badge${secretN>1?'s':''}</div><div class="badge-prog">found by playing</div></div>` : ''}</div>
+  </div>`;
 }
 
 // ─── V2 LESSON FLOW ──────────────────────────────────────────────────────────
@@ -2608,6 +2801,7 @@ function finishUnitBoundary(unit, nextLid){
         <div class="badge badge-unit" style="margin-bottom:12px">${unit} · complete</div>
         <h2>Now make it yours 🔨</h2>
         <p class="text-muted" style="max-width:520px;margin:10px auto 6px">You've seen every piece — time to make it stick. This unit's slice of <strong>Put It All Together</strong> builds the real analysis with everything you've learned so far. Repeat it until it feels fluid, then come back tomorrow and run it again cold — the spaced repeat is what locks it in.</p>
+        ${(()=>{ const d=reviewsDue(); return d.soon ? `<p class="text-sm text-muted" style="margin:4px auto 0">Come back tomorrow — ${d.soon} quick review${d.soon>1?'s':''} will be waiting.</p>` : ''; })()}
         <div class="row" style="justify-content:center;gap:10px;margin-top:16px">
           <button class="btn btn-primary" onclick="startUnitLab('${unit.replace(/'/g,"\\'")}',${nextLid})">Make it stick →</button>
           <button class="btn btn-ghost" onclick="navigate('lesson',${nextLid})">Skip to ${nxt?('Lesson: '+nxt.title):'next lesson'} →</button>
@@ -2620,6 +2814,10 @@ function finishUnitBoundary(unit, nextLid){
 }
 function startUnitLab(unit, nextLid){
   const r = UNIT_LABS[unit];
+  if(!r) return;
+  // Path-map launches (Batch 5) count like boundary offers: seen once = done node.
+  state.unitLabsDone = state.unitLabsDone || [];
+  if(!state.unitLabsDone.includes(unit)){ state.unitLabsDone.push(unit); saveState(); }
   _capReturn = {unit, from:r.from, to:r.to, nextLid};
   navigate('lab-capstone');
 }
@@ -4268,7 +4466,8 @@ function redeemCodeFromSettings(){
 function resetProgress(){
   if(!confirm('Reset all progress? This cannot be undone.')) return;
   state.doneLessons=[]; state.doneFills=[]; state.doneBugs=[]; state.doneParsons=[]; state.doneCards=[];
-  ['sqlkit-recalls','sqlkit-recall-wins','sqlkit-last-visit'].forEach(k=>localStorage.removeItem(k));
+  state.unitReviewsDone=[]; state.unitLabsDone=[]; state.badgesEarned=[]; state.badgeMarks={};
+  ['sqlkit-recalls','sqlkit-recall-wins','sqlkit-last-visit','sqlkit-streak'].forEach(k=>localStorage.removeItem(k));
   _pendingRecalls=[]; _recallLesson=null;
   saveState();
   navigate('home');
@@ -4297,6 +4496,7 @@ function showToast(msg){
 
 // ─── INIT ──────────────────────────────────────────────────────────────────
 loadState();
+bumpStreak(); // Batch 5 return loop: opening the kit counts toward today's streak
 
 // Load user's cloud progress if logged in
 async function initKitWithSync() {
