@@ -9,6 +9,29 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.148.0] — 2026-07-16 — SQL kit: playtest Batch 1 (quick fixes + content glue)
+
+First build batch from the 2026-07-16 playtest triage (plan: ROADMAP.md top block).
+
+- **Fixed: hint text unreadable in light mode.** The `.hint-panel` light-ink rule
+  used the `[data-theme="light"]` selector, but the SQL kit sets a `.light` class —
+  so hints stayed near-white on the light background. Now matches both conventions.
+- **Parsons "Put in Order" → tap-to-place.** Tapping a pool line appends it to the
+  answer; tapping an answer line returns it to the pool in original order. Drag
+  still works as a bonus; scaffolded (locked) chips ignore taps. Column labels now
+  say "tap to add / tap to remove"; chips use a pointer cursor.
+- **Every query drill states its tables.** New `drillTablesNote()` derives a
+  "🗂 Tables in play" line from each drill's SQL (FROM/JOIN scan) and renders it on
+  Fill-in-the-Blank, Bug Hunt, Put in Order, and Card Drill surfaces.
+- **Table aliases explained inline, not on a standalone page** (triage research
+  call — just-in-time principle). Whenever a drill's SQL aliases a table
+  (`sales s`), the note adds "Aliases: `s` = sales — a short nickname… so
+  `s.column` means a column from sales."
+
+Verified: 3/3 inline-script parse gate; live browser checks on localhost:4201
+(light-mode hint computed color, tap add/remove round-trip with order restore,
+alias notes on JOIN parsons + card drills); console clean.
+
 ## [1.147.0] — 2026-07-16 — Tableau kit: guided knowledge path (stable frame)
 
 Fifth kit on the Duolingo-style soft-guide path (Excel v1.142.0, SQL v1.143–144.0,

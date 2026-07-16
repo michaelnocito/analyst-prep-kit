@@ -185,6 +185,8 @@ p strong{color:var(--text)}
 .code-fixed.show{display:block}
 .bug-issue{font-size:13px;color:var(--red);margin:8px 0}
 .hint-btn{background:none;border:none;color:var(--muted);font:inherit;font-size:12px;cursor:pointer;padding:0;text-decoration:underline}
+.drill-tables{font-size:12.5px;color:var(--muted);margin:8px 0 4px;line-height:1.6}
+.drill-tables code{font-family:var(--mono);color:var(--accent);background:var(--surf2);padding:1px 5px;border-radius:4px}
 .hint-text{font-size:13px;color:var(--yellow);margin-top:8px;display:none}
 .hint-text.show{display:block}
 
@@ -194,7 +196,7 @@ p strong{color:var(--text)}
 .parsons-col label{font-size:12px;color:var(--muted);font-weight:600;display:block;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
 .parsons-pool,.parsons-answer{min-height:80px;background:var(--surf2);border:1px solid var(--border);border-radius:var(--r2);padding:8px;display:flex;flex-direction:column;gap:6px}
 .parsons-answer{border-color:var(--accent)}
-.parsons-chip{font-family:var(--mono);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:var(--r2);padding:9px 12px;cursor:grab;user-select:none;transition:.15s}
+.parsons-chip{font-family:var(--mono);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:var(--r2);padding:9px 12px;cursor:pointer;user-select:none;transition:.15s}
 .parsons-chip:hover{border-color:var(--accent);background:var(--surf2)}
 .parsons-chip.dragging{opacity:.4}
 
@@ -312,7 +314,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .hint-cycle-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(47,109,240,.13);border:1.5px solid rgba(47,109,240,.42);color:var(--accent,#2f6df0);padding:9px 20px;border-radius:7px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s;margin-top:14px}
 .hint-cycle-btn:hover{background:rgba(47,109,240,.24)}
 .hint-panel{display:none;margin-top:13px;padding:14px 17px;background:rgba(47,109,240,.07);border:1px solid rgba(47,109,240,.24);border-radius:7px;font-size:14.5px;line-height:1.65;color:rgba(220,220,220,.92)}
-[data-theme="light"] .hint-panel{color:rgba(30,30,30,.85)}
+.light .hint-panel,[data-theme="light"] .hint-panel{color:rgba(30,30,30,.85)}
 .hint-panel.show{display:block}
 .answer-panel{display:none;margin-top:11px;padding:14px 17px;background:var(--surf2,#292520);border:1.5px solid rgba(47,109,240,.35);border-radius:7px}
 .answer-panel.show{display:flex;flex-direction:column;gap:10px}
@@ -2625,6 +2627,26 @@ function renderPractice(){
 }
 
 // ─── FILL DRILL ────────────────────────────────────────────────────────────
+// "Tables in play" note derived from a drill's SQL — every exercise that asks
+// the user to reason about a query must make its table names explicit, and any
+// table alias (e.g. `sales s`) gets a one-line inline explanation.
+function drillTablesNote(code){
+  const KW = new Set(['SELECT','WHERE','GROUP','ORDER','LIMIT','ON','JOIN','INNER','LEFT','RIGHT','FULL','CROSS','AS','HAVING','UNION','EXCEPT','SET','VALUES','USING','AND','OR','NOT','WITH','BY']);
+  const tables = [], aliases = [];
+  for(const m of code.matchAll(/\b(?:FROM|JOIN)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s+(?:AS\s+)?([A-Za-z_][A-Za-z0-9_]*))?/gi)){
+    const t = m[1];
+    if(KW.has(t.toUpperCase())) continue;
+    if(!tables.includes(t)) tables.push(t);
+    const a = m[2];
+    if(a && !KW.has(a.toUpperCase()) && !aliases.some(x => x[1] === a)) aliases.push([t, a]);
+  }
+  if(!tables.length) return '';
+  const aliasNote = aliases.length
+    ? `<br>Aliases: ${aliases.map(([t,a]) => `<code>${a}</code> = ${t}`).join(' · ')} — a short nickname given right after the table name, so <code>${aliases[0][1]}.column</code> means a column from <b>${aliases[0][0]}</b>.`
+    : '';
+  return `<p class="drill-tables">🗂 Tables in play: ${tables.map(t => `<code>${t}</code>`).join(' · ')}${aliasNote}</p>`;
+}
+
 function renderFill(idx){
   const f = DATA.FILLS[idx];
   if(!f){ if(!guided) navigate('practice'); return ''; }
@@ -2635,6 +2657,7 @@ function renderFill(idx){
       <h2>Fill in the Blank</h2>
       <p class="fill-prompt">${f.q}</p>
       <div class="fill-partial">${f.partial}</div>
+      ${drillTablesNote(f.partial)}
       <p class="text-muted text-sm" style="margin-top:12px">Tap the piece that fills the blank:</p>
       <div id="fillChoices" style="display:flex;flex-direction:column;gap:8px">
         ${_shuf(f.choices).map(c=>`<button class="bug-choice" data-correct="${c===f.choices[0]?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:rgba(47,109,240,.08);color:var(--accent);font-family:var(--mono);font-size:14px;font-weight:600;cursor:pointer" onclick="pickFill(this,${idx})" ${done?'disabled':''}>${c}</button>`).join('')}
@@ -2689,6 +2712,7 @@ function renderBug(idx){
       <h3>${b.title}</h3>
       <p class="text-muted text-sm">${b.prompt}</p>
       <div class="code-broken">${b.broken}</div>
+      ${drillTablesNote(b.broken)}
       <div class="bug-issue" id="bug-issue" style="${done?'':'display:none'}"><i data-lucide="alert-triangle" style="width:14px;height:14px;vertical-align:-2px"></i> ${b.issue}</div>
       <p class="text-muted text-sm" style="margin-top:12px">Spot the bug, then tap the correct fix:</p>
       <div id="bugChoices" style="display:flex;flex-direction:column;gap:8px">
@@ -2751,15 +2775,16 @@ function renderParsons(idx){
       <h2>Put in Order</h2>
       <h3>${p.title}</h3>
       <p class="text-muted text-sm">${p.prompt}</p>
+      ${drillTablesNote(p.lines.join('\n'))}
       <div class="parsons-wrap">
         <div class="parsons-col">
-          <label>Available Lines</label>
+          <label>Available Lines — tap to add</label>
           <div class="parsons-pool" id="parsons-pool">
-            ${poolLines.map((line,i) => `<div class="parsons-chip" draggable="true" data-line="${i}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dropChip(event,'pool')">${line}</div>`).join('')}
+            ${poolLines.map((line,i) => `<div class="parsons-chip" draggable="true" data-line="${i}" onclick="tapChip(event)" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dropChip(event,'pool')">${line}</div>`).join('')}
           </div>
         </div>
         <div class="parsons-col">
-          <label>Your Answer (top → bottom)</label>
+          <label>Your Answer (top → bottom) — tap to remove</label>
           <div class="parsons-answer" id="parsons-answer" ondragover="dragOver(event)" ondrop="dropChip(event,'answer')"></div>
         </div>
       </div>
@@ -2775,6 +2800,24 @@ function renderParsons(idx){
       <button class="btn btn-ghost btn-sm" onclick="navigate('practice')">← Practice</button>
       <span class="text-muted text-sm">${idx+1} / ${DATA.PARSONS.length}</span>      ${done ? '<span class="badge badge-done">✓</span>' : ''}
     </div>` + body;
+}
+
+// Tap-to-place (primary interaction; drag kept as a bonus). Tap a pool chip →
+// appends to the answer; tap an answer chip → returns to the pool in original
+// line order. Locked (scaffolded) chips ignore taps.
+function tapChip(e){
+  const chip = e.currentTarget;
+  if(chip.getAttribute('draggable') === 'false') return;
+  const pool = document.getElementById('parsons-pool');
+  const answer = document.getElementById('parsons-answer');
+  if(!pool || !answer) return;
+  if(chip.parentElement === pool){
+    answer.appendChild(chip);
+  } else {
+    const line = parseInt(chip.dataset.line);
+    const after = [...pool.querySelectorAll('.parsons-chip')].find(c => parseInt(c.dataset.line) > line);
+    pool.insertBefore(chip, after || null);
+  }
 }
 
 let draggedChip = null;
@@ -3215,6 +3258,7 @@ async function renderCardDrill(term){
       <h2 style="font-family:var(--mono)">${term}</h2>
       <p class="text-muted">${cardDef(term)}</p>
       ${d.note ? `<div style="background:rgba(191,135,0,.1);border:1px solid rgba(191,135,0,.4);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px">💡 ${d.note}</div>` : ''}
+      ${drillTablesNote(d.tries.map(t => t.sql).join('\n'))}
       ${triesHtml}
       <div class="terminal-wrap">
         <div class="terminal-toolbar">

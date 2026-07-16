@@ -8,7 +8,7 @@
 > every batch here becomes a template for the other kits, riding the same
 > one-kit-per-chat rollout train as the knowledge path.**
 >
-> **Batch 1 — quick fixes + content glue (small)**
+> **Batch 1 — quick fixes + content glue (small) — ✅ SHIPPED v1.148.0 (2026-07-16), awaiting Mike's retest**
 > - 🐛 Hint text unreadable in light mode.
 > - 🐛 Parsons "put in order" drag friction (desktop + mobile) → low-friction
 >   tap-to-place ordering.
