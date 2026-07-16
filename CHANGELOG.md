@@ -9,6 +9,27 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.143.0] — 2026-07-16 — SQL kit: guided knowledge path (rollout kit 2 of N)
+
+Ports the Excel v1.142.0 pattern to the SQL kit (soft-guide, no gates; decision
+record in ROADMAP.md "Guided knowledge path" DECIDED block).
+
+- **Recall cards on the path**: `LESSON_CARDS` tags all 38 SQL flashcards to the
+  first lesson that teaches the concept (each exactly once); `guidedSeqFor()`
+  runs lesson → "Recall — no peeking" flip cards → fills/bugs/Parsons drills.
+- **Lab hand-off steps** (SQL-specific): `LESSON_LABS` weaves a hands-on step
+  into the path where a lesson has a matching lab track — INNER JOIN (lesson 4)
+  → JOIN Lab, COUNT/SUM/GROUP BY (lesson 5) → Aggregation Lab.
+- **Path is the default Continue**: v2 close stage + classic quiz-complete both
+  lead with "Continue path →" (startGuided); next-lesson demoted to
+  "Skip to next lesson". Lessons with no steps continue straight through.
+- **Unit review nodes**: crossing a unit boundary triggers a once-per-unit
+  (`state.unitReviewsDone`), fully skippable mixed review — 3 recall cards +
+  3 distinct-type drills drawn from everything learned so far.
+- Verified in-browser end to end (guided chain, review trigger + once-per-unit
+  guard, skip paths, empty-lesson pass-through) with zero console errors.
+  Zinc & Sky confirmed (SQL was the palette pilot).
+
 ## [1.142.0] — 2026-07-16 — Excel kit: guided knowledge path (rollout kit 1 of N)
 
 First kit of the all-kit knowledge-path correction (decision record: ROADMAP.md
