@@ -9,6 +9,31 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.152.0] — 2026-07-16 — SQL kit: labs joined to the guided path (playtest Batch 3)
+
+Labs now launch FROM and RETURN TO the exact path position (contiguity fix for
+the "join lab disconnects you from the flow" playtest note), and every core unit
+ends with its own Make-it-stick slice of the capstone.
+
+- **Unit-boundary "Make it stick" node**: after each core unit's mixed review
+  (or straight at the boundary if the review is already done), a once-per-unit
+  offer hands off into that unit's slice of the 18-step capstone — Unit 1 →
+  steps 1–6, Unit 2 → 7–12, Unit 3 → 13–15, Unit 4 → 16–18. Cumulative by
+  construction (every step reuses all earlier constructs). Fully skippable
+  (soft-guide). "Repeat until fluid + come back tomorrow" spaced framing.
+- **Path breadcrumb on every lab view**: while a path hand-off is live, a
+  "🧭 Guided path · … · Continue path →" bar sits above the lab tabs. JOIN/
+  Aggregation Lab hand-offs resume the guided sequence at the exact step;
+  the capstone slice returns to the next lesson. Completing the slice surfaces
+  a "Unit slice done" card with the Continue CTA.
+- Opening the capstone from the path auto-expands the first unfinished step
+  INSIDE the unit's slice. New `state.unitLabsDone` keeps offers once-per-unit.
+
+Verified live on localhost: lab-step round trip (open Aggregation Lab from
+lesson 5's path, Continue → resumes and advances to HAVING lesson), boundary
+offer with review done/not-done/skipped, slice completion banner → lands on
+Lesson: Grain, no re-offer after done or skip; parse gate 3/3; console clean.
+
 ## [1.151.0] — 2026-07-16 — SQL kit: "Put It All Together" v2 — 18-step backward-faded capstone (playtest Batch 2)
 
 The 4-step capstone is now an 18-step progressive build (research: fading worked

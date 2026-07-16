@@ -26,7 +26,7 @@
 >   Atkinson, Renkl & Merrill 2003, J Ed Psych, doi:10.1037/0022-0663.95.4.774);
 >   expertise reversal (Kalyuga et al. 2003, doi:10.1207/S15326985EP3801_4).
 >
-> **Batch 3 — lab integration into the guided path**
+> **Batch 3 — lab integration into the guided path — ✅ SHIPPED v1.152.0 (2026-07-16), awaiting Mike's retest**
 > - End-of-unit cumulative "Make it stick" lab nodes on the path: mix the unit's
 >   constructs with earlier units' (interleaving ~doubles test performance,
 >   Rohrer & Taylor 2007, Instr Sci, doi:10.1007/s11251-007-9015-8; spacing:

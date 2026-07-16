@@ -1463,6 +1463,7 @@ let state = {
   doneCardDrills: [],
   doneCapstone: [],
   unitReviewsDone: [],
+  unitLabsDone: [],
   flagged: [],
   theme: 'light'
 };
@@ -2449,6 +2450,21 @@ const LESSON_CARDS = {
 // Hands-on lab step woven in where a lesson has a matching lab track.
 const LESSON_LABS = { 4:'join', 5:'agg' };
 
+// ── Unit-boundary "Make it stick" labs (playtest Batch 3) ──────────────────
+// Each core unit ends with a hand-off into ITS slice of the 18-step capstone —
+// a per-unit Put It All Together. Cumulative by construction: every capstone
+// step reuses all earlier constructs (interleaving + whole-task practice).
+const UNIT_LABS = {
+  'Unit 1: First Queries':        {from:0,  to:5},
+  'Unit 2: Aggregation & Shaping':{from:6,  to:11},
+  'Unit 3: Joins':                {from:12, to:14},
+  'Unit 4: Advanced SQL':         {from:15, to:17},
+};
+// Return contexts so labs launch FROM and RETURN TO the exact path position
+// (contiguity — the lesson goal stays alive while you're in the lab).
+let _capReturn = null; // {unit, from, to, nextLid} — capstone slice opened from the path
+let _labReturn = null; // {lessonId, pos}          — JOIN/Agg lab opened from a lesson's path
+
 let guided = null; // { lessonId, seq:[[type,idx]], pos, review?, reviewUnit?, nextLid? }
 let _parsonsAttempts = {}; // tracks wrong-attempt count per drill idx for progressive scaffolding
 
@@ -2564,9 +2580,67 @@ function guidedLabBody(track){
   return `
     <div class="card">
       <h2>Build it in the ${meta.label}</h2>
-      <p>${meta.pitch} Open the lab, work a task or two, then come back and continue the path.</p>
-      <button class="btn btn-primary" onclick="navigate('${meta.view}')">Open ${meta.label} →</button>
+      <p>${meta.pitch} Open the lab, work a task or two — a "Continue path" button up top will bring you right back here.</p>
+      <button class="btn btn-primary" onclick="openGuidedLab('${meta.view}')">Open ${meta.label} →</button>
     </div>`;
+}
+
+// Launch a lab from the path, remembering the exact position to resume.
+function openGuidedLab(view){
+  if(guided) _labReturn = {lessonId: guided.lessonId, pos: guided.pos};
+  navigate(view);
+}
+function resumeGuidedFromLab(){
+  const r = _labReturn; _labReturn = null;
+  if(!r) return navigate('lessons');
+  guided = {lessonId: r.lessonId, seq: guidedSeqFor(r.lessonId), pos: r.pos};
+  guidedNext(); // move past the lab step (advances to next step or the boundary flow)
+}
+// Unit-boundary flow after the mixed review: offer the unit's Make-it-stick
+// capstone slice once per unit. Soft-guide: fully skippable.
+function finishUnitBoundary(unit, nextLid){
+  state.unitLabsDone = state.unitLabsDone || [];
+  if(UNIT_LABS[unit] && !state.unitLabsDone.includes(unit)){
+    state.unitLabsDone.push(unit); saveState();
+    const nxt = DATA.LESSONS.find(l=>l.id===nextLid);
+    document.getElementById('main').innerHTML = `
+      <div class="card" style="text-align:center;padding:30px">
+        <div class="badge badge-unit" style="margin-bottom:12px">${unit} · complete</div>
+        <h2>Now make it yours 🔨</h2>
+        <p class="text-muted" style="max-width:520px;margin:10px auto 6px">You've seen every piece — time to make it stick. This unit's slice of <strong>Put It All Together</strong> builds the real analysis with everything you've learned so far. Repeat it until it feels fluid, then come back tomorrow and run it again cold — the spaced repeat is what locks it in.</p>
+        <div class="row" style="justify-content:center;gap:10px;margin-top:16px">
+          <button class="btn btn-primary" onclick="startUnitLab('${unit.replace(/'/g,"\\'")}',${nextLid})">Make it stick →</button>
+          <button class="btn btn-ghost" onclick="navigate('lesson',${nextLid})">Skip to ${nxt?('Lesson: '+nxt.title):'next lesson'} →</button>
+        </div>
+      </div>`;
+    window.scrollTo(0,0);
+    return;
+  }
+  navigate('lesson', nextLid);
+}
+function startUnitLab(unit, nextLid){
+  const r = UNIT_LABS[unit];
+  _capReturn = {unit, from:r.from, to:r.to, nextLid};
+  navigate('lab-capstone');
+}
+// Breadcrumb bar shown on every lab view while a path return context is live.
+function labPathCrumbHTML(){
+  if(_capReturn){
+    const nxt = DATA.LESSONS.find(l=>l.id===_capReturn.nextLid);
+    const range = `steps ${_capReturn.from+1}–${_capReturn.to+1}`;
+    return `<div class="card card-sm mb" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-color:var(--accent)">
+      <span class="text-sm">🧭 Guided path · <strong>${_capReturn.unit}</strong> Make-it-stick lab (${range}) · then ${nxt?('Lesson: '+nxt.title):'onward'}</span>
+      <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="const n=_capReturn.nextLid;_capReturn=null;navigate('lesson',n)">Continue path →</button>
+    </div>`;
+  }
+  if(_labReturn){
+    const l = DATA.LESSONS.find(x=>x.id===_labReturn.lessonId);
+    return `<div class="card card-sm mb" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-color:var(--accent)">
+      <span class="text-sm">🧭 Guided path · ${l?('Lesson: '+l.title):'lesson'} · work a task or two, then</span>
+      <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="resumeGuidedFromLab()">Continue path →</button>
+    </div>`;
+  }
+  return '';
 }
 
 function guidedPrev(){
@@ -2575,13 +2649,13 @@ function guidedPrev(){
 function guidedNext(){
   if(!guided) return;
   if(guided.pos < guided.seq.length-1){ guided.pos++; renderGuidedStep(); }
-  else if(guided.review){ const nl = guided.nextLid; guided = null; showToast('Review done — onward! 🧠'); navigate('lesson', nl); }
+  else if(guided.review){ const nl = guided.nextLid, u = guided.reviewUnit; guided = null; showToast('Review done — onward! 🧠'); finishUnitBoundary(u, nl); }
   else { const lid = guided.lessonId; guided = null; gotoNextLesson(lid); }
 }
 function guidedSkipAll(){
   if(!guided) return;
   const g = guided; guided = null;
-  if(g.review) navigate('lesson', g.nextLid);
+  if(g.review) finishUnitBoundary(g.reviewUnit, g.nextLid);
   else gotoNextLesson(g.lessonId);
 }
 function gotoNextLesson(lid){
@@ -2591,10 +2665,17 @@ function gotoNextLesson(lid){
   // Unit boundary → one skippable mixed-review node (once per unit).
   const cur = DATA.LESSONS.find(l=>l.id===lid), nxt = DATA.LESSONS.find(l=>l.id===_nxt);
   state.unitReviewsDone = state.unitReviewsDone || [];
-  if(cur && nxt && cur.unit !== nxt.unit && !state.unitReviewsDone.includes(cur.unit)){
-    state.unitReviewsDone.push(cur.unit); saveState();
-    startUnitReview(cur.unit, _nxt);
-    return;
+  if(cur && nxt && cur.unit !== nxt.unit){
+    if(!state.unitReviewsDone.includes(cur.unit)){
+      state.unitReviewsDone.push(cur.unit); saveState();
+      startUnitReview(cur.unit, _nxt); // its finish flows into finishUnitBoundary
+      return;
+    }
+    // Review already done — still offer the unit's Make-it-stick lab once.
+    if(UNIT_LABS[cur.unit] && !(state.unitLabsDone||[]).includes(cur.unit)){
+      finishUnitBoundary(cur.unit, _nxt);
+      return;
+    }
   }
   navigate('lesson', _nxt);
 }
@@ -2965,7 +3046,7 @@ function labTabsHTML(active){
   const btns = labs.map(l =>
     `<button onclick="navigate('${l.id}')" style="background:none;border:none;padding:10px 14px;font:600 13px var(--font);cursor:pointer;white-space:nowrap;flex-shrink:0;color:${active===l.key?'var(--accent)':'var(--muted)'};border-bottom:2px solid ${active===l.key?'var(--accent)':'transparent'};transition:.15s">${l.label}</button>`
   ).join('');
-  return `
+  return labPathCrumbHTML() + `
     <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(47,109,240,.1);border:1px solid rgba(47,109,240,.22);border-radius:20px;padding:4px 14px;font-size:12px;color:var(--accent);font-weight:600;margin-bottom:10px">
       <i data-lucide="flask-conical" style="width:14px;height:14px;vertical-align:-2px"></i> Switch lab types below — each focuses on a different analyst skill
     </div>
@@ -3436,7 +3517,12 @@ const CAPSTONE = {
 async function renderLabCapstone(){
   // First not-done step is expanded; done steps collapse with a ✓; future steps
   // collapse but stay tappable (soft skip-ahead — expertise-reversal guard).
-  const current = CAPSTONE.steps.findIndex((_,i)=>!state.doneCapstone.includes(i));
+  // When opened from the guided path (_capReturn), start inside the unit's slice.
+  let current = CAPSTONE.steps.findIndex((_,i)=>!state.doneCapstone.includes(i));
+  if(_capReturn){
+    const inRange = CAPSTONE.steps.findIndex((_,i)=>i>=_capReturn.from && i<=_capReturn.to && !state.doneCapstone.includes(i));
+    current = inRange >= 0 ? inRange : _capReturn.from;
+  }
   let lastStage = null;
   const stepsHtml = CAPSTONE.steps.map((st,i)=>{
     const done = state.doneCapstone.includes(i);
@@ -3510,6 +3596,21 @@ function checkCapstone(i){
     const stepCard=document.getElementById('cap-step-'+i); if(stepCard) stepCard.style.borderColor='var(--green,#1a7f37)';
     const hdr=document.querySelector('#cap-step-'+i+' h3'); if(hdr && !hdr.textContent.startsWith('✅')) hdr.insertAdjacentText('afterbegin','✅ ');
     // collapse this step, open + scroll to the next not-done one (keeps other editors' text intact — no re-render)
+    // From the guided path: when the unit's slice is complete, surface the return CTA.
+    if(_capReturn && CAPSTONE.steps.every((_,k)=>k<_capReturn.from || k>_capReturn.to || state.doneCapstone.includes(k))){
+      const stepEl=document.getElementById('cap-step-'+i);
+      if(stepEl && !document.getElementById('cap-unit-done')){
+        stepEl.insertAdjacentHTML('afterend', `<div class="card mb" id="cap-unit-done" style="border:1.5px solid var(--green,#1a7f37)">
+          <h3>🔨 Unit slice done — it's yours now</h3>
+          <p class="text-muted text-sm">Run these steps again until they feel fluid, explore the other labs, or head straight back to the path. Come back tomorrow and re-run them cold — that spaced repeat locks it in.</p>
+          <button class="btn btn-primary btn-sm" onclick="const n=_capReturn.nextLid;_capReturn=null;navigate('lesson',n)">Continue path →</button>
+        </div>`);
+        document.getElementById('cap-unit-done').scrollIntoView({behavior:'smooth',block:'center'});
+      }
+      if(state.doneCapstone.filter(k=>k<CAPSTONE.steps.length).length>=CAPSTONE.steps.length){ const f=document.getElementById('cap-finale'); if(f) f.style.display=''; }
+      out.innerHTML = html;
+      return;
+    }
     const nxt=CAPSTONE.steps.findIndex((_,k)=>k>i && !state.doneCapstone.includes(k));
     if(nxt>=0){ setTimeout(()=>{ toggleCapStep(i); const nb=document.getElementById('cap-body-'+nxt); if(nb) nb.style.display=''; const nc=document.getElementById('cap-step-'+nxt); if(nc) nc.scrollIntoView({behavior:'smooth',block:'start'}); }, 900); }
     if(state.doneCapstone.filter(k=>k<CAPSTONE.steps.length).length>=CAPSTONE.steps.length){ const f=document.getElementById('cap-finale'); if(f) f.style.display=''; }
