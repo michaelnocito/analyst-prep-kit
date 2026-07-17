@@ -1,6 +1,13 @@
 ﻿# Analyst Prep Kit — Roadmap
 
-> ### 🃏 RECALL ANSWERS ROLLOUT (decided 2026-07-17, Mike's go) — SQL ✅ v1.160.0 + v1.161.0 Review-now view; other kits pending
+> ### 🃏 RECALL ANSWERS — FOLDED INTO THE KIT-UPDATE TRAIN (Mike, 2026-07-17) — SQL ✅ v1.160.0+v1.161.0
+> **No longer a separate train.** Every remaining Batch 5 kit update (Python → Power BI →
+> Tableau → Stats) now ships BOTH pieces in its one chat: the Batch 5 features (path map +
+> badges + return loop) AND the recall rework (answers as {q,a}, flip-to-reveal card,
+> Review-now view). **Excel, which already shipped Batch 5 (v1.156.0) without the recall
+> piece, gets an immediate circle-back chat for recall-only as soon as the four kits are
+> done.** Going forward the recall flip is a standing part of every kit update — no kit
+> update ships a recall surface without answers again.
 > **v1.161.0 addendum (Mike: recalls were untestable/unreachable on demand):** Home chip →
 > button opening a `review` view that pulls ALL due recalls (dueAt <= current position —
 > also rescues entries stranded by the position-exact lesson dequeue), plus "Practice
