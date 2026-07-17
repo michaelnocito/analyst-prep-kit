@@ -9,6 +9,32 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.166.0] — 2026-07-17 — Excel kit: recall answers circle-back — the recall rework train is COMPLETE
+Excel shipped Batch 5 at v1.156.0 before the recall rework existed; this
+circle-back brings it to parity, closing the rollout across all six lesson kits.
+
+### Added
+- **Recall answers** — all 51 lessons' inline `reinforces` arrays restructured
+  from question strings to `{q, a}` pairs, with 102 answers hand-written
+  (51 × 2): short, everyday words, self-contained, examples drawn only from this
+  kit's own lessons (the coffee-company data, =B2*C2 fill-down, the $9,980
+  outlier order, the year-zero NPV trap, Ctrl+T and the eight daily shortcuts).
+- **Answer flip + Review view** — cards reveal answers inline rather than
+  dead-ending ("Nope, remind me again" is gone). A peeked card re-queues at
+  front+1 via `_recallAnchor` (the open lesson in the lesson flow, the path
+  front in Review — `S.currentLesson` is left alone so the resume card doesn't
+  move) and counts NO win. The Home review chip is now a button opening a
+  Review view that pulls every due recall, with "Practice ahead" for
+  future-queued entries; entries stay in storage until answered. The chip sits
+  inside the click-to-resume card, so it stops propagation. In-lesson
+  auto-appear is unchanged.
+
+### Fixed
+- Ships with the v1.165.0 stale-host guard from day one: `_refreshRecalls`
+  prefers `#review-recalls` while the Review view is active, so a `#v2-recalls`
+  left in the hidden `#view-lesson` can't steal the render and blank the
+  Review view. (Tableau and Python still need this same fix.)
+
 ## [1.165.0] — 2026-07-17 — Stats kit: path map, badges, return loop + recall answers
 Kit 5 of 5 — the final kit in the Batch 5 rollout, carrying the recall rework in
 the same pass (ported onto Stats' `S` state, `show()` router and `spk-*` keys;

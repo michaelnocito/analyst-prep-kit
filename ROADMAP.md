@@ -26,8 +26,9 @@
 > **Cross-kit matrix (standing rule):** the engine pattern ports to ALL kits with the
 > D+E recall layer; the cost is authoring answers per kit — SQL ✅ 94 (47×2, v1.160.0) ·
 > Python ✅ 84 (42×2, v1.162.0) · Power BI ✅ 78 (39×2, v1.163.0) · Tableau ✅ 64 (32×2,
-> v1.164.0) · Stats ✅ 32 (16×2, v1.165.0) —— **all 5 rollout kits done; next is the**
-> Excel recall circle-back (reinforces inline per lesson — different plumbing, same card). One kit per
+> v1.164.0) · Stats ✅ 32 (16×2, v1.165.0) · Excel ✅ 102 (51×2, v1.166.0, inline
+> reinforces — different plumbing, same card) —— **THE RECALL TRAIN IS COMPLETE: all
+> six lesson kits carry {q,a} answers + flip card + Review view.** One kit per
 > chat, same train as Batch 5. The private de-test suite already accepts BOTH cue
 > formats (strings or {q,a}) — port answers without touching it. Legacy queued
 > entries (strings in <kit>-recalls localStorage) must keep rendering: reveal shows
@@ -213,10 +214,10 @@
 > loop to the other lesson kits, ONE kit per chat — Excel → Python → Power BI →
 > Tableau → Stats. SQL v1.154.0 is the reference; unit-lab nodes stay SQL-only
 > until B2/B3 get templated. Plan: HANDOFF-batch5-kit-rollout.md (local).
-> ✅ Excel (v1.156.0, Batch 5 only — recall circle-back pending) · ✅ Python (v1.162.0,
+> ✅ Excel (v1.156.0 Batch 5 + v1.166.0 recall circle-back) · ✅ Python (v1.162.0,
 > Batch 5 + recall together) · ✅ Power BI (v1.163.0, Batch 5 + recall together) ·
 > ✅ Tableau (v1.164.0, Batch 5 + recall together) · ✅ Stats (v1.165.0, Batch 5 +
-> recall together) — **ALL 5 ROLLOUT KITS DONE; only the Excel recall circle-back remains.**
+> recall together) — **ROLLOUT COMPLETE: Batch 5 + recall rework live in all six lesson kits.**
 > - Duolingo-style single vertical rail per kit: done/current/upcoming (dimmed,
 >   NEVER locked — soft-guide rule), unit headers with progress rings, current
 >   node = Continue.

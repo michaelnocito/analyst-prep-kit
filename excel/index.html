@@ -118,6 +118,8 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 
 /* STREAK + REVIEW CHIPS on the resume card (playtest Batch 5) */
 .loop-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:20px;padding:3px 12px;font-size:12.5px;font-weight:600;color:#fff;margin:0 6px 10px 0}
+.loop-chip-btn{cursor:pointer;font:inherit;border:none}
+.loop-chip-btn:hover{filter:brightness(1.12)}
 .path-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
 .path-tile{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .15s}
 .path-tile:hover{border-color:var(--accent);transform:translateY(-1px)}
@@ -366,6 +368,8 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .unlock-header{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:6px;margin-bottom:6px}
 .unlock-header .lucide{width:13px;height:13px}
 .recall-cues li{margin-bottom:4px}
+/* Revealed answer on a flipped recall cue (recall rework). */
+.recall-ans{margin:6px 0 2px;padding:8px 12px;background:color-mix(in srgb, var(--warn,#d9963a) 9%, transparent);border-left:3px solid var(--warn,#d9963a);border-radius:0 6px 6px 0;font-size:13.5px;line-height:1.6;color:var(--text)}
 .recall-btns{display:flex;gap:8px;flex-wrap:wrap}
 .artifact-bridge{font-size:13px;color:var(--dim);margin-bottom:12px;padding:0 2px}
 .retrieval-note{font-size:12px;color:var(--dim);font-style:italic;margin:0 0 10px}
@@ -558,6 +562,10 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
   <div id="lessonContent"></div>
 </div>
 
+<!-- REVIEW NOW: on-demand recall surface (recall rework). Reached from the
+     Home review chip, so it has no nav button of its own. -->
+<div id="view-review" class="view"></div>
+
 <!-- PRACTICE -->
 <div id="view-practice" class="view">
   <h1>Practice Drills</h1>
@@ -654,7 +662,11 @@ LESSONS:[
  compare:"A cell address is always column letter + row number: B4. The grain — what one row represents — is the question you answer before the first formula. One row = one sale? One customer? Getting it wrong silently corrupts every total you build.",
  build:{q:"A table has 500 rows. Each row has OrderID, CustomerName, and ProductName. What is the grain?",ans:"One row per order",choices:["One row per order","One row per customer","One row per product"]},
  close:"You can now read any grid and identify its grain. Next: how cell references let formulas update automatically when data changes.",
- reinforces:["What is 'grain' in a spreadsheet and why does getting it wrong silently corrupt your totals?","Name the three things that identify a cell's location in a grid."],
+ reinforces:[
+  {q:"What is 'grain' in a spreadsheet and why does getting it wrong silently corrupt your totals?",
+   a:"Grain is what one row represents — one sale, one customer, one day. If a table mixes grains (monthly totals sitting among daily transactions), your sums double-count with no error or warning, which is why you state the grain before writing any formula."},
+  {q:"Name the three things that identify a cell's location in a grid.",
+   a:"The column (a letter), the row (a number), and — across workbooks — the sheet. A cell address is column letter plus row number, like B4; add the sheet in front (products!B4) when the cell lives on another tab."}],
  unlock:"The grain concept is the root of most silent analysis mistakes — if a table mixes daily transactions with monthly summaries, SUMIFS will double-count without any error or warning. Every senior analyst checks the grain before touching the data."
 },
 {id:102,unit:"Unit 0: Before You Type a Formula",title:"Cell References & the A1 Grid",slug:"cell-references",
@@ -672,7 +684,11 @@ LESSONS:[
  compare:"=B2*C2 reads: multiply whatever is in B2 by whatever is in C2. No hard-coded numbers — the formula stays live. Copy it down and relative references shift automatically (B2→B3, C2→C3). Lock a reference with $ when it must stay fixed no matter where you copy the formula.",
  build:{q:"Write a formula to multiply the value in A2 by a tax rate fixed in cell B1.",ans:"=A2*$B$1",choices:["=A2*$B$1","=A2*B1","=$A$2*B1"]},
  close:"You can now write live formulas using cell references. Next: data types — why the same-looking number can either sum correctly or silently return 0.",
- reinforces:["What is the difference between a relative and an absolute reference?","If you copy =B2*C2 one row down, what does the formula become?"],
+ reinforces:[
+  {q:"What is the difference between a relative and an absolute reference?",
+   a:"A relative reference (B2) shifts when you copy the formula — one row down and it points one row down. An absolute reference ($B$2) is locked by the dollar signs and keeps pointing at the same cell wherever the formula travels, which is what makes a fixed tax-rate or lookup-table cell safe to fill down."},
+  {q:"If you copy =B2*C2 one row down, what does the formula become?",
+   a:"=B3*C3. Both references are relative, so they shift with the formula — it now multiplies the values in its own row. That automatic shift is what makes fill-down work."}],
  unlock:"Absolute references ($B$1) are not just a copy-paste fix — they are what makes a lookup table work in a dashboard where the reference range must stay fixed while the lookup key shifts down thousands of rows."
 },
 {id:103,unit:"Unit 0: Before You Type a Formula",title:"Text vs Number (& Dates)",slug:"data-types",
@@ -690,7 +706,11 @@ LESSONS:[
  compare:"Numbers are right-aligned and sum correctly. Text is left-aligned — it looks like a number but returns 0 in SUM. Dates are secretly integers: Jan 1, 1900 is 1, today is ~46000. That's why date subtraction returns days. A green triangle in the corner = number stored as text.",
  build:{q:"=SUM(B2:B10) returns 0 but the cells show numbers. Which formula converts one cell to a real number?",ans:"=VALUE(B2)",choices:["=VALUE(B2)",'=TEXT(B2,"0")',"=NUMBER(B2)"]},
  close:"You can now identify data types at a glance and fix number-stored-as-text. Next: what a formula actually is and how the = sign triggers calculation.",
- reinforces:["Why does =SUM(B2:B10) return 0 even though the cells look like numbers?","What is a date stored as under the hood in Excel, and why does date subtraction return days?"],
+ reinforces:[
+  {q:"Why does =SUM(B2:B10) return 0 even though the cells look like numbers?",
+   a:"The numbers are stored as text — Excel displays them but can't calculate with them. The tells are left-aligned values and a green triangle in the cell corner; fix one cell with =VALUE(B2) or the whole column with paste-special → Values."},
+  {q:"What is a date stored as under the hood in Excel, and why does date subtraction return days?",
+   a:"A date is a serial integer — January 1, 1900 is 1, and today is around 46,000. Subtracting two dates subtracts two integers, so the result is the number of days between them."}],
  unlock:"Excel stores dates as integers (Jan 1, 1900 = 1), so subtracting two dates returns days automatically. Checking cell alignment — numbers right-align, text left-aligns — is how analysts catch type mismatches before they corrupt a formula."
 },
 {id:104,unit:"Unit 0: Before You Type a Formula",title:"What a Formula Actually Is",slug:"formula-basics",
@@ -708,7 +728,11 @@ LESSONS:[
  compare:"Every formula starts with =. After that: function name → opening paren → arguments → closing paren. =AVERAGE(B2:B10) says compute the average of cells B2 to B10. The formula is live — change any cell in that range and the result updates instantly.",
  build:{q:"Which of these is a valid formula that counts numeric cells in A2:A50?",ans:"=COUNT(A2:A50)",choices:["=COUNT(A2:A50)","COUNT(A2:A50)","=COUNT A2:A50"]},
  close:"You can now write and recognize formulas. The next lessons build on this foundation — starting with SUM, AVERAGE, and COUNT, the three formulas behind most analyst requests.",
- reinforces:["What does the = sign do in a formula that plain text does not?","Name three Excel error types and what each one tells you about what went wrong."],
+ reinforces:[
+  {q:"What does the = sign do in a formula that plain text does not?",
+   a:"It tells Excel to compute what follows rather than just display it. The result stays live — change any cell the formula references and it recalculates immediately."},
+  {q:"Name three Excel error types and what each one tells you about what went wrong.",
+   a:"#DIV/0! means you divided by zero, #N/A means a lookup found no match, and #VALUE! means a function was fed the wrong type — text where a number was expected. Each error is a diagnostic message, not random noise."}],
  unlock:"Every Excel error is diagnostic: #DIV/0! means a zero denominator, #N/A means a lookup found nothing, #VALUE! means the wrong data type was fed in. Once you read errors as messages instead of failures, debugging takes seconds instead of minutes."
 },
 {id:1,core:true,unit:"Unit 1: Formulas",title:"Your First Formula",slug:"sum-avg-count",
@@ -729,7 +753,11 @@ LESSONS:[
  compare:"SUM wraps a range in parentheses and collapses it to one number. That's the pattern for every aggregation formula: =FUNCTION(range). AVERAGE and COUNT use the exact same structure — just a different question.",
  build:{q:"Srbina needs total January revenue from column C, rows 2 to 31.",ans:"=SUM(C2:C31)",choices:["=SUM(C2:C31)","=SUM(C2,C31)","=TOTAL(C2:C31)"]},
  close:"You can now total, average, and count any column in one step — the three answers behind almost every analyst's first request. Next: IF, so your spreadsheet makes decisions instead of just calculating.",
- reinforces:["Say the difference between COUNT and COUNTA without looking.","Write a formula to average column C from rows 2 to 100."],
+ reinforces:[
+  {q:"Say the difference between COUNT and COUNTA without looking.",
+   a:"COUNT counts only cells holding numbers; COUNTA counts every non-empty cell — numbers, text, and dates. Mix them up and your counts are silently wrong: a range with 6 numbers and 2 text cells is 6 to COUNT but 8 to COUNTA."},
+  {q:"Write a formula to average column C from rows 2 to 100.",
+   a:"=AVERAGE(C2:C100). Same shape as every aggregation formula: function name, then the range in parentheses."}],
  unlock:"Most analysts reach for SUMIFS before they know COUNTIFS exists — once you know both, you stop writing extra helper columns just to count conditional rows."
 },
 {id:2,core:true,unit:"Unit 1: Formulas",title:"Make Decisions with IF",slug:"if-nested",
@@ -749,7 +777,11 @@ LESSONS:[
  compare:"IF always follows three-part order: condition, true-value, false-value. Text values need quotes; numbers don't. Every IF you write uses this skeleton: =IF(test, if_true, if_false).",
  build:{q:"Label each customer 'Active' if column C is greater than 0, otherwise 'Inactive'.",ans:'=IF(C2>0,"Active","Inactive")',choices:['=IF(C2>0,"Active","Inactive")','=IF(C2>0,"Inactive","Active")','=IF(C2=0,"Active","Inactive")']},
  close:"You can now label any row automatically based on a condition. Next: VLOOKUP — when you need to pull a value from a different table rather than evaluate the current row.",
- reinforces:["What are the three parts of every IF formula, in order?","Write an IF that returns 'Active' if C2 > 0, otherwise 'Inactive'."],
+ reinforces:[
+  {q:"What are the three parts of every IF formula, in order?",
+   a:"The condition to test, the value to return when it's true, and the value to return when it's false: =IF(test, if_true, if_false). Text values need quotes; numbers don't."},
+  {q:"Write an IF that returns 'Active' if C2 > 0, otherwise 'Inactive'.",
+   a:"=IF(C2>0,\"Active\",\"Inactive\"). The condition comes first, then the true value, then the false value — and both labels carry quotes because they're text."}],
  unlock:"Analysts who learn IF early often stack nested IFs until the formula is unreadable. In modern Excel, IFS() replaces all those nested parentheses with a flat condition list — same logic, a fraction of the visual noise."
 },
 {id:3,core:true,unit:"Unit 1: Formulas",title:"Lookup Magic: VLOOKUP",slug:"vlookup",
@@ -768,7 +800,11 @@ LESSONS:[
  compare:"VLOOKUP always follows this order: lookup_value, table_array, col_index_num, match_type. The 3 means return the 3rd column of the range — count from the left. FALSE means exact match. Miss FALSE and Excel may return a close guess instead of #N/A — silently wrong.",
  build:{q:"Pull the product name (column 2) from range A:C using the order ID in D2, exact match.",ans:"=VLOOKUP(D2,A:C,2,FALSE)",choices:["=VLOOKUP(D2,A:C,2,FALSE)","=VLOOKUP(D2,A:C,2,TRUE)","=VLOOKUP(A2,D:D,2,FALSE)"]},
  close:"You can now pull values from another table using a key. Next: XLOOKUP — a cleaner version that can look left and handles missing values gracefully.",
- reinforces:["What do the four arguments of VLOOKUP do, in order?","Why should you almost always use FALSE as VLOOKUP's 4th argument?"],
+ reinforces:[
+  {q:"What do the four arguments of VLOOKUP do, in order?",
+   a:"The value to search for, the table to search (its first column must hold the key), the column number of the range to return counting from the left, and the match type — FALSE for exact. =VLOOKUP(A2, products!A:D, 3, FALSE) reads: find A2, bring back column 3, exact match only."},
+  {q:"Why should you almost always use FALSE as VLOOKUP's 4th argument?",
+   a:"FALSE forces an exact match. Leave it off (or use TRUE) and Excel may return a close guess instead of #N/A — a silently wrong answer, which is worse than a visible error."}],
  unlock:"VLOOKUP's column-index number is a trap: insert a column into the reference range and every VLOOKUP pointing at column 3 silently returns the wrong data. XLOOKUP and INDEX+MATCH reference the return column directly, so inserts never break them."
 },
 {id:4,unit:"Unit 1: Formulas",title:"Lookup Evolved: XLOOKUP",slug:"xlookup",
@@ -787,7 +823,11 @@ LESSONS:[
  compare:"XLOOKUP separates the search column from the return column — so you can look left, right, or across sheets. The fourth argument is your not-found fallback, replacing #N/A with something readable. Use XLOOKUP whenever your Excel version supports it (365 or 2021+).",
  build:{q:"Look up A2 in orders!B:B, return from orders!A:A (left of the key), show blank if missing.",ans:'=XLOOKUP(A2,orders!B:B,orders!A:A,"")',choices:['=XLOOKUP(A2,orders!B:B,orders!A:A,"")','=XLOOKUP(A2,orders!A:A,orders!B:B,"")','=VLOOKUP(A2,orders!A:B,1,FALSE)']},
  close:"You can now use XLOOKUP for any-direction lookup with a clean fallback. Next: COUNTIF and SUMIF — filtering and totaling in one step.",
- reinforces:["What can XLOOKUP do that VLOOKUP cannot?","Say the XLOOKUP argument order: what is the 3rd and 4th argument?"],
+ reinforces:[
+  {q:"What can XLOOKUP do that VLOOKUP cannot?",
+   a:"Look left. XLOOKUP points at the search column and the return column separately, so the answer can sit on either side of the key — and it takes a clean 'Not found' fallback instead of showing #N/A. VLOOKUP can only slide right and count columns."},
+  {q:"Say the XLOOKUP argument order: what is the 3rd and 4th argument?",
+   a:"The 3rd is the return column — where the answer comes from. The 4th is the if-not-found value, what to show when nothing matches: =XLOOKUP(A2, products!A:A, products!C:C, \"Not found\")."}],
  unlock:"XLOOKUP's fifth argument controls match mode — set it to 2 for wildcard matching, which lets you match partial strings like 'Cafe*' against a lookup column without a helper column or an extra formula."
 },
 {id:5,core:true,unit:"Unit 1: Formulas",title:"Count and Sum with Conditions",slug:"countif-sumif",
@@ -808,7 +848,11 @@ LESSONS:[
  compare:"COUNTIF counts rows matching a condition; SUMIF adds a separate number column for matching rows. For two or more conditions, add an S: COUNTIFS, SUMIFS — each condition is a range-criteria pair appended in order.",
  build:{q:"Add up revenue in F2:F20 only where the region in C2:C20 is West.",ans:'=SUMIF(C2:C20,"West",F2:F20)',choices:['=SUMIF(C2:C20,"West",F2:F20)','=SUMIF(F2:F20,"West",C2:C20)','=COUNTIF(C2:C20,"West")']},
  close:"You can now count and sum with conditions. Next: PivotTables — the drag-and-drop way to break down 10,000 rows by multiple categories in 30 seconds.",
- reinforces:["What is the difference between COUNTIF and SUMIF?","Write a formula to sum column C only where column B equals 'West'."],
+ reinforces:[
+  {q:"What is the difference between COUNTIF and SUMIF?",
+   a:"COUNTIF counts the rows that match a condition; SUMIF adds up a separate number column on those matching rows. On the same West rows, COUNTIF tells you there were 3 orders while SUMIF tells you they brought in 260."},
+  {q:"Write a formula to sum column C only where column B equals 'West'.",
+   a:"=SUMIF(B:B,\"West\",C:C). Condition range first, then the condition, then the numbers to add — and for two or more conditions you switch to SUMIFS."}],
  unlock:"Most analysts move to SUMIFS (plural) almost immediately after learning SUMIF, because real data always has at least two conditions — region AND product, date AND category. SUMIF is the concept; SUMIFS is what you will type every day."
 },
 {id:6,core:true,unit:"Unit 2: PivotTables",title:"What Is a PivotTable?",slug:"pivot-concept",
@@ -827,7 +871,11 @@ LESSONS:[
  compare:"A PivotTable has four zones: Filters (narrow the whole table), Rows (category labels down the left), Columns (category labels across the top), Values (the numbers to aggregate — sum, count, average). Drag fields into zones and Excel handles all the grouping and math automatically.",
  build:{q:"You want total revenue by region. Which two zones do you need at minimum?",ans:"Rows + Values",choices:["Rows + Values","Columns + Values","Rows + Columns"]},
  close:"You understand what a PivotTable is and what the four zones do. Next: build your first one step by step using the Pivot Lab.",
- reinforces:["Name the four zones of a PivotTable and what each one controls.","What is the fastest way to summarize 10,000 rows by region and product?"],
+ reinforces:[
+  {q:"Name the four zones of a PivotTable and what each one controls.",
+   a:"Rows (categories that become row labels), Columns (categories spread across the top), Values (the numbers to aggregate — sum, count, average), and Filters (narrow the whole table to a subset). Drag fields into zones and Excel does the grouping and math."},
+  {q:"What is the fastest way to summarize 10,000 rows by region and product?",
+   a:"A PivotTable — drag Region to Rows, Product to Columns (or Rows), Revenue to Values, done in 30 seconds. Writing a SUMIFS for every combination would take an hour and go stale."}],
  unlock:"A PivotTable is connected to its source data, not a snapshot. Right-click and Refresh after the data updates and every number rebuilds. Most reporting errors happen because someone forgot to refresh."
 },
 {id:7,core:true,unit:"Unit 2: PivotTables",title:"Build Your First Pivot",slug:"pivot-build",
@@ -846,7 +894,11 @@ LESSONS:[
  compare:"The steps are always: click inside data → Insert → PivotTable → drag Row fields → drag Value fields. The layout updates live as you drag. Double-click any value in the result to drill down to the rows that produced it — analysts call this drilling down.",
  build:{q:"You built a pivot with Region in Rows and Revenue in Values. To break it out by Category across the top, where do you drag Category?",ans:"Columns zone",choices:["Columns zone","Rows zone","Filters zone"]},
  close:"You can now build a PivotTable from scratch. Next: slicers, sorting, and grouping — turning the pivot into a mini-dashboard anyone can click.",
- reinforces:["What are the steps to build a PivotTable from scratch?","If your pivot shows counts instead of sums, where do you fix that?"],
+ reinforces:[
+  {q:"What are the steps to build a PivotTable from scratch?",
+   a:"Click any cell inside your data, Insert → PivotTable, drag a category field (like Region) into Rows, drag a number field (like Revenue) into Values, then refine with Columns or Filters. The layout updates live as you drag."},
+  {q:"If your pivot shows counts instead of sums, where do you fix that?",
+   a:"In the Values zone — click the field there and open Value Field Settings to switch Count to Sum. Excel defaults to Count when the column contains text or blanks, which is also a hint to check the data."}],
  unlock:"Double-click any value cell in a PivotTable and Excel drops the exact source rows that produced that number onto a new sheet. Analysts call this drilling down — it is the fastest way to verify a suspicious total without writing a single filter."
 },
 {id:8,unit:"Unit 2: PivotTables",title:"Slicers, Sorting & Grouping",slug:"pivot-slicers",
@@ -865,7 +917,11 @@ LESSONS:[
  compare:"Slicers connect to the pivot and filter with one click — no dropdowns needed. Right-click any row label in the pivot and choose Group to combine items (e.g. dates → months). Sorting works the same as a regular table: click the dropdown on any row label.",
  build:{q:"You want a non-technical manager to filter the pivot by rep name with a single button click. What do you add?",ans:"A Slicer on the Rep field",choices:["A Slicer on the Rep field","A FILTER formula","A new Columns field"]},
  close:"You can now add one-click filters and group dates in a pivot. Next: spotting and fixing dirty data — the habit that keeps your formulas trustworthy.",
- reinforces:["What does a slicer do that a regular column filter doesn't?","How do you group dates by month in a PivotTable?"],
+ reinforces:[
+  {q:"What does a slicer do that a regular column filter doesn't?",
+   a:"It puts visible one-click filter buttons next to the pivot, so a non-technical reader filters the whole report with a single click — no dropdown menus. One slicer can even control several PivotTables at once via Report Connections."},
+  {q:"How do you group dates by month in a PivotTable?",
+   a:"Right-click any date row label and choose Group, then pick Months (or Quarters). Excel collapses the individual dates into the buckets automatically."}],
  unlock:"One slicer can control multiple PivotTables simultaneously: right-click the slicer, select Report Connections, and check every pivot you want it to filter. This is how most Excel dashboards are built."
 },
 {id:9,core:true,unit:"Unit 3: Data Cleaning",title:"Spot and Fix Dirty Data",slug:"dirty-data",
@@ -884,7 +940,11 @@ LESSONS:[
  compare:"Dirty data has four main forms: blanks (COUNTBLANK), duplicates (Data → Remove Duplicates or COUNTIF), inconsistent text (TRIM, PROPER), and wrong types (numbers stored as text — the green triangle tells you). Clean first, analyze second.",
  build:{q:"Your SUM(B2:B10) returns 0. The numbers appear correct but are left-aligned. What do you do?",ans:"Convert with =VALUE() or Data → Text to Columns",choices:["Convert with =VALUE() or Data → Text to Columns","Widen column B","Add a helper COUNTIF column"]},
  close:"You can now diagnose the most common data-quality problems. Next: text functions — TRIM, PROPER, LEFT, LEN for reshaping string data without retyping.",
- reinforces:["Name three signs that a column has a data-quality problem before you run any formula.","What does a left-aligned number in a cell usually mean?"],
+ reinforces:[
+  {q:"Name three signs that a column has a data-quality problem before you run any formula.",
+   a:"Blank cells (check with =COUNTBLANK), inconsistent text like 'west' vs 'West' vs 'WEST' (all different to Excel), and numbers stored as text — plus duplicates you can surface with COUNTIF. Any of these makes downstream formulas silently wrong."},
+  {q:"What does a left-aligned number in a cell usually mean?",
+   a:"It's stored as text, not as a number — real numbers right-align by default. That's why a SUM over the column returns 0 or skips values; look for the green triangle and convert with =VALUE() or paste-special → Values."}],
  unlock:"Leading and trailing spaces are invisible — they do not show in the cell, but =COUNTIF(A:A,\"West\") will not match \" West\" even though it looks identical. =LEN() before and after =TRIM() confirms the fix; analysts who skip this debug the wrong formula for an hour."
 },
 {id:10,unit:"Unit 3: Data Cleaning",title:"Text Functions",slug:"text-functions",
@@ -906,7 +966,11 @@ LESSONS:[
  compare:"Text cleaning nests outward: the innermost function runs first. TRIM(A2) strips spaces, then PROPER() title-cases the result. Nesting is how you chain transformations without helper columns.",
  build:{q:"A product code in A2 looks like '  widget-X  ' with leading/trailing spaces. Which formula cleans it to 'widget-X'?",ans:"=TRIM(A2)",choices:["=TRIM(A2)","=CLEAN(A2)","=PROPER(A2)"]},
  close:"You can now standardize spacing and capitalization in any text column. Next: dates — YEAR, MONTH, and TEXT for grouping and formatting date data.",
- reinforces:["What does TRIM fix, and what does it NOT fix?","Write a formula to get the first 5 characters from cell A2."],
+ reinforces:[
+  {q:"What does TRIM fix, and what does it NOT fix?",
+   a:"TRIM removes leading, trailing, and doubled-up spaces. It does NOT remove non-printing characters like line breaks and tabs that exports leave behind — that's CLEAN's job, which is why =TRIM(CLEAN(A2)) is the safer pair on a real import."},
+  {q:"Write a formula to get the first 5 characters from cell A2.",
+   a:"=LEFT(A2,5). LEFT grabs characters from the start of the text; the number says how many."}],
  unlock:"TRIM removes extra spaces but not all invisible characters — data exported from databases or PDFs often contains non-printing characters TRIM misses. =CLEAN() strips those. On a real import, TRIM(CLEAN(A2)) together is safer than either alone."
 },
 {id:11,unit:"Unit 3: Data Cleaning",title:"Dates and Numbers",slug:"dates-numbers",
@@ -927,7 +991,11 @@ LESSONS:[
  compare:"YEAR and MONTH each take one argument — a date cell — and return a number. That number becomes your grouping key: MONTH(A2) gives 1–12, which you can use in COUNTIFS or a pivot row. TEXT converts the date to a readable label but loses the numeric value.",
  build:{q:"You need a helper column to group orders by month number. The date is in A2. Which formula goes in your helper column?",ans:"=MONTH(A2)",choices:["=MONTH(A2)","=TEXT(A2,\"mmm\")","=DAY(A2)"]},
  close:"You can now extract year and month from any date for grouping. Next: IFERROR — wrapping formulas so errors never show up in your reports.",
- reinforces:["How do you extract just the month number from a date in A2?","Write a TEXT formula that formats a date in A2 as 'January 2026'."],
+ reinforces:[
+  {q:"How do you extract just the month number from a date in A2?",
+   a:"=MONTH(A2), which returns a number from 1 to 12. That number becomes your grouping key in a helper column, a COUNTIFS, or a pivot row."},
+  {q:"Write a TEXT formula that formats a date in A2 as 'January 2026'.",
+   a:"=TEXT(A2,\"mmmm yyyy\") — four m's for the full month name (\"mmm yyyy\" gives the short 'Jan 2026'). Remember the result is text: use it for labels only and keep the real date in its own column for math."}],
  unlock:"YEAR() and MONTH() return plain numbers, not formatted dates — so grouping by month requires a helper column like =TEXT(A2,\"YYYY-MM\") to produce sorted, readable labels. This formula appears in almost every analyst\'s working file."
 },
 {id:12,unit:"Unit 3: Data Cleaning",title:"Defensive Formulas: IFERROR",slug:"iferror",
@@ -947,7 +1015,11 @@ LESSONS:[
  compare:"IFERROR takes exactly two arguments: the formula that might error, and the fallback. Any error type (#N/A, #DIV/0!, #VALUE!) triggers the fallback. Use \"\" for blank, 0 for zero, or a text label like \"No data\" depending on what the reader expects.",
  build:{q:"Your VLOOKUP in B2 sometimes returns #N/A. You want to show blank instead. Which formula?",ans:'=IFERROR(B2,"")',choices:['=IFERROR(B2,"")','=IFERROR(B2)','=IF(B2="#N/A","",B2)']},
  close:"You can now wrap any formula to keep reports clean. Unit 3 complete. Next unit: Excel Tables, structured references, and SUMIF — the formulas that scale with your data.",
- reinforces:["What does IFERROR do and when would you use it over letting an error show?","Write an IFERROR wrapping a VLOOKUP that returns 'Not found' on error."],
+ reinforces:[
+  {q:"What does IFERROR do and when would you use it over letting an error show?",
+   a:"It tries a formula and shows your fallback instead of any error — use it when a report goes to readers who shouldn't see #N/A or #DIV/0!. Don't use it to hide real problems: if half your lookups error, the keys don't match and the data needs fixing, not masking."},
+  {q:"Write an IFERROR wrapping a VLOOKUP that returns 'Not found' on error.",
+   a:"=IFERROR(VLOOKUP(A2,B:C,2,FALSE),\"Not found\"). Two arguments: the formula that might error, then the fallback to show instead."}],
  unlock:"IFERROR catches every error type, which can hide real bugs — if your VLOOKUP has a typo in the column index, IFERROR silently swallows the #VALUE! instead of alerting you. IFNA() is more precise: it catches only #N/A and leaves other errors visible."
 },
 {id:13,unit:"Unit 4: Deeper Formulas",title:"Excel Tables (Ctrl+T)",slug:"tables",
@@ -968,7 +1040,11 @@ LESSONS:[
  compare:"Structured references replace column letters with column names: SalesData[Revenue] always means the Revenue column, no matter how many rows you add. The @ symbol means 'this row' inside a table formula — no row numbers, no $ signs needed.",
  build:{q:"You add a new column 'Tax' to your Table. The formula in that column should multiply this row's Revenue by 0.1. Which formula?",ans:"=[@Revenue]*0.1",choices:["=[@Revenue]*0.1","=SalesData[Revenue]*0.1","=B2*0.1"]},
  close:"You can now build auto-expanding tables that never need range maintenance. Next: nested IF and IFS for multi-tier decisions.",
- reinforces:["What keyboard shortcut converts a range to an Excel Table?","Name two things that change automatically when you add a new row to a Table."],
+ reinforces:[
+  {q:"What keyboard shortcut converts a range to an Excel Table?",
+   a:"Ctrl+T. It turns the plain range into a named Table (rename it in Table Design), which is the first move before writing formulas on data that grows."},
+  {q:"Name two things that change automatically when you add a new row to a Table.",
+   a:"Structured references like Table1[Revenue] — and every SUMIFS, chart, or pivot built on them — expand to include the new row, and calculated-column formulas using [@col] fill themselves into it. No range maintenance needed."}],
  unlock:"Structured references — like =SalesTable[Revenue] — auto-expand when you add rows, so SUMIFS and chart ranges built on a Table never go stale. This is why analysts convert raw data to a Table (Ctrl+T) before writing the first formula."
 },
 {id:14,unit:"Unit 4: Deeper Formulas",title:"Nested IF and IFS",slug:"nestedif",
@@ -989,7 +1065,11 @@ LESSONS:[
  compare:"IFS reads left-to-right and stops at the first true condition — order matters. Put the most specific test first. TRUE as the last condition is the catch-all: it always passes, so it acts as your fallback for everything that didn't match.",
  build:{q:'Write a formula: "Junior" if C2 < 2, "Senior" if C2 < 5, otherwise "Lead".',ans:'=IFS(C2<2,"Junior",C2<5,"Senior",TRUE,"Lead")',choices:['=IFS(C2<2,"Junior",C2<5,"Senior",TRUE,"Lead")','=IFS(C2<5,"Senior",C2<2,"Junior",TRUE,"Lead")','=IFS(C2<2,"Junior",C2<5,"Senior")']},
  close:"You can now build multi-tier decision trees in a single formula. For four or more categories, IFS is cleaner than stacking nested parentheses — easier to read, easier to maintain.",
- reinforces:["When should you use IFS instead of nested IF?","Say the structure of a nested IF formula: condition, true-value, then what goes in the false-value slot?"],
+ reinforces:[
+  {q:"When should you use IFS instead of nested IF?",
+   a:"When you have three or more tiers — IFS reads as a flat list of condition-result pairs instead of parentheses inside parentheses, so colleagues can follow the logic. It needs Excel 2019/365, and TRUE as the last condition is the catch-all."},
+  {q:"Say the structure of a nested IF formula: condition, true-value, then what goes in the false-value slot?",
+   a:"Another whole IF. Each false branch hands off to the next test, like a flowchart: =IF(A2<100,\"Low\",IF(A2<200,\"Medium\",\"High\")) — and order matters, most restrictive condition first."}],
  unlock:"IFS() evaluates conditions in order and returns at the first TRUE, so condition order matters as much as the conditions themselves. Put the strictest threshold first — placing it last is the most common IFS bug."
 },
 {id:15,unit:"Unit 4: Deeper Formulas",title:"INDEX + MATCH",slug:"indexmatch",
@@ -1010,7 +1090,11 @@ LESSONS:[
  compare:"MATCH returns a row number; INDEX uses that row number to fetch a value from any column. Reading it from the inside out: MATCH finds WHERE, INDEX fetches WHAT. That two-step mental model also explains XLOOKUP — it just collapses them into one function.",
  build:{q:"You need the product name from column A where the SKU in column C matches cell D2. Which formula?",ans:"=INDEX(A:A,MATCH(D2,C:C,0))",choices:["=INDEX(A:A,MATCH(D2,C:C,0))","=MATCH(D2,C:C,INDEX(A:A,0))","=VLOOKUP(D2,A:C,1,FALSE)"]},
  close:"You can now read and write INDEX+MATCH for any direction lookup. Next: SUMPRODUCT — multiply-then-sum without helper columns.",
- reinforces:["What limitation of VLOOKUP does INDEX+MATCH solve?","Say the structure of INDEX+MATCH without looking: what does each function do, and which is nested inside the other?"],
+ reinforces:[
+  {q:"What limitation of VLOOKUP does INDEX+MATCH solve?",
+   a:"VLOOKUP can only look right of the key column and breaks when someone inserts a column (the counted index goes stale). INDEX+MATCH points at the search and return columns directly, so it looks any direction and survives inserts — and it runs in every Excel version."},
+  {q:"Say the structure of INDEX+MATCH without looking: what does each function do, and which is nested inside the other?",
+   a:"MATCH finds WHERE — the row position of your lookup value. INDEX fetches WHAT — the value at that position in any column. MATCH nests inside INDEX: =INDEX(A:A,MATCH(D2,C:C,0))."}],
  unlock:"INDEX+MATCH is VLOOKUP without column-counting and without the left-limit — but its real power is using MATCH twice, once for the row and once for the column, to build a two-way lookup that no single VLOOKUP can replicate."
 },
 {id:16,unit:"Unit 4: Deeper Formulas",title:"SUMPRODUCT",slug:"sumproduct",
@@ -1031,7 +1115,11 @@ LESSONS:[
  compare:"SUMPRODUCT(prices, units) gives total revenue. Dividing by SUM(units) gives the weighted average price — each product's price is weighted by how many units it sold. The same pattern works for weighted scores, weighted ratings, or any multiply-then-aggregate operation.",
  build:{q:"You want total revenue for West region only (D2:D10='West'), with revenue in B2:B10. Which formula?",ans:'=SUMPRODUCT((D2:D10="West")*(B2:B10))',choices:['=SUMPRODUCT((D2:D10="West")*(B2:B10))','=SUMIF(D2:D10,"West",B2:B10)','=SUMPRODUCT(B2:B10,D2:D10)']},
  close:"You can now build weighted averages and conditional sums without helper columns. Unit 4 complete. Next: charts — turning your numbers into a visual argument.",
- reinforces:["What does SUMPRODUCT do that a single SUMIF cannot?","Write a formula to sum column C only where column A = 'West' and column B = 'Q1'."],
+ reinforces:[
+  {q:"What does SUMPRODUCT do that a single SUMIF cannot?",
+   a:"It multiplies two columns row by row before summing — the multiply-then-sum behind weighted averages, like price × units for every row divided by total units. SUMIF can only add one column; it can't weight each row by another."},
+  {q:"Write a formula to sum column C only where column A = 'West' and column B = 'Q1'.",
+   a:"=SUMPRODUCT((A2:A100=\"West\")*(B2:B100=\"Q1\")*(C2:C100)). Each condition becomes an array of 1s and 0s, so multiplying zeros out every row that fails either test."}],
  unlock:"SUMPRODUCT is the pre-SUMIFS formula that still appears in every legacy workbook built before Excel 2007 — =SUMPRODUCT((Region=\"West\")*(Revenue)) is the old conditional sum. When you see it in a shared file, you now know exactly what it is doing."
 },
 {id:17,unit:"Unit 5: Charts & Formatting",title:"Your First Chart",slug:"firstchart",
@@ -1052,7 +1140,11 @@ LESSONS:[
  compare:"Three types cover 90% of analyst work: bar for category comparison, line for time trends, scatter for correlations between two numbers. Pick the type that matches the question, not the one that looks most impressive.",
  build:{q:"You're comparing total revenue across four regions. Which chart type fits best?",ans:"Bar chart",choices:["Bar chart","Line chart","Scatter plot"]},
  close:"You can now pick the right chart type for the right question. Next: conditional formatting — turning spreadsheet cells into color-coded signals without a chart.",
- reinforces:["What chart type is best for comparing values across categories?","What chart type best shows a trend or change over time?"],
+ reinforces:[
+  {q:"What chart type is best for comparing values across categories?",
+   a:"A bar or column chart — one bar per discrete category (regions, products, reps) makes the comparison readable in seconds. Pick the type that matches the question, not the one that looks most impressive."},
+  {q:"What chart type best shows a trend or change over time?",
+   a:"A line chart. Each point is a period and the connecting line makes the direction of the trend visible instantly — the standard choice for monthly revenue over a year."}],
  unlock:"Analysts who build charts quickly often skip the chart title and axis labels. An unlabeled axis forces the audience to infer the units themselves — labeling is how you control the conclusion the reader draws from your chart."
 },
 {id:18,unit:"Unit 5: Charts & Formatting",title:"Conditional Formatting",slug:"condformat",
@@ -1073,7 +1165,11 @@ LESSONS:[
  compare:"Conditional Formatting re-evaluates every time data changes — the color follows the value, not the cell position. Rules stack: the top rule wins when two conflict. Too many rules on the same range create noise; one or two well-chosen rules are always cleaner.",
  build:{q:"You want cells in column B to turn red when the value drops below 100. Where do you set this up?",ans:"Home → Conditional Formatting → Highlight Cells Rules → Less Than",choices:["Home → Conditional Formatting → Highlight Cells Rules → Less Than","Insert → Format → Highlight Rule","Data → Conditional Formatting → Color Scale"]},
  close:"You can now apply color rules that update automatically as data changes. Next: Data Validation — preventing dirty data before it enters the spreadsheet.",
- reinforces:["What is conditional formatting and when would you use it instead of a chart?","How do you highlight every cell in a column that is above the column average?"],
+ reinforces:[
+  {q:"What is conditional formatting and when would you use it instead of a chart?",
+   a:"A rule that colors cells automatically based on their values — and re-evaluates whenever the data changes, so the color follows the value. Use it when the reader should see signals inside the table itself (a 500-row tracker as a heat map) rather than in a separate chart."},
+  {q:"How do you highlight every cell in a column that is above the column average?",
+   a:"Select the column, then Home → Conditional Formatting → Top/Bottom Rules → Above Average. Excel computes the average and recolors automatically as values change."}],
  unlock:"Conditional formatting rules are evaluated top to bottom — the first matching rule wins and later rules are skipped. When two rules compete, drag the more specific one to the top in Manage Rules."
 },
 {id:19,unit:"Unit 5: Charts & Formatting",title:"Data Validation",slug:"datavalidation",
@@ -1094,7 +1190,11 @@ LESSONS:[
  compare:"Data Validation is a lock on the cell — the user picks from your approved list instead of typing. The Stop error alert blocks invalid entries entirely. Validation only prevents future bad entries; use Data → Circle Invalid Data to find existing violations.",
  build:{q:"You want to restrict column C to only 'Yes' or 'No'. What's the fastest approach?",ans:"Data → Data Validation → Allow: List → Source: Yes,No",choices:["Data → Data Validation → Allow: List → Source: Yes,No","Conditional Formatting → Highlight Cells Rules → Text Contains","Home → Format Cells → Protection → Locked"]},
  close:"You can now lock cells to approved values before bad data enters. Next: Named Ranges — making formulas readable by humans, not just Excel.",
- reinforces:["What does data validation do, and what does it NOT prevent?","Where in Excel do you set up a dropdown list for a cell?"],
+ reinforces:[
+  {q:"What does data validation do, and what does it NOT prevent?",
+   a:"It restricts what can be entered in a cell — a dropdown list, a number range, a date range — rejecting anything else at entry time. It does NOT fix values already in the column; use Data → Circle Invalid Data to find the existing violations."},
+  {q:"Where in Excel do you set up a dropdown list for a cell?",
+   a:"Data → Data Validation → Allow: List, then give the source — a comma-separated list like East,West,North,South or a cell range. Tick the in-cell dropdown so the arrow shows."}],
  unlock:"Data validation blocks new entries that violate the rule but does not catch values already in the column. To audit existing data, use =COUNTIF to count values outside your approved list — then fix those before sharing the file."
 },
 {id:20,unit:"Unit 5: Charts & Formatting",title:"Named Ranges",slug:"namedranges",
@@ -1115,7 +1215,11 @@ LESSONS:[
  compare:"Named Ranges behave like absolute references automatically — no $ signs needed. They're workbook-scoped, so =SUM(Revenue) works on any sheet. Use Formulas → Name Manager to edit or delete names; a #REF! in the Name Manager means the range it pointed to was deleted.",
  build:{q:"You want to make =B2*$H$1 more readable. $H$1 holds your tax rate. What's the best first step?",ans:"Select $H$1, type TaxRate in the Name Box, press Enter",choices:["Select $H$1, type TaxRate in the Name Box, press Enter","Add a comment to cell H1 explaining it holds the tax rate","Rename the sheet tab to TaxRate"]},
  close:"You can now write self-documenting formulas any colleague can follow. Unit 5 complete. Next: Power Query — importing and transforming data without formulas.",
- reinforces:["How do you create a named range, and why does it make formulas easier to read?","Rewrite =SUM(B2:B50) using a named range called Revenue."],
+ reinforces:[
+  {q:"How do you create a named range, and why does it make formulas easier to read?",
+   a:"Select the range, type a name in the Name Box (left of the formula bar), press Enter. Formulas then read like sentences — =B2*TaxRate instead of =B2*$H$1 — and if the range ever moves you update the name once in Name Manager instead of hunting through formulas."},
+  {q:"Rewrite =SUM(B2:B50) using a named range called Revenue.",
+   a:"=SUM(Revenue). The name resolves to the range it points to, behaves like an absolute reference automatically, and works from any sheet in the workbook."}],
  unlock:"Named ranges defined in the Name Manager survive formula rewrites — update the range reference once in the manager and every formula using that name updates automatically. On a large model, this is the difference between a 5-minute update and an hour."
 },
 {id:21,unit:"Unit 6: Power Tools",title:"Power Query Basics",slug:"powerquery",
@@ -1136,7 +1240,11 @@ LESSONS:[
  compare:"Power Query stores every transformation as a named step in the Applied Steps panel. Steps run top-to-bottom each time you Refresh. If the source file moves, update the Source step — every downstream step reruns automatically from the new file.",
  build:{q:"You've built a Power Query and loaded it. Next Monday's CSV is in the same folder. What's the fastest way to get clean data?",ans:"Right-click the output table → Refresh",choices:["Right-click the output table → Refresh","Open Power Query and re-run each step manually","Delete the old data and paste the new CSV manually"]},
  close:"You can now automate repetitive data-cleaning pipelines with one click. Next: dynamic arrays — FILTER, UNIQUE, SORT for live auto-updating outputs.",
- reinforces:["What problem does Power Query solve that formulas cannot?","What happens to a Power Query transformation when you click Refresh?"],
+ reinforces:[
+  {q:"What problem does Power Query solve that formulas cannot?",
+   a:"Repeatable import-and-clean pipelines. It connects to a file or folder, records your cleaning steps (remove columns, fix types, drop blanks) once in the Applied Steps panel, and replays them on demand — the Monday CSV ritual that took 20 minutes becomes one click."},
+  {q:"What happens to a Power Query transformation when you click Refresh?",
+   a:"Every recorded step re-runs top to bottom against the current version of the source file, and the clean result lands back in your worksheet Table. Same steps, fresh data — nothing to redo by hand."}],
  unlock:"Power Query steps are recorded in M language — right-click any Applied Step and select Advanced Editor to see and edit the raw code. When a step behaves unexpectedly, reading the M is the fastest way to diagnose it."
 },
 {id:22,unit:"Unit 6: Power Tools",title:"Dynamic Arrays",slug:"dynamicarrays",
@@ -1158,7 +1266,11 @@ LESSONS:[
  compare:"Dynamic array functions spill results into as many cells as needed — you write one formula, Excel fills the rows. FILTER keeps the output live: add a new matching row to the source and the spill grows automatically. #SPILL! means something is blocking the output range — clear those cells.",
  build:{q:"You want a deduplicated list of all regions from C2:C100. Which formula?",ans:"=UNIQUE(C2:C100)",choices:["=UNIQUE(C2:C100)","=FILTER(C2:C100,C2:C100<>\"\")","=SORT(C2:C100)"]},
  close:"You can now write one formula that replaces filter-copy-paste workflows and stays live. Next: keyboard shortcuts — the speed habits that make analysts look fluent.",
- reinforces:["What does FILTER do in one sentence?","What is the difference between UNIQUE and FILTER?"],
+ reinforces:[
+  {q:"What does FILTER do in one sentence?",
+   a:"=FILTER(A2:D100,C2:C100=\"West\") returns only the rows matching the condition, spilling into as many cells as needed and staying live — add a new West row to the source and the spill grows by itself."},
+  {q:"What is the difference between UNIQUE and FILTER?",
+   a:"UNIQUE deduplicates — it returns each distinct value once. FILTER selects — it returns whole rows that pass a condition. One answers 'what values exist?', the other 'which rows qualify?'."}],
  unlock:"FILTER spills results into as many rows as needed, but if another value already occupies the spill area, Excel returns #SPILL! instead of results. Dynamic array formulas require surrounding cells to be empty, which is why analysts isolate them in a dedicated section of the sheet."
 },
 {id:23,unit:"Unit 6: Power Tools",title:"Keyboard Shortcuts & Speed",slug:"shortcuts",
@@ -1177,7 +1289,11 @@ LESSONS:[
  compare:"F4 is the highest-leverage shortcut in formula work: one key cycles all four reference modes. Alt+= inserts SUM instantly above the selected range. Ctrl+; stamps a static date that never changes — unlike =TODAY() which recalculates every time the file opens.",
  build:{q:"You need to quickly insert a SUM formula totaling the column above the selected cell. Which shortcut?",ans:"Alt+=",choices:["Alt+=","Ctrl+D","Ctrl+;"]},
  close:"You now have the eight shortcuts that cover 90% of daily analyst work. Next: sheet protection — locking formulas so they survive a shared workbook.",
- reinforces:["Name three keyboard shortcuts every analyst uses daily.","What shortcut selects from a cell to the last row of data in the column?"],
+ reinforces:[
+  {q:"Name three keyboard shortcuts every analyst uses daily.",
+   a:"Ctrl+T converts a range to a Table, F4 in the formula bar cycles a reference through its absolute/relative modes ($H$1 → H$1 → $H1 → H1), and Alt+= drops in an AutoSum. (Ctrl+Shift+L for filters and Ctrl+D for fill-down round out the daily set.)"},
+  {q:"What shortcut selects from a cell to the last row of data in the column?",
+   a:"Ctrl+Shift+End — it extends the selection from the current cell to the last used cell in the sheet, the fastest way to check how far your data actually goes before totaling it."}],
  unlock:"Ctrl+Shift+L toggles AutoFilter on and off — the fastest way to slice a table without touching the mouse. Most analysts use it dozens of times a day but do not know the shortcut until someone shows them."
 },
 {id:24,unit:"Unit 6: Power Tools",title:"Protecting Your Work",slug:"protecting",
@@ -1198,7 +1314,11 @@ LESSONS:[
  compare:"Every cell starts Locked by default — but Locked only matters after Protect Sheet is activated. The workflow is always: unlock the input cells first, then protect the sheet. This way formulas are read-only and input cells stay editable.",
  build:{q:"You want to lock all formula cells but leave column B open for data entry. What's the correct order?",ans:"Select column B → uncheck Locked → then Review → Protect Sheet",choices:["Select column B → uncheck Locked → then Review → Protect Sheet","Review → Protect Sheet → then select column B → uncheck Locked","Review → Protect Sheet → password-protect every cell"]},
  close:"You can now protect formulas from accidental edits while keeping input cells open. Unit 6 complete. Next: data migration profiling with COUNTA, COUNTBLANK, and COUNTIF.",
- reinforces:["How do you let users edit input cells while protecting formula cells?","What is the difference between protecting a sheet and protecting a workbook?"],
+ reinforces:[
+  {q:"How do you let users edit input cells while protecting formula cells?",
+   a:"Unlock the input cells first — select them, Format Cells → Protection → uncheck Locked — then Review → Protect Sheet. Every cell is Locked by default, so after protection the formulas are read-only and only the unlocked inputs stay editable."},
+  {q:"What is the difference between protecting a sheet and protecting a workbook?",
+   a:"Protect Sheet makes locked cells read-only on that one sheet — a courtesy lock against accidental edits, removable without a password if you didn't set one. Real file security is File → Info → Protect Workbook → Encrypt with Password, which locks the whole workbook behind a password."}],
  unlock:"Sheet protection locks all cells by default — but you can keep input cells editable by unchecking Locked in Format Cells before protecting the sheet. Formulas stay read-only; inputs still work. That is the standard setup for any shared workbook."
 },
 {id:521,unit:"Unit 7: Data Migration",title:"Profiling a Source Sheet",sub:"COUNTA, COUNTBLANK, COUNTIF.",
@@ -1214,7 +1334,11 @@ LESSONS:[
  compare:"COUNTA counts filled cells. COUNTBLANK counts empty ones. Together they should equal the total row count — if they don't, hidden characters are lurking. COUNTIF adds a rule check: how many values pass a business requirement before you commit to loading them.",
  build:{q:"You want to count how many cells in B2:B5000 contain a value greater than 0. Which formula?",ans:'=COUNTIF(B2:B5000,">0")',choices:['=COUNTIF(B2:B5000,">0")','=COUNTA(B2:B5000)','=COUNTBLANK(B2:B5000)']},
  close:"You can now profile any source column for completeness before touching the data. Next: finding and flagging duplicate keys with a running COUNTIF.",
- reinforces:["Write a formula to count non-blank cells in column A.","What three profile checks should you run on every source column before migrating?"],
+ reinforces:[
+  {q:"Write a formula to count non-blank cells in column A.",
+   a:"=COUNTA(A2:A5000) — it counts every non-empty cell: numbers, text, and dates alike. Paired with the total row count it tells you the column's completeness."},
+  {q:"What three profile checks should you run on every source column before migrating?",
+   a:"Filled cells (=COUNTA), blanks (=COUNTBLANK), and a rule check (=COUNTIF, e.g. \">0\" for valid amounts). COUNTA plus COUNTBLANK should equal the total rows — if not, hidden characters are lurking."}],
  unlock:"COUNTBLANK is the fastest null check, but it misses empty strings — cells that look blank but contain \'\' from a system export. A complete profile adds =COUNTIF(A:A,\"\") to catch both true nulls and empty strings in one pass."
 },
 {id:522,unit:"Unit 7: Data Migration",title:"Finding & Removing Duplicates",sub:"Running COUNTIF, Remove Duplicates.",
@@ -1230,7 +1354,11 @@ LESSONS:[
  compare:"The growing range ($A$2:$A2) is the key: the top is locked, the bottom is relative, so as you fill down each row's count only includes rows above it. A count of 1 means first occurrence. A count of 2 or more means duplicate — filter to >1 to get your full exception list before removing anything.",
  build:{q:"You've flagged duplicates with the running COUNTIF. You've reviewed them and want to remove the repeats. What's the fastest next step?",ans:"Data → Remove Duplicates",choices:["Data → Remove Duplicates","Delete flagged rows one by one","Apply Conditional Formatting → Duplicate Values"]},
  close:"You can now flag and review duplicates before removing them. Next: standardizing text — TRIM, CLEAN, and UPPER to fix invisible characters and inconsistent case.",
- reinforces:["Write a running COUNTIF formula that labels each duplicate occurrence in column A.","Why should you review duplicates before removing them, rather than just running Remove Duplicates?"],
+ reinforces:[
+  {q:"Write a running COUNTIF formula that labels each duplicate occurrence in column A.",
+   a:"=COUNTIF($A$2:A2,A2), filled down. The range's top is locked and its bottom is relative, so it grows one row at a time — a result of 2 or more marks the second and later appearances of a value. Filter to >1 for your review list."},
+  {q:"Why should you review duplicates before removing them, rather than just running Remove Duplicates?",
+   a:"Remove Duplicates deletes rows permanently with no confirmation, and duplicates often reveal an upstream problem — a bad join or a grain finer than you assumed. Flag them, look at why they exist, then remove with eyes on the data."}],
  unlock:"The Remove Duplicates button deletes rows permanently with no confirmation. A safer pre-step: add a COUNTIF column to mark duplicates first, then sort, review, and delete with eyes on the data before committing."
 },
 {id:523,unit:"Unit 7: Data Migration",title:"Standardizing Text",sub:"TRIM, CLEAN, UPPER/PROPER.",
@@ -1246,7 +1374,11 @@ LESSONS:[
  compare:"CLEAN removes non-printing characters (line breaks, tabs) that TRIM can't see. TRIM then strips the remaining extra spaces. They nest — CLEAN runs first (innermost), TRIM runs on the cleaned result. UPPER and PROPER handle capitalization once the invisible characters are gone.",
  build:{q:"A state code column has 'ca', 'CA', and 'Ca' all representing California. Which formula standardizes the whole column?",ans:"=UPPER(A2)",choices:["=UPPER(A2)","=PROPER(A2)","=TRIM(A2)"]},
  close:"You can now strip invisible characters and standardize case before any lookup or load. Next: type coercion — converting text numbers and text dates into real types.",
- reinforces:["What does TRIM fix vs what does CLEAN fix — and when do you need both?","Write a formula to trim spaces and convert A2 to uppercase in one step."],
+ reinforces:[
+  {q:"What does TRIM fix vs what does CLEAN fix — and when do you need both?",
+   a:"TRIM strips extra spaces — leading, trailing, and doubles. CLEAN strips non-printing characters like line breaks and tabs that TRIM can't see. Legacy exports carry both, which is why the standard one-two punch is =TRIM(CLEAN(A2)) — CLEAN runs innermost, TRIM on its result."},
+  {q:"Write a formula to trim spaces and convert A2 to uppercase in one step.",
+   a:"=UPPER(TRIM(A2)). The inner function runs first: TRIM cleans the spaces, then UPPER forces the case — 'ca ' becomes 'CA' so it matches the target standard."}],
  unlock:"CLEAN strips ASCII control characters (codes 1-31), but some database exports embed Unicode non-breaking spaces (code 160) that CLEAN misses. The full chain — =SUBSTITUTE(TRIM(CLEAN(A2)),CHAR(160),\"\") — covers all three invisible character types."
 },
 {id:524,unit:"Unit 7: Data Migration",title:"Type Coercion",sub:"VALUE, DATEVALUE, Text to Columns.",
@@ -1262,7 +1394,11 @@ LESSONS:[
  compare:"Left-aligned numbers and SUM=0 are the classic tells for text-stored values. VALUE() converts one cell; Data → Text to Columns converts a whole column in one pass. DATEVALUE() does the same for text dates — the result is an Excel date serial you can sort and do arithmetic on.",
  build:{q:"The date in B2 is stored as text: '2026-03-15'. You need a real date Excel can sort and subtract. Which formula?",ans:"=DATEVALUE(B2)",choices:["=DATEVALUE(B2)","=VALUE(B2)","=TEXT(B2,\"yyyy-mm-dd\")"]},
  close:"You can now convert text-stored numbers and dates into real types before any load. Next: mapping and reconciliation — XLOOKUP to find missing records and a control total to confirm the numbers tie out.",
- reinforces:["What function converts a text-stored number to a real number?","Write a formula to convert the text string '2026-01-15' in A2 to a real Excel date."],
+ reinforces:[
+  {q:"What function converts a text-stored number to a real number?",
+   a:"=VALUE(A2) — '150' stored as text becomes 150, a number you can SUM. For a whole column at once, Data → Text to Columns does the bulk conversion. The tells that you need it: left-aligned numbers and a SUM of 0."},
+  {q:"Write a formula to convert the text string '2026-01-15' in A2 to a real Excel date.",
+   a:"=DATEVALUE(A2). The result is a date serial you can sort, subtract, and load into a typed date field — the text version can't do any of that."}],
  unlock:"Text-stored numbers from some systems include thousands separators or currency symbols that =VALUE() cannot parse alone — it fails on \'1,234.56\' because of the comma. Remove it first: =VALUE(SUBSTITUTE(A2,\",\",\"\"))."
 },
 {id:525,unit:"Unit 7: Data Migration",title:"Mapping & Reconciliation",sub:"XLOOKUP / ISNA + SUMIF control totals.",
@@ -1278,7 +1414,11 @@ LESSONS:[
  compare:"XLOOKUP with a 'MISSING' default is the row-level check: every source key that didn't migrate shows up in the exception list. The control total (SUM source vs SUM target) is the value-level check: the two amounts must tie out. Both together give you a complete reconciliation.",
  build:{q:"Source total is $500,000. Target total is $498,000. What does this tell you?",ans:"$2,000 of value didn't migrate — investigate the MISSING rows",choices:["$2,000 of value didn't migrate — investigate the MISSING rows","The formulas are wrong — rerun the XLOOKUP","The migration is complete — the difference is rounding"]},
  close:"You can now validate a migration with row-level lookups and a value-level control total. Unit 7 complete. Next: defining metrics precisely before computing them.",
- reinforces:["How do you find rows in the source that are missing from the target?","What is a control total and why do you need it on top of the row-level lookup?"],
+ reinforces:[
+  {q:"How do you find rows in the source that are missing from the target?",
+   a:"Look each source ID up in the target's ID list with a MISSING fallback: =XLOOKUP(A2, target_ids, target_ids, \"MISSING\"). A hit echoes the ID back; filter the column to MISSING and you have your exception list of records that never arrived."},
+  {q:"What is a control total and why do you need it on top of the row-level lookup?",
+   a:"A trusted aggregate — like SUMIF of the amount column — computed on both sides. Source and target totals must match, or value was lost in transit even where rows look present. The lookup checks rows; the control total checks value — a complete reconciliation needs both."}],
  unlock:"A control total that ties confirms the aggregate is correct — but it does not verify individual rows. A row-count check (source rows = target rows) is the second gate that catches mismatches a matching total cannot see."
 },
 {id:601,unit:"Unit 8: From Question to Metric",title:"Define the Metric Before You Compute It",sub:"SUMIFS pins the measure, the filter, and the time window in one formula.",
@@ -1294,7 +1434,11 @@ LESSONS:[
  compare:"SUMIFS takes the sum column first, then condition pairs (column, value) — the reverse of SUMIF, which trips people up. Build date bounds with \">=\"&DATE(...) rather than a typed string, or Excel may silently match nothing. One SUMIFS per metric line keeps definitions auditable.",
  build:{q:"What's the correct SUMIFS argument order?",ans:"=SUMIFS(sum_range, criteria_range1, criteria1, …)",choices:["=SUMIFS(sum_range, criteria_range1, criteria1, …)","=SUMIFS(criteria1, sum_range, criteria_range1, …)","=SUMIFS(criteria_range1, criteria1, sum_range, …)"]},
  close:"You can now pin a precise metric definition and encode it in one SUMIFS. Next: IFS to segment a number column into named tiers.",
- reinforces:["What three things must a metric definition lock in before you write the formula?","Write a SUMIFS to sum column D where column B = 'West' and column C = 'Q1'."],
+ reinforces:[
+  {q:"What three things must a metric definition lock in before you write the formula?",
+   a:"The measure (which column is being totaled), the filter (which rows qualify — every order, or paid only?), and the time window (which dates are in scope). Pin all three and the SUMIFS writes itself; skip one and you hand back a confident, wrong number."},
+  {q:"Write a SUMIFS to sum column D where column B = 'West' and column C = 'Q1'.",
+   a:"=SUMIFS(D:D,B:B,\"West\",C:C,\"Q1\"). Sum column first, then condition pairs — the reverse of SUMIF's order, which is the part that trips people up."}],
  unlock:"The most common metric mistake is not the formula — it is a missing filter. 'Total revenue' and 'revenue for paying customers only' look identical until someone asks how the number was built. Writing every condition into SUMIFS makes the decision visible and auditable."
 },
 {id:602,unit:"Unit 8: From Question to Metric",title:"Segment with IFS",sub:"Turn a number into named buckets, then count each one.",
@@ -1310,7 +1454,11 @@ LESSONS:[
  compare:"IFS evaluates left-to-right and stops at the first true condition — order from most to least restrictive. A $5,000 customer must hit the >=1000 branch before the >=250 one or it lands in the wrong tier. TRUE as the last condition is the guaranteed catch-all.",
  build:{q:"After adding the Tier helper column, how do you count how many customers are High?",ans:'=COUNTIF(Tier,"High")',choices:['=COUNTIF(Tier,"High")','=SUMIF(Tier,"High",Spend)','=COUNTIFS(Spend,">1000")']},
  close:"You can now build a segmentation column from a number and count each tier. Next: month-over-month growth — a relative-reference formula that compares each period to the last.",
- reinforces:["How does IFS differ from nested IF in structure?","Write an IFS that returns 'Low' for values under 100, 'Mid' for under 500, 'High' for everything else."],
+ reinforces:[
+  {q:"How does IFS differ from nested IF in structure?",
+   a:"IFS is a flat list of condition-result pairs read left to right, stopping at the first TRUE — no parentheses inside parentheses. Order still matters (highest threshold first, or a $5,000 customer lands in 'Medium'), and TRUE as the last pair is the catch-all that nested IF put in its final false slot."},
+  {q:"Write an IFS that returns 'Low' for values under 100, 'Mid' for under 500, 'High' for everything else.",
+   a:"=IFS(A2<100,\"Low\",A2<500,\"Mid\",TRUE,\"High\"). The most restrictive condition goes first, and TRUE always passes, so it catches everything the earlier tests missed."}],
  unlock:"IFS() returns the first TRUE match, so overlapping buckets are resolved silently by order. Define non-overlapping ranges and put the highest threshold first so each row falls into exactly one bucket."
 },
 {id:603,unit:"Unit 8: From Question to Metric",title:"Month-over-Month Growth",sub:"A relative-reference formula that compares each month to the last.",
@@ -1326,7 +1474,11 @@ LESSONS:[
  compare:"No $ signs — that's the whole point. Relative references shift as you fill down, so each row reads its own month (B3, B4…) and the one before it (B2, B3…). Wrap the first row in IFERROR to blank out the divide-by-nothing at the top. Format as percent — don't multiply by 100.",
  build:{q:"You fill the MoM formula down but every row shows the same percentage. Most likely cause?",ans:"Absolute references ($B$3, $B$2) were used instead of relative",choices:["Absolute references ($B$3, $B$2) were used instead of relative","The column is formatted as text","The formula is missing the closing parenthesis"]},
  close:"You can now build a live period-over-period growth column that fills itself. Next: running totals — an expanding range that accumulates as you fill down.",
- reinforces:["Write the formula for percent change from one row's value to the next row's value.","Why must the reference to the prior row be relative, not absolute, in a MoM growth formula?"],
+ reinforces:[
+  {q:"Write the formula for percent change from one row's value to the next row's value.",
+   a:"In C3: =(B3-B2)/B2, formatted as a percent — this month minus last month, divided by last month. Wrap the first row in IFERROR to blank the divide-by-nothing at the top."},
+  {q:"Why must the reference to the prior row be relative, not absolute, in a MoM growth formula?",
+   a:"Because filling down should re-point each row at its own month and the one above it. Lock the references ($B$3, $B$2) and every row repeats the same single comparison — one number all the way down instead of a growth column."}],
  unlock:"The division in a growth formula fails when the prior period is zero, producing #DIV/0!. Guard the denominator: =IF(B1=0,\"\",((B2-B1)/B1)). This one addition makes the formula safe for datasets with new products or freshly launched periods."
 },
 {id:604,unit:"Unit 8: From Question to Metric",title:"Running Totals with an Expanding Range",sub:"Anchor only the start of the range so the sum grows as you fill down.",
@@ -1342,7 +1494,11 @@ LESSONS:[
  compare:"Lock the start ($B$2), leave the end relative (B2). As you fill down, the range stretches: $B$2:B3, $B$2:B4, and so on — each row sums everything from the top through itself. Forget the $ on the start and the range slides instead of growing, giving you a moving window instead of a cumulative total.",
  build:{q:"You fill the running total formula down and every cell shows the same value as the monthly revenue. What did you forget?",ans:"The $ anchor on the start of the range ($B$2)",choices:["The $ anchor on the start of the range ($B$2)","To format the cells as currency","To include a header row in the range"]},
  close:"You can now build a cumulative total that expands as you fill down. Next: funnel conversion — COUNTIFS to count each stage, then divide for the rate.",
- reinforces:["Write a running total formula in C2 that expands correctly as you fill it down to C100.","Why is the start of the range absolute ($B$2) while the end is relative (B2) in a running total?"],
+ reinforces:[
+  {q:"Write a running total formula in C2 that expands correctly as you fill it down to C100.",
+   a:"=SUM($B$2:B2). Fill it down and the range stretches — $B$2:B3, $B$2:B4 — so each row totals everything from the top through itself."},
+  {q:"Why is the start of the range absolute ($B$2) while the end is relative (B2) in a running total?",
+   a:"The locked start keeps every row's range beginning at the first value; the relative end slides down as you fill, growing the range one row at a time. Forget the $ on the start and the whole range slides instead of stretching — a moving window, not a cumulative total."}],
  unlock:"The expanding anchor ($B$2:B2) breaks the moment you sort the table — relative references jump to the re-ordered first row. If the data might ever be re-sorted, build the running total in a separate summary table instead of alongside raw data."
 },
 {id:605,unit:"Unit 8: From Question to Metric",title:"Funnel Conversion with COUNTIFS",sub:"Count who reached each stage, then divide adjacent stages for the rate.",
@@ -1358,7 +1514,11 @@ LESSONS:[
  compare:"Stack one COUNTIFS per stage down a column, largest count at the top. The conversion rate between two adjacent stages is simply the lower count divided by the upper. The biggest drop between two adjacent stages is where you focus first.",
  build:{q:"Your visit count is in B2 and your signup count is in B3. Which formula gives the visit-to-signup conversion rate?",ans:"=B3/B2",choices:["=B3/B2","=B2/B3","=B2-B3"]},
  close:"You can now build a full conversion funnel from a single event column. Next: cohort retention — grouping customers by signup month and tracking who comes back.",
- reinforces:["Write a COUNTIFS to count rows where column A = 'Qualified' and column B = 'West'.","How do you calculate the conversion rate between two adjacent funnel stages?"],
+ reinforces:[
+  {q:"Write a COUNTIFS to count rows where column A = 'Qualified' and column B = 'West'.",
+   a:"=COUNTIFS(A:A,\"Qualified\",B:B,\"West\"). Each condition is a range-criteria pair, and every pair must be true for a row to count."},
+  {q:"How do you calculate the conversion rate between two adjacent funnel stages?",
+   a:"Divide the lower stage's count by the stage directly above it — signups in B3 over visits in B2 is =B3/B2. Stack one COUNTIFS per stage down a column, biggest at the top, and the biggest drop between two adjacent stages is where you focus."}],
  unlock:"Conversion rates on funnels can exceed 100% when a single user completes multiple steps in the same period — a reliable signal that upstream deduplication is missing. Flag rows above 100% before presenting; stakeholders will ask."
 },
 {id:606,unit:"Unit 8: From Question to Metric",title:"Cohort Retention",sub:"Group customers by signup month, then track who comes back.",
@@ -1374,7 +1534,11 @@ LESSONS:[
  compare:"Each cell in the cohort grid is a COUNTIFS with two conditions: the cohort month and the active month. Divide by the cohort's month-0 count to get a retention rate. Read across a row to watch one cohort decay. Read down a column (same offset) to compare newer vs older cohorts — that vertical read is what interviewers ask for.",
  build:{q:"The Jan cohort started with 100 customers (B2). In month 1, 62 were still active (C2). What's the month-1 retention rate formula?",ans:"=C2/B2",choices:["=C2/B2","=B2-C2","=C2/100"]},
  close:"You can now build a cohort retention table and read it in both directions. Unit 8 complete. Next: advanced toolkit — profiling, grain validation, and distribution analysis.",
- reinforces:["What do the rows and columns of a cohort retention table each represent?","How do you calculate the month-2 retention rate for a cohort?"],
+ reinforces:[
+  {q:"What do the rows and columns of a cohort retention table each represent?",
+   a:"Each row is a cohort — the customers who signed up in the same month. Each column is a time offset — months since signup. Read across a row to watch one cohort decay; read down a column to compare cohorts at the same point in their journey."},
+  {q:"How do you calculate the month-2 retention rate for a cohort?",
+   a:"Count the cohort's members still active two months after joining, divided by the cohort's month-0 size — e.g. =COUNTIFS(Cohort,\"Jan\",ActiveMonth,\"Mar\")/COUNTIFS(Cohort,\"Jan\",ActiveMonth,\"Jan\"). Normalizing by month 0 is what makes big and small cohorts comparable."}],
  unlock:"Recent cohorts have fewer periods of data than older ones, so the rightmost cells in the retention table are usually empty. Present only cohorts with at least three full periods — otherwise you are comparing a finished race to one that just started."
 },
 {id:701,unit:"Unit 9: Financial Analysis",title:"Build the P&L with SUMIFS",sub:"Roll a transaction list into an income statement, one line at a time.",
@@ -1390,7 +1554,11 @@ LESSONS:[
  compare:"One SUMIFS per statement line, all pointing at the same transaction list. When data changes, every line recalculates. The subtotals (Gross Profit, Operating Income) are plain subtraction between those SUMIFS cells — keep the math visible and auditable, not buried.",
  build:{q:"Revenue SUMIFS is in B2, COGS SUMIFS is in B3. Which formula gives Gross Profit?",ans:"=B2-B3",choices:["=B2-B3","=SUMIFS(Amount,Line,\"GrossProfit\")","=B2+B3"]},
  close:"You can now build a live P&L that recalculates when the transaction data changes. Next: margins — dividing each profit line by revenue to get the cents kept per dollar.",
- reinforces:["How do you roll a transaction list into a single P&L line item using SUMIFS?","What column in a transaction table determines which P&L line each row belongs to?"],
+ reinforces:[
+  {q:"How do you roll a transaction list into a single P&L line item using SUMIFS?",
+   a:"One SUMIFS per statement line, all pointing at the same list: =SUMIFS(Amount, Line, \"Revenue\") totals just the revenue rows. The subtotals — gross profit, operating income — are plain subtraction between those cells, kept visible so a reviewer can audit the cascade."},
+  {q:"What column in a transaction table determines which P&L line each row belongs to?",
+   a:"The statement-line tag — the Line column holding values like Revenue, COGS, or Opex. SUMIFS filters on it, which is also why the exact strings matter: rename 'COGS' upstream and that line silently totals to zero."}],
  unlock:"A SUMIFS-based P&L rebuilds instantly when you add transactions — but the category strings in your formula are hardcoded. If the source ever renames 'Cost of Goods' to 'COGS', the line silently returns zero. Document the exact strings expected on the source sheet."
 },
 {id:702,unit:"Unit 9: Financial Analysis",title:"Margins: Gross, Operating, Net",sub:"Divide each profit line by revenue and format it as a percent.",
@@ -1406,7 +1574,11 @@ LESSONS:[
  compare:"The three margins step down — gross then operating then net — because each removes one more layer of cost. Store the formula as a ratio (0.23) and apply percent formatting; never bake *100 into the formula or downstream math breaks. A single period's margin means nothing without a comparison: last year, budget, or peer set.",
  build:{q:"GrossProfit is $490K and Revenue is $820K. Which formula gives gross margin formatted correctly?",ans:"=490000/820000 (formatted as %)",choices:["=490000/820000 (formatted as %)","=490000/820000*100","=820000/490000 (formatted as %)"]},
  close:"You can now calculate and interpret the three margin levels. Next: liquidity and leverage ratios — can the company pay its bills and how much is borrowed?",
- reinforces:["What is gross margin and how do you calculate it?","Name the three margin lines in order from revenue down to net profit."],
+ reinforces:[
+  {q:"What is gross margin and how do you calculate it?",
+   a:"Gross profit divided by revenue, formatted as a percent — the share of each sales dollar that survives the cost of making the product. Store the ratio (0.23 shown as 23%) and never bake *100 into the formula, or downstream math breaks."},
+  {q:"Name the three margin lines in order from revenue down to net profit.",
+   a:"Gross margin, then operating margin, then net margin. They step down because each removes one more layer of cost — cost of goods, then overhead, then interest and tax."}],
  unlock:"Gross margin and operating margin measure different things — gross margin shows how efficient the core product is, operating margin shows what remains after overhead. A company can have a high gross margin and a negative operating margin if fixed costs are out of control."
 },
 {id:703,unit:"Unit 9: Financial Analysis",title:"Liquidity & Leverage Ratios",sub:"Three balance-sheet ratios: can you pay the bills, and how much is borrowed?",
@@ -1422,7 +1594,11 @@ LESSONS:[
  compare:"Current ratio (assets/liabilities) is the broad liquidity test. Quick ratio removes inventory — the slowest asset to liquidate. Both above 1.0 means short-term obligations are covered. Debt-to-equity measures leverage: how many borrowed dollars per owned dollar. All three are meaningless without a benchmark — compare to prior periods and industry peers.",
  build:{q:"Current assets are $1.8M, inventory is $800K, current liabilities are $1.0M. What is the quick ratio?",ans:"=($1.8M - $800K) / $1.0M = 1.0",choices:["=($1.8M - $800K) / $1.0M = 1.0","=$1.8M / $1.0M = 1.8","=$800K / $1.0M = 0.8"]},
  close:"You can now calculate the three ratios that anchor any balance-sheet review. Next: NPV and IRR — discounting future cash flows to decide whether a project is worth funding.",
- reinforces:["What does the current ratio measure and how is it calculated?","Name one liquidity ratio and one leverage ratio — what does each signal about the business?"],
+ reinforces:[
+  {q:"What does the current ratio measure and how is it calculated?",
+   a:"Whether short-term assets cover short-term bills: current assets divided by current liabilities. Above 1.0 means covered; 1.5–3 is comfortable for most industries — but a ratio only means something against a benchmark."},
+  {q:"Name one liquidity ratio and one leverage ratio — what does each signal about the business?",
+   a:"Liquidity: the current ratio (or the stricter quick ratio, which strips out inventory) signals whether the bills due soon can be paid. Leverage: debt-to-equity signals how much of the company runs on borrowed money — above roughly 2 is heavy for most non-financial firms."}],
  unlock:"A current ratio above 2 is textbook healthy — but a ratio of 5 can mean too much cash sitting idle instead of being reinvested. Ratios mean most when compared to industry benchmarks and prior periods, not as standalone pass/fail thresholds."
 },
 {id:704,unit:"Unit 9: Financial Analysis",title:"Time Value of Money: NPV & IRR",sub:"Excel's =NPV and =IRR — and the year-zero trap that catches everyone.",
@@ -1438,7 +1614,11 @@ LESSONS:[
  compare:"Excel's NPV discounts the first value in its range by one full period — so the year-0 cost must stay outside the function at full value. IRR is the rate that makes NPV equal zero — accept when IRR exceeds your hurdle rate. NPV is the safer decision tool; IRR can mislead when cash flows change sign more than once.",
  build:{q:"Year-0 cost is in B2 (negative). Years 1–5 inflows are in B3:B7. Hurdle rate is 10%. Which formula is correct?",ans:"=B2+NPV(10%,B3:B7)",choices:["=B2+NPV(10%,B3:B7)","=NPV(10%,B2:B7)","=IRR(B3:B7)"]},
  close:"You can now calculate NPV and IRR without the year-zero trap. Next: budget vs actual variance — and the sign flip that trips up every junior analyst.",
- reinforces:["What is the year-zero trap in =NPV() and how do you avoid it?","What does a positive NPV tell you about whether a project is worth funding?"],
+ reinforces:[
+  {q:"What is the year-zero trap in =NPV() and how do you avoid it?",
+   a:"Excel's NPV discounts the first value in its range by one full period — so if you fold today's outlay into the range, it gets discounted as if it lands a year from now, understating every project. Keep year 0 outside at full value: =B2+NPV(10%,B3:B7)."},
+  {q:"What does a positive NPV tell you about whether a project is worth funding?",
+   a:"That the cash stream beats your required return after discounting — the project creates value at that hurdle rate, so accept it. Equivalently, its IRR (the rate that would drive NPV to zero) sits above the hurdle."}],
  unlock:"IRR assumes all interim cash flows are reinvested at the IRR rate, which is usually too optimistic. When comparing two projects, NPV is the more reliable decision metric — IRR can favor a smaller project with a high rate over a larger one that creates more total value."
 },
 {id:705,unit:"Unit 9: Financial Analysis",title:"Budget vs Actual: Variance Analysis",sub:"Variance, percent variance, and the favorable/unfavorable sign trap.",
@@ -1454,7 +1634,11 @@ LESSONS:[
  compare:"Dollar variance = Actual minus Budget. Percent variance = that result divided by Budget. The favorable/unfavorable label depends on the line type: revenue over plan is favorable, cost over plan is unfavorable. Encode the line-type branch in an IF — don't leave the reader to interpret a sign.",
  build:{q:"Revenue actual is $1.08M, budget was $1.0M. Which verdict is correct?",ans:"Favorable — revenue beat plan",choices:["Favorable — revenue beat plan","Unfavorable — actual exceeded budget","Neutral — the variance is under 10%"]},
  close:"You can now build a variance report where the favorable/unfavorable label is automatic. Next: contribution margin and break-even — does each sale make money and how many cover the fixed base?",
- reinforces:["Write the formula for budget vs actual variance.","Why can an unfavorable expense variance be a positive number — what sign convention causes this?"],
+ reinforces:[
+  {q:"Write the formula for budget vs actual variance.",
+   a:"=Actual-Budget for the dollar variance, and =(Actual-Budget)/Budget formatted as a percent to scale it — $10K over on $1M reads very differently than on $20K."},
+  {q:"Why can an unfavorable expense variance be a positive number — what sign convention causes this?",
+   a:"Because variance is actual minus budget, overspending a cost line produces a positive number — and over plan on a cost is bad. The sign alone can't tell good from bad; only the line type can, which is why the verdict formula branches: revenue over plan is favorable, cost over plan is unfavorable."}],
  unlock:"The favorable/unfavorable convention flips between revenue and costs — favorable for revenue means actual > budget; favorable for costs means actual < budget. Every variance report should state its sign convention at the top. A missing note has caused analysts to present cost overruns as wins."
 },
 {id:706,unit:"Unit 9: Financial Analysis",title:"Unit Economics: Contribution Margin & Break-Even",sub:"Does each sale make money, and how many cover the fixed base?",
@@ -1470,7 +1654,11 @@ LESSONS:[
  compare:"Only variable costs subtract in contribution margin because only they scale with each unit sold. Fixed costs go in the break-even denominator: FixedCosts / CMperUnit = units needed to cover the base. Past break-even, every additional unit drops its full contribution margin straight to profit — that's operating leverage.",
  build:{q:"Price is $50, variable cost is $30, fixed costs are $60,000. What is the break-even in units?",ans:"=ROUNDUP(60000/20,0) = 3,000 units",choices:["=ROUNDUP(60000/20,0) = 3,000 units","=60000/50 = 1,200 units","=60000/30 = 2,000 units"]},
  close:"You can now calculate contribution margin and break-even for any product. Unit 9 complete. Next: the advanced toolkit — profiling, grain validation, and distribution analysis.",
- reinforces:["What is contribution margin and how do you calculate it per unit?","Write the break-even formula using fixed cost and contribution margin per unit."],
+ reinforces:[
+  {q:"What is contribution margin and how do you calculate it per unit?",
+   a:"Price minus variable cost — what each unit kicks in toward fixed costs and profit. Only variable costs subtract, because only they scale with the next unit sold; the rent is due either way."},
+  {q:"Write the break-even formula using fixed cost and contribution margin per unit.",
+   a:"=ROUNDUP(FixedCosts/CMperUnit,0) — round up, because you can't sell a fraction of a unit. At $50 price, $30 variable cost, and $60,000 fixed, that's 60,000/20 = 3,000 units; past that point each extra unit drops its full margin straight to profit."}],
  unlock:"Break-even in units tells you when you stop losing money. Contribution margin per unit tells you which product to prioritize when production capacity is limited — higher margin per unit means each unit works harder for the bottom line."
 },
 {id:801,unit:"Unit 10: Advanced Analyst Toolkit",title:"Profile the Data First",sub:"Before you trust a sheet, measure its size, completeness, and range.",
@@ -1486,7 +1674,11 @@ LESSONS:[
  compare:"COUNTA and COUNTBLANK together equal the total row count — if they don't, hidden characters are lurking. ROWS(UNIQUE()) counts distinct values; compare it to the row count to sense duplication. MIN/MAX surfaces a stray negative price or future date in one look.",
  build:{q:"You COUNTA a customer column and get 12,400. ROWS(UNIQUE()) gives 8,150. What does that tell you?",ans:"Customers repeat across rows — the grain is not one customer per row",choices:["Customers repeat across rows — the grain is not one customer per row","12,400 - 8,150 = 4,250 blank cells","The column has 8,150 errors"]},
  close:"You can now run a one-screen health check on any sheet before writing a single formula. Next: validating the grain — testing that your supposed key is actually unique.",
- reinforces:["What three things does a data profile measure about a column?","Name one formula each for: total row count, blank count, and count of distinct values."],
+ reinforces:[
+  {q:"What three things does a data profile measure about a column?",
+   a:"Completeness (filled vs blank cells), uniqueness (distinct values against the row count — fewer distincts means repeats), and range (MIN and MAX, which surface a stray negative price or a date in 2099 in one look)."},
+  {q:"Name one formula each for: total row count, blank count, and count of distinct values.",
+   a:"=COUNTA(range) for filled rows, =COUNTBLANK(range) for blanks, and =ROWS(UNIQUE(range)) for distincts — or the pre-365 trick =SUMPRODUCT(1/COUNTIF(range,range))."}],
  unlock:"A profile run before analysis is also your documentation — note the row count, column completeness, and date range and save it alongside the output. When a stakeholder questions a number six months later, you have a baseline to compare against."
 },
 {id:802,unit:"Unit 10: Advanced Analyst Toolkit",title:"Validate the Grain",sub:"Know what one row represents before you SUMIFS anything.",
@@ -1502,7 +1694,11 @@ LESSONS:[
  compare:"The locked range ($A$2:$A$9999) is fixed; the cell reference (A2) shifts as you fill down — so each row checks whether its own key appears more than once in the whole column. A result of TRUE means duplicate. When a reconciliation is off by a clean multiple, suspect grain first.",
  build:{q:"COUNTIF returns 2 for several rows in your order_id column. What does that mean for a VLOOKUP on that column?",ans:"VLOOKUP silently returns only the first match — rows are missed",choices:["VLOOKUP silently returns only the first match — rows are missed","VLOOKUP will error on duplicate keys","The duplicates cancel out so totals are still correct"]},
  close:"You can now test any column for uniqueness before joining or aggregating. Next: distribution and outliers — when AVERAGE lies and MEDIAN tells the truth.",
- reinforces:["How do you test whether a column is a unique key?","What does a COUNTIF result greater than 1 tell you about a supposed key column?"],
+ reinforces:[
+  {q:"How do you test whether a column is a unique key?",
+   a:"Flag repeats with =COUNTIF($A$2:$A$9999,A2)>1 filled down — the range locked, the cell relative — or compare ROWS(UNIQUE()) to the row count. Any TRUE (or a distinct count below the rows) means the key repeats."},
+  {q:"What does a COUNTIF result greater than 1 tell you about a supposed key column?",
+   a:"The key isn't unique — the grain is finer than you assumed, like one row per order line instead of per order. A VLOOKUP on it silently returns only the first match, and a SUMIFS across mismatched grains double-counts; a reconciliation off by a clean multiple is the classic symptom."}],
  unlock:"Grain violations often come from a database join that fanned out rows — a customer with two orders joined to a product table returns two rows per order. Knowing the grain before you aggregate tells you exactly where the double-counting risk lives."
 },
 {id:803,unit:"Unit 10: Advanced Analyst Toolkit",title:"Distribution & Outliers",sub:"AVERAGE lies on skewed data — read MEDIAN and the spread too.",
@@ -1518,7 +1714,11 @@ LESSONS:[
  compare:"When AVERAGE and MEDIAN diverge significantly, the median is the more honest 'typical' — it isn't dragged by extremes. The IQR rule (Q3 + 1.5 × (Q3−Q1)) flags outliers worth investigating: they may be errors to fix or legitimate large deals to segment out.",
  build:{q:"AVERAGE = $84, MEDIAN = $58 for order values. Which figure better represents a 'typical' order for a business review?",ans:"$58 (MEDIAN) — it isn't pulled by the large outlier orders",choices:["$58 (MEDIAN) — it isn't pulled by the large outlier orders","$84 (AVERAGE) — it includes all data","Either — they both measure the same thing"]},
  close:"You can now diagnose skewed distributions and flag outliers before reporting a 'typical' value. Next: Pareto analysis — ranking items to find the vital few that drive most of the total.",
- reinforces:["When does AVERAGE lie, and what should you report instead?","What is the IQR rule for flagging outliers — write out the upper fence formula."],
+ reinforces:[
+  {q:"When does AVERAGE lie, and what should you report instead?",
+   a:"On skewed data with outliers — one $9,980 order drags the mean far above what a normal customer spends. When AVERAGE and MEDIAN diverge, report the median: it's the true midpoint and isn't pulled by extremes."},
+  {q:"What is the IQR rule for flagging outliers — write out the upper fence formula.",
+   a:"Values beyond 1.5 IQRs past the quartiles are outliers: upper fence = Q3 + 1.5*(Q3-Q1), with the quartiles from QUARTILE.INC. It's a flag to investigate, not a verdict — the outlier might be a fat-finger error or your biggest real deal."}],
  unlock:"The standard outlier threshold is 1.5 x IQR (Q1 - 1.5xIQR to Q3 + 1.5xIQR), not three standard deviations. Standard deviation responds to outliers — making the threshold wider as more extreme values appear. IQR stays stable."
 },
 {id:804,unit:"Unit 10: Advanced Analyst Toolkit",title:"Pareto: Find the Vital Few",sub:"A short list usually drives most of the total — rank and accumulate.",
@@ -1534,7 +1734,11 @@ LESSONS:[
  compare:"The running total uses a half-anchored range ($B$2:B2) — start locked, end relative — so it grows as you fill down. The grand total is fully locked ($B$2:$B$99) so it stays fixed in every row. When the cumulative line in a Pareto rises as a straight diagonal, no small group dominates — the data is even.",
  build:{q:"After sorting revenue descending and building the cumulative % column, what do you look for?",ans:"The row where cumulative % first crosses 80% — that's the vital few",choices:["The row where cumulative % first crosses 80% — that's the vital few","The row with the highest individual revenue","The row where cumulative % equals 50%"]},
  close:"You can now build a Pareto analysis to rank items by their contribution and find the vital few. Next: correlation — measuring how tightly two columns move together.",
- reinforces:["What does Pareto analysis tell you that a simple sorted total does not?","How do you build a cumulative percentage column for a Pareto chart?"],
+ reinforces:[
+  {q:"What does Pareto analysis tell you that a simple sorted total does not?",
+   a:"How few items cover most of the total — the cumulative share. A sorted list ranks products; the cumulative percent shows where the running total crosses 80%, and everything above that line is the vital few worth your attention. A straight-diagonal cumulative line means no small group dominates."},
+  {q:"How do you build a cumulative percentage column for a Pareto chart?",
+   a:"Sort the values biggest-first, then divide a growing running total by the locked grand total: =SUM($B$2:B2)/SUM($B$2:$B$99). The half-anchored range grows as you fill down; the fully-anchored denominator stays fixed."}],
  unlock:"A nearly flat Pareto — where every item contributes roughly equally — is often a signal the data was already aggregated or filtered upstream before you received it. The Pareto shape itself is information worth investigating."
 },
 {id:805,unit:"Unit 10: Advanced Analyst Toolkit",title:"Correlation ≠ Causation",sub:"CORREL and a trendline rank drivers — they don't prove cause.",
@@ -1550,7 +1754,11 @@ LESSONS:[
  compare:"CORREL returns a number from -1 to +1. Near ±1 means a tight linear relationship. Near 0 means no linear relationship. But always pair the number with a scatter plot — one outlier can manufacture a correlation that isn't real. Name the three traps: confounding, reverse causation, coincidence.",
  build:{q:"CORREL(AdSpend, Revenue) = 0.97. What is the correct next step?",ans:"Design a controlled test — correlation alone doesn't prove spend drives revenue",choices:["Design a controlled test — correlation alone doesn't prove spend drives revenue","Immediately increase the ad budget — the relationship is proven","Report that ad spend causes revenue growth"]},
  close:"You can now measure and responsibly communicate correlation. Next: sanity-check and reconcile — tying your number to a trusted control before anyone sees it.",
- reinforces:["What does CORREL return and what range does it fall in?","Why does a high correlation between two columns not prove that one causes the other?"],
+ reinforces:[
+  {q:"What does CORREL return and what range does it fall in?",
+   a:"The Pearson correlation coefficient, from −1 to +1 — near ±1 is a tight linear relationship, near 0 is none. Always eyeball the scatter beside the number: one extreme point can manufacture a correlation, and a strong curved relationship can read as roughly 0."},
+  {q:"Why does a high correlation between two columns not prove that one causes the other?",
+   a:"Three traps: a confounder can drive both (busy weeks lift ad spend and revenue together), causation can run the other way, and with enough columns some correlate by pure chance. A high CORREL means 'worth a controlled test' — never 'case closed'."}],
  unlock:"CORREL returns a number from -1 to 1, but even a perfect 1.0 does not confirm causation. The standard analyst discipline: report the correlation and the direction, then name at least one plausible confound before drawing a conclusion. Stakeholders will ask, and having the answer separates a credible result from a retracted one."
 },
 {id:806,unit:"Unit 10: Advanced Analyst Toolkit",title:"Sanity-Check & Reconcile",sub:"Tie your number to a trusted control before anyone sees it.",
@@ -1566,7 +1774,11 @@ LESSONS:[
  compare:"ROUND before the equality check — floating-point math leaves tiny residues that fail a raw =0 test. A diff that's a clean multiple (2×, 3×) almost always means a grain problem. A diff that's a random amount usually means a dropped filter or a date-range mismatch. Zero means you can defend the number in the meeting.",
  build:{q:"Your computed revenue is $1,284,500. The finance close is also $1,284,500. What does your tie-out cell show?",ans:"ties out",choices:["ties out","CHECK","#DIV/0!"]},
  close:"You can now validate any number against a trusted control before it leaves your hands. Unit 10 complete — you've finished all 51 lessons. Every formula, every pattern, every habit is now in your toolkit.",
- reinforces:["What is a control total and how do you build a self-flagging check cell for it?","Name two things you verify about a number before sending it to a stakeholder."],
+ reinforces:[
+  {q:"What is a control total and how do you build a self-flagging check cell for it?",
+   a:"A trusted figure — finance's close, last month's report, the source system — that your computed number must tie to. The check cell is =IF(ROUND(Computed-Control,2)=0,\"ties out\",\"CHECK\"); round before comparing so floating-point pennies don't trip a false alarm."},
+  {q:"Name two things you verify about a number before sending it to a stakeholder.",
+   a:"That it ties to a trusted control (the diff is zero), and that the diff pattern makes sense when it isn't — a clean 2× or 3× difference screams grain problem, while a random gap usually means a dropped filter or date-range mismatch."}],
  unlock:"A control total that ties is necessary but not sufficient — it confirms the aggregate matches, not that individual rows are correct. A tie-out shows totals agree; row-level spot-checks show the structure underneath is right. Analysts who only do one skip the harder half."
 }
 ],
@@ -1875,32 +2087,114 @@ function _dequeueRecalls(id){
   return due;
 }
 function _recallsHTML(){
-  return _pendingRecalls.map((e,i)=>`<div class="recall-card">
+  // Cues may be legacy strings (question only) or {q,a} pairs. Answer reveal is
+  // Anki-style flip: attempt first, then the answer inline — never a dead end.
+  return _pendingRecalls.map((e,i)=>{
+    const cues = e.cues.map(c=>typeof c==='string'?{q:c,a:null}:c);
+    const open = !!e._open;
+    const hasAns = cues.some(c=>c.a);
+    return `<div class="recall-card">
     <div class="recall-header"><i data-lucide="repeat-2"></i> Quick recall — no peeking</div>
-    <ul class="recall-cues">${e.cues.map(c=>`<li>${c}</li>`).join('')}</ul>
+    <ul class="recall-cues">${cues.map(c=>`<li>${c.q}${open&&c.a?`<div class="recall-ans">${c.a}</div>`:''}</li>`).join('')}</ul>
+    ${open&&!hasAns?`<p style="font-size:13px;color:var(--dim);margin:0 0 10px">This one predates stored answers — the lesson below has it.</p>`:''}
+    ${open?`<div style="margin-bottom:10px"><button class="btn btn-ghost btn-sm" onclick="recallOpenLesson(${i})">Open that lesson →</button></div>`:''}
     <div class="recall-btns">
-      <button class="btn btn-sm btn-primary" onclick="recallGotIt(${i})">I remembered it</button>
-      <button class="btn btn-sm btn-outline" onclick="recallNope(${i})">Nope, remind me again</button>
+      ${open
+        ? `<button class="btn btn-primary btn-sm" onclick="recallGotNow(${i})">Got it now</button>
+           <span style="font-size:12px;color:var(--dim);align-self:center">This one will come back tomorrow for a real check.</span>`
+        : `<button class="btn btn-primary btn-sm" onclick="recallGotIt(${i})">I remembered it</button>
+           <button class="btn btn-ghost btn-sm" onclick="recallShowAns(${i})">Show answer</button>`}
     </div>
-  </div>`).join('');
+  </div>`;}).join('');
 }
 function _refreshRecalls(){
-  const el=document.getElementById('v2-recalls');
+  // Cards render in two homes: inline at a lesson (#v2-recalls) or the on-demand
+  // Review view (#review-recalls), which gets an empty state. Both hosts can sit
+  // in the DOM at once — this kit uses static view divs, so a #v2-recalls left in
+  // the hidden #view-lesson by a previously-opened lesson survives when you
+  // navigate to Review. Prefer the review host whenever that view is active, or
+  // the stale #v2-recalls steals the render and Review shows empty (bug found on
+  // the Stats port, v1.165.0).
+  const reviewActive=document.getElementById('view-review')?.classList.contains('active');
+  const el=reviewActive
+    ? (document.getElementById('review-recalls')||document.getElementById('v2-recalls'))
+    : (document.getElementById('v2-recalls')||document.getElementById('review-recalls'));
   if(!el) return;
-  if(!_pendingRecalls.length){el.style.display='none';return;}
+  if(!_pendingRecalls.length){
+    if(el.id==='review-recalls'){ el.innerHTML=_reviewEmptyHTML(); }
+    else el.style.display='none';
+    refreshIcons();
+    return;
+  }
   el.innerHTML=_recallsHTML();
   refreshIcons();
 }
+
+// ─── REVIEW NOW (on-demand recall surface) ──────────────────────────────────
+// Recalls normally fire when the path reaches their due position — which also
+// means a skipped position strands them silently. This view pulls everything
+// due (dueAt <= current position) on demand, and can pull the rest early.
+// "Got it now" re-queues relative to _recallAnchor: the open lesson in the
+// lesson flow, or the path front in the Review view (S.currentLesson is left
+// alone so the resume card doesn't move).
+let _recallAnchor = null;
+function renderReview(){
+  const p=_pathPos(), q=_getRecallQ();
+  // Entries stay in storage until actually answered (_consumeStored) — closing
+  // the tab mid-review must not lose them.
+  _pendingRecalls=q.filter(e=>e.dueAt<=p);
+  const next=DATA.LESSONS.find(l=>!S.lessonsDone.includes(l.id));
+  _recallAnchor=next?next.id:DATA.LESSONS[DATA.LESSONS.length-1].id;
+  document.getElementById('view-review').innerHTML=`
+    <div style="margin-bottom:12px">
+      <button class="btn btn-ghost btn-sm" onclick="show('home')">← Home</button>
+    </div>
+    <h1>Review</h1>
+    <p style="color:var(--dim);margin-bottom:16px">Every recall that's due, in one place — answer from memory first, flip when you can't.</p>
+    <div id="review-recalls"></div>`;
+  _refreshRecalls();
+}
+function _reviewEmptyHTML(){
+  const n=_getRecallQ().length;
+  return n>0
+    ? `<div class="card"><p style="margin:0 0 10px">🎉 Nothing due right now — ${n} review${n>1?'s':''} queued for later spots on the path.</p>
+       <button class="btn btn-primary btn-sm" onclick="reviewAhead()">Practice ahead — review ${n>1?'them':'it'} early</button></div>`
+    : `<div class="card"><p style="margin:0">🎉 Nothing queued. Rate a lesson "Not yet" or "Almost" on its confidence chips and its recall questions will land here.</p></div>`;
+}
+function reviewAhead(){
+  _pendingRecalls=_getRecallQ().slice();
+  _refreshRecalls();
+}
+// Remove ONE stored copy of an answered entry. In the lesson flow entries were
+// already dequeued from storage, so this is a no-op there; in the Review view
+// they stay stored until answered, and this is what consumes them.
+function _consumeStored(e){
+  const arr=_getRecallQ();
+  const i=arr.findIndex(x=>x.srcId===e.srcId&&x.dueAt===e.dueAt);
+  if(i>=0){ arr.splice(i,1); _saveRecallQ(arr); }
+}
 function recallGotIt(i){
-  _pendingRecalls.splice(i,1);
+  const e=_pendingRecalls.splice(i,1)[0];
+  if(e) _consumeStored(e);
   const w=parseInt(localStorage.getItem('epk-recall-wins')||'0')+1;
   localStorage.setItem('epk-recall-wins',String(w));
   _refreshRecalls();
 }
-function recallNope(i){
+function recallShowAns(i){
+  if(_pendingRecalls[i]) _pendingRecalls[i]._open = true;
+  _refreshRecalls();
+}
+function recallOpenLesson(i){
+  const e=_pendingRecalls[i];
+  if(e && e.srcId!=null) openLesson(e.srcId);
+}
+// A revealed answer is not a successful recall: it re-queues for one more
+// spaced check and does NOT count toward the recall-wins streak.
+function recallGotNow(i){
   const e=_pendingRecalls.splice(i,1)[0];
+  _consumeStored(e);
   const arr=_getRecallQ();
-  arr.push({cues:e.cues, srcId:e.srcId, dueAt:lessonPos(S.currentLesson)+1});
+  arr.push({cues:e.cues, srcId:e.srcId, dueAt:lessonPos(_recallAnchor??S.currentLesson)+1});
   _saveRecallQ(arr);
   _refreshRecalls();
 }
@@ -1926,6 +2220,7 @@ function show(v){
   btns.forEach(b=>{ if(b.textContent.toLowerCase().includes(v.slice(0,4))) b.classList.add('active'); });
   if(v==='home') renderHome();
   if(v==='lessons') renderLessonList();
+  if(v==='review') renderReview();
   if(v==='practice') renderDrillList();
   if(v==='workspace') renderWorkspace();
   if(v==='pivot') renderPivotLab();
@@ -2201,9 +2496,11 @@ function renderHome(){
   const _streak = getStreak();
   const _due = reviewsDue();
   checkBadges(true); // catch up quietly (e.g. progress earned before badges existed)
+  // The review chip is a real button now (recall rework): it opens the Review
+  // view. It sits inside the click-to-resume card, so it must not bubble.
   document.getElementById('resumeChips').innerHTML =
     (_streak.n > 1 ? `<span class="loop-chip">🔥 ${_streak.n}-day streak${_streak.froze ? ' · a free freeze kept it alive' : ''}</span>` : '') +
-    (_due.now > 0 ? `<span class="loop-chip">🔁 ${_due.now} review${_due.now>1?'s':''} due — they'll pop up as you go</span>` : '');
+    (_due.now > 0 ? `<button class="loop-chip loop-chip-btn" onclick="event.stopPropagation();show('review')" title="Review them now">🧠 ${_due.now} review${_due.now>1?'s':''} due</button>` : '');
   document.getElementById('loopSignoff').textContent = (_due.now === 0 && _due.soon > 0)
     ? `Come back tomorrow — ${_due.soon} quick review${_due.soon>1?'s':''} will be waiting.` : '';
   document.getElementById('badgesCard').innerHTML = badgesCardHTML();
@@ -2323,6 +2620,7 @@ function openLesson(id){
   const _l=DATA.LESSONS.find(x=>x.id===id);
   if(_l) _queueRecalls(id, _l);
   _pendingRecalls = _dequeueRecalls(id);
+  _recallAnchor = id; // "Got it now" re-queues relative to the open lesson
   S.currentLesson = id;
   S.lessonStage = 'intro';
   save();
