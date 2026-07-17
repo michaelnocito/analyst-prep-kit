@@ -9,6 +9,33 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.155.0] — 2026-07-16 — Hub: certification prep gets its own section
+
+The three cert kits were interleaved among the lesson kits in one flat 15-card
+grid under "The kits — in learning order" — `excel · sql · excel-cert · python ·
+tableau · tableau-cert · … · powerbi-cert · …`. Each cert sat next to its parent
+kit, which is a real logic, but it meant someone arriving to prep for a specific
+paid exam had to read past unrelated kits to find it, and the label promised
+"learning order" while the grid mixed two different jobs (learn a tool vs. pass
+an exam).
+
+Pulled all three into their own section between the kits and the Practice arcade:
+**"Certification prep — pass the exam, keep the credential"**, ordered
+`tableau-cert · powerbi-cert · excel-cert` (cheapest/fastest real credential
+first, then the in-demand one, then the entry badge). Reuses the existing
+`.section-label` / `.arcade-note` / `.kits` markup — no new CSS.
+
+**Fixed while verifying:** the hub's `KITS` registry still had `tableau-cert
+total:45`, stale since v1.150.0 took the exam to 49 questions — the card and the
+Continue banner were both reporting out of 45. Now 49.
+
+Verified: cards moved with their `data-kit` and `[data-progress-slot]` intact
+(progress tracking keys off those, and a move is exactly what silently breaks
+them) · 22 cards before and after, none duplicated or dropped · learning grid no
+longer contains any `-cert` card · seeded real-shape progress and the card reads
+"3 / 49 questions" with the Continue banner resolving to the moved card ·
+console clean.
+
 ## [1.154.0] — 2026-07-16 — SQL kit playtest Batch 5: path map + mastery badges + return loop
 
 Final batch of the 2026-07-16 playtest triage (see ROADMAP top block for the
