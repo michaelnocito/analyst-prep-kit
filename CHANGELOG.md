@@ -9,6 +9,44 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.164.0] — 2026-07-17 — Tableau kit: path map, badges, return loop + recall answers
+Kit 4 of the Batch 5 rollout, carrying the recall rework in the same pass
+(ported onto Tableau's `S` state, `show()` router and `tpk-*` keys).
+
+### Added
+- **Visual path map** replaces the flat lessons list — one vertical rail, a node
+  per lesson, states done (✓) / current (highlighted + ▶ Continue) / upcoming
+  (dimmed to .55, never locked), with an SVG progress ring per unit. Nodes follow
+  ARRAY order, not id order: this kit's ids are non-sequential (Unit 0 is ids
+  21-24, Unit 1 is 1-4), so the step number shown is `lessonPos()+1`. No lab nodes
+  (this kit has none) and no lock badges (nothing here is premium).
+- **Mastery badges on Home** — 11 competence-framed badges: one per unit for all
+  six units, all-drills across the kit's five real drill arrays
+  (FILLS/BUGS/WRONG/PARSONS/ESQL = 99), 25 spaced-recall wins, plus 3 secret
+  badges (early bird / night owl / weekend) recorded via `S.badgeMarks` in
+  `finishLesson()`. No attendance trinkets — the streak is shown, never rewarded.
+- **Return loop** — review-due chip on the resume card (counts recalls with
+  `dueAt <= pathPos`), a day-streak in `tpk-streak` with one free freeze per
+  rolling week, and sign-off copy shown only when nothing is due now but
+  something lands next.
+- **Recall answers** — `TAB_REINFORCES` restructured from question strings to
+  `{q, a}` pairs, with all 64 answers hand-written (32 lessons × 2): short,
+  everyday words, self-contained, examples drawn only from this kit's own coffee
+  practice data (Region, Product, Category, Month, Units, Revenue).
+- **Answer flip + Review view** — cards reveal the answer inline rather than
+  dead-ending ("Nope, remind me again" is gone). A peeked card re-queues at
+  front+1 and counts NO win. The Home review chip opens a Review view pulling
+  every due recall (rescuing ones stranded by a skipped position), with
+  "Practice ahead" for future-queued entries; entries stay in storage until
+  actually answered. The in-lesson auto-appear flow is unchanged.
+
+### Fixed
+- Path-map rail and ring track draw in `--border`, not `--surf2`: this kit loads
+  `zinc-sky.css`, where `--color-bg` and `--surf2` are both `--stone-100`, so a
+  `--surf2` rail is invisible against the page in light mode. Confirmed at runtime
+  in both themes (fourth kit to hit this; SQL's and Excel's own rail/track are
+  still outstanding).
+
 ## [1.163.0] — 2026-07-17 — Power BI kit: path map, badges, return loop + recall answers
 Kit 3 of the Batch 5 rollout, carrying the recall rework in the same pass
 (SQL v1.154.0 + v1.160.0 + v1.161.0 ported to Power BI's state and `pbikt-*` keys).

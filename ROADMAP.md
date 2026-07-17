@@ -2,7 +2,7 @@
 
 > ### 🃏 RECALL ANSWERS — FOLDED INTO THE KIT-UPDATE TRAIN (Mike, 2026-07-17) — SQL ✅ v1.160.0+v1.161.0
 > **No longer a separate train.** Every remaining Batch 5 kit update (Python ✅ → Power BI ✅ →
-> Tableau → Stats) now ships BOTH pieces in its one chat: the Batch 5 features (path map +
+> Tableau ✅ → Stats) now ships BOTH pieces in its one chat: the Batch 5 features (path map +
 > badges + return loop) AND the recall rework (answers as {q,a}, flip-to-reveal card,
 > Review-now view). **Excel, which already shipped Batch 5 (v1.156.0) without the recall
 > piece, gets an immediate circle-back chat for recall-only as soon as the four kits are
@@ -25,7 +25,8 @@
 > doi:10.1037/a0015729); reveal-then-self-grade is the Anki pattern.
 > **Cross-kit matrix (standing rule):** the engine pattern ports to ALL kits with the
 > D+E recall layer; the cost is authoring answers per kit — SQL ✅ 94 (47×2, v1.160.0) ·
-> Python ✅ 84 (42×2, v1.162.0) · Power BI ✅ 78 (39×2, v1.163.0) · Tableau · Stats ·
+> Python ✅ 84 (42×2, v1.162.0) · Power BI ✅ 78 (39×2, v1.163.0) · Tableau ✅ 64 (32×2,
+> v1.164.0) · Stats ·
 > Excel (reinforces inline per lesson — different plumbing, same card). One kit per
 > chat, same train as Batch 5. The private de-test suite already accepts BOTH cue
 > formats (strings or {q,a}) — port answers without touching it. Legacy queued
@@ -214,7 +215,7 @@
 > until B2/B3 get templated. Plan: HANDOFF-batch5-kit-rollout.md (local).
 > ✅ Excel (v1.156.0, Batch 5 only — recall circle-back pending) · ✅ Python (v1.162.0,
 > Batch 5 + recall together) · ✅ Power BI (v1.163.0, Batch 5 + recall together) ·
-> ⬜ Tableau · ⬜ Stats**
+> ✅ Tableau (v1.164.0, Batch 5 + recall together) · ⬜ Stats**
 > - Duolingo-style single vertical rail per kit: done/current/upcoming (dimmed,
 >   NEVER locked — soft-guide rule), unit headers with progress rings, current
 >   node = Continue.

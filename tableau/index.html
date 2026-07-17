@@ -188,6 +188,44 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 .recall-header .lucide{width:14px;height:14px}
 .recall-cues{margin:0 0 12px 16px;padding:0;font-size:14px;line-height:1.65;color:var(--text)}
 .recall-btns{display:flex;gap:8px;flex-wrap:wrap}
+/* --warn is only defined in the light theme, so every use keeps the #d9963a fallback. */
+.recall-ans{margin:6px 0 2px;padding:8px 12px;background:color-mix(in srgb, var(--warn,#d9963a) 9%, transparent);border-left:3px solid var(--warn,#d9963a);border-radius:0 6px 6px 0;font-size:13.5px;line-height:1.6;color:var(--text)}
+
+/* PATH MAP (playtest Batch 5) — Duolingo-style vertical rail. States are
+   done / current / upcoming; upcoming is DIMMED, never locked (soft-guide).
+   The rail and the ring's unfilled track use --border, NOT --surf2: this kit
+   loads zinc-sky.css, where --color-bg and --surf2 are both --stone-100, so in
+   light mode a --surf2 rail would be invisible against the page background. */
+.pmap{position:relative}
+.pmap:before{content:'';position:absolute;left:24px;top:8px;bottom:8px;width:3px;background:var(--border);border-radius:2px}
+.pmap-unit{display:flex;align-items:center;gap:12px;position:relative;padding:16px 0 8px;margin-top:6px}
+.pmap-unit-name{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.pmap-unit-sub{font-size:12px;color:var(--dim)}
+.pmap-ring{flex-shrink:0;background:var(--bg);border-radius:50%;position:relative;z-index:1;margin-left:8px}
+.pmap-node{display:flex;gap:14px;align-items:flex-start;position:relative;padding:10px 12px 10px 0;margin:4px 0;cursor:pointer;border-radius:var(--radius);transition:.15s}
+.pmap-node:hover .pmap-title{color:var(--accent)}
+.pmap-dot{width:34px;height:34px;border-radius:50%;background:var(--surf2);color:var(--dim);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;border:2px solid var(--border);position:relative;z-index:1;margin-left:8px}
+.pmap-node.done .pmap-dot{background:var(--accent);border-color:var(--accent);color:#fff}
+.pmap-node.current{background:var(--surf);border:1px solid var(--accent);padding:12px;margin-left:-4px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.pmap-node.current .pmap-dot{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 22%, transparent)}
+.pmap-node.up{opacity:.55}
+.pmap-node.up:hover{opacity:.9}
+.pmap-title{font-weight:600;font-size:14px}
+.pmap-sub{font-size:12px;color:var(--dim)}
+
+/* MASTERY BADGES (playtest Batch 5) — competence-framed, visible progress */
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:10px}
+.badge-tile{border:1px solid var(--border);border-radius:var(--radius);padding:12px 8px;text-align:center;background:var(--surf2);opacity:.75}
+.badge-tile.got{background:var(--surf);border-color:var(--accent);opacity:1}
+.badge-tile.secret{border-style:dashed}
+.badge-ico{font-size:22px;line-height:1.2}
+.badge-name{font-size:12px;font-weight:700;margin-top:4px}
+.badge-prog{font-size:11px;color:var(--dim);font-family:var(--mono)}
+
+/* STREAK + REVIEW CHIPS on the resume card (playtest Batch 5) */
+.loop-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:20px;padding:3px 12px;font-size:12.5px;font-weight:600;color:#fff;margin:0 6px 10px 0}
+.loop-chip-btn{cursor:pointer;font:inherit;border:none}
+.loop-chip-btn:hover{filter:brightness(1.12)}
 .artifact-bridge{font-size:13px;color:var(--txt2);margin-bottom:12px;padding:0 2px}
 .retrieval-note{font-size:12px;color:var(--txt2);font-style:italic;margin:0 0 10px}
 .quiz-feedback{margin-top:12px;padding:10px 14px;border-radius:6px;font-size:14px;line-height:1.5}
@@ -409,6 +447,9 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 
 <!-- LESSONS LIST (rendered by renderLessonList) -->
 <div id="view-lessons" class="view"></div>
+
+<!-- Review-now: on-demand recall surface (playtest Batch 5). -->
+<div id="view-review" class="view"></div>
 
 <!-- PRACTICE (rendered by renderDrillList) -->
 <div id="view-practice" class="view"></div>
@@ -1693,8 +1734,8 @@ const CONTOSO = [
 ];
 
 /* ── STATE ── */
-let S = {done:{}, theme:'light', lastLesson:null, lastDrill:null, cardIdx:0, flagged:[], unitReviewsDone:[]};
-function loadState(){try{const r=JSON.parse(localStorage.getItem('tpk'));if(r)S=Object.assign(S,r);}catch(e){}if(!Array.isArray(S.flagged))S.flagged=[];if(!Array.isArray(S.unitReviewsDone))S.unitReviewsDone=[];}
+let S = {done:{}, theme:'light', lastLesson:null, lastDrill:null, cardIdx:0, flagged:[], unitReviewsDone:[], badgesEarned:[], badgeMarks:{}};
+function loadState(){try{const r=JSON.parse(localStorage.getItem('tpk'));if(r)S=Object.assign(S,r);}catch(e){}if(!Array.isArray(S.flagged))S.flagged=[];if(!Array.isArray(S.unitReviewsDone))S.unitReviewsDone=[];if(!Array.isArray(S.badgesEarned))S.badgesEarned=[];if(!S.badgeMarks||typeof S.badgeMarks!=='object')S.badgeMarks={};}
 function save(){localStorage.setItem('tpk',JSON.stringify(S));}
 
 /* ── FLAG FOR REVIEW (🚩 "I got it right but I'm shaky on this") ── */
@@ -1734,6 +1775,7 @@ function show(v){
   const view=document.getElementById('view-'+v);
   if(view)view.classList.add('active');
   if(v==='home')renderHome();
+  else if(v==='review')renderReview();
   else if(v==='lessons')renderLessonList();
   else if(v==='practice')renderDrillList();
   else if(v==='workspace')renderWorkspace();
@@ -1853,6 +1895,16 @@ function celebrate(gold,msg){
   _toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
 }
 
+// Silent sibling of celebrate(): same toast slot, no chime and no flash. Badge
+// toasts ride in right after a lesson's own celebrate() and must not re-sound.
+// Shares _toastTimer so back-to-back toasts don't cut each other short.
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
 /* ── HOME ── */
 // The lesson the big home card should open: last visited if unfinished,
 // otherwise the first incomplete lesson (array order, not id order).
@@ -1879,6 +1931,19 @@ function renderHome(){
   const verb=lessonsDone===0?'Start':(S.done['lesson'+cur.id]?'Review':'Continue');
   const teaser=((cur.intro||'').replace(/<[^>]*>/g,'').split('. ')[0]+'.').slice(0,160);
 
+  // Return loop: review-due chip + streak chip on the resume card, and a
+  // sign-off line only when nothing is due now but something lands soon.
+  checkBadges(true); // quiet back-fill for progress made before badges existed
+  const _due=reviewsDue(), _streak=getStreak();
+  // The chip sits inside the click-to-resume card, so it must not bubble.
+  const _reviewChip=_due.now>0
+    ? `<button class="loop-chip loop-chip-btn" onclick="event.stopPropagation();show('review')" title="Review them now">🧠 ${_due.now} review${_due.now>1?'s':''} due</button>` : '';
+  const _streakChip=(_streak.n||0)>0
+    ? `<span class="loop-chip">🔥 ${_streak.n}-day streak${_streak.froze?' · a free freeze kept it alive':''}</span>` : '';
+  const _chips=(_reviewChip||_streakChip)?`<div style="margin-bottom:2px">${_reviewChip}${_streakChip}</div>`:'';
+  const _signoff=(_due.now===0&&_due.soon>0)
+    ? `<p style="font-size:13px;opacity:.75;margin-top:6px">Come back tomorrow — ${_due.soon} quick review${_due.soon>1?'s':''} will be waiting.</p>` : '';
+
   const unitRows=[...new Set(DATA.LESSONS.map(l=>l.unit))].map(u=>{
     const ls=DATA.LESSONS.filter(l=>l.unit===u);
     const d=ls.filter(l=>S.done['lesson'+l.id]).length;
@@ -1895,9 +1960,10 @@ function renderHome(){
     <p style="color:var(--txt2);margin-bottom:18px">Build real analyst skills — connect data, build views, tell stories.</p>
     <div class="resume-card" onclick="startLearning()">
       <div>
+        ${_chips}
         <div class="tag" style="margin-bottom:8px;background:rgba(255,255,255,.18);border-color:transparent;color:#fff">LESSON ${lessonPos(cur.id)+1} OF ${lessonsTotal}</div>
         <h2>${cur.title}</h2>
-        <p>${teaser}</p>${_greet}
+        <p>${teaser}</p>${_greet}${_signoff}
       </div>
       <button class="btn btn-ghost">${verb} →</button>
       <div class="resume-card-watermark">${lessonPos(cur.id)+1}</div>
@@ -1937,6 +2003,7 @@ function renderHome(){
       <h3 style="margin-bottom:4px">Next up</h3>
       ${nextRows}
     </div>
+    ${badgesCardHTML()}
     <div class="card">
       <h3 style="margin-bottom:4px"><i data-lucide="gamepad-2" style="width:15px;height:15px;vertical-align:-2px"></i> Learn by playing</h3>
       <p class="text-sm">Warm up with <a href="https://michaelnocito.github.io/prep-companion-apps/tableau/" target="_blank" rel="noopener"><strong>Tableau Analyst Sprint</strong></a> — coach Srbina through 14 bite-size tasks where you drag fields onto real shelves to build the chart. Ten minutes, matched unit-for-unit to this kit. (Her story starts in the <a href="https://michaelnocito.github.io/prep-companion-apps/excel/" target="_blank" rel="noopener">Excel</a> and <a href="https://michaelnocito.github.io/prep-companion-apps/sql/" target="_blank" rel="noopener">SQL</a> sprints.)</p>
@@ -1962,32 +2029,53 @@ function renderHome(){
 }
 
 /* ── LESSONS ── */
+// Unit progress ring. The unfilled track is --border (not --surf2): see the
+// .pmap CSS note — --surf2 equals the page background in this kit's light theme.
+function _ringSVG(done, total){
+  const r=14, c=2*Math.PI*r, p=total?done/total:0;
+  return `<svg class="pmap-ring" width="34" height="34" viewBox="0 0 34 34">
+    <circle cx="17" cy="17" r="${r}" fill="none" stroke="var(--border)" stroke-width="4"/>
+    <circle cx="17" cy="17" r="${r}" fill="none" stroke="var(--accent)" stroke-width="4"
+      stroke-linecap="round" stroke-dasharray="${(p*c).toFixed(1)} ${c.toFixed(1)}"
+      transform="rotate(-90 17 17)"/>
+    ${p>=1?'<text x="17" y="21" text-anchor="middle" font-size="13" fill="var(--accent)">✓</text>':''}
+  </svg>`;
+}
+// Duolingo-style path map. Units and lessons follow ARRAY order, never id order
+// — this kit's ids are non-sequential (Unit 0 is ids 21-24, Unit 1 is 1-4), so
+// the visible step number is lessonPos()+1. No lab nodes (this kit has no unit
+// labs) and no lock badges (nothing here is premium).
 function renderLessonList(){
   const total=DATA.LESSONS.length;
   const doneCount=DATA.LESSONS.filter(l=>S.done['lesson'+l.id]).length;
-  const nextUp=DATA.LESSONS.find(l=>!S.done['lesson'+l.id]);
+  const cur=DATA.LESSONS.find(l=>!S.done['lesson'+l.id]);
   const units={};
   DATA.LESSONS.forEach(l=>{(units[l.unit]=units[l.unit]||[]).push(l);});
-  document.getElementById('view-lessons').innerHTML=`
-    <h1>Lessons</h1>
-    <p>${total} lessons — foundations first, then fundamentals through advanced, layered step by step. Each ends with a quiz, then drills. <span class="mono" style="color:var(--accent)">${doneCount}/${total} done</span></p>
-    `+Object.keys(units).map(u=>{
-    const ud=units[u].filter(l=>S.done['lesson'+l.id]).length;
-    return `
-    <div style="margin-bottom:24px">
-      <h3 style="margin-bottom:12px;color:var(--txt2);font-size:.9rem;text-transform:uppercase;letter-spacing:.05em;display:flex;justify-content:space-between;align-items:baseline;gap:10px">${u}<span class="mono" style="font-size:.78rem;color:var(--dim);text-transform:none;letter-spacing:0">${ud}/${units[u].length}</span></h3>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        ${units[u].map(l=>{
-          const done=S.done[`lesson${l.id}`];
-          const isNext=nextUp&&l.id===nextUp.id;
-          const teaser=((l.intro||'').replace(/<[^>]*>/g,'').split('. ')[0]+'.').slice(0,120);
-          return `<div class="card" style="display:flex;align-items:center;gap:12px;cursor:pointer;${done?'border-color:var(--accent)':isNext?'border-color:var(--accent2)':''}" onclick="openLesson(${l.id})">
-            <span style="font-size:1.2rem;color:${done?'var(--success)':'var(--accent)'}"><i data-lucide="${done?'circle-check-big':'book-open'}" style="width:18px;height:18px;vertical-align:-3px"></i></span>
-            <div><strong><span class="mono" style="color:var(--dim);font-size:.78rem;margin-right:6px">L${lessonPos(l.id)+1}</span>${l.title}${isNext?'<span class="tag accent" style="margin-left:8px;font-size:11px">▶ Next up</span>':''}</strong><div style="color:var(--txt2);font-size:.82rem">${teaser}</div></div>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;}).join('');
+  let html=`<h1>Your Path</h1>
+    <p style="margin:-6px 0 14px;font-size:.85rem;color:var(--txt2)">One step at a time, top to bottom. Nothing ahead is locked — dimmed just means it's coming up. The highlighted node is your next step. <span class="mono" style="color:var(--accent)">${doneCount}/${total} done</span></p>
+    <div class="pmap">`;
+  Object.keys(units).forEach(u=>{
+    const ls=units[u];
+    const d=ls.filter(l=>S.done['lesson'+l.id]).length;
+    html+=`<div class="pmap-unit">${_ringSVG(d,ls.length)}<div>
+      <div class="pmap-unit-name">${u}</div>
+      <div class="pmap-unit-sub">${d}/${ls.length} lessons</div></div></div>`;
+    ls.forEach(l=>{
+      const done=S.done[`lesson${l.id}`];
+      const isCur=cur&&l.id===cur.id;
+      const teaser=((l.intro||'').replace(/<[^>]*>/g,'').split('. ')[0]+'.').slice(0,120);
+      html+=`<div class="pmap-node ${done?'done':isCur?'current':'up'}" onclick="openLesson(${l.id})">
+        <div class="pmap-dot">${done?'✓':lessonPos(l.id)+1}</div>
+        <div class="pmap-info">
+          <div class="pmap-title">${l.title}</div>
+          <div class="pmap-sub">${teaser}</div>
+          ${isCur?`<button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="event.stopPropagation();openLesson(${l.id})">▶ Continue</button>`:''}
+        </div>
+      </div>`;
+    });
+  });
+  html+='</div>';
+  document.getElementById('view-lessons').innerHTML=html;
 }
 
 let lessonState={id:null,qIdx:0};
@@ -2150,8 +2238,17 @@ function checkQuiz(i){
   }
 }
 function finishLesson(id){
-  S.done[`lesson${id}`]=true;save();
+  S.done[`lesson${id}`]=true;
+  // Secret-badge marks: recorded at the moment of finishing, since the clock
+  // can't be recovered later. checkBadges() then awards off these marks.
+  const h=new Date().getHours(), dow=new Date().getDay();
+  S.badgeMarks=S.badgeMarks||{};
+  if(h<8) S.badgeMarks.early=true;
+  if(h>=22) S.badgeMarks.night=true;
+  if(dow===0||dow===6) S.badgeMarks.weekend=true;
+  save();
   celebrate(true,`Lesson ${lessonPos(id)+1} complete! 🌟`);
+  checkBadges();
   renderLessonComplete(id);
 }
 // Guided-primary complete card: reinforce THIS lesson's drills before moving on.
@@ -2179,39 +2276,75 @@ function renderLessonComplete(id){
 // Two retrieval questions per lesson, resurfaced +1/+3/+7 lessons later when
 // the learner rated the lesson "Not yet"/"Almost". One auditable map; the merge
 // loop puts them on l.reinforces so the engine matches Excel's.
+// Cues are {q, a} pairs: the question is the retrieval attempt, the answer is
+// the flip side once they've tried. Answers are written to stand alone — short,
+// everyday words, and every example uses this kit's own practice data (the
+// coffee dataset: Region, Product, Category, Month, Units, Revenue).
 const TAB_REINFORCES = {
-  21:["What does Tableau assume one row of your data represents?","Why does a badly shaped source table make every viz harder?"],
-  22:["Blue vs green fields — what does the color tell you?","Why does Tableau treat a discrete field differently from a continuous one?"],
-  23:["What does 'aggregate' mean when a measure lands on a shelf?","Why does the same Sales field show different numbers in different views?"],
-  24:["Name the steps of the analyst's loop in Tableau.","Why do you sketch the question before dragging any field?"],
-  1:["Name the main areas of the Tableau workspace: where are Data pane, shelves, and canvas?","What do the Columns and Rows shelves each control?"],
-  25:["What happens when you drag a dimension onto Rows — and a measure onto Columns?","Why does drag order not matter but shelf choice does?"],
-  2:["What's the difference between a dimension and a measure?","Which one slices the view into headers, and which one becomes an axis?"],
-  3:["Which two drags build a bar chart from nothing?","Why do bars beat a table for comparing categories?"],
-  4:["What does Tableau build when you drag a date onto Columns and a measure onto Rows?","What changes when you switch a date from discrete to continuous?"],
-  28:["What are the two ways to sort a view?","Why can a sort look 'broken' when a table calc or filter interferes?"],
-  5:["Name two ways to add a filter to a view.","What's the difference between filtering a dimension and filtering a measure?"],
-  6:["What do the Color, Size, and Label marks-card slots each encode?","When does adding color make a chart WORSE?"],
-  26:["Write (out loud) a simple calculated field for profit ratio.","Where do calculated fields live after you create them?"],
-  7:["What's the difference between a row-level and an aggregate calculation?","Why does SUM([Profit])/SUM([Sales]) beat [Profit]/[Sales] for a ratio?"],
-  8:["What does Tableau do to a measure the moment it hits a shelf?","How do you change SUM to AVG on a pill — and when should you?"],
-  9:["How do you combine members into a group, and where does the group live?","What's the difference between a group and a set?"],
-  30:["Which two measures build a scatter plot, and what does each axis show?","What does dragging a dimension onto Detail add to a scatter?"],
-  31:["What do size and color encode in a treemap?","When does a treemap beat a bar chart — and when doesn't it?"],
-  32:["What must a field have before Tableau can map it?","What does a filled map encode vs a symbol map?"],
-  27:["What's the difference between a worksheet, a dashboard, and a workbook?","Why build one chart per sheet instead of cramming?"],
-  10:["How do you bring two sheets onto one dashboard?","What does a dashboard filter action do when you click a mark?"],
-  11:["What belongs in a tooltip that doesn't belong on the chart?","When is an annotation better than a label?"],
-  29:["What does a trend line summarize, and what does a reference line mark?","Where do you drag from to add a reference line?"],
-  12:["Given 'compare categories' vs 'show change over time' — which chart types?","Why is a pie chart usually the wrong answer?"],
-  13:["What makes a dashboard tell a story instead of listing charts?","What question should the top-left element answer?"],
-  14:["Live vs Extract — what's the tradeoff?","When would you schedule an extract refresh instead of going live?"],
-  15:["Join vs union vs relationship — what does each combine?","Why do relationships (logical layer) avoid duplicate-row inflation?"],
-  16:["Name two data properties you'd set on a field before building (alias, default agg, geographic role…).","Why assign a geographic role before mapping a State column?"],
-  17:["What does a set's IN / OUT split show?","How is a set different from a group?"],
-  18:["What does a hierarchy let the viewer do in a viz?","Give an example hierarchy: which fields, in what order?"],
-  19:["What is a parameter, and what makes it different from a filter?","Name a case where a parameter swaps the measure a chart shows."],
-  20:["What's the difference between dual-axis and combined-axis?","What must you do after making a dual-axis chart so the scales compare honestly?"]
+  21:[{q:"What does Tableau assume one row of your data represents?",a:"One record — a single sale, day, or customer. That's the grain, and saying it out loud ('one row = one sale') is the habit that stops you double-counting later."},
+      {q:"Why does a badly shaped source table make every viz harder?",a:"If the grain is unclear or mixed, every total is suspect and you spend your time fighting the data instead of asking questions of it."}],
+  22:[{q:"Blue vs green fields — what does the color tell you?",a:"Blue means discrete (separate buckets, like Region or Product); green means continuous (a range along an axis, like Revenue). Tableau picks the color from the field's data type."},
+      {q:"Why does Tableau treat a discrete field differently from a continuous one?",a:"Discrete splits the view into headers, one per member; continuous draws an axis with a range. That's why a date pill can be either color depending on which you want."}],
+  23:[{q:"What does 'aggregate' mean when a measure lands on a shelf?",a:"Tableau rolls many rows up into one number — sales of $144, $152, and $195 become a single total or average. Every bar height and line point is an aggregate."},
+      {q:"Why does the same Sales field show different numbers in different views?",a:"Because the number depends on what's splitting it and how it's rolled up. Revenue by Region gives one figure per region; Revenue on its own gives one grand total."}],
+  24:[{q:"Name the steps of the analyst's loop in Tableau.",a:"Question, field, shelf, chart, insight. You ask something, grab the right fields, drop them on shelves, read what's drawn, then say the 'so what' in everyday words."},
+      {q:"Why do you sketch the question before dragging any field?",a:"Without a question you're just making charts and hoping one means something. Naming it first tells you which fields and which chart you actually need."}],
+  1:[{q:"Name the main areas of the Tableau workspace: where are Data pane, shelves, and canvas?",a:"The Data pane sits on the left holding your fields, the Columns and Rows shelves run across the top, and the canvas in the middle draws the chart. The Marks card sits between them."},
+     {q:"What do the Columns and Rows shelves each control?",a:"Columns is the horizontal X-axis, Rows is the vertical Y-axis. Region on Columns with SUM(Revenue) on Rows gives you upright bars."}],
+  25:[{q:"What happens when you drag a dimension onto Rows — and a measure onto Columns?",a:"You still get a bar chart, just sideways: Region on Rows becomes horizontal headers and SUM(Revenue) on Columns becomes the bar length."},
+      {q:"Why does drag order not matter but shelf choice does?",a:"Tableau redraws from whatever is currently on the shelves, so you can drop fields in any order. Which shelf you choose is what decides the layout."}],
+  2:[{q:"What's the difference between a dimension and a measure?",a:"A dimension is a category that splits the data (Region, Product, Category); a measure is a number that gets rolled up (Revenue, Units). Blue splits, green aggregates."},
+     {q:"Which one slices the view into headers, and which one becomes an axis?",a:"The dimension slices — one header per Region. The measure becomes the axis with a range along it."}],
+  3:[{q:"Which two drags build a bar chart from nothing?",a:"Dimension onto Columns, measure onto Rows — Region on Columns, SUM(Revenue) on Rows. Then sort it."},
+     {q:"Why do bars beat a table for comparing categories?",a:"The eye ranks lengths instantly, while a table makes the reader compare numbers by hand. A sorted bar chart hands over the ranking for free."}],
+  4:[{q:"What does Tableau build when you drag a date onto Columns and a measure onto Rows?",a:"A line chart tracing the measure over time — Month on Columns and SUM(Revenue) on Rows shows the trend rise and fall."},
+     {q:"What changes when you switch a date from discrete to continuous?",a:"Discrete gives separate labelled headers, one per year or month; continuous draws a single unbroken timeline axis. Right-click the pill to switch."}],
+  28:[{q:"What are the two ways to sort a view?",a:"One click on the toolbar sort button, or sort by a chosen field (right-click the header and choose Sort). Either turns a hunt into an instant ranking."},
+      {q:"Why can a sort look 'broken' when a table calc or filter interferes?",a:"Because those run in their own order — the sort can be applied before the calculation or filter changes the numbers, so the bars land out of sequence."}],
+  5:[{q:"Name two ways to add a filter to a view.",a:"Drag a field onto the Filters shelf, or right-click a field and choose Filter. You can also right-click a mark in the view and exclude it."},
+     {q:"What's the difference between filtering a dimension and filtering a measure?",a:"A dimension filter keeps or excludes categories (only the West region); a measure filter keeps a range of numbers (only sales above $150)."}],
+  6:[{q:"What do the Color, Size, and Label marks-card slots each encode?",a:"Color encodes a dimension or a measure, Size encodes a measure, and Label writes the value onto the mark itself. Each adds meaning without adding a chart."},
+     {q:"When does adding color make a chart WORSE?",a:"When it repeats something already shown — coloring bars by Revenue when height already shows Revenue tells you nothing new. Save color for a second variable."}],
+  26:[{q:"Write (out loud) a simple calculated field for profit ratio.",a:"SUM([Profit]) / SUM([Sales]) — divide the totals, not the rows. The simplest calc of all is just Revenue minus Cost."},
+      {q:"Where do calculated fields live after you create them?",a:"In the Data pane alongside your real fields, marked with an = sign. You write the formula once and it applies to every row."}],
+  7:[{q:"What's the difference between a row-level and an aggregate calculation?",a:"A row-level calc runs on every row before the roll-up (Revenue minus Cost on each sale); an aggregate calc works on the totals (SUM(Revenue) minus SUM(Cost))."},
+     {q:"Why does SUM([Profit])/SUM([Sales]) beat [Profit]/[Sales] for a ratio?",a:"The first adds everything up and divides once, giving the true overall ratio. The second divides row by row, which lets a $2 sale count as much as a $2,000 one."}],
+  8:[{q:"What does Tableau do to a measure the moment it hits a shelf?",a:"It aggregates it, using SUM by default. That's why the green pill reads SUM(Revenue) instead of a single row's value."},
+     {q:"How do you change SUM to AVG on a pill — and when should you?",a:"Right-click the green pill, choose Measure, then Average. Use AVG when you want the typical sale rather than the total: 'what's a normal order?' not 'how much did we sell?'"}],
+  9:[{q:"How do you combine members into a group, and where does the group live?",a:"Select the members, right-click, and choose Group — bundle Espresso Shot, Latte, and Cold Brew and they draw as one bar. The group shows up in the Data pane as a new field."},
+     {q:"What's the difference between a group and a set?",a:"A group is a fixed bundle you assign by hand and it stays put. A set is a rule, so members join and leave on their own as the data changes."}],
+  30:[{q:"Which two measures build a scatter plot, and what does each axis show?",a:"One measure on Columns and one on Rows — Units across, Revenue up. Each axis answers one question, and a dot's position answers both at once."},
+      {q:"What does dragging a dimension onto Detail add to a scatter?",a:"It breaks one blob into a dot per member — drop Product on Detail and you get a dot for each coffee product instead of a single dot for everything."}],
+  31:[{q:"What do size and color encode in a treemap?",a:"Size is the tile's area, exactly proportional to a measure like Revenue; color usually carries a second measure or a category."},
+      {q:"When does a treemap beat a bar chart — and when doesn't it?",a:"It wins when you want every item on screen at once and only need rough sizes. It loses when you need precision: areas show 'roughly how big', bars show 'exactly how much'."}],
+  32:[{q:"What must a field have before Tableau can map it?",a:"A geographic role. Assign one to a text field like Region and its Abc icon turns into a globe, after which Tableau fills in the latitude and longitude itself."},
+      {q:"What does a filled map encode vs a symbol map?",a:"A filled map shades whole areas, so color carries the measure. A symbol map drops a dot per location, so size and color can each carry one."}],
+  27:[{q:"What's the difference between a worksheet, a dashboard, and a workbook?",a:"A worksheet is one view answering one question; a dashboard arranges several sheets on a single canvas; the workbook is the file holding them all, as tabs along the bottom."},
+      {q:"Why build one chart per sheet instead of cramming?",a:"Each sheet stays easy to read and reuse, and a dashboard can pull in just the ones it needs. Cramming makes both harder to fix later."}],
+  10:[{q:"How do you bring two sheets onto one dashboard?",a:"Dashboard menu, then New Dashboard, then drag the sheets in from the Sheets panel. Layout containers control how they sit together."},
+      {q:"What does a dashboard filter action do when you click a mark?",a:"It filters the other sheets to match what you clicked — click the West bar and the rest of the dashboard narrows to West."}],
+  11:[{q:"What belongs in a tooltip that doesn't belong on the chart?",a:"Detail the reader only wants for one mark: exact values, extra fields, a note of context. It appears on hover, so it never clutters the view."},
+      {q:"When is an annotation better than a label?",a:"When you're calling out one specific point rather than every mark. A label repeats on all of them; an annotation marks the single one that needs explaining."}],
+  29:[{q:"What does a trend line summarize, and what does a reference line mark?",a:"A trend line fits one straight line through the data to show direction — up, down, or flat. A reference line marks a value you care about, like a target or an average."},
+      {q:"Where do you drag from to add a reference line?",a:"The Analytics pane — drag it straight onto the chart. No formula required."}],
+  12:[{q:"Given 'compare categories' vs 'show change over time' — which chart types?",a:"Comparing categories calls for a sorted bar chart; change over time calls for a line chart."},
+      {q:"Why is a pie chart usually the wrong answer?",a:"People judge angles poorly, so past about three slices it becomes guesswork. A sorted bar answers the same question at a glance."}],
+  13:[{q:"What makes a dashboard tell a story instead of listing charts?",a:"A deliberate order and a point — each view leads to the next and answers the 'so what', instead of sitting there as a wall of charts."},
+      {q:"What question should the top-left element answer?",a:"The main one. Readers start at the top-left, so put the headline answer there and let the supporting detail follow."}],
+  14:[{q:"Live vs Extract — what's the tradeoff?",a:"Live queries the source every time, so it's always current but slower on big data. An extract is a snapshot: fast to read, but only as fresh as the last refresh."},
+      {q:"When would you schedule an extract refresh instead of going live?",a:"When the data only changes on a schedule and speed matters more than being current to the minute — a nightly refresh keeps dashboards quick."}],
+  15:[{q:"Join vs union vs relationship — what does each combine?",a:"A join tapes two tables side by side on a shared ID (adding columns). A union stacks same-shape tables on top of each other (adding rows: January, then February). A relationship just tells Tableau how two tables match and lets it choose per question."},
+      {q:"Why do relationships (logical layer) avoid duplicate-row inflation?",a:"Because Tableau only joins at the level each question needs instead of flattening everything up front. A fixed join can repeat rows and quietly inflate your totals."}],
+  16:[{q:"Name two data properties you'd set on a field before building (alias, default agg, geographic role…).",a:"Rename a field so it reads clearly ('Order Date', not 'dt_2'), and set an alias so 'CA' displays as 'California'. Default aggregation and geographic role are the other two."},
+      {q:"Why assign a geographic role before mapping a State column?",a:"Without it Tableau just sees text and can't place it. The role is what tells Tableau those words are locations, so it can supply the coordinates."}],
+  17:[{q:"What does a set's IN / OUT split show?",a:"Every row is labelled either in the set or out of it — 'every product over $200 in revenue' is IN, everything else is OUT. That label is all a set really is."},
+      {q:"How is a set different from a group?",a:"A set is a rule that updates itself as the data changes; a group is a fixed bundle you assign by hand and it stays put."}],
+  18:[{q:"What does a hierarchy let the viewer do in a viz?",a:"Drill in and out — click the + on Category to open it into the products inside, click the − to collapse it back. Nothing is hidden; you're changing the level of detail."},
+      {q:"Give an example hierarchy: which fields, in what order?",a:"The built-in date one: Year, then Quarter, then Month, then Day — broadest first. Category then Product works the same way."}],
+  19:[{q:"What is a parameter, and what makes it different from a filter?",a:"A parameter is a single control the viewer sets, holding a number or a choice. A filter removes rows; a parameter stores no data and does nothing until a calc, filter, or reference line reads it."},
+      {q:"Name a case where a parameter swaps the measure a chart shows.",a:"A 'Revenue or Units?' picker: the parameter holds the choice and a calculated field reads it, returning SUM(Revenue) or SUM(Units) so one chart serves both."}],
+  20:[{q:"What's the difference between dual-axis and combined-axis?",a:"Dual-axis gives each measure its own scale — Revenue on the left, Units on the right, over the same months. Combined-axis puts both on one shared scale, which only works when they're in the same units."},
+      {q:"What must you do after making a dual-axis chart so the scales compare honestly?",a:"Synchronize the axes (right-click the second axis and choose Synchronize Axis) when the measures share units. If they don't, leave them separate and say so — mismatched scales mislead."}]
 };
 DATA.LESSONS.forEach(l=>{ if(TAB_REINFORCES[l.id]) l.reinforces=TAB_REINFORCES[l.id]; });
 
@@ -2244,34 +2377,220 @@ function _syncRecalls(id, l){
   _recallLesson = id;
 }
 function _recallsHTML(){
-  return _pendingRecalls.map((e,i)=>`<div class="recall-card">
+  // Cues may be legacy strings (question only) or {q,a} pairs. Answer reveal is
+  // Anki-style flip: attempt first, then the answer inline — never a dead end.
+  return _pendingRecalls.map((e,i)=>{
+    const cues = e.cues.map(c=>typeof c==='string'?{q:c,a:null}:c);
+    const open = !!e._open;
+    const hasAns = cues.some(c=>c.a);
+    return `<div class="recall-card">
     <div class="recall-header"><i data-lucide="repeat-2"></i> Quick recall — no peeking</div>
-    <ul class="recall-cues">${e.cues.map(c=>`<li>${c}</li>`).join('')}</ul>
+    <ul class="recall-cues">${cues.map(c=>`<li>${c.q}${open&&c.a?`<div class="recall-ans">${c.a}</div>`:''}</li>`).join('')}</ul>
+    ${open&&!hasAns?`<p style="font-size:13px;color:var(--txt2);margin:0 0 10px">This one predates stored answers — the lesson below has it.</p>`:''}
+    ${open?`<div style="margin-bottom:10px"><button class="btn btn-ghost btn-sm" onclick="recallOpenLesson(${i})">Open that lesson →</button></div>`:''}
     <div class="recall-btns">
-      <button class="btn btn-primary btn-sm" onclick="recallGotIt(${i})">I remembered it</button>
-      <button class="btn btn-outline btn-sm" onclick="recallNope(${i})">Nope, remind me again</button>
+      ${open
+        ? `<button class="btn btn-primary btn-sm" onclick="recallGotNow(${i})">Got it now</button>
+           <span style="font-size:12px;color:var(--txt2);align-self:center">This one will come back tomorrow for a real check.</span>`
+        : `<button class="btn btn-primary btn-sm" onclick="recallGotIt(${i})">I remembered it</button>
+           <button class="btn btn-ghost btn-sm" onclick="recallShowAns(${i})">Show answer</button>`}
     </div>
-  </div>`).join('');
+  </div>`;}).join('');
 }
 function _refreshRecalls(){
-  const el=document.getElementById('v2-recalls');
+  // Cards render in two homes: inline at a lesson (#v2-recalls) or the
+  // on-demand Review view (#review-recalls), which gets an empty state.
+  const el=document.getElementById('v2-recalls')||document.getElementById('review-recalls');
   if(!el) return;
-  if(!_pendingRecalls.length){el.style.display='none';return;}
+  if(!_pendingRecalls.length){
+    if(el.id==='review-recalls'){ el.innerHTML=_reviewEmptyHTML(); }
+    else el.style.display='none';
+    if(window.lucide) lucide.createIcons();
+    return;
+  }
   el.innerHTML=_recallsHTML();
   if(window.lucide) lucide.createIcons();
 }
+
+// ─── REVIEW NOW (on-demand recall surface) ─────────────────────────────────
+// Recalls normally fire when the path reaches their due position — which also
+// means a skipped position strands them silently. This view pulls everything
+// due (dueAt <= current position) on demand, and can pull the rest early.
+function renderReview(){
+  const p=_pathPos(), q=_getRecallQ();
+  // Entries stay in storage until actually answered (_consumeStored) — closing
+  // the tab mid-review must not lose them.
+  _pendingRecalls=q.filter(e=>e.dueAt<=p);
+  // "Got it now" re-queues relative to this lesson; anchor it at the path front.
+  const next=DATA.LESSONS.find(l=>!S.done['lesson'+l.id]);
+  _recallLesson=next?next.id:DATA.LESSONS[DATA.LESSONS.length-1].id;
+  document.getElementById('view-review').innerHTML=`
+    <div style="margin-bottom:12px">
+      <button class="btn btn-ghost btn-sm" onclick="show('home')">← Home</button>
+    </div>
+    <h1>Review</h1>
+    <p style="color:var(--txt2);margin-bottom:16px">Every recall that's due, in one place — answer from memory first, flip when you can't.</p>
+    <div id="review-recalls"></div>`;
+  _refreshRecalls();
+}
+function _reviewEmptyHTML(){
+  const n=_getRecallQ().length;
+  return n>0
+    ? `<div class="card"><p style="margin:0 0 10px">🎉 Nothing due right now — ${n} review${n>1?'s':''} queued for later spots on the path.</p>
+       <button class="btn btn-primary btn-sm" onclick="reviewAhead()">Practice ahead — review ${n>1?'them':'it'} early</button></div>`
+    : `<div class="card"><p style="margin:0">🎉 Nothing queued. Rate a lesson "Not yet" or "Almost" on its confidence chips and its recall questions will land here.</p></div>`;
+}
+function reviewAhead(){
+  _pendingRecalls=_getRecallQ().slice();
+  _refreshRecalls();
+}
+// Remove ONE stored copy of an answered entry. In the lesson flow entries were
+// already dequeued from storage, so this is a no-op there; in the Review view
+// they stay stored until answered, and this is what consumes them.
+function _consumeStored(e){
+  const arr=_getRecallQ();
+  const i=arr.findIndex(x=>x.srcId===e.srcId&&x.dueAt===e.dueAt);
+  if(i>=0){ arr.splice(i,1); _saveRecallQ(arr); }
+}
 function recallGotIt(i){
-  _pendingRecalls.splice(i,1);
+  const e=_pendingRecalls.splice(i,1)[0];
+  if(e) _consumeStored(e);
   const w=parseInt(localStorage.getItem('tpk-recall-wins')||'0')+1;
   localStorage.setItem('tpk-recall-wins',String(w));
   _refreshRecalls();
 }
-function recallNope(i){
+function recallShowAns(i){
+  if(_pendingRecalls[i]) _pendingRecalls[i]._open = true;
+  _refreshRecalls();
+}
+function recallOpenLesson(i){
+  const e=_pendingRecalls[i];
+  if(e && e.srcId!=null) openLesson(e.srcId);
+}
+// A revealed answer is not a successful recall: it re-queues for one more
+// spaced check and does NOT count toward the recall-wins streak.
+function recallGotNow(i){
   const e=_pendingRecalls.splice(i,1)[0];
+  _consumeStored(e);
   const arr=_getRecallQ();
   arr.push({cues:e.cues, srcId:e.srcId, dueAt:lessonPos(_recallLesson)+1});
   _saveRecallQ(arr);
   _refreshRecalls();
+}
+
+// ─── RETURN LOOP + MASTERY BADGES (playtest Batch 5) ────────────────────────
+// Review-due queue is the primary return hook (spaced retrieval is real
+// learning); streak with one free freeze/week is secondary. All localStorage.
+
+// The recall queue is keyed by LESSON POSITION (dueAt = pos + 1/3/7), so
+// "due" means: will surface on or before the lesson you'd open next.
+function _pathPos(){
+  const n = DATA.LESSONS.find(l => !S.done['lesson'+l.id]);
+  return n ? lessonPos(n.id) : DATA.LESSONS.length;
+}
+function reviewsDue(){
+  const p = _pathPos(), q = _getRecallQ();
+  return {
+    now:  q.filter(e => e.dueAt <= p).length,      // fires on your next lesson
+    soon: q.filter(e => e.dueAt <= p + 1).length,  // fires within the next two
+  };
+}
+
+// Streak: one count per LOCAL calendar day the kit is opened. A single missed
+// day is absorbed by one free freeze per rolling week (gentle copy — a broken
+// streak should never feel like a reset of the learning itself).
+function getStreak(){
+  try { return JSON.parse(localStorage.getItem('tpk-streak')) || {}; } catch(e){ return {}; }
+}
+function _localDay(d = new Date()){
+  const p = n => String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+function _dayDiff(a, b){ return Math.round((new Date(b+'T12:00') - new Date(a+'T12:00')) / 86400000); }
+function bumpStreak(){
+  const s = getStreak(), today = _localDay();
+  if(s.last === today) return s;
+  delete s.froze;
+  if(!s.last){ s.n = 1; }
+  else {
+    const gap = _dayDiff(s.last, today);
+    if(gap === 1) s.n = (s.n||0) + 1;
+    else if(gap === 2 && (!s.lastFreeze || _dayDiff(s.lastFreeze, today) >= 7)){
+      s.n = (s.n||0) + 1; s.lastFreeze = today; s.froze = true; // freeze absorbed the missed day
+    }
+    else s.n = 1;
+  }
+  s.last = today;
+  localStorage.setItem('tpk-streak', JSON.stringify(s));
+  return s;
+}
+
+// Competence-framed mastery badges: each marks something you can now DO, with
+// visible progress toward it. A few surprise badges (hidden until earned) for
+// delight. Deliberately NO attendance trinkets — the streak above is shown as
+// a count, never converted into a reward.
+// All six units are badged: nothing in this kit is premium, so the board stays
+// fillable by any learner. (Don't copy Power BI's premium-unit exclusion here.)
+function _unitProg(re){
+  let d=0, t=0;
+  DATA.LESSONS.forEach(l => { if(re.test(l.unit)){ t++; if(S.done['lesson'+l.id]) d++; } });
+  return [d, t];
+}
+// Counted off the kit's real drill arrays (FILLS/BUGS/WRONG/PARSONS/ESQL) via
+// DRILL_TYPES, so it tracks the true total rather than a hard-coded guess.
+function _drillProg(){
+  let d=0, t=0;
+  DRILL_TYPES.forEach(dt => {
+    const items = DATA[dt.data] || [];
+    t += items.length;
+    d += items.filter((_,i) => S.done[dt.key+i]).length;
+  });
+  return [d, t];
+}
+const BADGES = [
+  {id:'u0',      icon:'🧭', label:'Data Reader',      desc:'Finish every Before You Build lesson',                  prog:()=>_unitProg(/^Unit 0:/)},
+  {id:'u1',      icon:'🎛️', label:'Shelf Hand',       desc:'Finish every Tableau Fundamentals lesson',              prog:()=>_unitProg(/^Unit 1:/)},
+  {id:'u2',      icon:'📊', label:'Viz Builder',      desc:'Finish every Building Better Vizzes lesson',            prog:()=>_unitProg(/^Unit 2:/)},
+  {id:'u3',      icon:'🖥️', label:'Dashboard Deck',   desc:'Finish every Dashboards & Best Practices lesson',       prog:()=>_unitProg(/^Unit 3:/)},
+  {id:'u4',      icon:'🔌', label:'Data Wrangler',    desc:'Finish every Connecting & Preparing Data lesson',       prog:()=>_unitProg(/^Unit 4:/)},
+  {id:'u5',      icon:'🎚️', label:'Power User',       desc:'Finish every Sets, Hierarchies, Parameters & Dual-Axis lesson', prog:()=>_unitProg(/^Unit 5:/)},
+  {id:'drills',  icon:'🛠️', label:'Drill Polisher',   desc:'Complete every drill across all five types',            prog:_drillProg},
+  {id:'recall25',icon:'🧠', label:'Steel Trap',       desc:'Nail 25 spaced-recall checks from memory',
+    prog:()=>[Math.min(25, parseInt(localStorage.getItem('tpk-recall-wins')||'0')), 25]},
+  {id:'early',   icon:'🌅', label:'Early Bird',       desc:'Finish a lesson before 8am',   secret:true, prog:()=>[(S.badgeMarks||{}).early?1:0, 1]},
+  {id:'night',   icon:'🌙', label:'Night Owl',        desc:'Finish a lesson after 10pm',   secret:true, prog:()=>[(S.badgeMarks||{}).night?1:0, 1]},
+  {id:'weekend', icon:'🧺', label:'Weekend Analyst',  desc:'Finish a lesson on a weekend', secret:true, prog:()=>[(S.badgeMarks||{}).weekend?1:0, 1]},
+];
+function checkBadges(quiet){
+  S.badgesEarned = S.badgesEarned || [];
+  let changed = false;
+  BADGES.forEach(b => {
+    const [d, t] = b.prog();
+    if(t > 0 && d >= t && !S.badgesEarned.includes(b.id)){
+      S.badgesEarned.push(b.id);
+      changed = true;
+      if(!quiet) showToast(`${b.icon} Badge earned: ${b.label}!`);
+    }
+  });
+  if(changed) save();
+}
+function badgesCardHTML(){
+  const earned = S.badgesEarned || [];
+  const tiles = BADGES.filter(b => !b.secret || earned.includes(b.id)).map(b => {
+    const [d, t] = b.prog();
+    const got = earned.includes(b.id) || (t > 0 && d >= t);
+    return `<div class="badge-tile${got?' got':''}" title="${b.desc}">
+      <div class="badge-ico">${got ? b.icon : '○'}</div>
+      <div class="badge-name">${b.label}</div>
+      <div class="badge-prog">${got ? 'Earned' : d+'/'+t}</div>
+    </div>`;
+  }).join('');
+  const secretN = BADGES.filter(b => b.secret && !earned.includes(b.id)).length;
+  return `<div class="card">
+    <h3 style="margin-bottom:4px">Badges</h3>
+    <p style="font-size:13px;color:var(--txt2);margin:0 0 10px">Each badge marks a skill you can now do — the count fills as you learn, not as you show up.</p>
+    <div class="badge-grid">${tiles}${secretN ? `<div class="badge-tile secret"><div class="badge-ico">✦</div><div class="badge-name">${secretN} surprise badge${secretN>1?'s':''}</div><div class="badge-prog">found by playing</div></div>` : ''}</div>
+  </div>`;
 }
 
 function getTabStage(lid){ return ((S.lessonStage||{})[lid]) ?? 0; }
@@ -3426,6 +3745,7 @@ function filterGlossary(q){
 /* ── BOOT ── */
 loadState();
 applyTheme();
+bumpStreak(); // count today's visit before Home renders its streak chip
 show('home');
 
 /* Cert-kit deep link: /tableau/#lesson-<id> opens that lesson directly. Runs on
@@ -3502,7 +3822,7 @@ function handleResetKit(btn){
     btn.style.color='#e07c7c';btn.style.borderColor='#e07c7c';
     setTimeout(function(){if(_kitConfirm){_kitConfirm=false;btn.textContent='↺ Reset this kit';btn.style.color='';btn.style.borderColor='';}  },4000);
   } else {
-    ['tpk','tpk-recalls','tpk-recall-wins','tpk-last-visit'].forEach(function(k){localStorage.removeItem(k);});
+    ['tpk','tpk-recalls','tpk-recall-wins','tpk-last-visit','tpk-streak'].forEach(function(k){localStorage.removeItem(k);});
     location.reload();
   }
 }
