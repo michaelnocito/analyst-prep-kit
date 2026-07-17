@@ -9,6 +9,16 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.155.1] — 2026-07-16 — Excel: fix the broken "Your review list" card on Home
+
+The review-list card's markup used curly quotes (`class=”card”`) throughout, so
+the browser parsed its id as `”flaggedCard”` — `getElementById('flaggedCard')`
+returned null, `renderFlagged()` bailed early, and `display:none` never applied.
+The card sat permanently visible, unstyled, and empty on the Excel home for
+every user, and confidence ratings never surfaced there. Replaced with straight
+quotes; the card now populates from low/mid ratings and hides when there are
+none.
+
 ## [1.155.0] — 2026-07-16 — Hub: certification prep gets its own section
 
 The three cert kits were interleaved among the lesson kits in one flat 15-card
