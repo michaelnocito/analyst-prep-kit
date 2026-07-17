@@ -385,6 +385,8 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .recall-header .lucide{width:14px;height:14px}
 .recall-cues{margin:0 0 12px 16px;padding:0;font-size:14px;line-height:1.65;color:var(--text)}
 .recall-btns{display:flex;gap:8px;flex-wrap:wrap}
+.loop-chip-btn{cursor:pointer;font:inherit;border:none}
+.loop-chip-btn:hover{filter:brightness(1.12)}
 .recall-ans{margin:6px 0 2px;padding:8px 12px;background:color-mix(in srgb, var(--warn,#d9963a) 9%, transparent);border-left:3px solid var(--warn,#d9963a);border-radius:0 6px 6px 0;font-size:13.5px;line-height:1.6;color:var(--text)}
 .artifact-bridge{font-size:13px;color:var(--muted);margin-bottom:12px;padding:0 2px}
 .retrieval-note{font-size:12px;color:var(--muted);font-style:italic;margin:0 0 10px}
@@ -1562,6 +1564,7 @@ function navigate(view, ...args){
   main.innerHTML = '';
   window.scrollTo(0,0);
   if(view==='home') renderHome();
+  else if(view==='review') renderReview();
   else if(view==='lessons') renderLessons();
   else if(view==='lesson') renderLesson(args[0]);
   else if(view==='practice') renderPractice();
@@ -1615,9 +1618,10 @@ function renderHome(){
   const _streak = getStreak();
   const _due = reviewsDue();
   checkBadges(true); // catch up quietly (e.g. progress earned before badges existed)
+  const _qLen = _getRecallQ().length;
   const _chips =
     (_streak.n > 1 ? `<span class="loop-chip">🔥 ${_streak.n}-day streak${_streak.froze ? ' · a free freeze kept it alive' : ''}</span>` : '') +
-    (_due.now > 0 ? `<span class="loop-chip">🔁 ${_due.now} review${_due.now>1?'s':''} due — they'll pop up as you go</span>` : '');
+    (_qLen > 0 ? `<button class="loop-chip loop-chip-btn" onclick="navigate('review')">🔁 ${_due.now>0 ? `${_due.now} review${_due.now>1?'s':''} due` : `${_qLen} queued`} — Review now →</button>` : '');
   const _signoff = (_due.now === 0 && _due.soon > 0)
     ? `<p style="font-size:13px;opacity:.75;margin-top:4px">Come back tomorrow — ${_due.soon} quick review${_due.soon>1?'s':''} will be waiting.</p>` : '';
 
@@ -2218,14 +2222,63 @@ function _recallsHTML(){
   </div>`;}).join('');
 }
 function _refreshRecalls(){
-  const el=document.getElementById('v2-recalls');
+  // Cards render in two homes: inline at a lesson (#v2-recalls) or the
+  // on-demand Review view (#review-recalls), which gets an empty state.
+  const el=document.getElementById('v2-recalls')||document.getElementById('review-recalls');
   if(!el) return;
-  if(!_pendingRecalls.length){el.style.display='none';return;}
+  if(!_pendingRecalls.length){
+    if(el.id==='review-recalls'){ el.innerHTML=_reviewEmptyHTML(); }
+    else el.style.display='none';
+    if(window.lucide) lucide.createIcons();
+    return;
+  }
   el.innerHTML=_recallsHTML();
   if(window.lucide) lucide.createIcons();
 }
+
+// ─── REVIEW NOW (on-demand recall surface) ─────────────────────────────────
+// Recalls normally fire when the path reaches their due position — which also
+// means a skipped position strands them silently. This view pulls everything
+// due (dueAt <= current position) on demand, and can pull the rest early.
+function renderReview(){
+  const p=_pathPos(), q=_getRecallQ();
+  // Entries stay in storage until actually answered (_consumeStored) — closing
+  // the tab mid-review must not lose them.
+  _pendingRecalls=q.filter(e=>e.dueAt<=p);
+  // "Got it now" re-queues relative to this lesson; anchor it at the path front.
+  const next=DATA.LESSONS.find(l=>!state.doneLessons.includes(l.id));
+  _recallLesson=next?next.id:DATA.LESSONS[DATA.LESSONS.length-1].id;
+  document.getElementById('main').innerHTML=`
+    <div class="row mb">
+      <button class="btn btn-ghost btn-sm" onclick="navigate('home')">← Home</button>
+    </div>
+    <h1>Review</h1>
+    <p class="text-muted" style="margin-bottom:16px">Every recall that's due, in one place — answer from memory first, flip when you can't.</p>
+    <div id="review-recalls"></div>`;
+  _refreshRecalls();
+}
+function _reviewEmptyHTML(){
+  const n=_getRecallQ().length;
+  return n>0
+    ? `<div class="card"><p style="margin:0 0 10px">🎉 Nothing due right now — ${n} review${n>1?'s':''} queued for later spots on the path.</p>
+       <button class="btn btn-primary btn-sm" onclick="reviewAhead()">Practice ahead — review ${n>1?'them':'it'} early</button></div>`
+    : `<div class="card"><p style="margin:0">🎉 Nothing queued. Rate a lesson "Not yet" or "Almost" on its confidence chips and its recall questions will land here.</p></div>`;
+}
+function reviewAhead(){
+  _pendingRecalls=_getRecallQ().slice();
+  _refreshRecalls();
+}
+// Remove ONE stored copy of an answered entry. In the lesson flow entries were
+// already dequeued from storage, so this is a no-op there; in the Review view
+// they stay stored until answered, and this is what consumes them.
+function _consumeStored(e){
+  const arr=_getRecallQ();
+  const i=arr.findIndex(x=>x.srcId===e.srcId&&x.dueAt===e.dueAt);
+  if(i>=0){ arr.splice(i,1); _saveRecallQ(arr); }
+}
 function recallGotIt(i){
-  _pendingRecalls.splice(i,1);
+  const e=_pendingRecalls.splice(i,1)[0];
+  if(e) _consumeStored(e);
   const w=parseInt(localStorage.getItem('sqlkit-recall-wins')||'0')+1;
   localStorage.setItem('sqlkit-recall-wins',String(w));
   _refreshRecalls();
@@ -2242,6 +2295,7 @@ function recallOpenLesson(i){
 // spaced check and does NOT count toward the recall-wins streak.
 function recallGotNow(i){
   const e=_pendingRecalls.splice(i,1)[0];
+  _consumeStored(e);
   const arr=_getRecallQ();
   arr.push({cues:e.cues, srcId:e.srcId, dueAt:lessonPos(_recallLesson)+1});
   _saveRecallQ(arr);

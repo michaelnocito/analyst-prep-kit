@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.161.0] — 2026-07-17 — SQL kit: "Review now" — recalls on demand
+- New Review view: the Home review chip is now a button ("N reviews due — Review
+  now →") that opens every currently-due recall card in one place — no need to walk
+  the path to the exact position where one fires. Shows whenever anything is queued.
+- Rescues stranded recalls: cards whose path position was skipped never fired under
+  the position-exact lesson flow; Review pulls everything at-or-before the current
+  position.
+- "Practice ahead" on the empty state pulls future-queued reviews early; a fully
+  empty queue explains how recalls get created.
+- Safe by construction: entries stay in localStorage until actually answered
+  (closing the tab mid-review loses nothing); answering consumes exactly one stored
+  copy whether it fires in a lesson or in Review.
+
 ## [1.160.0] — 2026-07-17 — SQL kit: recall answers — flip to reveal, never a dead end
 - Every "Quick recall" card can now show its answer: 94 hand-written answers (2 per
   lesson, 47 lessons), each self-contained in everyday words with examples drawn only

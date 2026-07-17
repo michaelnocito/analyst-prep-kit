@@ -1,6 +1,11 @@
 ﻿# Analyst Prep Kit — Roadmap
 
-> ### 🃏 RECALL ANSWERS ROLLOUT (decided 2026-07-17, Mike's go) — SQL ✅ v1.160.0; other kits pending
+> ### 🃏 RECALL ANSWERS ROLLOUT (decided 2026-07-17, Mike's go) — SQL ✅ v1.160.0 + v1.161.0 Review-now view; other kits pending
+> **v1.161.0 addendum (Mike: recalls were untestable/unreachable on demand):** Home chip →
+> button opening a `review` view that pulls ALL due recalls (dueAt <= current position —
+> also rescues entries stranded by the position-exact lesson dequeue), plus "Practice
+> ahead" for future-queued ones. Entries stay in storage until answered (`_consumeStored`).
+> **Port this WITH the answers when templating to other kits — it's part of the pattern.**
 > Quick-recall cards get an Anki-style flip: attempt first, **Show answer** reveals
 > hand-written answers inline + an "Open that lesson →" link; **Got it now** re-queues
 > for one more spaced check and does NOT count a win. Decisions (Mike): answers are
