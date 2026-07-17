@@ -9,6 +9,35 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.156.0] — 2026-07-16 — Excel kit: visual path map, mastery badges, return loop
+
+Batch 5 of the SQL playtest, ported to the Excel kit (kit 1 of 5 in the rollout).
+Same three features as SQL v1.154.0, adapted to Excel's state (`S`), prefixes
+(`epk-*`), and light/dark `data-theme` convention.
+
+- **Path map** — the flat lesson list is now a Duolingo-style vertical rail:
+  one node per lesson, states done (✓) / current (highlighted, carries the
+  ▶ Continue button) / upcoming (dimmed to 0.55, never locked — soft-guide).
+  Unit headers get SVG progress rings. No unit-lab nodes: Excel has no unit
+  labs yet (that's the B2/B3 templating effort).
+- **Mastery badges on Home** — competence-framed, each with visible progress:
+  six unit masteries across the free core (Units 1-6), all-drills (fills, bug
+  hunts, wrong-results, ordering, formulas), 25 recall wins, plus three secret
+  badges (early bird / night owl / weekend) hidden until earned. No capstone or
+  unit-lab badges (Excel has neither), and no attendance trinkets — the streak
+  is shown as a count, never converted into a reward.
+- **Return loop** — review-due chip driven by the existing `epk-recalls`
+  position-keyed queue; streak (new `epk-streak` key) counting one per local
+  calendar day, with one free freeze per rolling week absorbing a single missed
+  day; "Come back tomorrow — N quick reviews will be waiting" sign-off shown
+  only when nothing is due right now.
+
+Notes: the path rail uses `--border` rather than SQL's `--surf2`, which in
+Excel's light theme resolves to the same value as `--bg` and would have made the
+rail invisible. Badge toasts reuse the toast element without `celebrate()`'s
+flash and chime so a badge earned alongside a unit-complete celebration doesn't
+stack two sounds.
+
 ## [1.155.1] — 2026-07-16 — Excel: fix the broken "Your review list" card on Home
 
 The review-list card's markup used curly quotes (`class=”card”`) throughout, so

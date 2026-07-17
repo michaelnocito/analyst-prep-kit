@@ -60,7 +60,7 @@
 > loop to the other lesson kits, ONE kit per chat — Excel → Python → Power BI →
 > Tableau → Stats. SQL v1.154.0 is the reference; unit-lab nodes stay SQL-only
 > until B2/B3 get templated. Plan: HANDOFF-batch5-kit-rollout.md (local).
-> ⬜ Excel · ⬜ Python · ⬜ Power BI · ⬜ Tableau · ⬜ Stats**
+> ✅ Excel (v1.156.0) · ⬜ Python · ⬜ Power BI · ⬜ Tableau · ⬜ Stats**
 > - Duolingo-style single vertical rail per kit: done/current/upcoming (dimmed,
 >   NEVER locked — soft-guide rule), unit headers with progress rings, current
 >   node = Continue.

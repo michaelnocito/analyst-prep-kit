@@ -85,6 +85,39 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 .resume-card-watermark{position:absolute;right:-10px;top:-10px;font-size:100px;font-weight:900;color:rgba(0,0,0,.1);font-family:var(--mono);line-height:1;user-select:none}
 .resume-card h2{color:#fff;margin-bottom:4px}
 .resume-card p{color:rgba(255,255,255,.8);margin:0}
+
+/* PATH MAP (playtest Batch 5) — Duolingo-style vertical rail. States are
+   done / current / upcoming; upcoming is DIMMED, never locked (soft-guide). */
+.pmap{position:relative}
+/* Rail uses --border, not --surf2: in Excel's light theme --surf2 resolves to
+   the same value as --bg, which would make the rail invisible. */
+.pmap:before{content:'';position:absolute;left:24px;top:8px;bottom:8px;width:3px;background:var(--border);border-radius:2px}
+.pmap-unit{display:flex;align-items:center;gap:12px;position:relative;padding:16px 0 8px;margin-top:6px}
+.pmap-unit-name{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.pmap-unit-sub{font-size:12px;color:var(--dim)}
+.pmap-ring{flex-shrink:0;background:var(--bg);border-radius:50%;position:relative;z-index:1;margin-left:8px}
+.pmap-node{display:flex;gap:14px;align-items:flex-start;position:relative;padding:10px 12px 10px 0;margin:4px 0;cursor:pointer;border-radius:var(--radius);transition:.15s}
+.pmap-node:hover .pmap-title{color:var(--accent)}
+.pmap-dot{width:34px;height:34px;border-radius:50%;background:var(--surf2);color:var(--dim);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;border:2px solid var(--border);position:relative;z-index:1;margin-left:8px}
+.pmap-node.done .pmap-dot{background:var(--accent);border-color:var(--accent);color:#fff}
+.pmap-node.current{background:var(--surf);border:1px solid var(--accent);padding:12px;margin-left:-4px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.pmap-node.current .pmap-dot{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 22%, transparent)}
+.pmap-node.up{opacity:.55}
+.pmap-node.up:hover{opacity:.9}
+.pmap-title{font-weight:600;font-size:14px}
+.pmap-sub{font-size:12px;color:var(--dim)}
+
+/* MASTERY BADGES (playtest Batch 5) — competence-framed, visible progress */
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:10px}
+.badge-tile{border:1px solid var(--border);border-radius:var(--radius);padding:12px 8px;text-align:center;background:var(--surf2);opacity:.75}
+.badge-tile.got{background:var(--surf);border-color:var(--accent);opacity:1}
+.badge-tile.secret{border-style:dashed}
+.badge-ico{font-size:22px;line-height:1.2}
+.badge-name{font-size:12px;font-weight:700;margin-top:4px}
+.badge-prog{font-size:11px;color:var(--dim);font-family:var(--mono)}
+
+/* STREAK + REVIEW CHIPS on the resume card (playtest Batch 5) */
+.loop-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:20px;padding:3px 12px;font-size:12.5px;font-weight:600;color:#fff;margin:0 6px 10px 0}
 .path-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
 .path-tile{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .15s}
 .path-tile:hover{border-color:var(--accent);transform:translateY(-1px)}
@@ -375,10 +408,12 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 <div id="view-home" class="view active">
   <div id="resumeCard" class="resume-card" onclick="resumeLesson()" style="cursor:pointer">
     <div>
+      <div id="resumeChips"></div>
       <div class="tag accent" style="margin-bottom:8px">LESSON <span id="resumeNum">1</span></div>
       <h2 id="resumeTitle">Your First Formula</h2>
       <p id="resumeSub">Start here — build the habit of thinking in formulas.</p>
       <p id="returnGreeting" style="font-size:13px;color:rgba(255,255,255,.7);margin-top:4px"></p>
+      <p id="loopSignoff" style="font-size:13px;color:rgba(255,255,255,.7);margin-top:4px"></p>
     </div>
     <button class="btn btn-ghost" id="resumeBtn">Start →</button>
     <div class="resume-card-watermark" id="resumeWM">1</div>
@@ -473,6 +508,8 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
     <div id="readinessList"></div>
   </div>
 
+  <div id="badgesCard"></div>
+
   <div class="card">
     <div class="flex-between mb12">
       <h3 style="margin:0">Read It Aloud — how every lesson works</h3>
@@ -512,8 +549,9 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 
 <!-- LESSONS LIST -->
 <div id="view-lessons" class="view">
-  <h1>Lessons</h1>
-  <p><span id="lessonListSummary"></span> Each one ends with a short quiz, then drills.</p>
+  <h1>Your Path</h1>
+  <p>One step at a time, top to bottom. Nothing ahead is locked — dimmed just means it's coming up. The highlighted node is your next step.</p>
+  <p style="font-size:13px"><span id="lessonListSummary"></span> Each one ends with a short quiz, then drills.</p>
   <div id="lessonList" class="mt16"></div>
 </div>
 
@@ -1772,10 +1810,12 @@ function loadState(){
   return Object.assign({
     theme:'light', lessonsDone:[], fillsDone:[], bugsDone:[], wrongDone:[],
     parsDone:[], esqlDone:[], exDone:[], cardsReviewed:[], streak:0,
-    lastChallenge:'', currentLesson:1, lessonStage:'intro', doneLesson:null
+    lastChallenge:'', currentLesson:1, lessonStage:'intro', doneLesson:null,
+    badgesEarned:[], badgeMarks:{}
   }, JSON.parse(store.getItem('epk')||'{}'));
 }
 let S = loadState();
+bumpStreak(); // Batch 5 return loop: opening the kit counts toward today's streak
 function save(){ store.setItem('epk', JSON.stringify(S)); }
 function refreshIcons(){
   if(!window.lucide) return;
@@ -2009,6 +2049,134 @@ function celebrate(gold=false, msg=''){
   }catch(e){}
 }
 
+// ─── RETURN LOOP + MASTERY BADGES (playtest Batch 5) ────────────────────────
+// Review-due queue is the primary return hook (spaced retrieval is real
+// learning); streak with one free freeze/week is secondary. All localStorage.
+// Ported from the SQL kit (v1.154.0) — same behaviour, Excel's state/prefixes.
+
+// The recall queue is keyed by LESSON POSITION (dueAt = pos + 1/3/7), so
+// "due" means: will surface on or before the lesson you'd open next.
+function _pathPos(){
+  const n = DATA.LESSONS.find(l => !S.lessonsDone.includes(l.id));
+  return n ? lessonPos(n.id) : DATA.LESSONS.length;
+}
+function reviewsDue(){
+  const p = _pathPos(), q = _getRecallQ();
+  return {
+    now:  q.filter(e => e.dueAt <= p).length,      // fires on your next lesson
+    soon: q.filter(e => e.dueAt <= p + 1).length,  // fires within the next two
+  };
+}
+
+// Streak: one count per LOCAL calendar day the kit is opened. A single missed
+// day is absorbed by one free freeze per rolling week (gentle copy — a broken
+// streak should never feel like a reset of the learning itself).
+function getStreak(){
+  try { return JSON.parse(localStorage.getItem('epk-streak')) || {}; } catch(e){ return {}; }
+}
+function _localDay(d = new Date()){
+  const p = n => String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+function _dayDiff(a, b){ return Math.round((new Date(b+'T12:00') - new Date(a+'T12:00')) / 86400000); }
+function bumpStreak(){
+  const s = getStreak(), today = _localDay();
+  if(s.last === today) return s;
+  delete s.froze;
+  if(!s.last){ s.n = 1; }
+  else {
+    const gap = _dayDiff(s.last, today);
+    if(gap === 1) s.n = (s.n||0) + 1;
+    else if(gap === 2 && (!s.lastFreeze || _dayDiff(s.lastFreeze, today) >= 7)){
+      s.n = (s.n||0) + 1; s.lastFreeze = today; s.froze = true; // freeze absorbed the missed day
+    }
+    else s.n = 1;
+  }
+  s.last = today;
+  localStorage.setItem('epk-streak', JSON.stringify(s));
+  return s;
+}
+
+// Competence-framed mastery badges: each marks something you can now DO, with
+// visible progress toward it. A few surprise badges (hidden until earned) for
+// delight. Deliberately NO attendance trinkets — the streak above is shown as
+// a count, never converted into a reward.
+// Unit badges cover the free core (Units 1-6); the premium interview tracks
+// (Units 7-10) are excluded so a free learner can fill the whole board.
+// No capstone/unit-lab badges — Excel has neither (that's the B2/B3 effort).
+function _unitProg(re){
+  let d=0, t=0;
+  DATA.LESSONS.forEach(l => { if(re.test(l.unit)){ t++; if(S.lessonsDone.includes(l.id)) d++; } });
+  return [d, t];
+}
+// Quiet badge toast: reuses the toast element WITHOUT celebrate()'s flash and
+// chime, so a badge earned alongside a unit-complete celebration doesn't stack
+// two sounds on top of each other.
+function _badgeToast(msg){
+  const t = document.getElementById('toast');
+  if(!t) return;
+  t.textContent = msg;
+  t.className = 'toast show gold';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+const BADGES = [
+  {id:'u1',      icon:'🧮', label:'Formula Builder', desc:'Finish every Formulas lesson',            prog:()=>_unitProg(/Unit 1:/)},
+  {id:'u2',      icon:'📊', label:'Pivot Pro',       desc:'Finish every PivotTables lesson',         prog:()=>_unitProg(/Unit 2:/)},
+  {id:'u3',      icon:'🧹', label:'Data Cleaner',    desc:'Finish every Data Cleaning lesson',       prog:()=>_unitProg(/Unit 3:/)},
+  {id:'u4',      icon:'🔎', label:'Lookup Master',   desc:'Finish every Deeper Formulas lesson',     prog:()=>_unitProg(/Unit 4:/)},
+  {id:'u5',      icon:'📈', label:'Chart Maker',     desc:'Finish every Charts & Formatting lesson', prog:()=>_unitProg(/Unit 5:/)},
+  {id:'u6',      icon:'⚙️', label:'Power Tooler',    desc:'Finish every Power Tools lesson',         prog:()=>_unitProg(/Unit 6:/)},
+  {id:'drills',  icon:'🛠️', label:'Drill Polisher',  desc:'Complete every fill, bug hunt, wrong-result, ordering, and formula drill',
+    prog:()=>[S.fillsDone.length + S.bugsDone.length + S.wrongDone.length + S.parsDone.length + S.esqlDone.length,
+              DATA.FILLS.length + DATA.BUGS.length + DATA.WRONG.length + DATA.PARSONS.length + DATA.ESQL.length]},
+  {id:'recall25',icon:'🧠', label:'Steel Trap',      desc:'Nail 25 spaced-recall checks from memory',
+    prog:()=>[Math.min(25, parseInt(localStorage.getItem('epk-recall-wins')||'0')), 25]},
+  {id:'early',   icon:'🌅', label:'Early Bird',      desc:'Finish a lesson before 8am',   secret:true, prog:()=>[(S.badgeMarks||{}).early?1:0, 1]},
+  {id:'night',   icon:'🌙', label:'Night Owl',       desc:'Finish a lesson after 10pm',   secret:true, prog:()=>[(S.badgeMarks||{}).night?1:0, 1]},
+  {id:'weekend', icon:'🧺', label:'Weekend Analyst', desc:'Finish a lesson on a weekend', secret:true, prog:()=>[(S.badgeMarks||{}).weekend?1:0, 1]},
+];
+function checkBadges(quiet){
+  S.badgesEarned = S.badgesEarned || [];
+  let changed = false;
+  BADGES.forEach(b => {
+    const [d, t] = b.prog();
+    if(t > 0 && d >= t && !S.badgesEarned.includes(b.id)){
+      S.badgesEarned.push(b.id);
+      changed = true;
+      if(!quiet) _badgeToast(`${b.icon} Badge earned: ${b.label}!`);
+    }
+  });
+  if(changed) save();
+}
+// Records the when-you-learn marks behind the three surprise badges. Called
+// from every place a lesson gets marked finished.
+function _markLessonBadges(){
+  const h = new Date().getHours(), dw = new Date().getDay();
+  S.badgeMarks = S.badgeMarks || {};
+  if(h < 8) S.badgeMarks.early = true;
+  if(h >= 22) S.badgeMarks.night = true;
+  if(dw === 0 || dw === 6) S.badgeMarks.weekend = true;
+}
+function badgesCardHTML(){
+  const earned = S.badgesEarned || [];
+  const tiles = BADGES.filter(b => !b.secret || earned.includes(b.id)).map(b => {
+    const [d, t] = b.prog();
+    const got = earned.includes(b.id) || (t > 0 && d >= t);
+    return `<div class="badge-tile${got?' got':''}" title="${b.desc}">
+      <div class="badge-ico">${got ? b.icon : '○'}</div>
+      <div class="badge-name">${b.label}</div>
+      <div class="badge-prog">${got ? 'Earned' : d+'/'+t}</div>
+    </div>`;
+  }).join('');
+  const secretN = BADGES.filter(b => b.secret && !earned.includes(b.id)).length;
+  return `<div class="card">
+    <h2>Badges</h2>
+    <p style="margin:0 0 10px;font-size:13px">Each badge marks a skill you can now do — the count fills as you learn, not as you show up.</p>
+    <div class="badge-grid">${tiles}${secretN ? `<div class="badge-tile secret"><div class="badge-ico">✦</div><div class="badge-name">${secretN} surprise badge${secretN>1?'s':''}</div><div class="badge-prog">found by playing</div></div>` : ''}</div>
+  </div>`;
+}
+
 // ─── HOME ─────────────────────────────────────────────────────────────────────
 function checkReturnStreak(){
   const today=new Date().toISOString().slice(0,10);
@@ -2030,6 +2198,17 @@ function renderHome(){
   document.getElementById('resumeWM').textContent = lessonPos(cur.id)+1;
   document.getElementById('resumeBtn').textContent = S.lessonsDone.includes(cur.id) ? 'Review →' : (done===0?'Start →':'Resume →');
   document.getElementById('resumeSub').textContent = cur.intro.split('.')[0]+'.';
+
+  // Return loop (Batch 5): streak chip + review-due chip + soft sign-off copy.
+  const _streak = getStreak();
+  const _due = reviewsDue();
+  checkBadges(true); // catch up quietly (e.g. progress earned before badges existed)
+  document.getElementById('resumeChips').innerHTML =
+    (_streak.n > 1 ? `<span class="loop-chip">🔥 ${_streak.n}-day streak${_streak.froze ? ' · a free freeze kept it alive' : ''}</span>` : '') +
+    (_due.now > 0 ? `<span class="loop-chip">🔁 ${_due.now} review${_due.now>1?'s':''} due — they'll pop up as you go</span>` : '');
+  document.getElementById('loopSignoff').textContent = (_due.now === 0 && _due.soon > 0)
+    ? `Come back tomorrow — ${_due.soon} quick review${_due.soon>1?'s':''} will be waiting.` : '';
+  document.getElementById('badgesCard').innerHTML = badgesCardHTML();
 
   // Skill Readiness — derived from the LIVE lesson set so it always reflects
   // every lesson (incl. newly added units/tracks). Each accessible lesson is
@@ -2085,22 +2264,46 @@ function resumeLesson(){
 function lessonPos(id){return DATA.LESSONS.findIndex(l=>l.id===id);}
 function nextLessonId(id){const p=lessonPos(id);return(p>=0&&p<DATA.LESSONS.length-1)?DATA.LESSONS[p+1].id:null;}
 function prevLessonId(id){const p=lessonPos(id);return(p>0)?DATA.LESSONS[p-1].id:null;}
+// Unit progress ring for the path map's unit headers.
+function _ringSVG(done, total){
+  const r=14, c=2*Math.PI*r, p=total?done/total:0;
+  return `<svg class="pmap-ring" width="34" height="34" viewBox="0 0 34 34">
+    <circle cx="17" cy="17" r="${r}" fill="none" stroke="var(--surf2)" stroke-width="4"/>
+    <circle cx="17" cy="17" r="${r}" fill="none" stroke="var(--accent)" stroke-width="4"
+      stroke-linecap="round" stroke-dasharray="${(p*c).toFixed(1)} ${c.toFixed(1)}"
+      transform="rotate(-90 17 17)"/>
+    ${p>=1?'<text x="17" y="21" text-anchor="middle" font-size="13" fill="var(--accent)">✓</text>':''}
+  </svg>`;
+}
+// Duolingo-style vertical path map (Batch 5). Replaces the flat lesson list;
+// no unit-lab nodes — Excel has no unit labs yet (B2/B3 templating).
 function renderLessonList(){
-  let lastUnit = '';
-  document.getElementById('lessonList').innerHTML = DATA.LESSONS.map(l=>{
-    const done = S.lessonsDone.includes(l.id);
-    let unitHdr = '';
-    if(l.unit !== lastUnit){ unitHdr = `<h3 style="color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin:${lastUnit?'20px':0} 0 8px">${l.unit}</h3>`; lastUnit=l.unit; }
-    return `${unitHdr}<div class="card lesson-card${l.core?' sc-core':' sc-supporting'}" style="cursor:pointer;margin-bottom:8px;border-color:${done?'var(--success)':'var(--border)'}" onclick="openLesson(${l.id})">
-      <div class="flex-between">
-        <div>
-          <span class="tag" style="margin-bottom:6px">L${lessonPos(l.id)+1}</span>
-          <h3 style="margin:0">${l.title}${isPremiumLesson(l)&&window.apkPass?' '+apkPass.lessonBadge():''}</h3>
+  const cur = DATA.LESSONS.find(l => !S.lessonsDone.includes(l.id));
+  const units = [...new Set(DATA.LESSONS.map(l=>l.unit))];
+  let html = '<div class="pmap">';
+  units.forEach(u => {
+    const ls = DATA.LESSONS.filter(l=>l.unit===u);
+    const d = ls.filter(l=>S.lessonsDone.includes(l.id)).length;
+    html += `<div class="pmap-unit">${_ringSVG(d, ls.length)}<div>
+      <div class="pmap-unit-name">${u}</div>
+      <div class="pmap-unit-sub">${d}/${ls.length} lessons</div></div></div>`;
+    ls.forEach(l => {
+      const done = S.lessonsDone.includes(l.id);
+      const isCur = cur && l.id === cur.id;
+      const lock = isPremiumLesson(l)&&window.apkPass ? ' '+apkPass.lessonBadge() : '';
+      const sub = l.intro ? l.intro.split('.')[0]+'.' : '';
+      html += `<div class="pmap-node ${done?'done':isCur?'current':'up'}" onclick="openLesson(${l.id})">
+        <div class="pmap-dot">${done?'✓':lessonPos(l.id)+1}</div>
+        <div class="pmap-info">
+          <div class="pmap-title">${l.title}${lock}</div>
+          <div class="pmap-sub">${sub}</div>
+          ${isCur?`<button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="event.stopPropagation();openLesson(${l.id})">▶ Continue</button>`:''}
         </div>
-        <span style="color:${done?'var(--success)':'var(--border)'};font-size:20px">${done?'✓':'○'}</span>
-      </div>
-    </div>`;
-  }).join('');
+      </div>`;
+    });
+  });
+  html += '</div>';
+  document.getElementById('lessonList').innerHTML = html;
   // Keep the lessons-list summary line in sync with the live lesson set.
   const _unitCount = [...new Set(DATA.LESSONS.map(l=>l.unit))].length;
   const _sumEl = document.getElementById('lessonListSummary');
@@ -2312,7 +2515,7 @@ function retryQuiz(lid){
 }
 
 function finishLesson(lid){
-  if(!S.lessonsDone.includes(lid)) S.lessonsDone.push(lid);
+  if(!S.lessonsDone.includes(lid)){ S.lessonsDone.push(lid); _markLessonBadges(); }
   const _nxtId=nextLessonId(lid);
   S.currentLesson=_nxtId!==null?_nxtId:lid;
   // The done card must belong to the lesson just FINISHED, not to
@@ -2320,6 +2523,7 @@ function finishLesson(lid){
   S.doneLesson = lid;
   S.lessonStage = 'done';
   save();
+  checkBadges();
   if(S.lessonsDone.length % 3 === 0) celebrate(true, `🔥 ${S.lessonsDone.length} lessons done!`);
   // Unit completion celebration
   const _fl=DATA.LESSONS.find(x=>x.id===lid);
@@ -2415,8 +2619,9 @@ function v2CheckOwn(lid,idx){
   if(correct){
     if(fb)fb.innerHTML=`<div class="quiz-feedback ok" style="margin-top:8px">✓ ${l.quiz.exp}</div><div style="margin-top:8px"><button class="btn btn-primary btn-sm" onclick="v2Continue(${lid},'close')">Continue &rarr;</button></div>`;
     celebrate(false,'✓ Correct!');
-    if(!S.lessonsDone.includes(lid)) S.lessonsDone.push(lid);
+    if(!S.lessonsDone.includes(lid)){ S.lessonsDone.push(lid); _markLessonBadges(); }
     const nxt=nextLessonId(lid);S.currentLesson=nxt!==null?nxt:lid;save();
+    checkBadges();
   } else {
     if(fb)fb.innerHTML=`<div class="quiz-feedback bad" style="margin-top:8px">${l.quiz.exp}</div><div style="margin-top:8px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="v2RetryOwn(${lid})">Try Again</button><button class="btn btn-outline btn-sm" onclick="v2Continue(${lid},'close')">Skip →</button></div>`;
   }
@@ -3123,7 +3328,7 @@ function pickEsql(btn,idx){
 
 // SHARED DRILL UTILS
 function markDone(key, idx){
-  if(!S[key].includes(idx)){ S[key].push(idx); save(); }
+  if(!S[key].includes(idx)){ S[key].push(idx); save(); checkBadges(); }
 }
 function toggleSol(id){
   const el = document.getElementById(id);
@@ -3381,6 +3586,7 @@ function handleResetKit(btn){
     localStorage.removeItem('epk');
     localStorage.removeItem('epk-recalls');
     localStorage.removeItem('epk-recall-wins');
+    localStorage.removeItem('epk-streak');
     location.reload();
   }
 }
@@ -3391,7 +3597,7 @@ function handleResetAll(btn){
     btn.style.color='#e07c7c';btn.style.borderColor='#e07c7c';
     setTimeout(function(){if(_allConfirm){_allConfirm=false;btn.textContent='↺ Reset all kits';btn.style.color='';btn.style.borderColor='';}  },4000);
   } else {
-    ['sqlkit-v1','epk','ppk','tpk','spk','epk-recalls','epk-recall-wins'].forEach(function(k){localStorage.removeItem(k);});
+    ['sqlkit-v1','epk','ppk','tpk','spk','epk-recalls','epk-recall-wins','epk-streak'].forEach(function(k){localStorage.removeItem(k);});
     location.reload();
   }
 }
