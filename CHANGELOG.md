@@ -9,6 +9,25 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.160.0] — 2026-07-17 — SQL kit: recall answers — flip to reveal, never a dead end
+- Every "Quick recall" card can now show its answer: 94 hand-written answers (2 per
+  lesson, 47 lessons), each self-contained in everyday words with examples drawn only
+  from the kit's own practice tables. SQL_REINFORCES restructured from question
+  strings to {q, a} pairs.
+- The card is an Anki-style flip: attempt first ("no peeking" stays), then Show
+  answer reveals the answers inline plus an "Open that lesson →" link (queue entries
+  already carried the source lesson id). Replaces "Nope, remind me again", which
+  re-queued without ever showing the answer — right/wrong-only feedback, the pattern
+  the retrieval-practice literature finds nearly useless (Pashler et al. 2005:
+  correct-answer feedback after a miss ~5×'d one-week retention;
+  doi:10.1037/0278-7393.31.1.3).
+- Honest scheduling: after a reveal, "Got it now" re-queues the card for one more
+  spaced check and does NOT count toward recall wins ("I remembered it" still does).
+  The card says so: "This one will come back tomorrow for a real check."
+- Legacy queued entries (question-only strings) still render; their reveal shows the
+  lesson link with a note instead of an inline answer.
+- Private suite updated for both cue formats (still green for the string-format kits).
+
 ## [1.159.0] — 2026-07-17 — SQL kit: correct fills now show the query's real result (T3)
 - A correct fill-in-the-blank now runs the completed query against the live in-browser
   database and shows the result table (capped at 8 rows) — the drill confirms syntax

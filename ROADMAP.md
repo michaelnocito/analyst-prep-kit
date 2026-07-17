@@ -1,5 +1,25 @@
 ﻿# Analyst Prep Kit — Roadmap
 
+> ### 🃏 RECALL ANSWERS ROLLOUT (decided 2026-07-17, Mike's go) — SQL ✅ v1.160.0; other kits pending
+> Quick-recall cards get an Anki-style flip: attempt first, **Show answer** reveals
+> hand-written answers inline + an "Open that lesson →" link; **Got it now** re-queues
+> for one more spaced check and does NOT count a win. Decisions (Mike): answers are
+> hand-written, self-contained, examples only from the kit's own practice tables (no
+> pop-culture or cross-project references, so nothing rots when content changes);
+> peeked cards come back tomorrow. Research: correct-answer feedback after a failed
+> recall ~5×'d one-week retention while right/wrong-only feedback did nearly nothing
+> (Pashler, Cepeda, Wixted & Rohrer 2005, JEP:LMC, doi:10.1037/0278-7393.31.1.3);
+> failed attempt + answer beats restudy (Kornell, Hays & Bjork 2009, JEP:LMC,
+> doi:10.1037/a0015729); reveal-then-self-grade is the Anki pattern.
+> **Cross-kit matrix (standing rule):** the engine pattern ports to ALL kits with the
+> D+E recall layer; the cost is authoring answers per kit — SQL ✅ 94 (47×2, v1.160.0) ·
+> Python (PY_REINFORCES 42×2) · Power BI (PBI_REINFORCES 39×2) · Tableau · Stats ·
+> Excel (reinforces inline per lesson — different plumbing, same card). One kit per
+> chat, same train as Batch 5. The private de-test suite already accepts BOTH cue
+> formats (strings or {q,a}) — port answers without touching it. Legacy queued
+> entries (strings in <kit>-recalls localStorage) must keep rendering: reveal shows
+> the lesson link + "predates stored answers" note (see SQL's _recallsHTML).
+
 > ### 🧪 SQL-KIT PLAYTEST TRIAGE 2026-07-17 — LAB & MOBILE PASS — ✅ ALL THREE BATCHES SHIPPED 2026-07-17 (T1 v1.157.0 · T2 v1.158.0 · T3 v1.159.0), awaiting Mike's retest
 > Mike's go: "go in your recommended order, largest chunks of building possible." Each batch
 > shipped across ALL applicable kits in one commit. T3 built per my recommendation (14/16

@@ -385,6 +385,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .recall-header .lucide{width:14px;height:14px}
 .recall-cues{margin:0 0 12px 16px;padding:0;font-size:14px;line-height:1.65;color:var(--text)}
 .recall-btns{display:flex;gap:8px;flex-wrap:wrap}
+.recall-ans{margin:6px 0 2px;padding:8px 12px;background:color-mix(in srgb, var(--warn,#d9963a) 9%, transparent);border-left:3px solid var(--warn,#d9963a);border-radius:0 6px 6px 0;font-size:13.5px;line-height:1.6;color:var(--text)}
 .artifact-bridge{font-size:13px;color:var(--muted);margin-bottom:12px;padding:0 2px}
 .retrieval-note{font-size:12px;color:var(--muted);font-style:italic;margin:0 0 10px}
 .v2-mode-btn{background:none;border:1px solid var(--border);border-radius:20px;color:var(--muted);font:inherit;font-size:12px;cursor:pointer;padding:4px 12px;transition:.15s;margin-left:auto}
@@ -2068,54 +2069,101 @@ DATA.LESSONS.forEach(l=>{ if(SQL_CHARTS[l.id]) l.chart=SQL_CHARTS[l.id]; });
 // inline reinforces: fields) so the whole set is auditable in one place; the
 // merge loop below puts them on l.reinforces so the engine matches Excel's.
 const SQL_REINFORCES = {
-  101:["In one sentence: what is a table, a row, and a column?","Why does a database beat a spreadsheet once several people need the same data?"],
-  102:["What question does 'what is the grain of this table?' actually ask?","Why is knowing the grain the first step before summing or counting anything?"],
-  103:["What is a primary key, and what makes a foreign key different?","What is a JOIN actually doing when it matches rows across two tables?"],
-  104:["What shape does every SQL query return its answer in?","What does NULL mean — and why isn't it the same as 0 or an empty string?"],
-  105:["What are the three steps for turning a CSV into a queryable table?","Why keep the imported table untouched with a _raw name — and what do you run to verify an import?"],
-  1:["Say the two clauses every query starts from, and what each one names.","How do you pull only the name and city columns from a customers table?"],
-  2:["Which clause filters rows, and where does it sit relative to FROM?","Write (out loud) a WHERE condition for orders over 100 placed in Texas."],
-  3:["Which clause sorts results, and what does DESC change?","Why must LIMIT come after ORDER BY to get a real 'top 5'?"],
-  4:["What happens to rows with no match in an INNER JOIN?","Say the ON line that connects orders.customer_id to customers.id."],
-  5:["What does GROUP BY do to the rows before COUNT or SUM runs?","What's the difference between COUNT(*) and COUNT(column)?"],
-  6:["Which rows does a LEFT JOIN keep that an INNER JOIN drops?","After a LEFT JOIN, what value appears in the right table's columns for unmatched rows?"],
-  7:["WHERE filters rows — what does HAVING filter, and why can't WHERE do it?","Name one way to spot duplicates with GROUP BY."],
-  8:["What does CASE WHEN let you do inside a query?","What does COALESCE(phone, email, 'none') return?"],
-  13:["A RIGHT JOIN keeps all rows from which table?","When would you reach for FULL OUTER JOIN instead of LEFT or RIGHT?"],
-  14:["How do you pull just the month out of a date column?","Why do date ranges usually use >= start AND < next-period instead of BETWEEN?"],
-  9:["What is a subquery, and where can one sit inside another query?","How would you find products priced above the average price — in one query?"],
-  10:["What can a window function do that GROUP BY can't?","What do PARTITION BY and ORDER BY each control inside OVER(...)?"],
-  11:["What does WITH give a query that nesting subqueries doesn't?","Why do CTEs make a long query easier to review and debug?"],
-  12:["What is a reconciliation query trying to prove?","Which JOIN pattern finds rows in table A with no match in table B?"],
-  15:["What does an index speed up — and what does it slow down?","Why can a function wrapped around an indexed column kill the index?"],
-  16:["What's the difference between a temp table and a view?","When does materializing an intermediate result beat recomputing a view?"],
-  501:["What do COUNT(*) vs COUNT(DISTINCT id) tell you about a key column?","What are the first two profiling queries you run on an unfamiliar table?"],
-  502:["Say the GROUP BY … HAVING pattern that surfaces duplicate keys.","Why check for duplicates BEFORE migrating or joining on a column?"],
-  503:["How do you count NULLs in a column?","What do MIN(LENGTH(col)) and MAX(LENGTH(col)) reveal about format chaos?"],
-  504:["Which three functions standardize messy text, and what does each fix?","Why standardize text BEFORE matching or deduplicating on it?"],
-  505:["What does a CASE WHEN mapping translate between in a migration?","What should the ELSE branch of a source→target mapping do with surprise values?"],
-  506:["What does CAST change, and what does COALESCE supply?","Why pair CAST with a NULL default when loading a target table?"],
-  507:["What two numbers do you compare between source and target after a load?","Why is SUM(amount) a stronger check than row count alone?"],
-  508:["What does EXCEPT/MINUS return when you compare source to target?","Say the LEFT JOIN … IS NULL pattern that finds orphaned rows."],
-  601:["Name the three things a metric definition must pin down before you compute it.","Why do two teams get different 'monthly active users' from the same table?"],
-  602:["How does CASE turn raw values into named segments you can GROUP BY?","Why segment customers before averaging anything across them?"],
-  603:["What does LAG(revenue) OVER (ORDER BY month) hand you on each row?","Say the month-over-month growth formula using current and previous values."],
-  604:["What turns a plain SUM into a running total?","What does the window frame 'ROWS UNBOUNDED PRECEDING' mean in everyday words?"],
-  605:["How do you count distinct users at each funnel step in one query?","A step's conversion rate divides which two numbers?"],
-  606:["What defines a user's cohort in a retention query?","Why compare cohorts by 'months since joining' instead of calendar month?"],
-  701:["How do conditional sums pivot a ledger into P&L lines?","Which two GL fields drive each income-statement line?"],
-  702:["Why divide each profit line by revenue before comparing periods?","Gross, operating, net — what does each margin strip out?"],
-  703:["What question does the current ratio answer?","What does debt-to-equity say about how a company is funded?"],
-  704:["Why is a dollar next year worth less than a dollar today, in NPV terms?","What does a negative NPV tell you about a project?"],
-  705:["Variance = actual minus budget — when is a positive variance BAD?","Why report variance as both dollars and percent of budget?"],
-  706:["What is contribution margin, and what costs does it ignore?","Say the break-even formula in units."],
-  801:["What handful of measures profile a table's shape and health in one pass?","Why profile a table before trusting any query you run on it?"],
-  802:["How do you prove what one row represents with a query?","What happens to your sums if the grain is finer than you assumed?"],
-  803:["When does the average lie about a column — and what do you read instead?","How do you pull the rows sitting outside the typical range?"],
-  804:["What does a Pareto query rank and accumulate?","What share of items usually drives most of the total, and why does that matter?"],
-  805:["Two columns move together — name two explanations besides causation.","What language keeps a correlation finding honest in a stakeholder deck?"],
-  806:["What is a control total, and where does a trusted one come from?","What's the last check you run before a number leaves your hands?"]
-};
+  101:[{q:"In one sentence: what is a table, a row, and a column?",a:"A table is one grid of data about one kind of thing; each row is one record (one customer), and each column is one attribute of it (their city)."},
+       {q:"Why does a database beat a spreadsheet once several people need the same data?",a:"A database gives everyone one shared copy with rules that keep it consistent, instead of emailed spreadsheet copies quietly drifting apart."}],
+  102:[{q:"What question does 'what is the grain of this table?' actually ask?",a:"It asks: what does ONE row stand for \u2014 one order, one customer, one line of an order?"},
+       {q:"Why is knowing the grain the first step before summing or counting anything?",a:"Until you know what a row represents you can't tell whether SUM or COUNT will double-count \u2014 the grain decides what's safe to add up."}],
+  103:[{q:"What is a primary key, and what makes a foreign key different?",a:"A primary key uniquely identifies each row in its own table; a foreign key is another table's column that points at those key values."},
+       {q:"What is a JOIN actually doing when it matches rows across two tables?",a:"For each row it finds the rows in the other table whose values satisfy the ON condition and glues the two rows' columns side by side."}],
+  104:[{q:"What shape does every SQL query return its answer in?",a:"A table \u2014 even a single number comes back as a one-row, one-column table."},
+       {q:"What does NULL mean \u2014 and why isn't it the same as 0 or an empty string?",a:"NULL means 'unknown / missing'. It is not 0 and not ''; testing it needs IS NULL, because = NULL never matches anything."}],
+  105:[{q:"What are the three steps for turning a CSV into a queryable table?",a:"Create or open the database file, import the CSV as a table (File \u2192 Import), then verify the load with SELECT COUNT(*)."},
+       {q:"Why keep the imported table untouched with a _raw name \u2014 and what do you run to verify an import?",a:"The _raw copy is your untouched backup, so cleaning mistakes can never destroy the original. Verify with SELECT COUNT(*) FROM table_raw; and compare it to the file's row count."}],
+  1:[{q:"Say the two clauses every query starts from, and what each one names.",a:"SELECT names the columns you want back; FROM names the table they come from."},
+     {q:"How do you pull only the name and city columns from a customers table?",a:"SELECT name, city FROM customers;"}],
+  2:[{q:"Which clause filters rows, and where does it sit relative to FROM?",a:"WHERE filters rows, and it comes right after FROM: SELECT \u2026 FROM \u2026 WHERE \u2026"},
+     {q:"Write (out loud) a WHERE condition for orders over 100 placed in Texas.",a:"WHERE amount > 100 AND state = 'TX'"}],
+  3:[{q:"Which clause sorts results, and what does DESC change?",a:"ORDER BY sorts the results; DESC flips the sort to largest-first."},
+     {q:"Why must LIMIT come after ORDER BY to get a real 'top 5'?",a:"LIMIT just cuts off whatever order the rows happen to be in \u2014 sort first (ORDER BY amount DESC), then LIMIT 5, or you get 5 arbitrary rows, not the top 5."}],
+  4:[{q:"What happens to rows with no match in an INNER JOIN?",a:"They're dropped entirely \u2014 INNER JOIN only keeps rows that match on both sides."},
+     {q:"Say the ON line that connects orders.customer_id to customers.id.",a:"ON orders.customer_id = customers.id"}],
+  5:[{q:"What does GROUP BY do to the rows before COUNT or SUM runs?",a:"It collapses the rows into one group per distinct value, so COUNT and SUM run once per group instead of once over everything."},
+     {q:"What's the difference between COUNT(*) and COUNT(column)?",a:"COUNT(*) counts every row; COUNT(column) skips rows where that column is NULL \u2014 the gap between them is your missing-value count."}],
+  6:[{q:"Which rows does a LEFT JOIN keep that an INNER JOIN drops?",a:"Every left-table row with NO match on the right \u2014 a customer with zero orders survives a LEFT JOIN but vanishes from an INNER JOIN."},
+     {q:"After a LEFT JOIN, what value appears in the right table's columns for unmatched rows?",a:"NULL fills the right table's columns for those rows."}],
+  7:[{q:"WHERE filters rows \u2014 what does HAVING filter, and why can't WHERE do it?",a:"HAVING filters the grouped totals AFTER GROUP BY; WHERE runs before grouping, so the totals don't exist yet when it looks."},
+     {q:"Name one way to spot duplicates with GROUP BY.",a:"GROUP BY email HAVING COUNT(*) > 1 \u2014 any group bigger than one is a duplicate."}],
+  8:[{q:"What does CASE WHEN let you do inside a query?",a:"Build a new column from if/then rules \u2014 CASE WHEN orders > 5 THEN 'VIP' ELSE 'Standard' END AS tier."},
+     {q:"What does COALESCE(phone, email, 'none') return?",a:"The first value that isn't NULL \u2014 the phone if there is one, else the email, else the text 'none'."}],
+  13:[{q:"A RIGHT JOIN keeps all rows from which table?",a:"The right (second-listed) table \u2014 every one of its rows stays, with NULLs filling the left side where nothing matched."},
+      {q:"When would you reach for FULL OUTER JOIN instead of LEFT or RIGHT?",a:"When you need the unmatched rows from BOTH sides at once \u2014 like reconciling two lists where either one can have strays."}],
+  14:[{q:"How do you pull just the month out of a date column?",a:"With a date function \u2014 strftime('%m', order_date) in SQLite, MONTH(order_date) in MySQL."},
+      {q:"Why do date ranges usually use >= start AND < next-period instead of BETWEEN?",a:"The >= / < pattern can't miss times late on the last day; BETWEEN's inclusive end silently drops or double-counts the edges."}],
+  9:[{q:"What is a subquery, and where can one sit inside another query?",a:"A query nested inside another query \u2014 it can sit in WHERE, in FROM, or inside the SELECT list."},
+     {q:"How would you find products priced above the average price \u2014 in one query?",a:"SELECT name, price FROM products WHERE price > (SELECT AVG(price) FROM products);"}],
+  10:[{q:"What can a window function do that GROUP BY can't?",a:"Compute a group-level result on every row WITHOUT collapsing the rows \u2014 each row keeps its detail plus the calculation."},
+      {q:"What do PARTITION BY and ORDER BY each control inside OVER(...)?",a:"PARTITION BY says which rows form each window; ORDER BY sets the order the function walks through them."}],
+  11:[{q:"What does WITH give a query that nesting subqueries doesn't?",a:"Named steps that read top-to-bottom like a recipe, instead of parsing nested queries inside-out."},
+      {q:"Why do CTEs make a long query easier to review and debug?",a:"Each named step can be run and checked on its own, so you can find the exact step where the numbers go wrong."}],
+  12:[{q:"What is a reconciliation query trying to prove?",a:"That two datasets agree \u2014 nothing missing, doubled, or mismatched between them."},
+      {q:"Which JOIN pattern finds rows in table A with no match in table B?",a:"LEFT JOIN B ON \u2026 WHERE B.key IS NULL \u2014 the survivors are A's unmatched rows."}],
+  15:[{q:"What does an index speed up \u2014 and what does it slow down?",a:"It speeds up lookups and filters on that column; it slows down every INSERT and UPDATE, because the index has to be maintained too."},
+      {q:"Why can a function wrapped around an indexed column kill the index?",a:"The index stores the raw values \u2014 UPPER(email) isn't in it, so the database gives up on the index and scans every row."}],
+  16:[{q:"What's the difference between a temp table and a view?",a:"A temp table stores results once and disappears with your session; a view is a saved query that re-runs every time you use it."},
+      {q:"When does materializing an intermediate result beat recomputing a view?",a:"When the intermediate result is expensive and used many times \u2014 compute it once, read it cheap."}],
+  501:[{q:"What do COUNT(*) vs COUNT(DISTINCT id) tell you about a key column?",a:"If they're equal, every id is unique and the column can act as a key; a gap means duplicates."},
+       {q:"What are the first two profiling queries you run on an unfamiliar table?",a:"SELECT COUNT(*) for size, then COUNT(*) vs COUNT(DISTINCT key) on the id column for uniqueness."}],
+  502:[{q:"Say the GROUP BY \u2026 HAVING pattern that surfaces duplicate keys.",a:"GROUP BY key HAVING COUNT(*) > 1"},
+       {q:"Why check for duplicates BEFORE migrating or joining on a column?",a:"A duplicated key double-counts every join and breaks the target's unique constraint mid-load \u2014 far cheaper to catch first."}],
+  503:[{q:"How do you count NULLs in a column?",a:"SELECT COUNT(*) - COUNT(col) \u2014 COUNT(col) skips NULLs, so the gap IS the NULL count."},
+       {q:"What do MIN(LENGTH(col)) and MAX(LENGTH(col)) reveal about format chaos?",a:"Wildly different lengths flag mixed formats in one column \u2014 like phone numbers stored with and without dashes."}],
+  504:[{q:"Which three functions standardize messy text, and what does each fix?",a:"TRIM strips stray spaces, UPPER (or LOWER) settles the case, REPLACE removes or normalizes characters like dashes."},
+       {q:"Why standardize text BEFORE matching or deduplicating on it?",a:"' Acme ' and 'ACME' are different strings to SQL \u2014 without standardizing first, matches and dedupes silently miss."}],
+  505:[{q:"What does a CASE WHEN mapping translate between in a migration?",a:"The source system's codes into the target system's codes \u2014 'A' becomes 'active'."},
+       {q:"What should the ELSE branch of a source\u2192target mapping do with surprise values?",a:"Route them somewhere visible \u2014 ELSE 'UNMAPPED' \u2014 never silently swallow values you didn't plan for."}],
+  506:[{q:"What does CAST change, and what does COALESCE supply?",a:"CAST changes a value's type (text into DATE or DECIMAL); COALESCE supplies a fallback value when it finds NULL."},
+       {q:"Why pair CAST with a NULL default when loading a target table?",a:"A NOT NULL target column rejects the row otherwise \u2014 COALESCE(region, 'Unassigned') keeps the load alive and still flags the gaps."}],
+  507:[{q:"What two numbers do you compare between source and target after a load?",a:"The row counts and a control total like SUM(amount) \u2014 both must match on each side."},
+       {q:"Why is SUM(amount) a stronger check than row count alone?",a:"Counts can match while the values got mangled \u2014 truncated decimals, a dropped row offset by a doubled one. The SUM catches value damage."}],
+  508:[{q:"What does EXCEPT/MINUS return when you compare source to target?",a:"The rows in the first result that are missing from the second \u2014 a diff for query results."},
+       {q:"Say the LEFT JOIN \u2026 IS NULL pattern that finds orphaned rows.",a:"SELECT s.key FROM source s LEFT JOIN target t ON s.key = t.key WHERE t.key IS NULL;"}],
+  601:[{q:"Name the three things a metric definition must pin down before you compute it.",a:"Who counts, over what time window, counted how (distinct users? events?) \u2014 leave any of the three loose and the number is ambiguous."},
+       {q:"Why do two teams get different 'monthly active users' from the same table?",a:"Each team silently answered those three questions differently \u2014 same table, different definitions."}],
+  602:[{q:"How does CASE turn raw values into named segments you can GROUP BY?",a:"CASE labels each row \u2014 CASE WHEN orders > 5 THEN 'VIP' ELSE 'Standard' END \u2014 and GROUP BY that label summarizes per segment."},
+       {q:"Why segment customers before averaging anything across them?",a:"One average across very different groups hides them pulling in opposite directions \u2014 segment first, then average within each segment."}],
+  603:[{q:"What does LAG(revenue) OVER (ORDER BY month) hand you on each row?",a:"The previous row's revenue \u2014 last month's value, delivered onto the current row."},
+       {q:"Say the month-over-month growth formula using current and previous values.",a:"(current - previous) * 100.0 / previous \u2014 the 100.0 keeps integer division from flooring it to zero."}],
+  604:[{q:"What turns a plain SUM into a running total?",a:"An OVER window \u2014 SUM(amount) OVER (ORDER BY month) accumulates as it walks down the rows."},
+       {q:"What does the window frame 'ROWS UNBOUNDED PRECEDING' mean in everyday words?",a:"'Add up everything from the first row through this one' \u2014 the frame is the window that keeps growing."}],
+  605:[{q:"How do you count distinct users at each funnel step in one query?",a:"One conditional distinct count per step \u2014 COUNT(DISTINCT CASE WHEN step = 'checkout' THEN user_id END)."},
+       {q:"A step's conversion rate divides which two numbers?",a:"Users who completed the step \u00f7 users who reached the step before it."}],
+  606:[{q:"What defines a user's cohort in a retention query?",a:"The period they first appeared \u2014 usually their first order or signup month."},
+       {q:"Why compare cohorts by 'months since joining' instead of calendar month?",a:"It puts every cohort on the same clock, so month-2 retention is comparable no matter when a cohort started."}],
+  701:[{q:"How do conditional sums pivot a ledger into P&L lines?",a:"One conditional sum per line \u2014 SUM(CASE WHEN type = 'revenue' THEN amount ELSE 0 END) \u2014 each CASE picks out its own rows."},
+       {q:"Which two GL fields drive each income-statement line?",a:"The account category (which line the row belongs to) and the amount (what gets summed into it)."}],
+  702:[{q:"Why divide each profit line by revenue before comparing periods?",a:"Different-sized periods can't be compared in raw dollars \u2014 margins put both on the same 'share of revenue' scale."},
+       {q:"Gross, operating, net \u2014 what does each margin strip out?",a:"Gross strips production costs; operating also strips overhead; net strips everything, including interest and tax."}],
+  703:[{q:"What question does the current ratio answer?",a:"Can the company pay the bills due this year \u2014 current assets \u00f7 current liabilities."},
+       {q:"What does debt-to-equity say about how a company is funded?",a:"How much of the funding is borrowed versus owned \u2014 higher means more leverage and more risk."}],
+  704:[{q:"Why is a dollar next year worth less than a dollar today, in NPV terms?",a:"Money in hand can be invested and grow \u2014 so future dollars get discounted back before you compare them to today's."},
+       {q:"What does a negative NPV tell you about a project?",a:"At that discount rate the project destroys value \u2014 its returns don't cover the cost of the money."}],
+  705:[{q:"Variance = actual minus budget \u2014 when is a positive variance BAD?",a:"When the line is a cost \u2014 spending over budget is a positive variance and a problem."},
+       {q:"Why report variance as both dollars and percent of budget?",a:"Dollars show the size, percent shows the severity \u2014 a $5k miss means something very different on a $10k budget than on $500k."}],
+  706:[{q:"What is contribution margin, and what costs does it ignore?",a:"Price minus variable cost per unit \u2014 the slice each sale contributes toward fixed costs. It ignores the fixed costs themselves."},
+       {q:"Say the break-even formula in units.",a:"Fixed costs \u00f7 contribution margin per unit."}],
+  801:[{q:"What handful of measures profile a table's shape and health in one pass?",a:"COUNT(*), NULL counts on key columns, COUNT(DISTINCT key), and MIN/MAX of the dates and amounts \u2014 size, completeness, uniqueness, range."},
+       {q:"Why profile a table before trusting any query you run on it?",a:"Every query inherits the table's problems \u2014 profiling shows you the traps before they cost you a wrong answer."}],
+  802:[{q:"How do you prove what one row represents with a query?",a:"GROUP BY the suspected key with HAVING COUNT(*) > 1 \u2014 if nothing comes back, one-row-per-key is proven."},
+       {q:"What happens to your sums if the grain is finer than you assumed?",a:"You double-count \u2014 summing order-line rows as if they were orders inflates every total."}],
+  803:[{q:"When does the average lie about a column \u2014 and what do you read instead?",a:"When outliers or skew drag it \u2014 read the median (the middle value) instead."},
+       {q:"How do you pull the rows sitting outside the typical range?",a:"ORDER BY the column and read the extremes, or filter with WHERE beyond a chosen cutoff to list the outliers themselves."}],
+  804:[{q:"What does a Pareto query rank and accumulate?",a:"It ranks items by their share of the total, then accumulates that share running top-down."},
+       {q:"What share of items usually drives most of the total, and why does that matter?",a:"Often roughly 20% of items drive about 80% of the total \u2014 so effort goes where the concentration is."}],
+  805:[{q:"Two columns move together \u2014 name two explanations besides causation.",a:"A third factor drives both, or the causation runs the other way. (Coincidence is always on the list too.)"},
+       {q:"What language keeps a correlation finding honest in a stakeholder deck?",a:"'Moves with' or 'is associated with' \u2014 never 'drives' or 'causes' without a real experiment behind it."}],
+  806:[{q:"What is a control total, and where does a trusted one come from?",a:"An independently trusted number \u2014 from a finance report or the source system's own dashboard \u2014 that your query result must match."},
+       {q:"What's the last check you run before a number leaves your hands?",a:"Compare your final number to the control total \u2014 if they disagree, the number doesn't ship."}]
+}
 DATA.LESSONS.forEach(l=>{ if(SQL_REINFORCES[l.id]) l.reinforces=SQL_REINFORCES[l.id]; });
 
 // ─── SPACED RECALL QUEUE (Phase D port from Excel: +1/+3/+7 lesson positions) ─
@@ -2149,14 +2197,25 @@ function _syncRecalls(id, l){
   _recallLesson = id;
 }
 function _recallsHTML(){
-  return _pendingRecalls.map((e,i)=>`<div class="recall-card">
+  // Cues may be legacy strings (question only) or {q,a} pairs. Answer reveal is
+  // Anki-style flip: attempt first, then the answer inline — never a dead end.
+  return _pendingRecalls.map((e,i)=>{
+    const cues = e.cues.map(c=>typeof c==='string'?{q:c,a:null}:c);
+    const open = !!e._open;
+    const hasAns = cues.some(c=>c.a);
+    return `<div class="recall-card">
     <div class="recall-header"><i data-lucide="repeat-2"></i> Quick recall — no peeking</div>
-    <ul class="recall-cues">${e.cues.map(c=>`<li>${c}</li>`).join('')}</ul>
+    <ul class="recall-cues">${cues.map(c=>`<li>${c.q}${open&&c.a?`<div class="recall-ans">${c.a}</div>`:''}</li>`).join('')}</ul>
+    ${open&&!hasAns?`<p class="text-muted text-sm" style="margin:0 0 10px">This one predates stored answers — the lesson below has it.</p>`:''}
+    ${open?`<div style="margin-bottom:10px"><button class="btn btn-ghost btn-sm" onclick="recallOpenLesson(${i})">Open that lesson →</button></div>`:''}
     <div class="recall-btns">
-      <button class="btn btn-primary btn-sm" onclick="recallGotIt(${i})">I remembered it</button>
-      <button class="btn btn-ghost btn-sm" onclick="recallNope(${i})">Nope, remind me again</button>
+      ${open
+        ? `<button class="btn btn-primary btn-sm" onclick="recallGotNow(${i})">Got it now</button>
+           <span class="text-muted" style="font-size:12px;align-self:center">This one will come back tomorrow for a real check.</span>`
+        : `<button class="btn btn-primary btn-sm" onclick="recallGotIt(${i})">I remembered it</button>
+           <button class="btn btn-ghost btn-sm" onclick="recallShowAns(${i})">Show answer</button>`}
     </div>
-  </div>`).join('');
+  </div>`;}).join('');
 }
 function _refreshRecalls(){
   const el=document.getElementById('v2-recalls');
@@ -2171,7 +2230,17 @@ function recallGotIt(i){
   localStorage.setItem('sqlkit-recall-wins',String(w));
   _refreshRecalls();
 }
-function recallNope(i){
+function recallShowAns(i){
+  if(_pendingRecalls[i]) _pendingRecalls[i]._open = true;
+  _refreshRecalls();
+}
+function recallOpenLesson(i){
+  const e=_pendingRecalls[i];
+  if(e && e.srcId!=null) navigate('lesson', e.srcId);
+}
+// A revealed answer is not a successful recall: it re-queues for one more
+// spaced check and does NOT count toward the recall-wins streak.
+function recallGotNow(i){
   const e=_pendingRecalls.splice(i,1)[0];
   const arr=_getRecallQ();
   arr.push({cues:e.cues, srcId:e.srcId, dueAt:lessonPos(_recallLesson)+1});
