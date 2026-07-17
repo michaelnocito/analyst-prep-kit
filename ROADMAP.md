@@ -1,5 +1,115 @@
 ﻿# Analyst Prep Kit — Roadmap
 
+> ### 🧪 SQL-KIT PLAYTEST TRIAGE 2026-07-17 — LAB & MOBILE PASS (TRIAGED, builds pending Mike's go; ONE open decision)
+> 8 inbox items from Mike's 2026-07-17 SQL-kit playtest. Every item was reproduced
+> against the real code before triage — mechanisms and measurements below, not guesses.
+> Written back to the playtest tracker (Supabase) the same day.
+>
+> **🔁 STANDING RULE FOR THIS TRIAGE (Mike's explicit ask, 2026-07-17):** the SQL kit is
+> the polish bench, but most of these are *class* defects, not one-offs. For EVERY item
+> here, the fix carries to the other kits **where applicable** — and "where applicable"
+> is a question to answer per kit, not an assumption. The per-item cross-kit matrix
+> below is the authoritative scope. Two kits already contain the CORRECT pattern
+> (Python for ral wrapping, Python/Excel for drill re-answering) — **copy the kit that's
+> already right rather than re-deriving the fix.** Any new kit-rollout handoff must
+> carry this matrix forward.
+>
+> ⚠️ **Do NOT blind-port.** Item T1-b is the cautionary case: Batch 1 (v1.148.0) already
+> "fixed" light-mode hint text by making it DARK. `.terminal-info` needs the OPPOSITE
+> (stay light — its surface is always dark). Same symptom, inverse fix.
+>
+> **Batch T1 — blockers + broken-on-mobile (do first)**
+> - **T1-a 🚨 BLOCKER — a completed fill-in-the-blank is silently dead on revisit.**
+>   `renderFill` emits `${done?'disabled':''}`, so re-opening an already-answered fill
+>   renders all 4 choices `disabled` with an EMPTY result area and no explanation. The
+>   hint button still works — which is exactly Mike's report ("I can click the hint, but
+>   I can't click any of the questions"). Reproduced live on FILL id 9 (`ELSE`, CASE
+>   lesson): 4/4 buttons disabled, hint enabled, result empty. **Not a mobile bug** —
+>   it fires on any revisit, any device; Mike just met it on his phone. Worse in guided
+>   mode: `if(guided) return body;` returns BEFORE the `✓` badge row, so inside a lesson
+>   there is no ✓, no message, nothing — standalone at least shows "9 / 16 ✓".
+>   *Fix:* replace the silent lockout with a visible answered state + a "Try again"
+>   reset, so a done drill is both reviewable and re-answerable (spaced review needs this).
+>   *Cross-kit:* **SQL (2 sites) · Power BI (2) · Tableau (4) · Stats (4)**. Excel and
+>   Python do NOT lock out — they are the reference behaviour. Verify each kit's guided
+>   early-return separately (only SQL has `if(guided) return body;`, 3 sites).
+> - **T1-b 🐛 Terminal guidance text is invisible in light mode (SQL only).** `.terminal-wrap`
+>   is a FIXED dark surface (`--stone-900` = #09090B) in both themes, but `.terminal-info`
+>   colors from the theme-semantic `--muted`. Measured in-browser: **light = #52525B on
+>   #09090B → 2.57:1 (fails WCAG AA 4.5:1); dark = #C3C7CE → 11.73:1 (passes).** Hits every
+>   in-terminal message: "Loading SQL engine…", "Results appear here…", "Write your query
+>   above and Run." — i.e. all the lab guidance Mike calls hints.
+>   *Fix:* anything rendered INSIDE the always-dark terminal must use fixed primitives
+>   (`--stone-400`/`--stone-100`), never semantic theme tokens. Audit `.terminal-*` as a group.
+>   *Cross-kit:* **SQL ONLY.** Python's `.terminal-wrap` uses `var(--bg)`, so it follows the
+>   theme and its text is correct by construction. Excel/PBI/Tableau/Stats have no terminal.
+>   This is the item that proves "check the other kits" ≠ "change the other kits".
+> - **T1-c 🐛 "Say It Out Loud" code chunks clipped on mobile, unreachable.** Reproduced at
+>   375px on lesson 8 (CASE & COALESCE): `.ral-line` needs **383px inside a 252px box**
+>   (`flex-wrap:nowrap`), `.ral-chunk` is `flex-shrink:0` + `word-break:normal` at 284px,
+>   and `.ral-block{overflow:hidden}` clips the overflow with NO scrollbar. The plain-words
+>   explanation is crushed to **65px**. So both the code and its explanation are cut off
+>   with no way to reach them — Mike's exact words.
+>   *Fix (verified live before recommending):* `.ral-line{flex-wrap:wrap}` +
+>   `.ral-chunk{flex-shrink:1;min-width:0;word-break:break-word;overflow-wrap:anywhere}` +
+>   `.ral-desc{min-width:0}` → row drops 383px→252px, chunk fully visible, explanation back
+>   to full width, no horizontal page scroll introduced.
+>   *Cross-kit:* **SQL + Power BI are worst** (both `overflow:hidden` → silent clipping).
+>   **Excel + Tableau** share `flex-shrink:0` (overflow/squeeze, no hard clip). **Python is
+>   already correct** (`word-break:break-all` on `.ral-chunk`) — use it as the model.
+>   **Stats N/A** (section-based, no ral).
+> - **T1-d 🐛 Correct capstone answers flash for 900ms then vanish.** `sql/index.html:3813`:
+>   on a correct step, `setTimeout(…, 900)` collapses the step just solved and scrolls to
+>   the next. The learner never gets to read the answer they just earned.
+>   *Fix:* stop auto-collapsing; leave the solved step open with its result and let the
+>   learner advance when they choose (Mike: "let them move on when they choose").
+>   *Cross-kit:* the capstone is **SQL-only today**, but Batch 2's 18-step faded capstone is
+>   the template slated for every kit — **fix the template BEFORE it propagates**, or this
+>   ships five more times.
+> - **T1-e ✂️ Lab editors too short.** Measured: JOIN-challenge editors render **4.4 lines**
+>   (`min-height:96px`, 13px/15.6px line-height, 28px padding); capstone/agg ≈ 4.0
+>   (`min-height:90px`). Mike's ask is 5–6 minimum. The progressive scaffold fills the FULL
+>   answer into the box on miss 3, so the payoff lands in a box too small to read it.
+>   The Workspace editor is already fine (**5.9 lines**) — this is lab-specific.
+>   *Fix:* lab editors to `min-height:150px` + `line-height:1.6` → ~6 lines.
+>   *Cross-kit:* **check Python's editors too** — same `.terminal-editor` class, 120px min-height
+>   at line-height 1.6 ≈ 4.4 lines, i.e. likely the same shortfall. Measure before changing.
+>
+> **Batch T2 — copy/paste affordances (one principle, two items)**
+> Both items reduce to: **the copy/paste affordance should exist exactly where the answer is
+> runnable code sitting next to a terminal, and NOT exist anywhere else.**
+> - **T2-a ➕ "Paste into terminal" where an answer IS runnable.** `sql/index.html:3527`
+>   (card drills) and `:3740` (capstone) reveal a full SQL answer via "Show answer" with an
+>   editor RIGHT THERE and no way to get it in — brutal on a phone, where selecting text in a
+>   textarea is the worst interaction there is. Mike's spec: "show answer, then click again to
+>   paste into the terminal and I'll be able to run it." Prefer a one-tap **Paste into editor**
+>   over a clipboard Copy. (Note: the JOIN lab already auto-fills the answer at miss 3 — that
+>   behaviour is the model, these two surfaces just never got it.)
+>   *Cross-kit:* **Python** (real terminal, same shape). Excel/PBI/Tableau/Stats have no editor → N/A.
+> - **T2-b ➖ Remove the Copy button where an answer is NOT pastable.** The shared Hint System
+>   (`cycleHint`) unconditionally renders `📋 Copy` for EVERY drill answer. It copies `_hd.ans`
+>   verbatim — so it happily copies `ELSE`, or Bug Hunt prose like "Add END to close the CASE".
+>   *Fix:* render Copy only when the answer is runnable, multi-token code.
+>   *Cross-kit:* **present in ALL SIX kits** (excel/powerbi/python/sql/stats/tableau, 3 sites each).
+>   Most absurd in **Stats** (answers are numbers) and **Tableau** (answers are shelf configs) —
+>   there, Copy is near-universally meaningless.
+>
+> **Batch T3 — ❓ OPEN DECISION (Mike asked "tell me what you think")**
+> - **T3-a Show the RESULT of a correct query on fill-in-the-blank drills.** Mike: learners
+>   confirm a fragment and get congratulated, but never see what a completed query actually
+>   returns until the lab.
+>   **My recommendation: YES, build it — it is far cheaper than it looks.** I ran all 16 fills
+>   against the live sql.js DB with the blank filled in: **14/16 execute today with zero content
+>   changes** (the `customers` table really does carry an `orders` column, so the CASE fill runs).
+>   Only 2 fail: **id 12** (`OVER` → "no such column: name") is a genuine content bug worth fixing
+>   regardless, and **id 14** (`DATE_SUB`) is MySQL, which the SQLite lab can't run — that one is a
+>   deliberate teaching divergence, so show the existing "MySQL syntax — this lab runs SQLite"
+>   callout instead of a result table. Pedagogically this closes the feedback loop: right now the
+>   drill confirms syntax without ever showing consequence.
+>   *Cross-kit:* **SQL + Python only** (real engines). Excel/PBI/Tableau/Stats have no engine — they
+>   should reuse their existing static `viz` result tables rather than grow one.
+>   *Blocked on Mike's go — this is the only item here that needs a decision, not just a build.*
+
 > ### 🧪 SQL-KIT PLAYTEST TRIAGE 2026-07-16 — RESEARCH-BACKED BATCH PLAN (DECIDED: research done, builds pending Mike's batch go)
 > 13 inbox items from Mike's 2026-07-16 SQL-kit playtest, triaged same day with three
 > focused research passes (lab placement / progressive capstone / SQL sequencing /
