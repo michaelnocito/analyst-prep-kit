@@ -103,6 +103,45 @@ input[type=range]{accent-color:var(--accent);width:150px;cursor:pointer}
 .conf-chip[data-v="mid"].is-on{background:var(--warn);border-color:var(--warn)}
 .conf-chip[data-v="high"].is-on{background:var(--ok);border-color:var(--ok)}
 
+/* PATH MAP (playtest Batch 5) — Duolingo-style vertical rail. States are
+   done / current / upcoming; upcoming is DIMMED, never locked (soft-guide).
+   The rail and the ring's unfilled track use --bord, NOT --surf2: this kit
+   loads zinc-sky.css, where --color-bg and --surf2 both resolve to --stone-100,
+   so in light mode a --surf2 rail would be invisible against the page. */
+.pmap{position:relative}
+.pmap:before{content:'';position:absolute;left:24px;top:8px;bottom:8px;width:3px;background:var(--bord);border-radius:2px}
+.pmap-unit{display:flex;align-items:center;gap:12px;position:relative;padding:16px 0 8px;margin-top:6px}
+.pmap-unit-name{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.pmap-unit-sub{font-size:12px;color:var(--txt2)}
+.pmap-ring{flex-shrink:0;background:var(--bg);border-radius:50%;position:relative;z-index:1;margin-left:8px}
+.pmap-node{display:flex;gap:14px;align-items:flex-start;position:relative;padding:10px 12px 10px 0;margin:4px 0;cursor:pointer;border-radius:8px;transition:.15s}
+.pmap-node:hover .pmap-title{color:var(--accent)}
+.pmap-dot{width:34px;height:34px;border-radius:50%;background:var(--surf2);color:var(--txt2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;border:2px solid var(--bord);position:relative;z-index:1;margin-left:8px}
+.pmap-node.done .pmap-dot{background:var(--accent);border-color:var(--accent);color:#fff}
+.pmap-node.current{background:var(--surf);border:1px solid var(--accent);padding:12px;margin-left:-4px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.pmap-node.current .pmap-dot{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 22%, transparent)}
+.pmap-node.up{opacity:.55}
+.pmap-node.up:hover{opacity:.9}
+.pmap-title{font-weight:600;font-size:14px}
+.pmap-sub{font-size:12px;color:var(--txt2)}
+
+/* MASTERY BADGES (playtest Batch 5) — competence-framed, visible progress */
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:10px}
+.badge-tile{border:1px solid var(--bord);border-radius:8px;padding:12px 8px;text-align:center;background:var(--surf2);opacity:.75}
+.badge-tile.got{background:var(--surf);border-color:var(--accent);opacity:1}
+.badge-tile.secret{border-style:dashed}
+.badge-ico{font-size:22px;line-height:1.2}
+.badge-name{font-size:12px;font-weight:700;margin-top:4px}
+.badge-prog{font-size:11px;color:var(--txt2);font-family:var(--mono)}
+
+/* STREAK + REVIEW CHIPS (playtest Batch 5) — this kit's Home resumes from a
+   bare .btn, not an accent-filled resume card, so these chips sit on the page
+   background and are styled from the neutral surface (Tableau's white-on-
+   translucent version would be invisible here). */
+.loop-chip{display:inline-flex;align-items:center;gap:6px;background:var(--surf2);border:1px solid var(--bord);border-radius:20px;padding:4px 12px;font-size:12.5px;font-weight:600;color:var(--txt2);margin:0 8px 10px 0}
+.loop-chip-btn{cursor:pointer;font:inherit;transition:.15s}
+.loop-chip-btn:hover{border-color:var(--accent);color:var(--accent)}
+
 /* V2 LESSON FLOW */
 .v2-stage-bar{display:flex;gap:6px;align-items:center;margin:16px 0 22px}
 .v2-stage-dot{width:8px;height:8px;border-radius:50%;background:var(--bord);transition:.25s;flex-shrink:0}
@@ -154,6 +193,8 @@ input[type=range]{accent-color:var(--accent);width:150px;cursor:pointer}
 .recall-header{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--warn,#d9963a);display:flex;align-items:center;gap:6px;margin-bottom:10px}
 .recall-header .lucide{width:14px;height:14px}
 .recall-cues{margin:0 0 12px 16px;padding:0;font-size:14px;line-height:1.65;color:var(--text,var(--txt))}
+/* Revealed answer on a flipped recall cue (playtest Batch 5). */
+.recall-ans{margin:6px 0 2px;padding:8px 12px;background:color-mix(in srgb, var(--warn,#d9963a) 9%, transparent);border-left:3px solid var(--warn,#d9963a);border-radius:0 6px 6px 0;font-size:13.5px;line-height:1.6;color:var(--txt)}
 .recall-btns{display:flex;gap:8px;flex-wrap:wrap}
 .artifact-bridge{font-size:13px;color:var(--txt2);margin-bottom:12px;padding:0 2px}
 .retrieval-note{font-size:12px;color:var(--txt2);font-style:italic;margin:0 0 10px}
@@ -234,6 +275,9 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 <main>
   <div id="view-home" class="view active"></div>
   <div id="view-lessons" class="view"></div>
+  <!-- Review-now: on-demand recall surface (playtest Batch 5). Reached from the
+       Home review chip, so it has no nav link of its own. -->
+  <div id="view-review" class="view"></div>
   <div id="view-practice" class="view"></div>
   <div id="view-distlab" class="view">
     <h2 style="margin-bottom:6px">Distribution Lab</h2>
@@ -1169,8 +1213,8 @@ const CONTOSO=[
 ];
 
 /* ── STATE ── */
-let S={done:{},theme:'light',lastLesson:null,cardIdx:0,flagged:[]};
-function loadState(){try{const r=JSON.parse(localStorage.getItem('spk'));if(r)S=Object.assign(S,r);}catch(e){}if(!Array.isArray(S.flagged))S.flagged=[];}
+let S={done:{},theme:'light',lastLesson:null,cardIdx:0,flagged:[],badgesEarned:[],badgeMarks:{}};
+function loadState(){try{const r=JSON.parse(localStorage.getItem('spk'));if(r)S=Object.assign(S,r);}catch(e){}if(!Array.isArray(S.flagged))S.flagged=[];if(!Array.isArray(S.badgesEarned))S.badgesEarned=[];if(!S.badgeMarks||typeof S.badgeMarks!=='object')S.badgeMarks={};}
 function save(){localStorage.setItem('spk',JSON.stringify(S));}
 
 /* ── FLAG FOR REVIEW ── */
@@ -1209,6 +1253,7 @@ function show(v){
   if(view)view.classList.add('active');
   if(v==='home')renderHome();
   else if(v==='lessons')renderLessonList();
+  else if(v==='review')renderReview();
   else if(v==='practice')renderDrillList();
   else if(v==='distlab')initDistLab();
   else if(v==='cards')renderCards();
@@ -1217,11 +1262,23 @@ function show(v){
 }
 
 /* ── CELEBRATE ── */
+let _toastTimer=null;
 function celebrate(gold,msg){
   try{const ac=new AudioContext();const o=ac.createOscillator();const g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.setValueAtTime(gold?880:523,ac.currentTime);o.frequency.setValueAtTime(gold?1100:659,ac.currentTime+0.1);g.gain.setValueAtTime(0.25,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.5);o.start();o.stop(ac.currentTime+0.5);}catch(e){}
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
   if(gold){document.body.classList.add('flash');setTimeout(()=>document.body.classList.remove('flash'),600);}
-  setTimeout(()=>t.classList.remove('show'),3000);
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+// Silent toast (playtest Batch 5): badge earns must not re-sound over the
+// lesson's own celebrate() chime. Shares _toastTimer so back-to-back toasts
+// don't cut each other short.
+function showToast(msg){
+  const t=document.getElementById('toast');
+  if(!t)return;
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
 }
 
 /* ── HOME ── */
@@ -1233,9 +1290,8 @@ function renderHome(){
   const cardsDone=Object.keys(S.done).filter(k=>k.startsWith('card')).length;
   // Readiness derived from the LIVE lesson set (by unit) so every lesson —
   // Unit 0 included — is counted, not a frozen list of the original ids.
-  const unames={0:'Unit 0: Before You Calculate',1:'Unit 1: Describing Data',2:'Unit 2: Probability & Distributions',3:'Unit 3: Inference & Testing'};
   const _unitIds=[...new Set(DATA.LESSONS.map(l=>l.unit))];
-  const skills=_unitIds.map(u=>unames[u]||`Unit ${u}`);
+  const skills=_unitIds.map(u=>UNAMES[u]||`Unit ${u}`);
   const skillScores=_unitIds.map(u=>{
     const ls=DATA.LESSONS.filter(l=>l.unit===u);
     return ls.length?Math.round(ls.filter(l=>S.done['lesson'+l.id]).length/ls.length*100):0;
@@ -1248,6 +1304,21 @@ function renderHome(){
   localStorage.setItem('spk-last-visit',_today);
   const _greet=(_lastVisit&&_lastVisit!==_today)
     ? `<p style="font-size:13px;color:var(--txt2);margin:-16px 0 24px">Good to have you back. Pick up where you left off.</p>` : '';
+
+  // Return loop (playtest Batch 5): review-due chip + streak chip above the
+  // resume button, and a sign-off line only when nothing is due now but
+  // something lands soon. This kit resumes from a bare button rather than a
+  // click-to-resume card, so the chips sit on the page and need no
+  // stopPropagation.
+  checkBadges(true); // quiet back-fill for progress made before badges existed
+  const _due=reviewsDue(), _streak=getStreak();
+  const _reviewChip=_due.now>0
+    ? `<button class="loop-chip loop-chip-btn" onclick="show('review')" title="Review them now">🧠 ${_due.now} review${_due.now>1?'s':''} due</button>` : '';
+  const _streakChip=(_streak.n||0)>0
+    ? `<span class="loop-chip">🔥 ${_streak.n}-day streak${_streak.froze?' · a free freeze kept it alive':''}</span>` : '';
+  const _chips=(_reviewChip||_streakChip)?`<div style="margin-bottom:8px">${_reviewChip}${_streakChip}</div>`:'';
+  const _signoff=(_due.now===0&&_due.soon>0)
+    ? `<p style="font-size:13px;color:var(--txt2);margin-top:10px">Come back tomorrow — ${_due.soon} quick review${_due.soon>1?'s':''} will be waiting.</p>` : '';
 
   document.getElementById('view-home').innerHTML=`
     <h2 style="margin-bottom:8px">Stats Prep Kit</h2>
@@ -1272,7 +1343,10 @@ function renderHome(){
       <strong>Next up</strong>
       ${(()=>{const _nxt=DATA.LESSONS.filter(l=>!S.done['lesson'+l.id]).slice(0,3);return _nxt.length?_nxt.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 2px;border-top:1px solid var(--bord);cursor:pointer;margin-top:6px" onclick="openLesson(${l.id})"><div><span style="font-size:11px;color:var(--txt2);margin-right:8px">L${lessonPos(l.id)+1}</span><span style="font-size:.9rem;font-weight:600">${l.title}</span></div><span style="color:var(--accent);font-weight:700">→</span></div>`).join(''):`<p style="font-size:.85rem;color:var(--txt2);margin:8px 0 0">All ${DATA.LESSONS.length} lessons complete!</p>`})()}
     </div>
+    <div style="margin-bottom:24px">${badgesCardHTML()}</div>
+    ${_chips}
     ${S.lastLesson?`<button class="btn" onclick="openLesson(${S.lastLesson})">▶ Resume Lesson ${lessonPos(S.lastLesson)+1}</button>`:`<button class="btn" onclick="show('lessons')">▶ Start Learning</button>`}
+    ${_signoff}
     <div class="card" style="margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border-color:rgba(47,109,240,.3);background:rgba(47,109,240,.05)">
       <div>
         <strong style="font-size:1rem">Ready to test yourself?</strong>
@@ -1300,17 +1374,55 @@ function renderHome(){
 /* ── LESSONS ── */
 function lessonPos(id){return DATA.LESSONS.findIndex(l=>l.id===id);}
 function nextLessonId(id){const p=lessonPos(id);return(p>=0&&p<DATA.LESSONS.length-1)?DATA.LESSONS[p+1].id:null;}
+// Unit display names, keyed by the numeric l.unit. Single source for the path
+// map, Home readiness and the unit badges.
+const UNAMES={0:'Unit 0: Before You Calculate',1:'Unit 1: Describing Data',2:'Unit 2: Probability & Distributions',3:'Unit 3: Inference & Testing'};
+function _ringSVG(done,total){
+  const r=14,c=2*Math.PI*r,p=total?done/total:0;
+  return `<svg class="pmap-ring" width="34" height="34" viewBox="0 0 34 34">
+    <circle cx="17" cy="17" r="${r}" fill="none" stroke="var(--bord)" stroke-width="4"/>
+    <circle cx="17" cy="17" r="${r}" fill="none" stroke="var(--accent)" stroke-width="4"
+      stroke-linecap="round" stroke-dasharray="${(p*c).toFixed(1)} ${c.toFixed(1)}"
+      transform="rotate(-90 17 17)"/>
+    ${p>=1?'<text x="17" y="21" text-anchor="middle" font-size="13" fill="var(--accent)">✓</text>':''}
+  </svg>`;
+}
+// Duolingo-style path map (playtest Batch 5). Units and lessons follow ARRAY
+// order, never id order — this kit's ids are non-sequential (Unit 0 is ids
+// 101-104, Unit 1 is 1-4), so the visible step number is lessonPos()+1. No lab
+// nodes (this kit has no unit labs) and no lock badges (nothing here is
+// premium — apkPass is only wired to the shared unlock-code box).
 function renderLessonList(){
-  const units={0:[],1:[],2:[],3:[]};
-  DATA.LESSONS.forEach(l=>units[l.unit].push(l));
-  const unames={0:'Unit 0: Before You Calculate',1:'Unit 1: Describing Data',2:'Unit 2: Probability & Distributions',3:'Unit 3: Inference & Testing'};
-  document.getElementById('view-lessons').innerHTML=Object.keys(units).map(u=>`
-    <div style="margin-bottom:24px">
-      <h3 style="margin-bottom:12px;color:var(--txt2);font-size:.9rem;text-transform:uppercase;letter-spacing:.05em">${unames[u]}</h3>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        ${units[u].map(l=>{const done=S.done[`lesson${l.id}`];return `<div class="card${l.core?' sc-core':' sc-supporting'}" style="display:flex;align-items:center;gap:12px;cursor:pointer;${done?'border-color:var(--accent)':''}" onclick="openLesson(${l.id})"><span style="font-size:1.2rem;color:${done?'var(--ok)':'var(--accent)'}"><i data-lucide="${done?'circle-check-big':'book-open'}" style="width:18px;height:18px;vertical-align:-3px"></i></span><div><strong>${l.title}</strong><div style="color:var(--txt2);font-size:.82rem">${l.subtitle}</div></div></div>`;}).join('')}
-      </div>
-    </div>`).join('');
+  const total=DATA.LESSONS.length;
+  const doneCount=DATA.LESSONS.filter(l=>S.done['lesson'+l.id]).length;
+  const cur=DATA.LESSONS.find(l=>!S.done['lesson'+l.id]);
+  const units={};
+  DATA.LESSONS.forEach(l=>{(units[l.unit]=units[l.unit]||[]).push(l);});
+  let html=`<h2 style="margin-bottom:8px">Your Path</h2>
+    <p style="margin:-6px 0 14px;font-size:.85rem;color:var(--txt2)">One step at a time, top to bottom. Nothing ahead is locked — dimmed just means it's coming up. The highlighted node is your next step. <span style="font-family:var(--mono);color:var(--accent)">${doneCount}/${total} done</span></p>
+    <div class="pmap">`;
+  Object.keys(units).forEach(u=>{
+    const ls=units[u];
+    const d=ls.filter(l=>S.done['lesson'+l.id]).length;
+    html+=`<div class="pmap-unit">${_ringSVG(d,ls.length)}<div>
+      <div class="pmap-unit-name">${UNAMES[u]||'Unit '+u}</div>
+      <div class="pmap-unit-sub">${d}/${ls.length} lessons</div></div></div>`;
+    ls.forEach(l=>{
+      const done=S.done[`lesson${l.id}`];
+      const isCur=cur&&l.id===cur.id;
+      const teaser=(l.subtitle||'').replace(/<[^>]*>/g,'').slice(0,120);
+      html+=`<div class="pmap-node ${done?'done':isCur?'current':'up'}" onclick="openLesson(${l.id})">
+        <div class="pmap-dot">${done?'✓':lessonPos(l.id)+1}</div>
+        <div class="pmap-info">
+          <div class="pmap-title">${l.title}</div>
+          <div class="pmap-sub">${teaser}</div>
+          ${isCur?`<button class="btn btn-sm" style="margin-top:8px" onclick="event.stopPropagation();openLesson(${l.id})">▶ Continue</button>`:''}
+        </div>
+      </div>`;
+    });
+  });
+  html+='</div>';
+  document.getElementById('view-lessons').innerHTML=html;
 }
 
 let lessonState={id:null};
@@ -1443,7 +1555,16 @@ function retryQuiz(lid){
   qc.innerHTML=`<h4 style="margin-bottom:12px">Quick Check</h4><p style="margin-bottom:12px">${l.quiz.q}</p><div id="quizOpts" style="display:flex;flex-direction:column;gap:8px">${l.quiz.opts.map((o,i)=>`<button class="btn btn-outline" style="text-align:left;justify-content:flex-start" onclick="checkQuiz(${i})">${o}</button>`).join('')}</div><div id="quizFb" style="margin-top:10px;display:none"></div>`;
 }
 function finishLesson(id){
-  S.done[`lesson${id}`]=true;save();celebrate(true,`Lesson ${lessonPos(id)+1} complete! 🌟`);
+  S.done[`lesson${id}`]=true;
+  // Secret-badge marks: recorded at the moment of finishing, since the clock
+  // can't be recovered later. checkBadges() then awards off these marks.
+  const h=new Date().getHours(), dow=new Date().getDay();
+  S.badgeMarks=S.badgeMarks||{};
+  if(h<8) S.badgeMarks.early=true;
+  if(h>=22) S.badgeMarks.night=true;
+  if(dow===0||dow===6) S.badgeMarks.weekend=true;
+  save();celebrate(true,`Lesson ${lessonPos(id)+1} complete! 🌟`);
+  checkBadges();
   const nextLesson=DATA.LESSONS.find(l=>!S.done[`lesson${l.id}`]);
   let primaryBtn;
   if(nextLesson){
@@ -1471,23 +1592,90 @@ function finishLesson(id){
 // Two retrieval questions per lesson, resurfaced +1/+3/+7 lessons later when
 // the learner rated the lesson "Not yet"/"Almost". One auditable map; the merge
 // loop puts them on l.reinforces so the engine matches Excel's.
+// Each cue is {q, a}: the answer is revealed only after an attempt (Anki-style
+// flip), so a cue is never a dead end. Answers are self-contained and use only
+// this kit's own worked examples, so nothing rots if other kits change.
 const STAT_REINFORCES = {
-  101:["What is statistics FOR, in one sentence — what does it let you do with incomplete data?","What's the difference between a trustworthy conclusion and a lucky guess?"],
-  102:["What are a variable and an observation in a dataset?","In a table of survey answers, what does one row represent?"],
-  103:["What's the difference between a population and a sample?","Why do you almost never have the whole population — and what do you do instead?"],
-  104:["Describe vs infer — what are the two jobs statistics does?","Which job is a mean doing, and which is a p-value doing?"],
-  1:["Mean, median, mode — when does each one lie to you?","Which measure of center survives a billionaire walking into the room?"],
-  2:["What do variance and standard deviation measure?","Two teams average 80 — what does a bigger standard deviation say about one of them?"],
-  3:["What does a percentile tell you about a value's rank?","What is the IQR, and why is it outlier-resistant?"],
-  4:["What does skew do to the relationship between mean and median?","Why does a histogram tell you more than the mean ever could?"],
-  5:["What does a probability of 0.2 mean in plain language?","When do you multiply probabilities, and when do you add them?"],
-  6:["What does a z-score tell you about a value?","Roughly what share of data sits within 1 and 2 standard deviations on a normal curve?"],
-  7:["What makes a sample biased — name one common way it happens.","Why can a bigger sample still give a wrong answer if collection was biased?"],
-  8:["Two metrics move together — name two explanations besides causation.","What kind of study CAN establish causation, and why?"],
-  9:["What are the null and alternative hypotheses in a test?","What does 'reject the null' actually claim — and not claim?"],
-  10:["Say what a p-value means in plain language — carefully.","What does p = 0.03 NOT tell you about your hypothesis?"],
-  11:["What makes an A/B test the gold standard for measuring a change?","Why must you decide the sample size BEFORE running the test?"],
-  12:["What does a 95% confidence interval say — and not say?","Why is a range more honest than a single number?"]
+  101:[
+    {q:"What is statistics FOR, in one sentence — what does it let you do with incomplete data?",
+     a:"It lets you draw trustworthy conclusions from data you don't fully have. You almost never have every transaction, so statistics is disciplined uncertainty management: the best conclusion the data supports, plus an honest statement of how sure you can be."},
+    {q:"What's the difference between a trustworthy conclusion and a lucky guess?",
+     a:"A trustworthy conclusion comes with its uncertainty stated — a p-value or a confidence interval saying how likely the result is to be a fluke. A lucky guess might happen to be right, but nothing about it tells you whether to bet on it again."}],
+  102:[
+    {q:"What are a variable and an observation in a dataset?",
+     a:"A variable is one thing you measure — Region, Revenue, Date. An observation is one row: one sale, one customer, one day. Variables are the columns; observations are the rows."},
+    {q:"In a table of survey answers, what does one row represent?",
+     a:"One respondent's full set of answers — that's the grain. State what one row means before calculating: 500 rows of daily totals gives a mean daily revenue, while 500 rows of individual sales gives a mean sale. Same row count, different meaning."}],
+  103:[
+    {q:"What's the difference between a population and a sample?",
+     a:"The population is every observation you care about — every customer who ever will buy coffee from you. The sample is the subset you actually have, like last month's 500 transactions."},
+    {q:"Why do you almost never have the whole population — and what do you do instead?",
+     a:"The population usually includes future and unmeasured cases, so it can't be collected. Instead you compute statistics from your sample and use them to estimate the population's true values, always stating the uncertainty in that estimate."}],
+  104:[
+    {q:"Describe vs infer — what are the two jobs statistics does?",
+     a:"Describing summarizes the data you actually collected: mean, spread, shape. Inferring uses that sample to make claims about the population you didn't measure, with probability attached to say how much to trust the claim."},
+    {q:"Which job is a mean doing, and which is a p-value doing?",
+     a:"A mean is describing — it just summarizes the numbers in front of you. A p-value is inferring — it judges whether a difference in your sample is strong enough evidence to claim something about the population."}],
+  1:[
+    {q:"Mean, median, mode — when does each one lie to you?",
+     a:"The mean misleads when data is skewed or holds an outlier: revenues of [120, 150, 130, 2000, 140] average 508, above four of the five values. The median hides how extreme the extremes are, and the mode means little when no value meaningfully repeats."},
+    {q:"Which measure of center survives a billionaire walking into the room?",
+     a:"The median. It's the middle value once sorted, so an extreme new value shifts it by one position at most — while the mean gets dragged toward it."}],
+  2:[
+    {q:"What do variance and standard deviation measure?",
+     a:"Both measure spread — how far values sit from the mean. Variance is the average squared distance; standard deviation is its square root, which puts the answer back into the data's own units so you can quote it."},
+    {q:"Two teams average 80 — what does a bigger standard deviation say about one of them?",
+     a:"That it's less consistent: its scores swing further from the average in both directions. In the lesson, [48, 50, 52] and [10, 50, 90] both average 50, but standard deviations of 2 vs 40 tell you which one you can rely on."}],
+  3:[
+    {q:"What does a percentile tell you about a value's rank?",
+     a:"What share of values fall below it — at the 80th percentile, 80% of the data is lower. It describes position in the pack, not distance from the middle."},
+    {q:"What is the IQR, and why is it outlier-resistant?",
+     a:"The IQR is Q3 − Q1, the span of the middle 50% of the data (167.5 − 122.5 = 45 in the lesson). It's built only from the quartiles, so values out in the tails can't drag it — which is why an outlier can't move the very fences meant to catch it."}],
+  4:[
+    {q:"What does skew do to the relationship between mean and median?",
+     a:"Skew pulls the mean toward the long tail while the median barely moves. Mean well above median means right skew; mean well below means left skew — the lesson's revenue column has mean 167.5 against median 125."},
+    {q:"Why does a histogram tell you more than the mean ever could?",
+     a:"The mean is a single number, and wildly different distributions can share it. A histogram shows the shape — tails, gaps, outliers — which decides whether the mean is even the right thing to report."}],
+  5:[
+    {q:"What does a probability of 0.2 mean in plain language?",
+     a:"The event happens about one time in five over the long run. Probabilities run from 0 (impossible) to 1 (certain), so 0.2 sits toward the unlikely end."},
+    {q:"When do you multiply probabilities, and when do you add them?",
+     a:"Multiply for AND with independent events: P(Hot and Jan) = 0.60 × 0.20 = 0.12. Add for OR, then subtract the overlap so it isn't counted twice: 0.60 + 0.20 − 0.12 = 0.68."}],
+  6:[
+    {q:"What does a z-score tell you about a value?",
+     a:"How many standard deviations it sits from the mean, and on which side. With mean $160 and standard deviation $45, a $280 sale has z = (280 − 160) / 45 = 2.67 — well above average."},
+    {q:"Roughly what share of data sits within 1 and 2 standard deviations on a normal curve?",
+     a:"About 68% within 1 standard deviation and about 95% within 2 (99.7% within 3). That's the 68-95-99.7 rule, and it's why a z beyond ±2 counts as unusual."}],
+  7:[
+    {q:"What makes a sample biased — name one common way it happens.",
+     a:"A sample is biased when part of the population is systematically more or less likely to be included. Selection bias is the common one: surveying only support callers measures your unhappiest customers, not all of them."},
+    {q:"Why can a bigger sample still give a wrong answer if collection was biased?",
+     a:"Size fixes random noise, not systematic skew — a bigger biased sample just measures the wrong group more precisely. The bias is baked in at collection, and no later analysis removes it."}],
+  8:[
+    {q:"Two metrics move together — name two explanations besides causation.",
+     a:"A confounder driving both — hot weather lifts ice cream sales and drownings together — or reverse causality, where more revenue funds more ad spend rather than the other way round. Coincidence in a small sample is a third."},
+    {q:"What kind of study CAN establish causation, and why?",
+     a:"A controlled experiment, like an A/B test. Randomly assigning people to each group balances every other factor out, so a difference in outcomes can only trace back to the change you made."}],
+  9:[
+    {q:"What are the null and alternative hypotheses in a test?",
+     a:"H₀ is the boring default — no effect, no difference: the new checkout rate equals the old 5%. H₁ is the claim you're trying to support: there is a real effect. You assume H₀ until the data forces you off it."},
+    {q:"What does 'reject the null' actually claim — and not claim?",
+     a:"It claims the data would be surprising if there were no effect, so there's enough evidence to act as though there is one. It doesn't prove the effect is real, and it says nothing about how big or how important that effect is."}],
+  10:[
+    {q:"Say what a p-value means in plain language — carefully.",
+     a:"It's the chance of seeing data at least this extreme if there were truly no effect. The lesson's p ≈ 0.021 means a gap that large would turn up by luck alone about 2% of the time when nothing is really going on."},
+    {q:"What does p = 0.03 NOT tell you about your hypothesis?",
+     a:"It's not a 3% chance your hypothesis is wrong, nor a 97% chance the effect is real — the p-value assumes H₀ is true rather than judging it. It also says nothing about size: p = 0.001 on a 2-cent lift is real and still not worth shipping."}],
+  11:[
+    {q:"What makes an A/B test the gold standard for measuring a change?",
+     a:"Random assignment. Splitting users randomly makes the groups comparable in every other way, so any difference in outcomes traces to the one thing you changed — it's the only move in this kit that turns correlation into causation."},
+    {q:"Why must you decide the sample size BEFORE running the test?",
+     a:"Because if you keep peeking, random noise will eventually dip the p-value under 0.05 and you'll call it a win. Fixing the sample size up front stops that false-positive factory — run to the planned size, no early stopping."}],
+  12:[
+    {q:"What does a 95% confidence interval say — and not say?",
+     a:"It gives a plausible range for the population value: a 95% CI of ($42, $58) says the true average order value likely sits in that band. It does NOT mean 95% of orders fall there, and it isn't a 95% probability about this one interval — the 95% describes how often the method works."},
+    {q:"Why is a range more honest than a single number?",
+     a:"A sample mean is never exactly the population's, so one number hides uncertainty that a range makes visible. The width shows how precise the estimate is — and narrowing it takes a bigger sample, since standard error shrinks with √n."}]
 };
 DATA.LESSONS.forEach(l=>{ if(STAT_REINFORCES[l.id]) l.reinforces=STAT_REINFORCES[l.id]; });
 
@@ -1520,34 +1708,228 @@ function _syncRecalls(id, l){
   _recallLesson = id;
 }
 function _recallsHTML(){
-  return _pendingRecalls.map((e,i)=>`<div class="recall-card">
+  // Cues may be legacy strings (question only) or {q,a} pairs. Answer reveal is
+  // Anki-style flip: attempt first, then the answer inline — never a dead end.
+  return _pendingRecalls.map((e,i)=>{
+    const cues = e.cues.map(c=>typeof c==='string'?{q:c,a:null}:c);
+    const open = !!e._open;
+    const hasAns = cues.some(c=>c.a);
+    return `<div class="recall-card">
     <div class="recall-header"><i data-lucide="repeat-2"></i> Quick recall — no peeking</div>
-    <ul class="recall-cues">${e.cues.map(c=>`<li>${c}</li>`).join('')}</ul>
+    <ul class="recall-cues">${cues.map(c=>`<li>${c.q}${open&&c.a?`<div class="recall-ans">${c.a}</div>`:''}</li>`).join('')}</ul>
+    ${open&&!hasAns?`<p style="font-size:13px;color:var(--txt2);margin:0 0 10px">This one predates stored answers — the lesson below has it.</p>`:''}
+    ${open?`<div style="margin-bottom:10px"><button class="btn btn-outline btn-sm" onclick="recallOpenLesson(${i})">Open that lesson →</button></div>`:''}
     <div class="recall-btns">
-      <button class="btn btn-sm" onclick="recallGotIt(${i})">I remembered it</button>
-      <button class="btn btn-outline btn-sm" onclick="recallNope(${i})">Nope, remind me again</button>
+      ${open
+        ? `<button class="btn btn-sm" onclick="recallGotNow(${i})">Got it now</button>
+           <span style="font-size:12px;color:var(--txt2);align-self:center">This one will come back tomorrow for a real check.</span>`
+        : `<button class="btn btn-sm" onclick="recallGotIt(${i})">I remembered it</button>
+           <button class="btn btn-outline btn-sm" onclick="recallShowAns(${i})">Show answer</button>`}
     </div>
-  </div>`).join('');
+  </div>`;}).join('');
 }
 function _refreshRecalls(){
-  const el=document.getElementById('v2-recalls');
+  // Cards render in two homes: inline at a lesson (#v2-recalls) or the on-demand
+  // Review view (#review-recalls), which gets an empty state. Both hosts can sit
+  // in the DOM at once — this kit uses static view divs, so a #v2-recalls left by
+  // a previously-opened lesson survives when you navigate to Review. Prefer the
+  // review host whenever that view is active, or the stale #v2-recalls steals the
+  // render and Review shows empty. (SQL dodges this by replacing #main innerHTML;
+  // the static-view kits — Tableau/Python — have the same latent bug.)
+  const reviewActive=document.getElementById('view-review')?.classList.contains('active');
+  const el=reviewActive
+    ? (document.getElementById('review-recalls')||document.getElementById('v2-recalls'))
+    : (document.getElementById('v2-recalls')||document.getElementById('review-recalls'));
   if(!el) return;
-  if(!_pendingRecalls.length){el.style.display='none';return;}
+  if(!_pendingRecalls.length){
+    if(el.id==='review-recalls'){ el.innerHTML=_reviewEmptyHTML(); }
+    else el.style.display='none';
+    if(window.lucide) lucide.createIcons();
+    return;
+  }
   el.innerHTML=_recallsHTML();
   if(window.lucide) lucide.createIcons();
 }
+
+// ─── REVIEW NOW (on-demand recall surface) ─────────────────────────────────
+// Recalls normally fire when the path reaches their due position — which also
+// means a skipped position strands them silently. This view pulls everything
+// due (dueAt <= current position) on demand, and can pull the rest early.
+function renderReview(){
+  const p=_pathPos(), q=_getRecallQ();
+  // Entries stay in storage until actually answered (_consumeStored) — closing
+  // the tab mid-review must not lose them.
+  _pendingRecalls=q.filter(e=>e.dueAt<=p);
+  // "Got it now" re-queues relative to this lesson; anchor it at the path front.
+  const next=DATA.LESSONS.find(l=>!S.done['lesson'+l.id]);
+  _recallLesson=next?next.id:DATA.LESSONS[DATA.LESSONS.length-1].id;
+  document.getElementById('view-review').innerHTML=`
+    <div style="margin-bottom:12px">
+      <button class="btn btn-outline btn-sm" onclick="show('home')">← Home</button>
+    </div>
+    <h2 style="margin-bottom:8px">Review</h2>
+    <p style="color:var(--txt2);margin-bottom:16px">Every recall that's due, in one place — answer from memory first, flip when you can't.</p>
+    <div id="review-recalls"></div>`;
+  _refreshRecalls();
+}
+function _reviewEmptyHTML(){
+  const n=_getRecallQ().length;
+  return n>0
+    ? `<div class="card"><p style="margin:0 0 10px">🎉 Nothing due right now — ${n} review${n>1?'s':''} queued for later spots on the path.</p>
+       <button class="btn btn-sm" onclick="reviewAhead()">Practice ahead — review ${n>1?'them':'it'} early</button></div>`
+    : `<div class="card"><p style="margin:0">🎉 Nothing queued. Rate a lesson "Not yet" or "Almost" on its confidence chips and its recall questions will land here.</p></div>`;
+}
+function reviewAhead(){
+  _pendingRecalls=_getRecallQ().slice();
+  _refreshRecalls();
+}
+// Remove ONE stored copy of an answered entry. In the lesson flow entries were
+// already dequeued from storage, so this is a no-op there; in the Review view
+// they stay stored until answered, and this is what consumes them.
+function _consumeStored(e){
+  const arr=_getRecallQ();
+  const i=arr.findIndex(x=>x.srcId===e.srcId&&x.dueAt===e.dueAt);
+  if(i>=0){ arr.splice(i,1); _saveRecallQ(arr); }
+}
 function recallGotIt(i){
-  _pendingRecalls.splice(i,1);
+  const e=_pendingRecalls.splice(i,1)[0];
+  if(e) _consumeStored(e);
   const w=parseInt(localStorage.getItem('spk-recall-wins')||'0')+1;
   localStorage.setItem('spk-recall-wins',String(w));
   _refreshRecalls();
 }
-function recallNope(i){
+function recallShowAns(i){
+  if(_pendingRecalls[i]) _pendingRecalls[i]._open = true;
+  _refreshRecalls();
+}
+function recallOpenLesson(i){
+  const e=_pendingRecalls[i];
+  if(e && e.srcId!=null) openLesson(e.srcId);
+}
+// A revealed answer is not a successful recall: it re-queues for one more
+// spaced check and does NOT count toward the recall-wins streak.
+function recallGotNow(i){
   const e=_pendingRecalls.splice(i,1)[0];
+  _consumeStored(e);
   const arr=_getRecallQ();
   arr.push({cues:e.cues, srcId:e.srcId, dueAt:lessonPos(_recallLesson)+1});
   _saveRecallQ(arr);
   _refreshRecalls();
+}
+
+// ─── RETURN LOOP + MASTERY BADGES (playtest Batch 5) ────────────────────────
+// Review-due queue is the primary return hook (spaced retrieval is real
+// learning); streak with one free freeze/week is secondary. All localStorage.
+
+// The recall queue is keyed by LESSON POSITION (dueAt = pos + 1/3/7), so
+// "due" means: will surface on or before the lesson you'd open next.
+function _pathPos(){
+  const n = DATA.LESSONS.find(l => !S.done['lesson'+l.id]);
+  return n ? lessonPos(n.id) : DATA.LESSONS.length;
+}
+function reviewsDue(){
+  const p = _pathPos(), q = _getRecallQ();
+  return {
+    now:  q.filter(e => e.dueAt <= p).length,      // fires on your next lesson
+    soon: q.filter(e => e.dueAt <= p + 1).length,  // fires within the next two
+  };
+}
+
+// Streak: one count per LOCAL calendar day the kit is opened. A single missed
+// day is absorbed by one free freeze per rolling week (gentle copy — a broken
+// streak should never feel like a reset of the learning itself).
+function getStreak(){
+  try { return JSON.parse(localStorage.getItem('spk-streak')) || {}; } catch(e){ return {}; }
+}
+function _localDay(d = new Date()){
+  const p = n => String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+function _dayDiff(a, b){ return Math.round((new Date(b+'T12:00') - new Date(a+'T12:00')) / 86400000); }
+function bumpStreak(){
+  const s = getStreak(), today = _localDay();
+  if(s.last === today) return s;
+  delete s.froze;
+  if(!s.last){ s.n = 1; }
+  else {
+    const gap = _dayDiff(s.last, today);
+    if(gap === 1) s.n = (s.n||0) + 1;
+    else if(gap === 2 && (!s.lastFreeze || _dayDiff(s.lastFreeze, today) >= 7)){
+      s.n = (s.n||0) + 1; s.lastFreeze = today; s.froze = true; // freeze absorbed the missed day
+    }
+    else s.n = 1;
+  }
+  s.last = today;
+  localStorage.setItem('spk-streak', JSON.stringify(s));
+  return s;
+}
+
+// Competence-framed mastery badges: each marks something you can now DO, with
+// visible progress toward it. A few surprise badges (hidden until earned) for
+// delight. Deliberately NO attendance trinkets — the streak above is shown as
+// a count, never converted into a reward.
+// All four units are badged: nothing in this kit is premium, so the board stays
+// fillable by any learner. (Don't copy Power BI's premium-unit exclusion here.)
+// NOTE: this kit's l.unit is a NUMBER (0-3), not Tableau's "Unit N: ..." string
+// — match on the number, not a regex.
+function _unitProg(u){
+  let d=0, t=0;
+  DATA.LESSONS.forEach(l => { if(l.unit===u){ t++; if(S.done['lesson'+l.id]) d++; } });
+  return [d, t];
+}
+// Counted off the kit's real drill arrays (FILLS/BUGS/WRONG/PARSONS/ESQL) via
+// DRILL_TYPES, so it tracks the true total rather than a hard-coded guess.
+function _drillProg(){
+  let d=0, t=0;
+  DRILL_TYPES.forEach(dt => {
+    const items = DATA[dt.data] || [];
+    t += items.length;
+    d += items.filter((_,i) => S.done[dt.key+i]).length;
+  });
+  return [d, t];
+}
+const BADGES = [
+  {id:'u0',      icon:'🧭', label:'Question Framer', desc:'Finish every Before You Calculate lesson',      prog:()=>_unitProg(0)},
+  {id:'u1',      icon:'📏', label:'Data Describer',  desc:'Finish every Describing Data lesson',           prog:()=>_unitProg(1)},
+  {id:'u2',      icon:'🎲', label:'Chance Reader',   desc:'Finish every Probability & Distributions lesson', prog:()=>_unitProg(2)},
+  {id:'u3',      icon:'🔬', label:'Test Runner',     desc:'Finish every Inference & Testing lesson',       prog:()=>_unitProg(3)},
+  {id:'drills',  icon:'🛠️', label:'Drill Polisher',  desc:'Complete every drill across all five types',    prog:_drillProg},
+  {id:'recall25',icon:'🧠', label:'Steel Trap',      desc:'Nail 25 spaced-recall checks from memory',
+    prog:()=>[Math.min(25, parseInt(localStorage.getItem('spk-recall-wins')||'0')), 25]},
+  {id:'early',   icon:'🌅', label:'Early Bird',      desc:'Finish a lesson before 8am',   secret:true, prog:()=>[(S.badgeMarks||{}).early?1:0, 1]},
+  {id:'night',   icon:'🌙', label:'Night Owl',       desc:'Finish a lesson after 10pm',   secret:true, prog:()=>[(S.badgeMarks||{}).night?1:0, 1]},
+  {id:'weekend', icon:'🧺', label:'Weekend Analyst', desc:'Finish a lesson on a weekend', secret:true, prog:()=>[(S.badgeMarks||{}).weekend?1:0, 1]},
+];
+function checkBadges(quiet){
+  S.badgesEarned = S.badgesEarned || [];
+  let changed = false;
+  BADGES.forEach(b => {
+    const [d, t] = b.prog();
+    if(t > 0 && d >= t && !S.badgesEarned.includes(b.id)){
+      S.badgesEarned.push(b.id);
+      changed = true;
+      if(!quiet) showToast(`${b.icon} Badge earned: ${b.label}!`);
+    }
+  });
+  if(changed) save();
+}
+function badgesCardHTML(){
+  const earned = S.badgesEarned || [];
+  const tiles = BADGES.filter(b => !b.secret || earned.includes(b.id)).map(b => {
+    const [d, t] = b.prog();
+    const got = earned.includes(b.id) || (t > 0 && d >= t);
+    return `<div class="badge-tile${got?' got':''}" title="${b.desc}">
+      <div class="badge-ico">${got ? b.icon : '○'}</div>
+      <div class="badge-name">${b.label}</div>
+      <div class="badge-prog">${got ? 'Earned' : d+'/'+t}</div>
+    </div>`;
+  }).join('');
+  const secretN = BADGES.filter(b => b.secret && !earned.includes(b.id)).length;
+  return `<div class="card">
+    <h3 style="margin-bottom:4px">Badges</h3>
+    <p style="font-size:13px;color:var(--txt2);margin:0 0 10px">Each badge marks a skill you can now do — the count fills as you learn, not as you show up.</p>
+    <div class="badge-grid">${tiles}${secretN ? `<div class="badge-tile secret"><div class="badge-ico">✦</div><div class="badge-name">${secretN} surprise badge${secretN>1?'s':''}</div><div class="badge-prog">found by playing</div></div>` : ''}</div>
+  </div>`;
 }
 
 function getStatStage(lid){ return ((S.lessonStage||{})[lid]) ?? 0; }
@@ -2264,7 +2646,9 @@ function filterGlossary(q){
 }
 
 /* ── BOOT ── */
-loadState();applyTheme();show('home');
+// bumpStreak() must run BEFORE the first render so the streak chip is present
+// on Home's first paint, not only after a navigation.
+loadState();applyTheme();bumpStreak();show('home');
 
 // ─── Lucide icons: render now + re-render after any view change ─────────────
 // This Lucide build leaves data-lucide ON the generated <svg>, so createIcons
@@ -2345,7 +2729,9 @@ function handleResetKit(btn){
     btn.style.color='#e07c7c';btn.style.borderColor='#e07c7c';
     setTimeout(function(){if(_kitConfirm){_kitConfirm=false;btn.textContent='↺ Reset this kit';btn.style.color='';btn.style.borderColor='';}  },4000);
   } else {
-    ['spk','spk-recalls','spk-recall-wins','spk-last-visit'].forEach(function(k){localStorage.removeItem(k);});
+    // badgesEarned/badgeMarks live inside the `spk` state blob, so clearing it
+    // clears them; the streak is its own key and must be removed explicitly.
+    ['spk','spk-recalls','spk-recall-wins','spk-last-visit','spk-streak'].forEach(function(k){localStorage.removeItem(k);});
     location.reload();
   }
 }
