@@ -9,6 +9,43 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.159.0] — 2026-07-17 — SQL kit: correct fills now show the query's real result (T3)
+- A correct fill-in-the-blank now runs the completed query against the live in-browser
+  database and shows the result table (capped at 8 rows) — the drill confirms syntax
+  AND shows consequence. The engine boots lazily on the first correct answer.
+- MySQL-only date fills (DATE_SUB) show a "this lab runs SQLite" callout instead.
+- Content fix: FILL id 12 selected a `name` column that doesn't exist on `orders`
+  (now `order_id`) — caught by running every fill against the real schema.
+
+## [1.158.0] — 2026-07-17 — All six kits: paste where answers are runnable, no Copy where they aren't (T2)
+- SQL: "⤵ Paste into terminal" on card-drill answers and "⤵ Paste answer" on capstone
+  steps — one tap reveals the answer and drops it in the editor (selecting text out of
+  an answer block on a phone is the worst interaction there is). Python has no
+  show-answer-next-to-editor surface, so nothing to add there.
+- All six kits: removed the Hint System's unconditional 📋 Copy button — it copied
+  single tokens ("ELSE") and prose fixes verbatim; no hint-system surface sits next to
+  an editor in any kit. Dead doCopy/_fbCopy helpers and .copy-btn CSS removed.
+
+## [1.157.0] — 2026-07-17 — All kits: answered drills stay alive + mobile fixes (T1, playtest triage 2026-07-17)
+- **Blocker fixed (SQL · Power BI · Tableau · Stats):** revisiting an already-answered
+  tap drill rendered every choice silently disabled with no explanation — reads as a
+  frozen page (worst in guided mode, which showed no ✓ at all). Done drills now show
+  the correct choice highlighted, a "You've answered this one" note, and a **Try again**
+  reset so they're re-answerable for spaced review. All four Tableau/Stats surfaces
+  (fill / bug / what's-wrong / esql) covered; Excel and Python never locked out.
+- **SQL:** in-terminal guidance text ("Results appear here…") was 2.57:1 against the
+  always-dark terminal in light mode (fails WCAG AA). Now a fixed primitive → 6.12:1
+  in both themes. Rule: nothing inside .terminal-wrap may use semantic theme tokens.
+- **SQL · Power BI · Excel · Tableau:** "Say It Out Loud" code chunks clipped on phones
+  (no wrap + flex-shrink:0 + overflow:hidden = a 383px row clipped in a 252px box with
+  the plain-words explanation crushed to 65px). Rows wrap and chunks break now —
+  Python already had the correct pattern and is unchanged.
+- **SQL capstone:** a correct step no longer auto-collapses 900ms after you solve it —
+  the answer and result stay put, with a "Next step ↓" button to advance when ready.
+- **SQL labs + Python:** editors grew from ~4.4 visible lines to 7.8 (SQL labs, 150px)
+  and 6.3 (Python, 160px) — the scaffold fills the full answer in on miss 3, so the
+  payoff needs room to be read. SQL's Workspace editor was already fine and is unchanged.
+
 ## [1.156.0] — 2026-07-16 — Excel kit: visual path map, mastery badges, return loop
 
 Batch 5 of the SQL playtest, ported to the Excel kit (kit 1 of 5 in the rollout).

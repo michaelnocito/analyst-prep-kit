@@ -108,9 +108,9 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 .ral-block{margin:0;padding:14px 16px;border-bottom:1px solid var(--border)}
 .ral-block:last-child{border-bottom:none}
 .ral-shelf{font-family:var(--mono);font-size:13px;margin-bottom:12px;padding:9px 13px;background:var(--surf2);border-radius:6px;border-left:3px solid var(--accent);line-height:1.7;color:var(--text)}
-.ral-line{display:flex;gap:10px;align-items:baseline;padding:5px 0;font-size:13px;border-bottom:1px solid var(--border)}
+.ral-line{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;padding:5px 0;font-size:13px;border-bottom:1px solid var(--border)}
 .ral-line:last-child{border-bottom:none}
-.ral-chunk{font-family:var(--mono);font-size:12.5px;color:var(--clay-700);background:var(--clay-50);padding:2px 7px;border-radius:4px;flex-shrink:0}
+.ral-chunk{font-family:var(--mono);font-size:12.5px;color:var(--clay-700);background:var(--clay-50);padding:2px 7px;border-radius:4px;flex-shrink:1;min-width:0;word-break:break-word;overflow-wrap:anywhere}
 .ral-desc{color:var(--dim)}
 .ral-arrow{color:var(--dim);flex-shrink:0}
 
@@ -346,8 +346,6 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .answer-panel{display:none;margin-top:11px;padding:14px 17px;background:var(--surf2,#292520);border:1.5px solid rgba(47,109,240,.35);border-radius:7px}
 .answer-panel.show{display:flex;flex-direction:column;gap:10px}
 .answer-code{font-family:var(--mono,monospace);font-size:14px;color:var(--accent,#2f6df0);white-space:pre-wrap;word-break:break-all;margin:0;line-height:1.55}
-.copy-btn{align-self:flex-start;display:inline-flex;align-items:center;gap:5px;background:rgba(47,109,240,.16);border:1.5px solid rgba(47,109,240,.38);color:var(--accent,#2f6df0);padding:6px 16px;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s}
-.copy-btn:hover{background:rgba(47,109,240,.28)}
 .learn-more-link{display:inline-flex;align-items:center;gap:5px;background:rgba(47,109,240,.1);border:1.5px solid rgba(47,109,240,.3);color:var(--accent,#2f6df0);padding:6px 14px;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s}
 .learn-more-link:hover{background:rgba(47,109,240,.22)}
 /* -- End Hint System ---- */
@@ -2849,7 +2847,7 @@ function fillChoices(item){
 function renderFill(item,done){
   _hd={hint:item.hint||'',ans:item.ans||'',state:0};
   const blank=done
-    ? `<span class="fill-blank">${item.ans}</span>`
+    ? `<span class="fill-blank" id="fillBlank">${item.ans}</span>`
     : `<span class="fill-blank empty" id="fillBlank">?</span>`;
   const sentence=(item.q||'').replace('___',blank);
   const choices=fillChoices(item).map(c=>{
@@ -2861,7 +2859,7 @@ function renderFill(item,done){
     <p class="fill-lead">Tap the word that fills the blank:</p>
     <div class="fill-sentence">${sentence}</div>
     <div class="fill-choices" id="fillChoices">${choices}</div>
-    <div id="fillFb" style="margin-top:14px;${done?'':'display:none'}">${done?`<span style="color:var(--success)">✓ Correct! ${item.hint}</span>`:''}</div>
+    <div id="fillFb" style="margin-top:14px;${done?'':'display:none'}">${done?`<span style="color:var(--success)">✓ Correct! ${item.hint}</span> <button class="btn btn-sm" style="margin-left:8px;font-size:12px" onclick="retryDrill('fillChoices','fillFb')">Try again</button>`:''}</div>
     <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button>
     <div class="hint-panel" id="drill-hint"></div>
     <div class="answer-panel" id="drill-answer"></div>
@@ -2889,6 +2887,15 @@ function pickFill(btn,choice){
 
 /* BUG */
 function _shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+// Answered-drill state: a done drill stays reviewable AND re-answerable —
+// a silent disabled lockout reads as a frozen page on revisit.
+function retryDrill(choicesId,fbId){
+  const c=document.getElementById(choicesId);
+  if(c) c.querySelectorAll('button').forEach(b=>{b.disabled=false;b.classList.remove('correct','wrong');b.style.background='';b.style.color='';});
+  const fb=document.getElementById(fbId); if(fb){fb.style.display='none';fb.innerHTML='';}
+  const blank=document.getElementById('fillBlank');
+  if(blank&&choicesId==='fillChoices'){blank.textContent='?';blank.classList.add('empty');}
+}
 /* BUG — tap the correct fix (no free typing) */
 function renderBug(item,done){
   _hd={hint:item.hint||'',ans:item.fix||'',state:0};
@@ -2900,7 +2907,7 @@ function renderBug(item,done){
     <div id="bugChoices" style="display:flex;flex-direction:column;gap:8px">
       ${opts.map(c=>`<button class="fill-choice${done&&c===correct?' correct':''}" style="text-align:left;white-space:normal;width:100%" onclick="pickBug(this)" ${done?'disabled':''}>${c}</button>`).join('')}
     </div>
-    <div id="bugFb" style="margin-top:12px;${done?'':'display:none'}">${done?`<span style="color:var(--success)">✓ ${item.broken}</span>`:''}</div>
+    <div id="bugFb" style="margin-top:12px;${done?'':'display:none'}">${done?`<span style="color:var(--success)">✓ ${item.broken}</span> <button class="btn btn-sm" style="margin-left:8px;font-size:12px" onclick="retryDrill('bugChoices','bugFb')">Try again</button>`:''}</div>
     <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button>
     <div class="hint-panel" id="drill-hint"></div>
     <div class="answer-panel" id="drill-answer"></div>
@@ -2943,9 +2950,9 @@ function renderWrong(item,done){
     ${item.svg&&TAB_WRONG_SVG[item.svg]?`<div style="margin:6px 0 14px">${TAB_WRONG_SVG[item.svg]}</div>`:''}
     ${item.code?`<pre class="code-block" style="margin-bottom:14px">${item.code}</pre>`:''}
     <div id="wrongOpts" style="display:flex;flex-direction:column;gap:8px">
-      ${item.opts.map((o,i)=>`<button class="btn" style="text-align:left" onclick="checkWrong(${i})" ${done?'disabled':''}>${o}</button>`).join('')}
+      ${item.opts.map((o,i)=>`<button class="btn" style="text-align:left${done&&i===item.ans?';background:var(--accent);color:#fff':''}" onclick="checkWrong(${i})" ${done?'disabled':''}>${o}</button>`).join('')}
     </div>
-    <div id="wrongFb" style="margin-top:10px;display:none"></div>
+    <div id="wrongFb" style="margin-top:10px;${done?'':'display:none'}">${done?`<span style="color:var(--accent)">✓ ${item.exp}</span> <button class="btn btn-sm" style="margin-left:8px;font-size:12px" onclick="retryDrill('wrongOpts','wrongFb')">Try again</button>`:''}</div>
   </div>`;
 }
 function checkWrong(i){
@@ -3056,7 +3063,7 @@ function renderEsql(item,done){
     <p class="fill-lead">Tap the answer:</p>
     <p style="font-size:1rem;font-weight:600;margin-bottom:14px">"${item.q}"</p>
     <div class="fill-choices" id="esqlChoices">${opts.map(c=>`<button class="fill-choice${done&&c===correct?' correct':''}" style="white-space:normal;text-align:left" onclick="pickEsql(this)" ${done?'disabled':''}>${c}</button>`).join('')}</div>
-    <div id="esqlFb" style="margin-top:14px;${done?'':'display:none'}">${done?`<span style="color:var(--success)">✓ ${item.hint}</span>`:''}</div>
+    <div id="esqlFb" style="margin-top:14px;${done?'':'display:none'}">${done?`<span style="color:var(--success)">✓ ${item.hint}</span> <button class="btn btn-sm" style="margin-left:8px;font-size:12px" onclick="retryDrill('esqlChoices','esqlFb')">Try again</button>`:''}</div>
     <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button>
     <div class="hint-panel" id="drill-hint"></div>
     <div class="answer-panel" id="drill-answer"></div>
@@ -3547,7 +3554,7 @@ function cycleHint(){
     var match=findGlossaryTerm(_hd.ans+'');
     var matchTerm=match?(match.term!==undefined?match.term:match[0]):null;
     var learnHtml=matchTerm?'<button class="learn-more-link" onclick="openGlossaryFor(\''+matchTerm.replace(/'/g,"\\'")+'\')">&#x1F4D6; '+matchTerm+'</button>':'';
-    ap.innerHTML='<pre class="answer-code">'+esc+'</pre><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="copy-btn" onclick="doCopy(event)">&#x1F4CB; Copy</button>'+learnHtml+'</div>';
+    ap.innerHTML='<pre class="answer-code">'+esc+'</pre>'+(learnHtml?'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+learnHtml+'</div>':'');
     ap.classList.add('show');
     if(btn)btn.style.display='none';
   }
@@ -3565,13 +3572,6 @@ function openGlossaryFor(term){
     if(s){s.value=term;try{filterGlossary(term);}catch(e){try{filterGlossary();}catch(e2){}}}
   },80);
 }
-function doCopy(e){
-  var btn=e.currentTarget||e.target,orig=btn.textContent;
-  function done(){btn.textContent='✓ Copied!';setTimeout(function(){btn.textContent=orig;},1500);}
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(_hd.ans).then(done).catch(function(){_fbCopy(_hd.ans);done();});}
-  else{_fbCopy(_hd.ans);done();}
-}
-function _fbCopy(t){var a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.top='-9999px';document.body.appendChild(a);a.focus();a.select();try{document.execCommand('copy');}catch(_){}document.body.removeChild(a);}
 /* -- End Hint System JS ---- */
 /* Sprint mode removed. */
 localStorage.removeItem('apk-sprint');

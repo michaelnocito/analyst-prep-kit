@@ -132,11 +132,11 @@ p strong{color:var(--text)}
 .ral-body{padding:16px 18px}
 .ral-say{font-size:14px;font-style:italic;color:var(--clay-800);background:var(--clay-50);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:9px 13px 9px 11px;margin-bottom:14px;line-height:1.55;display:flex;gap:7px;align-items:flex-start}
 .ral-say .lucide{width:15px;height:15px;color:var(--accent);flex-shrink:0;margin-top:3px}
-.ral-line{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)}
+.ral-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)}
 .ral-line:last-child{border:none}
-.ral-chunk{font-family:var(--mono);font-size:12.5px;color:var(--clay-700);background:var(--clay-50);padding:2px 7px;border-radius:4px;flex-shrink:0}
+.ral-chunk{font-family:var(--mono);font-size:12.5px;color:var(--clay-700);background:var(--clay-50);padding:2px 7px;border-radius:4px;flex-shrink:1;min-width:0;word-break:break-word;overflow-wrap:anywhere}
 .ral-arrow{color:var(--muted);flex-shrink:0}
-.ral-desc{font-size:13px;color:var(--muted)}
+.ral-desc{font-size:13px;color:var(--muted);min-width:0}
 
 /* Grain lesson-view helpers (story bridge, section eyebrow, confidence rater) */
 .lesson-story{display:flex;gap:11px;align-items:flex-start;background:var(--amber-50);border:1px solid var(--amber-100);border-radius:var(--r2);padding:13px 15px;margin-bottom:18px;font-size:.9rem;line-height:1.65;color:var(--stone-800)}
@@ -317,6 +317,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 /* -- End Sprint Bar ------------------------------------ */</style>
 <style>
 /* -- Hint System ---- */
+.bug-choice.is-answered{background:var(--green,#1a7f37)!important;color:#fff!important;border-color:var(--green,#1a7f37)!important}
 .hint-cycle-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(47,109,240,.13);border:1.5px solid rgba(47,109,240,.42);color:var(--accent,#2f6df0);padding:9px 20px;border-radius:7px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s;margin-top:14px}
 .hint-cycle-btn:hover{background:rgba(47,109,240,.24)}
 .hint-panel{display:none;margin-top:13px;padding:14px 17px;background:rgba(47,109,240,.07);border:1px solid rgba(47,109,240,.24);border-radius:7px;font-size:14.5px;line-height:1.65;color:rgba(220,220,220,.92)}
@@ -325,8 +326,6 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .answer-panel{display:none;margin-top:11px;padding:14px 17px;background:var(--surf2,#222b38);border:1.5px solid rgba(47,109,240,.35);border-radius:7px}
 .answer-panel.show{display:flex;flex-direction:column;gap:10px}
 .answer-code{font-family:var(--mono,monospace);font-size:14px;color:var(--accent,#2f6df0);white-space:pre-wrap;word-break:break-all;margin:0;line-height:1.55}
-.copy-btn{align-self:flex-start;display:inline-flex;align-items:center;gap:5px;background:rgba(47,109,240,.16);border:1.5px solid rgba(47,109,240,.38);color:var(--accent,#2f6df0);padding:6px 16px;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s}
-.copy-btn:hover{background:rgba(47,109,240,.28)}
 .learn-more-link{display:inline-flex;align-items:center;gap:5px;background:rgba(47,109,240,.1);border:1.5px solid rgba(47,109,240,.3);color:var(--accent,#2f6df0);padding:6px 14px;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s}
 .learn-more-link:hover{background:rgba(47,109,240,.22)}
 /* -- End Hint System ---- */
@@ -2595,13 +2594,13 @@ function fillBody(idx){
       <div class="fill-partial">${f.partial}</div>
       <p class="text-muted text-sm" style="margin-top:12px">Tap the piece that fills the blank:</p>
       <div id="fillChoices" style="display:flex;flex-direction:column;gap:8px">
-        ${_shuf(f.choices).map(c=>`<button class="bug-choice" data-correct="${c===f.choices[0]?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:rgba(47,109,240,.08);color:var(--accent);font-family:var(--mono);font-size:14px;font-weight:600;cursor:pointer" onclick="pickFill(this,${idx})" ${done?'disabled':''}>${c}</button>`).join('')}
+        ${_shuf(f.choices).map(c=>`<button class="bug-choice${done&&c===f.choices[0]?' is-answered':''}" data-correct="${c===f.choices[0]?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:rgba(47,109,240,.08);color:var(--accent);font-family:var(--mono);font-size:14px;font-weight:600;cursor:pointer" onclick="pickFill(this,${idx})" ${done?'disabled':''}>${c}</button>`).join('')}
       </div>
-      <div id="fill-result" class="mt"></div>
+      <div id="fill-result" class="mt">${done?_answeredNote('fillChoices','fill-result'):''}</div>
       <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button>
       <div class="hint-panel" id="drill-hint"></div>
       <div class="answer-panel" id="drill-answer"></div>
-      <div id="fill-next" class="mt"></div>
+      <div id="fill-next" class="mt">${done?_fillAdvance(idx):''}</div>
     </div>`;
 }
 function renderFill(idx){
@@ -2656,14 +2655,14 @@ function bugBody(idx){
       <div class="bug-issue" id="bug-issue" style="${done?'':'display:none'}"><i data-lucide="alert-triangle" style="width:14px;height:14px;vertical-align:-2px"></i> ${b.issue}</div>
       <p class="text-muted text-sm" style="margin-top:12px">Spot the bug, then tap the correct fix:</p>
       <div id="bugChoices" style="display:flex;flex-direction:column;gap:8px">
-        ${_shuf(b.choices).map(c=>`<button class="bug-choice" data-correct="${c===b.choices[0]?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:rgba(47,109,240,.08);color:var(--accent);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer" onclick="pickBugFix(this,${idx})" ${done?'disabled':''}>${c}</button>`).join('')}
+        ${_shuf(b.choices).map(c=>`<button class="bug-choice${done&&c===b.choices[0]?' is-answered':''}" data-correct="${c===b.choices[0]?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:rgba(47,109,240,.08);color:var(--accent);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer" onclick="pickBugFix(this,${idx})" ${done?'disabled':''}>${c}</button>`).join('')}
       </div>
-      <div id="bug-result" class="mt"></div>
+      <div id="bug-result" class="mt">${done?_answeredNote('bugChoices','bug-result'):''}</div>
       <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button>
       <div class="hint-panel" id="drill-hint"></div>
       <div class="answer-panel" id="drill-answer"></div>
       <div class="code-fixed${done?' show':''}" id="bug-fix">${b.fix}</div>
-      <div id="bug-next" class="mt"></div>
+      <div id="bug-next" class="mt">${done?_bugAdvance(idx):''}</div>
     </div>`;
 }
 function renderBug(idx){
@@ -2681,6 +2680,17 @@ function renderBug(idx){
 
 // Bug Hunt — tap the correct fix (no free typing).
 function _shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+// Answered-drill state: a done drill shows its answer highlighted and stays
+// re-answerable — a silent disabled lockout reads as a frozen page on revisit.
+function _answeredNote(choicesId,noteId){
+  return `<span style="color:var(--green);font-weight:600">✓ You've answered this one — the correct choice is highlighted.</span>
+    <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="retryDrill('${choicesId}','${noteId}')">Try again</button>`;
+}
+function retryDrill(choicesId,noteId){
+  const c=document.getElementById(choicesId);
+  if(c) c.querySelectorAll('button').forEach(b=>{b.disabled=false;b.classList.remove('is-answered');b.style.background='';b.style.color='';b.style.borderColor='';b.style.opacity='';});
+  const n=document.getElementById(noteId); if(n) n.innerHTML='';
+}
 function _bugAdvance(idx){
   return guided
     ? ''
@@ -2942,7 +2952,7 @@ function cycleHint(){
     var match=findGlossaryTerm(_hd.ans+'');
     var matchTerm=match?(match.term!==undefined?match.term:match[0]):null;
     var learnHtml=matchTerm?'<button class="learn-more-link" onclick="openGlossaryFor(\''+matchTerm.replace(/'/g,"\\'")+'\')">&#x1F4D6; '+matchTerm+'</button>':'';
-    ap.innerHTML='<pre class="answer-code">'+esc+'</pre><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="copy-btn" onclick="doCopy(event)">&#x1F4CB; Copy</button>'+learnHtml+'</div>';
+    ap.innerHTML='<pre class="answer-code">'+esc+'</pre>'+(learnHtml?'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+learnHtml+'</div>':'');
     ap.classList.add('show');
     if(btn)btn.style.display='none';
   }
@@ -2960,13 +2970,6 @@ function openGlossaryFor(term){
     if(s){s.value=term;try{filterGlossary(term);}catch(e){try{filterGlossary();}catch(e2){}}}
   },80);
 }
-function doCopy(e){
-  var btn=e.currentTarget||e.target,orig=btn.textContent;
-  function done(){btn.textContent='✓ Copied!';setTimeout(function(){btn.textContent=orig;},1500);}
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(_hd.ans).then(done).catch(function(){_fbCopy(_hd.ans);done();});}
-  else{_fbCopy(_hd.ans);done();}
-}
-function _fbCopy(t){var a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.top='-9999px';document.body.appendChild(a);a.focus();a.select();try{document.execCommand('copy');}catch(_){}document.body.removeChild(a);}
 /* -- End Hint System JS ---- */
 /* Sprint mode removed. */
 localStorage.removeItem('apk-sprint');

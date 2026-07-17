@@ -1,6 +1,16 @@
 ﻿# Analyst Prep Kit — Roadmap
 
-> ### 🧪 SQL-KIT PLAYTEST TRIAGE 2026-07-17 — LAB & MOBILE PASS (TRIAGED, builds pending Mike's go; ONE open decision)
+> ### 🧪 SQL-KIT PLAYTEST TRIAGE 2026-07-17 — LAB & MOBILE PASS — ✅ ALL THREE BATCHES SHIPPED 2026-07-17 (T1 v1.157.0 · T2 v1.158.0 · T3 v1.159.0), awaiting Mike's retest
+> Mike's go: "go in your recommended order, largest chunks of building possible." Each batch
+> shipped across ALL applicable kits in one commit. T3 built per my recommendation (14/16
+> fills ran clean; the engine now boots lazily on the first correct fill outside the lab —
+> `_appendFillResult`/`ensureDb`). Verified per house rules: parse gate 6/6 kits green,
+> de-test sql 24/25 (1 pre-existing L105 chart-eyebrow failure, confirmed present on clean
+> HEAD) + powerbi/python 25/25 + stats/tableau 23/23, live checks on every changed surface
+> (SQL T1-a revisit+retry+re-answer, T1-b 6.12:1 light contrast, T1-c no overflow at 375px,
+> T1-d step stays open past the old 900ms window, T1-e 7.8 lines, T2-a both paste buttons,
+> T2-b no Copy; Tableau+Stats all 4 surfaces each; PBI fill+bug+ral; Excel ral; Python
+> 6.3-line editor), console clean on all six kits.
 > 8 inbox items from Mike's 2026-07-17 SQL-kit playtest. Every item was reproduced
 > against the real code before triage — mechanisms and measurements below, not guesses.
 > Written back to the playtest tracker (Supabase) the same day.

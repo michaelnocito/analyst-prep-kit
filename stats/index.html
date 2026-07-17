@@ -193,6 +193,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 /* -- End Sprint Bar ------------------------------------ */</style>
 <style>
 /* -- Hint System ---- */
+.bug-choice.is-answered{background:var(--ok,#1a7f37)!important;color:#fff!important;border-color:var(--ok,#1a7f37)!important}
 .hint-cycle-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(47,109,240,.13);border:1.5px solid rgba(47,109,240,.42);color:var(--accent,#2f6df0);padding:9px 20px;border-radius:7px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s;margin-top:14px}
 .hint-cycle-btn:hover{background:rgba(47,109,240,.24)}
 .hint-panel{display:none;margin-top:13px;padding:14px 17px;background:rgba(47,109,240,.07);border:1px solid rgba(47,109,240,.24);border-radius:7px;font-size:14.5px;line-height:1.65;color:rgba(220,220,220,.92)}
@@ -201,8 +202,6 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .answer-panel{display:none;margin-top:11px;padding:14px 17px;background:var(--surf2,#222b38);border:1.5px solid rgba(47,109,240,.35);border-radius:7px}
 .answer-panel.show{display:flex;flex-direction:column;gap:10px}
 .answer-code{font-family:var(--mono,monospace);font-size:14px;color:var(--accent,#2f6df0);white-space:pre-wrap;word-break:break-all;margin:0;line-height:1.55}
-.copy-btn{align-self:flex-start;display:inline-flex;align-items:center;gap:5px;background:rgba(47,109,240,.16);border:1.5px solid rgba(47,109,240,.38);color:var(--accent,#2f6df0);padding:6px 16px;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s}
-.copy-btn:hover{background:rgba(47,109,240,.28)}
 .learn-more-link{display:inline-flex;align-items:center;gap:5px;background:rgba(47,109,240,.1);border:1.5px solid rgba(47,109,240,.3);color:var(--accent,#2f6df0);padding:6px 14px;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700;transition:.15s}
 .learn-more-link:hover{background:rgba(47,109,240,.22)}
 /* -- End Hint System ---- */
@@ -1960,7 +1959,7 @@ function toggleSol(id){const el=document.getElementById(id);if(el)el.style.displ
 function renderFill(item,done){
   _hd={hint:item.explain||'',ans:item.answer||'',state:0};
   const correct=item.choices[0];
-  return `<div class="card"><p style="margin-bottom:14px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.code}</pre><p style="font-size:.85rem;color:var(--txt2);margin:0 0 8px">Tap the answer:</p><div id="fillChoices" style="display:flex;flex-direction:column;gap:8px">${_shuf(item.choices).map(c=>`<button class="bug-choice" data-correct="${c===correct?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid var(--accent);border-radius:8px;background:rgba(91,140,245,.08);color:var(--accent);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer" onclick="pickFill(this)" ${done?'disabled':''}>${c}</button>`).join('')}</div><div id="fillFb" style="margin-top:12px;display:none"></div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
+  return `<div class="card"><p style="margin-bottom:14px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.code}</pre><p style="font-size:.85rem;color:var(--txt2);margin:0 0 8px">Tap the answer:</p><div id="fillChoices" style="display:flex;flex-direction:column;gap:8px">${_shuf(item.choices).map(c=>`<button class="bug-choice${done&&c===correct?' is-answered':''}" data-correct="${c===correct?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid var(--accent);border-radius:8px;background:rgba(91,140,245,.08);color:var(--accent);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer" onclick="pickFill(this)" ${done?'disabled':''}>${c}</button>`).join('')}</div><div id="fillFb" style="margin-top:12px;${done?'':'display:none'}">${done?`<span style="color:var(--ok)">✓ You’ve answered this one — the correct choice is highlighted.</span> <button class="btn btn-outline btn-sm" style="margin-left:8px" onclick="retryDrill('fillChoices','fillFb')">Try again</button>`:''}</div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
 }
 function pickFill(btn){
   const item=DATA.FILLS[drillState.idx];const fb=document.getElementById('fillFb');
@@ -1976,11 +1975,18 @@ function pickFill(btn){
 
 /* BUG */
 function _shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+// Answered-drill state: a done drill stays reviewable AND re-answerable —
+// a silent disabled lockout reads as a frozen page on revisit.
+function retryDrill(choicesId,fbId){
+  const c=document.getElementById(choicesId);
+  if(c) c.querySelectorAll('button').forEach(b=>{b.disabled=false;b.classList.remove('is-answered');b.style.background='';b.style.color='';b.style.borderColor='';b.style.opacity='';});
+  const fb=document.getElementById(fbId); if(fb){fb.style.display='none';fb.innerHTML='';}
+}
 /* BUG — tap the correct fix (no free typing) */
 function renderBug(item,done){
   _hd={hint:item.explain||'',ans:item.fix||'',state:0};
   const correct=item.choices[0];
-  return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.buggy}</pre><p style="font-size:.85rem;color:var(--txt2);margin:0 0 8px">Tap the correct fix:</p><div id="bugChoices" style="display:flex;flex-direction:column;gap:8px">${_shuf(item.choices).map(c=>`<button class="bug-choice" data-correct="${c===correct?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid var(--accent);border-radius:8px;background:rgba(91,140,245,.08);color:var(--accent);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer" onclick="pickBug(this)" ${done?'disabled':''}>${c}</button>`).join('')}</div><div id="bugFb" style="margin-top:12px;display:none"></div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
+  return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.buggy}</pre><p style="font-size:.85rem;color:var(--txt2);margin:0 0 8px">Tap the correct fix:</p><div id="bugChoices" style="display:flex;flex-direction:column;gap:8px">${_shuf(item.choices).map(c=>`<button class="bug-choice${done&&c===correct?' is-answered':''}" data-correct="${c===correct?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid var(--accent);border-radius:8px;background:rgba(91,140,245,.08);color:var(--accent);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer" onclick="pickBug(this)" ${done?'disabled':''}>${c}</button>`).join('')}</div><div id="bugFb" style="margin-top:12px;${done?'':'display:none'}">${done?`<span style="color:var(--ok)">✓ You’ve answered this one — the correct fix is highlighted.</span> <button class="btn btn-outline btn-sm" style="margin-left:8px" onclick="retryDrill('bugChoices','bugFb')">Try again</button>`:''}</div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
 }
 function pickBug(btn){
   const item=DATA.BUGS[drillState.idx];const fb=document.getElementById('bugFb');
@@ -1996,7 +2002,7 @@ function pickBug(btn){
 
 /* WRONG */
 function renderWrong(item,done){
-  return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.code}</pre><div id="wrongOpts" style="display:flex;flex-direction:column;gap:8px">${item.opts.map((o,i)=>`<button class="btn btn-outline" style="text-align:left;justify-content:flex-start" onclick="checkWrong(${i})" ${done?'disabled':''}>${o}</button>`).join('')}</div><div id="wrongFb" style="margin-top:10px;display:none"></div></div>`;
+  return `<div class="card"><p style="margin-bottom:10px">${item.prompt}</p><pre class="code-block" style="margin-bottom:14px">${item.code}</pre><div id="wrongOpts" style="display:flex;flex-direction:column;gap:8px">${item.opts.map((o,i)=>`<button class="btn btn-outline" style="text-align:left;justify-content:flex-start${done&&i===item.ans?';background:var(--accent);color:#fff':''}" onclick="checkWrong(${i})" ${done?'disabled':''}>${o}</button>`).join('')}</div><div id="wrongFb" style="margin-top:10px;${done?'':'display:none'}">${done?`<span style="color:var(--accent)">✓ ${item.exp}</span> <button class="btn btn-outline btn-sm" style="margin-left:8px" onclick="retryDrill('wrongOpts','wrongFb')">Try again</button>`:''}</div></div>`;
 }
 function checkWrong(i){
   const item=DATA.WRONG[drillState.idx];const fb=document.getElementById('wrongFb');const btns=document.querySelectorAll('#wrongOpts .btn');
@@ -2039,7 +2045,7 @@ function checkParsons(){
 function renderEsql(item,done){
   _hd={hint:item.explain||'',ans:item.answer||'',state:0};
   const correct=item.choices[0];
-  return `<div class="card"><p style="font-size:.85rem;color:var(--txt2);margin-bottom:6px">Tap the answer:</p><p style="font-size:1rem;font-weight:600;margin-bottom:14px">${item.english}</p><div id="esqlChoices" style="display:flex;flex-wrap:wrap;gap:10px">${_shuf(item.choices).map(c=>`<button class="bug-choice" data-correct="${c===correct?1:0}" style="white-space:normal;text-align:left;padding:9px 16px;border:1.5px solid var(--accent);border-radius:8px;background:rgba(91,140,245,.08);color:var(--accent);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer" onclick="pickEsql(this)" ${done?'disabled':''}>${c}</button>`).join('')}</div><div id="esqlFb" style="margin-top:14px;display:none"></div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
+  return `<div class="card"><p style="font-size:.85rem;color:var(--txt2);margin-bottom:6px">Tap the answer:</p><p style="font-size:1rem;font-weight:600;margin-bottom:14px">${item.english}</p><div id="esqlChoices" style="display:flex;flex-wrap:wrap;gap:10px">${_shuf(item.choices).map(c=>`<button class="bug-choice${done&&c===correct?' is-answered':''}" data-correct="${c===correct?1:0}" style="white-space:normal;text-align:left;padding:9px 16px;border:1.5px solid var(--accent);border-radius:8px;background:rgba(91,140,245,.08);color:var(--accent);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer" onclick="pickEsql(this)" ${done?'disabled':''}>${c}</button>`).join('')}</div><div id="esqlFb" style="margin-top:14px;${done?'':'display:none'}">${done?`<span style="color:var(--ok)">✓ You’ve answered this one — the correct choice is highlighted.</span> <button class="btn btn-outline btn-sm" style="margin-left:8px" onclick="retryDrill('esqlChoices','esqlFb')">Try again</button>`:''}</div><button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button><div class="hint-panel" id="drill-hint"></div><div class="answer-panel" id="drill-answer"></div></div>`;
 }
 function pickEsql(btn){
   const item=DATA.ESQL[drillState.idx];const fb=document.getElementById('esqlFb');
@@ -2391,7 +2397,7 @@ function cycleHint(){
     var match=findGlossaryTerm(_hd.ans+'');
     var matchTerm=match?(match.term!==undefined?match.term:match[0]):null;
     var learnHtml=matchTerm?'<button class="learn-more-link" onclick="openGlossaryFor(\''+matchTerm.replace(/'/g,"\\'")+'\')">&#x1F4D6; '+matchTerm+'</button>':'';
-    ap.innerHTML='<pre class="answer-code">'+esc+'</pre><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="copy-btn" onclick="doCopy(event)">&#x1F4CB; Copy</button>'+learnHtml+'</div>';
+    ap.innerHTML='<pre class="answer-code">'+esc+'</pre>'+(learnHtml?'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+learnHtml+'</div>':'');
     ap.classList.add('show');
     if(btn)btn.style.display='none';
   }
@@ -2409,13 +2415,6 @@ function openGlossaryFor(term){
     if(s){s.value=term;try{filterGlossary(term);}catch(e){try{filterGlossary();}catch(e2){}}}
   },80);
 }
-function doCopy(e){
-  var btn=e.currentTarget||e.target,orig=btn.textContent;
-  function done(){btn.textContent='✓ Copied!';setTimeout(function(){btn.textContent=orig;},1500);}
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(_hd.ans).then(done).catch(function(){_fbCopy(_hd.ans);done();});}
-  else{_fbCopy(_hd.ans);done();}
-}
-function _fbCopy(t){var a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.top='-9999px';document.body.appendChild(a);a.focus();a.select();try{document.execCommand('copy');}catch(_){}document.body.removeChild(a);}
 /* -- End Hint System JS ---- */
 /* Sprint mode removed. */
 localStorage.removeItem('apk-sprint');
