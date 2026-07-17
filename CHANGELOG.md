@@ -9,6 +9,40 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.163.0] — 2026-07-17 — Power BI kit: path map, badges, return loop + recall answers
+Kit 3 of the Batch 5 rollout, carrying the recall rework in the same pass
+(SQL v1.154.0 + v1.160.0 + v1.161.0 ported to Power BI's state and `pbikt-*` keys).
+
+**Batch 5**
+- Lessons is now a Duolingo-style vertical path map: one rail, a node per lesson,
+  unit headers with progress rings. States are done / current / upcoming — upcoming
+  is dimmed, never locked, and the current node carries the ▶ Continue action.
+  No unit-lab nodes (Power BI has no unit labs yet — that's the B2/B3 effort).
+- Mastery badges on Home: four unit badges over the free core (Units 0-3, so a free
+  learner can fill the whole board without the premium interview tracks), a drills
+  badge across all 36 fills/bug hunts/orderings, 25 recall wins, and three surprise
+  badges. Competence-framed with visible progress; no attendance trinkets.
+- Return loop: a review-due chip and a streak chip on the resume card, one free
+  freeze per rolling week absorbing a single missed day, and sign-off copy that
+  only appears when nothing is due now but something is due next.
+- The path rail and the ring's unfilled track use `--border`, not `--surf2`: the
+  zinc-sky `--color-bg` and light-mode `--surf2` are both `#F5F7F8`, so a `--surf2`
+  rail is invisible on light. Confirmed against the computed body background.
+
+**Recall answers**
+- All 39 lessons × 2 recall cues now carry hand-written answers (78 in total), each
+  1-2 sentences in everyday words and grounded in the kit's own practice data
+  (Sales, Ledger, Orders, Events), so nothing rots when other content changes.
+- Cards flip Anki-style: attempt first, then "Show answer" reveals the answer inline
+  with a link back to the lesson. "Nope, remind me again" is gone — a peeked card
+  re-queues for one more check and does NOT count a recall win.
+- New Review view (Home chip → button) opens every due recall in one place and
+  rescues ones whose path position was skipped; "Practice ahead" pulls future
+  reviews early. Entries stay stored until actually answered.
+- The in-lesson auto-appear flow is untouched — recalls still land in front of you
+  on the path; Review is an extra door, not a replacement.
+- Legacy string cues still render, with a note pointing at the source lesson.
+
 ## [1.162.0] — 2026-07-17 — Python kit: path map, badges, return loop + recall answers
 Kit 2 of the Batch 5 rollout, now carrying the recall rework in the same pass
 (SQL v1.154.0 + v1.160.0 + v1.161.0 ported to Python's state and `ppk-*` keys).

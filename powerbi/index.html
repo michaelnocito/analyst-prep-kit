@@ -124,6 +124,39 @@ p strong{color:var(--text)}
 .lesson-sub{font-size:12px;color:var(--muted)}
 .lesson-arrow{color:var(--muted);font-size:18px}
 
+/* PATH MAP (playtest Batch 5) — Duolingo-style vertical rail. States are
+   done / current / upcoming; upcoming is DIMMED, never locked (soft-guide).
+   Rail is --border, NOT --surf2: zinc-sky sets --color-bg to --stone-100, the
+   same value light mode gives --surf2, so a --surf2 rail vanishes on light. */
+.pmap{position:relative}
+.pmap:before{content:'';position:absolute;left:24px;top:8px;bottom:8px;width:3px;background:var(--border);border-radius:2px}
+.pmap-unit{display:flex;align-items:center;gap:12px;position:relative;padding:16px 0 8px;margin-top:6px}
+.pmap-unit-name{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.pmap-unit-sub{font-size:12px;color:var(--muted)}
+.pmap-ring{flex-shrink:0;background:var(--bg);border-radius:50%;position:relative;z-index:1;margin-left:8px}
+.pmap-node{display:flex;gap:14px;align-items:flex-start;position:relative;padding:10px 12px 10px 0;margin:4px 0;cursor:pointer;border-radius:var(--r2);transition:.15s}
+.pmap-node:hover .pmap-title{color:var(--accent)}
+.pmap-dot{width:34px;height:34px;border-radius:50%;background:var(--surf2);color:var(--muted);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;border:2px solid var(--border);position:relative;z-index:1;margin-left:8px}
+.pmap-node.done .pmap-dot{background:var(--accent);border-color:var(--accent);color:#fff}
+.pmap-node.current{background:var(--surf);border:1px solid var(--accent);padding:12px;margin-left:-4px;box-shadow:var(--shadow)}
+.pmap-node.current .pmap-dot{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 22%, transparent)}
+.pmap-node.up{opacity:.55}
+.pmap-node.up:hover{opacity:.9}
+.pmap-title{font-weight:600;font-size:14px}
+.pmap-sub{font-size:12px;color:var(--muted)}
+
+/* MASTERY BADGES (playtest Batch 5) — competence-framed, visible progress */
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:10px}
+.badge-tile{border:1px solid var(--border);border-radius:var(--r2);padding:12px 8px;text-align:center;background:var(--surf2);opacity:.75}
+.badge-tile.got{background:var(--surf);border-color:var(--accent);opacity:1}
+.badge-tile.secret{border-style:dashed}
+.badge-ico{font-size:22px;line-height:1.2}
+.badge-name{font-size:12px;font-weight:700;margin-top:4px}
+.badge-prog{font-size:11px;color:var(--muted);font-family:var(--mono)}
+
+/* STREAK + REVIEW CHIPS on the resume card (playtest Batch 5) */
+.loop-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:20px;padding:3px 12px;font-size:12.5px;font-weight:600;color:#fff;margin:0 6px 10px 0}
+
 /* READ-ALOUD → Grain "Say It Out Loud" card */
 .ral-block{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:0;box-shadow:var(--shadow)}
 .ral-head{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--surf2);border-bottom:1px solid var(--border);font-family:var(--font);font-weight:600;font-size:13px;color:var(--text)}
@@ -359,6 +392,9 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .recall-header .lucide{width:14px;height:14px}
 .recall-cues{margin:0 0 12px 16px;padding:0;font-size:14px;line-height:1.65;color:var(--text)}
 .recall-btns{display:flex;gap:8px;flex-wrap:wrap}
+.loop-chip-btn{cursor:pointer;font:inherit;border:none}
+.loop-chip-btn:hover{filter:brightness(1.12)}
+.recall-ans{margin:6px 0 2px;padding:8px 12px;background:color-mix(in srgb, var(--warn,#d9963a) 9%, transparent);border-left:3px solid var(--warn,#d9963a);border-radius:0 6px 6px 0;font-size:13.5px;line-height:1.6;color:var(--text)}
 .artifact-bridge{font-size:13px;color:var(--muted);margin-bottom:12px;padding:0 2px}
 .retrieval-note{font-size:12px;color:var(--muted);font-style:italic;margin:0 0 10px}
 .v2-mode-btn{background:none;border:1px solid var(--border);border-radius:20px;color:var(--muted);font:inherit;font-size:12px;cursor:pointer;padding:4px 12px;transition:.15s;margin-left:auto}
@@ -1434,6 +1470,8 @@ let state = {
   flagged: [],
   cardsReviewed: [],
   unitReviewsDone: [],
+  badgesEarned: [],
+  badgeMarks: {},
   theme: 'light'
 };
 function loadState(){
@@ -1443,7 +1481,19 @@ function loadState(){
 }
 function saveState(){ localStorage.setItem(SK, JSON.stringify(state)); }
 function markDone(arr, id){
-  if(!state[arr].includes(id)){ state[arr].push(id); saveState(); }
+  if(!state[arr].includes(id)){
+    state[arr].push(id);
+    // Surprise-badge marks (Batch 5): record when-you-learn facts on lesson finishes.
+    if(arr === 'doneLessons'){
+      const h = new Date().getHours(), dw = new Date().getDay();
+      state.badgeMarks = state.badgeMarks || {};
+      if(h < 8) state.badgeMarks.early = true;
+      if(h >= 22) state.badgeMarks.night = true;
+      if(dw === 0 || dw === 6) state.badgeMarks.weekend = true;
+    }
+    saveState();
+    if(typeof checkBadges === 'function') checkBadges();
+  }
 }
 // Per-lesson reset: clears just THIS lesson's completion so the quiz is fresh.
 function resetLesson(id){
@@ -1495,6 +1545,7 @@ function navigate(view, ...args){
   window.scrollTo(0,0);
   if(view==='home') renderHome();
   else if(view==='lessons') renderLessons();
+  else if(view==='review') renderReview();
   else if(view==='lesson') renderLesson(args[0]);
   else if(view==='practice') renderPractice();
   else if(view==='workspace') renderWorkspace();
@@ -1621,10 +1672,22 @@ function renderHome(){
   const _greet=(_lastVisit&&_lastVisit!==_today)
     ? `<p style="font-size:13px;opacity:.75;margin-top:4px">Good to have you back. Pick up where you left off.</p>` : '';
 
+  // Return loop (Batch 5): streak chip + review-due chip + soft sign-off copy.
+  const _streak = getStreak();
+  const _due = reviewsDue();
+  checkBadges(true); // catch up quietly (e.g. progress earned before badges existed)
+  const _qLen = _getRecallQ().length;
+  const _chips =
+    (_streak.n > 1 ? `<span class="loop-chip">🔥 ${_streak.n}-day streak${_streak.froze ? ' · a free freeze kept it alive' : ''}</span>` : '') +
+    (_qLen > 0 ? `<button class="loop-chip loop-chip-btn" onclick="navigate('review')">🔁 ${_due.now>0 ? `${_due.now} review${_due.now>1?'s':''} due` : `${_qLen} queued`} — Review now →</button>` : '');
+  const _signoff = (_due.now === 0 && _due.soon > 0)
+    ? `<p style="font-size:13px;opacity:.75;margin-top:4px">Come back tomorrow — ${_due.soon} quick review${_due.soon>1?'s':''} will be waiting.</p>` : '';
+
   const resumeHtml = next
     ? `<div class="resume-card">
+        ${_chips ? `<div>${_chips}</div>` : ''}
         <h2>Continue Learning</h2>
-        <p>Up next: <strong>Lesson ${lessonPos(next.id)+1} — ${next.title}</strong></p>${_greet}
+        <p>Up next: <strong>Lesson ${lessonPos(next.id)+1} — ${next.title}</strong></p>${_greet}${_signoff}
         <button class="btn" onclick="navigate('lesson',${next.id})">▶ Resume →</button>
       </div>`
     : `<div class="resume-card">
@@ -1699,6 +1762,7 @@ function renderHome(){
       <div class="text-sm text-muted mb">${done} of ${total} lessons complete (${pct}%)</div>
       ${skillBars}
     </div>
+    ${badgesCardHTML()}
     <div class="card">
       <h2>Lessons</h2>
       ${unitRows}
@@ -1737,19 +1801,48 @@ function renderHome(){
 // ─── LESSONS LIST ──────────────────────────────────────────────────────────
 function lessonPos(id){return DATA.LESSONS.findIndex(l=>l.id===id);}
 function nextLessonId(id){const p=lessonPos(id);return(p>=0&&p<DATA.LESSONS.length-1)?DATA.LESSONS[p+1].id:null;}
+// Playtest Batch 5: the Lessons view is a Duolingo-style vertical path map.
+// One rail, one node per lesson — done / current / upcoming, where upcoming is
+// dimmed, NEVER locked (soft-guide rule); the current node carries Continue.
+// No unit-lab nodes here: Power BI has no UNIT_LABS slices yet (B2/B3 work).
+function _ringSVG(done, total){
+  // Unfilled track is --border, not --surf2 — see the .pmap:before note above.
+  const r=14, c=2*Math.PI*r, p=total?done/total:0;
+  return `<svg class="pmap-ring" width="34" height="34" viewBox="0 0 34 34">
+    <circle cx="17" cy="17" r="${r}" fill="none" stroke="var(--border)" stroke-width="4"/>
+    <circle cx="17" cy="17" r="${r}" fill="none" stroke="var(--accent)" stroke-width="4"
+      stroke-linecap="round" stroke-dasharray="${(p*c).toFixed(1)} ${c.toFixed(1)}"
+      transform="rotate(-90 17 17)"/>
+    ${p>=1?'<text x="17" y="21" text-anchor="middle" font-size="13" fill="var(--accent)">✓</text>':''}
+  </svg>`;
+}
 function renderLessons(){
-  let html = '<h1>Lessons</h1>';
-  let lastUnit = '';
-  DATA.LESSONS.forEach(l => {
-    if(l.unit !== lastUnit){ html += `<div class="unit-label">${l.unit}</div>`; lastUnit = l.unit; }
-    const done = state.doneLessons.includes(l.id);
-    const lock = isPremiumLesson(l)&&window.apkPass ? ' '+apkPass.lessonBadge() : '';
-    html += `<div class="lesson-row" onclick="navigate('lesson',${l.id})">
-      <div class="lesson-num ${done?'done':''}">${done ? '✓' : lessonPos(l.id)+1}</div>
-      <div class="lesson-info"><div class="lesson-title">${l.title}${lock}</div><div class="lesson-sub">${l.sub}</div></div>
-      <div class="lesson-arrow">›</div>
-    </div>`;
+  const cur = DATA.LESSONS.find(l => !state.doneLessons.includes(l.id));
+  const units = [...new Set(DATA.LESSONS.map(l=>l.unit))];
+  let html = `<h1>Your Path</h1>
+    <p class="text-sm text-muted" style="margin:-6px 0 14px">One step at a time, top to bottom. Nothing ahead is locked — dimmed just means it's coming up. The highlighted node is your next step.</p>
+    <div class="pmap">`;
+  units.forEach(u => {
+    const ls = DATA.LESSONS.filter(l=>l.unit===u);
+    const d = ls.filter(l=>state.doneLessons.includes(l.id)).length;
+    html += `<div class="pmap-unit">${_ringSVG(d, ls.length)}<div>
+      <div class="pmap-unit-name">${u}</div>
+      <div class="pmap-unit-sub">${d}/${ls.length} lessons</div></div></div>`;
+    ls.forEach(l => {
+      const done = state.doneLessons.includes(l.id);
+      const isCur = cur && l.id === cur.id;
+      const lock = isPremiumLesson(l)&&window.apkPass ? ' '+apkPass.lessonBadge() : '';
+      html += `<div class="pmap-node ${done?'done':isCur?'current':'up'}" onclick="navigate('lesson',${l.id})">
+        <div class="pmap-dot">${done?'✓':lessonPos(l.id)+1}</div>
+        <div class="pmap-info">
+          <div class="pmap-title">${l.title}${lock}</div>
+          <div class="pmap-sub">${l.sub}</div>
+          ${isCur?`<button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="event.stopPropagation();navigate('lesson',${l.id})">▶ Continue</button>`:''}
+        </div>
+      </div>`;
+    });
   });
+  html += '</div>';
   document.getElementById('main').innerHTML = html;
 }
 
@@ -1944,46 +2037,206 @@ DATA.LESSONS.forEach(l=>{ if(PBI_CHARTS[l.id]) l.chart=PBI_CHARTS[l.id]; });
 // Two retrieval questions per lesson, resurfaced +1/+3/+7 lessons later when
 // the learner rated the lesson "Not yet"/"Almost". One auditable map; the merge
 // loop puts them on l.reinforces so the engine matches Excel's.
+// Each cue is {q, a}: the question the learner answers from memory, and a short
+// hand-written answer revealed on the flip. Answers stay in everyday words and
+// use only this kit's own practice data (Sales, Ledger, Orders, Events) so they
+// never depend on content that might change elsewhere.
 const PBI_REINFORCES = {
-  101:["What does 'grain' mean for a table Power BI loads?","Why must you know what one row represents before you drag a field into a visual?"],
-  102:["Why does a numbers-stored-as-text column break aggregation in Power BI?","Where do you check and fix a column's data type?"],
-  103:["What does 'aggregate' mean when Power BI puts a field in a visual?","Why does the same Sales column show different numbers in different visuals?"],
-  104:["Name the three steps of the Power BI loop and what happens in each.","Which tool shapes data before it lands in the model — and why clean there, not in visuals?"],
-  1:["Name the three main views down Power BI Desktop's left rail and what each is for.","Where do the Fields, Visualizations, and Filters panes sit, and what does each hold?"],
-  2:["Walk through connecting to an Excel file: which button, then what?","What's the difference between Import and DirectQuery?"],
-  3:["How do you build a bar chart from nothing — which two drags?","What decides whether a field lands in the axis or the values well?"],
-  4:["What is a relationship between two tables, and which columns does it connect?","Why does a star schema beat one giant flat table in Power BI?"],
-  5:["When do you use a calculated column vs a measure?","Which one is computed row-by-row at refresh, and which at query time?"],
-  6:["Say a basic DAX measure that sums Sales.","What's the difference between SUM and SUMX?"],
-  7:["What does CALCULATE do to filter context?","Say a measure that counts only 'West' region rows using CALCULATE."],
-  8:["What does TOTALYTD need besides the measure to work?","Why does time intelligence require a proper Date table?"],
-  9:["What's the difference between a slicer and a filter-pane filter?","When would you use a page-level vs visual-level filter?"],
-  10:["What does drill-through hand the target page?","What is cross-filtering — what happens when you click a bar in one visual?"],
-  11:["Name two dashboard-design principles that reduce reader effort.","Why should the most important number be readable in five seconds?"],
-  12:["What's the difference between Publish and Share in Power BI?","What does a workspace app give viewers that a shared report doesn't?"],
-  401:["Which Power Query view shows column quality, distribution, and profile?","Why profile source data BEFORE loading it into the model?"],
-  402:["Where does Remove Duplicates live, and what does it key on?","Why check which columns define uniqueness before removing duplicates?"],
-  403:["Which Power Query transforms standardize messy text?","Why trim and case-normalize before merging on a text column?"],
-  404:["What does Replace Values do with nulls, and when do you use it vs Remove Rows?","Why fix a column's type in Power Query rather than DAX?"],
-  405:["Which two totals do you compare between source and loaded model?","What does a row-count mismatch after load tell you to check first?"],
-  601:["Name the three things a measure definition pins down before you write DAX.","Why do two report pages disagree on 'active customers' from the same model?"],
-  602:["How does SWITCH(TRUE()) turn conditions into named segments?","Why does SWITCH(TRUE()) beat nested IFs for bucketing?"],
-  603:["What does DATEADD(Dates[Date],-1,MONTH) hand CALCULATE?","Month-over-month growth divides which two measures?"],
-  604:["What does TOTALYTD accumulate, and what resets it?","How is a running total different from a plain SUM measure?"],
-  605:["How does CALCULATE count users at each funnel step?","A step's conversion rate divides which two measures?"],
-  606:["What defines a user's cohort in a retention matrix?","Why compare cohorts by 'months since joining' instead of calendar month?"],
-  701:["How does CALCULATE pivot ledger rows into P&L lines?","Which two ledger fields drive each income-statement line?"],
-  702:["Why use DIVIDE instead of / for margins?","Gross, operating, net — what does each margin strip out?"],
-  703:["What question does the current ratio answer?","What does debt-to-equity say about how a company is funded?"],
-  704:["Why is a dollar next year worth less than a dollar today, in NPV terms?","What does a negative NPV tell you about a project?"],
-  705:["Variance = actual minus budget — when is a positive variance BAD?","Why report variance as both dollars and percent of budget?"],
-  706:["What is contribution margin, and which costs does it ignore?","Say the break-even formula in units."],
-  801:["What handful of measures profile a table's shape and health in one pass?","Why profile a table before trusting any report built on it?"],
-  802:["How do you prove what one row represents in the model?","What happens to your totals if the grain is finer than you assumed?"],
-  803:["When does the average lie about a column — and what do you read instead?","How do you surface the rows outside the typical range?"],
-  804:["What does a Pareto / ABC analysis rank and accumulate?","What share of items usually drives most of the total, and why care?"],
-  805:["Two measures move together — name two explanations besides causation.","What language keeps a correlation finding honest in a report?"],
-  806:["What is a control total, and where does a trusted one come from?","What's the last check you run before a dashboard goes live?"]
+  101:[
+    {q:"What does 'grain' mean for a table Power BI loads?",
+     a:"Grain is what one row stands for — one transaction in Sales, one customer in Customers, one SKU in Products. State it out loud before you build anything on top of the table."},
+    {q:"Why must you know what one row represents before you drag a field into a visual?",
+     a:"Every visual aggregates rows, so the wrong grain quietly gives the wrong number. If Sales is at line-item grain but you treat it as one row per order, a relationship fans out and totals inflate."}],
+  102:[
+    {q:"Why does a numbers-stored-as-text column break aggregation in Power BI?",
+     a:"SUM on a text column returns BLANK — no error, just an empty card. Power BI won't do math on text, so the measure fails silently."},
+    {q:"Where do you check and fix a column's data type?",
+     a:"In Power Query: the type icon sits left of each column name, and the auto-inserted \"Changed Type\" step holds Power BI's guesses. Fix it there and Close & Apply, before the data reaches the model."}],
+  103:[
+    {q:"What does 'aggregate' mean when Power BI puts a field in a visual?",
+     a:"It collapses many rows into one number — SUM totals them, COUNTROWS counts them, AVERAGE takes the mean. Every bar and KPI card is an aggregation of the rows underneath it."},
+    {q:"Why does the same Sales column show different numbers in different visuals?",
+     a:"Filter context narrows the rows before the math runs. The West bar sums only West rows; the same SUM(Sales[Revenue]) with no filter gives the grand total."}],
+  104:[
+    {q:"Name the three steps of the Power BI loop and what happens in each.",
+     a:"Load brings data in through Get Data; Shape cleans and transforms it in Power Query; Analyze builds relationships, DAX measures, and visuals on the canvas. Doing them out of order is always more work."},
+    {q:"Which tool shapes data before it lands in the model — and why clean there, not in visuals?",
+     a:"Power Query. Its Applied Steps re-run automatically on every refresh, so the cleanup is permanent; the same fix in DAX bloats the model and has to be repeated per visual."}],
+  1:[
+    {q:"Name the three main views down Power BI Desktop's left rail and what each is for.",
+     a:"Report View is the canvas where you build visuals, Data View shows the raw loaded rows, and Model View is the diagram where you draw and manage relationships."},
+    {q:"Where do the Fields, Visualizations, and Filters panes sit, and what does each hold?",
+     a:"All three sit on the right. Fields lists every table and column to drag from, Visualizations picks the chart type and holds its field wells, and Filters holds visual-, page-, and report-level filters."}],
+  2:[
+    {q:"Walk through connecting to an Excel file: which button, then what?",
+     a:"Home ▸ Get Data ▸ Excel, pick the file and the tables you want, then Transform Data to clean them in Power Query. Close & Apply loads the result into the model."},
+    {q:"What's the difference between Import and DirectQuery?",
+     a:"Import copies the data into the model, so reports are fast but need a refresh to show new data. DirectQuery leaves the data in the source and queries it live — always current, but slower and more limited."}],
+  3:[
+    {q:"How do you build a bar chart from nothing — which two drags?",
+     a:"Click the bar-chart icon in the Visualizations pane, drag Region to Axis, then drag Revenue to Values. Power BI aggregates Revenue for you, Sum by default."},
+    {q:"What decides whether a field lands in the axis or the values well?",
+     a:"What you want it to do: Axis is what you group by (Region, a date), Values is the number being measured (Revenue). Legend is the optional color split."}],
+  4:[
+    {q:"What is a relationship between two tables, and which columns does it connect?",
+     a:"A line drawn in Model View between a shared key — Sales[CustomerID] to Customers[CustomerID]. Once it exists, one visual can use fields from both tables with no join syntax."},
+    {q:"Why does a star schema beat one giant flat table in Power BI?",
+     a:"One fact table (Sales) surrounded by dimensions (Customers, Products, Dates) keeps every table at its own grain and lets filters flow one way, dimension to fact. A flat table repeats data and makes filtering ambiguous."}],
+  5:[
+    {q:"When do you use a calculated column vs a measure?",
+     a:"Use a calculated column for a row-level value you want to group, slice, or put on an axis. Use a measure for any number that should react to filters, like a KPI card behind a Region slicer."},
+    {q:"Which one is computed row-by-row at refresh, and which at query time?",
+     a:"The calculated column computes row by row when the data loads and is stored in the table. The measure computes fresh at query time against the current filter context and stores nothing."}],
+  6:[
+    {q:"Say a basic DAX measure that sums Sales.",
+     a:"Total Revenue = SUM(Sales[Revenue]). The name left of the equals sign is what you'll see in the Fields pane."},
+    {q:"What's the difference between SUM and SUMX?",
+     a:"SUM adds one column straight up. SUMX walks a table row by row, works out an expression for each row, then adds those results — needed when the math happens per row, like discounting each cash flow by its own year."}],
+  7:[
+    {q:"What does CALCULATE do to filter context?",
+     a:"It evaluates an expression under filters you change — adding, replacing, or removing them. It's the only function that modifies filter context, which is why almost every advanced measure uses it."},
+    {q:"Say a measure that counts only 'West' region rows using CALCULATE.",
+     a:"West Orders = CALCULATE(COUNTROWS(Sales), Sales[Region] = \"West\"). The expression comes first, the filter second — swapping them is the usual syntax error."}],
+  8:[
+    {q:"What does TOTALYTD need besides the measure to work?",
+     a:"A date column from a dedicated Date table: TOTALYTD([Total Revenue], Dates[Date]). That table has to be gap-free and marked as a Date Table."},
+    {q:"Why does time intelligence require a proper Date table?",
+     a:"The functions walk the Date table date by date to work out \"year to date\" or \"same period last year\". A gap in the calendar, or forgetting to mark it as a Date Table, breaks the walk and returns wrong-but-plausible numbers."}],
+  9:[
+    {q:"What's the difference between a slicer and a filter-pane filter?",
+     a:"A slicer is a visual on the canvas that viewers click. Filters-pane filters are set by you, the author, and are invisible to most viewers."},
+    {q:"When would you use a page-level vs visual-level filter?",
+     a:"Visual-level scopes to one chart; page-level applies to every visual on that page. Use page-level when the whole page shares the same context, visual-level when only one chart needs narrowing."}],
+  10:[
+    {q:"What does drill-through hand the target page?",
+     a:"The value the user right-clicked, applied to the detail page through its Drill-through field well — right-click the West bar and the detail page opens filtered to West."},
+    {q:"What is cross-filtering — what happens when you click a bar in one visual?",
+     a:"The other visuals on the same page filter or highlight to match your selection. It's on by default; Edit Interactions is where you disable it or switch it to highlight."}],
+  11:[
+    {q:"Name two dashboard-design principles that reduce reader effort.",
+     a:"Hierarchy — the headline KPI top-left, largest, where eyes land first. Color restraint — one or two accents with grey for context, so the number that matters is the one that stands out."},
+    {q:"Why should the most important number be readable in five seconds?",
+     a:"People read a dashboard in an F-pattern and skim long before they study. If the headline takes longer than a glance, the report doesn't get used."}],
+  12:[
+    {q:"What's the difference between Publish and Share in Power BI?",
+     a:"Publish sends your .pbix from Desktop up to a workspace in the Power BI Service. Share then gives specific people view access to what's already there."},
+    {q:"What does a workspace app give viewers that a shared report doesn't?",
+     a:"An app is a packaged, read-only bundle of the workspace's content with its own audience — the cleanest delivery for end users. Sharing a report gives access to that one report only."}],
+  401:[
+    {q:"Which Power Query view shows column quality, distribution, and profile?",
+     a:"The View ribbon — tick Column quality, Column distribution, and Column profile. You get valid/error/empty percentages, distinct and unique counts, and full stats for the selected column."},
+    {q:"Why profile source data BEFORE loading it into the model?",
+     a:"It turns \"looks fine\" into exact counts while the fix is still one Power Query step away. Switch the status bar to profiling the entire data set first — it only samples the top 1,000 rows by default."}],
+  402:[
+    {q:"Where does Remove Duplicates live, and what does it key on?",
+     a:"Home ▸ Remove Rows ▸ Remove Duplicates. It keys on whichever columns you have selected, keeping the first occurrence of each key and dropping the rest."},
+    {q:"Why check which columns define uniqueness before removing duplicates?",
+     a:"It acts only on the selected columns, so the wrong selection deletes real rows. Use Home ▸ Keep Rows ▸ Keep Duplicates to review the repeats first — they often point to an upstream grain problem."}],
+  403:[
+    {q:"Which Power Query transforms standardize messy text?",
+     a:"Transform ▸ Format — Trim strips leading and trailing spaces, Clean removes non-printing characters like line breaks and tabs, and UPPERCASE forces one consistent case."},
+    {q:"Why trim and case-normalize before merging on a text column?",
+     a:"Two values that print identically can differ by a trailing space or by case, and the match silently fails. \"  West \" and \"WEST\" only join once they've been standardized."}],
+  404:[
+    {q:"What does Replace Values do with nulls, and when do you use it vs Remove Rows?",
+     a:"Replace Values swaps null for a default — Region null becomes \"Unassigned\" — and the row keeps its revenue. Use Remove Rows only when the row is genuinely junk; deleting rows throws real data away."},
+    {q:"Why fix a column's type in Power Query rather than DAX?",
+     a:"The type has to be right before data enters the model — a text Date breaks every time-intelligence measure. A Power Query type change is an Applied Step that re-runs on refresh; a DAX workaround just papers over the source."}],
+  405:[
+    {q:"Which two totals do you compare between source and loaded model?",
+     a:"The row count (COUNTROWS on both sides) and a control total (SUM of Amount on both). The count proves every row arrived; the total proves the values survived intact."},
+    {q:"What does a row-count mismatch after load tell you to check first?",
+     a:"That rows didn't migrate — run Merge Queries ▸ Left Anti of source against target to list the exact source rows with no match. That names the missing records instead of guessing at them."}],
+  601:[
+    {q:"Name the three things a measure definition pins down before you write DAX.",
+     a:"What you're aggregating (SUM of Sales[Amount]), which rows count (Status = \"Paid\"), and the time window (which quarter, read off the marked Date table). All three live in CALCULATE's arguments."},
+    {q:"Why do two report pages disagree on 'active customers' from the same model?",
+     a:"They encode different definitions — a different row filter or a different time window. The model isn't wrong; nobody pinned the definition down before writing the DAX."}],
+  602:[
+    {q:"How does SWITCH(TRUE()) turn conditions into named segments?",
+     a:"It checks each condition top to bottom and returns the label of the first one that's true — LifetimeSpend of 1000 or more gives \"High\", then 250 or more gives \"Medium\", otherwise \"Low\"."},
+    {q:"Why does SWITCH(TRUE()) beat nested IFs for bucketing?",
+     a:"It reads as a flat list of threshold-then-label, so adding a tier is one more line instead of re-nesting. Order still matters: list the most restrictive threshold first or a $5,000 customer lands in Medium."}],
+  603:[
+    {q:"What does DATEADD(Dates[Date],-1,MONTH) hand CALCULATE?",
+     a:"The same dates shifted back one month, so CALCULATE re-runs the measure over the prior month. It needs a contiguous marked Date table or it returns blank."},
+    {q:"Month-over-month growth divides which two measures?",
+     a:"The difference over the prior month: DIVIDE(Cur - Prev, Prev), where Cur is this month's [Total Sales] and Prev is the same measure with the dates shifted back by DATEADD."}],
+  604:[
+    {q:"What does TOTALYTD accumulate, and what resets it?",
+     a:"It adds the measure up across every date from the start of the year through the current point in context. January 1 resets it, like a car's trip odometer rolling over."},
+    {q:"How is a running total different from a plain SUM measure?",
+     a:"A plain SUM totals only the rows in the current context, so each month shows just that month. A running total re-sums everything up to the current date, so it climbs across the year."}],
+  605:[
+    {q:"How does CALCULATE count users at each funnel step?",
+     a:"It wraps a distinct count with a filter on the step: Activated = CALCULATE(DISTINCTCOUNT(Events[UserID]), Events[Step] IN {...}). DISTINCTCOUNT counts people, not events — the right grain for a funnel."},
+    {q:"A step's conversion rate divides which two measures?",
+     a:"The deeper stage by the broader one — DIVIDE([Activated], [Visited]). Each stage's IN set must include all deeper steps, or someone who jumped straight to paying drops out of the middle."}],
+  606:[
+    {q:"What defines a user's cohort in a retention matrix?",
+     a:"The month they signed up, stored as a column: Cohort Month = STARTOFMONTH(Customers[SignupDate]). Everyone who joined in January belongs to that cohort for good."},
+    {q:"Why compare cohorts by 'months since joining' instead of calendar month?",
+     a:"It lines the groups up at the same age, so January's month-3 sits beside February's month-3. By calendar month you'd be comparing a three-month-old cohort against a brand-new one."}],
+  701:[
+    {q:"How does CALCULATE pivot ledger rows into P&L lines?",
+     a:"One measure per statement line, each filtering the ledger to that line and summing it: Revenue = CALCULATE(SUM(Ledger[Amount]), Ledger[Line] = \"Revenue\"). Subtotals are then measures built from those measures."},
+    {q:"Which two ledger fields drive each income-statement line?",
+     a:"Ledger[Line] picks which rows belong to that statement line, and Ledger[Amount] is the number that gets summed."}],
+  702:[
+    {q:"Why use DIVIDE instead of / for margins?",
+     a:"DIVIDE returns blank (or your alternate result) when revenue is zero or blank; the slash throws an error that breaks the whole visual. In a matrix, some cell almost always has an empty denominator."},
+    {q:"Gross, operating, net — what does each margin strip out?",
+     a:"Gross takes out cost of goods sold, operating also takes out overhead, and net also takes out interest and tax. Each strips one more layer, so they step down: gross is at least operating, which is at least net."}],
+  703:[
+    {q:"What question does the current ratio answer?",
+     a:"Whether current assets cover current liabilities — could the business pay what's due in the next year? Roughly 1.5 to 3 is comfortable for most industries; much higher can mean cash sitting idle."},
+    {q:"What does debt-to-equity say about how a company is funded?",
+     a:"How much of the funding is borrowed versus the owners' own money — DIVIDE([Total Debt], [Total Equity]). Higher means more leverage, which amplifies both the returns and the risk."}],
+  704:[
+    {q:"Why is a dollar next year worth less than a dollar today, in NPV terms?",
+     a:"A dollar today could be invested and earn a return, so future cash gets discounted by (1 + Rate) raised to that row's year. The Year 0 row isn't discounted, because anything to the power of 0 is 1."},
+    {q:"What does a negative NPV tell you about a project?",
+     a:"Its discounted cash flows come to less than it costs, so at that discount rate it destroys value. DAX ships no NPV function — you build it with SUMX walking the cash-flow rows."}],
+  705:[
+    {q:"Variance = actual minus budget — when is a positive variance BAD?",
+     a:"On a cost line: spending more than planned is a positive number but unfavorable. On revenue, positive means over plan and favorable — the line type is the only thing that separates them."},
+    {q:"Why report variance as both dollars and percent of budget?",
+     a:"Dollars show the size of the miss, percent shows how big it is against the plan. A $10k miss is noise on a $2M line and alarming on a $20k one."}],
+  706:[
+    {q:"What is contribution margin, and which costs does it ignore?",
+     a:"Price minus variable cost — what each unit contributes once the costs that scale with it are paid. It ignores fixed costs, which don't change per unit."},
+    {q:"Say the break-even formula in units.",
+     a:"Fixed costs divided by contribution margin per unit, rounded up: ROUNDUP(DIVIDE([Fixed Costs], [Price] - [Variable Cost]), 0). Past that point each extra unit drops its full contribution to profit."}],
+  801:[
+    {q:"What handful of measures profile a table's shape and health in one pass?",
+     a:"COUNTROWS for size, COUNTBLANK for gaps in a column, and DISTINCTCOUNT for how many unique entities it holds. Power Query's column-quality and distribution panes give the same read visually."},
+    {q:"Why profile a table before trusting any report built on it?",
+     a:"Nulls, repeated keys, and odd distributions all change what a measure means, and they're invisible once the rows are aggregated into a bar. Switch profiling to the entire data set first — it samples the top 1,000 rows by default."}],
+  802:[
+    {q:"How do you prove what one row represents in the model?",
+     a:"Compare COUNTROWS(Orders) against DISTINCTCOUNT(Orders[OrderID]). Equal means one row per order; more rows than distinct keys means the key repeats."},
+    {q:"What happens to your totals if the grain is finer than you assumed?",
+     a:"A non-unique key fans out across the relationship and inflates every measure built through it. Line-item rows treated as if they were orders quietly double-count."}],
+  803:[
+    {q:"When does the average lie about a column — and what do you read instead?",
+     a:"When the data is skewed, a few very large orders drag the mean upward. Read MEDIAN(Orders[Amount]) beside it — the median isn't pulled by extremes, so it's the more honest \"typical\"."},
+    {q:"How do you surface the rows outside the typical range?",
+     a:"Use the spread — STDEV.P(Orders[Amount]) — to see how wide the column runs, and a histogram or Power Query's distribution pane to see the shape and its tail directly."}],
+  804:[
+    {q:"What does a Pareto / ABC analysis rank and accumulate?",
+     a:"It ranks items by size — products by revenue — then accumulates each one's share running down that ranking, so you can read the cumulative percent at any point in the list."},
+    {q:"What share of items usually drives most of the total, and why care?",
+     a:"Roughly the top fifth of products tends to drive about four fifths of revenue. It tells you where attention actually pays off: the A items to protect versus the long tail to leave alone."}],
+  805:[
+    {q:"Two measures move together — name two explanations besides causation.",
+     a:"Coincidence, or a third factor lifting both — a busy season raising spend and revenue at the same time. Reverse direction is a third: the revenue may be driving the spend."},
+    {q:"What language keeps a correlation finding honest in a report?",
+     a:"Say the two \"move together\" or are \"associated\", never that one causes the other, and show the scatter so readers can see the fit for themselves."}],
+  806:[
+    {q:"What is a control total, and where does a trusted one come from?",
+     a:"A known-good figure your model has to match, loaded as its own table so it refreshes with the data. It comes from outside the model — the source system, or finance's closed books."},
+    {q:"What's the last check you run before a dashboard goes live?",
+     a:"Put your measure beside the control total, subtract for the variance, and confirm it ties: Tie Check = IF(ABS([Variance]) &lt; 1, ...). Anything that doesn't tie is a bug you haven't found yet."}]
 };
 DATA.LESSONS.forEach(l=>{ if(PBI_REINFORCES[l.id]) l.reinforces=PBI_REINFORCES[l.id]; });
 
@@ -2016,34 +2269,209 @@ function _syncRecalls(id, l){
   _recallLesson = id;
 }
 function _recallsHTML(){
-  return _pendingRecalls.map((e,i)=>`<div class="recall-card">
+  // Cues may be legacy strings (question only) or {q,a} pairs. Answer reveal is
+  // Anki-style flip: attempt first, then the answer inline — never a dead end.
+  return _pendingRecalls.map((e,i)=>{
+    const cues = e.cues.map(c=>typeof c==='string'?{q:c,a:null}:c);
+    const open = !!e._open;
+    const hasAns = cues.some(c=>c.a);
+    return `<div class="recall-card">
     <div class="recall-header"><i data-lucide="repeat-2"></i> Quick recall — no peeking</div>
-    <ul class="recall-cues">${e.cues.map(c=>`<li>${c}</li>`).join('')}</ul>
+    <ul class="recall-cues">${cues.map(c=>`<li>${c.q}${open&&c.a?`<div class="recall-ans">${c.a}</div>`:''}</li>`).join('')}</ul>
+    ${open&&!hasAns?`<p class="text-muted text-sm" style="margin:0 0 10px">This one predates stored answers — the lesson below has it.</p>`:''}
+    ${open?`<div style="margin-bottom:10px"><button class="btn btn-ghost btn-sm" onclick="recallOpenLesson(${i})">Open that lesson →</button></div>`:''}
     <div class="recall-btns">
-      <button class="btn btn-primary btn-sm" onclick="recallGotIt(${i})">I remembered it</button>
-      <button class="btn btn-ghost btn-sm" onclick="recallNope(${i})">Nope, remind me again</button>
+      ${open
+        ? `<button class="btn btn-primary btn-sm" onclick="recallGotNow(${i})">Got it now</button>
+           <span class="text-muted" style="font-size:12px;align-self:center">This one will come back tomorrow for a real check.</span>`
+        : `<button class="btn btn-primary btn-sm" onclick="recallGotIt(${i})">I remembered it</button>
+           <button class="btn btn-ghost btn-sm" onclick="recallShowAns(${i})">Show answer</button>`}
     </div>
-  </div>`).join('');
+  </div>`;}).join('');
 }
 function _refreshRecalls(){
-  const el=document.getElementById('v2-recalls');
+  // Cards render in two homes: inline at a lesson (#v2-recalls) or the
+  // on-demand Review view (#review-recalls), which gets an empty state.
+  const el=document.getElementById('v2-recalls')||document.getElementById('review-recalls');
   if(!el) return;
-  if(!_pendingRecalls.length){el.style.display='none';return;}
+  if(!_pendingRecalls.length){
+    if(el.id==='review-recalls'){ el.innerHTML=_reviewEmptyHTML(); }
+    else el.style.display='none';
+    if(window.lucide) lucide.createIcons();
+    return;
+  }
   el.innerHTML=_recallsHTML();
   if(window.lucide) lucide.createIcons();
 }
+
+// ─── REVIEW NOW (on-demand recall surface) ─────────────────────────────────
+// Recalls normally fire when the path reaches their due position — which also
+// means a skipped position strands them silently. This view pulls everything
+// due (dueAt <= current position) on demand, and can pull the rest early.
+function renderReview(){
+  const p=_pathPos(), q=_getRecallQ();
+  // Entries stay in storage until actually answered (_consumeStored) — closing
+  // the tab mid-review must not lose them.
+  _pendingRecalls=q.filter(e=>e.dueAt<=p);
+  // "Got it now" re-queues relative to this lesson; anchor it at the path front.
+  const next=DATA.LESSONS.find(l=>!state.doneLessons.includes(l.id));
+  _recallLesson=next?next.id:DATA.LESSONS[DATA.LESSONS.length-1].id;
+  document.getElementById('main').innerHTML=`
+    <div class="row mb">
+      <button class="btn btn-ghost btn-sm" onclick="navigate('home')">← Home</button>
+    </div>
+    <h1>Review</h1>
+    <p class="text-muted" style="margin-bottom:16px">Every recall that's due, in one place — answer from memory first, flip when you can't.</p>
+    <div id="review-recalls"></div>`;
+  _refreshRecalls();
+}
+function _reviewEmptyHTML(){
+  const n=_getRecallQ().length;
+  return n>0
+    ? `<div class="card"><p style="margin:0 0 10px">🎉 Nothing due right now — ${n} review${n>1?'s':''} queued for later spots on the path.</p>
+       <button class="btn btn-primary btn-sm" onclick="reviewAhead()">Practice ahead — review ${n>1?'them':'it'} early</button></div>`
+    : `<div class="card"><p style="margin:0">🎉 Nothing queued. Rate a lesson "Not yet" or "Almost" on its confidence chips and its recall questions will land here.</p></div>`;
+}
+function reviewAhead(){
+  _pendingRecalls=_getRecallQ().slice();
+  _refreshRecalls();
+}
+// Remove ONE stored copy of an answered entry. In the lesson flow entries were
+// already dequeued from storage, so this is a no-op there; in the Review view
+// they stay stored until answered, and this is what consumes them.
+function _consumeStored(e){
+  const arr=_getRecallQ();
+  const i=arr.findIndex(x=>x.srcId===e.srcId&&x.dueAt===e.dueAt);
+  if(i>=0){ arr.splice(i,1); _saveRecallQ(arr); }
+}
 function recallGotIt(i){
-  _pendingRecalls.splice(i,1);
+  const e=_pendingRecalls.splice(i,1)[0];
+  if(e) _consumeStored(e);
   const w=parseInt(localStorage.getItem('pbikt-recall-wins')||'0')+1;
   localStorage.setItem('pbikt-recall-wins',String(w));
   _refreshRecalls();
 }
-function recallNope(i){
+function recallShowAns(i){
+  if(_pendingRecalls[i]) _pendingRecalls[i]._open = true;
+  _refreshRecalls();
+}
+function recallOpenLesson(i){
+  const e=_pendingRecalls[i];
+  if(e && e.srcId!=null) navigate('lesson', e.srcId);
+}
+// A revealed answer is not a successful recall: it re-queues for one more
+// spaced check and does NOT count toward the recall-wins streak.
+function recallGotNow(i){
   const e=_pendingRecalls.splice(i,1)[0];
+  _consumeStored(e);
   const arr=_getRecallQ();
   arr.push({cues:e.cues, srcId:e.srcId, dueAt:lessonPos(_recallLesson)+1});
   _saveRecallQ(arr);
   _refreshRecalls();
+}
+
+// ─── RETURN LOOP + MASTERY BADGES (playtest Batch 5) ────────────────────────
+// Review-due queue is the primary return hook (spaced retrieval is real
+// learning); streak with one free freeze/week is secondary. All localStorage.
+
+// The recall queue is keyed by LESSON POSITION (dueAt = pos + 1/3/7), so
+// "due" means: will surface on or before the lesson you'd open next.
+function _pathPos(){
+  const n = DATA.LESSONS.find(l => !state.doneLessons.includes(l.id));
+  return n ? lessonPos(n.id) : DATA.LESSONS.length;
+}
+function reviewsDue(){
+  const p = _pathPos(), q = _getRecallQ();
+  return {
+    now:  q.filter(e => e.dueAt <= p).length,      // fires on your next lesson
+    soon: q.filter(e => e.dueAt <= p + 1).length,  // fires within the next two
+  };
+}
+
+// Streak: one count per LOCAL calendar day the kit is opened. A single missed
+// day is absorbed by one free freeze per rolling week (gentle copy — a broken
+// streak should never feel like a reset of the learning itself).
+function getStreak(){
+  try { return JSON.parse(localStorage.getItem('pbikt-streak')) || {}; } catch(e){ return {}; }
+}
+function _localDay(d = new Date()){
+  const p = n => String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+function _dayDiff(a, b){ return Math.round((new Date(b+'T12:00') - new Date(a+'T12:00')) / 86400000); }
+function bumpStreak(){
+  const s = getStreak(), today = _localDay();
+  if(s.last === today) return s;
+  delete s.froze;
+  if(!s.last){ s.n = 1; }
+  else {
+    const gap = _dayDiff(s.last, today);
+    if(gap === 1) s.n = (s.n||0) + 1;
+    else if(gap === 2 && (!s.lastFreeze || _dayDiff(s.lastFreeze, today) >= 7)){
+      s.n = (s.n||0) + 1; s.lastFreeze = today; s.froze = true; // freeze absorbed the missed day
+    }
+    else s.n = 1;
+  }
+  s.last = today;
+  localStorage.setItem('pbikt-streak', JSON.stringify(s));
+  return s;
+}
+
+// Competence-framed mastery badges: each marks something you can now DO, with
+// visible progress toward it. A few surprise badges (hidden until earned) for
+// delight. Deliberately NO attendance trinkets — the streak above is shown as
+// a count, never converted into a reward.
+// Units 0-3 are the free core; Units 4-7 are premium (isPremiumLesson), so
+// they get no unit badge — a free learner can still fill the whole board.
+function _unitProg(re){
+  let d=0, t=0;
+  DATA.LESSONS.forEach(l => { if(re.test(l.unit)){ t++; if(state.doneLessons.includes(l.id)) d++; } });
+  return [d, t];
+}
+const BADGES = [
+  {id:'u0',      icon:'🧭', label:'Ground Truth',     desc:'Finish every Before You Build lesson',     prog:()=>_unitProg(/Unit 0:/)},
+  {id:'u1',      icon:'🖥️', label:'Desktop Native',   desc:'Finish every The Interface & Data lesson', prog:()=>_unitProg(/Unit 1:/)},
+  {id:'u2',      icon:'🧮', label:'DAX Speaker',      desc:'Finish every DAX & Measures lesson',       prog:()=>_unitProg(/Unit 2:/)},
+  {id:'u3',      icon:'📊', label:'Report Builder',   desc:'Finish every Reports & Insights lesson',   prog:()=>_unitProg(/Unit 3:/)},
+  {id:'drills',  icon:'🛠️', label:'Drill Polisher',   desc:'Complete every fill, bug hunt, and ordering drill',
+    prog:()=>[state.doneFills.length + state.doneBugs.length + state.doneParsons.length,
+              DATA.FILLS.length + DATA.BUGS.length + DATA.PARSONS.length]},
+  {id:'recall25',icon:'🧠', label:'Steel Trap',       desc:'Nail 25 spaced-recall checks from memory',
+    prog:()=>[Math.min(25, parseInt(localStorage.getItem('pbikt-recall-wins')||'0')), 25]},
+  {id:'early',   icon:'🌅', label:'Early Bird',       desc:'Finish a lesson before 8am',   secret:true, prog:()=>[(state.badgeMarks||{}).early?1:0, 1]},
+  {id:'night',   icon:'🌙', label:'Night Owl',        desc:'Finish a lesson after 10pm',   secret:true, prog:()=>[(state.badgeMarks||{}).night?1:0, 1]},
+  {id:'weekend', icon:'🧺', label:'Weekend Analyst',  desc:'Finish a lesson on a weekend', secret:true, prog:()=>[(state.badgeMarks||{}).weekend?1:0, 1]},
+];
+function checkBadges(quiet){
+  state.badgesEarned = state.badgesEarned || [];
+  let changed = false;
+  BADGES.forEach(b => {
+    const [d, t] = b.prog();
+    if(t > 0 && d >= t && !state.badgesEarned.includes(b.id)){
+      state.badgesEarned.push(b.id);
+      changed = true;
+      if(!quiet) showToast(`${b.icon} Badge earned: ${b.label}!`);
+    }
+  });
+  if(changed) saveState();
+}
+function badgesCardHTML(){
+  const earned = state.badgesEarned || [];
+  const tiles = BADGES.filter(b => !b.secret || earned.includes(b.id)).map(b => {
+    const [d, t] = b.prog();
+    const got = earned.includes(b.id) || (t > 0 && d >= t);
+    return `<div class="badge-tile${got?' got':''}" title="${b.desc}">
+      <div class="badge-ico">${got ? b.icon : '○'}</div>
+      <div class="badge-name">${b.label}</div>
+      <div class="badge-prog">${got ? 'Earned' : d+'/'+t}</div>
+    </div>`;
+  }).join('');
+  const secretN = BADGES.filter(b => b.secret && !earned.includes(b.id)).length;
+  return `<div class="card">
+    <h2>Badges</h2>
+    <p class="text-sm text-muted" style="margin:0 0 10px">Each badge marks a skill you can now do — the count fills as you learn, not as you show up.</p>
+    <div class="badge-grid">${tiles}${secretN ? `<div class="badge-tile secret"><div class="badge-ico">✦</div><div class="badge-name">${secretN} surprise badge${secretN>1?'s':''}</div><div class="badge-prog">found by playing</div></div>` : ''}</div>
+  </div>`;
 }
 
 function getPbiStage(lid){ return ((state.lessonStage||{})[lid]) ?? 0; }
@@ -2899,7 +3327,8 @@ function renderSettings(){
 function resetProgress(){
   if(!confirm('Reset all progress? This cannot be undone.')) return;
   state.doneLessons=[]; state.doneFills=[]; state.doneBugs=[]; state.doneParsons=[];
-  ['pbikt-recalls','pbikt-recall-wins','pbikt-last-visit'].forEach(k=>localStorage.removeItem(k));
+  state.badgesEarned=[]; state.badgeMarks={};
+  ['pbikt-recalls','pbikt-recall-wins','pbikt-last-visit','pbikt-streak'].forEach(k=>localStorage.removeItem(k));
   _pendingRecalls=[]; _recallLesson=null;
   saveState(); navigate('home');
 }
@@ -2927,6 +3356,7 @@ function showToast(msg){
 
 // ─── INIT ──────────────────────────────────────────────────────────────────
 loadState();
+bumpStreak(); // Batch 5 return loop: opening the kit counts toward today's streak
 navigate('home');
 /* Cert-kit deep link: /powerbi/#lesson-<id> opens that lesson directly. */
 window.addEventListener('load', function(){
