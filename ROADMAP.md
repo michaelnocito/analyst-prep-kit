@@ -49,7 +49,7 @@
 > **Wave 2 — flagship standalone apps (parallel or post-launch):**
 > - `michaelnocito.github.io/art` (Grain-orange `#B5552F`) — SMALL
 > - `keygarden` (calm-blue, index + offline) — SMALL  [then retire dupes: keyform-handoff, keygarden-handoff]
-> - `spreadsheet-archaeology` (calm-blue ×3) + `tableau-archaeology` (×1) + `spreadsheet-cleaner/docs` (×1) — MEDIUM, shared token recipe
+> - `spreadsheet-archaeology` (calm-blue ×3, INCLUDES the live tableau/ surface) + `spreadsheet-cleaner/docs` (×1) — MEDIUM, shared token recipe. ⚠️ the standalone `tableau-archaeology` repo is ARCHIVED/read-only (can't push) — its DESIGN_SYSTEM.md was updated locally but the LIVE Tableau Archaeology is `spreadsheet-archaeology/tableau/`; skip the archived repo.
 > - `recordforge/docs` landing (calm-blue) — SMALL  [app `ui.html` copper = separate decision: align app chrome or landing-only]
 > - `draw-lab` (Grain-orange app UI) — SMALL  [retire GAMES/draw-lab dupe]
 > - `playtest-tracker` (Grain-orange multi-ramp token set) — MEDIUM
