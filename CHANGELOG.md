@@ -9,6 +9,31 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.167.0] — 2026-07-18 — SQL kit: mobile code blocks wrap instead of scroll (playtest triage)
+From Mike's 2026-07-18 playtest notes (mobile is most of the traffic): SQL code
+blocks forced a horizontal scroll inside the box, and the fill-in-the-blank
+partial (`white-space:pre`, no containment) overflowed the viewport so the whole
+page could be panned left/right.
+
+### Fixed
+- `.fill-partial` now has `overflow-x:auto` so it can never push past the
+  viewport (was the source of the whole-page horizontal pan on mobile).
+- On `@media(max-width:600px)`, the four code classes — `.ral-sql`,
+  `.code-broken`, `.code-fixed`, `.fill-partial` — switch to
+  `white-space:pre-wrap; overflow-wrap:anywhere`, so long SQL wraps in-box
+  instead of forcing a scroll. The SQL's own line breaks are preserved; only the
+  overflow wraps. Desktop (>600px) keeps `white-space:pre` + `overflow-x:auto`
+  unchanged — Mike prefers scroll there. No page-level `overflow-x:hidden` (the
+  sticky nav and sprint bar would break); the fix is at the source instead.
+- Verified at 375px: all four classes wrap, none overflow their box, page no
+  longer pans (docScrollWidth == viewport). Desktop at 1000px unchanged.
+
+### Roadmap (not in this release)
+- **Mobile initiative** (Mike's note): focused research on mobile optimization
+  for learning apps + a per-kit gap analysis, then a plan. Same code-overflow
+  fix applies to **powerbi (6), python (4), stats (1)** per the cross-kit grep;
+  excel/tableau/interview/forecasting/chart-literacy/final/simulator are clean.
+
 ## [1.166.0] — 2026-07-17 — Excel kit: recall answers circle-back — the recall rework train is COMPLETE
 Excel shipped Batch 5 at v1.156.0 before the recall rework existed; this
 circle-back brings it to parity, closing the rollout across all six lesson kits.

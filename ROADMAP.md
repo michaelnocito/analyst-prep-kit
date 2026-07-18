@@ -34,6 +34,23 @@
 > entries (strings in <kit>-recalls localStorage) must keep rendering: reveal shows
 > the lesson link + "predates stored answers" note (see SQL's _recallsHTML).
 
+> ### 🧪 SQL-KIT PLAYTEST TRIAGE 2026-07-18 — MOBILE CODE-OVERFLOW (4 inbox notes) — SQL fix ✅ v1.167.0; mobile initiative = roadmap
+> Mike's 2026-07-18 notes (mobile is most of the traffic; scrolling a code box adds cognitive friction):
+> - **Fixed this pass (SQL, v1.167.0):** code blocks (`.ral-sql`, `.code-broken`, `.code-fixed`, `.fill-partial`)
+>   used `white-space:pre`, forcing an in-box horizontal scroll; `.fill-partial` had no containment and
+>   overflowed the viewport, so the whole page could be panned. Fix: `.fill-partial` gets `overflow-x:auto`,
+>   and on `@media(max-width:600px)` all four switch to `pre-wrap; overflow-wrap:anywhere`. Desktop unchanged
+>   (Mike prefers scroll there). Verified at 375px (wrap, no box overflow, no page pan) and 1000px (unchanged).
+> - **Answered (no code change):** the "predates stored answers" recall note only shows on cues queued before
+>   the {q,a} rework; it ages out as those clear, all new recalls carry answers.
+> - **ROADMAP — "Mobile initiative" (Mike's explicit ask):** focused research on mobile-optimization for
+>   learning apps + a per-kit gap analysis, then a plan (he expects mobile to matter more than desktop).
+>   **Cross-kit applicability of THIS code-overflow fix (grep `white-space:pre` non-wrap):**
+>   `powerbi` (6) · `python` (4) · `stats` (1) share the defect — same one-line media-query fix.
+>   `excel · tableau · interview · forecasting · chart-literacy · final · simulator` = clean (0).
+>   Roll the fix per-kit under the mobile initiative, one kit per chat, verifying each at 375px.
+>   Tracker: 4 inbox notes triaged back (3 `fixed`, 1 `roadmap`) on 2026-07-18.
+>
 > ### 🧪 SQL-KIT PLAYTEST TRIAGE 2026-07-17 — LAB & MOBILE PASS — ✅ ALL THREE BATCHES SHIPPED 2026-07-17 (T1 v1.157.0 · T2 v1.158.0 · T3 v1.159.0), awaiting Mike's retest
 > Mike's go: "go in your recommended order, largest chunks of building possible." Each batch
 > shipped across ALL applicable kits in one commit. T3 built per my recommendation (14/16
