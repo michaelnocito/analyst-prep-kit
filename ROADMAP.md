@@ -34,6 +34,53 @@
 > entries (strings in <kit>-recalls localStorage) must keep rendering: reveal shows
 > the lesson link + "predates stored answers" note (see SQL's _recallsHTML).
 
+> ## 🎯 PORTFOLIO INITIATIVES (2026-07-18 — Mike as sponsor, Claude as lead PM)
+> Two portfolio-wide workstreams opened 2026-07-18. Basis: a 4-way parallel repo audit (all 41 repos). Scope decisions (Mike, 2026-07-18): **(A) EVERY non-game web surface migrates to Zinc & Sky** (not just the orange ones — the blue/teal-era apps too); **(B) games keep their own art** — only their chrome/landing surfaces align.
+>
+> ### 🎨 A. PORTFOLIO BRAND MIGRATION → ZINC & SKY  _(supersedes the parked "Grain Phase 4")_
+> Target = Zinc & Sky (`assets/grain/zinc-sky.css`; light zinc + deep-cyan `#0E7490`, dark electric-sky `#38BDF8`). Three legacy eras still live: **Grain-orange `#C5511F`** (the one Mike flagged), **calm-blue `#2f6df0`**, **teal `#58aaa2`**, plus bespoke palettes.
+>
+> **PREREQUISITE (do FIRST — highest leverage):** `spreadsheet-archaeology/DESIGN_SYSTEM.md` — the documented source-of-truth spec — is a full brand-generation STALE (still calm-blue `#2f6df0`, zero mention of zinc/`#0E7490`). Update it to Zinc & Sky before/with the surface work, or future edits regenerate the wrong palette. Check `tableau-archaeology/DESIGN_SYSTEM.md` for the same.
+>
+> **Wave 1 — launch-funnel surfaces (BEFORE Aug 1; cheap + high-visibility, all inside analyst-prep-kit):**
+> - 6 Grain-orange kit pages — **1-line `zinc-sky.css` link each** (SMALL): interview · final · simulator · projects · excel-cert · powerbi-cert. (`interview` is the standing "NEXT" in the zinc-sky handoff.)
+> - 15 inline-hardcoded Grain-orange pages (MEDIUM — no shared sheet, no light theme, hand-edit each): `guides/` (index + 12 subpages) · `privacy.html` · `terms.html`.
+>
+> **Wave 2 — flagship standalone apps (parallel or post-launch):**
+> - `michaelnocito.github.io/art` (Grain-orange `#B5552F`) — SMALL
+> - `keygarden` (calm-blue, index + offline) — SMALL  [then retire dupes: keyform-handoff, keygarden-handoff]
+> - `spreadsheet-archaeology` (calm-blue ×3) + `tableau-archaeology` (×1) + `spreadsheet-cleaner/docs` (×1) — MEDIUM, shared token recipe
+> - `recordforge/docs` landing (calm-blue) — SMALL  [app `ui.html` copper = separate decision: align app chrome or landing-only]
+> - `draw-lab` (Grain-orange app UI) — SMALL  [retire GAMES/draw-lab dupe]
+> - `playtest-tracker` (Grain-orange multi-ramp token set) — MEDIUM
+> - hidden-gems-list trio (music/steam/streaming — ONE shared navy/teal/gold design) — SMALL (fix once, apply thrice)
+>
+> **Wave 3 — SPAs needing a rebuild (MEDIUM each; baked hexes + Vite build):**
+> - `excel-dry-run` (calm-blue) · `sql-dry-run` (indigo) · `excel-interview` (blue/purple) · `prep-companion-apps` (teal hub, 4 pages — the live Sprint home)
+>
+> **Wave 4 — bespoke / low-ROI (LARGE; align chrome only, art stays):**
+> - `sql-quest` (teal chrome — battlefield art stays per Mike's SQL-Quest call) · `sql-trail` (terminal-green) · `plant-propagation`/Rootwork (botanical; app + mockup) · `good-enough-analytics` (Nord — NOT deployed, lowest priority)
+>
+> **RETIRE / REDIRECT (cleanup DECISION, not reskin — removes ~8 fake work items):**
+> - 6 stale standalone dupes superseded by the monorepo: `excel/sql/python/stats/tableau-prep-kit` + `excel-lessons` → retire or 301 to `analyst-prep-kit/<kit>/`.
+> - Dead redirect stubs (already redirect to prep-companion-apps): `excel-sales-sprint`, `sql-sales-sprint`.
+> - Byte-identical dupes to flag so they don't drift/redeploy: `GAMES/draw-lab`, `keyform-handoff`, `keygarden-handoff`, `recordforge/recordforge/ui/ui.html`.
+> - No web surface (excluded entirely): music-hidden-gems, streaming-hidden-gems, github-traffic, draw-lab-coach (API), codekeys (tray), apk-portfolio-hidden-gems, sql-prompt-pack, michaelnocito (README).
+>
+> **Cadence:** DESIGN_SYSTEM.md first; then one surface-group per chat (same one-per-chat discipline as the kit rollouts); verify each on the LIVE URL in both light + dark before shipping.
+>
+> ### 🔒 B. PREMIUM — AUGUST LAUNCH GAP ANALYSIS (bare minimum to charge)
+> **VERIFIED against current code 2026-07-18 (not memory):** the gate is BUILT and working — `MODE='founding'`, `apk-pass.js` gating the 4 tool kits (excel/sql/python/powerbi premium units) **and the Final Exam whole-kit gate** (`final/index.html` `apkPass.isUnlocked()` → `gateHTML`). BMC founding product LIVE ($5.55/yr, code `PREP-PASS-2026`). So catalog + gate + storefront already exist — the gap is smaller than the older notes implied.
+>
+> **BARE MINIMUM to launch premium in August (ordered):**
+> 1. **DECISION (Mike) — gate enforcement level.** Gate is client-side only (view-source/devtools bypass). **PM rec: ship Aug 1 on the client-side gate** (honest founding framing, ~5 users, negligible $ at risk); land server-side Supabase Edge Function enforcement as a **Q3 fast-follow** — do NOT block the Aug 1 date on it. (Already scoped in the High-bucket PAYWALL item.)
+> 2. **MODE + copy call.** Keep `founding` as the launch hook (recommended) vs flip to `live` ($11.11/mo). Rec: keep founding through a launch window, flip later.
+> 3. **Post-purchase "unlocked" UX** (existing Medium item) — after unlock, clearly mark which lessons/kits are now open (lesson-list badge + hub). Small, real trust win.
+> 4. **Manual (Mike — automation-blocked):** upload BMC cover PNGs (`assets/cover-all-access-pass-*.png`); rewrite BMC public About + banner (still old gardening copy); **verify the live buy flow end-to-end** (founding button → $5.55 checkout → code shows post-purchase).
+> 5. **Catalog polish (NICE-TO-HAVE, not a blocker):** fill Excel Dry Run question bank (~20% stocked) toward SQL Dry Run parity; playtest + publish good-enough-analytics. These EXPAND the paid tier; it can launch without them.
+>
+> **NOT in scope for August** (per the locked quarterly plan): Portfolio Projects = Q3/Nov 1 · Memory & Comprehension = Q4/Feb 1 · AI Coach = Q1 candidate.
+
 > ### 🧪 SQL-KIT PLAYTEST TRIAGE 2026-07-18 — MOBILE CODE-OVERFLOW (4 inbox notes) — SQL fix ✅ v1.167.0; mobile initiative = roadmap
 > Mike's 2026-07-18 notes (mobile is most of the traffic; scrolling a code box adds cognitive friction):
 > - **Fixed this pass (SQL, v1.167.0):** code blocks (`.ral-sql`, `.code-broken`, `.code-fixed`, `.fill-partial`)
@@ -797,7 +844,7 @@ all other buckets are empty.
 
 - **"Hear it" speech button on recall prompts** _(parked June 29, 2026)_ — A small 🔊 button next to each recall-card cue that reads the prompt aloud via the Web Speech API (zero dependency, no API key). Rationale: text prompts for "say it out loud" don't actually compel speech — hearing it spoken first triggers call-and-response naturally and turns a silent read into an active verbal exercise. _Reason parked:_ feature-sized (not a one-liner); the base recall card is new and untested. Promote after Phase D ships and recall cards see real usage. _Est. effort:_ Small-Medium.
 
-- **🎨 GRAIN PHASE 4 — cross-kit surfaces + polish** _(parked June 25, 2026 — revisit ~July 25, 2026)_
+- **🎨 GRAIN PHASE 4 — cross-kit surfaces + polish** _(parked June 25, 2026 — ⚠️ SUPERSEDED 2026-07-18: Grain itself was replaced by Zinc & Sky; the cross-kit/portfolio surface work is now the "PORTFOLIO BRAND MIGRATION → ZINC & SKY" epic at the top of this file. The token-unification/polish sub-items below remain valid as Zinc & Sky work.)_
   - _What:_ The post-rollout "nice-to-haves" from the Grain brief — (a) cross-kit
     **Cards / Practice / Glossary** surfaces (auto-generate from lesson data), (b)
     **achievements / track badges**, (c) a real **Grain dark palette**, (d) a
