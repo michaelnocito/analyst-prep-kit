@@ -9,6 +9,25 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.168.0] — 2026-07-18 — Brand Wave 1a: 6 remaining kit pages → Zinc & Sky
+Portfolio brand-migration epic, wave 1 (launch-funnel surfaces). These six were
+the last Grain-orange pages inside the monorepo.
+
+### Changed
+- Added the `zinc-sky.css` link (after `grain.css`) to: **interview, final,
+  simulator, projects, excel-cert, powerbi-cert**. Same one-line mechanism the
+  other kits already use — re-points the Grain primitive ramps, no markup change.
+- Verified live at localhost on all six: `--clay-500` (light accent) resolves to
+  deep-cyan `#0E7490` (was clay `#C5511F`), `--clay-400` (dark accent) to
+  electric-sky `#38BDF8`, `--stone-900` dark bg `#09090B`. Both themes, console
+  clean. The whole analyst-prep-kit monorepo is now on Zinc & Sky.
+
+### Roadmap
+- Remaining orange inside the monorepo = the 15 inline-hardcoded pages (guides ×13
+  + privacy + terms) — Wave 1b, no shared stylesheet so each is hand-edited.
+- Premium gate decision recorded (Mike, 2026-07-18): ship Aug 1 on the client-side
+  gate; server-side Supabase enforcement is a Q3 fast-follow, not an Aug-1 blocker.
+
 ## [1.167.0] — 2026-07-18 — SQL kit: mobile code blocks wrap instead of scroll (playtest triage)
 From Mike's 2026-07-18 playtest notes (mobile is most of the traffic): SQL code
 blocks forced a horizontal scroll inside the box, and the fill-in-the-blank
