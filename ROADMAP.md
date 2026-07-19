@@ -44,9 +44,9 @@
 >
 > **Wave 1 — launch-funnel surfaces (BEFORE Aug 1; cheap + high-visibility, all inside analyst-prep-kit):**
 > - **1a ✅ DONE (v1.168.0, commit 7335863):** 6 Grain-orange kit pages — 1-line `zinc-sky.css` link each: interview · final · simulator · projects · excel-cert · powerbi-cert. Verified live both themes. Monorepo is now Zinc & Sky except the 15 below.
-> - **1b ⏭️ NEXT:** 15 inline-hardcoded Grain-orange pages: `guides/` (index + 12 subpages) · `privacy.html` · `terms.html`. NOT the link trick — each inlines its own orange `:root`, light-only, but the palette is BYTE-IDENTICAL across all 15 → one fixed 9-hex find-replace, not 15 hand-edits. **Verified recipe + exact hex mapping + verify/ship steps in `HANDOFF-brand-migration.md` (the executable per-wave handoff — a fresh chat starts there).**
+> - **1b ✅ DONE (v1.169.0, commit 28e6657):** 15 inline-hardcoded Grain-orange pages: `guides/` (index + 12 subpages) · `privacy.html` · `terms.html`. One fixed 9-hex find-replace (palette byte-identical across all 15). Verified zero orange in source + live URLs, zinc bg / cyan `#0E7490` links / dark `pre` `#18181B` readable, console clean; Pages built. **The entire analyst-prep-kit monorepo is now on Zinc & Sky.**
 >
-> **Wave 2 — flagship standalone apps (parallel or post-launch):**
+> **Wave 2 — flagship standalone apps (⏭️ NEXT; each its own repo, one per chat):**
 > - `michaelnocito.github.io/art` (Grain-orange `#B5552F`) — SMALL
 > - `keygarden` (calm-blue, index + offline) — SMALL  [then retire dupes: keyform-handoff, keygarden-handoff]
 > - `spreadsheet-archaeology` (calm-blue ×3, INCLUDES the live tableau/ surface) + `spreadsheet-cleaner/docs` (×1) — MEDIUM, shared token recipe. ⚠️ the standalone `tableau-archaeology` repo is ARCHIVED/read-only (can't push) — its DESIGN_SYSTEM.md was updated locally but the LIVE Tableau Archaeology is `spreadsheet-archaeology/tableau/`; skip the archived repo.
