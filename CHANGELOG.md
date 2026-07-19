@@ -9,6 +9,23 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.169.0] — 2026-07-19 — Brand Wave 1b: 15 inline-orange pages → Zinc & Sky
+Portfolio brand-migration epic, wave 1b. The last Grain-orange surfaces in the
+monorepo: `guides/index.html` + the 12 guide subpages + `privacy.html` +
+`terms.html`. Unlike the kit pages, these inline their own light-only `:root`
+(no grain.css/zinc-sky.css link), so the one-line link trick did not apply.
+
+### Changed
+- Fixed find-and-replace of the byte-identical Grain-orange palette across all 15
+  files: bg `#FAF3EC→#F5F7F8`, ink `#3D1A0F→#09090B`, muted `#6E4A33→#52525B`,
+  accent `#C5511F→#0E7490` (deep cyan), border `#E68A66→#E4E7EA`, warm callout
+  `#F8D8C6→#E0F2F7`, panel `#F3E2D4→#F1F3F5`, dark code block `#2E1608→#18181B`,
+  light-on-dark text `#FFE7D6→#F5F7F8`. White cards unchanged.
+- Verified: zero orange hex remnants across the 15; live at localhost:4201 the
+  page bg is zinc, links render cyan `#0E7490`, and the dark `pre` code block
+  (`#18181B`) keeps readable light text (`#F5F7F8`). Console clean.
+- **The entire analyst-prep-kit monorepo is now on Zinc & Sky.**
+
 ## [1.168.0] — 2026-07-18 — Brand Wave 1a: 6 remaining kit pages → Zinc & Sky
 Portfolio brand-migration epic, wave 1 (launch-funnel surfaces). These six were
 the last Grain-orange pages inside the monorepo.
