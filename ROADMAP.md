@@ -46,8 +46,8 @@
 > - **1a ✅ DONE (v1.168.0, commit 7335863):** 6 Grain-orange kit pages — 1-line `zinc-sky.css` link each: interview · final · simulator · projects · excel-cert · powerbi-cert. Verified live both themes. Monorepo is now Zinc & Sky except the 15 below.
 > - **1b ✅ DONE (v1.169.0, commit 28e6657):** 15 inline-hardcoded Grain-orange pages: `guides/` (index + 12 subpages) · `privacy.html` · `terms.html`. One fixed 9-hex find-replace (palette byte-identical across all 15). Verified zero orange in source + live URLs, zinc bg / cyan `#0E7490` links / dark `pre` `#18181B` readable, console clean; Pages built. **The entire analyst-prep-kit monorepo is now on Zinc & Sky.**
 >
-> **Wave 2 — flagship standalone apps (⏭️ NEXT; each its own repo, one per chat):**
-> - `michaelnocito.github.io/art` (Grain-orange `#B5552F`) — SMALL
+> **Wave 2 — flagship standalone apps (⏳ IN PROGRESS; each its own repo, one per chat):**
+> - `michaelnocito.github.io/art` (Grain-orange `#B5552F`) — SMALL — **✅ DONE (commit f3180b5)**; mapped to Zinc & Sky light ramp, live-verified. (Only `art/` migrated in that repo; root `index.html` = separate decision.)
 > - `keygarden` (calm-blue, index + offline) — SMALL  [then retire dupes: keyform-handoff, keygarden-handoff]
 > - `spreadsheet-archaeology` (calm-blue ×3, INCLUDES the live tableau/ surface) + `spreadsheet-cleaner/docs` (×1) — MEDIUM, shared token recipe. ⚠️ the standalone `tableau-archaeology` repo is ARCHIVED/read-only (can't push) — its DESIGN_SYSTEM.md was updated locally but the LIVE Tableau Archaeology is `spreadsheet-archaeology/tableau/`; skip the archived repo.
 > - `recordforge/docs` landing (calm-blue) — SMALL  [app `ui.html` copper = separate decision: align app chrome or landing-only]
