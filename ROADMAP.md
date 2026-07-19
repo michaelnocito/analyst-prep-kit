@@ -43,8 +43,8 @@
 > **PREREQUISITE (do FIRST — highest leverage):** `spreadsheet-archaeology/DESIGN_SYSTEM.md` — the documented source-of-truth spec — is a full brand-generation STALE (still calm-blue `#2f6df0`, zero mention of zinc/`#0E7490`). Update it to Zinc & Sky before/with the surface work, or future edits regenerate the wrong palette. Check `tableau-archaeology/DESIGN_SYSTEM.md` for the same.
 >
 > **Wave 1 — launch-funnel surfaces (BEFORE Aug 1; cheap + high-visibility, all inside analyst-prep-kit):**
-> - 6 Grain-orange kit pages — **1-line `zinc-sky.css` link each** (SMALL): interview · final · simulator · projects · excel-cert · powerbi-cert. (`interview` is the standing "NEXT" in the zinc-sky handoff.)
-> - 15 inline-hardcoded Grain-orange pages (MEDIUM — no shared sheet, no light theme, hand-edit each): `guides/` (index + 12 subpages) · `privacy.html` · `terms.html`.
+> - **1a ✅ DONE (v1.168.0, commit 7335863):** 6 Grain-orange kit pages — 1-line `zinc-sky.css` link each: interview · final · simulator · projects · excel-cert · powerbi-cert. Verified live both themes. Monorepo is now Zinc & Sky except the 15 below.
+> - **1b ⏭️ NEXT:** 15 inline-hardcoded Grain-orange pages: `guides/` (index + 12 subpages) · `privacy.html` · `terms.html`. NOT the link trick — each inlines its own orange `:root`, light-only, but the palette is BYTE-IDENTICAL across all 15 → one fixed 9-hex find-replace, not 15 hand-edits. **Verified recipe + exact hex mapping + verify/ship steps in `HANDOFF-brand-migration.md` (the executable per-wave handoff — a fresh chat starts there).**
 >
 > **Wave 2 — flagship standalone apps (parallel or post-launch):**
 > - `michaelnocito.github.io/art` (Grain-orange `#B5552F`) — SMALL
