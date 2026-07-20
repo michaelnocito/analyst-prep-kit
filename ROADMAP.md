@@ -48,10 +48,10 @@
 >
 > **Wave 2 — flagship standalone apps (⏳ IN PROGRESS; each its own repo, one per chat):**
 > - `michaelnocito.github.io/art` (Grain-orange `#B5552F`) — SMALL — **✅ DONE (commit f3180b5)**; mapped to Zinc & Sky light ramp, live-verified. (Only `art/` migrated in that repo; root `index.html` = separate decision.)
-> - `keygarden` (calm-blue, index + offline) — SMALL  [then retire dupes: keyform-handoff, keygarden-handoff]
-> - `spreadsheet-archaeology` (calm-blue ×3, INCLUDES the live tableau/ surface) + `spreadsheet-cleaner/docs` (×1) — MEDIUM, shared token recipe. ⚠️ the standalone `tableau-archaeology` repo is ARCHIVED/read-only (can't push) — its DESIGN_SYSTEM.md was updated locally but the LIVE Tableau Archaeology is `spreadsheet-archaeology/tableau/`; skip the archived repo.
-> - `recordforge/docs` landing (calm-blue) — SMALL  [app `ui.html` copper = separate decision: align app chrome or landing-only]
-> - `draw-lab` (Grain-orange app UI) — SMALL  [retire GAMES/draw-lab dupe]
+> - `keygarden` (calm-blue, index + offline) — SMALL — **✅ DONE (commit 0c46c2e, live-verified)**; migrated the #root design tokens + hardcoded chrome blues/rgba echoes (calm-blue `#2f6df0`→cyan `#0E7490`) + neutrals→zinc + semantics→emerald/red/amber; garden & charcoal-sketch ART left intact per "games keep art". Offline build regenerated, smoke 91/91 + 10/10. **Retire-dupe finding:** `keyform-handoff` & `keygarden-handoff` are NOT GitHub repos — only `keygarden` is published. keyform-handoff = stale LOCAL clone of the keygarden repo on a divergent "adult-typing sibling" lineage (holds UNIQUE MARKETING-BRIEF + sibling handoff docs — NOT a byte-dupe); keygarden-handoff = no-git zip extraction. Nothing to delete/301 on GitHub; only local housekeeping, surfaced to Mike (not deleted).
+> - ~~`spreadsheet-archaeology` (calm-blue ×3, INCLUDES the live tableau/ surface) + `spreadsheet-cleaner/docs` (×1)~~ **✅ DONE (commits e0dc46f / fb20762, July 19, 2026)** — shared byte-identical token block mapped across Excel/SQL/Tableau surfaces + cleaner landing; deep-cyan `#0E7490` accent, zinc neutrals, emerald/red/amber semantics; kept Tableau field-pill blue/green convention + gold cell-selection + cleaner's code-window mockup as domain art; live-verified (cache-busted) zero calm-blue, cyan present on all surfaces. The archived `tableau-archaeology` repo was skipped (live copy lives under `spreadsheet-archaeology/tableau/`).
+> - ~~`recordforge/docs` landing (calm-blue)~~ **✅ DONE (commit b82d17d, July 19, 2026)** — retokenized the calm-blue `:root` + baked chrome (buttons/tags/hover/glows) to deep-cyan `#0E7490` / zinc / emerald-red-amber; kept the dark terminal/code-window mockup as literal-CLI art. Light-only, no manifest/theme-color, no CHANGELOG bump. Live-verified cache-busted: zero calm-blue chrome, cyan present. **Also migrated the desktop app UI `ui.html` (commit 5372727)** — separate COPPER era (`#c27a3a` accent, warm-grey neutrals `#7a7168`/`#9a9187`, warm bg `#f7f4ef`), mapped to cyan/zinc + emerald/amber semantics; emoji `&#NNNNN;` entities left intact (not colors). Not a Pages surface (only `docs/` deploys), so grep-verified only, no live URL.
+> - `draw-lab` (Grain-orange app UI) — SMALL  [retire GAMES/draw-lab dupe] — **⏭️ NEXT**
 > - `playtest-tracker` (Grain-orange multi-ramp token set) — MEDIUM
 > - hidden-gems-list trio (music/steam/streaming — ONE shared navy/teal/gold design) — SMALL (fix once, apply thrice)
 >
@@ -64,7 +64,7 @@
 > **RETIRE / REDIRECT (cleanup DECISION, not reskin — removes ~8 fake work items):**
 > - 6 stale standalone dupes superseded by the monorepo: `excel/sql/python/stats/tableau-prep-kit` + `excel-lessons` → retire or 301 to `analyst-prep-kit/<kit>/`.
 > - Dead redirect stubs (already redirect to prep-companion-apps): `excel-sales-sprint`, `sql-sales-sprint`.
-> - Byte-identical dupes to flag so they don't drift/redeploy: `GAMES/draw-lab`, `keyform-handoff`, `keygarden-handoff`, `recordforge/recordforge/ui/ui.html`.
+> - Byte-identical dupes to flag so they don't drift/redeploy: `GAMES/draw-lab`, `recordforge/recordforge/ui/ui.html`. (~~keyform-handoff, keygarden-handoff~~ — checked 2026-07-19: these are LOCAL-only stale folders, not published repos; keyform-handoff even holds unique sibling-product docs. Nothing to retire on GitHub — local cleanup only, awaiting Mike.)
 > - No web surface (excluded entirely): music-hidden-gems, streaming-hidden-gems, github-traffic, draw-lab-coach (API), codekeys (tray), apk-portfolio-hidden-gems, sql-prompt-pack, michaelnocito (README).
 >
 > **Cadence:** DESIGN_SYSTEM.md first; then one surface-group per chat (same one-per-chat discipline as the kit rollouts); verify each on the LIVE URL in both light + dark before shipping.
@@ -681,6 +681,25 @@ _Definition: polish, batched improvements, OR features with good
 engagement ROI that don't bloat the core experience. Batched into
 planned cycles._
 _Response time: next planned cycle._
+
+#### ⬇️ July 20, 2026 playtest triage (SQL kit inbox note)
+
+- **CONTENT: a dedicated DISTINCT / "list the distinct values of a category" section** _(added July 20, 2026 — from SQL-kit playtest inbox note)_ — _real-world analyst essential_
+  - _What:_ Mike wants a section built specifically around DISTINCT, not just DISTINCT sprinkled through other lessons. The framing is the everyday analyst move: "almost anything that has a category or type can be listed many times, and you often need the individual distinct occurrences" — distinct contract types, customer types, car types, feedback types. Teach `SELECT DISTINCT col`, `COUNT(DISTINCT col)`, DISTINCT across multiple columns, and the NULL behavior, anchored to the CONTOSO categories (e.g. list the distinct categories/segments before you aggregate).
+  - _Why Medium (not High):_ DISTINCT is already referenced in ~lessons across the kits, so this is a targeted **concept-lesson add + practice drill**, not a bug. Real learning value: it's one of the first things an analyst reaches for when profiling a new table.
+  - _Current state (verified 2026-07-20):_ no kit has a lesson whose subject IS DISTINCT/unique — it's woven into SELECT and aggregate lessons. So this is genuinely a new dedicated surface.
+  - **Cross-kit applicability matrix** (per the standing cross-kit rule — build the class defect/gap, not just the SQL fix):
+    | Kit | Applies? | The equivalent to teach |
+    |---|---|---|
+    | SQL | ✅ primary | `SELECT DISTINCT`, `COUNT(DISTINCT col)`, multi-column DISTINCT, NULL rule |
+    | Python | ✅ | `Series.unique()` / `.nunique()` / `.drop_duplicates()` / `.value_counts()` |
+    | Excel | ✅ | `UNIQUE()` function, Remove Duplicates, distinct-count in Pivot |
+    | Power BI | ✅ | `DISTINCT()` / `DISTINCTCOUNT()` DAX; Power Query "Remove Duplicates" |
+    | Tableau | ✅ (lighter) | `COUNTD()`, distinct dimension members on a shelf |
+    | Stats | ➖ N/A | cardinality of categories is minor here; skip unless it fits a data-cleaning lesson |
+  - _Rollout:_ one kit per chat, SQL first (reference), then Python → Excel → Power BI → Tableau, mirroring the Batch-5 / recall / knowledge-path cadence. There is already a standalone `guides/sql-count-function/` guide that covers `COUNT(DISTINCT)` — cross-link it from the new SQL DISTINCT lesson rather than duplicating.
+  - _DoD:_ each applicable kit has a dedicated DISTINCT/unique lesson (say-it-out-loud + worked example on its own tables + a drill + recall {q,a}); cross-linked to the COUNT guide where relevant; verified live in both themes.
+  - _Est:_ Medium (one focused lesson + drill + recall per kit, 5 kits, phased).
 
 #### ⬇️ June 29, 2026 feedback batch (continued — Medium-bucket items)
 
