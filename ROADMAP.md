@@ -1,5 +1,31 @@
 ﻿# Analyst Prep Kit — Roadmap
 
+> ## 🧪 PLAYTEST TRIAGE — 2026-07-21 (12 items: 9 tableau + 3 sql inbox; all written back to Supabase `roadmap`)
+> Lesson-kit class = **excel · sql · python · powerbi · tableau · stats** (the 6 that share the recall/parsons engine). Cert + non-lesson pages (forecasting, chart-literacy, interview, final, simulator, projects) checked separately per item. "Where applicable" verdicts below are grep-derived; confirm at build.
+>
+> **BLOCKER — build next (Mike: "fix immediately"):**
+> - **[S3] Mobile tap-to-add order is reversed.** Second tapped token appears ABOVE the first (should append in tap order). Class: all 6 lesson kits (parsons/tap-to-order steps in each). High-pressure blocker.
+>
+> **BUG / verify-live:**
+> - **[T6] Tableau quick-recall shows no answers (vs Excel).** Finding: local tableau already ships **64 {q,a}** answers + Show-answer flip (same engine as SQL=94); Excel intentionally differs (inline reinforces, 0 {q,a} pairs). So the defect is almost certainly the **LIVE tableau build predating v1.164.0**, or a reveal bug — verify live across all 6, redeploy if stale. Not a re-authoring job.
+> - **[S1] "Reset all progress" doesn't clear the review list.** Finding: every kit's reset() DOES `removeItem` the `*-recalls` storage + reset `_pendingRecalls`, so the list *should* clear. Suspect the Review-view DOM isn't re-rendered after reset (reset navigates 'home', Review stays cached), or live build lags. Needs repro; then one shared fix across all 6.
+> - **[T4] Mobile white-screen delay on the right/wrong → congrats/correction transition.** All 6 lesson kits (shared result screen). Perf/transition fix.
+>
+> **QUICK GLOBAL (cheap find-replace / copy audits, all kits):**
+> - **[T7+T8] Remove "gotcha".** Repeat request (see feedback_no_gotcha_phrase). Present in chart-literacy · excel · excel-cert · final · forecasting · powerbi · python · sql · tableau · tableau-cert (10 files). Replace with the actual mistake/edge-case named.
+> - **[T5] Remove phrase** "This feels harder because it works / struggling to recall is how memory forms." Present in excel · sql · python · powerbi · tableau · stats (6).
+> - **[T3] Remove the answer-"compare" card.** Only helps when the learner is wrong (which we discourage). `compare` appears in 10 files — confirm each is the same card before stripping.
+>
+> **ROADMAP (needs design/audit, not a one-liner):**
+> - **[T2] Order questions where order is arbitrary.** Parsons/ordering steps that are semantically order-free still force a single "correct" sequence. Per-question audit: accept any valid order, or reframe. All lesson kits.
+> - **[T9] Tableau curriculum too steep — research-first redesign** to an absolute-beginner on-ramp, then rebuild lessons. Tableau-specific, large.
+> - **[T1] Expand the "find-it-in-the-workspace" hotspot exercise** (Mike loved it) to the other visual kits (Power BI, chart-literacy). Enhancement.
+>
+> **RESEARCH-LATER (Mike said don't change structure now):**
+> - **[S2] Reset-and-replay reinforcement.** Mike finds resetting a kit when he hits his knowledge ceiling and replaying from a couple lessons back genuinely reinforces concepts. Research how to instill this without killing momentum; revisit as a later iteration.
+>
+> **Next action:** start with **[S3]** (the blocker), then batch the three QUICK GLOBALs. Everything is one-kit/one-decision-per-chat per backlog discipline.
+
 > ### 🃏 RECALL ANSWERS — FOLDED INTO THE KIT-UPDATE TRAIN (Mike, 2026-07-17) — SQL ✅ v1.160.0+v1.161.0
 > **No longer a separate train.** Every remaining Batch 5 kit update (Python ✅ → Power BI ✅ →
 > Tableau ✅ → Stats ✅) now ships BOTH pieces in its one chat: the Batch 5 features (path map +
