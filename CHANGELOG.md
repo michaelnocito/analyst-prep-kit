@@ -9,6 +9,14 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.173.0] — 2026-07-21 — State the growing-premium promise explicitly
+
+- `terms.html`: new paragraph under "What you're buying" — premium modules added
+  after purchase are included at no extra charge, and nothing already paid for gets
+  moved behind a second purchase. Makes the one-time price defensible over time.
+- `assets/apk-pass.js`: gate blurb (both modes) now says the premium layer keeps
+  growing **and everything added later is included at no extra cost**.
+
 ## [1.172.0] — 2026-07-21 — Access never expires: the 1-year cap is gone
 
 The 1-year window was a subscription-era leftover and contradicted "pay once."

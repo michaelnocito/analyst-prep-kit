@@ -155,8 +155,8 @@
       var heading = live ? (opts.title || 'Premium lesson') : 'All-Access Pass — coming soon';
       var badge = live ? '' : '<div class="apk-gate-badge">Launching ' + LAUNCH + '</div>';
       var blurb = live
-        ? 'Part of the <strong>All-Access Pass</strong> — the full premium layer of the Analyst Prep Kit, and it keeps growing. The core lessons stay free, always.'
-        : 'The premium layer of the Analyst Prep Kit is in final testing before launch — and it keeps expanding. The core lessons stay free, always.';
+        ? 'Part of the <strong>All-Access Pass</strong> — the full premium layer of the Analyst Prep Kit. It keeps growing, and everything added later is included at no extra cost. The core lessons stay free, always.'
+        : 'The premium layer of the Analyst Prep Kit is in final testing before launch. It keeps growing, and everything added later is included at no extra cost. The core lessons stay free, always.';
       var offer = live
         ? ''
         : '<div class="apk-gate-offer">' +
