@@ -2003,8 +2003,8 @@ function v2BuildPick(btn, lid){
   if(!isCorrect){ const cb=document.getElementById('v2st-coach-build-'+lid); if(cb) cb.style.display=''; }
   if(isCorrect) celebrate(true,'Nice build! 🔧');
   const row = isCorrect
-    ? `<div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setStatStage(${lid},5)">Continue &rarr;</button></div>`
-    : `<div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setStatStage(${lid},4)">Try Again</button><button class="btn btn-outline btn-sm" onclick="setStatStage(${lid},5)">Continue anyway</button></div>`;
+    ? `<div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setStatStage(${lid}4)">Continue &rarr;</button></div>`
+    : `<div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setStatStage(${lid}3)">Try Again</button><button class="btn btn-outline btn-sm" onclick="setStatStage(${lid}4)">Continue anyway</button></div>`;
   if(fb) fb.insertAdjacentHTML('beforeend', row);
 }
 
@@ -2024,12 +2024,12 @@ function v2QuizAnswer(lid, chosen){
     celebrate(true,'Correct! 🎉');
     S.done['lesson'+lid]=true;save();
     wrap.insertAdjacentHTML('beforeend',`<div style="display:flex;gap:10px;margin-top:14px">
-      <button class="btn btn-primary btn-sm" onclick="setStatStage(${lid},6)">Continue &rarr;</button>
+      <button class="btn btn-primary btn-sm" onclick="setStatStage(${lid}5)">Continue &rarr;</button>
     </div>`);
   } else {
     wrap.insertAdjacentHTML('beforeend',`<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
       <button class="btn btn-sm" onclick="v2QuizRetry(${lid})">Try Again</button>
-      <button class="btn btn-outline btn-sm" onclick="S.done['lesson'+${lid}]=true;save();setStatStage(${lid},6)">Continue anyway</button>
+      <button class="btn btn-outline btn-sm" onclick="S.done['lesson'+${lid}]=true;save();setStatStage(${lid}5)">Continue anyway</button>
     </div>`);
   }
 }
@@ -2043,7 +2043,7 @@ function v2QuizRetry(lid){
     <p style="color:var(--txt2);font-size:14px;margin-bottom:14px">${l.quiz.q}</p>
     <div class="quiz-opts">${l.quiz.opts.map((o,i)=>`<button class="quiz-opt" onclick="v2QuizAnswer(${lid},${i})">${o}</button>`).join('')}</div>
     <div class="v2-quiz-exp" id="v2st-quiz-exp-${lid}">${l.quiz.explain}</div>
-      <div class="row" style="margin-top:14px"><button class="btn btn-outline btn-sm" onclick="setStatStage(${lid},4)">&larr; Back</button></div>`;
+      <div class="row" style="margin-top:14px"><button class="btn btn-outline btn-sm" onclick="setStatStage(${lid}3)">&larr; Back</button></div>`;
   if(window.lucide) lucide.createIcons();
 }
 
@@ -2107,7 +2107,7 @@ function v2StatSectionHTML(sec){
 
 function v2StatBody(l, done){
   const stage = getStatStage(l.id);
-  const LABELS = ['Orient','Example','Try','Compare','Build','Check','Close'];
+  const LABELS = ['Orient','Example','Try','Build','Check','Close'];
   const dots = LABELS.map((L,i)=>{const can=(done||i<stage)&&i!==stage;return `<div class="v2-stage-dot${i<stage?' done':i===stage?' active':''}" title="${L}"${can?` style="cursor:pointer" onclick="setStatStage(${l.id},${i})"`:''}></div>`;}).join('');
   const stageBar = `<div class="v2-stage-bar">${dots}<span class="v2-stage-label">${LABELS[stage]}</span></div>`;
   const conf = (S.confidence||{})[l.id]||'';
@@ -2170,25 +2170,6 @@ function v2StatBody(l, done){
       <div class="v2-coach-resp" id="v2st-coach-resp-try-${l.id}"></div>
     </div>`;
   } else if(stage===3){
-    const p=l.parsons;
-    const correctText=p.answer.map(i=>p.lines[i]).join('\n');
-    const att=_v2ParsAttempt[l.id];
-    const attemptText=att?att.lines.join('\n'):'(skipped — review the correct order)';
-    const wasWrong=!!_v2ParsWasWrong[l.id];
-    body=`<div class="v2-stage-card">
-      <h3><i data-lucide="diff"></i> Compare</h3>
-      <p style="color:var(--txt2);font-size:14px;margin-bottom:14px">${l.compare||'How does the correct order compare to yours?'}</p>
-      <div class="v2-compare-grid">
-        <div><div class="v2-compare-col-head">Correct order</div><div class="v2-compare-code">${correctText}</div></div>
-        <div><div class="v2-compare-col-head">Your attempt</div><div class="v2-compare-code" style="${att?'':'opacity:.5'}">${attemptText}</div></div>
-      </div>
-      ${wasWrong?`<button class="v2-coach-btn" onclick="v2CoachGap(${l.id})"><i data-lucide="sparkles"></i> Ask the AI Tutor →</button><div class="v2-coach-resp" id="v2st-coach-resp-gap-${l.id}"></div>`:''}
-      <div style="display:flex;gap:10px;margin-top:16px">
-        <button class="btn btn-outline btn-sm" onclick="setStatStage(${l.id},2)">← Try again</button>
-        <button class="btn" onclick="setStatStage(${l.id},4)">Build it &rarr;</button>
-      </div>
-    </div>`;
-  } else if(stage===4){
     const b=l.build;
     body=`<div class="v2-stage-card" id="v2st-build-${l.id}">
       <h3><i data-lucide="wrench"></i> Build It</h3>
@@ -2197,15 +2178,15 @@ function v2StatBody(l, done){
       <div id="v2st-build-fb-${l.id}"></div>
       <button class="v2-coach-btn" id="v2st-coach-build-${l.id}" style="display:none" onclick="v2CoachStuck(${l.id},'build')"><i data-lucide="sparkles"></i> Stuck? Ask the AI Coach →</button>
       <div class="v2-coach-resp" id="v2st-coach-resp-build-${l.id}"></div>
-      <div class="row" style="margin-top:14px"><button class="btn btn-outline btn-sm" onclick="setStatStage(${l.id},3)">&larr; Back</button></div>
+      <div class="row" style="margin-top:14px"><button class="btn btn-outline btn-sm" onclick="setStatStage(${l.id},2)">&larr; Back</button></div>
     </div>`;
-  } else if(stage===5){
+  } else if(stage===4){
     body=`<div class="v2-stage-card" id="v2st-quiz-${l.id}">
       <h3><i data-lucide="circle-check-big"></i> Quick Check</h3>
       <p style="color:var(--txt2);font-size:14px;margin-bottom:14px">${l.quiz.q}</p>
       <div class="quiz-opts">${l.quiz.opts.map((o,i)=>`<button class="quiz-opt" onclick="v2QuizAnswer(${l.id},${i})">${o}</button>`).join('')}</div>
       <div class="v2-quiz-exp" id="v2st-quiz-exp-${l.id}">${l.quiz.explain}</div>
-      <div class="row" style="margin-top:14px"><button class="btn btn-outline btn-sm" onclick="setStatStage(${l.id},4)">&larr; Back</button></div>
+      <div class="row" style="margin-top:14px"><button class="btn btn-outline btn-sm" onclick="setStatStage(${l.id}3)">&larr; Back</button></div>
     </div>`;
   } else {
     const nextLesson=DATA.LESSONS.find(ll=>ll.id!==l.id&&!S.done['lesson'+ll.id]);
