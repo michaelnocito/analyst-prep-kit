@@ -2,19 +2,20 @@
    Analyst Prep Kit — All-Access Pass (client-side unlock).
    Static GitHub-Pages gate: a buyer gets the unlock code in the
    Buy Me a Coffee post-purchase message, pastes it into any kit,
-   and premium lessons unlock for 1 year (localStorage).
+   and premium lessons unlock for good (localStorage).
    Client-side only — best-effort by nature; acceptable at this price.
 
-   LAUNCH MODEL (revised 2026-07-21 — ONE-TIME, not subscription):
-   - Now → launch: premium = "coming soon" + FOUNDING OFFER, $5.55 once
-     for the first year. Prices are number-sequence winks:
-     555 = "change", 11:11 = "new beginnings".
-   - Founding code is redeemable now; access lasts 1 year from redeem.
-   - At launch (Aug 1, 2026): flip MODE to 'live'; price = $11.11 ONE-TIME
-     for a year of access. NO monthly subscription — interview prep is an
-     episodic need (BLS median job search 11 wks; education subs churn
-     worst per RevenueCat/Recurly; closest competitors sell one-time
-     passes). Decision: Mike, 2026-07-21.
+   LAUNCH MODEL (revised 2026-07-21 — ONE-TIME + PERMANENT):
+   - Now → launch: premium = "coming soon" + FOUNDING OFFER, $5.55 once.
+     Prices are number-sequence winks: 555 = "change", 11:11 = "new beginnings".
+   - At launch (Aug 1, 2026): flip MODE to 'live'; price = $11.11 ONE-TIME.
+   - ACCESS NEVER EXPIRES. Pay once, keep it. No subscription, no renewal,
+     no 1-year cap (the old YEAR_MS expiry was a subscription-era leftover
+     and was removed 2026-07-21 — legacy `apk-pass-exp` values are ignored
+     so early redeemers can never be locked out).
+   - Why one-time: interview prep is an episodic need (BLS median job search
+     11 wks; education subs churn worst per RevenueCat/Recurly; the closest
+     competitors sell one-time/lifetime passes). Decision: Mike, 2026-07-21.
 
    Each kit decides WHICH lessons are premium and calls:
      window.apkPass.isUnlocked()      -> boolean
@@ -29,12 +30,14 @@
   var EXP = 'apk-pass-exp';
   var CELEB = 'apk-pass-celebrated';  // one-time "you've unlocked" flag
   var TARGET = 2935497303;            // djb2 hash of the code, uppercased
-  var YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+  // NOTE: `EXP` is legacy. Access no longer expires; we clear the key on unlock
+  // and never read it, so anyone who redeemed under the old 1-year model keeps
+  // access permanently. Do not reintroduce an expiry check.
 
   var MODE = 'founding';              // 'founding' (pre-launch) | 'live' (post-launch)
   var LAUNCH = 'August 1, 2026';
   var FOUNDING_PRICE = '$5.55';       // 555 = "change" (for career-changers)
-  var LAUNCH_PRICE = '$11.11';        // 11:11 = "new beginnings" — ONE-TIME, a year of access
+  var LAUNCH_PRICE = '$11.11';        // 11:11 = "new beginnings" — ONE-TIME, never expires
   // Discount framing intentionally dropped (steep % cheapens the brand);
   // the card sells value, not a fire-sale.
 
@@ -51,17 +54,14 @@
       // Free access until August 1, 2026 — gates removed while lessons/AI/coach are built
       if (Date.now() < new Date('2026-08-01T00:00:00').getTime()) return true;
       try {
-        if (localStorage.getItem(KEY) !== '1') return false;
-        var exp = parseInt(localStorage.getItem(EXP) || '0', 10);
-        if (exp && Date.now() > exp) { return false; }   // expired
-        return true;
+        return localStorage.getItem(KEY) === '1';   // never expires
       } catch (e) { return false; }
     },
     unlock: function (code) {
       if (h(String(code).trim().toUpperCase()) === TARGET) {
         try {
           localStorage.setItem(KEY, '1');
-          localStorage.setItem(EXP, String(Date.now() + YEAR_MS));
+          localStorage.removeItem(EXP);   // legacy expiry — access is permanent now
         } catch (e) {}
         return true;
       }
@@ -74,13 +74,10 @@
     // can't drive an "you unlocked this" badge. These read the real state:
     // a redeemed code, or a signed-in account entitlement.
     _acctPass: false,                   // set true once hasInterviewPass() resolves
-    // A code was actually redeemed and hasn't expired (ignores the free bypass).
+    // A code was actually redeemed (ignores the free bypass). Never expires.
     hasRedeemed: function () {
       try {
-        if (localStorage.getItem(KEY) !== '1') return false;
-        var exp = parseInt(localStorage.getItem(EXP) || '0', 10);
-        if (exp && Date.now() > exp) return false;   // expired
-        return true;
+        return localStorage.getItem(KEY) === '1';
       } catch (e) { return false; }
     },
     // True when the visitor has genuinely unlocked premium — redeemed code OR
@@ -164,14 +161,14 @@
         ? ''
         : '<div class="apk-gate-offer">' +
             '<div class="apk-gate-offer-tag">Founding offer · ends at launch ' + LAUNCH + '</div>' +
-            '<div class="apk-gate-juice">A whole year of all-access — every interview track, the final exam, and new advanced modules as they land.</div>' +
+            '<div class="apk-gate-juice">Every interview track, the final exam, and new advanced modules as they land — yours for good.</div>' +
             '<div class="apk-gate-price"><span class="apk-gate-amt">' + FOUNDING_PRICE + '</span>' +
-            '<span class="apk-gate-per">for your first year</span></div>' +
-            '<div class="apk-gate-strike">Founding rate · ' + LAUNCH_PRICE + ' once at launch, no subscription</div>' +
+            '<span class="apk-gate-per">once · no subscription</span></div>' +
+            '<div class="apk-gate-strike">Founding rate · ' + LAUNCH_PRICE + ' at launch. Pay once, keep it — nothing renews.</div>' +
           '</div>';
       var buyLabel = live
-        ? 'Get the All-Access Pass — ' + LAUNCH_PRICE + ' once, a full year'
-        : 'Become a founding member — ' + FOUNDING_PRICE + ' for a year';
+        ? 'Get the All-Access Pass — ' + LAUNCH_PRICE + ' once'
+        : 'Become a founding member — ' + FOUNDING_PRICE + ' once';
       return '<div class="apk-gate"><div class="apk-gate-card">' +
         badge +
         '<div class="apk-gate-icon"><i data-lucide="' + icon + '"></i></div>' +

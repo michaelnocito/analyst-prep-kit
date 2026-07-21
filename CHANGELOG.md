@@ -9,6 +9,22 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.172.0] — 2026-07-21 — Access never expires: the 1-year cap is gone
+
+The 1-year window was a subscription-era leftover and contradicted "pay once."
+It was not only copy — `apk-pass.js` genuinely re-locked premium 365 days after redeem.
+
+- `assets/apk-pass.js`: removed `YEAR_MS` and every expiry check. `unlock()` now
+  clears the legacy `apk-pass-exp` key, and `isUnlocked()`/`hasRedeemed()` ignore it,
+  so anyone who redeemed under the old model keeps access permanently instead of
+  being locked out. Do not reintroduce an expiry check.
+- Gate copy: "for your first year" → "once · no subscription"; strike line →
+  "Pay once, keep it — nothing renews"; buy buttons → "$5.55 once" / "$11.11 once".
+- `terms.html`: all three "one year" statements → permanent; Last-updated bumped.
+- Verified in-browser: a simulated buyer with an EXPIRED legacy `apk-pass-exp`
+  still reads as a member; unlock clears the stale key; zero "year" left in the
+  gate HTML or on the terms page; console clean.
+
 ## [1.171.0] — 2026-07-21 — Pricing model: launch price is $11.11 ONE-TIME, not monthly
 
 - Decision (Mike, 2026-07-21, research-backed): no subscription. Interview prep is an
