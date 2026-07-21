@@ -1,6 +1,13 @@
 ﻿# Analyst Prep Kit — Roadmap
 
 > ## 🧪 PLAYTEST TRIAGE — 2026-07-21 (12 items: 9 tableau + 3 sql inbox; all written back to Supabase `roadmap`)
+> **PROGRESS (same-day build pass):**
+> - ✅ **T5 shipped** — "This feels harder because it works…" retrieval-note removed from all 6 lesson kits (commit: gotcha+T5 wave).
+> - ✅ **T7+T8 shipped** — "gotcha" wording stripped from all visible copy across 10 files (headings→"Watch out", toggle→"details & background", prose→"trap"/"common trap"); internal `.gotcha` CSS class left intact.
+> - ✅ **T3 sql template shipped** — Compare stage removed from sql's v2 flow (7→6 stages, renumbered, JS-verified). **PENDING: Mike verify sql live, then propagate the same removal to excel · python · powerbi · tableau · stats** (each has the identical stage machine but different stage indices — do NOT blind-copy, renumber per kit).
+> - ⏳ **S3 / T6 / S1 (runtime) — need live repro / redeploy, NOT a source fix.** Current source is already correct: all 6 kits append parsons taps top-to-bottom in tap order (S3); tableau already ships 64 {q,a} recall answers + reveal (T6); every kit's reset() clears `*-recalls` + `_pendingRecalls` (S1). So these are almost certainly stale live deploys or a render-refresh gap. Verify on the live URLs; redeploy if lagging; if still reproducing, get exact repro steps from Mike.
+> - ⏳ **T4 (mobile transition delay), T2, T9, T1, S2** — untouched, still queued per verdicts below.
+>
 > Lesson-kit class = **excel · sql · python · powerbi · tableau · stats** (the 6 that share the recall/parsons engine). Cert + non-lesson pages (forecasting, chart-literacy, interview, final, simulator, projects) checked separately per item. "Where applicable" verdicts below are grep-derived; confirm at build.
 >
 > **BLOCKER — build next (Mike: "fix immediately"):**
