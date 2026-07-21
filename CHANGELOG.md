@@ -9,6 +9,17 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.171.0] — 2026-07-21 — Pricing model: launch price is $11.11 ONE-TIME, not monthly
+
+- Decision (Mike, 2026-07-21, research-backed): no subscription. Interview prep is an
+  episodic need (BLS median job search 11 weeks; education subscriptions churn worst;
+  the closest competitors sell one-time passes), so the launch price becomes
+  **$11.11 once for a year of access** instead of $11.11/month.
+- `assets/apk-pass.js`: LAUNCH_PRICE + gate strike-line + live buy-button label +
+  unlock-toast copy; header comment records the rationale.
+- `terms.html`: launch pricing paragraph now says one-time, nothing renews.
+- Founding rate unchanged: $5.55 for the first year, until launch.
+
 ## [1.170.0] — 2026-07-21 — Premium catalog copy matches what is actually gated
 
 - Decision (Mike, 2026-07-21): SQL Dry Run and Spreadsheet Archaeology are games, stay

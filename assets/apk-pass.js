@@ -5,12 +5,16 @@
    and premium lessons unlock for 1 year (localStorage).
    Client-side only — best-effort by nature; acceptable at this price.
 
-   LAUNCH MODEL (set 2026-06-26):
-   - Now → launch: premium = "coming soon" + FOUNDING OFFER, $5.55 for
-     the first year (95.837084% off the $11.11/mo launch price).
-     Prices are number-sequence winks: 555 = "change", 11:11 = "new beginnings".
+   LAUNCH MODEL (revised 2026-07-21 — ONE-TIME, not subscription):
+   - Now → launch: premium = "coming soon" + FOUNDING OFFER, $5.55 once
+     for the first year. Prices are number-sequence winks:
+     555 = "change", 11:11 = "new beginnings".
    - Founding code is redeemable now; access lasts 1 year from redeem.
-   - At launch (~July 10, 2026): flip MODE to 'live' and price to $11.11/mo.
+   - At launch (Aug 1, 2026): flip MODE to 'live'; price = $11.11 ONE-TIME
+     for a year of access. NO monthly subscription — interview prep is an
+     episodic need (BLS median job search 11 wks; education subs churn
+     worst per RevenueCat/Recurly; closest competitors sell one-time
+     passes). Decision: Mike, 2026-07-21.
 
    Each kit decides WHICH lessons are premium and calls:
      window.apkPass.isUnlocked()      -> boolean
@@ -30,10 +34,9 @@
   var MODE = 'founding';              // 'founding' (pre-launch) | 'live' (post-launch)
   var LAUNCH = 'August 1, 2026';
   var FOUNDING_PRICE = '$5.55';       // 555 = "change" (for career-changers)
-  var LAUNCH_PRICE = '$11.11/mo';     // 11:11 = "new beginnings"
-  // For the record — discount framing was intentionally dropped (steep % cheapens the brand);
-  // the card sells value, not a fire-sale. True first-year cost $11.11 x 12 = $133.32;
-  // founding $5.55 works out to 95.837084% off, but we never say that to the buyer.
+  var LAUNCH_PRICE = '$11.11';        // 11:11 = "new beginnings" — ONE-TIME, a year of access
+  // Discount framing intentionally dropped (steep % cheapens the brand);
+  // the card sells value, not a fire-sale.
 
   function h(s) {
     var n = 5381;
@@ -136,7 +139,7 @@
       el.innerHTML = '<div class="apk-unlock-toast-card">' +
         '<div class="apk-unlock-toast-icon"><i data-lucide="party-popper"></i></div>' +
         '<div class="apk-unlock-toast-body"><strong>You\'ve unlocked the All-Access Pass</strong>' +
-        '<span>Interview tracks, mock practice and every premium module are now open across all kits.</span></div>' +
+        '<span>Every interview track and premium module is now open across all kits.</span></div>' +
         '<button type="button" class="apk-unlock-toast-x" aria-label="Dismiss">&times;</button></div>';
       document.body.appendChild(el);
       if (window.lucide && window.lucide.createIcons) { try { window.lucide.createIcons(); } catch (e) {} }
@@ -164,11 +167,11 @@
             '<div class="apk-gate-juice">A whole year of all-access — every interview track, the final exam, and new advanced modules as they land.</div>' +
             '<div class="apk-gate-price"><span class="apk-gate-amt">' + FOUNDING_PRICE + '</span>' +
             '<span class="apk-gate-per">for your first year</span></div>' +
-            '<div class="apk-gate-strike">Founding rate · ' + LAUNCH_PRICE + ' at launch</div>' +
+            '<div class="apk-gate-strike">Founding rate · ' + LAUNCH_PRICE + ' once at launch, no subscription</div>' +
           '</div>';
       var buyLabel = live
-        ? 'Get the All-Access Pass — ' + LAUNCH_PRICE
-        : 'Become a founding member — ' + FOUNDING_PRICE + '/year';
+        ? 'Get the All-Access Pass — ' + LAUNCH_PRICE + ' once, a full year'
+        : 'Become a founding member — ' + FOUNDING_PRICE + ' for a year';
       return '<div class="apk-gate"><div class="apk-gate-card">' +
         badge +
         '<div class="apk-gate-icon"><i data-lucide="' + icon + '"></i></div>' +
