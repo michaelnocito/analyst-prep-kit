@@ -110,7 +110,8 @@
 > 2. **MODE + copy call.** Keep `founding` as the launch hook (recommended) vs flip to `live` ($11.11/mo). Rec: keep founding through a launch window, flip later.
 > 3. **Post-purchase "unlocked" UX** (existing Medium item) — after unlock, clearly mark which lessons/kits are now open (lesson-list badge + hub). Small, real trust win.
 > 4. **Manual (Mike — automation-blocked):** upload BMC cover PNGs (`assets/cover-all-access-pass-*.png`); rewrite BMC public About + banner (still old gardening copy); **verify the live buy flow end-to-end** (founding button → $5.55 checkout → code shows post-purchase).
-> 5. **Catalog polish (NICE-TO-HAVE, not a blocker):** fill Excel Dry Run question bank (~20% stocked) toward SQL Dry Run parity; playtest + publish good-enough-analytics. These EXPAND the paid tier; it can launch without them.
+> 5. **Catalog polish (NICE-TO-HAVE, not a blocker):** fill Excel Dry Run question bank (~20% stocked) toward SQL Dry Run parity; playtest + publish good-enough-analytics. These EXPAND the free tier; premium can launch without them.
+> 6. **✅ DECIDED + SHIPPED (Mike, 2026-07-21, v1.170.0):** SQL Dry Run / Spreadsheet Archaeology / Excel Dry Run are GAMES and stay FREE (marketed, never pass-gated) — unless premium content is later discovered inside them. Gate card + terms.html + hub banner copy trimmed to match: the pass = 4 interview tracks + final exam + future advanced modules. Do not re-add job-sim/mock-exam promises to premium copy.
 >
 > **NOT in scope for August** (per the locked quarterly plan): Portfolio Projects = Q3/Nov 1 · Memory & Comprehension = Q4/Feb 1 · AI Coach = Q1 candidate.
 

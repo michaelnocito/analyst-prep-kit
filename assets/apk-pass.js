@@ -161,7 +161,7 @@
         ? ''
         : '<div class="apk-gate-offer">' +
             '<div class="apk-gate-offer-tag">Founding offer · ends at launch ' + LAUNCH + '</div>' +
-            '<div class="apk-gate-juice">A whole year of all-access — interview tracks, mock-exam practice, the analyst job-sim, the final exam, and new advanced modules as they land.</div>' +
+            '<div class="apk-gate-juice">A whole year of all-access — every interview track, the final exam, and new advanced modules as they land.</div>' +
             '<div class="apk-gate-price"><span class="apk-gate-amt">' + FOUNDING_PRICE + '</span>' +
             '<span class="apk-gate-per">for your first year</span></div>' +
             '<div class="apk-gate-strike">Founding rate · ' + LAUNCH_PRICE + ' at launch</div>' +

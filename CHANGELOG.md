@@ -9,6 +9,15 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.170.0] — 2026-07-21 — Premium catalog copy matches what is actually gated
+
+- Decision (Mike, 2026-07-21): SQL Dry Run and Spreadsheet Archaeology are games, stay
+  free, and are marketed only — never wired to the pass gate. Excel Dry Run same.
+- Gate card (`assets/apk-pass.js`), `terms.html`, and the hub coming-soon banner no
+  longer promise "mock-exam practice" or "the analyst job-sim" as premium; the pass now
+  sells exactly what the gate covers: the 4 interview tracks + the final exam + future
+  advanced modules.
+
 ## [1.169.0] — 2026-07-19 — Brand Wave 1b: 15 inline-orange pages → Zinc & Sky
 Portfolio brand-migration epic, wave 1b. The last Grain-orange surfaces in the
 monorepo: `guides/index.html` + the 12 guide subpages + `privacy.html` +
