@@ -291,6 +291,23 @@ class SyncQueue {
 
 const syncQueue = new SyncQueue();
 
+// ============================================================================
+// PREPLOOP SHELL (SHELL-1)
+// When a kit runs inside PrepLoop's iframe, PrepLoop owns the auth surface:
+// hide the kit's sign-in/log-out/email controls and the "All Kits" back button.
+// Progress still writes to the same localStorage keys either way — PrepLoop's
+// auto-complete and miss list depend on those keys staying identical.
+// ============================================================================
+(function () {
+  let framed = false;
+  try { framed = window.top !== window.self; } catch (e) { framed = true; }
+  if (!framed) return;
+  document.documentElement.classList.add('apk-framed');
+  const st = document.createElement('style');
+  st.textContent = '.apk-framed #loginBtn,.apk-framed #logoutBtn,.apk-framed #userEmail,.apk-framed [title="Back to all kits"]{display:none !important}';
+  document.head.appendChild(st);
+})();
+
 // Try to flush queued syncs on auth
 onAuthStateChange(async (event) => {
   if (event === 'SIGNED_IN') {
