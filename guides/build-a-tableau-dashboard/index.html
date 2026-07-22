@@ -93,10 +93,10 @@ Monthly Charges, Add-on Services, Churn, Churned
 
   <div class="step">
     <h2>Step 2 — Connect, then write one calculation</h2>
-    <p>Open <strong>Tableau Public Desktop</strong> (the free edition, and the only one that can publish to Tableau Public). On the Connect screen, under <strong>To a File</strong>, choose <strong>Text file</strong> and pick your CSV. Tableau shows a preview grid. Click the orange <strong>Sheet 1</strong> tab at the bottom to start building.</p>
+    <p>Open <strong>Tableau Desktop Public Edition</strong>, the free app from <a href="https://public.tableau.com" target="_blank" rel="noopener">public.tableau.com</a> (click "Download the App"; the role dropdown on the form fits "Personal User" for portfolio work). Watch the edition: the similarly named <em>Tableau Desktop Free Edition</em> cannot publish to Tableau Public at all, and its own start page says so. On the Connect screen, under <strong>To a File</strong>, choose <strong>Text file</strong> and pick your CSV. Tableau shows a preview grid. Click the orange <strong>Sheet 1</strong> tab at the bottom to start building.</p>
     <p>Tableau does not know what a rate is until you tell it. Go to <strong>Analysis → Create Calculated Field</strong>, name it <code>Churn Rate</code>, and enter:</p>
-    <pre><code>SUM([Churned]) / COUNT([Customer ID])</code></pre>
-    <p>Read it left to right. <code>Churned</code> is 1 for a customer who left and 0 for one who stayed, so adding the column up counts the leavers. Counting the ID counts everybody. Leavers divided by everybody is the rate. The important part is that Tableau redoes that division inside whatever group is on the screen, so the same field gives you the rate per segment, per contract, per month, with no extra work.</p>
+    <pre><code>AVG([Churned])</code></pre>
+    <p>That one function is the whole rate. <code>Churned</code> is 1 for a customer who left and 0 for one who stayed, and the average of a column of 1s and 0s is exactly the share of 1s: leavers divided by everybody. <code>SUM([Churned]) / COUNT([Customer ID])</code> computes the same thing the long way. The important part is that Tableau redoes the math inside whatever group is on the screen, so the same field gives you the rate per segment, per contract, per month, with no extra work.</p>
     <p>Then make it read as a percentage instead of <code>0.265</code>: right-click the field in the Data pane, <strong>Default Properties → Number Format → Percentage</strong>, zero decimals.</p>
     <div class="note"><strong>Why both sides need a function around them.</strong> If you write <code>[Churned] / [Customer ID]</code> Tableau throws "cannot mix aggregate and non-aggregate arguments." A calculation either works row by row or works on groups, never half of each. <code>SUM</code> and <code>COUNT</code> put both sides in the same world.</div>
     <div class="check"><b>Check before moving on:</b> Churn Rate appears in the Data pane with an = sign on its icon, and nothing is on the sheet yet.</div>
@@ -153,20 +153,24 @@ Monthly Charges, Add-on Services, Churn, Churned
   <div class="step">
     <h2>Step 6 — Publish it free on Tableau Public</h2>
     <p>Tableau Public hosts finished work at no cost, which is what gives your project a link you can put on a CV or a portfolio site.</p>
+    <p>One requirement first: <strong>Tableau Public only accepts extracts.</strong> A workbook reading your CSV live off your hard drive will be rejected with "Workbooks saved to Tableau Public must use extracts," because Tableau's servers cannot see your disk. The fix is one setting: on the <strong>Data Source</strong> tab, switch <strong>Connection</strong> from Live to <strong>Extract</strong>, and accept the save prompt for the extract file.</p>
     <ol>
       <li>Create a free account at <a href="https://public.tableau.com" target="_blank" rel="noopener">public.tableau.com</a>.</li>
-      <li>In Tableau: <strong>Server → Tableau Public → Save to Tableau Public As</strong>, then sign in.</li>
+      <li>In Tableau: <strong>File → Save to Tableau Public As</strong> (older versions put it under <strong>Server → Tableau Public</strong>), then sign in.</li>
       <li>Name it as the finding, not the file. "Telco Customer Churn: Risk Personas" beats "workbook_final_v3".</li>
       <li>When the browser opens your published viz, click <strong>Edit Details</strong> and write a one-line description, then set the story as the default view so visitors land on the narrative and not on a stray worksheet.</li>
-      <li>Save the workbook locally as well, inside the project folder that holds the rest of the analysis, so the file lives next to the code that made the data.</li>
+      <li>Save the workbook locally as well (<strong>File → Export Packaged Workbook</strong> makes a portable .twbx with the data inside), inside the project folder that holds the rest of the analysis, so the file lives next to the code that made the data.</li>
     </ol>
+    <div class="note"><strong>Polishing after you publish is normal.</strong> Keep working in the same window, and <strong>Ctrl+S republishes to the same public link</strong>. Nobody nails labels, sorts, and colors on the first upload.</div>
     <div class="check"><b>Check before moving on:</b> open the public link in a private browser window, signed out, and click through all three story points.</div>
   </div>
 
   <h2>The errors everyone hits once</h2>
   <table>
     <tr><th>What you see</th><th>What it means</th><th>Fix</th></tr>
-    <tr><td>"Cannot mix aggregate and non-aggregate arguments"</td><td>Your formula divides a raw column by a raw column</td><td>Wrap both sides: <code>SUM([Churned]) / COUNT([Customer ID])</code></td></tr>
+    <tr><td>"Cannot mix aggregate and non-aggregate arguments"</td><td>Your formula divides a raw column by a raw column</td><td>Use <code>AVG([Churned])</code>, or wrap both sides: <code>SUM([Churned]) / COUNT([Customer ID])</code></td></tr>
+    <tr><td>"Workbooks saved to Tableau Public must use extracts"</td><td>The workbook still reads the CSV live from your disk, which Tableau's servers cannot see</td><td>Data Source tab, switch Connection from Live to Extract, save, publish again</td></tr>
+    <tr><td>No publish option anywhere</td><td>You are in Tableau Desktop Free Edition, which cannot share or publish</td><td>Install Tableau Desktop Public Edition from public.tableau.com and open the workbook there</td></tr>
     <tr><td>The rate shows as 0.265</td><td>Number format is still a plain decimal</td><td>Right-click the field, Default Properties, Number Format, Percentage</td></tr>
     <tr><td>Every bar is the same height</td><td>You dragged the raw 1/0 column instead of the calculated rate</td><td>Drag the wrong pill off the shelf and drop the right one on</td></tr>
     <tr><td>Buckets are in alphabetical order</td><td>Tableau sorts text alphabetically until told otherwise</td><td>Right-click the pill, Sort, by Field, your order column, Minimum</td></tr>
