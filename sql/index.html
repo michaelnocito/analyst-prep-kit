@@ -1886,6 +1886,27 @@ function renderLesson(id){
 // judges of their own recall, and the kit already watches every answer — so it
 // records what was actually missed and schedules THAT, instead of asking. Same
 // shape PrepLoop reads for its miss sweeps.
+// One-time carry-over: the self-rating is gone, but someone who had already
+// rated lessons "Not yet"/"Almost" should keep the review list they built.
+// Convert those to a recorded miss, then drop the dead key.
+function _migrateConfidence(){
+  const c = state.confidence;
+  if(!c || typeof c !== 'object') return;
+  state.misses = state.misses || {};
+  const touched = [];
+  Object.keys(c).forEach(id=>{
+    if((c[id]==='low'||c[id]==='mid') && !(state.misses[id]||[]).length){
+      state.misses[id] = ['Carried over from when you rated this "'+(c[id]==='low'?'Not yet':'Almost')+'"'];
+      touched.push(+id);
+    }
+  });
+  delete state.confidence;
+  saveState();
+  touched.forEach(id=>{
+    const l = DATA.LESSONS.find(x=>x.id===id);
+    if(l) _queueRecalls(id, l);
+  });
+}
 function missesFor(id){ return (state.misses||{})[id]||[]; }
 function recordMiss(lessonId, cue){
   if(lessonId==null) return;
@@ -4759,6 +4780,7 @@ function showToast(msg){
 
 // ─── INIT ──────────────────────────────────────────────────────────────────
 loadState();
+_migrateConfidence();
 bumpStreak(); // Batch 5 return loop: opening the kit counts toward today's streak
 
 // Load user's cloud progress if logged in
