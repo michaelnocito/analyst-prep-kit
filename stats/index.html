@@ -1717,7 +1717,12 @@ function _recallsHTML(){
   // Cues may be legacy strings (question only) or {q,a} pairs. Answer reveal is
   // Anki-style flip: attempt first, then the answer inline — never a dead end.
   return _pendingRecalls.map((e,i)=>{
-    const cues = e.cues.map(c=>typeof c==='string'?{q:c,a:null}:c);
+    // Prefer the cue set the lesson carries TODAY. Entries queued before answers
+    // were authored stored bare strings, and a stored snapshot can never gain an
+    // answer - which is why Tableau's cards showed no answers while Excel's did
+    // (playtest T6). Fall back to the snapshot if the lesson is gone.
+    const _live = (DATA.LESSONS.find(l=>l.id===e.srcId)||{}).reinforces;
+    const cues = ((_live&&_live.length)?_live:e.cues).map(c=>typeof c==='string'?{q:c,a:null}:c);
     const open = !!e._open;
     const hasAns = cues.some(c=>c.a);
     return `<div class="recall-card">
@@ -2763,6 +2768,16 @@ function handleResetAll(btn){
     setTimeout(function(){if(_allConfirm){_allConfirm=false;btn.textContent='↺ Reset all kits';btn.style.color='';btn.style.borderColor='';}  },4000);
   } else {
     ['sqlkit-v1','epk','ppk','tpk','spk'].forEach(function(k){localStorage.removeItem(k);});
+    // The per-kit recall/streak keys used to be listed by hand here and drifted
+    // out of sync kit to kit - Tableau and Stats listed none - so a reset wiped
+    // lesson progress but left the review list standing (playtest S1). Sweeping
+    // by prefix keeps every kit honest. A purchase (apk-pass) and any API key
+    // the user supplied are deliberately never touched by a progress reset.
+    var _pfx=['sqlkit','epk','ppk','tpk','spk','pbikt','ipk','clk','fmk'];
+    Object.keys(localStorage).forEach(function(k){
+      if(/apikey|api-key|apk-pass|coach-key/.test(k)) return;
+      if(_pfx.some(function(p){return k===p||k.indexOf(p+'-')===0;})) localStorage.removeItem(k);
+    });
     location.reload();
   }
 }

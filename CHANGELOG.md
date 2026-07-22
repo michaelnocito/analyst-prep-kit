@@ -9,6 +9,35 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.175.0] — 2026-07-22 — T6 + S1: recall answers that don't rot, and a reset that clears the review list
+
+Both were filed as "probably a stale deploy." Neither was. With the deploy
+confirmed current (v1.174.0), both reproduced and both were real code bugs.
+
+- **[T6] Tableau recall cards showed no answers while Excel's did.** Cause:
+  `_queueRecalls()` stores a **snapshot** of the cue objects (`cues: l.reinforces`)
+  at the moment a lesson is visited. Cues queued before a kit's answers were
+  authored are bare strings, and a snapshot can never gain an answer — so those
+  cards revealed "this one predates stored answers" forever. Tableau's answers
+  landed in v1.164.0, later than Excel's, so Mike's older Tableau queue was full
+  of string-only entries. `_recallsHTML()` now resolves cues from the lesson's
+  **current** `reinforces` via the entry's `srcId`, falling back to the snapshot
+  only if that lesson no longer exists. Fixed in all 6 lesson kits. The
+  "predates stored answers" note now only appears for genuinely orphaned entries.
+- **[S1] "Reset all kits" didn't clear the review list.** Cause: the reset key
+  list was hand-maintained per kit and had drifted badly — **Tableau and Stats
+  listed no recall keys at all**, Excel listed only its own, Python listed three
+  kits'. So a reset wiped lesson progress and left the recall queue standing.
+  Replaced the hand list with a prefix sweep over every kit's key family
+  (`*-recalls`, `*-recall-wins`, `*-last-visit`, `*-streak`). SQL and Power BI
+  have no "Reset all kits" button — their own `resetProgress()` was already
+  correct, so they were left alone.
+  **A reset still never touches `apk-pass` (a purchase), `apk-coach-key`, or
+  `sim2-apikey`** — explicitly guarded and verified.
+- Verified: a seeded legacy string-only queue now reveals real answers in Tableau
+  and Excel; reset clears all six kits' recall keys with the purchase and both API
+  keys intact, and the Review view renders its empty state. Console clean.
+
 ## [1.174.0] — 2026-07-22 — S3 blocker: mobile tap-to-order, and placed lines you can move
 
 Playtest S3 (SQL kit, 2026-07-20): "tap to add on mobile is adding the tap
