@@ -7,6 +7,9 @@
 > - ✅ **T3 DONE all 6 kits** — Compare stage removed from sql (verified live by Mike), then excel · python · powerbi · tableau · stats (JS syntax-checked each). sql/python/powerbi/tableau/stats share the same stage machine (renumbered 7→6); excel is a stacked scroll (named stages, just dropped the Compare card + retargeted the Try continue to Build).
 > - ⏳ **S3 / T6 / S1 (runtime) — need live repro / redeploy, NOT a source fix.** Current source is already correct: all 6 kits append parsons taps top-to-bottom in tap order (S3); tableau already ships 64 {q,a} recall answers + reveal (T6); every kit's reset() clears `*-recalls` + `_pendingRecalls` (S1). So these are almost certainly stale live deploys or a render-refresh gap. Verify on the live URLs; redeploy if lagging; if still reproducing, get exact repro steps from Mike.
 > - ⏳ **T4 (mobile transition delay), T2, T9, T1, S2** — untouched, still queued per verdicts below.
+> - ✅ **2026-07-22 HOTFIX (Mike inbox blocker)** — the T3 Compare-removal sed dropped the comma in 21 `set*Stage(${lid}N)` calls in **tableau · python · powerbi · stats** (e.g. `setTabStage(74)` instead of `setTabStage(7,4)`), so submitting Build It (and quiz Continue/Back) silently mis-navigated and looked like it "cleared the answer and never moved on". sql + excel were unaffected. All 21 sites fixed, grep-verified 0 remaining.
+>
+> **Cross-kit applicability (hotfix):** excel ✅ n/a (clean) · sql ✅ n/a (clean, hand-edited template) · python ✅ fixed (4 sites) · powerbi ✅ fixed (6) · tableau ✅ fixed (6) · stats ✅ fixed (6) · cert/non-lesson pages n/a (no v2 stage machine).
 >
 > Lesson-kit class = **excel · sql · python · powerbi · tableau · stats** (the 6 that share the recall/parsons engine). Cert + non-lesson pages (forecasting, chart-literacy, interview, final, simulator, projects) checked separately per item. "Where applicable" verdicts below are grep-derived; confirm at build.
 >
