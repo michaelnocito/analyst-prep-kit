@@ -228,7 +228,12 @@ p strong{color:var(--text)}
 .parsons-col label{font-size:12px;color:var(--muted);font-weight:600;display:block;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
 .parsons-pool,.parsons-answer{min-height:80px;background:var(--surf2);border:1px solid var(--border);border-radius:var(--r2);padding:8px;display:flex;flex-direction:column;gap:6px}
 .parsons-answer{border-color:var(--accent)}
-.parsons-chip{font-family:var(--mono);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:var(--r2);padding:9px 12px;cursor:pointer;user-select:none;transition:.15s}
+.parsons-chip{font-family:var(--mono);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:var(--r2);padding:9px 12px;cursor:pointer;user-select:none;transition:.15s;display:flex;align-items:center;gap:10px}
+.parsons-chip .pars-txt{flex:1;min-width:0;overflow-wrap:anywhere;word-break:break-word}
+/* ↑ ↓ nudge controls on a placed line — thumb-sized, touch is the primary input */
+.pars-move{display:flex;gap:4px;flex:0 0 auto}
+.pars-move button{font:inherit;line-height:1;min-width:36px;min-height:36px;padding:0;color:inherit;background:var(--surf2);border:1px solid var(--border);border-radius:var(--r2);cursor:pointer}
+.pars-move button:disabled{opacity:.3;cursor:default}
 .parsons-chip:hover{border-color:var(--accent);background:var(--surf2)}
 .parsons-chip.dragging{opacity:.4}
 
@@ -379,7 +384,8 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .v2-pool{display:flex;flex-wrap:wrap;gap:8px;min-height:44px;border:2px dashed var(--border);border-radius:var(--r2);padding:10px;margin-bottom:10px;transition:.15s}
 .v2-answer-zone{min-height:44px;border:2px dashed var(--accent);border-radius:var(--r2);padding:10px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px;transition:.15s}
 .v2-answer-zone.drag-over,.v2-pool.drag-over{background:rgba(47,109,240,.07)}
-.v2-pars-chip{font-family:var(--mono);font-size:13px;background:var(--surf);border:1.5px solid var(--border);border-radius:var(--r2);padding:9px 12px;cursor:pointer;user-select:none;transition:.15s;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%}
+.v2-pars-chip{font-family:var(--mono);font-size:13px;background:var(--surf);border:1.5px solid var(--border);border-radius:var(--r2);padding:9px 12px;cursor:pointer;user-select:none;transition:.15s;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%;display:flex;align-items:center;gap:10px}
+.v2-pars-chip .pars-txt{flex:1;min-width:0}
 .v2-pars-chip:hover{border-color:var(--accent);background:rgba(47,109,240,.07)}
 .v2-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 @media(max-width:540px){.v2-compare-grid{grid-template-columns:1fr}}
@@ -2445,6 +2451,40 @@ function v2ParsChipTap(lid, chip){
   if(!pool||!ans) return;
   if(pool.contains(chip)) ans.appendChild(chip);
   else pool.appendChild(chip);
+  v2ParsSyncControls(pool, ans);
+}
+
+// ↑ ↓ on a placed piece: fixing one line out of order costs one tap instead of
+// clearing the answer and re-tapping everything (playtest S3, 2026-07-20).
+function v2ParsMove(ev, dir){
+  ev.stopPropagation();
+  const chip = ev.currentTarget.closest('.v2-pars-chip');
+  if(!chip) return;
+  const zone = chip.parentElement;
+  const sib = dir < 0 ? chip.previousElementSibling : chip.nextElementSibling;
+  if(!sib) return;
+  if(dir < 0) zone.insertBefore(chip, sib);
+  else zone.insertBefore(sib, chip);
+  v2ParsSyncControls(null, zone);
+}
+function v2ParsSyncControls(pool, ans){
+  if(pool) pool.querySelectorAll('.pars-move').forEach(m => m.remove());
+  if(!ans) return;
+  const chips = [...ans.querySelectorAll('.v2-pars-chip')];
+  chips.forEach((c, i) => {
+    let ctl = c.querySelector('.pars-move');
+    if(!ctl){
+      ctl = document.createElement('span');
+      ctl.className = 'pars-move';
+      ctl.innerHTML = '<button type="button" aria-label="Move this piece up">&uarr;</button>' +
+                      '<button type="button" aria-label="Move this piece down">&darr;</button>';
+      ctl.children[0].onclick = e => v2ParsMove(e, -1);
+      ctl.children[1].onclick = e => v2ParsMove(e, 1);
+      c.appendChild(ctl);
+    }
+    ctl.children[0].disabled = i === 0;
+    ctl.children[1].disabled = i === chips.length - 1;
+  });
 }
 
 function v2ParsCheck(lid){
@@ -2460,7 +2500,7 @@ function v2ParsCheck(lid){
   }
   const userOrder = chips.map(c=>+c.dataset.idx);
   const correct = l.parsons.answer.every((v,i)=>v===userOrder[i]);
-  _v2ParsAttempt[lid] = {lines: chips.map(c=>c.textContent)};
+  _v2ParsAttempt[lid] = {lines: chips.map(c=>(c.querySelector('.pars-txt')||c).textContent)};
   _v2ParsWasWrong[lid] = !correct;
   if(correct){
     delete _v2ParsWasWrong[lid];
@@ -2642,7 +2682,7 @@ function v2SqlBody(l, done){
     const p=l.parsons;
     const idxs=[...p.lines.keys()];
     for(let i=idxs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idxs[i],idxs[j]]=[idxs[j],idxs[i]];}
-    const pool=idxs.map(i=>`<div class="v2-pars-chip" data-idx="${i}" onclick="v2ParsChipTap(${l.id},this)">${p.lines[i]}</div>`).join('');
+    const pool=idxs.map(i=>`<div class="v2-pars-chip" data-idx="${i}" onclick="v2ParsChipTap(${l.id},this)"><span class="pars-txt">${p.lines[i]}</span></div>`).join('');
     body=`<div class="v2-stage-card">
       <h3><i data-lucide="list-ordered"></i> Try It</h3>
       <p class="text-muted text-sm" style="margin-bottom:10px">${p.prompt}</p>
@@ -3207,7 +3247,7 @@ function renderParsons(idx){
         <div class="parsons-col">
           <label>Available Lines — tap to add</label>
           <div class="parsons-pool" id="parsons-pool">
-            ${poolLines.map((line,i) => `<div class="parsons-chip" draggable="true" data-line="${i}" onclick="tapChip(event)" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dropChip(event,'pool')">${line}</div>`).join('')}
+            ${poolLines.map((line,i) => `<div class="parsons-chip" draggable="true" data-line="${i}" onclick="tapChip(event)" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dropChip(event,'pool')"><span class="pars-txt">${line}</span></div>`).join('')}
           </div>
         </div>
         <div class="parsons-col">
@@ -3245,6 +3285,44 @@ function tapChip(e){
     const after = [...pool.querySelectorAll('.parsons-chip')].find(c => parseInt(c.dataset.line) > line);
     pool.insertBefore(chip, after || null);
   }
+  syncParsonsControls();
+}
+
+// A placed line can be nudged with ↑ ↓ so one line out of order costs one tap,
+// not emptying the whole answer and starting again (playtest S3: "I'm not sure
+// if we can put them movable"). Drag still works on desktop; touch has no drag.
+function parsonsMoveChip(ev, dir){
+  ev.stopPropagation();
+  const chip = ev.currentTarget.closest('.parsons-chip');
+  if(!chip) return;
+  const sib = dir < 0 ? chip.previousElementSibling : chip.nextElementSibling;
+  if(!sib) return;
+  if(dir < 0) chip.parentElement.insertBefore(chip, sib);
+  else chip.parentElement.insertBefore(sib, chip);
+  syncParsonsControls();
+}
+function syncParsonsControls(){
+  const pool = document.getElementById('parsons-pool');
+  const answer = document.getElementById('parsons-answer');
+  if(pool) pool.querySelectorAll('.pars-move').forEach(m => m.remove());
+  if(!answer) return;
+  const chips = [...answer.querySelectorAll('.parsons-chip')];
+  chips.forEach((c, i) => {
+    const locked = c.getAttribute('draggable') === 'false';
+    let ctl = c.querySelector('.pars-move');
+    if(locked){ if(ctl) ctl.remove(); return; }
+    if(!ctl){
+      ctl = document.createElement('span');
+      ctl.className = 'pars-move';
+      ctl.innerHTML = '<button type="button" aria-label="Move this line up">&uarr;</button>' +
+                      '<button type="button" aria-label="Move this line down">&darr;</button>';
+      ctl.children[0].onclick = e => parsonsMoveChip(e, -1);
+      ctl.children[1].onclick = e => parsonsMoveChip(e, 1);
+      c.appendChild(ctl);
+    }
+    ctl.children[0].disabled = i === 0;
+    ctl.children[1].disabled = i === chips.length - 1;
+  });
 }
 
 let draggedChip = null;
@@ -3292,7 +3370,7 @@ function checkParsons(idx){
       // 1st wrong: scaffold the first half in correct order, leave rest for user
       const half = Math.ceil(p.answer.length / 2);
       scaffoldParsons(idx, half);
-      res.innerHTML = `<span style="color:var(--yellow)">✗ Not quite — the first ${half} line${half>1?'s are':' is'} placed for you. Drag the rest into order.</span>`;
+      res.innerHTML = `<span style="color:var(--yellow)">✗ Not quite — the first ${half} line${half>1?'s are':' is'} placed for you. Tap the rest into order, and use ↑ ↓ on a placed line to move it.</span>`;
     } else {
       // 2nd wrong: show the full correct answer locked
       scaffoldParsons(idx, p.answer.length);
@@ -3342,16 +3420,12 @@ function scaffoldParsons(idx, count){
     chip.style.background = '';
     pool.appendChild(chip);
   });
-  // Restack layout: Answer on top, Available Lines below (reads top→bottom naturally)
-  const wrap = answer.closest('.parsons-wrap');
-  if(wrap){
-    wrap.style.flexDirection = 'column';
-    const answerCol = answer.closest('.parsons-col');
-    const poolCol = pool.closest('.parsons-col');
-    if(answerCol && poolCol && wrap.firstElementChild !== answerCol){
-      wrap.insertBefore(answerCol, poolCol);
-    }
-  }
+  syncParsonsControls();
+  // NOTE: this used to restack the columns (answer above pool) mid-exercise.
+  // On mobile that swapped the layout out from under the learner right after a
+  // wrong check — combined with the scaffold pulling their placed lines back to
+  // the pool, it read as "my second tap jumped above my first" (playtest S3,
+  // 2026-07-20). The column order must stay put for the whole exercise.
 }
 function resetParsons(idx){ delete _parsonsAttempts[idx]; if(guided) renderGuidedStep(); else navigate('parsons', idx); }
 

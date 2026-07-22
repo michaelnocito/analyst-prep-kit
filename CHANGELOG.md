@@ -9,6 +9,33 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.174.0] — 2026-07-22 — S3 blocker: mobile tap-to-order, and placed lines you can move
+
+Playtest S3 (SQL kit, 2026-07-20): "tap to add on mobile is adding the tap
+backwards… the second appears above the first."
+
+- **Root cause found — and it was NOT the tap order.** Every kit already appended
+  taps in order; verified live before changing anything. The reversal came from
+  `scaffoldParsons()` in the **SQL practice drill only**: after a wrong check it
+  (a) restacked the two columns so the answer jumped *above* the pool mid-exercise,
+  and (b) pulled the learner's placed lines back to the pool to seat the correct
+  first half. Together those made a second tap look like it had leapfrogged the
+  first. The restack is removed; the column order now holds for the whole exercise.
+- **Placed pieces are movable** (Mike: "I'm not sure if we can put them movable").
+  Every tap-to-order surface gained ↑ ↓ nudge buttons on placed pieces — 36px tall,
+  disabled at the ends, and they don't eject the piece. Fixing one line out of
+  order is now one tap instead of clearing the answer and re-tapping everything.
+  Surfaces: the in-lesson Try It stage in **sql · python · powerbi · tableau ·
+  stats**, plus the standalone practice drills in **sql** and **tableau** (7 total).
+- **Touch-accurate copy**: the SQL scaffold message said "Drag the rest into
+  order" — impossible on a phone. Now names tapping and the ↑ ↓ controls.
+- **Tableau practice drill stacks on mobile**: its bank/answer grid was a hard
+  `1fr 1fr`, giving two ~140px columns of code at 375px. Single column under 600px.
+- Excel is unaffected — it has no tap-to-order surface.
+- Verified at 375px and 1280px on every changed surface: tap order top-to-bottom,
+  nudge swaps without losing a piece, ends disabled, pool pieces carry no controls,
+  locked scaffold lines stay locked, desktop columns unchanged, console clean.
+
 ## [1.173.0] — 2026-07-21 — State the growing-premium promise explicitly
 
 - `terms.html`: new paragraph under "What you're buying" — premium modules added

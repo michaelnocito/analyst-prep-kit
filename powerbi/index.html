@@ -380,7 +380,12 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .v2-stage-card h3 .lucide{width:16px;height:16px;color:var(--accent);vertical-align:-2px;margin-right:6px}
 .v2-pool{display:flex;flex-wrap:wrap;gap:8px;min-height:44px;border:2px dashed var(--border);border-radius:var(--r2);padding:10px;margin-bottom:10px;transition:.15s}
 .v2-answer-zone{min-height:44px;border:2px dashed var(--accent);border-radius:var(--r2);padding:10px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px;transition:.15s}
-.v2-pars-chip{font-family:var(--mono);font-size:13px;background:var(--surf);border:1.5px solid var(--border);border-radius:var(--r2);padding:9px 12px;cursor:pointer;user-select:none;transition:.15s;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%}
+.v2-pars-chip{font-family:var(--mono);font-size:13px;background:var(--surf);border:1.5px solid var(--border);border-radius:var(--r2);padding:9px 12px;cursor:pointer;user-select:none;transition:.15s;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%;display:flex;align-items:center;gap:10px}
+.v2-pars-chip .pars-txt{flex:1;min-width:0}
+/* ↑ ↓ nudge controls on a placed piece - thumb-sized, touch is the primary input */
+.pars-move{display:flex;gap:4px;flex:0 0 auto}
+.pars-move button{font:inherit;line-height:1;min-width:36px;min-height:36px;padding:0;color:inherit;background:var(--surf2);border:1px solid var(--border);border-radius:6px;cursor:pointer}
+.pars-move button:disabled{opacity:.3;cursor:default}
 .v2-pars-chip:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
 .v2-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 @media(max-width:540px){.v2-compare-grid{grid-template-columns:1fr}}
@@ -2502,6 +2507,40 @@ function v2ParsChipTap(lid, chip){
   if(!pool||!ans) return;
   if(pool.contains(chip)) ans.appendChild(chip);
   else pool.appendChild(chip);
+  v2ParsSyncControls(pool, ans);
+}
+
+// ↑ ↓ on a placed piece: fixing one line out of order costs one tap instead of
+// clearing the answer and re-tapping everything (playtest S3, 2026-07-20).
+function v2ParsMove(ev, dir){
+  ev.stopPropagation();
+  const chip = ev.currentTarget.closest('.v2-pars-chip');
+  if(!chip) return;
+  const zone = chip.parentElement;
+  const sib = dir < 0 ? chip.previousElementSibling : chip.nextElementSibling;
+  if(!sib) return;
+  if(dir < 0) zone.insertBefore(chip, sib);
+  else zone.insertBefore(sib, chip);
+  v2ParsSyncControls(null, zone);
+}
+function v2ParsSyncControls(pool, ans){
+  if(pool) pool.querySelectorAll('.pars-move').forEach(m => m.remove());
+  if(!ans) return;
+  const chips = [...ans.querySelectorAll('.v2-pars-chip')];
+  chips.forEach((c, i) => {
+    let ctl = c.querySelector('.pars-move');
+    if(!ctl){
+      ctl = document.createElement('span');
+      ctl.className = 'pars-move';
+      ctl.innerHTML = '<button type="button" aria-label="Move this piece up">&uarr;</button>' +
+                      '<button type="button" aria-label="Move this piece down">&darr;</button>';
+      ctl.children[0].onclick = e => v2ParsMove(e, -1);
+      ctl.children[1].onclick = e => v2ParsMove(e, 1);
+      c.appendChild(ctl);
+    }
+    ctl.children[0].disabled = i === 0;
+    ctl.children[1].disabled = i === chips.length - 1;
+  });
 }
 
 function v2ParsCheck(lid){
@@ -2517,7 +2556,7 @@ function v2ParsCheck(lid){
   }
   const userOrder = chips.map(c=>+c.dataset.idx);
   const correct = l.parsons.answer.every((v,i)=>v===userOrder[i]);
-  _v2ParsAttempt[lid] = {lines: chips.map(c=>c.textContent)};
+  _v2ParsAttempt[lid] = {lines: chips.map(c=>(c.querySelector('.pars-txt')||c).textContent)};
   _v2ParsWasWrong[lid] = !correct;
   if(correct){
     delete _v2ParsWasWrong[lid];
@@ -2702,7 +2741,7 @@ function v2PbiBody(l, done){
     const p=l.parsons;
     const idxs=[...p.lines.keys()];
     for(let i=idxs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idxs[i],idxs[j]]=[idxs[j],idxs[i]];}
-    const pool=idxs.map(i=>`<div class="v2-pars-chip" data-idx="${i}" onclick="v2ParsChipTap(${l.id},this)">${p.lines[i]}</div>`).join('');
+    const pool=idxs.map(i=>`<div class="v2-pars-chip" data-idx="${i}" onclick="v2ParsChipTap(${l.id},this)"><span class="pars-txt">${p.lines[i]}</span></div>`).join('');
     body=`<div class="v2-stage-card">
       <h3><i data-lucide="list-ordered"></i> Try It</h3>
       <p class="text-muted text-sm" style="margin-bottom:10px">${p.prompt}</p>
