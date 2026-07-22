@@ -37,6 +37,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 a{color:var(--accent);text-decoration:none}
 code,.mono{font-family:var(--mono)}
 nav{background:var(--surf);border-bottom:1px solid var(--border);padding:0 18px;display:flex;align-items:center;gap:4px;height:56px;position:sticky;top:0;z-index:100;flex-wrap:wrap}
+/* Task instructions. Mobile learning apps keep the prompt large, full-contrast
+   and pinned to the top of the exercise so it stays readable while you work;
+   16-18px at ~1.5 line-height is the mobile body-copy floor for readability. */
+.drill-instruction{font-size:17px;line-height:1.55;color:var(--text,var(--ink,var(--txt)));font-weight:500;margin:0 0 14px}
+@media(max-width:640px){
+  .drill-instruction{position:sticky;top:56px;z-index:90;background:var(--surf);padding:10px 0 9px;border-bottom:1px solid var(--border,var(--bord))}
+}
 .nav-logo{font-weight:700;font-size:14px;margin-right:12px;color:var(--text);padding-right:12px;border-right:1px solid var(--border);white-space:nowrap;display:inline-flex;align-items:center;gap:9px}
 .logo-mark{color:var(--accent);background:var(--surf2);width:30px;height:30px;display:inline-grid;place-items:center;border-radius:9px;flex-shrink:0}
 .logo-mark .lucide{width:17px;height:17px}
@@ -837,7 +844,7 @@ function gotoNext(lid){const n=nextLessonId(lid);if(n!==null)openLesson(n);else{
 // ─── DRILL: FILLS (tap the choice) ─────────────────────────────────────────────
 function renderFill(item,done){
   const correct=item.choices[0];const opts=_shuf(item.choices);
-  return `<div class="card"><p style="color:var(--text)">${esc(item.q)}</p>
+  return `<div class="card"><p class="drill-instruction">${esc(item.q)}</p>
     ${item.partial?`<div class="code-block" style="margin:10px 0">${esc(item.partial).replace('___','<span style="color:var(--accent);font-weight:700">[ ? ]</span>')}</div>`:''}
     <div id="fillChoices">${opts.map(c=>`<button class="fill-choice${done&&c===correct?' correct':''}" onclick="pickFill(this)" ${done?'disabled':''}>${esc(c)}</button>`).join('')}</div>
     <div id="fillFb" style="margin-top:10px;${done?'':'display:none'}">${done?`<span style="color:var(--success)">✓ ${esc(item.hint)}</span>`:''}</div></div>`;
@@ -855,7 +862,7 @@ function _shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(M
 // ─── DRILL: ESQL (Name That Chart) ─────────────────────────────────────────────
 function renderEsql(item,done){
   const correct=item.choices?item.choices[0]:item.ans;const opts=_shuf(item.choices||[item.ans]);
-  return `<div class="card"><p style="color:var(--text)">${esc(item.q)}</p>
+  return `<div class="card"><p class="drill-instruction">${esc(item.q)}</p>
     <div id="esqlChoices">${opts.map(c=>`<button class="fill-choice${done&&c===correct?' correct':''}" onclick="pickEsql(this)" ${done?'disabled':''}>${esc(c)}</button>`).join('')}</div>
     <div id="esqlFb" style="margin-top:10px;${done?'':'display:none'}">${done?`<span style="color:var(--success)">✓ ${esc(item.hint||'')}</span>`:''}</div></div>`;
 }
@@ -871,7 +878,7 @@ function pickEsql(btn){
 // ─── DRILL: BUGS (Fix the Chart) ───────────────────────────────────────────────
 function renderBug(item,done){
   const correct=item.choices[0];const opts=_shuf(item.choices);
-  return `<div class="card"><p style="color:var(--text)">This chart setup is broken — tap the correct fix:</p>
+  return `<div class="card"><p class="drill-instruction">This chart setup is broken — tap the correct fix:</p>
     <div class="code-block" style="margin:10px 0">${esc(item.config)}</div>
     <div id="bugChoices">${opts.map(c=>`<button class="fill-choice${done&&c===correct?' correct':''}" onclick="pickBug(this)" ${done?'disabled':''}>${esc(c)}</button>`).join('')}</div>
     <div id="bugFb" style="margin-top:10px;${done?'':'display:none'}">${done?`<span style="color:var(--success)">✓ ${esc(item.broken)}</span>`:''}</div></div>`;
@@ -887,7 +894,7 @@ function pickBug(btn){
 
 // ─── DRILL: WRONG (What's Wrong?) ──────────────────────────────────────────────
 function renderWrong(item,done){
-  return `<div class="card"><p style="color:var(--text)">${esc(item.q)}</p>
+  return `<div class="card"><p class="drill-instruction">${esc(item.q)}</p>
     <div id="wrongOpts">${item.opts.map((o,i)=>`<button class="quiz-opt" onclick="checkWrong(${i})" ${done?'disabled':''}>${esc(o)}</button>`).join('')}</div>
     <div class="quiz-exp${done?' show':''}" id="wrongFb">${done?esc(item.exp):''}</div></div>`;
 }
@@ -901,10 +908,10 @@ function checkWrong(i){
 
 // ─── DRILL: PARSONS (Put It In Order) ──────────────────────────────────────────
 function renderParsons(item,done){
-  if(done){return `<div class="card"><p style="color:var(--text)">${esc(item.q)}</p>
+  if(done){return `<div class="card"><p class="drill-instruction">${esc(item.q)}</p>
     <div class="code-block">${item.ans.map(s=>esc(s)).join('\\n')}</div>
     <div style="margin-top:10px;color:var(--success)">✓ Complete</div></div>`;}
-  return `<div class="card"><p style="color:var(--text)">${esc(item.q)}</p>
+  return `<div class="card"><p class="drill-instruction">${esc(item.q)}</p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
       <div><div style="font-size:.78rem;color:var(--dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Bank</div>
         <div id="parsBank" style="min-height:80px;background:var(--surf2);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:6px"></div></div>

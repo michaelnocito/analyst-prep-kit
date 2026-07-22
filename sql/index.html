@@ -163,30 +163,30 @@ p strong{color:var(--text)}
 .ral-arrow{color:var(--muted);flex-shrink:0}
 .ral-desc{font-size:13px;color:var(--muted);min-width:0}
 
-/* Grain lesson-view helpers (story bridge, section eyebrow, confidence rater) */
+/* Grain lesson-view helpers (story bridge, section eyebrow, auto-miss panel) */
 .lesson-story{display:flex;gap:11px;align-items:flex-start;background:var(--amber-50);border:1px solid var(--amber-100);border-radius:var(--r2);padding:13px 15px;margin-bottom:18px;font-size:.9rem;line-height:1.65;color:var(--stone-800)}
 .lesson-story .lucide{width:18px;height:18px;color:var(--amber-600);flex-shrink:0;margin-top:2px}
 .lesson-eyebrow{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:var(--tracking-caps);color:var(--muted);margin:0 0 9px;display:flex;align-items:center;gap:7px}
 .lesson-eyebrow .lucide{width:15px;height:15px;color:var(--accent)}
 .card h3 .lucide{width:17px;height:17px;color:var(--accent);vertical-align:-3px;margin-right:6px}
 .quiz-wrap h3 .lucide{width:17px;height:17px;color:var(--accent);vertical-align:-3px;margin-right:6px}
-.conf-rater{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-top:16px;box-shadow:var(--shadow)}
-.conf-head{display:flex;align-items:center;gap:8px;font-family:var(--font);font-weight:600;font-size:14px;color:var(--text);margin-bottom:4px}
-.conf-head .lucide{width:17px;height:17px;color:var(--accent)}
-.conf-sub{font-size:12.5px;color:var(--muted);margin:0 0 14px}
-.conf-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.conf-chip{display:flex;flex-direction:column;align-items:center;gap:5px;padding:13px 8px;border-radius:var(--r2);cursor:pointer;border:1.5px solid var(--border);background:var(--surf);color:var(--text);font:inherit;transition:.15s}
-.conf-chip .lucide{width:20px;height:20px}
-.conf-chip:hover{border-color:var(--accent)}
-.conf-chip .conf-label{font-size:13px;font-weight:600}
-.conf-chip[data-v="low"] .lucide{color:var(--red)}
-.conf-chip[data-v="mid"] .lucide{color:var(--warn)}
-.conf-chip[data-v="high"] .lucide{color:var(--green)}
-.conf-chip.is-on{color:#fff}
-.conf-chip.is-on .lucide{color:#fff}
-.conf-chip[data-v="low"].is-on{background:var(--red);border-color:var(--red)}
-.conf-chip[data-v="mid"].is-on{background:var(--warn);border-color:var(--warn)}
-.conf-chip[data-v="high"].is-on{background:var(--green);border-color:var(--green)}
+/* Auto-recorded misses (replaces the old self-rating). */
+.miss-panel{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-top:16px;box-shadow:var(--shadow)}
+.miss-panel.is-clean{border-color:var(--green)}
+.miss-head{display:flex;align-items:center;gap:8px;font-family:var(--font);font-weight:600;font-size:15px;color:var(--text);margin-bottom:4px}
+.miss-head .lucide{width:17px;height:17px;color:var(--accent);flex-shrink:0}
+.miss-panel.is-clean .miss-head .lucide{color:var(--green)}
+.miss-sub{font-size:13.5px;line-height:1.55;color:var(--muted);margin:0}
+.miss-items{margin:12px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:7px}
+.miss-items li{font-size:14.5px;line-height:1.5;color:var(--text)}
+.miss-clear{margin-top:14px}
+/* Task instructions. Mobile learning apps keep the prompt large, full-contrast
+   and pinned to the top of the exercise so it stays readable while you work;
+   16-18px at ~1.5 line-height is the mobile body-copy floor for readability. */
+.drill-instruction{font-size:17px;line-height:1.55;color:var(--text);font-weight:500;margin:0 0 14px}
+@media(max-width:640px){
+  .drill-instruction{position:sticky;top:56px;z-index:90;background:var(--surf);padding:10px 0 9px;border-bottom:1px solid var(--border)}
+}
 
 /* QUIZ */
 .quiz-wrap{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-top:20px}
@@ -208,7 +208,7 @@ p strong{color:var(--text)}
 .drill-count{font-size:11px;color:var(--accent);font-weight:600;margin-top:4px}
 
 /* FILLS */
-.fill-prompt{font-size:14px;color:var(--muted);margin-bottom:10px}
+.fill-prompt{font-size:17px;line-height:1.55;color:var(--text);font-weight:500;margin-bottom:10px}
 .fill-partial{font-family:var(--mono);font-size:14px;background:var(--surf2);border:1px solid var(--border);border-radius:var(--r2);padding:12px 16px;margin-bottom:16px;white-space:pre;overflow-x:auto}
 
 /* BUGS */
@@ -1547,20 +1547,22 @@ function renderFlagged(){
   const el = document.getElementById('flaggedList');
   if(!el) return;
   const wrap = document.getElementById('flaggedCard');
-  const conf = state.confidence || {};
-  const rows = Object.keys(conf).filter(id => conf[id]==='low' || conf[id]==='mid')
+  const ms = state.misses || {};
+  const rows = Object.keys(ms).filter(id => (ms[id]||[]).length)
     .map(id => DATA.LESSONS.find(x => x.id === +id)).filter(Boolean)
-    .map(l => ({id:l.id, title:`Lesson ${lessonPos(l.id)+1} — ${l.title}`, sub: conf[l.id]==='low' ? 'Not yet' : 'Almost'}));
+    .map(l => ({id:l.id, title:`Lesson ${lessonPos(l.id)+1} — ${l.title}`, sub: `${ms[l.id].length} missed`}));
   if(wrap) wrap.style.display = rows.length ? '' : 'none';
   el.innerHTML = rows.map(r=>`<div class="flag-row" onclick="navigate('lesson',${r.id})">
       <div><span style="font-size:11px;color:var(--warn,#d9963a);font-family:var(--mono);margin-right:8px">${r.sub}</span><span class="flag-row-title" style="font-size:14px;font-weight:600">${r.title}</span></div>
-      <div style="display:flex;gap:10px;align-items:center;flex-shrink:0"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();confGotIt(${r.id})" title="Mark as 'Have it' — removes from review list">✓ Got it now</button><span style="color:var(--accent);font-weight:700">→</span></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-shrink:0"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();missGotIt(${r.id})" title="Clear this lesson from the review list">✓ Got it now</button><span style="color:var(--accent);font-weight:700">→</span></div>
     </div>`).join('');
 }
-function confGotIt(lessonId){
-  state.confidence = state.confidence || {};
-  state.confidence[lessonId] = 'high';
+function missGotIt(lessonId){
+  state.misses = state.misses || {};
+  delete state.misses[lessonId];
   saveState();
+  const l = DATA.LESSONS.find(x=>x.id===lessonId);
+  if(l) _queueRecalls(lessonId, l);
   renderFlagged();
 }
 
@@ -1844,8 +1846,6 @@ function renderLesson(id){
     `<div class="ral-line"><span class="ral-chunk">${chunk}</span><span class="ral-arrow">→</span><span class="ral-desc">${desc}</span></div>`
   ).join('');
 
-  const conf = (state.confidence||{})[l.id]||'';
-  const cc = (v,icon,label)=>`<button class="conf-chip${conf===v?' is-on':''}" data-v="${v}" onclick="rateConf(${l.id},'${v}',this)"><i data-lucide="${icon}"></i><span class="conf-label">${label}</span></button>`;
 
   document.getElementById('main').innerHTML = `
     <div class="row mb">
@@ -1873,34 +1873,43 @@ function renderLesson(id){
     </div>
     <div class="quiz-wrap" id="quiz-wrap">
       <h3><i data-lucide="circle-check-big"></i>Quick Check</h3>
-      <p class="text-muted text-sm" style="margin-bottom:14px">${l.quiz.q}</p>
+      <p class="drill-instruction">${l.quiz.q}</p>
       ${l.quiz.opts.map((o,i) => `<button class="quiz-opt" onclick="answerQuiz(${id},${i})">${o}</button>`).join('')}
       <div class="quiz-exp" id="quiz-exp">${l.quiz.exp}</div>
     </div>
-    <div class="conf-rater">
-      <div class="conf-head"><i data-lucide="gauge"></i> How well do you have this?</div>
-      <p class="conf-sub">Be honest — saying “not yet” is how the right lessons find their way back to you.</p>
-      <div class="conf-chips">
-        ${cc('low','circle-dashed','Not yet')}
-        ${cc('mid','circle-dot-dashed','Almost')}
-        ${cc('high','circle-check-big','Have it')}
-      </div>
-    </div>`;
+    ${missPanelHTML(l.id)}`;
   if(window.lucide) lucide.createIcons();
 }
 
-// Per-lesson confidence self-rating (Grain). Persists to state.confidence; complements
-// the 🚩 flag. Purely additive — never blocks progress.
-function rateConf(lessonId, level, btn){
-  state.confidence = state.confidence || {};
-  state.confidence[lessonId] = level;
+// ─── AUTO MISS CAPTURE ─────────────────────────────────────────
+// Replaces the old "how well do you have this?" self-rating. People are poor
+// judges of their own recall, and the kit already watches every answer — so it
+// records what was actually missed and schedules THAT, instead of asking. Same
+// shape PrepLoop reads for its miss sweeps.
+function missesFor(id){ return (state.misses||{})[id]||[]; }
+function recordMiss(lessonId, cue){
+  if(lessonId==null) return;
+  state.misses = state.misses || {};
+  const arr = state.misses[lessonId] = state.misses[lessonId] || [];
+  const c = String(cue||'').replace(/<[^>]*>/g,'').trim();
+  if(c && !arr.includes(c)) arr.push(c);
   saveState();
-  const wrap = btn.closest('.conf-chips');
-  if(wrap) wrap.querySelectorAll('.conf-chip').forEach(c => c.classList.toggle('is-on', c===btn));
-  if(window.lucide) lucide.createIcons();
-  // Re-sync the spaced-recall queue to the (possibly changed) confidence.
-  const _rl = DATA.LESSONS.find(x=>x.id===lessonId);
-  if(_rl) _queueRecalls(lessonId, _rl);
+  const l = DATA.LESSONS.find(x=>x.id===lessonId);
+  if(l) _queueRecalls(lessonId, l);
+}
+// The lesson-close panel: what got flagged, and why it is coming back.
+function missPanelHTML(id){
+  const m = missesFor(id);
+  if(!m.length) return `<div class="miss-panel is-clean" style="margin-top:16px">
+      <div class="miss-head"><i data-lucide="circle-check-big"></i> Clean run — nothing flagged</div>
+      <p class="miss-sub">You got everything here right the first time, so nothing goes on your review list.</p>
+    </div>`;
+  return `<div class="miss-panel" style="margin-top:16px">
+      <div class="miss-head"><i data-lucide="repeat-2"></i> ${m.length} thing${m.length===1?'':'s'} added to your review list</div>
+      <p class="miss-sub">Recorded automatically from what you missed — no self-rating needed. These come back at spaced intervals, and PrepLoop pulls them into its recall sweeps.</p>
+      <ul class="miss-items">${m.map(x=>`<li>${x}</li>`).join('')}</ul>
+      <button class="btn btn-ghost btn-sm miss-clear" onclick="missGotIt(${id});renderLesson(${id})">I have this now — clear it</button>
+    </div>`;
 }
 
 // "See it on screen" — the result table a lesson's query returns.
@@ -1927,6 +1936,7 @@ function answerQuiz(lessonId, chosen){
     celebrate();
     setTimeout(() => finishLesson(lessonId), 1200);
   } else {
+    recordMiss(lessonId, l.quiz.q);
     const qw = document.getElementById('quiz-wrap');
     if(qw) qw.innerHTML += `<div class="mt row" style="gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="retryQuiz(${lessonId})">Try Again</button><button class="btn btn-ghost btn-sm" onclick="finishLesson(${lessonId})">Continue anyway</button></div>`;
   }
@@ -1936,7 +1946,7 @@ function retryQuiz(lessonId){
   const qw = document.getElementById('quiz-wrap');
   if(!qw) return;
   qw.innerHTML = `<h3>Quick Check</h3>
-    <p class="text-muted text-sm" style="margin-bottom:14px">${l.quiz.q}</p>
+    <p class="drill-instruction">${l.quiz.q}</p>
     ${l.quiz.opts.map((o,i) => `<button class="quiz-opt" onclick="answerQuiz(${lessonId},${i})">${o}</button>`).join('')}
     <div class="quiz-exp" id="quiz-exp">${l.quiz.exp}</div>`;
 }
@@ -2190,10 +2200,9 @@ function _saveRecallQ(a){ localStorage.setItem('sqlkit-recalls',JSON.stringify(a
 function _queueRecalls(id, l){
   if(!l.reinforces||!l.reinforces.length) return;
   // Idempotent: drop any prior pending recalls for this lesson, then re-queue
-  // only if confidence is low/mid. Re-rating to 'high' clears them entirely.
+  // only if something was actually missed. Clearing the misses clears these.
   let arr=_getRecallQ().filter(e=>e.srcId!==id);
-  const conf=(state.confidence||{})[id];
-  if(conf==='low'||conf==='mid'){
+  if(missesFor(id).length){
     const pos=lessonPos(id);
     for(const off of [1,3,7]) arr.push({cues:l.reinforces, srcId:id, dueAt:pos+off});
   }
@@ -2280,7 +2289,7 @@ function _reviewEmptyHTML(){
   return n>0
     ? `<div class="card"><p style="margin:0 0 10px">🎉 Nothing due right now — ${n} review${n>1?'s':''} queued for later spots on the path.</p>
        <button class="btn btn-primary btn-sm" onclick="reviewAhead()">Practice ahead — review ${n>1?'them':'it'} early</button></div>`
-    : `<div class="card"><p style="margin:0">🎉 Nothing queued. Rate a lesson "Not yet" or "Almost" on its confidence chips and its recall questions will land here.</p></div>`;
+    : `<div class="card"><p style="margin:0">🎉 Nothing queued. Miss a question in a lesson and the kit files it here automatically — spaced out over the next few lessons.</p></div>`;
 }
 function reviewAhead(){
   _pendingRecalls=_getRecallQ().slice();
@@ -2514,6 +2523,7 @@ function v2ParsCheck(lid){
     if(fb) fb.innerHTML=`<span style="color:var(--ok,#3a9d6a);font-size:13px;font-weight:600">Correct — that's the right order.</span>
       <div class="row mt" style="gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setSqlStage(${lid},3)">Continue &rarr;</button></div>`;
   } else {
+    recordMiss(lid, l.parsons.prompt);
     const fb = document.getElementById('v2sql-pars-fb-'+lid);
     if(fb) fb.innerHTML='<span style="color:var(--red);font-size:13px;font-weight:600">Not quite — try reordering the pieces.</span>';
     const btn = document.getElementById('v2sql-coach-try-'+lid);
@@ -2532,7 +2542,7 @@ function v2BuildPick(btn, lid){
   if(!isCorrect) wrap.querySelectorAll('.quiz-opt')[l.build.ans].classList.add('correct');
   const fb = document.getElementById('v2sql-build-fb-'+lid);
   if(fb) fb.innerHTML=`<div class="quiz-exp show" style="margin-top:10px">${l.build.exp}</div>`;
-  if(!isCorrect){ const cb=document.getElementById('v2sql-coach-build-'+lid); if(cb) cb.style.display=''; }
+  if(!isCorrect){ recordMiss(lid, l.build.q); const cb=document.getElementById('v2sql-coach-build-'+lid); if(cb) cb.style.display=''; }
   const row = isCorrect
     ? `<div class="row mt" style="gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setSqlStage(${lid},4)">Continue &rarr;</button></div>`
     : `<div class="row mt" style="gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setSqlStage(${lid},3)">Try Again</button><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${lid},4)">Continue anyway</button></div>`;
@@ -2558,6 +2568,7 @@ function v2QuizAnswer(lid, chosen){
       <button class="btn btn-primary btn-sm" onclick="setSqlStage(${lid},5)">Continue &rarr;</button>
     </div>`);
   } else {
+    recordMiss(lid, l.quiz.q);
     wrap.insertAdjacentHTML('beforeend',`<div class="row mt" style="gap:10px;margin-top:14px">
       <button class="btn btn-primary btn-sm" onclick="v2QuizRetry(${lid})">Try Again</button>
       <button class="btn btn-ghost btn-sm" onclick="markDone('doneLessons',${lid});setSqlStage(${lid},5)">Continue anyway</button>
@@ -2571,7 +2582,7 @@ function v2QuizRetry(lid){
   const wrap = document.getElementById('v2sql-quiz-'+lid);
   if(!wrap) return;
   wrap.innerHTML=`<h3><i data-lucide="circle-check-big"></i> Quick Check</h3>
-    <p class="text-muted text-sm" style="margin-bottom:14px">${l.quiz.q}</p>
+    <p class="drill-instruction">${l.quiz.q}</p>
     ${l.quiz.opts.map((o,i)=>`<button class="quiz-opt" onclick="v2QuizAnswer(${lid},${i})">${o}</button>`).join('')}
     <div class="quiz-exp" id="v2sql-quiz-exp-${lid}">${l.quiz.exp}</div>
       <div class="row" style="margin-top:14px"><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${lid},3)">&larr; Back</button></div>`;
@@ -2641,9 +2652,7 @@ function v2SqlBody(l, done){
   const stage = getSqlStage(l.id);
   const LABELS = ['Orient','Example','Try','Build','Check','Close'];
   const dots = LABELS.map((L,i)=>{const can=(done||i<stage)&&i!==stage;return `<div class="v2-stage-dot${i<stage?' done':i===stage?' active':''}" title="${L}"${can?` style="cursor:pointer" onclick="setSqlStage(${l.id},${i})"`:''}></div>`;}).join('');
-  const stageBar = `<div class="v2-stage-bar">${dots}<span class="v2-stage-label">${LABELS[stage]}</span></div>`;
-  const conf = (state.confidence||{})[l.id]||'';
-  const cc=(v,icon,label)=>`<button class="conf-chip${conf===v?' is-on':''}" data-v="${v}" onclick="rateConf(${l.id},'${v}',this)"><i data-lucide="${icon}"></i><span class="conf-label">${label}</span></button>`;
+  const stageBar = `<div class="v2-stage-bar">${dots}<span class="v2-stage-label">${LABELS[Math.min(stage,LABELS.length-1)]}</span></div>`;
   let body='';
 
   if(stage===0){
@@ -2690,7 +2699,7 @@ function v2SqlBody(l, done){
     const pool=idxs.map(i=>`<div class="v2-pars-chip" data-idx="${i}" onclick="v2ParsChipTap(${l.id},this)"><span class="pars-txt">${p.lines[i]}</span></div>`).join('');
     body=`<div class="v2-stage-card">
       <h3><i data-lucide="list-ordered"></i> Try It</h3>
-      <p class="text-muted text-sm" style="margin-bottom:10px">${p.prompt}</p>
+      <p class="drill-instruction">${p.prompt}</p>
       <p style="font-size:12px;color:var(--muted);margin:0 0 6px">Tap a piece to move it between the pool and your answer:</p>
       <div class="v2-pool" id="v2sql-pool-${l.id}">${pool}</div>
       <div class="v2-answer-zone" id="v2sql-ans-${l.id}"></div>
@@ -2707,7 +2716,7 @@ function v2SqlBody(l, done){
     const b=l.build;
     body=`<div class="v2-stage-card" id="v2sql-build-${l.id}">
       <h3><i data-lucide="wrench"></i> Build It</h3>
-      <p class="text-muted text-sm" style="margin-bottom:14px">${b.q}</p>
+      <p class="drill-instruction">${b.q}</p>
       ${b.opts.map((o,i)=>`<button class="quiz-opt" data-correct="${i===b.ans?1:0}" onclick="v2BuildPick(this,${l.id})">${o}</button>`).join('')}
       <div id="v2sql-build-fb-${l.id}"></div>
       <button class="v2-coach-btn" id="v2sql-coach-build-${l.id}" style="display:none" onclick="v2CoachStuck(${l.id},'build')"><i data-lucide="sparkles"></i> Stuck? Ask the AI Coach →</button>
@@ -2717,7 +2726,7 @@ function v2SqlBody(l, done){
   } else if(stage===4){
     body=`<div class="quiz-wrap" id="v2sql-quiz-${l.id}">
       <h3><i data-lucide="circle-check-big"></i> Quick Check</h3>
-      <p class="text-muted text-sm" style="margin-bottom:14px">${l.quiz.q}</p>
+      <p class="drill-instruction">${l.quiz.q}</p>
       ${l.quiz.opts.map((o,i)=>`<button class="quiz-opt" onclick="v2QuizAnswer(${l.id},${i})">${o}</button>`).join('')}
       <div class="quiz-exp" id="v2sql-quiz-exp-${l.id}">${l.quiz.exp}</div>
       <div class="row" style="margin-top:14px"><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},3)">&larr; Back</button></div>
@@ -2739,11 +2748,7 @@ function v2SqlBody(l, done){
       ${_wins>0?`<p style="font-size:12px;color:var(--muted);margin:0 0 10px"><i data-lucide="repeat-2" style="width:13px;height:13px;vertical-align:-2px"></i> ${_wins} concept${_wins===1?'':'s'} recalled from memory so far</p>`:''}
       <p style="font-size:15px;line-height:1.7;margin:0">${l.close}</p>
     </div>
-    <div class="conf-rater" style="margin-top:16px">
-      <div class="conf-head"><i data-lucide="gauge"></i> How well do you have this?</div>
-      <p class="conf-sub">Be honest — saying "not yet" is how the right lessons find their way back to you.</p>
-      <div class="conf-chips">${cc('low','circle-dashed','Not yet')}${cc('mid','circle-dot-dashed','Almost')}${cc('high','circle-check-big','Have it')}</div>
-    </div>
+    ${missPanelHTML(l.id)}
     ${done&&l.unlock?`<div class="unlock-card" style="margin-top:16px"><h4><i data-lucide="unlock" style="width:15px;height:15px;vertical-align:-2px"></i> Insight unlocked</h4><p>${l.unlock}</p></div>`:''}
     <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:18px">${pathBtn}${nextBtn}<button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">All Lessons</button><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},0)" title="Walk back through this lesson, your ✓ stays">&#8634; Review lesson</button></div>`;
   }
@@ -3092,7 +3097,7 @@ function renderFill(idx){
       <p class="fill-prompt">${f.q}</p>
       <div class="fill-partial">${f.partial}</div>
       ${drillTablesNote(f.partial)}
-      <p class="text-muted text-sm" style="margin-top:12px">Tap the piece that fills the blank:</p>
+      <p class="drill-instruction" style="margin-top:12px">Tap the piece that fills the blank:</p>
       <div id="fillChoices" style="display:flex;flex-direction:column;gap:8px">
         ${_shuf(f.choices).map(c=>`<button class="bug-choice${done&&c===f.choices[0]?' is-answered':''}" data-correct="${c===f.choices[0]?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:rgba(47,109,240,.08);color:var(--accent);font-family:var(--mono);font-size:14px;font-weight:600;cursor:pointer" onclick="pickFill(this,${idx})" ${done?'disabled':''}>${c}</button>`).join('')}
       </div>
@@ -3119,6 +3124,9 @@ function _fillAdvance(idx){
       ? `<button class="btn btn-primary btn-sm" onclick="navigate('fill',${idx+1})">Next →</button>`
       : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">All Done →</button>`;
 }
+// Drills reached from the guided path belong to that lesson; standalone
+// practice has no lesson to file the miss against, so it records nothing.
+function _drillLesson(){ return guided && guided.lessonId!=null ? guided.lessonId : null; }
 function pickFill(btn, idx){
   const f = DATA.FILLS[idx];
   const res = document.getElementById('fill-result');
@@ -3131,6 +3139,7 @@ function pickFill(btn, idx){
     markDone('doneFills', f.id);
     document.getElementById('fill-next').innerHTML = _fillAdvance(idx);
   } else {
+    recordMiss(_drillLesson(), f.q);
     btn.style.background='rgba(207,34,46,.12)'; btn.style.borderColor='var(--red,#cf222e)'; btn.style.color='var(--red,#cf222e)'; btn.style.opacity='.8'; btn.disabled=true;
     res.innerHTML = `<span style="color:var(--red)">Not quite — try another, or use the hint.</span>`;
   }
@@ -3145,11 +3154,11 @@ function renderBug(idx){
     <div class="card">
       <h2>Bug Hunt</h2>
       <h3>${b.concept}</h3>
-      <p class="text-muted text-sm">${b.prompt}</p>
+      <p class="drill-instruction">${b.prompt}</p>
       <div class="code-broken">${b.broken}</div>
       ${drillTablesNote(b.broken)}
       <div class="bug-issue" id="bug-issue" style="${done?'':'display:none'}"><i data-lucide="alert-triangle" style="width:14px;height:14px;vertical-align:-2px"></i> <strong>${b.title}:</strong> ${b.issue}</div>
-      <p class="text-muted text-sm" style="margin-top:12px">Spot the bug, then tap the correct fix:</p>
+      <p class="drill-instruction" style="margin-top:12px">Spot the bug, then tap the correct fix:</p>
       <div id="bugChoices" style="display:flex;flex-direction:column;gap:8px">
         ${_shuf(b.choices).map(c=>`<button class="bug-choice${done&&c===b.choices[0]?' is-answered':''}" data-correct="${c===b.choices[0]?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:rgba(47,109,240,.08);color:var(--accent);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer" onclick="pickBugFix(this,${idx})" ${done?'disabled':''}>${c}</button>`).join('')}
       </div>
@@ -3228,6 +3237,7 @@ function pickBugFix(btn, idx){
     markDone('doneBugs', b.id);
     document.getElementById('bug-next').innerHTML = _bugAdvance(idx);
   } else {
+    recordMiss(_drillLesson(), b.prompt);
     btn.style.background='rgba(207,34,46,.12)'; btn.style.borderColor='var(--red,#cf222e)'; btn.style.color='var(--red,#cf222e)'; btn.style.opacity='.8'; btn.disabled=true;
     res.innerHTML = `<span style="color:var(--red)">Not quite — try another, or use the hint.</span>`;
   }
@@ -3246,7 +3256,7 @@ function renderParsons(idx){
     <div class="card">
       <h2>Put in Order</h2>
       <h3>${p.title}</h3>
-      <p class="text-muted text-sm">${p.prompt}</p>
+      <p class="drill-instruction">${p.prompt}</p>
       ${drillTablesNote(p.lines.join('\n'))}
       <div class="parsons-wrap">
         <div class="parsons-col">
@@ -3368,6 +3378,7 @@ function checkParsons(idx){
       else navigate('practice');
     }, 1200);
   } else {
+    recordMiss(_drillLesson(), p.prompt);
     if(!_parsonsAttempts[idx]) _parsonsAttempts[idx] = 0;
     _parsonsAttempts[idx]++;
     const attempts = _parsonsAttempts[idx];
