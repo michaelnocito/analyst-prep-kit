@@ -308,6 +308,34 @@ const syncQueue = new SyncQueue();
   document.head.appendChild(st);
 })();
 
+// ============================================================================
+// PREPLOOP HARD GATE (SHELL-1, Mike's call 2026-07-22)
+// Direct top-level visits to a kit page get a full-screen hand-off to PrepLoop.
+// Skipped when framed (inside PrepLoop) or when the URL carries ?via=loop —
+// the flag PrepLoop puts on the links it opens in a new tab (miss list).
+// ============================================================================
+(function () {
+  let framed = false;
+  try { framed = window.top !== window.self; } catch (e) { framed = true; }
+  if (framed) return;
+  if (!/\/(sql|excel|powerbi|tableau|python|stats)\/(index\.html)?$/.test(location.pathname)) return;
+  if (/(^|[?&])via=loop(&|$)/.test(location.search.slice(1))) return;
+  document.addEventListener('DOMContentLoaded', function () {
+    const d = document.createElement('div');
+    d.id = 'preploop-gate';
+    d.style.cssText = 'position:fixed;inset:0;z-index:99999;background:var(--bg,#101418);color:var(--text,#e5e7eb);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:inherit';
+    d.innerHTML =
+      '<div style="max-width:460px">' +
+      '<div style="font-size:2rem;margin-bottom:10px">🔁</div>' +
+      '<h2 style="margin:0 0 10px;font-size:1.3rem">The prep kits now live inside PrepLoop</h2>' +
+      '<p style="margin:0 0 18px;line-height:1.6;color:var(--dim,#9aa4af)">Same lessons, plus a guided path, timed sittings, spaced review and badges — all in one place.</p>' +
+      '<a href="https://michaelnocito.github.io/prep-loop/" style="display:inline-block;padding:11px 22px;border-radius:8px;background:var(--accent,#38bdf8);color:#fff;text-decoration:none;font-weight:700">Open PrepLoop →</a>' +
+      '</div>';
+    document.body.appendChild(d);
+    document.body.style.overflow = 'hidden';
+  });
+})();
+
 // Try to flush queued syncs on auth
 onAuthStateChange(async (event) => {
   if (event === 'SIGNED_IN') {
