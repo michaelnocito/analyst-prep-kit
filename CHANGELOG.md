@@ -9,6 +9,33 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.176.0] — 2026-07-22 — T4: the "white screen delay" on a right answer was the page collapsing
+
+Playtest T4 (Tableau, 2026-07-21): "on mobile when you get an answer right or
+wrong there's a weird kind of white screen delay before the congratulatory or
+correction screen."
+
+- **Cause: `celebrate()` put the full-screen overlay class on `<body>`.** Tableau
+  ships a dedicated `<div id="flash">` for the celebration tint, and `.flash` is
+  written for it — `position:fixed; inset:0; opacity:0`. Tableau's `celebrate()`
+  ignored that div and did `document.body.classList.add('flash')` for 600ms, so on
+  every correct answer the **whole page** was pinned to the viewport: measured live
+  at 375px, `document.scrollHeight` collapsed **2892px → 812px**, `<body>` went
+  `static → fixed`, and the scroll position was thrown from 400 **to 0 and never
+  restored**. Everything below the fold blanked out and you were dumped at the top.
+  That is the "white screen delay."
+- **Fix:** tint the `#flash` overlay div instead, the same way Excel does. Verified
+  at 375px: body stays `static`, document height holds at 2892, scroll position is
+  preserved through the celebration, and the overlay resolves to its intended
+  subtle `opacity:.08` cyan wash.
+- **Bonus:** the lesson-complete handler does `scrollTo({top:0,behavior:'smooth'})`
+  to land you on the completion card. The bug had already yanked scroll to 0, so
+  that smooth scroll had nothing to animate. It now works as designed.
+- **Tableau-only** — verified, not assumed. Excel and Python already tint the
+  `#flash` div; Stats scopes its tint to `body.flash::after` (a pseudo-element, no
+  layout effect); SQL and Power BI have no flash at all. The wrong-answer path was
+  never affected either: only the `gold` (correct) branch ever added the class.
+
 ## [1.175.0] — 2026-07-22 — T6 + S1: recall answers that don't rot, and a reset that clears the review list
 
 Both were filed as "probably a stale deploy." Neither was. With the deploy

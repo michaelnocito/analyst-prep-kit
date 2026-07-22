@@ -1901,7 +1901,14 @@ function wsNextQ(){
 let _toastTimer=null,_audioCtx=null;
 function celebrate(gold,msg){
   try{_audioCtx=_audioCtx||new AudioContext();const ac=_audioCtx;const o=ac.createOscillator();const g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.setValueAtTime(gold?880:523,ac.currentTime);o.frequency.setValueAtTime(gold?1100:659,ac.currentTime+0.1);g.gain.setValueAtTime(0.25,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.5);o.start();o.stop(ac.currentTime+0.5);}catch(e){}
-  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');if(gold){document.body.classList.add('flash');setTimeout(()=>document.body.classList.remove('flash'),600);}
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  // The celebration tint belongs on the #flash overlay div, NOT on <body>.
+  // .flash is `position:fixed;inset:0;opacity:0` — meant for that overlay. Putting
+  // it on <body> pinned the whole page to the viewport for 600ms: the document
+  // collapsed to one screen, everything below the fold vanished, and the scroll
+  // position was thrown to the top and never restored. That was the "weird white
+  // screen delay" on answering (playtest T4, 2026-07-21).
+  if(gold){const f=document.getElementById('flash');if(f){f.classList.add('show');setTimeout(()=>f.classList.remove('show'),600);}}
   // Clear the previous timer so a fast second toast isn't cut short by the first one's timeout.
   clearTimeout(_toastTimer);
   _toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
