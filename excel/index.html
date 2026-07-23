@@ -2962,7 +2962,14 @@ function v2CheckOwn(lid,idx){
   if(!correct) btns[l.quiz.ans].classList.add('correct');
   const fb=document.getElementById(`v2q-fb-${lid}`);
   if(correct){
-    if(fb)fb.innerHTML=`<div class="quiz-feedback ok" style="margin-top:8px">✓ ${l.quiz.exp}</div><div style="margin-top:8px"><button class="btn btn-primary btn-sm" onclick="v2Continue(${lid},'close')">Continue &rarr;</button></div>`;
+    // Skip the "Lesson complete" checkmark card (the Close stage) when there's
+    // practice waiting — a completion signal shown BEFORE retrieval practice
+    // reads as false closure and blunts follow-through (endowed-progress-effect
+    // research). One "Continue" click goes straight into practice instead of
+    // Continue-to-Close-card, then a second click into practice. The lesson-done
+    // celebration moves to guidedNext(), firing AFTER the practice round.
+    const hasDrills = guidedSeqFor(lid).length>0;
+    if(fb)fb.innerHTML=`<div class="quiz-feedback ok" style="margin-top:8px">✓ ${l.quiz.exp}</div><div style="margin-top:8px"><button class="btn btn-primary btn-sm" onclick="${hasDrills?`startGuided(${lid})`:`v2Continue(${lid},'close')`}">Continue &rarr;</button></div>`;
     celebrate(false,'✓ Correct!');
     if(!S.lessonsDone.includes(lid)){ S.lessonsDone.push(lid); _markLessonBadges(); }
     const nxt=nextLessonId(lid);S.currentLesson=nxt!==null?nxt:lid;save();
@@ -3351,7 +3358,16 @@ function guidedNext(){
   if(!guided) return;
   if(guided.pos < guided.seq.length-1){ guided.pos++; renderGuidedStep(); }
   else if(guided.review){ const nl = guided.nextLid; guided = null; celebrate(true,'Review done — onward! 🧠'); openLesson(nl); }
-  else { const lid = guided.lessonId; guided = null; gotoNextLesson(lid); }
+  else {
+    const lid = guided.lessonId; guided = null;
+    // The lesson-done reward moment lives here now, AFTER the retrieval
+    // practice that just ran — not at the quiz, before practice happened.
+    if(S.lessonsDone.length % 3 === 0) celebrate(true, `🔥 ${S.lessonsDone.length} lessons done!`);
+    else celebrate(true, 'Lesson complete — nice work! 🎉');
+    const _fl=DATA.LESSONS.find(x=>x.id===lid);
+    if(_fl){ const _ul=DATA.LESSONS.filter(x=>x.unit===_fl.unit); if(_ul.every(x=>S.lessonsDone.includes(x.id))) setTimeout(()=>celebrate(true,`🎊 ${_fl.unit} complete!`),1500); }
+    gotoNextLesson(lid);
+  }
 }
 function guidedPrev(){
   if(guided && guided.pos>0){ guided.pos--; renderGuidedStep(); }
