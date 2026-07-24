@@ -746,6 +746,16 @@ engagement ROI that don't bloat the core experience. Batched into
 planned cycles._
 _Response time: next planned cycle._
 
+#### ⬇️ July 24, 2026 (Mike — content-flow trim)
+
+- **CONTENT: content-flow trim — cut info cards that only repeat or pad** _(added July 24, 2026)_ — _focus the lesson flow; less noise_
+  - _What:_ Mike wants the lesson/exercise flow tightened. Trim out info cards that just **repeat** info already given or add **extra/tangential** detail. Remove summary-only cards. **EXCEPTION — keep the "what you just did and why it matters" cards** (the consolidation/insight cards that tell the learner what they just proved); those stay. Goal is a focused-in flow, not a card between every step.
+  - _Why Medium:_ Serves the calm / low-noise vision; a per-card content-audit sweep, not a bug.
+  - _Scope:_ Inventory every info/summary card across the lesson flow per kit; cut the repeat/padding/summary-only ones; keep the "what you just did & why it matters" cards. One kit per chat.
+  - **Cross-kit applicability:** all 6 lesson kits (excel · sql · python · powerbi · tableau · stats). Same card pattern in each. Cert + non-lesson pages audited separately if they carry the same cards.
+  - _DoD:_ Each kit's flow reads focused — no card that only repeats or pads; "what you just did & why it matters" cards retained. Verified live, dark + light.
+  - _Est:_ Medium (content audit + trim per kit, phased).
+
 #### ⬇️ July 20, 2026 playtest triage (SQL kit inbox note)
 
 - **CONTENT: a dedicated DISTINCT / "list the distinct values of a category" section** _(added July 20, 2026 — from SQL-kit playtest inbox note)_ — _real-world analyst essential_
