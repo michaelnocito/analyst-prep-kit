@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Comment SQL So It Teaches: The Teaching-Comment Format — Analyst Prep Kit</title>
+<meta name="description" content="A complete format for commenting SQL queries: a boxed WHY header, a read-out-loud block that paraphrases every clause in order, and a clean query with no inline comments. Full before and after, the conventions, and why it works.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-teaching-comments/">
+<meta property="og:title" content="How to Comment SQL So It Teaches">
+<meta property="og:description" content="Most SQL comments restate the code. This format explains why the question exists and lets a beginner read the query out loud like a sentence. Complete, free, with a full before and after.">
+<meta property="og:type" content="article">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14px;color:var(--muted)}
+  .refs li{margin-bottom:6px}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a></p>
+  <h1>How to Comment SQL So It Teaches</h1>
+  <p class="meta">A complete commenting format you can copy · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>Most SQL comments are useless. Not badly written, just useless, because they restate what the code already says. <code>-- filter to active customers</code> sitting next to <code>WHERE status = 'active'</code> adds nothing a reader could not see. Meanwhile the thing a reader genuinely cannot recover from the code, which is <em>why anyone asked this question in the first place</em>, goes undocumented.</p>
+
+  <p>This guide gives you a complete, opinionated format that fixes that. It was developed across three published SQL portfolio projects, including a 125,000-row Steam dataset, and it is used verbatim in those repositories. The whole format is here, free, with nothing held back. Copy it, change it, make it yours.</p>
+
+  <div class="note"><strong>The one-sentence version.</strong> Put a boxed <strong>WHY</strong> header above every query, follow it with a read-out-loud block that paraphrases each clause in the order the clauses appear, and leave the query itself completely clean. All the teaching lives above the code, never inside it.</div>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>Why the usual comments fail</li>
+      <li>Part 1: the boxed WHY header</li>
+      <li>Part 2: the read-out-loud block</li>
+      <li>Part 3: sub-bullets for every calculation</li>
+      <li>Part 4: the clean query</li>
+      <li>The full before and after</li>
+      <li>Standing conventions that keep it readable</li>
+      <li>Why this works</li>
+      <li>Using it on your own portfolio project</li>
+      <li>A cheat sheet</li>
+    </ol>
+  </div>
+
+  <h2>Why the usual comments fail</h2>
+  <p>Here is what most people write, and what most AI assistants hand you when you ask for commented SQL:</p>
+  <pre><code>-- Get top rated games with at least 500 reviews
+SELECT Name, Positive, Negative,
+       ROUND(CAST(Positive AS REAL) / (Positive + Negative) * 100, 1) AS pct_positive -- calc percentage
+FROM games_raw
+WHERE (Positive + Negative) >= 500 -- filter small samples
+ORDER BY pct_positive DESC, Positive DESC
+LIMIT 25;</code></pre>
+
+  <p>Three problems, and they compound:</p>
+  <ul>
+    <li><strong>The comments restate the code.</strong> "filter small samples" next to a <code>WHERE</code> clause that visibly filters small samples teaches nobody anything.</li>
+    <li><strong>The interesting decision is invisible.</strong> Why 500 and not 50 or 5,000? Why rank on percentage rather than raw count? Those are the analyst judgments. They are the only part a reader cannot reconstruct, and they are the part left out.</li>
+    <li><strong>The inline comments crowd the code.</strong> Trailing comments push lines long, break alignment, and make the query harder to read than it would have been with no comments at all.</li>
+  </ul>
+
+  <p>The format below inverts all three. The reasoning goes on top, the paraphrase goes on top, and the query stays clean.</p>
+
+  <h2>Part 1: the boxed WHY header</h2>
+  <p>Every query gets a full-width box containing a short step name and a <code>WHY</code> line. The WHY explains the analytical or business reason the question exists. It does not describe what the SQL does.</p>
+  <pre><code>-- ============================================================
+-- STEP 4: Each game's positive review PERCENTAGE (quality)
+-- WHY: Raw counts favor popular games; a hidden gem is about how
+--      WELL-LOVED a game is, not how many reviewed it. Percentage
+--      measures quality independent of size. The 500-review floor
+--      removes tiny-sample noise; the tiebreaker ranks more-
+--      reviewed games above equally-rated smaller ones.
+-- ============================================================</code></pre>
+
+  <p>The test for a good WHY: delete the query underneath it. Does the header still tell a reader what problem was being solved and what tradeoff was chosen? If yes, it is doing its job. If it collapses into "this selects some games," rewrite it.</p>
+
+  <div class="note"><strong>This is the part that matters most in a portfolio.</strong> Anyone reviewing your work can see that you can write a <code>WHERE</code> clause. What they are actually trying to find out is whether you know why you wrote that particular one. The WHY header is where you show it.</div>
+
+  <h2>Part 2: the read-out-loud block</h2>
+  <p>Directly under the header, one comment line per SQL clause, in the exact order the clauses appear in the query, each line starting with that clause keyword. A beginner should be able to read the block top to bottom and have it land as a sentence.</p>
+  <pre><code>--SELECT Name, Positive, Negative, and a CALCULATED % positive column:
+--FROM the games_raw table
+--WHERE the game has at least 500 total reviews
+--ORDER BY pct_positive DESC, then Positive DESC (tiebreaker)
+--LIMIT the first 25 rows</code></pre>
+
+  <p>Two rules make this work, and both are easy to break by accident:</p>
+  <ul>
+    <li><strong>Match the query's clause order exactly.</strong> If the query goes SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT, the block goes in that order too. The reader is learning to map the paraphrase onto the code by position.</li>
+    <li><strong>Paraphrase, do not translate word for word.</strong> "WHERE the game has at least 500 total reviews" is a paraphrase. "WHERE Positive plus Negative is greater than or equal to 500" is a word-for-word translation, and it teaches nothing, because it is the same sentence the code already said.</li>
+  </ul>
+
+  <p>Notice the block uses <code>--</code> with no space. That is deliberate: it visually separates the tight teaching block from the spaced-out box header above it, so the two read as distinct layers rather than one wall of comments.</p>
+
+  <h2>Part 3: sub-bullets for every calculation</h2>
+  <p>Any function or calculated column gets indented sub-bullets under its <code>--SELECT</code> line, one per piece, in the order a person reads them:</p>
+  <pre><code>--SELECT Name, Positive, Negative, and a CALCULATED % positive column:
+--   Positive / (Positive + Negative) * 100  =  % of reviews that are positive
+--   CAST(... AS REAL) = treat as a decimal so division keeps decimals
+--   ROUND(..., 1)     = round to 1 decimal place
+--   AS pct_positive   = name (alias) the new column</code></pre>
+
+  <p>For a nested calculation, explain it inside-out, innermost function first. Take <code>ROUND(100.0 * SUM(CASE WHEN status = 'churned' THEN 1 ELSE 0 END) / COUNT(*), 2)</code>:</p>
+  <pre><code>--SELECT the churn rate as a percentage:
+--   CASE WHEN status = 'churned' THEN 1 ELSE 0 END = mark each churned row with a 1
+--   SUM(...)        = add the 1s, which counts the churned customers
+--   / COUNT(*)      = divide by every customer, giving a fraction
+--   100.0 * ...     = turn the fraction into a percentage (the .0 forces decimal math)
+--   ROUND(..., 2)   = round to 2 decimal places</code></pre>
+
+  <p>That inside-out order matters. It is the order the database evaluates it and the order a person has to unpack it to understand it. Explaining from the outside in produces a description nobody can follow.</p>
+
+  <h2>Part 4: the clean query</h2>
+  <p>The SQL itself carries no comments at all. None. Every explanation lives in the block above.</p>
+  <pre><code>SELECT Name, Positive, Negative,
+       ROUND(CAST(Positive AS REAL) / (Positive + Negative) * 100, 1) AS pct_positive
+FROM games_raw
+WHERE (Positive + Negative) >= 500
+ORDER BY pct_positive DESC, Positive DESC
+LIMIT 25;</code></pre>
+
+  <p>This is the rule people resist, and it is the one that makes the format work. Once the teaching lives in a fixed place above the query, the query becomes something you can read as code, copy without stripping comments, and hand to a colleague without apology. The separation is the feature.</p>
+
+  <h2>The full before and after</h2>
+  <p>Same query, same result set, both versions correct. The difference is what a reader walks away with.</p>
+
+  <h3>Before</h3>
+  <pre><code>-- Get top rated games with at least 500 reviews
+SELECT Name, Positive, Negative,
+       ROUND(CAST(Positive AS REAL) / (Positive + Negative) * 100, 1) AS pct_positive -- calc percentage
+FROM games_raw
+WHERE (Positive + Negative) >= 500 -- filter small samples
+ORDER BY pct_positive DESC, Positive DESC
+LIMIT 25;</code></pre>
+
+  <h3>After</h3>
+  <pre><code>-- ============================================================
+-- STEP 4: Each game's positive review PERCENTAGE (quality)
+-- WHY: Raw counts favor popular games; a hidden gem is about how
+--      WELL-LOVED a game is, not how many reviewed it. Percentage
+--      measures quality independent of size. The 500-review floor
+--      removes tiny-sample noise; the tiebreaker ranks more-
+--      reviewed games above equally-rated smaller ones.
+-- ============================================================
+--SELECT Name, Positive, Negative, and a CALCULATED % positive column:
+--   Positive / (Positive + Negative) * 100  =  % of reviews that are positive
+--   CAST(... AS REAL) = treat as a decimal so division keeps decimals
+--   ROUND(..., 1)     = round to 1 decimal place
+--   AS pct_positive   = name (alias) the new column
+--FROM the games_raw table
+--WHERE the game has at least 500 total reviews
+--ORDER BY pct_positive DESC, then Positive DESC (tiebreaker)
+--LIMIT the first 25 rows
+SELECT Name, Positive, Negative,
+       ROUND(CAST(Positive AS REAL) / (Positive + Negative) * 100, 1) AS pct_positive
+FROM games_raw
+WHERE (Positive + Negative) >= 500
+ORDER BY pct_positive DESC, Positive DESC
+LIMIT 25;</code></pre>
+
+  <p>The WHY makes it a portfolio piece. The read-out-loud block makes it a lesson. The clean query makes it professional.</p>
+
+  <h2>Standing conventions that keep it readable</h2>
+  <p>The four parts are the format. These conventions are what stop a long <code>.sql</code> file from turning into a wall of repeated explanation.</p>
+
+  <div class="step">
+    <h2>Teach a function about three times, then stop</h2>
+    <p>The first few times <code>ROUND</code> or <code>CAST</code> appears in a file, give it a sub-bullet. After that, drop it. A reader who has seen it three times has it, and re-explaining insults them. This fading is deliberate, and it is the single change that keeps long files from becoming exhausting.</p>
+  </div>
+
+  <div class="step">
+    <h2>Keep a keyword glossary box at the top of the file</h2>
+    <p>Open each <code>.sql</code> file with a boxed "SQL FUNCTIONS &amp; KEYWORDS USED" list, and add to it as new keywords appear. It gives a reader one place to look, and it lets you fade explanations in the body without stranding anyone.</p>
+  </div>
+
+  <div class="step">
+    <h2>Give big-picture sections their own boxes</h2>
+    <p>Same box width as the query headers, used for the things that are not queries: the data-quality story, how the noise was filtered, scope and limitations, how results were validated. These are what turn a file of queries into a document with an argument.</p>
+  </div>
+
+  <div class="step">
+    <h2>Document the data's defects openly</h2>
+    <p>If a column is 6% NULL, if a join match rate is 82%, if the snapshot is a year old, write it into a box rather than leaving it out. Stating limitations is not an admission of weakness. It is most of what separates an analyst from someone who ran a query. The <a href="../documenting-data-limitations/">Documenting Data Limitations</a> guide goes deeper on this.</p>
+  </div>
+
+  <div class="step">
+    <h2>Keep the voice calm and beginner-facing</h2>
+    <p>Everyday words. No jargon you have not introduced. Write for the version of you that did not know this yet, because that is who reads it, including future you at 11pm six months from now.</p>
+  </div>
+
+  <h2>Why this works</h2>
+  <p>The format is not just tidiness. Two well-established findings are doing the work.</p>
+
+  <p>The first is the <strong>self-explanation effect</strong>. Learners who explain worked examples to themselves as they read, rather than just reading them, understand and transfer the material considerably better (Chi, Bassok, Lewis, Reimann &amp; Glaser, 1989, <em>Cognitive Science</em> 13(2), 145–182). The read-out-loud block is a self-explanation you can rehearse. When you write it yourself, you are forced to say what each clause does, and the gaps in your understanding surface immediately, which is exactly when they are cheapest to fix.</p>
+
+  <p>The second is the <strong>generation effect</strong>. Material you produce yourself is remembered better than material you merely read (Slamecka &amp; Graf, 1978, <em>Journal of Experimental Psychology: Human Learning and Memory</em> 4(6), 592–604). This is the argument for writing the block yourself on your own queries rather than only reading other people's. It is also why a good study drill on commented SQL is to hide the query, read only the comment block, and rebuild the SQL from it.</p>
+
+  <p>The WHY header is doing something different and simpler: it stores the decision. Six months later the code still shows what you did, but only the header remembers why you chose 500 rather than 50. That is the piece that is genuinely lost otherwise.</p>
+
+  <h2>Using it on your own portfolio project</h2>
+  <p>Retrofitting a whole project at once is miserable and you will abandon it. Do this instead:</p>
+  <ol>
+    <li><strong>Start with the headers only.</strong> Go through your existing <code>.sql</code> file and add just the boxed WHY above each query. Nothing else. This alone captures the reasoning you will otherwise forget, and it takes an afternoon.</li>
+    <li><strong>Add read-out-loud blocks to the three hardest queries.</strong> Not all of them. The ones with a window function, a nested CASE, or a join you had to think about. Those are where a reader gets lost.</li>
+    <li><strong>Strip the inline comments as you go.</strong> Every time you add a block above a query, delete the trailing comments inside it. The query gets shorter and better looking immediately, which is the reward that keeps you going.</li>
+    <li><strong>Add the glossary box last</strong>, once you can see which keywords actually recur.</li>
+  </ol>
+
+  <p>If you are starting a project rather than fixing one, write the WHY header <em>before</em> you write the query. Committing to why you are asking the question tends to change the question, usually for the better.</p>
+
+  <div class="cta">
+    <strong>Want this format applied automatically?</strong>
+    <p style="margin:6px 0 0">The format above is yours, free, forever. If you would rather not hand-write the blocks, I packaged the prompts that make Claude, ChatGPT, or Gemini produce this format on demand: a formatter for queries you already have, a walkthrough tutor that teaches a topic one commented query at a time, and a study-drill generator that turns commented SQL into retype-and-rebuild practice. Uses AI the way it actually helps, as a tutor that shows its work rather than a shortcut that hides it.</p>
+    <a class="btn" href="https://michaelnocito.gumroad.com/l/sql-prompt-pack" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','prompt_pack_click',{kit:'guide-sql-teaching-comments'})">The SQL Teaching-Comment Prompt Pack, $7 →</a>
+  </div>
+
+  <h2>A cheat sheet</h2>
+  <table>
+    <tr><th>Part</th><th>What goes in it</th><th>The test</th></tr>
+    <tr><td>Boxed WHY header</td><td>Step name, plus the analytical reason the question exists</td><td>Delete the query. Does the header still explain the problem?</td></tr>
+    <tr><td>Read-out-loud block</td><td>One line per clause, in the query's clause order</td><td>Can a beginner read it top to bottom as a sentence?</td></tr>
+    <tr><td>Sub-bullets</td><td>Every function or calculation, explained inside-out</td><td>Is each piece named and given a purpose?</td></tr>
+    <tr><td>The query</td><td>Nothing but SQL</td><td>Zero comment characters inside the query body.</td></tr>
+    <tr><td>Glossary box</td><td>Every keyword used in the file</td><td>Can a reader look up anything faded from the body?</td></tr>
+    <tr><td>Limitations box</td><td>NULL rates, match rates, snapshot dates, scope</td><td>Would a skeptic find a surprise you did not mention?</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> If you adopt nothing else from this page, write the WHY header. The clause paraphrase helps a beginner and the clean query helps a reviewer, but the WHY is the only part that stores something no one can reconstruct from the code later.</div>
+
+  <div class="cta">
+    <strong>Practice the SQL itself, free.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> teaches the core of analyst SQL with worked examples, live JOIN and Aggregation labs you run in the browser, flash cards, and a mock exam. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Chi, M. T. H., Bassok, M., Lewis, M. W., Reimann, P., &amp; Glaser, R. (1989). Self-explanations: How students study and use examples in learning to solve problems. <em>Cognitive Science</em>, 13(2), 145–182.</li>
+    <li>Slamecka, N. J., &amp; Graf, P. (1978). The generation effect: Delineation of a phenomenon. <em>Journal of Experimental Psychology: Human Learning and Memory</em>, 4(6), 592–604.</li>
+  </ul>
+
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-case-expression/">The CASE Expression</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+  </footer>
+</main>
+</body>
+</html>
