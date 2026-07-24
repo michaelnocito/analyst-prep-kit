@@ -26,9 +26,19 @@
     'margin-left:auto;margin-right:auto}';
   document.head.appendChild(css);
 
+  // SQL-only cross-sell: the prompt pack is a SQL product, so it appears on the
+  // SQL surfaces and nowhere else rather than on every kit's footer.
+  var SQL_KITS = { sql: 1, 'sql-dry-run': 1 };
+  var packLink = SQL_KITS[kit]
+    ? '<a class="apk-eco-pack" href="https://michaelnocito.gumroad.com/l/sql-prompt-pack" ' +
+      'target="_blank" rel="noopener">SQL Teaching-Comment Prompt Pack ↗</a>' +
+      '<span class="apk-eco-sep">·</span>'
+    : '';
+
   var f = document.createElement('footer');
   f.className = 'apk-eco-footer';
   f.innerHTML =
+    packLink +
     '<a href="https://github.com/michaelnocito/analyst-prep-kit" target="_blank" rel="noopener">GitHub</a>' +
     '<span class="apk-eco-sep">·</span>' +
     '<a class="apk-eco-coffee" href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee ☕</a>' +
@@ -43,4 +53,13 @@
       gtag('event', 'support_click', { kit: kit, method: 'buymeacoffee' });
     }
   });
+
+  var pack = f.querySelector('.apk-eco-pack');
+  if (pack) {
+    pack.addEventListener('click', function () {
+      if (window.gtag) {
+        gtag('event', 'prompt_pack_click', { kit: kit });
+      }
+    });
+  }
 })();
