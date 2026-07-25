@@ -1,5 +1,20 @@
 ﻿# Analyst Prep Kit — Roadmap
 
+> ## 🗒️ ROADMAP-ONLY INTAKE — 2026-07-25 (Mike; capture, do NOT build)
+> - **[R1] Remove the "What's this about" section from lessons.** All-kits item. This is the
+>   boxed orientation card at the top of a lesson stage (compass icon heading + tinted
+>   book-icon paragraph explaining the concept in prose, e.g. the joins card: "You know the
+>   grain of each table. Now you need to connect them…"). Mike wants it gone, not reworded.
+>   **Cross-kit applicability (to confirm by grep at build, per feedback_triage_cross_kit_pass):**
+>   excel · sql · python · powerbi · tableau · stats — plus check cert/non-lesson pages
+>   (forecasting, chart-literacy, interview, final, simulator, projects) separately.
+>   **Open question for Mike before building:** does the lesson lose its opening orientation
+>   entirely, or does the next element (the concept/teach card) become the first thing the
+>   learner sees? Ties to feedback_user_intent_per_page (first-timer orientation) and
+>   feedback_player_orientation (learner always knows now/done/where/next) — removing the
+>   only orienting block on the page cuts against both, so name the replacement.
+>   Status: **not started, roadmap only.**
+
 > ## 🧪 PLAYTEST TRIAGE — 2026-07-21 (12 items: 9 tableau + 3 sql inbox; all written back to Supabase `roadmap`)
 > **PROGRESS (same-day build pass):**
 > - ✅ **T5 shipped** — "This feels harder because it works…" retrieval-note removed from all 6 lesson kits (commit: gotcha+T5 wave).
