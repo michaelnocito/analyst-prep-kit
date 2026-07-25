@@ -84,3 +84,33 @@ and a deeper **why/gotcha/applied** beat. Same pattern then rolls to every kit.
    prerequisite scaffolding + more depth (recommended) — vs net-new kits?
 3. **Start:** **pilot the full restructure on Tableau first** (you flagged it), prove
    the pattern, then roll kit-by-kit (recommended)?
+
+---
+
+## Standing rule — Directive visibility (added 2026-07-25, Mike)
+
+**Every lesson surface states what the learner has to do RIGHT NOW, set apart from the
+rest of the text, and keeps it visible for as long as they are working on it — including
+while scrolling on a phone.** This is a bible rule, not a per-kit choice.
+
+- **One directive per stage.** Imperative, concrete, task-shaped: "For every order, find
+  the matching customer and pull their name alongside the order's revenue."
+- **Visually dominant.** Larger and clearly distinct from body copy. It is the north star
+  for the stage, so it must not read as one more callout among several.
+- **Top of the working area, and persistent.** It stays on screen through scroll; on
+  phone widths it condenses rather than disappearing. It must never cover the primary
+  action (see feedback_action_always_visible).
+- **Not an explainer.** Background, motivation, and prose framing are a separate concern
+  from the directive — do not merge them back into it.
+
+**Why (research):** the split-attention effect — when learners must hold instructions from
+one place while working in another, working memory is spent on the layout rather than on
+learning (Chandler & Sweller 1992, *British Journal of Educational Psychology* 62(2),
+doi:10.1111/j.2044-8279.1992.tb01017.x; Ayres & Sweller, "The Split-Attention Principle in
+Multimedia Learning", *Cambridge Handbook of Multimedia Learning*). Small screens amplify
+it: restricted viewports chunk the task out of view and the learner loses the global goal.
+UX guidance for the fix is a sticky (not tall-fixed) element with a condensed mobile
+treatment and keyboard focus never trapped behind it.
+
+**Applies to:** all lesson kits (excel · sql · python · powerbi · tableau · stats), their
+practice drills, and any new lesson type. Non-lesson pages get the same audit before ship.

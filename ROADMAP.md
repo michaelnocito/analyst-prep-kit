@@ -14,6 +14,30 @@
 >   feedback_player_orientation (learner always knows now/done/where/next) — removing the
 >   only orienting block on the page cuts against both, so name the replacement.
 >   Status: **not started, roadmap only.**
+> - **[R2] The task line becomes the lesson's north star — persistent, larger, always visible.**
+>   All-kits item, pairs with R1 (R1 removes the prose orientation card; R2 promotes the one
+>   line that actually tells the learner what to do). Today the directive line ("For every
+>   order, find the matching customer and pull their name alongside the order's revenue.")
+>   is a normal-size tinted callout that scrolls away — on mobile the learner is typing an
+>   answer with the instruction off-screen.
+>   **Requirements:** (a) visually dominant over surrounding body text, not the same weight;
+>   (b) sits at the top of the working area; (c) stays on screen while the learner scrolls
+>   and works, on phone-width especially; (d) never covers the primary action
+>   (feedback_action_always_visible); (e) one directive per stage, imperative voice.
+>   **Research basis (see CURRICULUM_STANDARD.md "Directive visibility" rule for cites):**
+>   split-attention / cognitive-load theory — separating the instruction from the workspace
+>   spends working memory on layout instead of learning, and small screens make it worse by
+>   chunking the task out of view. Sticky-element UX guidance says `position:sticky;top:0`
+>   with a compact/condensed mobile treatment, never a tall fixed block that eats the
+>   viewport, and keyboard focus must not hide behind it.
+>   **Options to decide with Mike at build time:** (1) sticky condensed bar that shrinks to
+>   one line on scroll; (2) sticky full callout on desktop, collapsible chip + tap-to-expand
+>   on mobile; (3) re-pin the directive above each sub-step instead of one sticky element.
+>   **Cross-kit applicability (confirm by grep at build):** excel · sql · python · powerbi ·
+>   tableau · stats lesson stages + practice drills; check the non-lesson pages
+>   (forecasting, chart-literacy, interview, final, simulator, projects) separately.
+>   Also audit other lesson types for how their directive reads today before templating.
+>   Status: **researched, roadmap only — not started.**
 
 > ## 🧪 PLAYTEST TRIAGE — 2026-07-21 (12 items: 9 tableau + 3 sql inbox; all written back to Supabase `roadmap`)
 > **PROGRESS (same-day build pass):**
