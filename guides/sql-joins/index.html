@@ -69,7 +69,7 @@ JOIN recommendations AS r ON g.AppID = r.app_id
 GROUP BY g.AppID, g.Name
 ORDER BY avg_hours DESC;</code></pre>
 
-  <p>I ran that against a list of 175 games and a table of 41,154,794 player reviews. It came back with a tidy ranked list and no errors. What it did not tell me is that roughly 57 of those 175 games were not in the result at all. They had no matching reviews, so the join dropped them, silently, and the list I was about to call "our games and how long people play them" was actually about two thirds of them.</p>
+  <p>I ran that against a list of 175 games and a table of 41,154,794 player reviews. It came back with a tidy ranked list and no errors. What it did not tell me is that roughly 57 of those 175 games were not in the result at all. They had no matching reviews, so the join dropped them, silently. I was about to call the list "our games and how long people play them". It was actually about two thirds of them.</p>
 
   <p>That is the first of two ways a join fails without complaining. The second is the opposite: instead of losing rows, it multiplies them, and every total you calculate afterward comes out too big. Neither one throws an error. Both produce a result that looks finished.</p>
 
@@ -192,7 +192,7 @@ ORDER BY avg_hours DESC;</code></pre>
 FROM games_raw AS g
 JOIN recommendations AS r ON g.AppID = r.app_id;</code></pre>
 
-  <p>The answer was 36,255 out of 125,855 games, which is about 29%. Roughly seven out of ten games in the left table would vanish from any inner join with the review table. Narrowed to the 175 games I actually cared about, about 57 of them had no reviews, so an inner join quietly reduced my population by a third before I calculated anything.</p>
+  <p>The answer was 36,255 out of 125,855 games, which is about 29%. Roughly seven out of ten games in the left table would vanish from any inner join with the review table. Narrowed to the 175 games I actually cared about, about 57 of them had no reviews. An inner join quietly reduced my population by a third before I calculated anything.</p>
 
   <p>Nothing about the result set announced this. The columns were right, the ordering was right, the numbers were plausible. The only clue was a row count I had not thought to check.</p>
 
@@ -253,7 +253,7 @@ GROUP BY g.AppID, g.Name;</code></pre>
 
   <div class="note"><strong>Only aggregate columns that came from the many side. Columns from the one side belong in <code>GROUP BY</code>, not in <code>SUM</code>.</strong> In this join, <code>hours</code> and <code>review_id</code> are on the many side, so counting and averaging them is correct. <code>Name</code> and <code>Price</code> are on the one side, so they get grouped, never summed.</div>
 
-  <p>Averages hide this better than sums, which makes them more dangerous. <code>AVG(g.Price)</code> across 2,498 duplicated rows returns $3.49, the right answer, so nothing looks wrong. Then the same pattern meets a game with two rows in a second joined table, the duplication stops being uniform, and the average silently starts weighting some records more than others.</p>
+  <p>Averages hide this better than sums, which makes them more dangerous. <code>AVG(g.Price)</code> across 2,498 duplicated rows returns $3.49, the right answer, so nothing looks wrong. Then the same pattern meets a game with two rows in a second joined table. The duplication stops being uniform. The average silently starts weighting some records more than others.</p>
 
   <h2>The check that catches that one</h2>
 
@@ -365,11 +365,11 @@ ORDER BY avg_hours DESC;</code></pre>
 
   <h2>Why this works</h2>
 
-  <p>The behaviour above is not an implementation quirk of one database. It falls out of how the relational model defines the operation. Codd's original formulation defines a join as a derived relation built from the pairs of tuples that satisfy the matching condition (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). Once the result is defined as the set of matching pairs, both behaviours are forced: a row with no partner contributes no pair, and a row with several partners contributes several. Dropping and multiplying are not edge cases sitting on top of joins. They are what a join is.</p>
+  <p>The behaviour above is not an implementation quirk of one database. It falls out of how the relational model defines the operation. Codd's original formulation defines a join as a derived relation. It is built from the pairs of rows that satisfy the matching condition (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). Once the result is defined as the set of matching pairs, both behaviours are forced. A row with no partner contributes no pair, and a row with several partners contributes several. Dropping and multiplying are not edge cases sitting on top of joins. They are what a join is.</p>
 
   <p>That is why the two checks in this guide are counts rather than inspections. You are not hunting for a mistake in the query text. You are measuring how many pairs the operation produced, which is the one thing the syntax will never show you.</p>
 
-  <p>There is a second reason to write the read-out-loud block above these queries rather than only reading them. Learners who explain a worked example to themselves as they go understand and transfer the material substantially better than learners who read the same example without explaining it (Chi, Bassok, Lewis, Reimann &amp; Glaser, 1989, <em>Cognitive Science</em>, 13(2), 145–182). Joins are where that pays off most, because the mistake is never in a keyword. It is in what you believe one row means.</p>
+  <p>There is a second reason to write the read-out-loud block above these queries rather than only reading them. Learners who explain a worked example to themselves as they go understand it substantially better. They also transfer it better than learners who read the same example without explaining it (Chi, Bassok, Lewis, Reimann &amp; Glaser, 1989, <em>Cognitive Science</em>, 13(2), 145–182). Joins are where that pays off most, because the mistake is never in a keyword. It is in what you believe one row means.</p>
 
   <h2>Using this on your own project</h2>
 
@@ -387,7 +387,7 @@ ORDER BY avg_hours DESC;</code></pre>
 
   <div class="cta">
     <strong>Want this reasoning on your own queries?</strong>
-    <p style="margin:6px 0 0">The reason behind a threshold is the first thing to vanish from an uncommented file, and it is the first thing a reviewer looks for. I packaged the prompts that make Claude, ChatGPT, or Gemini put that reasoning back onto your own queries, in about five minutes, so your portfolio shows how you think and not only what you typed.</p>
+    <p style="margin:6px 0 0">The reason behind a threshold is the first thing to vanish from an uncommented file, and it is the first thing a reviewer looks for. I packaged the prompts that make Claude, ChatGPT, or Gemini put that reasoning back onto your own queries, in about five minutes. Your portfolio then shows how you think, not only what you typed.</p>
     <a class="btn" href="https://michaelnocito.gumroad.com/l/sql-prompt-pack" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','prompt_pack_click',{kit:'guide-sql-joins'})">The SQL Teaching-Comment Prompt Pack, $7 →</a>
   </div>
 
@@ -415,7 +415,7 @@ ORDER BY avg_hours DESC;</code></pre>
   </div>
 
   <h2>The queries in this guide</h2>
-  <p>All of them come from a published portfolio project, where they run against the full 125,855-game and 41,154,794-review datasets with the reasoning written above each query: <a href="https://github.com/michaelnocito/steam-hidden-gems" target="_blank" rel="noopener">Steam Hidden Gems on GitHub</a>.</p>
+  <p>All of them come from a published portfolio project. There they run against the full 125,855-game and 41,154,794-review datasets, with the reasoning written above each query: <a href="https://github.com/michaelnocito/steam-hidden-gems" target="_blank" rel="noopener">Steam Hidden Gems on GitHub</a>.</p>
 
   <h2>References</h2>
   <ul class="refs">
