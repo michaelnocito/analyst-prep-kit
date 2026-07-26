@@ -73,9 +73,21 @@ for d in sorted(os.listdir(ROOT)):
     imgs = re.findall(r'<img[^>]*>', raw)
     svgs = raw.count('<svg')
 
+    # Tag balance. Three note boxes shipped live ending in </p> instead of </div>,
+    # which leaves the box unclosed and the rest of the page inside it. Nothing in
+    # this audit noticed, because it only ever measured prose (2026-07-26).
+    unbalanced = []
+    for tag in ('div', 'p', 'a', 'li', 'ul', 'ol', 'em', 'strong', 'code',
+                'table', 'tr', 'td', 'th', 'h2', 'h3', 'blockquote'):
+        opened = len(re.findall(r'<%s[ >]' % tag, raw))
+        closed = len(re.findall(r'</%s>' % tag, raw))
+        if opened != closed:
+            unbalanced.append('%s %d open / %d close' % (tag, opened, closed))
+
     rows.append(dict(
         slug=d, words=len(words), title=title, sub=sub, opening=opening,
         heads=heads, avg=avg, longs=longs, imgs=len(imgs), svgs=svgs,
+        unbalanced=unbalanced,
         teardown=sorted(set(m.group(0).lower() for m in TEARDOWN.finditer(full)))[:6],
         hooky=sorted(set(m.group(0).lower() for m in HOOKY.finditer(full)))[:4],
     ))
@@ -85,6 +97,8 @@ for r in rows:
     print('=' * 100)
     print('%-30s %5d words   avg sentence %.1f   long(>30w) %d   img %d  svg %d'
           % (r['slug'], r['words'], r['avg'], r['longs'], r['imgs'], r['svgs']))
+    if r['unbalanced']:
+        print('  TAGS: UNBALANCED -> ' + ', '.join(r['unbalanced']))
     print('  SUB : ' + (r['sub'][:170] if r['sub'] else '(none found)'))
     print('  OPEN: ' + r['opening'][:300])
     print('  H2  : ' + ' | '.join(r['heads'][:8]))
