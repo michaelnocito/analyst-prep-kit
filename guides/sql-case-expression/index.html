@@ -56,7 +56,7 @@
 
   <p>CASE is SQL's if/else. It is how you clean messy values, sort numbers into bands, build flags, and count several things in one query.</p>
 
-  <p>This guide covers three things: how CASE decides, the one ordering rule that breaks it without any error, and how a real cleaning rule gets built on real data.</p>
+  <p>This guide covers three things. How CASE decides. The one ordering rule that breaks it without any error. And how a real cleaning rule gets built, on real data, mistakes included.</p>
 
   <div class="toc">
     <strong>What's here</strong>
@@ -76,13 +76,15 @@
   WHEN &lt;test 2&gt; THEN &lt;value 2&gt;
   ELSE &lt;fallback value&gt;
 END</code></pre>
-  <p>The <strong>first test that passes wins</strong> — its THEN value becomes the result and everything below is skipped. If nothing passes, the ELSE value is used (no ELSE means the result is NULL). This multi-branch form is officially called a <strong>searched CASE expression</strong>; analysts informally call the shape a <strong>CASE ladder</strong> — a stack of WHEN/THEN rungs. If you know other languages, it's an if / else-if / else chain, or a switch statement.</p>
-  <div class="note"><strong>It's an expression, not a command.</strong> CASE produces a value the way a column does, so it can go anywhere a column can: in a SELECT (compute a new column), a WHERE (filter on the computed value), an ORDER BY (custom sort), inside <code>CREATE TABLE … AS</code> (save the computed value into a table), or inside SUM/COUNT (see conditional aggregation below).</div>
+  <p>The <strong>first test that passes wins</strong>. Its THEN value becomes the result, and every test below it is skipped. If nothing passes, you get the ELSE value. If there is no ELSE, you get NULL.</p>
+
+  <p>This stacked shape has a name. Officially it is a <strong>searched CASE expression</strong>. Analysts usually call it a <strong>CASE ladder</strong>, because each WHEN/THEN pair is a rung. If you know another language, it is an if / else-if / else chain.</p>
+  <div class="note"><strong>It is an expression, not a command.</strong> CASE produces a value, the same way a column does. So it can go anywhere a column can go. In a SELECT, to compute a new column. In a WHERE, to filter on the computed value. In an ORDER BY, for a custom sort. Inside <code>CREATE TABLE … AS</code>, to save the value into a table. Or inside SUM and COUNT, which is the conditional aggregation below.</div>
 
   <h2>The rule that matters: order is logic</h2>
-  <p>Because the first matching rung wins, <strong>the order of the rungs changes the answer</strong>. Two rungs can each be individually correct and still give wrong results if the general one sits above the specific one. The rule that follows:</p>
+  <p>The first matching rung wins, so <strong>the order of the rungs changes the answer</strong>. Two rungs can both be correct on their own and still produce a wrong result together. That happens when the general rung sits above the specific one. Which gives you the rule:</p>
   <p><strong>Specific patterns go above the general patterns they contain.</strong></p>
-  <p>Abstract, until you watch it bite on real data:</p>
+  <p>That is abstract until you watch it go wrong on real data:</p>
 
   <div class="step">
     <h2>A real example: cleaning Billboard artist credits</h2>
@@ -91,7 +93,7 @@ END</code></pre>
 Elvis Presley With The Jordanaires
 2Pac Duet With Mopreme
 Patti Austin A Duet With James Ingram</code></pre>
-    <p>To analyze by artist you need the <em>primary</em> artist — the text before the joiner word. A CASE ladder does the cut. The first attempt knew two joiners:</p>
+    <p>To analyse by artist you need the <em>primary</em> artist, which is the text before the joiner word. The joiner word is whatever links the two names: "Featuring", "With", "Duet With". A CASE ladder makes the cut. The first attempt knew two joiners:</p>
     <pre><code>CASE
   WHEN INSTR(performer, ' Featuring ') &gt; 0
     THEN SUBSTR(performer, 1, INSTR(performer, ' Featuring ') - 1)
@@ -99,8 +101,10 @@ Patti Austin A Duet With James Ingram</code></pre>
     THEN SUBSTR(performer, 1, INSTR(performer, ' With ') - 1)
   ELSE performer
 END</code></pre>
-    <p>(<code>INSTR</code> finds where a text appears; <code>SUBSTR</code> cuts everything before it.) Previewing the rule on real rows caught a defect: <strong>"2Pac Duet With Mopreme" extracted as "2Pac Duet"</strong> — the credit joins with " Duet With ", the ladder only knew " With ", so it cut in the wrong place and invented a fake artist.</p>
-    <p>The fix: add a <code>' Duet With '</code> rung <em>above</em> <code>' With '</code>. Re-checking the exact rows the fix targeted caught one more: <strong>"Patti Austin A Duet With James Ingram" → "Patti Austin A"</strong> — that credit says " A Duet With ". One more rung, one level more specific, placed one rung higher. The finished ladder:</p>
+    <p><code>INSTR</code> finds where a piece of text appears. <code>SUBSTR</code> cuts out everything before it.</p>
+
+  <p>Previewing the rule on real rows caught a defect straight away. <strong>"2Pac Duet With Mopreme" came out as "2Pac Duet"</strong>. That credit joins with " Duet With ", but the ladder only knew " With ". So it cut in the wrong place and invented an artist who does not exist.</p>
+    <p>The fix is to add a <code>' Duet With '</code> rung <em>above</em> <code>' With '</code>. Then re-check the exact rows the fix was meant to catch. That turned up one more: <strong>"Patti Austin A Duet With James Ingram" came out as "Patti Austin A"</strong>. That credit says " A Duet With ", not " Duet With ". So it needs one more rung, one level more specific, placed one rung higher. The finished ladder:</p>
     <pre><code>CASE
   WHEN INSTR(performer, ' A Duet With ') &gt; 0
     THEN SUBSTR(performer, 1, INSTR(performer, ' A Duet With ') - 1)
@@ -112,12 +116,12 @@ END</code></pre>
     THEN SUBSTR(performer, 1, INSTR(performer, ' With ') - 1)
   ELSE performer
 END AS primary_artist</code></pre>
-    <p>Read top to bottom: each rung is more general than the one above it, so the specific cases get caught before a general rung can mangle them. On the full dataset this ladder merged 11,275 raw credit strings into 8,896 clean primary artists.</p>
+    <p>Read it top to bottom. Each rung is more general than the one above it, so the specific cases get caught before a general rung can mangle them. On the full dataset this ladder merged 11,275 raw credit strings into 8,896 clean primary artists.</p>
   </div>
 
   <h2>The four jobs analysts use CASE for</h2>
   <h3>1. Cleaning and normalizing</h3>
-  <p>Mapping messy source values onto clean ones — the Billboard ladder above. Any dataset where the same real-world thing appears under several spellings ends up needing one of these.</p>
+  <p>Mapping messy source values onto clean ones, which is the Billboard ladder above. Any dataset where one real thing appears under several spellings needs a ladder like it.</p>
   <h3>2. Bucketing</h3>
   <p>Turning a continuous number into named bands:</p>
   <pre><code>CASE
@@ -125,16 +129,16 @@ END AS primary_artist</code></pre>
   WHEN age &lt; 65 THEN 'adult'
   ELSE 'senior'
 END AS age_band</code></pre>
-  <p>Revenue tiers, engagement bands, rating groups — all this shape. Note it's another order-matters ladder: <code>age &lt; 65</code> would also match a 10-year-old, but the more specific <code>age &lt; 18</code> above it catches them first.</p>
+  <p>Revenue tiers, engagement bands and rating groups are all this shape. Notice that order matters here too. <code>age &lt; 65</code> would also match a 10-year-old. The more specific <code>age &lt; 18</code> sits above it, so it catches them first.</p>
   <h3>3. Flags</h3>
-  <p>A yes/no column computed from a test: <code>CASE WHEN peak_position &lt;= 10 THEN 1 ELSE 0 END AS top10_hit</code>. Flags make later filtering, joining, and counting simple.</p>
+  <p>A yes/no column worked out from a test, like <code>CASE WHEN peak_position &lt;= 10 THEN 1 ELSE 0 END AS top10_hit</code>. A flag makes later filtering, joining and counting simple.</p>
   <h3>4. Conditional aggregation (the pivot trick)</h3>
   <p>CASE inside SUM or COUNT counts different things in one pass over the table:</p>
   <pre><code>SELECT
   SUM(CASE WHEN genre = 'Country' THEN 1 ELSE 0 END) AS country_songs,
   SUM(CASE WHEN genre = 'Pop'     THEN 1 ELSE 0 END) AS pop_songs
 FROM songs;</code></pre>
-  <p>One query, several tailored counts side by side — the workhorse behind most summary tables and dashboard tiles.</p>
+  <p>One query, several counts side by side. This is the workhorse behind summary tables and dashboard tiles.</p>
 
   <h2>How to build a CASE rule that's actually correct</h2>
   <table>
@@ -142,7 +146,7 @@ FROM songs;</code></pre>
     <tr><td>1. Draft</td><td>Write the ladder you believe in.</td></tr>
     <tr><td>2. Preview</td><td>Run it on real rows BEFORE building anything from it: original value and computed value side by side, and read them.</td></tr>
     <tr><td>3. Fix</td><td>When a wrong output appears, add the missing rung above the general rung that mis-handled it.</td></tr>
-    <tr><td>4. Confirm</td><td>Re-check the exact rows the fix targets — not just a random sample.</td></tr>
+    <tr><td>4. Confirm</td><td>Re-check the exact rows the fix targets, not just a random sample.</td></tr>
     <tr><td>5. Iterate</td><td>Repeat until the exceptions stop appearing. That is genuinely how normalization rules get built in practice.</td></tr>
   </table>
 
@@ -150,7 +154,7 @@ FROM songs;</code></pre>
 
   <div class="cta">
     <strong>Make SELECT, WHERE, JOIN, and GROUP BY second nature too.</strong>
-    <p style="margin:6px 0 0">The free <a href="../../sql/">SQL Kit</a> teaches the core of analyst SQL with worked examples, practice, flash cards, and a mock exam — all in your browser, nothing to install.</p>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> teaches the core of analyst SQL with worked examples, practice, flash cards and a mock exam. It all runs in your browser, with nothing to install.</p>
     <a class="btn" href="../../sql/">Open the SQL Kit →</a>
   </div>
 

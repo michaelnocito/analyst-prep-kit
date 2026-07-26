@@ -14,7 +14,14 @@ HOOKY = re.compile(r"\b(here'?s the thing|but first|keep reading|read on|"
                    r"the secret|what nobody|you'?ll never guess|stay with me)\b", re.I)
 
 def strip_html(h):
+    # Code is not prose. Counting <pre>/<code>/<svg> as sentences made short guides
+    # look unreadable and mis-ranked the whole list on the first run (2026-07-26).
     h = re.sub(r'<script.*?</script>|<style.*?</style>|<head.*?</head>|<!--.*?-->', ' ', h, flags=re.S)
+    h = re.sub(r'<pre.*?</pre>|<code.*?</code>|<svg.*?</svg>', ' ', h, flags=re.S)
+    # Nav bars, tables of contents and footers are lists of links, not prose. Left in,
+    # they merge into single 50-word "sentences" and inflate the average (2026-07-26).
+    h = re.sub(r'<nav.*?</nav>|<footer.*?</footer>|<header.*?</header>', ' ', h, flags=re.S)
+    h = re.sub(r'<div class="toc">.*?</div>', ' ', h, flags=re.S)
     return h
 
 def text_of(h):
