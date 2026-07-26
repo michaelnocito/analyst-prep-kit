@@ -57,7 +57,16 @@ for d in sorted(os.listdir(ROOT)):
 
     full = text_of(body)
     words = re.findall(r"[A-Za-z0-9']+", full)
-    sents = [x for x in re.split(r'(?<=[.!?])\s+', full) if len(x) > 20]
+    # Measure sentences PER BLOCK ELEMENT. Flattening the whole page first glues
+    # adjacent headings, list items and table cells into one 50-word "sentence",
+    # because none of them end in a full stop. That inflated every guide's average
+    # and mis-ranked the list twice (2026-07-26).
+    sents = []
+    for bm in re.finditer(r'<(p|li|td|th|h2|h3|blockquote)[^>]*>(.*?)</\1>', body, re.S):
+        t = text_of(bm.group(2))
+        for x in re.split(r'(?<=[.!?])\s+', t):
+            if len(re.findall(r"[A-Za-z0-9']+", x)) > 2:
+                sents.append(x)
     avg = round(sum(len(re.findall(r"[A-Za-z0-9']+", x)) for x in sents) / max(1, len(sents)), 1)
     longs = sum(1 for x in sents if len(re.findall(r"[A-Za-z0-9']+", x)) > 30)
 
