@@ -51,8 +51,10 @@
 > (that is retrieval AFTER learning). This is the missing beat BEFORE and DURING.
 
 
-> ## 🎧 ON HOLD — LISTEN ROLLOUT (opened 2026-07-27)
-> **Built, live on two pages, awaiting Mike's verdict. Do NOT roll out further.**
+> ## 🎧 WITHDRAWN — LISTEN (opened and pulled 2026-07-27)
+> **Built, tested, REMOVED FROM ALL PAGES. Not live anywhere. Do NOT re-add.**
+> Mike: *"remove the button for now, I'll revisit once content is polished, and I'll
+> just use the native screen speak."* `assets/listen.js` stays in the repo unreferenced.
 >
 > One-tap read-aloud on every page we publish. Small pill under the byline,
 > floating transport only while playing, paragraph skip, tap-a-paragraph to jump.
@@ -62,7 +64,9 @@
 > that file in the same commit. `CURRICULUM_STANDARD.md`, `marketing/ARTICLE_STANDARD.md`
 > and `play-area/BUILD_PILLARS.md` point at it and deliberately do not restate it.
 >
-> **Live for review:** `guides/sql-joins/` · `play-area/writing/test-the-verb/`
+> **Revisit is gated on two things, both Mike's call:** page content finalised, and
+> [L4] pre-rendered audio replacing live synthesis. Live browser speech is not coming
+> back on its own — section 6 of `LISTEN_STANDARD.md` explains why.
 >
 > **[L1] Mike listens and rules on voice, placement and pace.** The one thing that
 > cannot be checked from here is how it actually sounds; the voice is the device's,
@@ -71,15 +75,24 @@
 >
 > **[L2] Roll out to the remaining guides** — one script tag each, 16 files.
 > Fold into the paused link sweep visit so no guide is opened twice.
-> Status: **blocked on L4 — rolling the robot voice out to 16 more pages is not worth
-> doing before the audio question is settled.**
+> Status: **cancelled. The button is off every page; there is nothing to roll out until
+> [L4] lands.**
 >
 > **[L3] Roll out to the kits.** Needs a decision L1 does not answer: a lesson page is
 > interactive, so what does Listen read on a page where the learner is meant to be
 > typing? Likely the concept and worked example only, stopping before the drill.
-> Status: **blocked on L4, and needs its own scoping.**
+> Status: **cancelled pending [L4], and needs its own scoping when it returns.**
 >
-> **[L4] Pre-rendered audio — the real fix for voice quality.**
+> **[L4] Pre-rendered audio — the real fix, and the condition for Listen coming back.**
+> **Recommended approach: Kokoro run locally.** Apache-2.0, free for commercial use,
+> 82M params, runs on CPU at roughly real time — which matters, because Mike's machine
+> is an i5-8265U with integrated graphics only. Chatterbox (MIT) probably sounds better
+> but is ~6x bigger and wants a GPU; if its quality proves worth it, rent a GPU for an
+> hour and batch-render rather than buying hardware. Paid APIs are rented per character
+> forever ($15/M OpenAI, ~$66/M ElevenLabs) and buy us nothing a local model does not.
+> **A local model also weakens the staleness blocker:** if re-rendering is free, keeping
+> audio in sync with edited pages is a script in the publish step, not a recurring bill.
+> **Pick the voice by ear:** one paragraph of Mike's real prose through several voices.
 > **HARD BLOCKED: Mike finalises page content first.** He can override.
 >
 > Mike's verdict on the live test, 2026-07-27: *"it sounds like garbage by default on

@@ -10,9 +10,17 @@ config). Served from `https://michaelnocito.github.io/analyst-prep-kit/assets/li
 which every one of our sites can point at because they share the
 `michaelnocito.github.io` origin.
 
-**Status: on two pages for Mike's review, rollout on hold.**
-Live on `guides/sql-joins/` and `play-area/writing/test-the-verb/`. Do not add
-it to anything else until Mike has listened and said go.
+**Status 2026-07-27: WITHDRAWN FROM ALL PAGES. Not live anywhere.**
+Mike listened, the iPhone voice was unacceptable (section 6), and he took it off:
+*"remove the button for now, I'll revisit once content is polished, and I'll just
+use the native screen speak."* The script tags are gone from `guides/sql-joins/`
+and `play-area/writing/test-the-verb/`.
+
+`assets/listen.js` is deliberately KEPT in the repo. It works, it is documented
+here, and nothing is gained by deleting code we will want back. It is simply not
+referenced by any page. **Do not add it to a page** until Mike revisits, which he
+has tied to two things: page content being finalised, and pre-rendered audio
+([L4]) replacing live synthesis.
 
 ---
 
