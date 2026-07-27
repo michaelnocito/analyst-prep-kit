@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>&nbsp;</title>
+<!--
+  SQL CHICKEN HOUR — the stripped rig. Not part of the kit. Not linked from anywhere.
+
+  The verb under test: "I read a prompt, commit an answer, and find out immediately
+  whether I was right."
+
+  STRIPPED: lesson numbering, progress bar, XP, streaks, unit boundaries, next-lesson
+  button, completion screen, the directive, the path position, the kit's branding, and
+  the rep counter itself. The tester must not be able to see how far in they are, or
+  the count becomes the progress system.
+
+  KEPT: real prompts, the real seeded database, real sql.js, real error messages.
+
+  RUN: one device per sitting. 40 reps minimum. There is no end. You stop when you stop,
+  and that number is the verdict.
+
+  ?order=rev   reverses the item order (run this on the second device so item difficulty
+               is not confounded with device)
+  Ctrl+Shift+D ends the run and dumps the record. Do not press it early.
+-->
+<style>
+  :root{
+    --bg:#fbfbfc; --fg:#1a1a1c; --dim:#6b6b74; --line:#dededf;
+    --field:#fff; --ok:#1c7a3e; --no:#a3232b;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#141416; --fg:#ececed; --dim:#95959e; --line:#2e2e33;
+           --field:#1c1c1f; --ok:#5fce8a; --no:#f0868d; }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;}
+  main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+  #prompt{font-size:19px;line-height:1.45;margin:0 0 14px}
+  textarea{
+    width:100%;min-height:120px;padding:12px;border:1px solid var(--line);
+    border-radius:8px;background:var(--field);color:var(--fg);
+    font:14px/1.5 var(--mono);resize:vertical;
+  }
+  textarea:focus{outline:2px solid var(--fg);outline-offset:-1px}
+  .row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  button{
+    font:600 15px/1 system-ui,sans-serif;padding:12px 18px;border-radius:8px;
+    border:1px solid var(--line);background:var(--field);color:var(--fg);cursor:pointer;
+    min-height:44px;
+  }
+  button.go{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+  #out{margin-top:16px;font:13px/1.5 var(--mono);white-space:pre-wrap;word-break:break-word}
+  #out table{border-collapse:collapse;font-size:12px;margin-top:6px}
+  #out th,#out td{border:1px solid var(--line);padding:3px 7px;text-align:left}
+  .ok{color:var(--ok);font-weight:700}
+  .no{color:var(--no);font-weight:700}
+  .why{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px}
+  .why p{margin:0 0 8px;font-size:14px}
+  .dim{color:var(--dim)}
+  pre.ref{font:13px/1.5 var(--mono);white-space:pre-wrap;margin:6px 0 0}
+  #dump{width:100%;min-height:260px;font:11px/1.4 var(--mono)}
+</style>
+</head>
+<body>
+<main>
+  <p id="prompt">Loading.</p>
+  <textarea id="sql" spellcheck="false" autocapitalize="off" autocomplete="off"
+            autocorrect="off" placeholder=""></textarea>
+  <div class="row">
+    <button class="go" id="run">Run</button>
+  </div>
+  <div id="out"></div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<!-- ?v bumped whenever the item pool is re-extracted; file:// caches scripts hard. -->
+<script src="sql-chicken-hour-items.js?v=2"></script>
+<script>
+// ── item pool ───────────────────────────────────────────────────────────────
+// Flattened from CARD_DRILLS. Each try is one rep: a prompt and a reference answer.
+const POOL = [];
+for(const term in CARD_DRILLS){
+  CARD_DRILLS[term].tries.forEach(t => POOL.push({p:t.p, sql:t.sql}));
+}
+const REV = new URLSearchParams(location.search).get('order') === 'rev';
+if(REV) POOL.reverse();
+
+// ── the record ──────────────────────────────────────────────────────────────
+// Written to localStorage after every rep so a dead battery does not cost the run.
+// localStorage throws outright on file:// in some browsers and in iOS private mode,
+// so every touch of it is guarded. Losing the backup must never lose the run.
+const KEY = 'chicken-hour-sql';
+const store = {
+  get(){ try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch(e){ return null; } },
+  set(v){ try { localStorage.setItem(KEY, JSON.stringify(v)); } catch(e){} },
+  clear(){ try { localStorage.removeItem(KEY); } catch(e){} }
+};
+const rec = store.get() || {
+  device: (innerWidth < 700 ? 'mobile' : 'desktop'),
+  viewport: innerWidth + 'x' + innerHeight,
+  order: REV ? 'rev' : 'fwd',
+  ua: navigator.userAgent,
+  started: new Date().toISOString(),
+  reps: []
+};
+const save = () => store.set(rec);
+
+let db = null;
+let shown = 0, firstKey = 0, scrolls = 0, tries = 0;
+
+const $ = id => document.getElementById(id);
+
+// ── metric capture ──────────────────────────────────────────────────────────
+// Reread proxy: any scroll or blur between the prompt appearing and the answer
+// being committed means the instruction did not stay with the work.
+addEventListener('scroll', () => { if(shown) scrolls++; }, {passive:true});
+$('sql').addEventListener('input', () => { if(!firstKey) firstKey = performance.now(); });
+
+// The rep index comes from the record, so a reload resumes exactly where it left off
+// and there is no separate counter that could drift or be rendered by accident.
+function nextRep(){
+  const item = POOL[rec.reps.length % POOL.length];
+  $('prompt').textContent = item.p;
+  $('sql').value = '';
+  $('out').innerHTML = '';
+  shown = performance.now();
+  firstKey = 0; scrolls = 0; tries = 0;
+  return item;
+}
+
+// ── grading: compare result sets, never query text ───────────────────────────
+function exec(sql){
+  try { return {rows: db.exec(sql)}; }
+  catch(e){ return {err: e.message}; }
+}
+const shape = r => !r.length ? '[]' :
+  JSON.stringify(r[r.length-1].values.map(row => row.map(v => v === null ? null : String(v))).sort());
+
+function table(res){
+  if(!res.length) return 'Query ran. No rows returned.';
+  const {columns, values} = res[res.length-1];
+  return '<table><tr>' + columns.map(c => '<th>'+c+'</th>').join('') + '</tr>' +
+    values.slice(0,25).map(r => '<tr>' + r.map(v =>
+      '<td>' + (v === null ? '<span class="dim">NULL</span>' : v) + '</td>').join('') + '</tr>').join('') +
+    '</table>' + (values.length > 25 ? '<div class="dim">' + values.length + ' rows</div>' : '');
+}
+
+let item = null;
+
+function commit(){
+  const typed = $('sql').value.trim();
+  if(!typed) return;
+  tries++;
+  const t0 = performance.now();
+  const mine = exec(typed);
+  const latency = performance.now() - t0;
+
+  if(mine.err){
+    $('out').innerHTML = '<span class="no">Error</span>\n' + mine.err;
+    return;                                   // an error is not a commit, it is a retry
+  }
+
+  const want = exec(item.sql);
+  const right = !want.err && shape(mine.rows) === shape(want.rows);
+
+  $('out').innerHTML =
+    (right ? '<span class="ok">Right</span>' : '<span class="no">Not that</span>') +
+    '\n' + table(mine.rows);
+
+  if(!right){
+    $('out').innerHTML +=
+      '<div class="why"><p>One that works:</p><pre class="ref">' +
+      item.sql.replace(/[<>]/g, c => c === '<' ? '&lt;' : '&gt;') + '</pre>' +
+      '<p style="margin-top:10px">Could you say what was wrong in one sentence, without rereading?</p>' +
+      '<div class="row"><button data-rec="1">Yes</button><button data-rec="0">No</button></div></div>';
+    const recBtns = $('out').querySelectorAll('[data-rec]');
+    recBtns.forEach(b => b.onclick = () => {
+      recBtns.forEach(o => o.disabled = true);   // one answer per miss, never two
+      log(right, latency, +b.dataset.rec);
+      offerNext();
+    });
+  } else {
+    log(right, latency, null);
+    offerNext();
+  }
+}
+
+// Advancing is a deliberate act, because "find out whether I was right" is half the
+// verb — the result has to survive long enough to be read. This button is the only
+// forward control on the page, and it says nothing about how far along you are.
+function offerNext(){
+  $('run').disabled = true;
+  const b = document.createElement('button');
+  b.className = 'go'; b.textContent = 'Next';
+  b.onclick = () => { $('run').disabled = false; b.remove(); item = nextRep(); $('sql').focus({preventScroll:true}); };
+  $('run').after(b);
+  b.focus({preventScroll:true});
+}
+
+function log(right, latency, recovered){
+  rec.reps.push({
+    n: rec.reps.length + 1,
+    at: new Date().toISOString(),
+    prompt: item.p,
+    right, tries,
+    toFirstKey: Math.round(firstKey ? firstKey - shown : -1),
+    latency: Math.round(latency),
+    scrolls,
+    recovered
+  });
+  save();
+}
+
+$('run').onclick = commit;
+// Ctrl+Enter commits, so a desktop tester never has to leave the keyboard.
+$('sql').addEventListener('keydown', e => {
+  if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); commit(); }
+});
+
+// ── the dump ────────────────────────────────────────────────────────────────
+addEventListener('keydown', e => {
+  if(e.ctrlKey && e.shiftKey && (e.key === 'D' || e.key === 'd')){ e.preventDefault(); dump(); }
+});
+// Phone has no Ctrl+Shift+D: four taps on the prompt inside two seconds.
+let taps = [];
+$('prompt').addEventListener('click', () => {
+  taps = taps.filter(t => performance.now() - t < 2000);
+  taps.push(performance.now());
+  if(taps.length >= 4) dump();
+});
+
+function dump(){
+  rec.ended = new Date().toISOString();
+  const n = rec.reps.length;
+  const done = rec.reps.filter(r => r.right !== undefined);
+  const avg = (f, set) => set.length ? Math.round(set.reduce((a,b) => a + f(b), 0) / set.length) : 0;
+  const first10 = done.slice(0,10), last10 = done.slice(-10);
+  const misses = done.filter(r => !r.right);
+  rec.summary = {
+    reps: n,
+    verdict: n >= 40 ? (n >= 60 ? 'OVERRAN' : 'reached 40, stopped short of 60') : 'stopped before 40',
+    correctRate: done.length ? Math.round(100 * done.filter(r => r.right).length / done.length) + '%' : 'n/a',
+    toFirstKeyMs: {first10: avg(r => r.toFirstKey, first10), last10: avg(r => r.toFirstKey, last10)},
+    latencyMs: {first10: avg(r => r.latency, first10), last10: avg(r => r.latency, last10)},
+    rereadRate: done.length ? Math.round(100 * done.filter(r => r.scrolls > 0).length / done.length) + '%' : 'n/a',
+    oneSentenceRecovery: misses.length
+      ? Math.round(100 * misses.filter(r => r.recovered === 1).length / misses.length) + '%' : 'no misses',
+    attemptsPerRep: done.length ? (done.reduce((a,b) => a + b.tries, 0) / done.length).toFixed(2) : 'n/a'
+  };
+  save();
+  document.querySelector('main').innerHTML =
+    '<p>Run recorded. Copy this into the tracker.</p>' +
+    '<textarea id="dump" spellcheck="false"></textarea>' +
+    '<div class="row"><button class="go" id="cp">Copy</button>' +
+    '<button id="wipe">Clear this device’s run</button></div>';
+  $('dump').value = JSON.stringify(rec, null, 2);
+  $('cp').onclick = () => { $('dump').select(); document.execCommand('copy'); $('cp').textContent = 'Copied'; };
+  $('wipe').onclick = () => { store.clear(); location.href = location.pathname; };
+}
+
+// ── boot ────────────────────────────────────────────────────────────────────
+initSqlJs({locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/' + f})
+  .then(SQL => {
+    db = new SQL.Database();
+    db.run(SCHEMA);
+    seedSalesData(db);
+    item = nextRep();
+    $('sql').focus({preventScroll:true});
+  })
+  .catch(e => { $('prompt').textContent = 'Engine failed to load: ' + e.message; });
+</script>
+</body>
+</html>
