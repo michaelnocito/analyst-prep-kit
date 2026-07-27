@@ -1741,18 +1741,15 @@ function _queueRecalls(id, l){
   }
   _saveRecallQ(arr);
 }
-function _dequeueRecalls(id){
-  const pos=lessonPos(id), arr=_getRecallQ();
-  const due=arr.filter(e=>e.dueAt===pos);
-  _saveRecallQ(arr.filter(e=>e.dueAt!==pos));
-  return due;
-}
 // Dequeue only when the viewed lesson changes — stage advances re-render the
 // same lesson and must not re-consume the queue.
 function _syncRecalls(id, l){
   if(_recallLesson===id) return;
   if(l) _queueRecalls(id, l);
-  _pendingRecalls = _dequeueRecalls(id);
+  // Recall cards no longer interrupt a lesson (2026-07-27). The queue is only
+  // ever filled here; it is answered in the Review view, which is also what
+  // PrepLoop's miss list reads.
+  _pendingRecalls = [];
   _recallLesson = id;
 }
 function _recallsHTML(){
@@ -1782,17 +1779,9 @@ function _recallsHTML(){
   </div>`;}).join('');
 }
 function _refreshRecalls(){
-  // Cards render in two homes: inline at a lesson (#v2-recalls) or the on-demand
-  // Review view (#review-recalls), which gets an empty state. Both hosts can sit
-  // in the DOM at once — this kit uses static view divs, so a #v2-recalls left by
-  // a previously-opened lesson survives when you navigate to Review. Prefer the
-  // review host whenever that view is active, or the stale #v2-recalls steals the
-  // render and Review shows empty. (SQL dodges this by replacing #main innerHTML;
-  // the static-view kits — Tableau/Python — have the same latent bug.)
-  const reviewActive=document.getElementById('view-review')?.classList.contains('active');
-  const el=reviewActive
-    ? (document.getElementById('review-recalls')||document.getElementById('v2-recalls'))
-    : (document.getElementById('v2-recalls')||document.getElementById('review-recalls'));
+  // One home: the on-demand Review view. The old inline lesson host was removed
+  // 2026-07-27 — recalls no longer interrupt a lesson.
+  const el=document.getElementById('review-recalls');
   if(!el) return;
   if(!_pendingRecalls.length){
     if(el.id==='review-recalls'){ el.innerHTML=_reviewEmptyHTML(); }
@@ -2203,14 +2192,11 @@ function v2StatBody(l, done){
 
   if(stage===0){
     // Spaced-recall cards due at this lesson position (Phase D)
-    const recallsBlock = (!done && _pendingRecalls.length)
-      ? `<div id="v2-recalls" style="margin-bottom:16px">${_recallsHTML()}</div>`
-      : `<div id="v2-recalls" style="display:none"></div>`;
     // Progressive-artifact bridge: previous lesson in the same unit (unit is numeric; 0 = foundations, no bridge)
     const _pp=lessonPos(l.id), _prevOL=_pp>0?DATA.LESSONS[_pp-1]:null;
     const bridge=(_prevOL&&l.unit!==0&&_prevOL.unit===l.unit)
       ? `<p class="artifact-bridge">Last time you built: <strong>${_prevOL.title}</strong>. Now you'll add to it.</p>` : '';
-    body=`${recallsBlock}${bridge}<div class="v2-stage-card">
+    body=`${bridge}<div class="v2-stage-card">
       <h3><i data-lucide="compass"></i> What's this about</h3>
       ${l.story?`<div class="lesson-story" style="margin-bottom:16px"><i data-lucide="book-open"></i><span>${l.story}</span></div>`:''}
       <p style="margin:0 0 18px;color:var(--txt2);font-size:14px;line-height:1.65">${l.subtitle||''}</p>

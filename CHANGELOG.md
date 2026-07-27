@@ -9,6 +9,45 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.177.0] — 2026-07-27 — P4: quick recall leaves the lesson
+
+Playtest triage 2026-07-27. Mike: "Remove quick recall, they can go to the mistake
+auto tracker and review… remove both, we are autotracking mistakes now."
+
+Two of the three things he asked for were already true, which made this a small
+change rather than a rework:
+
+- **The confidence rater was already gone** from all 6 kits — only the boot-time
+  migration that deletes `state.confidence` remains.
+- **The recall queue already runs on auto-recorded misses.** `recordMiss()` writes
+  every wrong cue to `state.misses`, and `_queueRecalls()` only schedules a lesson's
+  cues when that lesson actually has misses. Nothing self-rated feeds it.
+
+What changed (excel · sql · python · powerbi · tableau · stats):
+
+- **The recall cards no longer appear inside a lesson.** The inline `#v2-recalls`
+  host is gone from the lesson body.
+- **Opening a lesson no longer consumes the queue.** `_dequeueRecalls()` used to pull
+  everything due at that position out of storage so it could render mid-lesson;
+  with nothing rendering it, those entries would have been silently destroyed.
+  It is deleted, and `_pendingRecalls` starts empty in the lesson flow.
+- **Recalls have exactly one home: the Review view.** `_recallsHTML()` used to pick
+  between the lesson host and the review host — a fiddly bit of code that existed
+  only to stop a stale lesson host stealing the render — and now just resolves
+  `#review-recalls`.
+
+Unchanged on purpose: `recordMiss`, `state.misses`, the `*-recalls` queue, the
+"Got it now" clear, and the wins counter. PrepLoop's auto miss list reads the same
+storage key and needed no change.
+
+Private headless suite (`apk-headless/de-test.mjs`): the recall block asserted the
+old behaviour, so it was rewritten to the new contract (a miss queues +1/+3/+7 ·
+opening the due lesson does NOT consume the queue · no card in the lesson · the card
+renders in Review). Also un-stuck a stale check asserting the presence of the
+retrieval-honesty line Mike had removed back on 2026-07-21. **116 → 121 passing;
+the 5 remaining failures are pre-existing and unrelated** (an 'undefined' leak in the
+Close stage of python/powerbi/tableau/stats, and a missing chart eyebrow on SQL L105).
+
 ## [1.176.0] — 2026-07-22 — T4: the "white screen delay" on a right answer was the page collapsing
 
 Playtest T4 (Tableau, 2026-07-21): "on mobile when you get an answer right or

@@ -2075,12 +2075,6 @@ function _queueRecalls(id, l){
   }
   _saveRecallQ(arr);
 }
-function _dequeueRecalls(id){
-  const pos=lessonPos(id), arr=_getRecallQ();
-  const due=arr.filter(e=>e.dueAt===pos);
-  _saveRecallQ(arr.filter(e=>e.dueAt!==pos));
-  return due;
-}
 function _recallsHTML(){
   // Cues may be legacy strings (question only) or {q,a} pairs. Answer reveal is
   // Anki-style flip: attempt first, then the answer inline — never a dead end.
@@ -2108,17 +2102,9 @@ function _recallsHTML(){
   </div>`;}).join('');
 }
 function _refreshRecalls(){
-  // Cards render in two homes: inline at a lesson (#v2-recalls) or the on-demand
-  // Review view (#review-recalls), which gets an empty state. Both hosts can sit
-  // in the DOM at once — this kit uses static view divs, so a #v2-recalls left in
-  // the hidden #view-lesson by a previously-opened lesson survives when you
-  // navigate to Review. Prefer the review host whenever that view is active, or
-  // the stale #v2-recalls steals the render and Review shows empty (bug found on
-  // the Stats port, v1.165.0).
-  const reviewActive=document.getElementById('view-review')?.classList.contains('active');
-  const el=reviewActive
-    ? (document.getElementById('review-recalls')||document.getElementById('v2-recalls'))
-    : (document.getElementById('v2-recalls')||document.getElementById('review-recalls'));
+  // One home: the on-demand Review view. The old inline lesson host was removed
+  // 2026-07-27 — recalls no longer interrupt a lesson.
+  const el=document.getElementById('review-recalls');
   if(!el) return;
   if(!_pendingRecalls.length){
     if(el.id==='review-recalls'){ el.innerHTML=_reviewEmptyHTML(); }
@@ -2619,7 +2605,10 @@ function resetLessonProgress(){
 function openLesson(id){
   const _l=DATA.LESSONS.find(x=>x.id===id);
   if(_l) _queueRecalls(id, _l);
-  _pendingRecalls = _dequeueRecalls(id);
+  // Recall cards no longer interrupt a lesson (2026-07-27). The queue is only
+  // ever filled here; it is answered in the Review view, which is also what
+  // PrepLoop's miss list reads.
+  _pendingRecalls = [];
   _recallAnchor = id; // "Got it now" re-queues relative to the open lesson
   S.currentLesson = id;
   S.lessonStage = 'intro';
@@ -3097,9 +3086,7 @@ function v2Body(l,done){
   let h='';
   // Recall cards (spaced-retrieval prompts due at this lesson position)
   if(!done && _pendingRecalls.length){
-    h+=`<div id="v2-recalls" style="margin-bottom:16px">${_recallsHTML()}</div>`;
   } else {
-    h+=`<div id="v2-recalls" style="display:none"></div>`;
   }
   // ① Orient
   const _prevOL=lessonPos(lid)>0?DATA.LESSONS[lessonPos(lid)-1]:null;
