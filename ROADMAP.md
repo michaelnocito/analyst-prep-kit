@@ -164,26 +164,17 @@
 > writing pages. The script self-limits (under three readable blocks, it inserts
 > nothing), so hub and index pages are safe to include.
 
-> ## 🔗 PAUSED — GUIDE LINK SWEEP, 2 of 17 done (2026-07-27)
-> Paused by Mike so the generative-prompting work goes first. **Resume after G1-G3.**
+> ## ✅ DONE — GUIDE SWEEP, all 17 (completed 2026-07-27)
+> Links per section 5a and generative prompts per section 2c of
+> `marketing/ARTICLE_STANDARD.md`, applied to every guide.
 >
-> Per-guide pass against section 5a of `marketing/ARTICLE_STANDARD.md`: two to four
-> inline links on real keywords, one kit CTA, the sibling footer row, the coffee link,
-> no game links, and the AI-agent guide only on AI articles. Strip "free" framing from
-> our own kit CTAs; leave third-party pricing facts (DB Browser, Tableau Public, GitHub
-> Pages, Kaggle) alone.
+> **Done in every guide:** inline links on real keywords · the coffee link in the footer ·
+> the AI-agent guide topic-gated to `sql-teaching-comments` only · `free` stripped from our
+> own kit CTAs (third-party pricing facts left as stated) · three to four generative
+> prompts, plain sentences, nothing visually marked.
 >
-> **Done:** build-a-tableau-dashboard · data-driven-thresholds.
-> **Remaining (15):** defining-metrics · documenting-data-limitations · entity-resolution ·
-> exploratory-data-analysis · git-for-analysts · handle-large-datasets ·
-> set-up-a-sql-database · sql-and-python · sql-case-expression · sql-count-function ·
-> sql-joins · sql-teaching-comments · technical-tenacity · verify-ai-agent-work ·
-> what-is-data-analysis · plus `guides/index.html` (title, meta and hub CTA still say
-> "free").
->
-> **Do the generative-prompt pass on the same visit.** Once G2 lands, each guide gets its
-> links and its prompts in one commit rather than being opened twice.
-> Status: **paused at 2/17, one guide per commit, report after each.**
+> **Not yet judged by Mike:** whether the prompts read as part of the writing or as
+> interruptions. He listens by ear when he gets to it; no test to run.
 
 > ## 🧪 PLAYTEST TRIAGE — 2026-07-27 (tracker projects "sql", "SQL Trail"; capture, do NOT build)
 > Six inbox notes triaged. Written back to Supabase as `roadmap` except where noted.
