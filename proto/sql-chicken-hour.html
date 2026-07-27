@@ -167,16 +167,20 @@ function commit(){
   const want = exec(item.sql);
   const right = !want.err && shape(mine.rows) === shape(want.rows);
 
+  // Verdict, reference answer and the recovery question all sit ABOVE the result table.
+  // The table can run to 25 rows, which on a phone put the only way forward nearly two
+  // screens down, at the exact moment a miss makes someone most likely to quit.
+  const why = right ? '' :
+    '<div class="why"><p>One that works:</p><pre class="ref">' +
+    item.sql.replace(/[<>]/g, c => c === '<' ? '&lt;' : '&gt;') + '</pre>' +
+    '<p style="margin-top:10px">Could you say what was wrong in one sentence, without rereading?</p>' +
+    '<div class="row"><button data-rec="1">Yes</button><button data-rec="0">No</button></div></div>';
+
   $('out').innerHTML =
     (right ? '<span class="ok">Right</span>' : '<span class="no">Not that</span>') +
-    '\n' + table(mine.rows);
+    why + '\n' + table(mine.rows);
 
   if(!right){
-    $('out').innerHTML +=
-      '<div class="why"><p>One that works:</p><pre class="ref">' +
-      item.sql.replace(/[<>]/g, c => c === '<' ? '&lt;' : '&gt;') + '</pre>' +
-      '<p style="margin-top:10px">Could you say what was wrong in one sentence, without rereading?</p>' +
-      '<div class="row"><button data-rec="1">Yes</button><button data-rec="0">No</button></div></div>';
     const recBtns = $('out').querySelectorAll('[data-rec]');
     recBtns.forEach(b => b.onclick = () => {
       recBtns.forEach(o => o.disabled = true);   // one answer per miss, never two
