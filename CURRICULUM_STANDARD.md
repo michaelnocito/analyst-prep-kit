@@ -151,6 +151,9 @@ second.** A prompt is never a substitute for the explanation and never an opener
 - **Drawing stays optional and rare.** Once per unit at most.
 - **Four or five prompts per lesson, hard cap.** Past that learners skip them, and the
   skipping generalises to the ones that mattered.
+- **Never visually marked.** Mike, 2026-07-27: the read version and the heard version
+  are identical. No prompt box, no icon, no "Try this" label. A marked prompt is a prompt
+  learners train themselves to skip.
 - **It must work spoken.** Anything phrased as "look at the box above" fails for a
   learner using their phone's read-aloud. Same test as the guides.
 

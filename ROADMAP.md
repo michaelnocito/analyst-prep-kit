@@ -51,6 +51,27 @@
 > (that is retrieval AFTER learning). This is the missing beat BEFORE and DURING.
 
 
+> ## 🔗 PAUSED — GUIDE LINK SWEEP, 2 of 17 done (2026-07-27)
+> Paused by Mike so the generative-prompting work goes first. **Resume after G1-G3.**
+>
+> Per-guide pass against section 5a of `marketing/ARTICLE_STANDARD.md`: two to four
+> inline links on real keywords, one kit CTA, the sibling footer row, the coffee link,
+> no game links, and the AI-agent guide only on AI articles. Strip "free" framing from
+> our own kit CTAs; leave third-party pricing facts (DB Browser, Tableau Public, GitHub
+> Pages, Kaggle) alone.
+>
+> **Done:** build-a-tableau-dashboard · data-driven-thresholds.
+> **Remaining (15):** defining-metrics · documenting-data-limitations · entity-resolution ·
+> exploratory-data-analysis · git-for-analysts · handle-large-datasets ·
+> set-up-a-sql-database · sql-and-python · sql-case-expression · sql-count-function ·
+> sql-joins · sql-teaching-comments · technical-tenacity · verify-ai-agent-work ·
+> what-is-data-analysis · plus `guides/index.html` (title, meta and hub CTA still say
+> "free").
+>
+> **Do the generative-prompt pass on the same visit.** Once G2 lands, each guide gets its
+> links and its prompts in one commit rather than being opened twice.
+> Status: **paused at 2/17, one guide per commit, report after each.**
+
 > ## 🧪 PLAYTEST TRIAGE — 2026-07-27 (tracker projects "sql", "SQL Trail"; capture, do NOT build)
 > Six inbox notes triaged. Written back to Supabase as `roadmap` except where noted.
 > Lesson-kit class = **excel · sql · python · powerbi · tableau · stats**. Cert and
