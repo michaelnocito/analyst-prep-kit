@@ -1,5 +1,67 @@
 ﻿# Analyst Prep Kit — Roadmap
 
+> ## 🧪 PLAYTEST TRIAGE — 2026-07-27 evening (tracker project "sql", 2 inbox notes)
+> Both notes triaged and written back to Supabase. Neither was built.
+>
+> - **[P7] Free typing alongside build-with-words — RESEARCHED, ready to build after a
+>   Chicken Hour.** Mike: *"Should we add the ability to free type and or build with words
+>   like we do in SQL Trail? The build with words is great but I'm finding typing the command
+>   really drives it home. Research the learning science and suggest improvements."*
+>
+>   **What the research says, and it says both things are right.** Ordering blocks and typing
+>   are not rivals, they are two points on one ramp.
+>   - Ordering blocks is the cheaper practice, not the weaker one. Learners who solved
+>     mixed-up-code problems reached the **same learning gains as learners who wrote the
+>     equivalent code, in significantly less time** (Ericson, Margulieux & Rick 2017, Koli
+>     Calling, doi:10.1145/3141880.3141895). A later controlled comparison found the same
+>     efficiency edge with **lower reported cognitive load** (Haynes & Ericson 2021, CHI,
+>     doi:10.1145/3411764.3445292).
+>   - Typing is where the memory is made. Producing an answer beats reading one across
+>     recognition, cued recall and free recall — the generation effect (Slamecka & Graf 1978,
+>     JEP:HLM 4(6), doi:10.1037/0278-7393.4.6.592). Ordering blocks is a weak form of
+>     generation: the words are on the screen, so recall of the vocabulary is never tested.
+>     **Mike's "typing really drives it home" is that gap, felt.**
+>   - The sequencing rule is the completion effect and scaffold fading: give the support
+>     while the material is new, take it away as competence arrives, or the support itself
+>     becomes the drag (expertise-reversal effect, Kalyuga, Ayres, Chandler & Sweller 2003,
+>     Educational Psychologist, doi:10.1207/S15326985EP3801_4).
+>
+>   **The recommendation: do not choose, fade.** Keep the tap-to-order build exactly as it is,
+>   then ask for the **same statement again as free text** immediately after it is built
+>   correctly. The blocks carry the learner through the first encounter; the retype is the
+>   generation beat that ordering cannot provide, and it costs one extra input, not a new
+>   lesson stage. Later lessons in a unit should open straight at free text once the pattern
+>   has been built twice. SQL Trail already ships the free-type-and-check engine — port it,
+>   do not write a second one.
+>
+>   **Sequencing, and why this waits.** `proto/sql-chicken-hour.html`, built earlier today, is
+>   already a stripped type-and-run loop with silent metric capture. **Run the Chicken Hour
+>   first** (KIT_VERB_TESTS.md, central verb). If forty reps of typing feels like work rather
+>   than reps, the fade is wrong and no amount of research saves it.
+>   **Cross-kit applicability (confirm by grep at build):** sql · python · powerbi · stats have
+>   tap-to-order lesson surfaces · tableau orders shelves, not text, so "type it" has no
+>   meaning there — decide separately · excel has no tap-to-order surface (n/a) · cert and
+>   non-lesson pages n/a.
+>   Status: **researched, not built. Gated on the Chicken Hour verdict.**
+>
+> - **[P8] Remove the More detail / Less detail toggle — DECIDED, ready to build.** Mike
+>   (2026-07-26): *"Remove the more or less detailed feature from this kit and all others."*
+>   **Grep-confirmed matrix:** `sql · python · powerbi · tableau` carry the identical
+>   `More detail` / `Less detail` button on the Worked Example stage (2 sites each, mode
+>   persisted in `<prefix>-lesson-mode`) · `excel` is the same feature with different words
+>   (`▼ Show details & background`, 2 sites) · `statistics` has no toggle · cert and
+>   non-lesson pages none. **Five kits, one recipe.**
+>   **What the toggle actually hides:** the lesson `intro` paragraph plus the "Watch out"
+>   (`notes`) card. So removing it is not a button deletion, it is a decision about that
+>   content. **Recommendation: focus mode becomes the only mode** — delete the button, the
+>   handler and the details block, and let [P3]'s wrap-up own the "Watch out" content if it
+>   earns a slot there. That is the same subtraction as [R1] and [P3]: concept → directive →
+>   do it, with the extra material out of the flow rather than one tap behind it.
+>   **Do it in the same pass as [P4]** (inline recall cards leaving the lesson): both are
+>   deletions from the same lesson stage in the same five-to-six files, and doing them apart
+>   means editing every kit twice.
+>   Status: **decided, not built. Small.**
+
 > ## ⏳ OPEN — WAITING ON MIKE (2026-07-27)
 > Two items, both his call, neither needing a test session. Listed here so they are
 > visible at the top rather than buried in the block that produced them.
