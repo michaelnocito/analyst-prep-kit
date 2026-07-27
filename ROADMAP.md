@@ -52,7 +52,27 @@
 >   so the button doubles as "next".
 >   Status: **not started, roadmap only. Large — design pass first.**
 >
-> - **[P4] Remove Quick Recall from the kit lessons; the miss list becomes the review home.**
+> - **[P4] Remove Quick Recall from the kit lessons — DECIDED 2026-07-27, ready to build.**
+>   Mike: "Remove both, we are autotracking mistakes now, or should be elsewhere." He is
+>   right that mistakes are auto-tracked, and that changes the size of this item:
+>   - The **confidence rater is already gone** from all 6 kits. `_migrateConfidence()` runs
+>     at boot and deletes `state.confidence`; the only remaining references are the
+>     migration itself. Nothing to remove.
+>   - The recall queue is **already fed by real misses**, not self-rating: `_queueRecalls()`
+>     only queues when `missesFor(id)` is non-empty, and `recordMiss()` writes to
+>     `state.misses` whenever a cue is answered wrong. So the miss list PrepLoop reads keeps
+>     filling with or without anything in the lesson.
+>   - **Actual remaining work:** delete the inline recall cards from the lesson flow — the
+>     `#v2-recalls` block that `_recallsHTML()` renders mid-lesson (`_pendingRecalls`,
+>     `_syncRecalls`, `_dequeueRecalls` on lesson change). Keep `recordMiss`, `state.misses`,
+>     the `*-recalls` queue and the on-demand **Review** view (`#review-recalls`), which is
+>     already outside the lesson — that is the "elsewhere" for anyone not using PrepLoop.
+>   **Cross-kit applicability (grep-confirmed 2026-07-27):** all 6 lesson kits carry the
+>   identical `missesFor` / `_recallsHTML` / `#v2-recalls` shape — one recipe, six edits.
+>   Cert and non-lesson pages have no recall surface.
+>   Status: **decided, not built. Small.**
+>
+> - **[P4-old] Original write-up, kept for the reasoning:**
 >   Mike: "Remove quick recall, they can go to the mistake auto tracker and review. This is
 >   on the kits lessons." The mistake tracker is PrepLoop's auto miss list, which reads each
 >   kit's `<prefix>-recalls` queue. **Careful:** that queue is FED by the in-lesson
@@ -63,10 +83,8 @@
 >   **Recommendation:** keep the confidence rater and the queue writes, remove only the
 >   in-lesson recall CARDS stage, and make PrepLoop's Recall sweep the single place recall
 >   happens. That satisfies "take it out of the lesson" without deleting spaced retrieval.
->   **Blocking question for Mike:** confirm that reading — is the ask "get recall out of the
->   lesson flow" (recommended) or "stop doing spaced recall in the kits at all"?
->   **Cross-kit applicability:** all 6 lesson kits; PrepLoop is the paired repo.
->   Status: **not started, roadmap only — needs Mike's answer before design.**
+>   **Answered 2026-07-27: remove both.** The worry above turned out to be moot — the rater
+>   was already retired and the queue already runs on auto-recorded misses. See [P4].
 >
 > - **[P5] A single-feature test list, the way the games get tested.** Mike: "We want to
 >   apply the same concept — test the verb — as we do on gaming. First we need a list of
