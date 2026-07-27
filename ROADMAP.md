@@ -37,7 +37,45 @@
 > **[G3] Every prompt must work spoken.** Half of Mike's reading is now the phone
 > reading the page aloud. Anything phrased "look at the box above" fails. Same test as
 > the guides.
-> Status: **not started, folds into G2.**
+> Status: **MEASURED 2026-07-27 on the Defining Metrics guide, six rules below. Still to
+> apply.** The passage was rendered through a speech engine block by block to get real
+> spoken durations, then checked for the ways writing breaks when heard. Two of the four
+> prompts landed, one was structurally impossible, one had a single wrong word.
+>
+> **The six rules. These are the spoken test, for prompts and for prose.**
+> 1. **A prompt may not point at anything.** No "below", "above", "the second row", "this
+>    page", "as shown". If a prompt is about something, it restates it.
+> 2. **No read-mode verbs.** "read on", "reading further", "reread", "look at" all assume
+>    eyes. Use "go on", "come back to", "listen again".
+> 3. **Imperative first.** The ask goes in the opening clause. A listener who misses the
+>    first sentence has missed that they were addressed at all.
+> 4. **Never stack two prompts.** Prose between, always. Two in a row is where the feeling
+>    of interruption actually comes from, regardless of how good each one is.
+> 5. **Recall distance has a budget, roughly 30 seconds spoken.** If a prompt asks the
+>    listener to hold something, count how long ago they heard it. Over budget, restate it.
+> 6. **Prefer imagination prompts in long stretches.** The only type that gets better in
+>    audio, and the only type that survives being heard while walking.
+>
+> **The finding that produced rule 5, worth keeping because it is not intuitive.** The
+> Defining Metrics worked-example table takes **87 seconds** to speak, because every
+> figure is read out in full. Its second row finishes 46 seconds before the prompt that
+> asks the reader to explain that row. A reader glances up at no cost. A listener would
+> have to scrub back through 46 seconds of dense audio on a phone. **Any prompt that
+> refers back across a table is suspect. Measure it, do not estimate it** — measured
+> speech rate on this page swung between 90 and 171 words per minute depending on how many
+> numerals a block contained, so a words-per-minute estimate put that table at 55 seconds
+> when it is 87.
+>
+> **Fixes queued on defining-metrics itself** (do them when that guide is next open):
+> P2 rewritten to carry the row's content instead of pointing at it · P4 "below" → "coming
+> up" and the imperative moved to the front · P1 "before you read on" → "before you go on"
+> and its payoff line "the question above" → "the question I just asked" · P2 and P3
+> unstacked, since together they are 35 seconds of continuous instruction arriving after
+> 103 seconds in which the listener only received.
+>
+> **Still needs Mike's ear, not measurable from here:** whether the 87-second table has
+> already lost the listener before any prompt arrives. If it has, the fix is the table and
+> not the prompts, and that changes the pattern for the remaining 14 guides.
 >
 > **Cross-kit applicability (confirm by grep at build):** all 6 lesson kits
 > (excel · sql · python · powerbi · tableau · stats) · cert kits (exam items are already
