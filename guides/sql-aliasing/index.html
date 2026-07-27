@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL Aliases: How to Read a Query Out Loud — Analyst Prep Kit</title>
+<meta name="description" content="What AS actually changes, why tables get one-letter nicknames, and the scope rule that makes an alias work in ORDER BY and fail in WHERE. With the literal sentence to say for every shape, and the real error messages.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-aliasing/">
+<meta property="og:title" content="SQL Aliases: How to Read a Query Out Loud">
+<meta property="og:description" content="AS renames a column in the output and nothing else. A table alias is a nickname you invent. Here is what each one changes, where it stops working, and the sentence to say for every shape.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-joins.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-aliasing/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-joins.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14px;color:var(--muted)}
+  .refs li{margin-bottom:6px}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figcap{color:var(--muted);font-size:13.5px;margin:8px 2px 0}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>SQL Aliases: How to Read a Query Out Loud</h1>
+  <p class="meta">What <code>AS</code> changes, why tables get one-letter nicknames, and the scope rule that trips people · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>After this page you can read any query out loud and know what every name in it refers to. You will also name things the way a reviewer expects. That is most of what makes a query look like the work of someone who does this for a living.</p>
+
+  <p>Here is what you do. Give every calculated column a name with <code>AS</code>. Give every table a one-letter nickname once a query touches two of them. Then put that nickname in front of each column, so a reader never has to guess which table a column came from. Three habits, and they take about a minute to learn.</p>
+
+  <div class="note"><strong>The short version.</strong> An alias is a name you invent. <code>AS</code> on a column changes the label on the output and nothing else. A nickname on a table lets you say which table a column belongs to.</div>
+
+  <div class="figure">
+    <svg viewBox="0 0 760 300" role="img" aria-labelledby="aliasTagTitle aliasTagDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="aliasTagTitle">An alias is a name tag pointing at something real</title>
+      <desc id="aliasTagDesc">Two small name tags sit on the left. The first tag, labelled g, has an arrow pointing to a database table labelled gem_page. The second tag, labelled avg_score, has an arrow pointing to the header cell of a results grid. Neither tag changes the thing it points at; each one is only a shorter or clearer way to refer to it.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <!-- tag 1 -->
+        <path d="M40 62 L150 62 L172 84 L150 106 L40 106 Z" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <circle cx="58" cy="84" r="4" fill="#0E7490"/>
+        <text x="86" y="90" font-size="17" font-weight="700" fill="#09090B" font-family="ui-monospace,Menlo,Consolas,monospace">g</text>
+        <path d="M182 84 L392 84" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M392 84 L378 77 L378 91 Z" fill="#0E7490"/>
+
+        <!-- table -->
+        <rect x="410" y="40" width="300" height="90" rx="10" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <rect x="410" y="40" width="300" height="26" rx="10" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="426" y="59" font-size="14" font-weight="700" fill="#09090B" font-family="ui-monospace,Menlo,Consolas,monospace">gem_page</text>
+        <line x1="410" y1="88" x2="710" y2="88" stroke="#E4E7EA"/>
+        <line x1="410" y1="110" x2="710" y2="110" stroke="#E4E7EA"/>
+        <line x1="510" y1="66" x2="510" y2="130" stroke="#E4E7EA"/>
+        <line x1="610" y1="66" x2="610" y2="130" stroke="#E4E7EA"/>
+
+        <!-- tag 2 -->
+        <path d="M40 202 L212 202 L234 224 L212 246 L40 246 Z" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <circle cx="58" cy="224" r="4" fill="#0E7490"/>
+        <text x="76" y="230" font-size="15" font-weight="700" fill="#09090B" font-family="ui-monospace,Menlo,Consolas,monospace">avg_score</text>
+        <path d="M244 224 L392 190" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M392 190 L377 187 L380 200 Z" fill="#0E7490"/>
+
+        <!-- result grid -->
+        <rect x="410" y="176" width="300" height="90" rx="10" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="560" y="176" width="150" height="26" rx="0" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <line x1="410" y1="202" x2="710" y2="202" stroke="#E4E7EA"/>
+        <line x1="410" y1="224" x2="710" y2="224" stroke="#E4E7EA"/>
+        <line x1="410" y1="246" x2="710" y2="246" stroke="#E4E7EA"/>
+        <line x1="560" y1="176" x2="560" y2="266" stroke="#E4E7EA"/>
+        <rect x="424" y="182" width="90" height="12" rx="6" fill="#E4E7EA"/>
+        <rect x="424" y="210" width="70" height="8" rx="4" fill="#E4E7EA"/>
+        <rect x="424" y="232" width="86" height="8" rx="4" fill="#E4E7EA"/>
+        <rect x="424" y="254" width="60" height="8" rx="4" fill="#E4E7EA"/>
+        <rect x="574" y="210" width="46" height="8" rx="4" fill="#E4E7EA"/>
+        <rect x="574" y="232" width="52" height="8" rx="4" fill="#E4E7EA"/>
+        <rect x="574" y="254" width="40" height="8" rx="4" fill="#E4E7EA"/>
+      </g>
+    </svg>
+    <p class="figcap">A name tag does not change what it is attached to. It only gives you a shorter or clearer way to point at it.</p>
+  </div>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>What a column alias changes</li>
+      <li>Why an unnamed calculated column is a defect</li>
+      <li>Table aliases, and the ambiguity they fix</li>
+      <li>The scope rule: ORDER BY yes, WHERE no</li>
+      <li>How to read each shape out loud</li>
+      <li>When to alias and when to leave a name alone</li>
+      <li>AS is optional and you should still type it</li>
+      <li>The full before and after</li>
+      <li>Where this came from and why it works</li>
+      <li>Using this on your own queries</li>
+      <li>A cheat sheet</li>
+    </ol>
+  </div>
+
+  <h2>What a column alias changes</h2>
+
+  <p>Before the answer: if you write <code>SELECT title AS gem FROM gem_page</code>, has anything in the <code>gem_page</code> table changed?</p>
+
+  <p>No. Nothing in the stored table moves. An alias is a label on the result you are handed back, and the result is a temporary thing that stops existing when you close the window. The column in the database is still called <code>title</code> tomorrow.</p>
+
+  <p>The word <strong>alias</strong> means an extra name for something that already exists. That is the whole idea, and it is why the same word covers columns and tables. Here is the column version:</p>
+
+  <pre><code>SELECT title AS gem
+FROM gem_page;</code></pre>
+
+  <p>The result comes back with a column header that reads <code>gem</code> instead of <code>title</code>. Same values, same row count, different label. If you export that result to a spreadsheet, the spreadsheet's header row says <code>gem</code>, because the header row is exactly the thing the alias set.</p>
+
+  <p>That is the entire effect of a column alias. It renames the output. It does not rename the column, it does not filter, it does not change a single value.</p>
+
+  <h2>Why an unnamed calculated column is a defect</h2>
+
+  <p>A calculated column is one the database works out on the spot rather than reading from disk. It has no name of its own, because nothing in the table is called that. So the database invents a header for you, and what it invents is not usable.</p>
+
+  <pre><code>SELECT title,
+       ROUND(CAST(up AS REAL) / (up + down) * 100, 1)
+FROM gem_page;</code></pre>
+
+  <p>SQLite hands that back with a column header of <code>ROUND(CAST(up AS REAL) / (up + down) * 100, 1)</code>. The header is the entire expression, punctuation and all. PostgreSQL takes a different route and heads it <code>round</code>, after the outermost function. Neither is a name anybody can use.</p>
+
+  <p>That matters for three concrete reasons, and every one of them shows up in a real report:</p>
+
+  <ul>
+    <li><strong>You cannot sort by it.</strong> <code>ORDER BY</code> needs something to refer to, and a punctuation-heavy expression is not it. You end up retyping the whole calculation in the <code>ORDER BY</code> line.</li>
+    <li><strong>Two calculations collide.</strong> Add a second <code>ROUND</code> to the same query in PostgreSQL and you have two columns both headed <code>round</code>. Whatever reads that result next has to guess which is which.</li>
+    <li><strong>The export is unreadable.</strong> The header row of the CSV you send a stakeholder contains a SQL expression. That is the version of your work they see.</li>
+  </ul>
+
+  <p>The fix is one word plus a name you choose:</p>
+
+  <pre><code>SELECT title,
+       ROUND(CAST(up AS REAL) / (up + down) * 100, 1) AS pct_positive
+FROM gem_page
+ORDER BY pct_positive DESC;</code></pre>
+
+  <p>Now the header says <code>pct_positive</code>, the sort line refers to it by that name, and the spreadsheet you hand over reads like something a person wrote.</p>
+
+  <div class="note"><strong>The rule.</strong> Every calculated column gets a name. If the database had to invent the header, the query is not finished.</div>
+
+  <h2>Table aliases, and the ambiguity they fix</h2>
+
+  <p>Before the answer: two tables both have a column called <code>id</code>. You join them and ask for <code>id</code>. What should the database do?</p>
+
+  <p>It refuses, and it is right to. Say your two tables are <code>gem_page</code>, one row per music gem, and <code>gem_vote</code>, one row per reader vote. Both carry a column named <code>id</code>. This query has no answer:</p>
+
+  <pre><code>SELECT id, title
+FROM gem_page
+JOIN gem_vote ON gem_page.id = gem_vote.page_id;</code></pre>
+
+  <pre><code>Error: ambiguous column name: id</code></pre>
+
+  <p>Ambiguous means the database found the name in more than one place and will not choose for you. The way you answer it is to say which table you meant, by putting the table's name in front of the column with a dot between them. That is a <strong>prefix</strong>.</p>
+
+  <pre><code>SELECT gem_page.id, gem_page.title
+FROM gem_page
+JOIN gem_vote ON gem_page.id = gem_vote.page_id;</code></pre>
+
+  <p>That works, and it gets long fast. A table alias is a short nickname you give the table once, at the point you name it, and then use everywhere else:</p>
+
+  <pre><code>SELECT g.id, g.title, v.voter
+FROM gem_page AS g
+JOIN gem_vote AS v ON g.id = v.page_id;</code></pre>
+
+  <p><code>FROM gem_page AS g</code> says: for the rest of this query, <code>g</code> means the <code>gem_page</code> table. From that point on <code>g.title</code> is the title column of <code>gem_page</code>, and <code>v.voter</code> is the voter column of <code>gem_vote</code>. Two letters replaced twenty.</p>
+
+  <p>Say why that is worth doing before reading on. It is not really about typing less. The reason is that a reader can now answer "which table is this column from?" for every column in the query, without scrolling and without knowing the schema. In a three-table query that question comes up on every line.</p>
+
+  <div class="note"><strong>Once a table has an alias, the alias is its only name.</strong> After <code>FROM gem_page AS g</code>, writing <code>gem_page.title</code> lower down is an error in PostgreSQL and MySQL. The nickname replaces the name for the length of the query. Pick it, then use it everywhere.</div>
+
+  <h2>The scope rule: ORDER BY yes, WHERE no</h2>
+
+  <p>This is the part that produces a real error message on a query that looks correct. It is worth the two minutes.</p>
+
+  <pre><code>SELECT title,
+       up + down AS total_votes
+FROM gem_page
+WHERE total_votes > 10;</code></pre>
+
+  <pre><code>ERROR:  column "total_votes" does not exist</code></pre>
+
+  <p>The name is right there, four lines up. PostgreSQL says it does not exist. MySQL says <code>Unknown column 'total_votes' in 'where clause'</code>. Both are telling you the truth, and the reason is about order.</p>
+
+  <p>A database does not run a query top to bottom the way you read it. It runs the clauses in a fixed order of its own, and <code>SELECT</code> comes late in that order:</p>
+
+  <div class="figure">
+    <svg viewBox="0 0 760 250" role="img" aria-labelledby="aliasScopeTitle aliasScopeDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="aliasScopeTitle">The name is created partway along the track</title>
+      <desc id="aliasScopeDesc">A left-to-right track shows the order a database runs a query: FROM, then WHERE, then GROUP BY, then SELECT, then ORDER BY. A name tag is created at the SELECT stage. An arrow pointing backwards from that tag to WHERE is crossed out, because WHERE has already run. An arrow pointing forwards from the tag to ORDER BY has a tick, because ORDER BY has not run yet.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <line x1="40" y1="150" x2="720" y2="150" stroke="#E4E7EA" stroke-width="4"/>
+        <path d="M720 150 L704 142 L704 158 Z" fill="#E4E7EA"/>
+
+        <circle cx="70" cy="150" r="9" fill="#FFFFFF" stroke="#A1A1AA" stroke-width="2"/>
+        <text x="40" y="182" font-size="13.5" font-weight="700" fill="#52525B" font-family="ui-monospace,Menlo,Consolas,monospace">FROM</text>
+
+        <circle cx="230" cy="150" r="9" fill="#FFFFFF" stroke="#B45309" stroke-width="2"/>
+        <text x="192" y="182" font-size="13.5" font-weight="700" fill="#B45309" font-family="ui-monospace,Menlo,Consolas,monospace">WHERE</text>
+
+        <circle cx="380" cy="150" r="9" fill="#FFFFFF" stroke="#A1A1AA" stroke-width="2"/>
+        <text x="326" y="182" font-size="13.5" font-weight="700" fill="#52525B" font-family="ui-monospace,Menlo,Consolas,monospace">GROUP BY</text>
+
+        <circle cx="520" cy="150" r="11" fill="#0E7490" stroke="#0E7490" stroke-width="2"/>
+        <text x="486" y="182" font-size="13.5" font-weight="700" fill="#0E7490" font-family="ui-monospace,Menlo,Consolas,monospace">SELECT</text>
+
+        <circle cx="660" cy="150" r="9" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <text x="614" y="182" font-size="13.5" font-weight="700" fill="#0E7490" font-family="ui-monospace,Menlo,Consolas,monospace">ORDER BY</text>
+
+        <!-- the tag, born at SELECT -->
+        <path d="M470 44 L566 44 L586 66 L566 88 L470 88 Z" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <circle cx="486" cy="66" r="4" fill="#0E7490"/>
+        <path d="M520 92 L520 136" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M520 136 L513 122 L527 122 Z" fill="#0E7490"/>
+
+        <!-- backwards, blocked -->
+        <path d="M470 66 Q 360 24 236 60" stroke="#B45309" stroke-width="2" fill="none" stroke-dasharray="6 5"/>
+        <path d="M236 60 L250 54 L248 68 Z" fill="#B45309"/>
+        <circle cx="358" cy="44" r="14" fill="#FFFFFF"/>
+        <text x="348" y="52" font-size="22" font-weight="700" fill="#B45309">✕</text>
+
+        <!-- forwards, allowed -->
+        <path d="M586 66 Q 648 80 660 132" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M660 132 L656 117 L645 126 Z" fill="#0E7490"/>
+        <circle cx="626" cy="88" r="14" fill="#FFFFFF"/>
+        <text x="616" y="96" font-size="22" font-weight="700" fill="#0E7490">✓</text>
+      </g>
+    </svg>
+    <p class="figcap">The name comes into existence at SELECT. Clauses that already ran cannot see it. Clauses that come after can.</p>
+  </div>
+
+  <p>So the rule falls out on its own. <code>WHERE</code> runs before <code>SELECT</code>, so when the filter is being applied the name <code>total_votes</code> has not been invented yet. <code>ORDER BY</code> runs after <code>SELECT</code>, so by then the name exists and you can sort by it:</p>
+
+  <pre><code>SELECT title,
+       up + down AS total_votes
+FROM gem_page
+WHERE up + down > 10
+ORDER BY total_votes DESC;</code></pre>
+
+  <p>In <code>WHERE</code> you repeat the calculation. In <code>ORDER BY</code> you use the name. The same reasoning covers <code>GROUP BY</code> and <code>HAVING</code>, which also run before <code>SELECT</code>, so repeat the expression there too and you will be right in every database.</p>
+
+  <div class="note"><strong>One thing that will mislead you locally.</strong> SQLite is more relaxed than the standard and does accept an alias in <code>WHERE</code>. If you practise on a SQLite file, a query can work on your laptop and fail on the PostgreSQL or MySQL database at work. Write the expression out in <code>WHERE</code> and the query runs everywhere.</div>
+
+  <h2>How to read each shape out loud</h2>
+
+  <p>Reading a query aloud is the fastest way to find out whether you actually follow it. These are the literal sentences. Say them exactly, including the boring parts.</p>
+
+  <table>
+    <tr><th>What you see</th><th>What you say</th></tr>
+    <tr><td><code>SELECT title AS gem</code></td><td>select title, and call it gem in the output</td></tr>
+    <tr><td><code>ROUND(AVG(score), 1) AS avg_score</code></td><td>the average score, rounded to one decimal place, called avg_score</td></tr>
+    <tr><td><code>FROM gem_page AS g</code></td><td>from the gem_page table, which I will call g for the rest of this query</td></tr>
+    <tr><td><code>g.artist</code></td><td>the artist column of gem_page</td></tr>
+    <tr><td><code>JOIN gem_vote AS v ON g.id = v.page_id</code></td><td>bring in gem_vote, call it v, and match where gem_page's id equals gem_vote's page_id</td></tr>
+    <tr><td><code>ORDER BY avg_score DESC</code></td><td>sort by the column I named avg_score, largest first</td></tr>
+  </table>
+
+  <p>Two of those sentences are doing the work. "which I will call g for the rest of this query" is the one that makes a table alias stop being mysterious. "the artist column of gem_page" is the one that turns a dot into everyday speech.</p>
+
+  <p>Now picture running this on a table of your own, one you have actually opened. Say the two sentences for its name and one of its columns out loud. What does the header row of the result look like?</p>
+
+  <pre><code>SELECT g.artist,
+       COUNT(v.id) AS vote_count,
+       ROUND(AVG(v.score), 1) AS avg_score
+FROM gem_page AS g
+JOIN gem_vote AS v ON g.id = v.page_id
+GROUP BY g.artist
+ORDER BY avg_score DESC;</code></pre>
+
+  <p>Out loud, start to finish: select the artist column of gem_page, a count of gem_vote's id rows called vote_count, and the average score rounded to one decimal called avg_score. From the gem_page table, which I will call g. Bring in gem_vote, call it v, matching where g's id equals v's page_id. Group by the artist column of gem_page. Sort by the column I named avg_score, largest first.</p>
+
+  <p>That is a sentence. Nothing in it stops parsing, and none of it needed you to know the schema in advance.</p>
+
+  <h2>When to alias and when to leave a name alone</h2>
+
+  <p>Aliasing everything is its own kind of unreadable. Four working rules cover almost every query you will write.</p>
+
+  <div class="step">
+    <h2>One table: no table alias needed</h2>
+    <p>With a single table in the query, no column can be ambiguous, so a prefix carries no information. <code>SELECT title, up FROM gem_page</code> is finished. Adding <code>g.</code> to it is noise.</p>
+  </div>
+
+  <div class="step">
+    <h2>Two or more tables: alias every one of them, with single letters</h2>
+    <p>Once a second table joins in, alias both and prefix every column, including the ones that are not ambiguous yet. Use the first letter of the table: <code>g</code> for <code>gem_page</code>, <code>v</code> for <code>gem_vote</code>. Two tables that start with the same letter get two letters, such as <code>gp</code> and <code>gv</code>. Prefix even the columns that are safe today. A column that is unique now stops being unique the moment someone adds a third table. Then the query breaks in a way nobody planned for.</p>
+  </div>
+
+  <div class="step">
+    <h2>Calculated columns: meaningful names, not letters</h2>
+    <p>A table alias is short on purpose, because it repeats on every line. A column alias goes in the header a stakeholder reads, so it gets a real name. <code>pct_positive</code>, <code>vote_count</code>, <code>avg_score</code>. Lowercase with underscores, no spaces, and it says what the number is. <code>a</code>, <code>col1</code> and <code>x</code> are the same defect as no name at all.</p>
+  </div>
+
+  <div class="step">
+    <h2>Never rename a plain column just to rename it</h2>
+    <p>If the column is already called <code>artist</code>, leave it called <code>artist</code>. Writing <code>artist AS artist_name</code> gains nothing and costs something real. The name in your query no longer matches the name in the table. Anyone tracing a number back through your work now has to translate. Rename a plain column only when the output genuinely needs a different word, for example when a report has to say <code>region</code> and the table calls it <code>terr_cd</code>.</p>
+  </div>
+
+  <h2>AS is optional and you should still type it</h2>
+
+  <p>Every example on this page works without the word <code>AS</code>. These two lines do the same thing, and so do these two:</p>
+
+  <pre><code>SELECT title AS gem FROM gem_page AS g;
+SELECT title    gem FROM gem_page    g;</code></pre>
+
+  <p>You will meet the second style constantly, because a lot of production SQL leaves <code>AS</code> out. Read it as if the word were there. Type it anyway, for a reason that is not style.</p>
+
+  <p>Leaving <code>AS</code> out makes one mistake invisible. Drop a comma in a <code>SELECT</code> list and the two columns silently become one column with an alias:</p>
+
+  <pre><code>SELECT title, artist year
+FROM gem_page;</code></pre>
+
+  <p>You meant three columns. You get two: <code>title</code>, and the <code>artist</code> column labelled <code>year</code>. No error, and a header that reads <code>year</code> above text values. With <code>AS</code> in your habits, the missing comma reads wrong on sight. This is the same class of failure as the joins that <a href="../sql-joins/">drop or duplicate rows</a> without erroring, and it gets caught the same way, by making the intent explicit.</p>
+
+  <p>One place <code>AS</code> is not optional: naming a table in PostgreSQL sometimes needs it, and a name that would otherwise be read as a keyword always does. Typing it every time removes the question.</p>
+
+  <h2>The full before and after</h2>
+
+  <p>Same tables, same question, both versions run. The difference is whether a person can read the result.</p>
+
+  <h3>Before</h3>
+  <pre><code>SELECT gem_page.artist,
+       COUNT(gem_vote.id),
+       ROUND(AVG(gem_vote.score), 1)
+FROM gem_page
+JOIN gem_vote ON gem_page.id = gem_vote.page_id
+GROUP BY gem_page.artist
+ORDER BY ROUND(AVG(gem_vote.score), 1) DESC;</code></pre>
+
+  <p>Two of the three columns come back with headers nobody can use, so the <code>ORDER BY</code> has to repeat the whole calculation. Every line carries a full table name. The query is correct and tiring.</p>
+
+  <h3>After</h3>
+  <pre><code>SELECT g.artist,
+       COUNT(v.id) AS vote_count,
+       ROUND(AVG(v.score), 1) AS avg_score
+FROM gem_page AS g
+JOIN gem_vote AS v ON g.id = v.page_id
+GROUP BY g.artist
+HAVING COUNT(v.id) >= 10
+ORDER BY avg_score DESC;</code></pre>
+
+  <p>Three named columns, two nicknamed tables, and a sort line that refers to a name instead of repeating a calculation. Note that <code>HAVING</code> still spells out <code>COUNT(v.id)</code>, because <code>HAVING</code> runs before <code>SELECT</code> and the name does not exist yet. The comment block that belongs above a query like this is in <a href="../sql-teaching-comments/">How to Comment SQL So It Teaches</a>.</p>
+
+  <h2>Where this came from and why it works</h2>
+
+  <p>The idea is older than SQL. In the relational model that databases are built on, renaming is one of the basic operations you may perform on a table. It sits alongside selecting rows and picking columns (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). Being able to give something a second name is part of the theory, not a convenience someone bolted on later.</p>
+
+  <p>The specific syntax comes from SEQUEL, the language IBM built in 1974 that became SQL. Donald Chamberlin and Raymond Boyce designed it to be readable by people who were not programmers. The table nickname was there in the first paper (Chamberlin &amp; Boyce, 1974, <em>Proceedings of the 1974 ACM SIGFIDET Workshop</em>, 249–264). They called it a <em>correlation name</em>, and you will still see that phrase in database documentation today. It means exactly what this page calls a table alias.</p>
+
+  <p>The reason naming helps a reader is better understood than it used to be. Learners who explain a worked example to themselves as they go understand it substantially better. They also transfer it better than learners who read the same example without explaining it (Chi, Bassok, Lewis, Reimann &amp; Glaser, 1989, <em>Cognitive Science</em>, 13(2), 145–182). A query full of named columns and prefixed tables is a query you can explain to yourself while reading. One without them makes you hold the schema in your head at the same time, which is the working memory you needed for the actual question.</p>
+
+  <p>That is also why "I know what my own columns mean" is not a reason to skip the names. The reader who is short of working memory is you, six months from now, opening a file you do not remember writing.</p>
+
+  <h2>Using this on your own queries</h2>
+
+  <p>Bring to mind a query you have already written and shared. Can you say, out loud, what each of its output columns is called and why? If a header on it reads <code>round</code> or <code>COUNT(*)</code>, that is the one to fix first.</p>
+
+  <p>Going through a whole project in one sitting is miserable and you will stop halfway. Do this instead, in order:</p>
+
+  <ol>
+    <li><strong>Name every calculated column, in the file you have open right now.</strong> Search for <code>ROUND</code>, <code>SUM</code>, <code>COUNT</code> and <code>AVG</code>, and check each one has an <code>AS</code> after it. This is ten minutes and it is most of the benefit.</li>
+    <li><strong>Alias the tables in any query that touches two of them.</strong> First letter of each table, prefix on every column. Do the multi-table queries only. Single-table queries are already fine.</li>
+    <li><strong>Read one query out loud</strong>, using the sentences in the table above. The line where you hesitate is the line whose names are not carrying their weight.</li>
+    <li><strong>Move calculations out of <code>ORDER BY</code>.</strong> Anywhere the sort line repeats an expression from <code>SELECT</code>, replace it with the alias. The query gets shorter and there is now one place to change the calculation instead of two.</li>
+    <li><strong>Leave the plain columns alone.</strong> Resist the urge to rename <code>artist</code> to <code>artist_name</code> while you are in there. Renaming for its own sake is work that makes the file harder to trace.</li>
+  </ol>
+
+  <p>If you have paper nearby, this one is worth drawing once. Write out a query, then draw an arrow from every alias to the thing it names. The arrows that are hard to draw are the names that are not pulling their weight.</p>
+
+  <div class="cta">
+    <strong>Want this reasoning on your own queries?</strong>
+    <p style="margin:6px 0 0">A query full of well-named columns still needs the sentence explaining why the question was asked, and that is the first thing to vanish from a file. I packaged the prompts that make Claude, ChatGPT, or Gemini put that reasoning back onto your own queries, in about five minutes. Your portfolio then shows how you think, not only what you typed.</p>
+    <a class="btn" href="https://michaelnocito.gumroad.com/l/sql-prompt-pack" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','prompt_pack_click',{kit:'guide-sql-aliasing'})">The SQL Teaching-Comment Prompt Pack, $7 →</a>
+  </div>
+
+  <h2>A cheat sheet</h2>
+  <table>
+    <tr><th>Shape</th><th>What it does</th><th>Say it as</th></tr>
+    <tr><td><code>col AS name</code></td><td>Sets the output header. Changes nothing else</td><td>select col, and call it name in the output</td></tr>
+    <tr><td><code>CALC(...) AS name</code></td><td>Gives a calculated column a usable header</td><td>the calculation, called name</td></tr>
+    <tr><td><code>FROM table AS t</code></td><td>Nicknames the table for this query only</td><td>from table, which I will call t</td></tr>
+    <tr><td><code>t.col</code></td><td>Says which table the column came from</td><td>the col column of table</td></tr>
+    <tr><td>Alias in <code>ORDER BY</code></td><td>Works. ORDER BY runs after SELECT</td><td>sort by the column I named</td></tr>
+    <tr><td>Alias in <code>WHERE</code></td><td>Fails in PostgreSQL and MySQL. Repeat the expression</td><td>filter on the calculation itself</td></tr>
+    <tr><td>Alias in <code>GROUP BY</code> or <code>HAVING</code></td><td>Both run before SELECT. Repeat the expression</td><td>group on the calculation itself</td></tr>
+    <tr><td>No alias on a calculation</td><td>The header becomes the expression, or <code>round</code></td><td>a header nobody can use</td></tr>
+    <tr><td><code>AS</code> left out</td><td>Legal and common. Read it as if it were there</td><td>same sentence, one word quieter</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> If you take nothing else from this page, put a name on every calculated column. It is one word, it decides what the header of your export says, and it is the difference between a result someone can use and a result they have to decode.</div>
+
+  <p>One last thing, and I would like other people's answers. The habit I picked up latest was prefixing columns that were not ambiguous yet, because it felt like clutter until a third table arrived and proved it was not. What is the naming habit you resisted longest before it earned its place?</p>
+
+  <div class="cta">
+    <strong>Practice this with the data in front of you.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> runs SQLite in the browser, so you write a join, name the columns, and watch the headers change. Worked examples, flash cards, and a mock exam sit alongside it. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+    <li>Chamberlin, D. D., &amp; Boyce, R. F. (1974). SEQUEL: A structured English query language. <em>Proceedings of the 1974 ACM SIGFIDET Workshop on Data Description, Access and Control</em>, 249–264.</li>
+    <li>Chi, M. T. H., Bassok, M., Lewis, M. W., Reimann, P., &amp; Glaser, R. (1989). Self-explanations: How students study and use examples in learning to solve problems. <em>Cognitive Science</em>, 13(2), 145–182.</li>
+  </ul>
+
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-teaching-comments/">Comment SQL So It Teaches</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-case-expression/">The CASE Expression</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../build-a-tableau-dashboard/">Build a Tableau Dashboard</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin-top:10px"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee &#9749;</a></p>
+  </footer>
+</main>
+</body>
+</html>
