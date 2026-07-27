@@ -72,6 +72,7 @@
   </div>
 
   <h2>First: what counts as "large"?</h2>
+  <p>Put a number on it before you read the list. How many rows does a file need before a spreadsheet stops being the right tool? Your guess is probably too high, and knowing which direction you were wrong in is the useful part.</p>
   <p>"Large" is not a vibe, it has real thresholds. A dataset is large enough to need this guide when any of these are true:</p>
   <ul>
     <li><strong>It has more than about a million rows.</strong> Excel and Google Sheets stop at <strong>1,048,576 rows</strong>. Past that, the file physically cannot fully open. Rows beyond the limit are silently dropped.</li>
@@ -108,6 +109,7 @@
 
   <div class="step">
     <h2>Step 4 — Build an index (the step that makes big queries fast)</h2>
+    <p>Picture a phone book, and picture the same names in the order people moved into town. Both hold the same information. Only one lets you find a name without reading every page. Hold that picture, because it is exactly what the next paragraph describes.</p>
     <p>An <strong>index</strong> is a lookup shortcut on a column. Without one, every time you search or join on that column, the database reads all 41 million rows from top to bottom. With one, it jumps straight to the rows it needs. On a small table you never notice. On a big one, it is the difference between instant and unusable.</p>
     <p>Build the index once, on the column you will join or filter on most (usually an id):</p>
     <pre><code>CREATE INDEX IF NOT EXISTS idx_rec_appid ON recommendations(app_id);</code></pre>
@@ -139,6 +141,7 @@ GROUP BY app_id;</code></pre>
   </div>
 
   <h2>The quirk that quietly breaks a filter: data types</h2>
+  <p>This one returns no error and no rows. Before reading on, ask yourself what you would do if a filter you were sure about came back empty. If the answer is "check the filter again", the next section is going to save you an afternoon, because the filter is fine.</p>
   <p>Before you trust any filter on a big table, look at the actual values first (<code>SELECT * FROM recommendations LIMIT 10;</code>). Large real-world files love to store things in surprising ways. The classic: a true/false column stored as the <strong>text</strong> <code>'true'</code> and <code>'false'</code>, not the numbers <code>1</code> and <code>0</code>.</p>
   <p>If you assume it is a number and write <code>WHERE is_recommended = 1</code>, it silently matches <strong>nothing</strong>, and you get a confidently wrong answer with no error message. The fix is simply to match how the data is really stored:</p>
   <pre><code>WHERE is_recommended = 'true'</code></pre>
