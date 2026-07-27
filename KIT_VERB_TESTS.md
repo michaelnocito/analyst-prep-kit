@@ -11,6 +11,13 @@ one of them end to end, all the way through, before looking at anything else.
 The whole point is that a verb is testable on its own. If testing one verb needs you
 to work through three others first, that's a finding about the kit, not about the test.
 
+**The central verb, and the rest.** One of these is the action the kits actually revolve
+around: *I read a prompt, commit an answer, and find out immediately whether I was right*
+(V4, V5 and V6 are its three input shapes). Everything else on this list is scaffolding around
+it. Before any of the fifteen get a pass, that one gets a **Chicken Hour**: the app form of
+Pillar 1's feel-lab, defined in `play-area/BUILD_PILLARS.md`. Strip the signposting, keep the
+real content, forty reps, and the verdict is whether you keep going.
+
 ## How to use this list
 
 Pick ONE row. Run it in one kit, on a phone and on a desktop, from a clean start.
