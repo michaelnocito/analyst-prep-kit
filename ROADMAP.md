@@ -1,5 +1,94 @@
 ﻿# Analyst Prep Kit — Roadmap
 
+> ## 🧪 PLAYTEST TRIAGE — 2026-07-27 (tracker projects "sql", "SQL Trail"; capture, do NOT build)
+> Six inbox notes triaged. Written back to Supabase as `roadmap` except where noted.
+> Lesson-kit class = **excel · sql · python · powerbi · tableau · stats**. Cert and
+> non-lesson pages (forecasting, chart-literacy, interview, final, simulator, projects)
+> get their own verdict per item, per feedback_triage_cross_kit_pass.
+>
+> - **[P1] Choosing an answer should also submit it.** Today the learner picks an option,
+>   then clicks Continue to check — two taps for one decision. Mike: "That's an extra click
+>   for the user. When they choose, also submit." Applies to the tap-the-choice Quick Check
+>   and the multiple-choice drills. **Smallest certain win in this batch — do it first.**
+>   **Open question for Mike at build:** does a mis-tap become an instant wrong answer, or
+>   does the choice submit after a short undo window? Recommend: submit immediately on tap
+>   (matches every quiz app people already use) and keep the existing wrong-answer reveal,
+>   since attempts are not scored against the learner.
+>   **Cross-kit applicability (confirm by grep at build):** all 6 lesson kits · cert kits
+>   (their exams are answer-then-next by design — check whether instant submit breaks the
+>   timed-exam feel) · final · interview · chart-literacy · forecasting.
+>   Status: **not started, roadmap only.**
+>
+> - **[P2] Read-it-out-loud becomes a help popup, not persistent page furniture.** Mike:
+>   put a small standing line next to code — "remember to read your statement out loud,
+>   click here" — that opens a popup with the read-aloud breakdown, and take the always-on
+>   panel off the screen. Frees the vertical space the read-aloud block currently eats and
+>   lets the same treatment ride **anywhere there is code**, not just where it is authored
+>   today. The content (`ral` / `say` / chunk chips) does not change — only its container.
+>   Pairs with [R1]/[R2] above: all three are the same push to strip the lesson down to
+>   concept → directive → do it.
+>   **Cross-kit applicability (confirm by grep at build):** sql `ral:{code,say,lines}` ·
+>   powerbi (same shape) · tableau `ral:[{shelf,lines}]` (no say/code line — decide whether
+>   the shelf artifact belongs in a popup at all) · excel · python · stats (section-based,
+>   no `ral`). Guides and the SQL teaching-comment surfaces are out of scope.
+>   Status: **not started, roadmap only.**
+>
+> - **[P3] Lesson wrap-up screen: "what you just did, and why it matters on the job."**
+>   Mike's favourite thing in SQL Space Quest, filed twice (2026-07-22 and again under the
+>   SQL Trail project). He wants it to become the standard post-success beat everywhere:
+>   the learner completes the task, THEN gets a small celebratory popup that names the
+>   concept and its on-the-job payoff. The second half of the ask is subtractive and matters
+>   more: the "more information" text living inside the lesson today (the yellow callouts)
+>   moves OUT of the learning flow and into that wrap-up, so the lesson itself is
+>   concept → the basics you need → try it. Nothing extra between the reader and the doing.
+>   **Scope beyond this repo:** Mike wants it in the skill games too (SQL Trail already has
+>   a payout card; the Analyst Sprint games and the job sims do not). File the game side in
+>   each game's own roadmap when that game's chat comes up — this entry owns the kits.
+>   **Sequencing note:** design the wrap-up ONCE (content slots: concept · what you did ·
+>   why it matters on the job · optional next step), then port kit by kit, one per chat.
+>   **Open question for Mike at build:** does the wrap-up gate the next lesson (must dismiss)
+>   or auto-dismiss? Recommend must-dismiss with one button, since the whole point is that
+>   it is the moment of closure — but it must not re-introduce the extra click P1 removes,
+>   so the button doubles as "next".
+>   Status: **not started, roadmap only. Large — design pass first.**
+>
+> - **[P4] Remove Quick Recall from the kit lessons; the miss list becomes the review home.**
+>   Mike: "Remove quick recall, they can go to the mistake auto tracker and review. This is
+>   on the kits lessons." The mistake tracker is PrepLoop's auto miss list, which reads each
+>   kit's `<prefix>-recalls` queue. **Careful:** that queue is FED by the in-lesson
+>   confidence rater, and the spaced-recall stage is the retrieval-practice layer the whole
+>   learning-science pass was built on (see project_learning_science_gap_analysis). Removing
+>   the surface without keeping the feed would empty the miss list it is supposed to send
+>   people to.
+>   **Recommendation:** keep the confidence rater and the queue writes, remove only the
+>   in-lesson recall CARDS stage, and make PrepLoop's Recall sweep the single place recall
+>   happens. That satisfies "take it out of the lesson" without deleting spaced retrieval.
+>   **Blocking question for Mike:** confirm that reading — is the ask "get recall out of the
+>   lesson flow" (recommended) or "stop doing spaced recall in the kits at all"?
+>   **Cross-kit applicability:** all 6 lesson kits; PrepLoop is the paired repo.
+>   Status: **not started, roadmap only — needs Mike's answer before design.**
+>
+> - **[P5] A single-feature test list, the way the games get tested.** Mike: "We want to
+>   apply the same concept — test the verb — as we do on gaming. First we need a list of
+>   features to focus on singularly and test." This is the BUILD_PILLARS "one thing until
+>   it's fun" discipline pointed at the kits: enumerate the kit's verbs (read the concept ·
+>   answer a check · type a query · run it · rate confidence · move to the next lesson ·
+>   resume later · reset), then test ONE verb at a time end to end instead of sweeping a
+>   whole kit. Deliverable is a list, not code — the per-verb list then becomes the playtest
+>   tracker suite for the kits (today the tracker's suite is game-shaped).
+>   Status: **not started, roadmap only. Cheap, and it makes every later batch testable.**
+>
+> - **[P6] Homepage → analyst page routing — ✅ ALREADY SHIPPED, no work queued.** Mike's
+>   2026-07-23 note asked that michaelnocito.github.io/#learning-tools stop offering a
+>   clickable link per kit and instead drop visitors on the Analyst Prep Kit hub so they
+>   navigate from there. The site was rebuilt as a compact tile grid (michaelnocito.github.io
+>   commits 623be3f, bfee5f5, 19c37bd): the section now carries ONE featured Analyst Prep Kit
+>   tile pointing at the hub, with the kit names as non-clickable chips. Marked `fixed` in the
+>   tracker — Mike confirms on his next pass. **Remainder, if he still wants it:** the three
+>   arcade tiles (Analyst Sprint · Job Simulator · SQL Quest) still deep-link to their own
+>   apps rather than routing through the hub. Left as-is deliberately — they are separate
+>   products, not kits.
+
 > ## 🗒️ ROADMAP-ONLY INTAKE — 2026-07-25 (Mike; capture, do NOT build)
 > - **[R1] Remove the "What's this about" section from lessons.** All-kits item. This is the
 >   boxed orientation card at the top of a lesson stage (compass icon heading + tinted
