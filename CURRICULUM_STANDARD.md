@@ -177,3 +177,18 @@ intrinsic cognitive load. *Applied Cognitive Psychology*, 22(2), 273-283.
 doi:10.1002/acp.1373 · Dunlosky, J., Rawson, K. A., Marsh, E. J., Nathan, M. J., &
 Willingham, D. T. (2013). Improving students' learning with effective learning techniques.
 *Psychological Science in the Public Interest*, 14(1), 4-58. doi:10.1177/1529100612453266
+
+## Standing rule — Listen (added 2026-07-27, Mike)
+
+**Every page we publish carries its own read-aloud control.** Lesson pages, guides,
+hub pages, articles. The canon for how it looks, where it sits, what it reads and what
+it skips is **`LISTEN_STANDARD.md`** — a single file, updated in the same commit as any
+change to the feature. Do not restate its rules here.
+
+The connection to teaching: if a learner can hear a lesson, the lesson has to work
+spoken. That is the same test the generative-prompting rule above imposes, and the same
+test the no-visual-marking decision imposes. All three are one standard — **what you
+read and what you hear are the same thing.**
+
+**Status: on hold for Mike's review.** Live on two pages only. No rollout to the kits
+until he has listened and said go.

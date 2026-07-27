@@ -51,6 +51,37 @@
 > (that is retrieval AFTER learning). This is the missing beat BEFORE and DURING.
 
 
+> ## 🎧 ON HOLD — LISTEN ROLLOUT (opened 2026-07-27)
+> **Built, live on two pages, awaiting Mike's verdict. Do NOT roll out further.**
+>
+> One-tap read-aloud on every page we publish. Small pill under the byline,
+> floating transport only while playing, paragraph skip, tap-a-paragraph to jump.
+> Code blocks, tables and reference lists are announced rather than read.
+>
+> **Canon:** `LISTEN_STANDARD.md` at repo root. Every change to the feature updates
+> that file in the same commit. `CURRICULUM_STANDARD.md`, `marketing/ARTICLE_STANDARD.md`
+> and `play-area/BUILD_PILLARS.md` point at it and deliberately do not restate it.
+>
+> **Live for review:** `guides/sql-joins/` · `play-area/writing/test-the-verb/`
+>
+> **[L1] Mike listens and rules on voice, placement and pace.** The one thing that
+> cannot be checked from here is how it actually sounds; the voice is the device's,
+> not ours. Status: **waiting on Mike.**
+>
+> **[L2] Roll out to the remaining guides** — one script tag each, 16 files.
+> Fold into the paused link sweep visit so no guide is opened twice.
+> Status: **blocked on L1.**
+>
+> **[L3] Roll out to the kits.** Needs a decision L1 does not answer: a lesson page is
+> interactive, so what does Listen read on a page where the learner is meant to be
+> typing? Likely the concept and worked example only, stopping before the drill.
+> Status: **blocked on L1, and needs its own scoping.**
+>
+> **Cross-kit applicability (confirm at build):** all 6 lesson kits · cert kits ·
+> final · interview · chart-literacy · forecasting · guides · hub · the play-area
+> writing pages. The script self-limits (under three readable blocks, it inserts
+> nothing), so hub and index pages are safe to include.
+
 > ## 🔗 PAUSED — GUIDE LINK SWEEP, 2 of 17 done (2026-07-27)
 > Paused by Mike so the generative-prompting work goes first. **Resume after G1-G3.**
 >
