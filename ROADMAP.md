@@ -1,5 +1,56 @@
 ﻿# Analyst Prep Kit — Roadmap
 
+> ## 🧠 PRIORITY RESEARCH ITEM — GENERATIVE PROMPTING (opened 2026-07-27, Mike)
+> **Address this before any further lesson changes to any kit.** Mike's call: the
+> lesson overhaul already in flight absorbs this rather than running alongside it.
+>
+> **The problem.** Listening to the guides on his phone: *"great information, and we're
+> getting better at breaking it down, but they're not engaging — it's not prompting me
+> to think or visualize."* The same gap is in every kit. We explain well and then hand
+> over the answer. Nothing makes the learner produce anything before we do.
+>
+> **The name is generative learning.** Four usable prompt types, in ascending cost:
+> **prequestion** (ask before you answer; g = 0.66 on the asked idea, near zero on the
+> rest), **self-explanation** (make them say why; g = 0.55 across 64 reports),
+> **imagination** (make them picture it; effect grows as material gets harder),
+> **drawing** (g = 0.69, strongest, most expensive). Full canon with citations is the
+> **Generative prompting standing rule** in `CURRICULUM_STANDARD.md`.
+>
+> **The boundary condition we will get wrong if we rush.** Every prompt spends working
+> memory. Asking a learner to imagine or draw something they do not yet understand
+> leaves them worse off. **Explain first, prompt second.** Never an opener, never a
+> substitute for the explanation, hard cap of four or five per lesson.
+>
+> **[G1] Audit how a lesson presents information, before changing lessons further.**
+> One kit, one lesson, read end to end: where does the learner produce something, and
+> where do we just tell them? Expected finding is that the beat between the worked
+> example and the drill is empty everywhere — we show, then demand performance, and
+> never ask them to account for what they saw. Output is a before/after of a single
+> lesson, not a sweep.
+> Status: **not started. This is the gate on the rest of the lesson work.**
+>
+> **[G2] Place the four prompt types in the lesson template.** Prequestion above the
+> concept · self-explanation between worked example and drill · imagination after the
+> worked example, before they type · drawing optional, once per unit at most.
+> Status: **not started, blocked on G1.**
+>
+> **[G3] Every prompt must work spoken.** Half of Mike's reading is now the phone
+> reading the page aloud. Anything phrased "look at the box above" fails. Same test as
+> the guides.
+> Status: **not started, folds into G2.**
+>
+> **Cross-kit applicability (confirm by grep at build):** all 6 lesson kits
+> (excel · sql · python · powerbi · tableau · stats) · cert kits (exam items are already
+> retrieval — decide whether a prequestion belongs before a study section only) ·
+> final · interview · chart-literacy · forecasting · the guides (their canon is section
+> 2b of `marketing/ARTICLE_STANDARD.md`). Per-kit roadmap stubs carry this item at the
+> top: `<kit>/ROADMAP.md`.
+>
+> **Relationship to existing rules.** Does not replace directive visibility (that is
+> what to DO; this is what to THINK first) and does not replace the recall/review queue
+> (that is retrieval AFTER learning). This is the missing beat BEFORE and DURING.
+
+
 > ## 🧪 PLAYTEST TRIAGE — 2026-07-27 (tracker projects "sql", "SQL Trail"; capture, do NOT build)
 > Six inbox notes triaged. Written back to Supabase as `roadmap` except where noted.
 > Lesson-kit class = **excel · sql · python · powerbi · tableau · stats**. Cert and

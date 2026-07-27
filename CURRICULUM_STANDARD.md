@@ -114,3 +114,63 @@ treatment and keyboard focus never trapped behind it.
 
 **Applies to:** all lesson kits (excel · sql · python · powerbi · tableau · stats), their
 practice drills, and any new lesson type. Non-lesson pages get the same audit before ship.
+
+## Standing rule — Generative prompting (added 2026-07-27, Mike)
+
+**Every teaching surface makes the learner produce something in their own head before it
+hands them the answer.** Explanation alone does not teach; it only feels like teaching.
+This is a bible rule, not a per-kit choice.
+
+Mike's trigger, listening to the guides on his phone: *"great information, and we're
+getting better at breaking it down, but they're not engaging — it's not prompting me to
+think or visualize."* The same gap is in the kits.
+
+**The name for it is generative learning.** Fiorella & Mayer map eight strategies; four
+survive contact with a lesson screen, in ascending cost:
+
+| Prompt | Sounds like | Evidence |
+|---|---|---|
+| **Prequestion** — ask before you answer | "Before the answer: which one loses rows?" | g = 0.66 on the asked idea, near zero on the rest |
+| **Self-explanation** — make them say why | "Say why that would be true before reading on." | g = 0.55 across 64 reports |
+| **Imagination** — make them picture it | "Picture running that on your own table. What comes back?" | Effect grows as the material gets harder |
+| **Drawing** — make them sketch it | "Draw the two tables and the key between them." | g = 0.69, strongest and most expensive |
+
+**The boundary condition, and it is the one we will get wrong.** These all spend working
+memory. Asking a learner to imagine or draw something they do not yet understand leaves
+them worse off, because they have nothing to imagine with. **Explain first, prompt
+second.** A prompt is never a substitute for the explanation and never an opener.
+
+**How this lands in a kit.**
+
+- **The prequestion goes above the concept**, one per lesson, aimed at the single idea
+  the lesson exists to deliver.
+- **The self-explanation prompt goes between the worked example and the drill.** This is
+  the beat that is missing everywhere today: we show the example, then immediately ask
+  them to perform. Nothing asks them to account for it first.
+- **The imagination prompt goes after the worked example, before the learner types.**
+- **Drawing stays optional and rare.** Once per unit at most.
+- **Four or five prompts per lesson, hard cap.** Past that learners skip them, and the
+  skipping generalises to the ones that mattered.
+- **It must work spoken.** Anything phrased as "look at the box above" fails for a
+  learner using their phone's read-aloud. Same test as the guides.
+
+**Relationship to the existing rules.** This does not replace the directive-visibility
+rule; the directive is what to DO, a generative prompt is what to THINK before doing it.
+Nor does it replace the recall/review queue, which is retrieval AFTER learning. This is
+the missing beat BEFORE and DURING.
+
+**Applies to:** all lesson kits (excel · sql · python · powerbi · tableau · stats), their
+drills, the cert kits, the guides, and any new lesson type. Confirm per surface at build
+time, per the cross-kit applicability rule.
+
+**Research:** Fiorella, L., & Mayer, R. E. (2016). Eight ways to promote generative
+learning. *Educational Psychology Review*, 28(4), 717-741. doi:10.1007/s10648-015-9348-9 ·
+Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., & Winne, P. H. (2018). Inducing
+self-explanation: a meta-analysis. *Educational Psychology Review*, 30(3), 703-725.
+doi:10.1007/s10648-018-9434-x · Pan, S. C., & Carpenter, S. K. (2023). Prequestioning and
+pretesting effects. *Educational Psychology Review*, 35, 97. doi:10.1007/s10648-023-09814-5 ·
+Leahy, W., & Sweller, J. (2008). The imagination effect increases with an increased
+intrinsic cognitive load. *Applied Cognitive Psychology*, 22(2), 273-283.
+doi:10.1002/acp.1373 · Dunlosky, J., Rawson, K. A., Marsh, E. J., Nathan, M. J., &
+Willingham, D. T. (2013). Improving students' learning with effective learning techniques.
+*Psychological Science in the Public Interest*, 14(1), 4-58. doi:10.1177/1529100612453266
