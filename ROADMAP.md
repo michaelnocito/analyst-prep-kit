@@ -1,5 +1,38 @@
 ﻿# Analyst Prep Kit — Roadmap
 
+> ## ⏳ OPEN — WAITING ON MIKE (2026-07-27)
+> Two items, both his call, neither needing a test session. Listed here so they are
+> visible at the top rather than buried in the block that produced them.
+>
+> **[O1] Do the generative prompts read as writing, or as interruptions?**
+> All 17 guides now carry three to four prompts each, written as ordinary sentences with
+> nothing marking them, per section 2c of `marketing/ARTICLE_STANDARD.md`. The pattern is
+> a prediction just before the answer, a self-explanation where the main idea turns, and
+> one aimed at the reader's own data rather than the example.
+>
+> Nothing to schedule and nothing to hunt for. Next time Mike reads or listens to any
+> guide, the only question is whether he actually paused and thought, or whether the
+> prompt slid past. **If it slides past, the fix is shorter and blunter prompts** — that
+> is a rewrite of about 55 sentences, an hour of work, not a redesign.
+>
+> If he never gets round to judging it, that is an answer too: the prompts are unobtrusive
+> enough to leave in place. **No action needed unless he says otherwise.**
+> Status: **shipped, unjudged.**
+>
+> **[O2] Pre-rendered audio, and with it the return of Listen.** Full detail in the
+> WITHDRAWN — LISTEN block below, as [L4]. Repeated here because it is the only thing
+> gating a feature Mike wants and cannot currently have.
+>
+> Blocked on **Mike finalising page content**, his hard blocker, his to lift. A recording
+> is frozen, so rendering before the words are final means paying to render twice and
+> shipping a stale file in between.
+>
+> Recommendation on file: **Kokoro run locally.** Apache-2.0, free for commercial use,
+> runs on CPU at roughly real time, which suits an i5-8265U with no graphics card. A local
+> model also weakens the staleness objection, since re-rendering costs a script run rather
+> than money. Pick the voice by ear from one paragraph of real prose, not from a spec sheet.
+> Status: **blocked on content freeze.**
+
 > ## 🧠 PRIORITY RESEARCH ITEM — GENERATIVE PROMPTING (opened 2026-07-27, Mike)
 > **Address this before any further lesson changes to any kit.** Mike's call: the
 > lesson overhaul already in flight absorbs this rather than running alongside it.
@@ -243,8 +276,7 @@
 > own kit CTAs (third-party pricing facts left as stated) · three to four generative
 > prompts, plain sentences, nothing visually marked.
 >
-> **Not yet judged by Mike:** whether the prompts read as part of the writing or as
-> interruptions. He listens by ear when he gets to it; no test to run.
+> **Not yet judged by Mike:** tracked as [O1] in the OPEN block at the top.
 
 > ## 🧪 PLAYTEST TRIAGE — 2026-07-27 (tracker projects "sql", "SQL Trail"; capture, do NOT build)
 > Six inbox notes triaged. Written back to Supabase as `roadmap` except where noted.
