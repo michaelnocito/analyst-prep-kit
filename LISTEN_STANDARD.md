@@ -121,7 +121,37 @@ These are the things that break silently if someone "tidies" the code later.
 
 ---
 
-## 6. The voice is the user's, not ours
+## 6. The iPhone voice ceiling — verified 2026-07-27, do not re-litigate
+
+Mike's verdict on the first listen: **"sounds like garbage by default on iPhone,
+very robot Siri."** He is right, and **no change to our code fixes it.**
+
+Apple does not expose its good voices to the web. `speechSynthesis.getVoices()`
+in Safari returns the compact system voice. The Enhanced and Premium voices a
+user can download under Settings → Accessibility → Spoken Content → Voices are
+reachable by Apple's own features — VoiceOver, Speak Screen, Listen to Page —
+and **not** by a web page. Safari has a long history here: for a stretch it
+returned nothing at all from `getVoices()`, iOS 17 briefly exposed some
+high-quality voices, and they went away again. Chrome and Edge list every voice
+installed on the machine; Safari does not.
+
+**So do not "fix" this by writing cleverer voice-selection code.** The preferred
+name list in `listen.js` is a best-effort nicety for desktop and Android. On
+iPhone there is one voice available to us and it is the compact one.
+
+**The only real fix is pre-rendered audio** — generate the narration ahead of
+time as a file and play the file instead of synthesising live. Tracked as [L4]
+in `ROADMAP.md`. **Hard-blocked** until Mike has finalised page content, because
+a recording is frozen: edit a paragraph and the audio no longer matches the
+page. Mike can override the block.
+
+**What to tell a user who complains about the voice on iPhone:** the honest
+answer is the device's built-in reader sounds better than any web page can.
+Settings → Accessibility → Spoken Content → Voices → English, download a Premium
+or Enhanced voice, then use the two-finger swipe down from the top of the
+screen. That upgrades Speak Screen. It does not change our button.
+
+## 7. The voice is the user's, not ours
 
 The speech engine belongs to the device, so the same page sounds different on
 iPhone, Android and Windows. We pick the best available local voice by name
@@ -132,7 +162,7 @@ plainly rather than promising a fix we do not control.
 
 ---
 
-## 7. Adding it to a page
+## 8. Adding it to a page
 
 ```html
 <script defer src="../../assets/listen.js"></script>
@@ -152,7 +182,7 @@ is `main`.
 
 ---
 
-## 8. Where this is referenced
+## 9. Where this is referenced
 
 - `marketing/ARTICLE_STANDARD.md` — guides and articles
 - `CURRICULUM_STANDARD.md` — lesson kits

@@ -66,17 +66,48 @@
 >
 > **[L1] Mike listens and rules on voice, placement and pace.** The one thing that
 > cannot be checked from here is how it actually sounds; the voice is the device's,
-> not ours. Status: **waiting on Mike.**
+> not ours. Status: **DONE 2026-07-27 — verdict: robotic on iPhone. Placement, pace and
+> controls were not the complaint; the voice was. See [L4].**
 >
 > **[L2] Roll out to the remaining guides** — one script tag each, 16 files.
 > Fold into the paused link sweep visit so no guide is opened twice.
-> Status: **blocked on L1.**
+> Status: **blocked on L4 — rolling the robot voice out to 16 more pages is not worth
+> doing before the audio question is settled.**
 >
 > **[L3] Roll out to the kits.** Needs a decision L1 does not answer: a lesson page is
 > interactive, so what does Listen read on a page where the learner is meant to be
 > typing? Likely the concept and worked example only, stopping before the drill.
-> Status: **blocked on L1, and needs its own scoping.**
+> Status: **blocked on L4, and needs its own scoping.**
 >
+> **[L4] Pre-rendered audio — the real fix for voice quality.**
+> **HARD BLOCKED: Mike finalises page content first.** He can override.
+>
+> Mike's verdict on the live test, 2026-07-27: *"it sounds like garbage by default on
+> iPhone, very robot Siri."* Confirmed not fixable in our code — Apple does not expose
+> its Enhanced or Premium voices to the web, only to its own features. See section 6 of
+> `LISTEN_STANDARD.md`; do not re-attempt this with cleverer voice-selection code.
+>
+> **The fix:** generate the narration once with a good TTS, save it as an audio file next
+> to the page, and have Listen play the file. Live synthesis stays as the fallback when no
+> file exists. Same on every device, because everyone hears the same recording.
+>
+> **Why it is blocked.** A recording is frozen. Edit one paragraph and the audio no longer
+> matches the page, and a listener hearing a sentence that is not on screen is worse than
+> a robot voice. Rendering before the words are final means paying to render twice and
+> shipping a stale file in between.
+>
+> **Cost, so the decision is on real numbers.** A guide is roughly 15,000 characters,
+> about 22 cents at current TTS pricing. All 17 guides is roughly $4 one time, plus a few
+> cents per edit. Files are a few MB each at speech bitrates.
+>
+> **When unblocked, do this:** two pages first, Mike listens, then decide on the rest.
+> Not all 17 in one go.
+>
+> **Also needs, at build:** a regenerate step in the publishing checklist, and a way to
+> tell that a page has changed since its audio was made — otherwise stale audio ships
+> silently, which is the failure mode that matters.
+> Status: **blocked on content freeze.**
+
 > **Cross-kit applicability (confirm at build):** all 6 lesson kits · cert kits ·
 > final · interview · chart-literacy · forecasting · guides · hub · the play-area
 > writing pages. The script self-limits (under three readable blocks, it inserts
