@@ -135,6 +135,12 @@ returned nothing at all from `getVoices()`, iOS 17 briefly exposed some
 high-quality voices, and they went away again. Chrome and Edge list every voice
 installed on the machine; Safari does not.
 
+**Tested on device, 2026-07-27.** Mike downloaded a better voice and set it as the
+iPhone default under Settings → Accessibility → Spoken Content → Voices, then
+reloaded the page and tapped Listen. **Still the same robotic voice.** So the
+system default does not reach the browser either. This is not a
+"pick the right voice" problem and there is no settings path around it.
+
 **So do not "fix" this by writing cleverer voice-selection code.** The preferred
 name list in `listen.js` is a best-effort nicety for desktop and Android. On
 iPhone there is one voice available to us and it is the compact one.
