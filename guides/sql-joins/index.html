@@ -183,6 +183,7 @@ ORDER BY avg_hours DESC;</code></pre>
   <div class="note"><strong>Name the grain of the result before you write the aggregate.</strong> Almost every wrong number that comes out of a join comes from aggregating a column at the wrong grain. If you can say "one row per review" out loud, you already know that <code>SUM(price)</code> is now price times review count.</div>
 
   <h2>Failure one: the silent delete</h2>
+  <p>Before the explanation: you join two tables and get fewer rows back than you started with. No error, no warning. Where did the missing rows go, and who decided they should go?</p>
 
   <p>A plain <code>JOIN</code> is an <code>INNER JOIN</code>. It keeps only rows that matched on both sides. Rows that matched nothing are not flagged, not counted, and not mentioned. They are simply absent from the result.</p>
 
@@ -236,7 +237,7 @@ ORDER BY g.pct_positive DESC;</code></pre>
 
   <h2>Failure two: the silent multiply</h2>
 
-  <p>Now the opposite problem, and the one that produces confidently wrong numbers in reports.</p>
+  <p>Now the opposite problem, and the one that produces confidently wrong numbers in reports. Predict this one before reading: if one customer has three orders, and you join customers to orders, how many rows does that customer occupy in the result? Then ask what happens to their revenue if you sum a column that lives on the customer.</p>
 
   <p>When a game with 2,498 reviews is joined to the review table, that one game becomes 2,498 rows. Its name repeats 2,498 times. Its price repeats 2,498 times. This is called <strong>fan-out</strong>, and the trouble starts the moment you aggregate a column that came from the one-row-per-game side.</p>
 
@@ -373,6 +374,7 @@ ORDER BY avg_hours DESC;</code></pre>
 
   <h2>Using this on your own project</h2>
 
+  <p>Think of a query you have already written and shipped. Can you say, right now, what one row of its result means, and whether that is the same thing one row meant before the join? If that takes you more than a few seconds, that query is the one to check first.</p>
   <p>Auditing every join in an existing project at once is grim work and you will stop halfway. Do this instead, in order:</p>
 
   <ol>
