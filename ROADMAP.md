@@ -27,7 +27,77 @@
 > example and the drill is empty everywhere — we show, then demand performance, and
 > never ask them to account for what they saw. Output is a before/after of a single
 > lesson, not a sweep.
-> Status: **not started. This is the gate on the rest of the lesson work.**
+> Status: **DONE 2026-07-27 on the SQL kit, Unit 3 lesson 12 INNER JOIN. G2 is unblocked.**
+>
+> **The finding is worse and more useful than the one predicted.** The empty beat between
+> the worked example and the drill is real and confirmed. But the empty beat is the
+> mechanism, not the damage. **The damage is that the lesson can be completed with a wrong
+> mental model fully intact.** Walked as someone who believes a JOIN is basically VLOOKUP,
+> a column pulled across, nothing in Orient, Example or Try ever collided with that belief.
+> Orient feeds it ("every order row gets its customer row **glued on**" is a confirmation
+> of the lookup picture, not a correction). The Try drill orders three clauses, which a
+> wrong model passes first try, because clause sequence has nothing to do with matching
+> semantics.
+>
+> **The fix is nearly free, and it is already on the screen.** The worked example's result
+> table has **Maya Chen on two rows**. That single fact kills the lookup model, because a
+> lookup returns one row per key and a join can multiply rows, which is exactly the
+> doubled-totals problem Orient warns about in the abstract. The caption underneath
+> explains only the rows that are *missing* ("Sam and Taylor are dropped") and says nothing
+> about the row that is *duplicated*. We point the learner at the easy half and leave the
+> hard half rendered and unremarked.
+>
+> **Before and after for this lesson, the G1 deliverable:**
+> ```
+> BEFORE                        AFTER
+> Orient   tell                 Orient   tell
+>                               → PREQUESTION, after the concept, before the example:
+>                                 "If a customer placed three orders, how many rows do
+>                                  you think they get in the result? Say a number."
+> Example  tell + show result   Example  tell + show result
+>                               → SELF-EXPLANATION at the result table:
+>                                 "Maya Chen is on two rows. Say why before you go on."
+>                               → caption then pays off BOTH: dropped rows AND the duplicate
+> Try      perform              Try      perform
+> ```
+> Two prompts, both in the currently-empty beat, both aimed at the same misconception from
+> opposite sides. The prequestion makes the learner commit a number so the duplicate lands
+> as a result rather than as scenery; the self-explanation catches anyone who did not
+> commit. **No imagination or drawing prompt here** — they cost the most working memory and
+> this lesson already carries aliases, a new keyword and a matching rule. Save them for a
+> lesson with fewer new things in it.
+>
+> **One structural change beyond prompts:** the Try drill should ask something a wrong model
+> fails. Clause ordering does not qualify. A choice between two result tables, one with Maya
+> once and one with Maya twice, would.
+>
+> **The generalisable rule for G2, and the reason G1 was worth doing:** a lesson can explain
+> a concept perfectly and still never collide with what the learner walked in believing.
+> Placing prompts at the empty beat is not enough on its own. **Each lesson needs its one
+> likely wrong belief named, and the prompt aimed at that belief.** Ask what the reader
+> probably thinks this is, then aim the prompt there.
+>
+> **Four other findings from the same pass, unrelated to prompts, filed here so they are not
+> lost:**
+> - **The path map is not reachable without a mouse.** Lesson entries in "Your Path" render
+>   as `div.pmap-title` inside plain divs. No role, no tabindex, no button, no link, and the
+>   visible title is not even the click target (the handler is on an ancestor, clicking the
+>   text does nothing). Keyboard users cannot tab to a lesson; screen readers do not announce
+>   these as controls. The path view is the primary way into a lesson.
+> - **Both auth forms sit permanently in the accessibility tree**, before `main`, whether or
+>   not the modal is open. Two complete forms, six fields, six buttons. A screen-reader user
+>   meets two sign-in forms before they meet the kit. Confirmed live: a stray match on
+>   "Continue" hit "Continue with Google" on the *closed* modal and navigated off-site.
+> - **Mid-lesson position is not restored.** Coming back after an interruption reads "Up
+>   next: Lesson 1" while three stages into lesson 12. Caveat: the lesson was incomplete and
+>   the session signed out, so some of this may be by design — but the experience is that an
+>   interruption drops you at the top of the kit.
+> - **The Parsons button-row fix from 221b69a works.** Verified live: on a correct answer the
+>   same row swaps to Back + Continue rather than stacking a second primary button.
+>
+> **Still needs Mike, not answerable from here:** does the socks analogy land or get skimmed;
+> is "glued on" worth replacing given it feeds the wrong model; does the lesson already feel
+> long enough that two more prompts is too many.
 >
 > **[G2] Place the four prompt types in the lesson template.** Prequestion above the
 > concept · self-explanation between worked example and drill · imagination after the
