@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Report vs Analysis: The Test, and How to Turn One Into the Other — Analyst Prep Kit</title>
+<meta name="description" content="A report tells you a number. An analysis changes what someone does next. Here is the one-question test that tells them apart, and four moves that turn any report into actionable analysis, with worked SQL.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/report-vs-analysis/">
+<meta property="og:title" content="Report vs Analysis: The Test, and How to Turn One Into the Other">
+<meta property="og:description" content="Data analysis is looking at records of things that already happened and finding a pattern that changes what someone does next. Here is the test, and four moves to get there.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/report-vs-analysis/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .refs{font-size:14px;color:var(--muted)}
+  .refs li{margin-bottom:6px}
+  figure{margin:22px 0}
+  figcaption{font-size:14px;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a></p>
+  <h1>Report or Analysis?</h1>
+  <p class="meta">The one-question test, and four moves that turn a report into something someone acts on · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>This guide gives you a test that takes ten seconds and tells you whether the thing you just built is a report or an analysis. Then it gives you four moves that turn one into the other. Every move has a worked SQL example and real numbers. The whole method is here.</p>
+
+  <p>What you actually do: take the number you just produced, and ask what someone would do differently because of it. If the honest answer is nothing, you have a report. Then you run the four moves below, in order, until the answer is a specific action a specific person can take on Monday.</p>
+
+  <p><strong>The short version.</strong> Data analysis is looking at records of things that already happened and finding a pattern that changes what someone does next. If nothing changes, it was not analysis. It was a report.</p>
+
+  <figure>
+    <svg viewBox="0 0 600 268" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="diagtitle" style="width:100%;height:auto;background:#FFFFFF;border:1px solid #E4E7EA;border-radius:12px">
+      <title id="diagtitle">On the report path, a single figure of 4.1 percent travels along an arrow and stops dead against a solid grey wall. On the analysis path, the same 4.1 percent figure splits along two arrows into 9.2 percent and 1.8 percent, and those two feed forward into a green tick mark labelled day 3, which stands for a decision that changed.</title>
+      <text x="20" y="34" font-family="sans-serif" font-size="13" fill="#52525B">report</text>
+      <rect x="20" y="52" width="86" height="46" rx="8" fill="#F1F3F5" stroke="#A1A1AA"/>
+      <text x="63" y="81" font-family="sans-serif" font-size="19" fill="#09090B" text-anchor="middle">4.1%</text>
+      <line x1="112" y1="75" x2="228" y2="75" stroke="#A1A1AA" stroke-width="2"/>
+      <polygon points="228,68 240,75 228,82" fill="#A1A1AA"/>
+      <rect x="246" y="42" width="16" height="66" rx="3" fill="#A1A1AA"/>
+
+      <text x="20" y="164" font-family="sans-serif" font-size="13" fill="#52525B">analysis</text>
+      <rect x="20" y="182" width="86" height="46" rx="8" fill="#F1F3F5" stroke="#0E7490"/>
+      <text x="63" y="211" font-family="sans-serif" font-size="19" fill="#09090B" text-anchor="middle">4.1%</text>
+      <line x1="112" y1="205" x2="220" y2="176" stroke="#0E7490" stroke-width="2"/>
+      <polygon points="220,169 232,175 219,183" fill="#0E7490"/>
+      <line x1="112" y1="205" x2="220" y2="234" stroke="#0E7490" stroke-width="2"/>
+      <polygon points="220,227 232,235 219,241" fill="#0E7490"/>
+      <rect x="238" y="152" width="86" height="46" rx="8" fill="#FFFFFF" stroke="#0E7490"/>
+      <text x="281" y="181" font-family="sans-serif" font-size="19" fill="#09090B" text-anchor="middle">9.2%</text>
+      <rect x="238" y="212" width="86" height="46" rx="8" fill="#FFFFFF" stroke="#0E7490"/>
+      <text x="281" y="241" font-family="sans-serif" font-size="19" fill="#09090B" text-anchor="middle">1.8%</text>
+      <line x1="330" y1="175" x2="430" y2="203" stroke="#0E7490" stroke-width="2"/>
+      <line x1="330" y1="235" x2="430" y2="207" stroke="#0E7490" stroke-width="2"/>
+      <polygon points="430,198 444,205 429,213" fill="#0E7490"/>
+      <polyline points="464,206 478,222 512,180" fill="none" stroke="#15803D" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="536" y="212" font-family="sans-serif" font-size="16" fill="#09090B">day 3</text>
+    </svg>
+    <figcaption>The same starting number, two endings.</figcaption>
+  </figure>
+
+  <h2>The test: what would someone do differently?</h2>
+
+  <p>Before you read the answer, look at the last thing you built and try it yourself. Who was going to act on it, and what were they going to do?</p>
+
+  <p>Take any number you have produced and finish this sentence out loud: "Because of this, <em>someone</em> should <em>do a specific thing</em>." Both blanks have to fill in with something real. A named person or team, and an action they control.</p>
+
+  <p>Here is a real one. "Churn was 4.1% in Q3." Who acts, and how? Nobody can act on that. It is a true, correctly calculated, carefully formatted number, and it changes nothing. That is a report, and reports are useful. A dashboard that tells you the servers are up is doing its job. It is just not analysis.</p>
+
+  <p>Now the same underlying data, worked further. "Monthly-plan accounts that never opened the import tool churn at 9.2%. Ones that did churn at 1.8%. The email introducing that tool goes out on day 14, and most cancellations happen on day 11." Who acts? The lifecycle marketing owner. What do they do? Move the email to day 3. That is analysis, and the only difference is that it ended somewhere a person can stand.</p>
+
+  <p>The word "analysis" is doing a lot of quiet work in job descriptions, so it is worth being concrete about what it is. If you want the wider picture of the role first, the guide on <a href="../what-is-data-analysis/">what data analysis actually is</a> covers the four steps end to end.</p>
+
+  <h2>Move one: give the number something to sit next to</h2>
+
+  <p>Before the answer: 4.1% churn. Is that good or bad? Say what you would need to know to answer.</p>
+
+  <p>You cannot answer it, and neither can anyone else, because a number on its own carries no meaning. Meaning comes from the gap between the number and something else. That something else is a reference point, and there are only three worth using.</p>
+
+  <ul>
+    <li><strong>Itself, earlier.</strong> 4.1% this quarter against 2.6% last quarter.</li>
+    <li><strong>A different group, now.</strong> 4.1% on monthly plans against 0.9% on annual.</li>
+    <li><strong>A target someone agreed to.</strong> 4.1% against the 3% the team committed to.</li>
+  </ul>
+
+  <p>Say why a number with no comparison cannot be acted on, before you read the next sentence. The reason is that action is a choice between options, and a single figure gives you nothing to choose between. Reference points are not decoration on the number. They are the thing that makes it mean anything at all.</p>
+
+  <pre><code>-- WHY: "Churn was 4.1%" cannot be acted on. Put it next to itself,
+-- one quarter earlier, so the reader can see a direction.
+SELECT
+    quarter,
+    COUNT(*)                                          AS accounts,
+    SUM(churned)                                      AS churned,
+    ROUND(100.0 * SUM(churned) / COUNT(*), 1)         AS churn_pct
+FROM   accounts
+WHERE  quarter IN ('2026-Q2', '2026-Q3')
+GROUP  BY quarter
+ORDER  BY quarter;</code></pre>
+
+  <p>Two rows instead of one, and the number has somewhere to sit. Picture running that on a table you actually work with. What are your two rows, and which direction do they point?</p>
+
+  <p>Choosing which reference point is fair, rather than which one flatters, is its own skill. The guide on <a href="../defining-metrics/">defining metrics</a> covers how to pin a measure down so it means the same thing every time you run it.</p>
+
+  <h2>Move two: split it until the split stops mattering</h2>
+
+  <p>Before the answer: if the overall number is 4.1%, what is the most useful thing you could learn about how that 4.1% is spread across your customers?</p>
+
+  <p>An average hides the thing you need. If churn is 4.1% across everyone, it is almost never 4.1% for everyone. It is 9% for one group and 1% for another, and the whole decision lives in that difference. So you split the number by one column at a time and look for the split where the two halves are furthest apart.</p>
+
+  <p>Start with columns a person could act on. Plan type, signup month, acquisition channel, whether they finished onboarding. Splitting by something nobody controls, like the customer's time zone, gives you a fact rather than a lever.</p>
+
+  <pre><code>-- WHY: find which single column separates churners from stayers
+-- most sharply. The widest gap is where the decision lives.
+SELECT
+    plan_type,
+    used_import_tool,
+    COUNT(*)                                          AS accounts,
+    ROUND(100.0 * SUM(churned) / COUNT(*), 1)         AS churn_pct
+FROM   accounts
+WHERE  quarter = '2026-Q3'
+GROUP  BY plan_type, used_import_tool
+HAVING COUNT(*) >= 50          -- ignore slices too small to trust
+ORDER  BY churn_pct DESC;</code></pre>
+
+  <p>Two things about that query are worth keeping. The <code>HAVING COUNT(*) &gt;= 50</code> throws away slices with too few accounts to mean anything, which is where most false findings come from. And it groups by two columns rather than ten, because a split you cannot explain in one sentence is not a finding, it is a coincidence you have not caught yet.</p>
+
+  <p>You stop splitting when the next split stops changing the picture. If breaking the 9.2% group down further gives you 9.1% and 9.3%, that column is not the story, and you go back and try another one. Working out which columns are worth trying at all is the job covered in <a href="../exploratory-data-analysis/">exploratory data analysis</a>.</p>
+
+  <h2>Move three: land it on a decision someone already owns</h2>
+
+  <p>Before the answer: you now know monthly-plan accounts that skipped the import tool churn at 9.2%. Name the person who could act on that, and the thing they would change.</p>
+
+  <p>This is where most analysis stops one step short. The pattern is real, the query is right, and the finding is handed over as a fact. "Accounts that skip the import tool churn five times more often." True, and still nobody moves, because it does not name a lever anyone is holding.</p>
+
+  <p>A lever is something a specific person can change next week without asking permission from three others. The onboarding email schedule is a lever. "Customers should be more engaged" is not. So you go looking for where the pattern touches something adjustable.</p>
+
+  <p>In this case: the email that introduces the import tool goes out on day 14. Cancellations cluster on day 11. The tool is being introduced to people who already left. That is a lever, it belongs to one team, and the recommendation is a single sentence. Move the email to day 3.</p>
+
+  <p>Notice the shape of the finished thing. A number with a comparison, a split that explains it, and one action. Not five recommendations ranked by effort. One, because a list of options hands the decision back to the reader, which is the work you were supposed to do.</p>
+
+  <p>Where the action is a cutoff rather than a schedule, picking the number is its own problem, and <a href="../data-driven-thresholds/">setting data-driven thresholds</a> covers how to choose one you can defend.</p>
+
+  <h2>Move four: say what would prove you wrong</h2>
+
+  <p>Before the answer: what is the most likely innocent explanation for the import tool result that has nothing to do with the tool?</p>
+
+  <p>Here is one. People who were going to stay anyway are the same people who bother to set things up properly. The import tool did not keep them. Their existing enthusiasm did both. Moving the email to day 3 would then change nothing at all.</p>
+
+  <p>You cannot rule that out with the same data that produced the finding, and you should not pretend otherwise. What you do instead is write down, before anything ships, what you expect to see if you are right and what you expect to see if you are wrong.</p>
+
+  <p>If moving the email works, day-11 cancellations among monthly accounts fall, and import tool usage in the first week rises. If the enthusiasm explanation is the true one, usage rises and cancellations do not move. Those two outcomes look different, which is the whole point. A prediction that survives every result is not a prediction.</p>
+
+  <p>Putting this in writing costs you two sentences and is the difference between a finding and a claim. The guide on <a href="../documenting-data-limitations/">documenting data limitations</a> covers the fuller version of this habit.</p>
+
+  <h2>Before and after, same input</h2>
+
+  <p>Identical data, identical query engine, two write-ups.</p>
+
+  <table>
+    <tr><th></th><th>Report</th><th>Analysis</th></tr>
+    <tr><td>Headline</td><td>Q3 churn was 4.1%.</td><td>Move the onboarding email from day 14 to day 3.</td></tr>
+    <tr><td>Comparison</td><td>None.</td><td>Up from 2.6% in Q2.</td></tr>
+    <tr><td>Split</td><td>None.</td><td>9.2% for monthly accounts that skipped the import tool, 1.8% for those that used it.</td></tr>
+    <tr><td>The lever</td><td>None.</td><td>Email send day. Owned by lifecycle marketing.</td></tr>
+    <tr><td>If wrong</td><td>Not addressed.</td><td>Tool usage rises but day-11 cancellations hold flat.</td></tr>
+    <tr><td>What happens next</td><td>Filed.</td><td>One team changes one setting, and we know within a month.</td></tr>
+  </table>
+
+  <h2>Edge cases, and when a report is the right answer</h2>
+
+  <p>Not everything should be pushed into analysis, and forcing it produces worse work than leaving it alone.</p>
+
+  <ul>
+    <li><strong>Regulatory and financial reporting.</strong> The number is the deliverable. Nobody wants your recommendation on the tax filing.</li>
+    <li><strong>Monitoring.</strong> A dashboard exists so that a human notices when something moves. The action is built into the alert, not into the number.</li>
+    <li><strong>Someone else owns the decision and has the context you lack.</strong> Then your job is the cleanest possible comparison and split, handed over with the limitations attached. That is still more than a bare number.</li>
+    <li><strong>The split is real but tiny.</strong> A gap of 4.1% against 4.4% across a big population can be perfectly true and still not worth anyone's Monday. Say so.</li>
+    <li><strong>Every column splits it.</strong> If ten different splits all look meaningful, something upstream is wrong, usually a filter that is quietly removing a whole group.</li>
+  </ul>
+
+  <h2>Where this comes from, and why it works</h2>
+
+  <p>The distinction is older than the job title. John Tukey, the statistician who coined the word "software" and gave us the box plot, argued in 1962 that data analysis is a different activity from statistics, and defined it by its purpose rather than its methods: procedures for analysing data, judged by whether they help you learn something you can use (Tukey, 1962). The emphasis on what the work is <em>for</em>, rather than which technique was applied, is the same emphasis as the test at the top of this page.</p>
+
+  <p>Why a number needs a comparison has a separate line of evidence behind it. Kahneman and Tversky showed that people do not evaluate outcomes in absolute terms at all. They evaluate them as gains or losses against a reference point, and the same outcome flips from good to bad depending on which reference point is in play (Kahneman &amp; Tversky, 1979). A figure delivered without one does not arrive as neutral information. It arrives as nothing, and the reader silently supplies a reference point of their own, usually a wrong one.</p>
+
+  <p>The prompts scattered through this page are doing a job too. Asking you a question before giving you the answer, and asking you to explain a step in your own words, are two of the eight generative learning strategies catalogued by Fiorella and Mayer, and self-explanation in particular holds up across sixty-four separate reports (Fiorella &amp; Mayer, 2016; Bisra et al., 2018).</p>
+
+  <h2>How to apply it to your own work</h2>
+
+  <p>If you have paper nearby, sketch the two paths from the diagram before you start: one number stopping at a wall, one number splitting and landing on a tick. It takes twenty seconds and gives you something to check your own work against.</p>
+
+  <ol>
+    <li><strong>Pick your most recent finished piece of work.</strong> Not your best one. Your most recent, because that is the honest sample.</li>
+    <li><strong>Run the test on it.</strong> Because of this, who should do what? Write the sentence out. If you cannot fill both blanks, it was a report.</li>
+    <li><strong>Add one comparison.</strong> Itself earlier, a different group, or an agreed target. This is usually a ten-minute change and it is the highest-value one.</li>
+    <li><strong>Split by two columns someone controls.</strong> Keep the slice-size floor. Stop when the next split stops changing the picture.</li>
+    <li><strong>Find the lever and name the owner.</strong> One action, one team. If you cannot find a lever, say that plainly rather than inventing one.</li>
+    <li><strong>Write the two outcomes.</strong> What you see if you are right, what you see if you are wrong.</li>
+    <li><strong>Do not retrofit the back catalogue.</strong> Going back through two years of old reports is miserable, mostly wasted, and the main thing it produces is a reluctance to start. Apply this from the next piece forward.</li>
+  </ol>
+
+  <div class="cta">
+    <strong>Practice the queries this runs on.</strong>
+    <p style="margin:6px 0 0">Every move above is a <code>GROUP BY</code>, a comparison, and a filter you can trust. The <a href="../../sql/">SQL Kit</a> teaches those with worked examples, JOIN and aggregation labs you run in the browser, flash cards, and a mock exam. If your data lives in spreadsheets, the <a href="../../excel/">Excel Kit</a> covers the same four moves with pivot tables.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <h2>A cheat sheet</h2>
+  <table>
+    <tr><th>Move</th><th>What you add</th><th>The test</th></tr>
+    <tr><td>The test</td><td>"Because of this, X should do Y"</td><td>Do both blanks fill in with something real?</td></tr>
+    <tr><td>1. Comparison</td><td>Itself earlier, another group, or a target</td><td>Can the reader tell good from bad without asking you?</td></tr>
+    <tr><td>2. Split</td><td>Two columns someone controls, with a slice-size floor</td><td>Are the two halves far enough apart to matter?</td></tr>
+    <tr><td>3. Lever</td><td>One action, one named owner</td><td>Could they change it next week without permission?</td></tr>
+    <tr><td>4. Falsifier</td><td>What you expect if right, what if wrong</td><td>Do the two outcomes actually look different?</td></tr>
+    <tr><td>Stop condition</td><td>The next split stops changing the picture</td><td>Are you still learning, or just cutting thinner?</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> If you take nothing else from this page, finish the sentence before you send the work. "Because of this, someone should do something." Out loud, with both blanks filled. It costs ten seconds and it is the only step here that catches the problem while you can still fix it.</div>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Tukey, J. W. (1962). The future of data analysis. <em>The Annals of Mathematical Statistics</em>, 33(1), 1–67.</li>
+    <li>Kahneman, D., &amp; Tversky, A. (1979). Prospect theory: An analysis of decision under risk. <em>Econometrica</em>, 47(2), 263–291.</li>
+    <li>Fiorella, L., &amp; Mayer, R. E. (2016). Eight ways to promote generative learning. <em>Educational Psychology Review</em>, 28(4), 717–741.</li>
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+  </ul>
+
+  <h2>One question back to you</h2>
+
+  <p>The step people cut when they are short of time is almost always the fourth one, writing down what would prove them wrong. When you have skipped it, was it because you ran out of time, or because you did not want to find out? I have skipped it for the second reason more than once.</p>
+
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-case-expression/">The CASE Expression</a> · <a href="../sql-teaching-comments/">Teaching Comments in SQL</a> · <a href="../sql-aliasing/">SQL Aliases</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../build-a-tableau-dashboard/">Build a Tableau Dashboard</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../excel/">Excel Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin-top:10px"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee &#9749;</a></p>
+  </footer>
+</main>
+</body>
+</html>
