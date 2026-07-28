@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL Drill: Learn SQL by Writing Queries, One Rung at a Time &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Type real SQL against a real database, one query at a time. Each drill adds one thing to the query you just typed. Nothing is graded, nothing is hidden, and every query returns real rows in your browser.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/drill/">
+<meta property="og:title" content="SQL Drill: Learn SQL by Writing Queries">
+<meta property="og:description" content="Thirteen drills against a real music database. Each one adds a single new idea to the query you just typed. No score, no pass, no fail.">
+<meta property="og:type" content="website">
+<!--
+  SQL DRILL. A typing rep, not a test.
+
+  The rules this page must keep, in order:
+  1. The query is always on screen. Nothing is hidden, scored, or withheld.
+  2. Each drill is the previous drill plus one new thing, and the learner retypes
+     the whole query. Retyping the known part is the repetition.
+  3. Every drill returns real rows. A drill that errors or returns nothing is a defect.
+
+  Desktop is the intended surface. The editor is a real editor and the queries run to
+  twenty lines by the end, so the layout must never shrink the SQL to fit a phone.
+  Small screens get a heads-up and the same full-size query, not a trimmed one.
+
+  Data is baked into data.js (gem_page 500 rows, artist_era 8,896 rows, both exported
+  from music_gems.db) so the page runs entirely in the browser with no server.
+-->
+<style>
+  :root{
+    --bg:#F5F7F8; --ink:#09090B; --muted:#52525B; --accent:#0E7490;
+    --line:#E4E7EA; --card:#FFFFFF; --ok:#15803D; --no:#B91C1C;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--accent)}
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 22px 0}
+  .crumb{font-size:14px;margin:0 0 10px}
+  h1{font-size:30px;line-height:1.25;margin:6px 0}
+  .lead{font-size:17px;color:var(--muted);max-width:70ch;margin:8px 0 0}
+  .desktop-note{display:none;background:#E0F2F7;border:1px solid var(--line);
+    border-radius:12px;padding:12px 16px;font-size:15px;margin:16px 0 0}
+  @media (max-width:900px){ .desktop-note{display:block} }
+
+  main{max-width:1180px;margin:0 auto;padding:22px;display:grid;
+    grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+  @media (max-width:900px){ main{grid-template-columns:1fr} }
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:20px;min-width:0}
+  h2{font-size:12.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);
+    margin:0 0 8px;font-weight:700}
+  h2.spaced{margin-top:22px}
+  #adds{font-size:19px;line-height:1.45;margin:0}
+  .box{position:relative;border:1px solid var(--line);border-radius:12px;
+    background:var(--bg);margin:0}
+  .box pre{margin:0;padding:14px 14px;font:13.5px/1.6 var(--mono);
+    white-space:pre;overflow-x:auto}
+  .box .copy{position:absolute;top:8px;right:8px;font:600 12px/1 inherit;
+    padding:7px 10px;border-radius:8px;border:1px solid var(--line);
+    background:var(--card);color:var(--muted);cursor:pointer}
+  .box .copy:hover{color:var(--accent);border-color:var(--accent)}
+  #pre{margin:20px 0 0;padding:12px 16px;border-left:3px solid var(--accent);
+    background:var(--bg);border-radius:0 12px 12px 0;font-size:15.5px}
+  #pre b{color:var(--accent)}
+  textarea{width:100%;min-height:280px;padding:14px;border:1px solid var(--line);
+    border-radius:12px;background:var(--bg);color:var(--ink);
+    font:13.5px/1.6 var(--mono);resize:vertical;tab-size:2;white-space:pre}
+  textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  .row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center}
+  button{font:600 15px/1 inherit;padding:12px 18px;border-radius:10px;
+    border:1px solid var(--line);background:var(--card);color:var(--ink);
+    cursor:pointer;min-height:44px}
+  button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+  button.go{background:var(--accent);color:#fff;border-color:var(--accent)}
+  button.go:hover{background:#0b5f75;color:#fff}
+  button:disabled{opacity:.4;cursor:default}
+  .hint{color:var(--muted);font-size:13.5px}
+  #verdict{margin-top:16px;font-size:15.5px}
+  #verdict .ok{color:var(--ok);font-weight:700}
+  #verdict .no{color:var(--no);font-weight:700}
+  #out{margin-top:10px;font:13px/1.6 var(--mono);overflow-x:auto}
+  #out table{border-collapse:collapse;font-size:12.5px}
+  #out th,#out td{border:1px solid var(--line);padding:4px 9px;text-align:left;
+    white-space:nowrap}
+  #out th{color:var(--muted);background:var(--bg)}
+  .dim{color:var(--muted)}
+  #directive{position:sticky;bottom:0;background:var(--card);
+    border-top:1px solid var(--line);padding:14px 22px;font-weight:600;
+    font-size:15.5px;z-index:5}
+  footer{border-top:1px solid var(--line);margin-top:10px;padding:22px;
+    font-size:14px;color:var(--muted);max-width:1180px;margin-left:auto;margin-right:auto}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <p class="crumb"><a href="../">&larr; Analyst Prep Kit</a> &middot; <a href="../sql/">SQL Kit</a> &middot; <a href="../guides/">Guides</a></p>
+  <h1>SQL Drill</h1>
+  <p class="lead">Get right into it and learn by writing queries. Each drill is the query you just typed plus one new thing, run against a real database in your browser. There is no score, no pass and no fail, and the answer is on screen the whole time. The only job is typing it out.</p>
+  <p class="desktop-note"><strong>Made for a desktop.</strong> The queries get long, and this page shows you every line of them rather than shrinking them to fit a phone. It works here, but a keyboard makes it a lot better.</p>
+</div>
+
+<main>
+  <div class="panel">
+    <h2>This drill adds</h2>
+    <p id="adds">Loading the engine.</p>
+
+    <h2 class="spaced">Paste this header</h2>
+    <div class="box"><button class="copy" data-copy="header">Copy</button><pre id="header"></pre></div>
+
+    <h2 class="spaced">Type this query</h2>
+    <div class="box"><button class="copy" data-copy="query">Copy</button><pre id="query"></pre></div>
+
+    <p id="pre"><b>Before you run it:</b> <span id="pretext"></span></p>
+  </div>
+
+  <div class="panel">
+    <h2>Your editor <span class="dim" id="rung"></span></h2>
+    <textarea id="sql" spellcheck="false" autocapitalize="off" autocomplete="off"
+              autocorrect="off" placeholder="Type the query here. Ctrl+Enter runs it."></textarea>
+    <div class="row">
+      <button class="go" id="run">Run</button>
+      <button id="prev">Back</button>
+      <button id="next">Next drill</button>
+      <span class="hint">Ctrl+Enter runs</span>
+    </div>
+    <div id="verdict"></div>
+    <div id="out"></div>
+  </div>
+</main>
+
+<div id="directive">Type the whole query, run it, then click Next drill.</div>
+
+<footer>
+  Part of the <a href="../">Analyst Prep Kit</a>. Reading works better after typing:
+  <a href="../guides/sql-aliasing/">SQL Aliases</a> &middot;
+  <a href="../guides/sql-joins/">SQL JOINs</a> &middot;
+  <a href="../guides/sql-count-function/">COUNT</a> &middot;
+  <a href="../guides/sql-case-expression/">CASE</a> &middot;
+  <a href="../guides/sql-teaching-comments/">Commenting SQL</a> &middot;
+  <a href="../sql/">the full SQL kit</a>.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<script src="data.js"></script>
+<script src="drills.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+let db = null, i = 0;
+
+// Position is a bookmark so closing the tab does not cost the session. Deliberately
+// not a progress bar: no percentage, no streak, nothing to beat.
+const KEY = 'apk-sql-drill-rung';
+try { i = Math.min(parseInt(localStorage.getItem(KEY) || '0', 10) || 0, LADDER.drills.length - 1); } catch(e){}
+const remember = () => { try { localStorage.setItem(KEY, String(i)); } catch(e){} };
+
+function render(){
+  const d = LADDER.drills[i];
+  $('rung').textContent = '· drill ' + (i + 1) + ' of ' + LADDER.drills.length;
+  $('adds').textContent = d.adds;
+  $('header').textContent = d.header;
+  $('query').textContent = d.sql;
+  $('pretext').textContent = d.pre;
+  $('verdict').innerHTML = '';
+  $('out').innerHTML = '';
+  $('prev').disabled = i === 0;
+  $('next').disabled = i === LADDER.drills.length - 1;
+  // The editor is never prefilled. Typing it out is the entire point.
+  $('sql').value = '';
+  $('sql').focus({preventScroll:true});
+  remember();
+}
+
+const esc = s => String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+
+function table(res){
+  if(!res.length) return 'Query ran. No rows returned.';
+  const {columns, values} = res[res.length - 1];
+  const head = '<tr>' + columns.map(c => '<th>' + esc(c) + '</th>').join('') + '</tr>';
+  const body = values.slice(0, 50).map(r => '<tr>' + r.map(v =>
+    '<td>' + (v === null ? '<span class="dim">NULL</span>' : esc(v)) + '</td>').join('') + '</tr>').join('');
+  const more = values.length > 50 ? '<div class="dim">showing 50 of ' + values.length + ' rows</div>' : '';
+  return '<table>' + head + body + '</table>' + more;
+}
+
+function run(){
+  const typed = $('sql').value.trim();
+  if(!typed) return;
+  let res;
+  try { res = db.exec(typed); }
+  catch(e){
+    // An error is information, not a mark against anyone, and the correct query is
+    // already on screen, so there is nothing here to reveal or withhold.
+    $('verdict').innerHTML = '<span class="no">SQLite says:</span> ' + esc(e.message);
+    $('out').innerHTML = '';
+    return;
+  }
+  const got = res.length ? res[res.length - 1].values.length : 0;
+  const want = LADDER.drills[i].rows;
+  $('verdict').innerHTML = got === want
+    ? '<span class="ok">' + got + ' rows.</span> That is the expected count.'
+    : '<span class="no">' + got + ' rows,</span> expected ' + want +
+      '. Compare yours with the query on the left, line by line.';
+  $('out').innerHTML = table(res);
+}
+
+$('run').onclick = run;
+$('next').onclick = () => { if(i < LADDER.drills.length - 1){ i++; render(); scrollTo({top:0,behavior:'smooth'}); } };
+$('prev').onclick = () => { if(i > 0){ i--; render(); scrollTo({top:0,behavior:'smooth'}); } };
+$('sql').addEventListener('keydown', e => {
+  if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); run(); }
+});
+document.querySelectorAll('.copy').forEach(b => {
+  b.onclick = () => {
+    const text = $(b.dataset.copy === 'header' ? 'header' : 'query').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      b.textContent = 'Copied';
+      setTimeout(() => b.textContent = 'Copy', 1200);
+    });
+  };
+});
+
+initSqlJs({locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/' + f})
+  .then(SQL => {
+    db = new SQL.Database();
+    db.run(SCHEMA);
+    for(const t in DATA){
+      const {cols, rows} = DATA[t];
+      const stmt = db.prepare('INSERT INTO ' + t + ' VALUES (' + cols.map(() => '?').join(',') + ')');
+      db.run('BEGIN');
+      rows.forEach(r => { stmt.run(r); stmt.reset(); });
+      db.run('COMMIT');
+      stmt.free();
+    }
+    render();
+  })
+  .catch(e => { $('adds').textContent = 'The SQL engine failed to load: ' + e.message; });
+</script>
+</body>
+</html>
