@@ -94,6 +94,25 @@
     white-space:nowrap}
   #out th{color:var(--muted);background:var(--bg)}
   .dim{color:var(--muted)}
+  /* Schema browser. The shape of the database is reference material, not a lesson, so it
+     reads like the object tree in a desktop client: table, grain, columns with types. */
+  #tables{margin:10px 0 0;font:13px/1.7 var(--mono);color:var(--muted)}
+  #tables b{color:var(--ink);font-weight:700}
+  details.tbl{border:1px solid var(--line);border-radius:10px;background:var(--bg);
+    margin:0 0 8px;overflow:hidden}
+  details.tbl > summary{cursor:pointer;padding:9px 12px;font:13px/1.5 var(--mono);
+    list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  details.tbl > summary::-webkit-details-marker{display:none}
+  details.tbl > summary::before{content:'\25B8';color:var(--muted);font-size:11px}
+  details.tbl[open] > summary::before{content:'\25BE'}
+  details.tbl .tname{font-weight:700;color:var(--accent)}
+  details.tbl .tmeta{color:var(--muted);font-size:12px}
+  .cols{border-top:1px solid var(--line);padding:6px 4px 8px}
+  .col{display:flex;gap:10px;align-items:baseline;padding:3px 12px 3px 26px;
+    font:12.5px/1.6 var(--mono);cursor:pointer;border-radius:6px}
+  .col:hover{background:rgba(14,116,144,.09)}
+  .col .cname{color:var(--ink)}
+  .col .ctype{color:var(--muted);font-size:11.5px;letter-spacing:.04em}
   #directive{position:sticky;bottom:0;background:var(--card);
     border-top:1px solid var(--line);padding:14px 22px;font-weight:600;
     font-size:15.5px;z-index:5}
@@ -114,6 +133,7 @@
   <div class="panel">
     <h2>This drill adds</h2>
     <p id="adds">Loading the engine.</p>
+    <p id="tables"></p>
 
     <h2 class="spaced">Paste this header</h2>
     <div class="box"><button class="copy" data-copy="header">Copy</button><pre id="header"></pre></div>
@@ -136,6 +156,10 @@
     </div>
     <div id="verdict"></div>
     <div id="out"></div>
+
+    <h2 class="spaced">Database</h2>
+    <p class="hint" style="margin:0 0 8px">Every table in this database. Click a column name to drop it into your query at the cursor.</p>
+    <div id="schema"></div>
   </div>
 </main>
 
@@ -173,6 +197,10 @@ function render(){
   const d = LADDER.drills[i];
   $('rung').textContent = '· drill ' + (i + 1) + ' of ' + LADDER.drills.length;
   $('adds').textContent = d.adds;
+  const used = tablesInDrill(d.sql);
+  $('tables').innerHTML = used.length
+    ? (used.length > 1 ? 'TABLES: ' : 'TABLE: ') + used.map(n => '<b>' + esc(n) + '</b>').join(' &middot; ')
+    : '';
   $('header').textContent = d.header;
   $('query').textContent = d.sql;
   $('pretext').textContent = d.pre;
@@ -187,6 +215,60 @@ function render(){
 }
 
 const esc = s => String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+
+// What the database actually holds, read out of it rather than written down anywhere:
+// name, row count, grain, and every column with its type. Same information a desktop
+// client puts in its object tree, which is where a learner will meet it next.
+const GRAIN = {
+  gem_page: 'one row = one curated gem track',
+  artist_era: 'one row = one artist'
+};
+let SCHEMA_INFO = [];
+
+function readSchema(){
+  const names = db.exec("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name");
+  if(!names.length) return [];
+  return names[0].values.map(([t]) => {
+    const info = db.exec('PRAGMA table_info(' + t + ')');
+    const count = db.exec('SELECT COUNT(*) FROM ' + t)[0].values[0][0];
+    return {
+      name: t,
+      rows: count,
+      cols: info.length ? info[0].values.map(r => ({name: r[1], type: r[2] || ''})) : []
+    };
+  });
+}
+
+function renderSchema(){
+  SCHEMA_INFO = readSchema();
+  $('schema').innerHTML = SCHEMA_INFO.map(t => `
+    <details class="tbl" open>
+      <summary><span class="tname">${esc(t.name)}</span>
+        <span class="tmeta">${t.rows.toLocaleString()} rows${GRAIN[t.name] ? ' &middot; ' + GRAIN[t.name] : ''}</span></summary>
+      <div class="cols">${t.cols.map(c => `
+        <div class="col" data-insert="${esc(c.name)}">
+          <span class="cname">${esc(c.name)}</span>
+          <span class="ctype">${esc(c.type || 'TEXT')}</span>
+        </div>`).join('')}</div>
+    </details>`).join('');
+
+  // Clicking a column types it for you. Pro clients all do this, and it keeps a learner
+  // in the editor instead of scrolling back up to check a spelling.
+  $('schema').querySelectorAll('.col').forEach(el => {
+    el.onclick = () => {
+      const name = el.dataset.insert;
+      if(ed.cm){ ed.cm.replaceSelection(name); ed.cm.focus(); }
+      else { ed.setValue(ed.getValue() + name); ed.focus(); }
+    };
+  });
+}
+
+// Which tables the current drill touches, matched against the real table list so the
+// line can never drift from the query underneath it.
+function tablesInDrill(sql){
+  return SCHEMA_INFO.map(t => t.name)
+    .filter(n => new RegExp('\\b' + n + '\\b').test(sql));
+}
 
 function table(res){
   if(!res.length) return 'Query ran. No rows returned.';
@@ -250,6 +332,7 @@ initSqlJs({locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.
     }
     // Completion is built from the database that just loaded, so the names offered are
     // exactly the names in front of the learner.
+    renderSchema();
     ed = SQLED.attach($('sql'), {
       schema: SQLED.schemaFromDb(db),
       onRun: run,

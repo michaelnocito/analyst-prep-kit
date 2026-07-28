@@ -16,6 +16,7 @@
 <meta name="description" content="Learn SQL JOINs, filters, and aggregations through 46 practice problems. Free, no install, live code execution. Includes interview prep tracks.">
 <link rel="stylesheet" href="../assets/grain/grain.css">
 <link rel="stylesheet" href="../assets/grain/zinc-sky.css"><!-- Zinc & Sky palette pilot (SQL kit only) -->
+<link rel="stylesheet" href="../assets/sqled/sqled.css">
 <style>
 /* GRAIN design system. The kit's own semantic vars are re-pointed onto
    Grain tokens (assets/grain/) — no one-off hex. :root = warm dark
@@ -4869,6 +4870,53 @@ function openGlossaryFor(term){
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<script src="../assets/sqled/sqled.js"></script>
+<script>
+/* --- Real editor on every SQL box ---------------------------------------------
+   Each lab view writes its own textarea into #main, and several of them are
+   rebuilt as the learner moves between tasks. Rather than hook every render
+   function, watch #main and upgrade any SQL box that appears.
+
+   SQLED.upgrade redefines the textarea's value property, so every existing
+   .value read, every scaffold write, and Show Answer keep working untouched.
+   Completion is built from sqlDb once the engine has loaded, which is why the
+   schema is read at upgrade time rather than captured up front. */
+(function(){
+  // Read once the engine is up, then cached: a lab view is on screen before ensureDb()
+  // finishes, so a schema captured at upgrade time would always be empty.
+  let _schemaCache = null;
+  function labSchema(){
+    if(_schemaCache) return _schemaCache;
+    if(typeof sqlDb === 'undefined' || !sqlDb) return {};
+    _schemaCache = SQLED.schemaFromDb(sqlDb);
+    return _schemaCache;
+  }
+  function upgradeSqlBoxes(){
+    if(!window.SQLED) return;
+    document.querySelectorAll('textarea.terminal-editor:not([data-sqled])').forEach(t => {
+      SQLED.upgrade(t, {
+        schema: labSchema,
+        // Ctrl+Enter runs whichever Run button belongs to this terminal.
+        onRun: () => {
+          const wrap = t.closest('.terminal-wrap') || document;
+          const btn = wrap.querySelector('.btn-primary');
+          if(btn) btn.click();
+        }
+      });
+    });
+  }
+  const main = document.getElementById('main');
+  if(main && 'MutationObserver' in window){
+    let queued = false;
+    new MutationObserver(() => {
+      if(queued) return; queued = true;
+      queueMicrotask(() => { queued = false; upgradeSqlBoxes(); });
+    }).observe(main, {childList:true, subtree:true});
+  }
+  document.addEventListener('DOMContentLoaded', upgradeSqlBoxes);
+  upgradeSqlBoxes();
+})();
+</script>
 <script src="../assets/apk-footer.js" defer></script>
 <script>
 /* --- Auth UI --- */

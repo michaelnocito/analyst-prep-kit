@@ -80,6 +80,14 @@
 
     const handle = Object.assign({}, fallback);
 
+    // The schema may be a plain object, or a function for pages whose database finishes
+    // loading after the editor is on screen. Resolving it at hint time rather than at
+    // attach time is what keeps completion correct in both cases.
+    const tables = () => {
+      const s = typeof opts.schema === 'function' ? opts.schema() : opts.schema;
+      return s || {};
+    };
+
     load().then(() => {
       if (typeof CodeMirror === 'undefined') return;
 
@@ -92,9 +100,9 @@
         smartIndent: true,
         indentUnit: 2,
         tabSize: 2,
-        hintOptions: { tables: opts.schema || {}, completeSingle: false },
+        hintOptions: { completeSingle: false },
         extraKeys: {
-          'Ctrl-Space': 'autocomplete',
+          'Ctrl-Space': cmi => cmi.showHint({ tables: tables(), completeSingle: false }),
           'Ctrl-Enter': () => opts.onRun && opts.onRun(),
           'Cmd-Enter': () => opts.onRun && opts.onRun(),
           // Tab indents rather than leaving the editor, which is what a learner expects
@@ -112,7 +120,7 @@
         const typed = change.text[0];
         if (!/[\w.]/.test(typed)) return;
         if (cmi.state.completionActive) return;
-        cmi.showHint({ tables: opts.schema || {}, completeSingle: false });
+        cmi.showHint({ tables: tables(), completeSingle: false });
       });
 
       Object.assign(handle, {
@@ -132,6 +140,34 @@
     return handle;
   }
 
+  // upgrade() is attach() for pages that already talk to the textarea directly, which is
+  // every SQL box in the kits: they read el.value, write el.value, and call el.focus().
+  // Rather than rewrite those call sites, the element's own value property is redefined
+  // to read and write the editor. Existing code keeps working untouched and the learner
+  // gets the real editor.
+  function upgrade(textarea, opts) {
+    if (!textarea || textarea.dataset.sqled) return null;
+    textarea.dataset.sqled = '1';
+
+    const handle = attach(textarea, Object.assign({}, opts, {
+      onReady: h => {
+        const cm = h.cm;
+
+        Object.defineProperty(textarea, 'value', {
+          configurable: true,
+          get: () => cm.getValue(),
+          set: v => { cm.setValue(v == null ? '' : String(v)); }
+        });
+        textarea.focus = () => cm.focus();
+        // Anything watching the textarea for input still hears about it.
+        cm.on('change', () => textarea.dispatchEvent(new Event('input', {bubbles: true})));
+
+        if (opts && opts.onReady) opts.onReady(h);
+      }
+    }));
+    return handle;
+  }
+
   // Convenience: build the completion schema straight from a live sql.js database, so a
   // page never has to hand maintain a column list that the database already knows.
   function schemaFromDb(db) {
@@ -145,5 +181,5 @@
     return schema;
   }
 
-  window.SQLED = { attach, load, schemaFromDb };
+  window.SQLED = { attach, upgrade, load, schemaFromDb };
 })();
