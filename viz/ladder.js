@@ -12,7 +12,7 @@ const LADDER = {
   { adds: 'A dimension on Rows. That is all a header list is.',
     task: 'Put <b>Artist</b> on Rows.',
     sql: 'SELECT DISTINCT artist FROM gem_page WHERE genre = \'country\'',
-    tie: 'Drill 1 of the SQL ladder. A dimension on a shelf is SELECT of a text column: one header per distinct value.',
+    tie: 'Drill 1 of SQL Drill. A dimension on a shelf is SELECT of a text column: one header per distinct value.',
     target: {rows: 'artist'} },
 
   { adds: 'A measure beside it. Tableau aggregates it the moment it lands.',
@@ -93,10 +93,10 @@ const LADDER = {
     tie: 'A line implies order and continuity, so it reads as a trend where bars read as a comparison. Choosing between them is Domain 2 of the exam.',
     target: {cols: 'decade', rows: 'listeners', mark: 'line'} },
 
-  { adds: 'The payoff: the same two-row answer the SQL ladder ends on.',
+  { adds: 'The payoff: the same two-row answer SQL Drill ends on.',
     task: 'Back to <b>Bar</b>. Put <b>Era</b> on Columns and <b>Listeners</b> on Rows, with <b>Era</b> on Colour, sorted descending.',
     sql: 'SELECT era_group, SUM(listeners) ... GROUP BY era_group ORDER BY 2 DESC',
-    tie: 'Drill 13. Thirteen rungs of SQL and eleven of shelves arrive at the same two bars, and now you can produce that answer either way.',
+    tie: 'Drill 13. Thirteen queries typed and fifteen steps built arrive at the same two bars, and now you can produce that answer either way.',
     target: {cols: 'era', rows: 'listeners', color: 'era', mark: 'bar', sort: 'desc'} }
 
   ]
