@@ -42,7 +42,13 @@
 >   tap-to-order lesson surfaces · tableau orders shelves, not text, so "type it" has no
 >   meaning there — decide separately · excel has no tap-to-order surface (n/a) · cert and
 >   non-lesson pages n/a.
->   Status: **researched, not built. Gated on the Chicken Hour verdict.**
+>
+>   **GATE CLEARED 2026-07-27, Mike: "chicken test passed."** Typing reps read as reps, not as
+>   work. The fade is approved and P7 is now a build item, SQL first. Note that the verdict was
+>   given on the rig as fixed in d592b91 — the run that produced the fix abandoned at rep 3 on
+>   the unstated-`LIMIT` bug, so the pass is against the corrected build, which is the one that
+>   counts.
+>   Status: **approved, ready to build. SQL first, one kit per chat.**
 >
 > - **[P8] Remove the More detail / Less detail toggle — DECIDED, ready to build.** Mike
 >   (2026-07-26): *"Remove the more or less detailed feature from this kit and all others."*
