@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Viz Drill: Build the Chart That Answers Your Query &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Drag fields onto shelves and build the chart, one new idea per rung. Every rung names the SQL query it answers, so a GROUP BY you already typed becomes a shelf you can place.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/viz/">
+<meta property="og:title" content="Viz Drill: Build the Chart That Answers Your Query">
+<meta property="og:description" content="Eleven rungs from a header list to a finished comparison, each one tied to the SQL query that produces the same answer.">
+<meta property="og:type" content="website">
+<!--
+  VIZ DRILL. The shelf half of the same analysis SQL Drill types out.
+
+  It is a neutral builder on purpose. The concepts are named the way the industry names
+  them (dimension, measure, aggregation, mark, shelf) and the drill copy names how each
+  product says it, but nothing here imitates any vendor's layout, icons or palette. What
+  transfers is the motion and the vocabulary, which is what the exams and the interviews
+  actually ask about.
+
+  The data is the 52 country gem tracks the SQL ladder queries, already joined to
+  artist_era, so a rung can say "this is drill 9" and mean it exactly.
+
+  Checking reads the shelf state, never the picture. A rung only checks the keys it asks
+  for, so nobody is ever marked wrong for a mark type the rung never mentioned. As in the
+  SQL drill: no score, no pass, no fail, and the answer is always on screen.
+-->
+<style>
+  :root{
+    --bg:#F5F7F8; --ink:#09090B; --muted:#52525B; --accent:#0E7490;
+    --line:#E4E7EA; --card:#FFFFFF; --ok:#15803D;
+    --dim:#1D4ED8; --meas:#047857;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --pad:18px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.65 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--accent)}
+  .shell{max-width:1240px;margin:0 auto;padding:20px 20px 96px}
+  .crumb{font-size:13.5px;margin:0 0 8px;color:var(--muted)}
+  h1{font-size:26px;line-height:1.2;margin:0}
+  .lead{font-size:15.5px;color:var(--muted);max-width:78ch;margin:6px 0 0}
+  .desktop-note{display:none;background:#E0F2F7;border:1px solid var(--line);
+    border-radius:10px;padding:10px 14px;font-size:14.5px;margin:12px 0 0}
+  @media (max-width:980px){ .desktop-note{display:block} }
+
+  .drillbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--card);
+    border:1px solid var(--line);border-radius:12px;padding:10px var(--pad);margin:14px 0 12px}
+  .rung{font:700 12px/1 inherit;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--accent);background:rgba(14,116,144,.09);border-radius:999px;
+    padding:7px 11px;white-space:nowrap}
+  .adds{font-size:16.5px;font-weight:600;margin:0;flex:1 1 320px;min-width:0}
+  .navbtns{display:flex;gap:8px;margin-left:auto}
+
+  .work{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:980px){ .work{grid-template-columns:1fr} }
+  .pane{background:var(--card);border:1px solid var(--line);border-radius:12px;min-width:0}
+  .panehead{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:11px var(--pad);border-bottom:1px solid var(--line)}
+  .panehead h2{font:700 12px/1 inherit;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--muted);margin:0}
+  .panebody{padding:var(--pad)}
+  .task{font-size:16px;margin:0}
+  .tie{font-size:14px;color:var(--muted);margin:12px 0 0}
+  .sqlbox{margin:10px 0 0;padding:12px 14px;border-radius:10px;background:var(--bg);
+    border:1px solid var(--line);font:12.5px/1.6 var(--mono);white-space:pre-wrap;
+    word-break:break-word}
+
+  /* Builder. Two field wells, four shelves, a mark picker. Plain on purpose. */
+  .builder{display:grid;grid-template-columns:190px 1fr;gap:14px;padding:var(--pad)}
+  @media (max-width:560px){ .builder{grid-template-columns:1fr} }
+  .welltitle{font:700 11px/1 inherit;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 6px}
+  .well{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+  .chip{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:8px;
+    border:1px solid var(--line);background:var(--bg);font:13px/1.2 inherit;
+    cursor:grab;text-align:left;width:100%;min-height:0}
+  .chip:hover,.chip:focus-visible{border-color:var(--accent)}
+  .chip.sel{border-color:var(--accent);box-shadow:0 0 0 2px rgba(14,116,144,.15)}
+  .chip::before{content:'';width:9px;height:9px;border-radius:2px;flex:none}
+  .chip.dim::before{background:var(--dim)}
+  .chip.meas::before{background:var(--meas)}
+  .shelfrow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .shelflab{width:78px;flex:none;font:700 11px/1 inherit;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--muted);text-align:right}
+  .shelf{flex:1;min-height:40px;border:1px dashed var(--line);border-radius:9px;
+    background:var(--bg);padding:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .shelf.over{border-color:var(--accent);background:rgba(14,116,144,.06)}
+  .shelf .ph{color:var(--muted);font-size:12.5px;padding-left:4px}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;
+    font:12.5px/1.2 inherit;border:1px solid transparent;cursor:pointer;min-height:0}
+  .pill.dim{background:rgba(29,78,216,.12);color:var(--dim);border-color:rgba(29,78,216,.3)}
+  .pill.meas{background:rgba(4,120,87,.12);color:var(--meas);border-color:rgba(4,120,87,.32)}
+  .pill .x{opacity:.65;font-weight:700}
+  .pill:hover{filter:brightness(.96)}
+  .controls{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:12px;
+    padding-top:12px;border-top:1px solid var(--line)}
+  .ctl{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg button{border:none;background:var(--card);padding:8px 11px;font:600 12.5px/1 inherit;
+    color:var(--muted);cursor:pointer;min-height:0}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+  .filtvals{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .fv{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);
+    font:12.5px/1 inherit;cursor:pointer;min-height:0;color:var(--muted)}
+  .fv[aria-pressed="true"]{background:rgba(14,116,144,.12);border-color:var(--accent);
+    color:var(--accent);font-weight:600}
+
+  button{font:600 14.5px/1 inherit;padding:11px 16px;border-radius:9px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);cursor:pointer;min-height:42px}
+  button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+  button.go{background:var(--accent);color:#fff;border-color:var(--accent)}
+  button.go:hover{background:#0b5f75;color:#fff}
+  button:disabled{opacity:.4;cursor:default}
+
+  .output{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:14px 0 0}
+  .tabs{display:flex;gap:4px;padding:8px 10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .tab{border:1px solid transparent;border-bottom:none;background:none;border-radius:9px 9px 0 0;
+    padding:10px 14px;font:600 13.5px/1 inherit;color:var(--muted);min-height:0}
+  .tab[aria-selected="true"]{background:var(--bg);border-color:var(--line);color:var(--ink)}
+  .tabpanel{padding:var(--pad);min-height:300px}
+  .tabpanel[hidden]{display:none}
+  #chart{width:100%;height:340px}
+  .caption{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+  #check{font-size:15.5px;margin:0 0 12px}
+  #check b{color:var(--ink)}
+  #check .done{color:var(--ok);font-weight:700}
+  table.data{border-collapse:collapse;font:12.5px/1.6 var(--mono)}
+  table.data th,table.data td{border:1px solid var(--line);padding:4px 9px;text-align:left;white-space:nowrap}
+  table.data th{color:var(--muted);background:var(--bg)}
+
+  #directive{position:fixed;left:0;right:0;bottom:0;background:var(--card);
+    border-top:1px solid var(--line);z-index:5;pointer-events:none}
+  #directive p{max-width:1240px;margin:0 auto;padding:13px 20px;font-weight:600;font-size:15px}
+  footer{border-top:1px solid var(--line);margin:22px 0 0;padding:18px 0 0;font-size:13.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <p class="crumb"><a href="../">&larr; Analyst Prep Kit</a> &middot; <a href="../drill/">SQL Drill</a> &middot; <a href="../tableau/">Tableau Kit</a> &middot; <a href="../guides/">Guides</a></p>
+  <h1>Viz Drill</h1>
+  <p class="lead">The other half of the query you have been typing. Same 52 country tracks, same questions, built with shelves instead of clauses. Each rung adds one idea and names the SQL drill it answers. Nothing is graded and the target is always written out.</p>
+  <p class="desktop-note"><strong>Made for a desktop.</strong> Dragging is easier with a mouse, though you can tap a field and then tap a shelf.</p>
+
+  <div class="drillbar">
+    <span class="rung" id="rung">Rung 1</span>
+    <p class="adds" id="adds">Loading.</p>
+    <span class="navbtns">
+      <button id="prev">Back</button>
+      <button id="next">Next rung</button>
+      <button id="restart" hidden>Start the ladder again</button>
+    </span>
+  </div>
+
+  <div class="work">
+    <div class="pane">
+      <div class="panehead"><h2>Build this</h2><span class="hint" id="tiehint"></span></div>
+      <div class="panebody">
+        <p class="task" id="task"></p>
+        <p class="tie" id="tie"></p>
+        <pre class="sqlbox" id="sql"></pre>
+      </div>
+    </div>
+
+    <div class="pane">
+      <div class="panehead"><h2>Your worksheet</h2><span class="hint" id="marklab"></span></div>
+      <div class="builder">
+        <div>
+          <p class="welltitle" style="color:var(--dim)">Dimensions</p>
+          <div class="well" id="dims"></div>
+          <p class="welltitle" style="color:var(--meas)">Measures</p>
+          <div class="well" id="meas"></div>
+        </div>
+        <div>
+          <div class="shelfrow"><span class="shelflab">Columns</span><div class="shelf" id="sh-cols" data-shelf="cols"></div></div>
+          <div class="shelfrow"><span class="shelflab">Rows</span><div class="shelf" id="sh-rows" data-shelf="rows"></div></div>
+          <div class="shelfrow"><span class="shelflab">Colour</span><div class="shelf" id="sh-color" data-shelf="color"></div></div>
+          <div class="shelfrow"><span class="shelflab">Filter</span><div class="shelf" id="sh-filter" data-shelf="filter"></div></div>
+          <div class="filtvals" id="filtvals"></div>
+          <div class="controls">
+            <span class="ctl">Mark
+              <span class="seg" id="markseg">
+                <button data-mark="bar" aria-pressed="true">Bar</button>
+                <button data-mark="line" aria-pressed="false">Line</button>
+                <button data-mark="scatter" aria-pressed="false">Scatter</button>
+              </span>
+            </span>
+            <span class="ctl">Sort
+              <span class="seg" id="sortseg">
+                <button data-sort="none" aria-pressed="true">None</button>
+                <button data-sort="desc" aria-pressed="false">Desc</button>
+                <button data-sort="asc" aria-pressed="false">Asc</button>
+              </span>
+            </span>
+            <button id="clear">Clear worksheet</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="output">
+    <div class="tabs" role="tablist" aria-label="Output">
+      <button class="tab" id="tab-chart" role="tab" aria-selected="true" aria-controls="panel-chart">Chart</button>
+      <button class="tab" id="tab-data" role="tab" aria-selected="false" aria-controls="panel-data">Underlying data</button>
+      <button class="tab" id="tab-fields" role="tab" aria-selected="false" aria-controls="panel-fields">Fields</button>
+    </div>
+
+    <div class="tabpanel" id="panel-chart" role="tabpanel" aria-labelledby="tab-chart">
+      <p id="check" aria-live="polite"></p>
+      <p class="caption" id="caption"></p>
+      <svg id="chart" role="img" aria-label="The chart you have built"></svg>
+    </div>
+
+    <div class="tabpanel" id="panel-data" role="tabpanel" aria-labelledby="tab-data" hidden>
+      <p class="caption">What the shelves are actually asking the data for. This is the result set behind the picture.</p>
+      <div id="datatable"></div>
+    </div>
+
+    <div class="tabpanel" id="panel-fields" role="tabpanel" aria-labelledby="tab-fields" hidden>
+      <p class="caption">52 country gem tracks, the same rows the SQL ladder queries. Blue is a dimension, something you slice by. Green is a measure, something you aggregate.</p>
+      <div id="fieldlist"></div>
+    </div>
+  </div>
+
+  <footer>
+    Part of the <a href="../">Analyst Prep Kit</a>. The query half of this is <a href="../drill/">SQL Drill</a>; the concepts are in the <a href="../tableau/">Tableau kit</a> and <a href="../tableau-cert/">certification prep</a>.
+    This is a neutral practice tool and is not affiliated with, or endorsed by, any vendor.
+  </footer>
+</div>
+
+<div id="directive"><p id="directive-text">Build what the rung asks for, then click Next rung.</p></div>
+
+<script src="data.js"></script>
+<script src="ladder.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+// ── fields ──────────────────────────────────────────────────────────────────
+// Number of Records is carried as a field on purpose: it is how a shelf-based tool
+// expresses COUNT(*), and it is the field a beginner hunts for longest.
+const FIELDS = {
+  artist:    {label: 'Artist',            kind: 'dim'},
+  track:     {label: 'Track',             kind: 'dim'},
+  decade:    {label: 'Decade',            kind: 'dim'},
+  era:       {label: 'Era',               kind: 'dim'},
+  listeners: {label: 'Listeners',         kind: 'meas'},
+  playcount: {label: 'Playcount',         kind: 'meas'},
+  ppl:       {label: 'Plays per listener',kind: 'meas'},
+  records:   {label: 'Number of Records', kind: 'meas'}
+};
+const AGGS = ['SUM', 'AVG', 'MIN', 'MAX'];
+
+let state = {cols: null, rows: null, color: null, filter: null, filterVals: null,
+             agg: 'SUM', mark: 'bar', sort: 'none'};
+let i = 0;
+const KEY = 'apk-viz-drill-rung';
+try { i = Math.min(parseInt(localStorage.getItem(KEY) || '0', 10) || 0, LADDER.rungs.length - 1); } catch(e){}
+const remember = () => { try { localStorage.setItem(KEY, String(i)); } catch(e){} };
+
+const esc = s => String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const isDim = f => f && FIELDS[f].kind === 'dim';
+
+// ── tabs ────────────────────────────────────────────────────────────────────
+const TABS = ['chart', 'data', 'fields'];
+function showTab(name){
+  TABS.forEach(t => {
+    const on = t === name;
+    $('tab-' + t).setAttribute('aria-selected', on ? 'true' : 'false');
+    $('panel-' + t).hidden = !on;
+  });
+}
+TABS.forEach(t => { $('tab-' + t).onclick = () => showTab(t); });
+
+// ── the shelves ─────────────────────────────────────────────────────────────
+let picked = null;   // tap-then-tap, so this works without a mouse
+
+function fieldWells(){
+  const draw = (host, kind) => {
+    host.innerHTML = Object.keys(FIELDS).filter(f => FIELDS[f].kind === kind).map(f =>
+      `<button class="chip ${kind}${picked === f ? ' sel' : ''}" draggable="true" data-field="${f}">${esc(FIELDS[f].label)}</button>`
+    ).join('');
+    host.querySelectorAll('.chip').forEach(c => {
+      c.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', c.dataset.field); });
+      c.onclick = () => { picked = picked === c.dataset.field ? null : c.dataset.field; fieldWells(); };
+    });
+  };
+  draw($('dims'), 'dim');
+  draw($('meas'), 'meas');
+}
+
+function place(shelf, field){
+  // Colour and Filter take a dimension; the axes take either. Saying so out loud is
+  // better than silently refusing, because "why won't it drop" is the beginner's wall.
+  if((shelf === 'color' || shelf === 'filter') && !isDim(field)){
+    say('Colour and Filter want a dimension here. Measures go on Rows or Columns.');
+    return;
+  }
+  state[shelf] = field;
+  if(shelf === 'filter') state.filterVals = [...new Set(ROWS.map(r => String(r[field])))].sort();
+  picked = null;
+  draw();
+}
+function clearShelf(shelf){
+  state[shelf] = null;
+  if(shelf === 'filter') state.filterVals = null;
+  draw();
+}
+
+['cols','rows','color','filter'].forEach(shelf => {
+  const el = $('sh-' + shelf);
+  el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('over'); });
+  el.addEventListener('dragleave', () => el.classList.remove('over'));
+  el.addEventListener('drop', e => {
+    e.preventDefault(); el.classList.remove('over');
+    place(shelf, e.dataTransfer.getData('text/plain'));
+  });
+  el.addEventListener('click', e => {
+    if(e.target.closest('.pill')) return;
+    if(picked) place(shelf, picked);
+  });
+});
+
+function pillHTML(shelf){
+  const f = state[shelf];
+  if(!f) return '<span class="ph">Drop a field here</span>';
+  const kind = FIELDS[f].kind;
+  const label = kind === 'meas' && shelf !== 'color' && shelf !== 'filter'
+    ? state.agg + '(' + FIELDS[f].label + ')'
+    : FIELDS[f].label;
+  return `<span class="pill ${kind}" data-shelf="${shelf}" title="${kind === 'meas' ? 'Click to change the aggregation' : 'Click the cross to remove'}">
+            ${esc(label)}<span class="x" data-remove="${shelf}">&times;</span></span>`;
+}
+
+$('markseg').querySelectorAll('button').forEach(b => {
+  b.onclick = () => { state.mark = b.dataset.mark; draw(); };
+});
+$('sortseg').querySelectorAll('button').forEach(b => {
+  b.onclick = () => { state.sort = b.dataset.sort; draw(); };
+});
+$('clear').onclick = () => {
+  state = {cols:null, rows:null, color:null, filter:null, filterVals:null,
+           agg:'SUM', mark:'bar', sort:'none'};
+  draw();
+};
+
+// ── aggregation, the part that is really SQL ────────────────────────────────
+function activeRows(){
+  if(!state.filter || !state.filterVals) return ROWS;
+  return ROWS.filter(r => state.filterVals.includes(String(r[state.filter])));
+}
+function aggregate(vals, how){
+  if(!vals.length) return 0;
+  if(how === 'MIN') return Math.min(...vals);
+  if(how === 'MAX') return Math.max(...vals);
+  const sum = vals.reduce((a, b) => a + b, 0);
+  return how === 'AVG' ? sum / vals.length : sum;
+}
+function measureOf(rows, field){
+  if(field === 'records') return rows.length;
+  return aggregate(rows.map(r => Number(r[field]) || 0), state.agg);
+}
+
+// The result set the shelves describe: one row per dimension value, or per pair when
+// Colour is in play. This is what the Underlying data tab shows, deliberately, because
+// the table is the bridge back to the query they already wrote.
+function resultSet(){
+  const dimField = isDim(state.rows) ? state.rows : (isDim(state.cols) ? state.cols : null);
+  const measField = !isDim(state.rows) && state.rows ? state.rows
+                  : (!isDim(state.cols) && state.cols ? state.cols : null);
+  if(!dimField && !measField) return null;
+
+  const rows = activeRows();
+  const keys = dimField ? [...new Set(rows.map(r => String(r[dimField])))] : ['All'];
+  const colorKeys = state.color ? [...new Set(rows.map(r => String(r[state.color])))].sort() : [null];
+
+  let out = [];
+  keys.forEach(k => {
+    colorKeys.forEach(ck => {
+      const slice = rows.filter(r =>
+        (!dimField || String(r[dimField]) === k) &&
+        (!ck || String(r[state.color]) === ck));
+      if(!slice.length) return;
+      out.push({key: k, color: ck, value: measField ? measureOf(slice, measField) : slice.length,
+                n: slice.length});
+    });
+  });
+
+  if(state.sort !== 'none' && measField){
+    // Sorting a chart sorts the headers, not the individual bars inside a colour split.
+    const totals = {};
+    out.forEach(o => { totals[o.key] = (totals[o.key] || 0) + o.value; });
+    const order = Object.keys(totals).sort((a, b) =>
+      state.sort === 'desc' ? totals[b] - totals[a] : totals[a] - totals[b]);
+    out.sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
+  } else if(dimField === 'decade'){
+    out.sort((a, b) => a.key.localeCompare(b.key));
+  }
+  return {dimField, measField, rows: out};
+}
+
+// ── drawing ─────────────────────────────────────────────────────────────────
+const PALETTE = ['#0E7490', '#B45309', '#4338CA', '#15803D', '#9D174D', '#0F766E'];
+
+function drawChart(){
+  const svg = $('chart');
+  const rs = resultSet();
+  const W = svg.clientWidth || 640, H = 340;
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+
+  if(!rs || !rs.measField){
+    svg.innerHTML = `<text x="14" y="28" fill="#52525B" font-size="13">` +
+      (rs ? 'A dimension gives you headers. Add a measure to draw something.'
+          : 'Drop a field on Rows or Columns to start.') + `</text>`;
+    $('caption').textContent = '';
+    return;
+  }
+
+  const vertical = !isDim(state.rows) && !!state.rows;   // measure on Rows = vertical bars
+  const data = rs.rows;
+  const max = Math.max(...data.map(d => d.value), 1);
+  const colorKeys = [...new Set(data.map(d => d.color))];
+  const colorOf = d => PALETTE[Math.max(0, colorKeys.indexOf(d.color)) % PALETTE.length];
+  const fmt = v => v >= 1000 ? Math.round(v).toLocaleString() : Math.round(v * 100) / 100;
+
+  let svgHTML = '';
+  if(state.mark === 'line' && vertical){
+    const padL = 60, padB = 34, padT = 14, w = W - padL - 16, h = H - padB - padT;
+    const keys = [...new Set(data.map(d => d.key))];
+    colorKeys.forEach((ck, ci) => {
+      const pts = keys.map((k, idx) => {
+        const d = data.find(x => x.key === k && x.color === ck);
+        const x = padL + (keys.length === 1 ? w / 2 : idx * w / (keys.length - 1));
+        const y = padT + h - (d ? d.value / max * h : 0);
+        return x + ',' + y;
+      }).join(' ');
+      svgHTML += `<polyline points="${pts}" fill="none" stroke="${PALETTE[ci % PALETTE.length]}" stroke-width="2.5"/>`;
+    });
+    keys.forEach((k, idx) => {
+      const x = padL + (keys.length === 1 ? w / 2 : idx * w / (keys.length - 1));
+      svgHTML += `<text x="${x}" y="${H - 12}" font-size="11" fill="#52525B" text-anchor="middle">${esc(k)}</text>`;
+    });
+    svgHTML += `<text x="10" y="${padT + 10}" font-size="11" fill="#52525B">${fmt(max)}</text>`;
+  } else if(vertical){
+    const padL = 60, padB = 34, padT = 14, w = W - padL - 16, h = H - padB - padT;
+    const band = w / data.length;
+    data.forEach((d, idx) => {
+      const bh = d.value / max * h;
+      svgHTML += `<rect x="${padL + idx * band + band * .12}" y="${padT + h - bh}"
+        width="${band * .76}" height="${bh}" fill="${colorOf(d)}" rx="3"><title>${esc(d.key)}: ${fmt(d.value)}</title></rect>`;
+      if(data.length <= 14)
+        svgHTML += `<text x="${padL + idx * band + band / 2}" y="${H - 12}" font-size="11"
+          fill="#52525B" text-anchor="middle">${esc(d.key)}</text>`;
+    });
+    svgHTML += `<text x="10" y="${padT + 10}" font-size="11" fill="#52525B">${fmt(max)}</text>`;
+  } else {
+    const padL = 150, padT = 10, rowH = Math.min(26, (H - padT) / Math.max(data.length, 1));
+    const w = W - padL - 70;
+    data.slice(0, Math.floor((H - padT) / 16)).forEach((d, idx) => {
+      const bw = d.value / max * w;
+      const y = padT + idx * rowH;
+      svgHTML += `<text x="${padL - 8}" y="${y + rowH * .7}" font-size="11" fill="#52525B"
+        text-anchor="end">${esc(String(d.key).slice(0, 22))}</text>`;
+      svgHTML += `<rect x="${padL}" y="${y + rowH * .15}" width="${Math.max(bw, 1)}"
+        height="${rowH * .7}" fill="${colorOf(d)}" rx="3"><title>${esc(d.key)}: ${fmt(d.value)}</title></rect>`;
+      svgHTML += `<text x="${padL + bw + 6}" y="${y + rowH * .72}" font-size="10.5" fill="#52525B">${fmt(d.value)}</text>`;
+    });
+  }
+  svg.innerHTML = svgHTML;
+
+  const shown = data.length;
+  $('caption').textContent = (state.agg) + ' of ' +
+    (rs.measField === 'records' ? 'Number of Records' : FIELDS[rs.measField].label) +
+    (rs.dimField ? ' by ' + FIELDS[rs.dimField].label : '') +
+    (state.color ? ', coloured by ' + FIELDS[state.color].label : '') +
+    ' · ' + shown + ' marks' +
+    (state.filter ? ' · filtered on ' + FIELDS[state.filter].label : '');
+}
+
+function drawData(){
+  const rs = resultSet();
+  if(!rs){ $('datatable').innerHTML = '<p class="caption">Nothing on the shelves yet.</p>'; return; }
+  const head = '<tr><th>' + (rs.dimField ? esc(FIELDS[rs.dimField].label) : 'All') + '</th>' +
+    (state.color ? '<th>' + esc(FIELDS[state.color].label) + '</th>' : '') +
+    '<th>' + (rs.measField ? esc(state.agg + '(' + FIELDS[rs.measField].label + ')') : 'Rows') + '</th>' +
+    '<th>rows behind it</th></tr>';
+  const body = rs.rows.slice(0, 40).map(r =>
+    '<tr><td>' + esc(r.key) + '</td>' + (state.color ? '<td>' + esc(r.color) + '</td>' : '') +
+    '<td>' + (Math.round(r.value * 100) / 100).toLocaleString() + '</td><td>' + r.n + '</td></tr>').join('');
+  $('datatable').innerHTML = '<table class="data">' + head + body + '</table>' +
+    (rs.rows.length > 40 ? '<p class="caption">Showing the first 40 of ' + rs.rows.length + ' rows.</p>' : '');
+}
+
+function drawFields(){
+  $('fieldlist').innerHTML = '<table class="data"><tr><th>Field</th><th>Role</th><th>Distinct values</th></tr>' +
+    Object.keys(FIELDS).map(f => {
+      const kind = FIELDS[f].kind === 'dim' ? 'Dimension' : 'Measure';
+      const distinct = f === 'records' ? '&mdash;' : new Set(ROWS.map(r => r[f])).size;
+      return '<tr><td>' + esc(FIELDS[f].label) + '</td><td>' + kind + '</td><td>' + distinct + '</td></tr>';
+    }).join('') + '</table>';
+}
+
+// ── the check: reads the shelves, never the picture ─────────────────────────
+function checkRung(){
+  const t = LADDER.rungs[i].target;
+  const missing = [];
+  const name = f => f ? FIELDS[f].label : 'nothing';
+  Object.keys(t).forEach(k => {
+    if(k === 'filterVals'){
+      const want = [...t.filterVals].sort().join('|');
+      const have = [...(state.filterVals || [])].sort().join('|');
+      if(want !== have) missing.push('keep only ' + t.filterVals.join(' and ') + ' in the filter');
+      return;
+    }
+    if(state[k] === t[k]) return;
+    if(k === 'agg') missing.push('set the aggregation to ' + t.agg);
+    else if(k === 'mark') missing.push('switch the mark type to ' + t.mark);
+    else if(k === 'sort') missing.push('sort ' + (t.sort === 'none' ? 'off' : t.sort === 'desc' ? 'descending' : 'ascending'));
+    else if(t[k] === null) missing.push('clear the ' + k + ' shelf');
+    else missing.push('put ' + name(t[k]) + ' on ' + (k === 'cols' ? 'Columns' : k === 'rows' ? 'Rows' : k === 'color' ? 'Colour' : 'Filter'));
+  });
+  return missing;
+}
+
+function say(msg){
+  $('check').innerHTML = msg;
+}
+
+function draw(){
+  fieldWells();
+  ['cols','rows','color','filter'].forEach(s => { $('sh-' + s).innerHTML = pillHTML(s); });
+  // Clicking a measure pill cycles the aggregation, which is where beginners learn that
+  // the aggregation is a property of the pill and not of the field.
+  document.querySelectorAll('.pill').forEach(p => {
+    p.onclick = e => {
+      const shelf = p.dataset.shelf;
+      if(e.target.dataset.remove){ clearShelf(shelf); return; }
+      const f = state[shelf];
+      if(FIELDS[f].kind === 'meas' && shelf !== 'color' && shelf !== 'filter'){
+        state.agg = AGGS[(AGGS.indexOf(state.agg) + 1) % AGGS.length];
+        draw();
+      }
+    };
+  });
+
+  $('filtvals').innerHTML = state.filter
+    ? [...new Set(ROWS.map(r => String(r[state.filter])))].sort().map(v =>
+        `<button class="fv" data-v="${esc(v)}" aria-pressed="${(state.filterVals || []).includes(v)}">${esc(v)}</button>`).join('')
+    : '';
+  $('filtvals').querySelectorAll('.fv').forEach(b => {
+    b.onclick = () => {
+      const v = b.dataset.v;
+      const on = state.filterVals || [];
+      state.filterVals = on.includes(v) ? on.filter(x => x !== v) : on.concat(v);
+      draw();
+    };
+  });
+
+  $('markseg').querySelectorAll('button').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.mark === state.mark)));
+  $('sortseg').querySelectorAll('button').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.sort === state.sort)));
+  $('marklab').textContent = state.mark + ' marks';
+
+  drawChart(); drawData(); drawFields();
+
+  // Described, never scored. What is left to do, in the words of the tool.
+  const missing = checkRung();
+  say(missing.length === 0
+    ? '<span class="done">That is the rung.</span> Look at the chart, then take the next one.'
+    : '<b>Still to do:</b> ' + missing.join(', then ') + '.');
+}
+
+function render(){
+  const r = LADDER.rungs[i];
+  const last = i === LADDER.rungs.length - 1;
+  $('rung').textContent = 'Rung ' + (i + 1) + ' of ' + LADDER.rungs.length;
+  $('adds').textContent = r.adds;
+  $('task').innerHTML = r.task;
+  $('tie').textContent = r.tie;
+  $('sql').textContent = r.sql;
+  $('tiehint').textContent = '';
+  $('prev').disabled = i === 0;
+  $('next').hidden = last;
+  $('restart').hidden = !last;
+  $('directive-text').textContent = last
+    ? 'Last rung. Build it, then start the ladder again whenever you want the reps.'
+    : 'Build what the rung asks for, then click Next rung.';
+  showTab('chart');
+  draw();
+  remember();
+}
+
+$('next').onclick = () => { if(i < LADDER.rungs.length - 1){ i++; render(); } };
+$('prev').onclick = () => { if(i > 0){ i--; render(); } };
+$('restart').onclick = () => { i = 0; render(); scrollTo({top:0, behavior:'smooth'}); };
+addEventListener('resize', drawChart);
+
+render();
+</script>
+</body>
+</html>

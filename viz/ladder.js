@@ -1,0 +1,79 @@
+// Viz ladder: the same country-gems analysis the SQL ladder types out, built with shelves
+// instead of clauses. Every rung names the SQL drill it answers, because the transfer is
+// the point: a learner who can write GROUP BY should recognise it when it becomes a shelf.
+//
+// target is the state a rung is asking for. Only the keys present are checked, so a rung
+// never fails someone for a mark type or a sort it did not ask about.
+
+const LADDER = {
+  name: 'Country gems, from query to chart',
+  rungs: [
+
+  { adds: 'A dimension on Rows. That is all a header list is.',
+    task: 'Put <b>Artist</b> on Rows.',
+    sql: 'SELECT DISTINCT artist FROM gem_page WHERE genre = \'country\'',
+    tie: 'Drill 1 of the SQL ladder. A dimension on a shelf is SELECT of a text column: one header per distinct value.',
+    target: {rows: 'artist'} },
+
+  { adds: 'A measure beside it. Tableau aggregates it the moment it lands.',
+    task: 'Add <b>Listeners</b> to Columns. Leave the aggregation on SUM.',
+    sql: 'SELECT artist, SUM(listeners) FROM gem_page WHERE genre = \'country\' GROUP BY artist',
+    tie: 'Drill 6. You never wrote GROUP BY here, and that is the lesson: the dimension on Rows is the GROUP BY, and dropping a measure is the SUM.',
+    target: {rows: 'artist', cols: 'listeners', agg: 'SUM'} },
+
+  { adds: 'Sorting, which is a click here and a clause there.',
+    task: 'Sort the bars <b>descending</b> by the measure.',
+    sql: 'ORDER BY SUM(listeners) DESC',
+    tie: 'Drill 2. Same ORDER BY, no typing.',
+    target: {rows: 'artist', cols: 'listeners', sort: 'desc'} },
+
+  { adds: 'Counting rows rather than adding a column up.',
+    task: 'Replace Listeners on Columns with <b>Number of Records</b>.',
+    sql: 'SELECT artist, COUNT(*) FROM gem_page WHERE genre = \'country\' GROUP BY artist',
+    tie: 'Drill 4. Number of Records is Tableau\'s COUNT(*), and it is the field people hunt for longest in their first week.',
+    target: {rows: 'artist', cols: 'records', sort: 'desc'} },
+
+  { adds: 'A filter, which is WHERE with tick boxes.',
+    task: 'Put <b>Era</b> on Filter and keep <b>modern</b> only.',
+    sql: 'WHERE debut_decade IN (\'2010s\', \'2020s\')',
+    tie: 'Drill 5 taught WHERE against HAVING. A filter shelf is WHERE: it drops rows before the aggregation runs.',
+    target: {rows: 'artist', cols: 'records', filter: 'era', filterVals: ['modern']} },
+
+  { adds: 'A change of grain, which is the whole analysis turning over.',
+    task: 'Clear the filter, put <b>Decade</b> on Rows instead of Artist, and <b>Listeners</b> back on Columns.',
+    sql: 'SELECT debut_decade, SUM(listeners) ... GROUP BY debut_decade',
+    tie: 'Drill 9. One row per decade instead of one row per artist. Swapping the dimension is swapping the GROUP BY.',
+    target: {rows: 'decade', cols: 'listeners', filter: null} },
+
+  { adds: 'Colour, which is a second dimension without a second axis.',
+    task: 'Put <b>Era</b> on Colour.',
+    sql: 'CASE WHEN debut_decade IN (\'2010s\',\'2020s\') THEN \'modern\' ELSE \'catalog\' END',
+    tie: 'Drill 12. You wrote that CASE by hand. Here the bucket is already a field, and Colour is what shows it.',
+    target: {rows: 'decade', cols: 'listeners', color: 'era'} },
+
+  { adds: 'Changing the aggregation, which changes the question.',
+    task: 'Switch the measure from SUM to <b>AVG</b>. Click the pill to change it.',
+    sql: 'SELECT debut_decade, AVG(listeners) ... GROUP BY debut_decade',
+    tie: 'Drill 7. Same shelf, different question: total audience against typical audience per track.',
+    target: {rows: 'decade', cols: 'listeners', agg: 'AVG', color: 'era'} },
+
+  { adds: 'Rows and Columns are axes, not roles.',
+    task: 'Swap them: <b>Decade</b> on Columns, <b>Listeners</b> on Rows. Put the aggregation back to SUM.',
+    sql: 'The query does not change at all. Only the drawing does.',
+    tie: 'No SQL equivalent, and that is worth knowing. Orientation is a display choice, which is why the exam asks about Rows and Columns rather than about x and y.',
+    target: {cols: 'decade', rows: 'listeners', agg: 'SUM'} },
+
+  { adds: 'The mark type, which is the one thing SQL never had.',
+    task: 'Change the mark type to <b>Line</b>.',
+    sql: 'Still the same query underneath.',
+    tie: 'A line implies order and continuity, so it reads as a trend where bars read as a comparison. Choosing between them is Domain 2 of the exam.',
+    target: {cols: 'decade', rows: 'listeners', mark: 'line'} },
+
+  { adds: 'The payoff: the same two-row answer the SQL ladder ends on.',
+    task: 'Back to <b>Bar</b>. Put <b>Era</b> on Columns and <b>Listeners</b> on Rows, with <b>Era</b> on Colour, sorted descending.',
+    sql: 'SELECT era_group, SUM(listeners) ... GROUP BY era_group ORDER BY 2 DESC',
+    tie: 'Drill 13. Thirteen rungs of SQL and eleven of shelves arrive at the same two bars, and now you can produce that answer either way.',
+    target: {cols: 'era', rows: 'listeners', color: 'era', mark: 'bar', sort: 'desc'} }
+
+  ]
+};
