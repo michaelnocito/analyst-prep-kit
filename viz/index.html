@@ -139,7 +139,8 @@
   .tab[aria-selected="true"]{background:var(--bg);border-color:var(--line);color:var(--ink)}
   .tabpanel{padding:var(--pad);min-height:300px}
   .tabpanel[hidden]{display:none}
-  #chart{width:100%;height:340px}
+  #chart{width:100%;height:300px}
+  #check{font-size:15px;margin:0 0 10px}
   .caption{font-size:13.5px;color:var(--muted);margin:0 0 10px}
   #check{font-size:15.5px;margin:0 0 12px}
   #check b{color:var(--ink)}
@@ -174,16 +175,10 @@
 
   <div class="work">
     <div class="pane">
-      <div class="panehead"><h2>Build this</h2><span class="hint" id="tiehint"></span></div>
-      <div class="panebody">
+      <div class="panehead"><h2>Build this</h2><span class="hint" id="marklab"></span></div>
+      <div class="panebody" style="padding-bottom:0">
         <p class="task" id="task"></p>
-        <p class="tie" id="tie"></p>
-        <pre class="sqlbox" id="sql"></pre>
       </div>
-    </div>
-
-    <div class="pane">
-      <div class="panehead"><h2>Your worksheet</h2><span class="hint" id="marklab"></span></div>
       <div class="builder">
         <div>
           <p class="welltitle" style="color:var(--dim)">Dimensions</p>
@@ -230,20 +225,30 @@
         </div>
       </div>
     </div>
+
+    <!-- The chart sits beside the controls, not under them. In a chart builder the
+         picture is the feedback, and a build loop split across a scroll is not a loop. -->
+    <div class="pane">
+      <div class="panehead"><h2>What you built</h2><span class="hint" id="markstate"></span></div>
+      <div class="panebody">
+        <p id="check" aria-live="polite"></p>
+        <svg id="chart" role="img" aria-label="The chart you have built"></svg>
+        <div id="texttable"></div>
+        <p class="caption" id="caption"></p>
+      </div>
+    </div>
   </div>
 
   <div class="output">
     <div class="tabs" role="tablist" aria-label="Output">
-      <button class="tab" id="tab-chart" role="tab" aria-selected="true" aria-controls="panel-chart">Chart</button>
+      <button class="tab" id="tab-sql" role="tab" aria-selected="true" aria-controls="panel-sql">Same thing in SQL</button>
       <button class="tab" id="tab-data" role="tab" aria-selected="false" aria-controls="panel-data">Underlying data</button>
       <button class="tab" id="tab-fields" role="tab" aria-selected="false" aria-controls="panel-fields">Fields</button>
     </div>
 
-    <div class="tabpanel" id="panel-chart" role="tabpanel" aria-labelledby="tab-chart">
-      <p id="check" aria-live="polite"></p>
-      <p class="caption" id="caption"></p>
-      <svg id="chart" role="img" aria-label="The chart you have built"></svg>
-      <div id="texttable"></div>
+    <div class="tabpanel" id="panel-sql" role="tabpanel" aria-labelledby="tab-sql">
+      <p class="tie" id="tie" style="margin:0"></p>
+      <pre class="sqlbox" id="sql"></pre>
     </div>
 
     <div class="tabpanel" id="panel-data" role="tabpanel" aria-labelledby="tab-data" hidden>
@@ -300,7 +305,7 @@ const esc = s => String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&
 const isDim = f => f && FIELDS[f].kind === 'dim';
 
 // ── tabs ────────────────────────────────────────────────────────────────────
-const TABS = ['chart', 'data', 'fields'];
+const TABS = ['sql', 'data', 'fields'];
 function showTab(name){
   TABS.forEach(t => {
     const on = t === name;
@@ -691,7 +696,8 @@ function draw(){
     b.setAttribute('aria-pressed', String(b.dataset.mark === state.mark)));
   $('sortseg').querySelectorAll('button').forEach(b =>
     b.setAttribute('aria-pressed', String(b.dataset.sort === state.sort)));
-  $('marklab').textContent = state.mark + ' marks';
+  $('marklab').textContent = 'Drag a field, or tap it then tap a shelf';
+  $('markstate').textContent = state.mark + ' marks';
 
   drawChart(); drawData(); drawFields();
 
@@ -710,14 +716,13 @@ function render(){
   $('task').innerHTML = r.task;
   $('tie').textContent = r.tie;
   $('sql').textContent = r.sql;
-  $('tiehint').textContent = '';
   $('prev').disabled = i === 0;
   $('next').hidden = last;
   $('restart').hidden = !last;
   $('directive-text').textContent = last
     ? 'Last rung. Build it, then start the ladder again whenever you want the reps.'
     : 'Build what the rung asks for, then click Next rung.';
-  showTab('chart');
+  showTab('sql');
   draw();
   remember();
 }
