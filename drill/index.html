@@ -14,6 +14,7 @@
 <title>SQL Drill: Learn SQL by Writing Queries, One Rung at a Time &mdash; Analyst Prep Kit</title>
 <meta name="description" content="Type real SQL against a real database, one query at a time. Each drill adds one thing to the query you just typed. Nothing is graded, nothing is hidden, and every query returns real rows in your browser.">
 <link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/drill/">
+<link rel="stylesheet" href="../assets/sqled/sqled.css">
 <meta property="og:title" content="SQL Drill: Learn SQL by Writing Queries">
 <meta property="og:description" content="Thirteen drills against a real music database. Each one adds a single new idea to the query you just typed. No score, no pass, no fail.">
 <meta property="og:type" content="website">
@@ -131,7 +132,7 @@
       <button class="go" id="run">Run</button>
       <button id="prev">Back</button>
       <button id="next">Next drill</button>
-      <span class="hint">Ctrl+Enter runs</span>
+      <span class="hint">Ctrl+Enter runs &middot; Ctrl+Space lists table and column names</span>
     </div>
     <div id="verdict"></div>
     <div id="out"></div>
@@ -151,11 +152,16 @@
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<script src="../assets/sqled/sqled.js"></script>
 <script src="data.js"></script>
 <script src="drills.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 let db = null, i = 0;
+// The editor handle. Starts as the plain textarea and is upgraded in place once
+// CodeMirror lands, so nothing below has to care which one it is talking to.
+let ed = { getValue: () => $('sql').value, setValue: v => { $('sql').value = v; },
+           focus: () => $('sql').focus({preventScroll:true}), refresh: () => {} };
 
 // Position is a bookmark so closing the tab does not cost the session. Deliberately
 // not a progress bar: no percentage, no streak, nothing to beat.
@@ -174,9 +180,9 @@ function render(){
   $('out').innerHTML = '';
   $('prev').disabled = i === 0;
   $('next').disabled = i === LADDER.drills.length - 1;
-  // The editor is never prefilled. Typing it out is the entire point.
-  $('sql').value = '';
-  $('sql').focus({preventScroll:true});
+  // The editor is never prefilled with the answer. Typing it out is the entire point.
+  ed.setValue('');
+  ed.focus();
   remember();
 }
 
@@ -193,7 +199,7 @@ function table(res){
 }
 
 function run(){
-  const typed = $('sql').value.trim();
+  const typed = ed.getValue().trim();
   if(!typed) return;
   let res;
   try { res = db.exec(typed); }
@@ -216,6 +222,7 @@ function run(){
 $('run').onclick = run;
 $('next').onclick = () => { if(i < LADDER.drills.length - 1){ i++; render(); scrollTo({top:0,behavior:'smooth'}); } };
 $('prev').onclick = () => { if(i > 0){ i--; render(); scrollTo({top:0,behavior:'smooth'}); } };
+// Kept for the fallback textarea. CodeMirror binds Ctrl+Enter itself.
 $('sql').addEventListener('keydown', e => {
   if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); run(); }
 });
@@ -241,6 +248,13 @@ initSqlJs({locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.
       db.run('COMMIT');
       stmt.free();
     }
+    // Completion is built from the database that just loaded, so the names offered are
+    // exactly the names in front of the learner.
+    ed = SQLED.attach($('sql'), {
+      schema: SQLED.schemaFromDb(db),
+      onRun: run,
+      onReady: h => { ed = h; render(); }
+    });
     render();
   })
   .catch(e => { $('adds').textContent = 'The SQL engine failed to load: ' + e.message; });
