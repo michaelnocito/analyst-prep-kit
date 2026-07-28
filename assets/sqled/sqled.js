@@ -55,6 +55,57 @@
     });
   }
 
+  // CodeMirror's SQLite mode carries a keyword list, not a function list: COUNT happens to
+  // be in it, SUM, AVG, MIN, MAX and ROUND are not. That makes completion look broken in a
+  // way that is worse than having none, because it fires for one aggregate and not the next
+  // one on the same line. These are the functions a working analyst actually reaches for,
+  // and they get merged into every completion list below.
+  const FUNCTIONS = [
+    'AVG', 'COUNT', 'MAX', 'MIN', 'SUM', 'TOTAL', 'GROUP_CONCAT',
+    'ROUND', 'ABS', 'CAST', 'COALESCE', 'IFNULL', 'NULLIF', 'IIF',
+    'LENGTH', 'LOWER', 'UPPER', 'TRIM', 'LTRIM', 'RTRIM', 'REPLACE',
+    'SUBSTR', 'INSTR', 'PRINTF', 'TYPEOF',
+    'DATE', 'TIME', 'DATETIME', 'JULIANDAY', 'STRFTIME',
+    'ROW_NUMBER', 'RANK', 'DENSE_RANK', 'NTILE', 'LAG', 'LEAD',
+    'FIRST_VALUE', 'LAST_VALUE', 'OVER', 'PARTITION BY'
+  ];
+
+  // The stock sql hint, plus the functions above. Anything the stock hint already found is
+  // left exactly where it was, so table and column names keep their ranking at the top.
+  function hintWithFunctions(cm, options) {
+    const base = CodeMirror.hint.sql(cm, options) || { list: [], from: cm.getCursor(), to: cm.getCursor() };
+    const cur = cm.getCursor();
+    const token = cm.getTokenAt(cur);
+    const word = (token.string || '').replace(/[^\w]/g, '');
+    if (word.length < 1) return base;
+
+    const seen = new Set(base.list.map(x => String(x.text || x).toUpperCase()));
+    const up = word.toUpperCase();
+    const extra = FUNCTIONS.filter(f => f.indexOf(up) === 0 && !seen.has(f));
+
+    // Columns, even before a FROM clause exists. The stock hint only offers column names
+    // once it can tell which table is in play, which means the SELECT list, the part a
+    // learner types first, is exactly where it stays silent.
+    const tables = (options && options.tables) || {};
+    Object.keys(tables).forEach(t => {
+      (tables[t] || []).forEach(c => {
+        const name = String(c.text || c);
+        if (name.toUpperCase().indexOf(up) === 0 && !seen.has(name.toUpperCase())) {
+          seen.add(name.toUpperCase());
+          extra.push(name);
+        }
+      });
+    });
+
+    if (!extra.length) return base;
+
+    return {
+      list: base.list.concat(extra),
+      from: base.list.length ? base.from : CodeMirror.Pos(cur.line, cur.ch - word.length),
+      to: base.list.length ? base.to : cur
+    };
+  }
+
   let loading = null;
   function load() {
     if (!loading) {
@@ -100,9 +151,9 @@
         smartIndent: true,
         indentUnit: 2,
         tabSize: 2,
-        hintOptions: { completeSingle: false },
+        hintOptions: { hint: hintWithFunctions, completeSingle: false },
         extraKeys: {
-          'Ctrl-Space': cmi => cmi.showHint({ tables: tables(), completeSingle: false }),
+          'Ctrl-Space': cmi => cmi.showHint({ hint: hintWithFunctions, tables: tables(), completeSingle: false }),
           'Ctrl-Enter': () => opts.onRun && opts.onRun(),
           'Cmd-Enter': () => opts.onRun && opts.onRun(),
           // Tab indents rather than leaving the editor, which is what a learner expects
@@ -120,7 +171,7 @@
         const typed = change.text[0];
         if (!/[\w.]/.test(typed)) return;
         if (cmi.state.completionActive) return;
-        cmi.showHint({ tables: tables(), completeSingle: false });
+        cmi.showHint({ hint: hintWithFunctions, tables: tables(), completeSingle: false });
       });
 
       Object.assign(handle, {
