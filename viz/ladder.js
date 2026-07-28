@@ -51,6 +51,30 @@ const LADDER = {
     tie: 'Drill 12. You wrote that CASE by hand. Here the bucket is already a field, and Colour is what shows it.',
     target: {rows: 'decade', cols: 'listeners', color: 'era'} },
 
+  { adds: 'The same card, a measure instead of a dimension, and a different legend.',
+    task: 'Drop <b>Playcount</b> on Colour, replacing Era.',
+    sql: 'No clause changes. The colour is a second aggregate computed per bar.',
+    tie: 'This is the drop that catches everyone. A dimension on Colour splits the marks and gives you one swatch per value. A measure on Colour keeps the marks whole and shades them along a ramp, light to dark. Same card, two behaviours, and the legend is how you tell which one you did.',
+    target: {rows: 'decade', cols: 'listeners', color: 'playcount'} },
+
+  { adds: 'Label, which writes the number onto the mark.',
+    task: 'Put <b>Listeners</b> on Label.',
+    sql: 'Nothing new is asked of the data. The number was always there.',
+    tie: 'Label prints a value on each mark. It is the reason a chart can be read without an axis, and the reason a cluttered chart usually has a field on Label that should not be there.',
+    target: {rows: 'decade', cols: 'listeners', color: 'playcount', label: 'listeners'} },
+
+  { adds: 'Detail, the card that splits marks and shows nothing.',
+    task: 'Clear Colour and Label, then put <b>Artist</b> on Detail.',
+    sql: 'GROUP BY debut_decade, artist',
+    tie: 'Detail adds a field to the grouping without encoding it. One bar per decade becomes one bar per artist within each decade, and nothing on screen says why. That invisibility is what Detail is for, and it is why an unexplained pile of extra marks is usually a stray field sitting on Detail.',
+    target: {rows: 'decade', cols: 'listeners', color: null, label: null, detail: 'artist'} },
+
+  { adds: 'The text table, which is the chart type that is not a chart.',
+    task: 'Clear Detail, then switch the mark type to <b>Text table</b>.',
+    sql: 'The result set you have been building all along, printed rather than drawn.',
+    tie: 'Every viz is a table underneath. Switching to Text table shows the same numbers as a crosstab, which is what the Underlying data tab has been showing you the whole time.',
+    target: {rows: 'decade', cols: 'listeners', detail: null, mark: 'text'} },
+
   { adds: 'Changing the aggregation, which changes the question.',
     task: 'Switch the measure from SUM to <b>AVG</b>. Click the pill to change it.',
     sql: 'SELECT debut_decade, AVG(listeners) ... GROUP BY debut_decade',
@@ -58,10 +82,10 @@ const LADDER = {
     target: {rows: 'decade', cols: 'listeners', agg: 'AVG', color: 'era'} },
 
   { adds: 'Rows and Columns are axes, not roles.',
-    task: 'Swap them: <b>Decade</b> on Columns, <b>Listeners</b> on Rows. Put the aggregation back to SUM.',
+    task: 'Switch back to <b>Bar</b>, then swap the shelves: <b>Decade</b> on Columns, <b>Listeners</b> on Rows. Put the aggregation back to SUM.',
     sql: 'The query does not change at all. Only the drawing does.',
     tie: 'No SQL equivalent, and that is worth knowing. Orientation is a display choice, which is why the exam asks about Rows and Columns rather than about x and y.',
-    target: {cols: 'decade', rows: 'listeners', agg: 'SUM'} },
+    target: {cols: 'decade', rows: 'listeners', agg: 'SUM', mark: 'bar'} },
 
   { adds: 'The mark type, which is the one thing SQL never had.',
     task: 'Change the mark type to <b>Line</b>.',

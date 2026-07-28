@@ -102,6 +102,16 @@
   .pill.meas{background:rgba(4,120,87,.12);color:var(--meas);border-color:rgba(4,120,87,.32)}
   .pill .x{opacity:.65;font-weight:700}
   .pill:hover{filter:brightness(.96)}
+  .markscard{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:12px;
+    background:var(--card)}
+  .markshead{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    flex-wrap:wrap;margin-bottom:8px}
+  .legend{margin:6px 0 0;font-size:12.5px;color:var(--muted)}
+  .legend .sw{display:inline-block;width:11px;height:11px;border-radius:2px;
+    vertical-align:-1px;margin:0 5px 0 10px}
+  .legend .ramp{display:inline-block;width:90px;height:11px;border-radius:3px;
+    vertical-align:-1px;margin:0 6px;
+    background:linear-gradient(90deg,#CFE8EF,#0E7490)}
   .controls{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:12px;
     padding-top:12px;border-top:1px solid var(--line)}
   .ctl{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted)}
@@ -184,17 +194,30 @@
         <div>
           <div class="shelfrow"><span class="shelflab">Columns</span><div class="shelf" id="sh-cols" data-shelf="cols"></div></div>
           <div class="shelfrow"><span class="shelflab">Rows</span><div class="shelf" id="sh-rows" data-shelf="rows"></div></div>
-          <div class="shelfrow"><span class="shelflab">Colour</span><div class="shelf" id="sh-color" data-shelf="color"></div></div>
           <div class="shelfrow"><span class="shelflab">Filter</span><div class="shelf" id="sh-filter" data-shelf="filter"></div></div>
           <div class="filtvals" id="filtvals"></div>
-          <div class="controls">
-            <span class="ctl">Mark
+
+          <!-- The marks card. Grouped the way every BI tool groups it, because the
+               grouping is the concept: these four cards change how a mark looks or how
+               many marks there are, and none of them adds an axis. -->
+          <div class="markscard">
+            <div class="markshead">
+              <span class="welltitle" style="margin:0">Marks</span>
               <span class="seg" id="markseg">
                 <button data-mark="bar" aria-pressed="true">Bar</button>
                 <button data-mark="line" aria-pressed="false">Line</button>
                 <button data-mark="scatter" aria-pressed="false">Scatter</button>
+                <button data-mark="text" aria-pressed="false">Text table</button>
               </span>
-            </span>
+            </div>
+            <div class="shelfrow"><span class="shelflab">Colour</span><div class="shelf" id="sh-color" data-shelf="color"></div></div>
+            <div class="shelfrow"><span class="shelflab">Size</span><div class="shelf" id="sh-size" data-shelf="size"></div></div>
+            <div class="shelfrow"><span class="shelflab">Label</span><div class="shelf" id="sh-label" data-shelf="label"></div></div>
+            <div class="shelfrow"><span class="shelflab">Detail</span><div class="shelf" id="sh-detail" data-shelf="detail"></div></div>
+            <p class="legend" id="legend"></p>
+          </div>
+
+          <div class="controls">
             <span class="ctl">Sort
               <span class="seg" id="sortseg">
                 <button data-sort="none" aria-pressed="true">None</button>
@@ -220,6 +243,7 @@
       <p id="check" aria-live="polite"></p>
       <p class="caption" id="caption"></p>
       <svg id="chart" role="img" aria-label="The chart you have built"></svg>
+      <div id="texttable"></div>
     </div>
 
     <div class="tabpanel" id="panel-data" role="tabpanel" aria-labelledby="tab-data" hidden>
@@ -260,9 +284,13 @@ const FIELDS = {
   records:   {label: 'Number of Records', kind: 'meas'}
 };
 const AGGS = ['SUM', 'AVG', 'MIN', 'MAX'];
+const SHELF_NAMES = {cols: 'Columns', rows: 'Rows', color: 'Colour', size: 'Size',
+                     label: 'Label', detail: 'Detail', filter: 'Filter'};
 
-let state = {cols: null, rows: null, color: null, filter: null, filterVals: null,
-             agg: 'SUM', mark: 'bar', sort: 'none'};
+const SHELVES = ['cols', 'rows', 'color', 'size', 'label', 'detail', 'filter'];
+const BLANK = {cols: null, rows: null, color: null, size: null, label: null, detail: null,
+               filter: null, filterVals: null, agg: 'SUM', mark: 'bar', sort: 'none'};
+let state = Object.assign({}, BLANK);
 let i = 0;
 const KEY = 'apk-viz-drill-rung';
 try { i = Math.min(parseInt(localStorage.getItem(KEY) || '0', 10) || 0, LADDER.rungs.length - 1); } catch(e){}
@@ -300,10 +328,17 @@ function fieldWells(){
 }
 
 function place(shelf, field){
-  // Colour and Filter take a dimension; the axes take either. Saying so out loud is
-  // better than silently refusing, because "why won't it drop" is the beginner's wall.
-  if((shelf === 'color' || shelf === 'filter') && !isDim(field)){
-    say('Colour and Filter want a dimension here. Measures go on Rows or Columns.');
+  if(!FIELDS[field]) return;
+  // Almost everything is allowed, on purpose. A measure on Colour is not a mistake, it is
+  // a different encoding, and refusing the drop is what leaves people unable to predict
+  // what any card will do. Detail is the one genuine restriction: it groups, so it needs
+  // something to group by.
+  if(shelf === 'detail' && !isDim(field)){
+    say('Detail splits the marks, so it needs a dimension. A measure there would have nothing to split by.');
+    return;
+  }
+  if(shelf === 'filter' && !isDim(field)){
+    say('This builder filters on dimension values. In the real tools a measure on Filter opens a range slider instead.');
     return;
   }
   state[shelf] = field;
@@ -317,7 +352,7 @@ function clearShelf(shelf){
   draw();
 }
 
-['cols','rows','color','filter'].forEach(shelf => {
+SHELVES.forEach(shelf => {
   const el = $('sh-' + shelf);
   el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('over'); });
   el.addEventListener('dragleave', () => el.classList.remove('over'));
@@ -335,7 +370,9 @@ function pillHTML(shelf){
   const f = state[shelf];
   if(!f) return '<span class="ph">Drop a field here</span>';
   const kind = FIELDS[f].kind;
-  const label = kind === 'meas' && shelf !== 'color' && shelf !== 'filter'
+  // A measure is aggregated wherever it lands, including on the marks cards, and showing
+  // the aggregation in the pill is how anyone learns that.
+  const label = kind === 'meas' && shelf !== 'filter'
     ? state.agg + '(' + FIELDS[f].label + ')'
     : FIELDS[f].label;
   return `<span class="pill ${kind}" data-shelf="${shelf}" title="${kind === 'meas' ? 'Click to change the aggregation' : 'Click the cross to remove'}">
@@ -348,11 +385,7 @@ $('markseg').querySelectorAll('button').forEach(b => {
 $('sortseg').querySelectorAll('button').forEach(b => {
   b.onclick = () => { state.sort = b.dataset.sort; draw(); };
 });
-$('clear').onclick = () => {
-  state = {cols:null, rows:null, color:null, filter:null, filterVals:null,
-           agg:'SUM', mark:'bar', sort:'none'};
-  draw();
-};
+$('clear').onclick = () => { state = Object.assign({}, BLANK); draw(); };
 
 // ── aggregation, the part that is really SQL ────────────────────────────────
 function activeRows(){
@@ -381,18 +414,38 @@ function resultSet(){
   if(!dimField && !measField) return null;
 
   const rows = activeRows();
+  // A dimension anywhere makes more marks. Colour and Detail group; a measure on Colour
+  // or Size or Label does not, it just gets aggregated per mark. That difference is the
+  // whole lesson of the marks card, so the engine has to model it rather than fake it.
+  const splitters = [state.color, state.detail].filter(f => isDim(f));
   const keys = dimField ? [...new Set(rows.map(r => String(r[dimField])))] : ['All'];
-  const colorKeys = state.color ? [...new Set(rows.map(r => String(r[state.color])))].sort() : [null];
 
   let out = [];
   keys.forEach(k => {
-    colorKeys.forEach(ck => {
-      const slice = rows.filter(r =>
-        (!dimField || String(r[dimField]) === k) &&
-        (!ck || String(r[state.color]) === ck));
+    const base = rows.filter(r => !dimField || String(r[dimField]) === k);
+    const combos = splitters.reduce((acc, f) => {
+      const vals = [...new Set(base.map(r => String(r[f])))].sort();
+      return acc.length ? acc.flatMap(c => vals.map(v => c.concat([[f, v]])))
+                        : vals.map(v => [[f, v]]);
+    }, []);
+    (combos.length ? combos : [[]]).forEach(combo => {
+      const slice = base.filter(r => combo.every(([f, v]) => String(r[f]) === v));
       if(!slice.length) return;
-      out.push({key: k, color: ck, value: measField ? measureOf(slice, measField) : slice.length,
-                n: slice.length});
+      const colorVal = isDim(state.color)
+        ? (combo.find(([f]) => f === state.color) || [null, null])[1]
+        : (state.color ? measureOf(slice, state.color) : null);
+      out.push({
+        key: k,
+        color: colorVal,
+        colorIsMeasure: !!state.color && !isDim(state.color),
+        detail: (combo.find(([f]) => f === state.detail) || [null, null])[1],
+        size: state.size ? (isDim(state.size) ? null : measureOf(slice, state.size)) : null,
+        label: state.label ? (isDim(state.label)
+                 ? [...new Set(slice.map(r => String(r[state.label])))].join(', ')
+                 : measureOf(slice, state.label)) : null,
+        value: measField ? measureOf(slice, measField) : slice.length,
+        n: slice.length
+      });
     });
   });
 
@@ -412,11 +465,59 @@ function resultSet(){
 // ── drawing ─────────────────────────────────────────────────────────────────
 const PALETTE = ['#0E7490', '#B45309', '#4338CA', '#15803D', '#9D174D', '#0F766E'];
 
+// Discrete swatches for a dimension, a light-to-dark ramp for a measure. Showing which
+// one you are looking at is how the legend teaches what you just did.
+function rampColor(v, min, max){
+  const t = max === min ? 1 : (v - min) / (max - min);
+  const from = [207, 232, 239], to = [14, 116, 144];
+  return 'rgb(' + from.map((c, n) => Math.round(c + (to[n] - c) * t)).join(',') + ')';
+}
+
+function drawLegend(rs){
+  const el = $('legend');
+  if(!state.color || !rs){ el.innerHTML = ''; return; }
+  const f = FIELDS[state.color];
+  if(isDim(state.color)){
+    const keys = [...new Set(rs.rows.map(r => r.color))];
+    el.innerHTML = '<b>' + esc(f.label) + '</b> on Colour, a dimension, so one swatch per value:' +
+      keys.map((k, n) => '<span class="sw" style="background:' + PALETTE[n % PALETTE.length] +
+        '"></span>' + esc(String(k))).join('');
+  } else {
+    const vals = rs.rows.map(r => r.color);
+    el.innerHTML = '<b>' + state.agg + '(' + esc(f.label) + ')</b> on Colour, a measure, so a ramp:' +
+      Math.round(Math.min(...vals)).toLocaleString() + '<span class="ramp"></span>' +
+      Math.round(Math.max(...vals)).toLocaleString();
+  }
+}
+
+function drawTextTable(rs){
+  // Every viz is a table underneath, and the text table is that table admitted out loud.
+  const head = '<tr><th>' + (rs.dimField ? esc(FIELDS[rs.dimField].label) : 'All') + '</th>' +
+    (isDim(state.color) ? '<th>' + esc(FIELDS[state.color].label) + '</th>' : '') +
+    (state.detail ? '<th>' + esc(FIELDS[state.detail].label) + '</th>' : '') +
+    '<th>' + esc(state.agg + '(' + FIELDS[rs.measField].label + ')') + '</th></tr>';
+  const body = rs.rows.map(r => '<tr><td>' + esc(r.key) + '</td>' +
+    (isDim(state.color) ? '<td>' + esc(String(r.color)) + '</td>' : '') +
+    (state.detail ? '<td>' + esc(String(r.detail)) + '</td>' : '') +
+    '<td>' + (Math.round(r.value * 100) / 100).toLocaleString() + '</td></tr>').join('');
+  return '<table class="data">' + head + body + '</table>';
+}
+
 function drawChart(){
   const svg = $('chart');
   const rs = resultSet();
   const W = svg.clientWidth || 640, H = 340;
   svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  $('texttable').innerHTML = '';
+  drawLegend(rs);
+
+  if(rs && rs.measField && state.mark === 'text'){
+    svg.style.display = 'none';
+    $('texttable').innerHTML = drawTextTable(rs);
+    $('caption').textContent = rs.rows.length + ' rows, printed rather than drawn.';
+    return;
+  }
+  svg.style.display = '';
 
   if(!rs || !rs.measField){
     svg.innerHTML = `<text x="14" y="28" fill="#52525B" font-size="13">` +
@@ -430,7 +531,19 @@ function drawChart(){
   const data = rs.rows;
   const max = Math.max(...data.map(d => d.value), 1);
   const colorKeys = [...new Set(data.map(d => d.color))];
-  const colorOf = d => PALETTE[Math.max(0, colorKeys.indexOf(d.color)) % PALETTE.length];
+  const cMin = Math.min(...data.map(d => Number(d.color) || 0));
+  const cMax = Math.max(...data.map(d => Number(d.color) || 0));
+  const colorOf = d => !state.color ? PALETTE[0]
+    : (d.colorIsMeasure ? rampColor(Number(d.color), cMin, cMax)
+                        : PALETTE[Math.max(0, colorKeys.indexOf(d.color)) % PALETTE.length]);
+  // Size scales the thickness of a mark rather than its length, which is why a measure on
+  // Size never changes the answer the chart gives, only how loudly it says it.
+  const sizeVals = data.map(d => Number(d.size) || 0);
+  const sMax = Math.max(...sizeVals, 1), sMin = Math.min(...sizeVals, 0);
+  const thickness = d => state.size && d.size !== null
+    ? .35 + .55 * (sMax === sMin ? 1 : (Number(d.size) - sMin) / (sMax - sMin)) : .76;
+  const labelOf = d => d.label === null ? null
+    : (typeof d.label === 'number' ? Math.round(d.label).toLocaleString() : String(d.label));
   const fmt = v => v >= 1000 ? Math.round(v).toLocaleString() : Math.round(v * 100) / 100;
 
   let svgHTML = '';
@@ -456,8 +569,12 @@ function drawChart(){
     const band = w / data.length;
     data.forEach((d, idx) => {
       const bh = d.value / max * h;
-      svgHTML += `<rect x="${padL + idx * band + band * .12}" y="${padT + h - bh}"
-        width="${band * .76}" height="${bh}" fill="${colorOf(d)}" rx="3"><title>${esc(d.key)}: ${fmt(d.value)}</title></rect>`;
+      const th = thickness(d);
+      svgHTML += `<rect x="${padL + idx * band + band * (1 - th) / 2}" y="${padT + h - bh}"
+        width="${band * th}" height="${bh}" fill="${colorOf(d)}" rx="3"><title>${esc(d.key)}: ${fmt(d.value)}</title></rect>`;
+      const lab = labelOf(d);
+      if(lab) svgHTML += `<text x="${padL + idx * band + band / 2}" y="${padT + h - bh - 5}"
+        font-size="10.5" fill="#52525B" text-anchor="middle">${esc(lab)}</text>`;
       if(data.length <= 14)
         svgHTML += `<text x="${padL + idx * band + band / 2}" y="${H - 12}" font-size="11"
           fill="#52525B" text-anchor="middle">${esc(d.key)}</text>`;
@@ -469,11 +586,13 @@ function drawChart(){
     data.slice(0, Math.floor((H - padT) / 16)).forEach((d, idx) => {
       const bw = d.value / max * w;
       const y = padT + idx * rowH;
+      const th = thickness(d) * .92;
+      const lab = labelOf(d);
       svgHTML += `<text x="${padL - 8}" y="${y + rowH * .7}" font-size="11" fill="#52525B"
-        text-anchor="end">${esc(String(d.key).slice(0, 22))}</text>`;
-      svgHTML += `<rect x="${padL}" y="${y + rowH * .15}" width="${Math.max(bw, 1)}"
-        height="${rowH * .7}" fill="${colorOf(d)}" rx="3"><title>${esc(d.key)}: ${fmt(d.value)}</title></rect>`;
-      svgHTML += `<text x="${padL + bw + 6}" y="${y + rowH * .72}" font-size="10.5" fill="#52525B">${fmt(d.value)}</text>`;
+        text-anchor="end">${esc(String(d.key).slice(0, 22))}${d.detail ? ' · ' + esc(String(d.detail)) : ''}</text>`;
+      svgHTML += `<rect x="${padL}" y="${y + rowH * (1 - th) / 2}" width="${Math.max(bw, 1)}"
+        height="${rowH * th}" fill="${colorOf(d)}" rx="3"><title>${esc(d.key)}: ${fmt(d.value)}</title></rect>`;
+      svgHTML += `<text x="${padL + bw + 6}" y="${y + rowH * .72}" font-size="10.5" fill="#52525B">${lab || fmt(d.value)}</text>`;
     });
   }
   svg.innerHTML = svgHTML;
@@ -483,6 +602,8 @@ function drawChart(){
     (rs.measField === 'records' ? 'Number of Records' : FIELDS[rs.measField].label) +
     (rs.dimField ? ' by ' + FIELDS[rs.dimField].label : '') +
     (state.color ? ', coloured by ' + FIELDS[state.color].label : '') +
+    (state.size ? ', sized by ' + FIELDS[state.size].label : '') +
+    (state.detail ? ', split by ' + FIELDS[state.detail].label : '') +
     ' · ' + shown + ' marks' +
     (state.filter ? ' · filtered on ' + FIELDS[state.filter].label : '');
 }
@@ -526,8 +647,8 @@ function checkRung(){
     if(k === 'agg') missing.push('set the aggregation to ' + t.agg);
     else if(k === 'mark') missing.push('switch the mark type to ' + t.mark);
     else if(k === 'sort') missing.push('sort ' + (t.sort === 'none' ? 'off' : t.sort === 'desc' ? 'descending' : 'ascending'));
-    else if(t[k] === null) missing.push('clear the ' + k + ' shelf');
-    else missing.push('put ' + name(t[k]) + ' on ' + (k === 'cols' ? 'Columns' : k === 'rows' ? 'Rows' : k === 'color' ? 'Colour' : 'Filter'));
+    else if(t[k] === null) missing.push('clear ' + SHELF_NAMES[k]);
+    else missing.push('put ' + name(t[k]) + ' on ' + SHELF_NAMES[k]);
   });
   return missing;
 }
@@ -538,7 +659,7 @@ function say(msg){
 
 function draw(){
   fieldWells();
-  ['cols','rows','color','filter'].forEach(s => { $('sh-' + s).innerHTML = pillHTML(s); });
+  SHELVES.forEach(s => { $('sh-' + s).innerHTML = pillHTML(s); });
   // Clicking a measure pill cycles the aggregation, which is where beginners learn that
   // the aggregation is a property of the pill and not of the field.
   document.querySelectorAll('.pill').forEach(p => {
@@ -546,7 +667,7 @@ function draw(){
       const shelf = p.dataset.shelf;
       if(e.target.dataset.remove){ clearShelf(shelf); return; }
       const f = state[shelf];
-      if(FIELDS[f].kind === 'meas' && shelf !== 'color' && shelf !== 'filter'){
+      if(FIELDS[f].kind === 'meas' && shelf !== 'filter'){
         state.agg = AGGS[(AGGS.indexOf(state.agg) + 1) % AGGS.length];
         draw();
       }
