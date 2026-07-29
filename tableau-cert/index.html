@@ -181,6 +181,22 @@ main{max-width:780px;margin:0 auto;padding:32px 20px 80px}
 .explanation.show{display:block}
 .explanation strong{color:var(--accent)}
 
+/* GUIDE LINK + POPUP */
+.guide-link{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:0;background:none;border:0;color:var(--dim);font-size:12.5px;font-family:inherit;cursor:pointer;border-bottom:1px dotted var(--dim);line-height:1.4}
+.guide-link:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.guide-modal{position:fixed;inset:0;z-index:9000;display:none;background:rgba(0,0,0,.62)}
+.guide-modal.open{display:block}
+.guide-panel{position:absolute;inset:3vh 3vw;display:flex;flex-direction:column;background:var(--surf,#fff);border-radius:var(--r-md,10px);overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.45)}
+.guide-bar{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surf2,#f1f3f5);border-bottom:1px solid var(--line,#e4e7ea);flex-shrink:0}
+.guide-bar-title{flex:1;font-size:13.5px;font-weight:600;color:var(--text,#111);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.guide-open-tab{font-size:12.5px;color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--dim);flex-shrink:0}
+.guide-open-tab:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.guide-close{flex-shrink:0;width:30px;height:30px;border-radius:8px;border:1px solid var(--line,#e4e7ea);background:transparent;color:var(--text,#111);font-size:17px;line-height:1;cursor:pointer}
+.guide-close:hover{background:var(--bad,#b45309);border-color:var(--bad,#b45309);color:#fff}
+.guide-frame{flex:1;width:100%;border:0;background:#fff}
+.guide-hint{padding:5px 14px;font-size:11.5px;color:var(--dim);background:var(--surf2,#f1f3f5);border-top:1px solid var(--line,#e4e7ea);flex-shrink:0}
+@media(max-width:620px){.guide-panel{inset:0;border-radius:0}}
+
 /* RESULTS */
 .results-hero{text-align:center;margin-bottom:28px}
 .results-eyebrow{font-size:11px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;margin-bottom:10px}
@@ -376,6 +392,42 @@ const STUDY = [
    Official outline: 23 / 37 / 25 / 15 — within one question on every domain.
    Real exam: 40 scored + up to 5 unscored, 70 min, 48% to pass (English).
    type 'mc' → correct: index · type 'ms' → correct: [indices] (choose all that apply) */
+/* Questions that have a matching guide. Only guides that actually exist go here. */
+const GUIDE_LINKS = {
+  q46:{slug:'tableau-relationships', title:'Tableau Relationships: What the Noodle Actually Does'},
+  q6: {slug:'tableau-relationships', title:'Tableau Relationships: What the Noodle Actually Does'},
+  q7: {slug:'tableau-relationships', title:'Tableau Relationships: What the Noodle Actually Does'},
+  q8: {slug:'tableau-relationships', title:'Tableau Relationships: What the Noodle Actually Does'}
+};
+
+function guideLinkHtml(qid){
+  const g = GUIDE_LINKS[qid];
+  if(!g) return '';
+  return `<button class="guide-link" onclick="openGuide('${g.slug}',this.dataset.t)" data-t="${g.title.replace(/"/g,'&quot;')}">Read more: ${g.title}</button>`;
+}
+
+function openGuide(slug, title){
+  const m = document.getElementById('guideModal');
+  document.getElementById('guideTitle').textContent = title || 'Guide';
+  const tab = document.getElementById('guideTab');
+  tab.href = '../guides/' + slug + '/';
+  document.getElementById('guideFrame').src = '../guides/' + slug + '/';
+  m.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if(window.gtag) gtag('event','guide_popup_open',{kit:'tableau-cert', guide:slug});
+}
+
+function closeGuide(){
+  const m = document.getElementById('guideModal');
+  m.classList.remove('open');
+  document.getElementById('guideFrame').src = 'about:blank';
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeGuide();
+});
+
 const QUESTIONS = [
   /* ---------- DOMAIN 1 · Connecting to & Preparing Data (12) ---------- */
   {id:'q46', domain:'d1', type:'mc', q:`Your workbook needs a SQL Server table joined to a regional-targets spreadsheet in Excel. Both must live in one data source. What do you build?`,
@@ -1027,7 +1079,7 @@ function renderQuestion(q){
   }).join('')}</div>`;
 
   const explanation = state.submitted
-    ? `<div class="explanation show"><strong>${isCorrect(q) ? 'Correct.' : 'Heads up: '}</strong> ${q.explain}</div>`
+    ? `<div class="explanation show"><strong>${isCorrect(q) ? 'Correct.' : 'Heads up: '}</strong> ${q.explain}${guideLinkHtml(q.id)}</div>`
     : '';
 
   return `
@@ -1243,5 +1295,16 @@ function grainRefreshIcons(){
 })();
 </script>
 <script src="../assets/apk-footer.js" defer></script>
+<div class="guide-modal" id="guideModal" onclick="if(event.target===this)closeGuide()">
+  <div class="guide-panel">
+    <div class="guide-bar">
+      <span class="guide-bar-title" id="guideTitle">Guide</span>
+      <a class="guide-open-tab" id="guideTab" href="../guides/" target="_blank" rel="noopener">Open in a tab</a>
+      <button class="guide-close" onclick="closeGuide()" aria-label="Close guide" title="Close (Esc)">&times;</button>
+    </div>
+    <iframe class="guide-frame" id="guideFrame" src="about:blank" title="Guide"></iframe>
+    <div class="guide-hint">Press Esc, click outside, or use the X to close. Your answers are kept.</div>
+  </div>
+</div>
 </body>
 </html>
