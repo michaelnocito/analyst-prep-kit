@@ -9,6 +9,30 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [1.178.0] — 2026-07-29 — Three new guides, and the hub links to guides again
+
+### Added
+- `guides/sql-group-by-having/` — GROUP BY and HAVING. Grain after grouping,
+  the legal-column rule, clause evaluation order, and the HAVING floor. Worked
+  on the 82,956-game catalogue: without a floor the top-rated genre is
+  Accounting, on a sample of eleven.
+- `guides/sql-ctes/` — CTEs as named, countable steps. The real four-step
+  definition behind the 175-game hidden-gems list (82,956 → 10,507 → 3,454 → 663).
+- `guides/tableau-relationships/` — what the noodle does, why a related table
+  stops inflating totals, where joins and unions moved to, and what the
+  cardinality and referential-integrity settings actually promise. Verified
+  against Tableau'''s own Relate your data documentation.
+
+### Fixed
+- The hub page linked to `guides/` nowhere at all. Added a How-to guides group
+  to the Other ways to learn card, with the index plus four direct entries.
+
+### Changed
+- All 21 existing guides now cross-link the three new ones in their footers.
+- `sitemap.xml` and `guides/index.html` updated.
+
+---
+
 ## [1.177.0] — 2026-07-27 — P4: quick recall leaves the lesson
 
 Playtest triage 2026-07-27. Mike: "Remove quick recall, they can go to the mistake

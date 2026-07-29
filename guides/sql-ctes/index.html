@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL CTEs: How to Build a Query in Steps You Can Check — Analyst Prep Kit</title>
+<meta name="description" content="A CTE names one step of a query so you can run it on its own. Here is the WITH syntax, how to stack steps, how to test each one, and why a named step beats a nested subquery. Worked on 82,956 real games.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-ctes/">
+<meta property="og:title" content="SQL CTEs: How to Build a Query in Steps You Can Check">
+<meta property="og:description" content="Getting from 82,956 games to 175 takes four decisions. A CTE gives each one a name and a row count you can check before the next step runs.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-ctes.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-ctes/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-ctes.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>SQL CTEs: How to Build a Query in Steps You Can Check</h1>
+  <p class="meta">Name each step, and check it before the next one runs · Written to be listened to · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can take a question that needs four decisions and write it as four named steps, each one testable on its own. You will know the <code>WITH</code> syntax, how to stack one step on the next, how to check a step's row count before you build on it, and when a CTE is the wrong tool. It is about twenty-five minutes.</p>
+
+  <p>Here is what to actually do with it. Next time a query gets long enough that you have to scroll to understand it, stop and give its first step a name. Then run that step alone and look at the row count. Almost every query that produced a wrong number would have been caught right there.</p>
+
+  <p>The short version: a CTE is a named temporary result you define before the main query. It turns one query you cannot check into several you can.</p>
+
+  <p>One idea decides everything else here, so it gets the picture. Each named step takes the previous step's rows and narrows them, and every arrow has a row count you can read.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 300" role="img" aria-labelledby="cteTitle cteDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="cteTitle">A query as four named steps</title>
+      <desc id="cteDesc">Four boxes arranged left to right, each connected to the next by an arrow, and each box smaller in height than the one before it. The first box is labelled all games and holds 82,956. An arrow leads to the second box, labelled rated, holding 10,507. An arrow leads to the third box, labelled well liked, holding 3,454. An arrow leads to the fourth box, labelled overlooked, holding 663. A final arrow leads to a result marker holding 175. Above each arrow is a small tick mark, showing that the row count can be read and checked at every step rather than only at the end. The shrinking boxes show a funnel in which every stage is visible and countable.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <rect x="20" y="40" width="130" height="150" rx="12" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <text x="85" y="120" font-size="17" font-weight="700" fill="#09090B" text-anchor="middle">82,956</text>
+        <text x="85" y="210" font-size="13" fill="#52525B" text-anchor="middle">all games</text>
+
+        <rect x="196" y="62" width="130" height="106" rx="12" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <text x="261" y="120" font-size="17" font-weight="700" fill="#09090B" text-anchor="middle">10,507</text>
+        <text x="261" y="210" font-size="13" fill="#52525B" text-anchor="middle">rated</text>
+
+        <rect x="372" y="82" width="130" height="66" rx="12" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <text x="437" y="120" font-size="17" font-weight="700" fill="#09090B" text-anchor="middle">3,454</text>
+        <text x="437" y="210" font-size="13" fill="#52525B" text-anchor="middle">well liked</text>
+
+        <rect x="548" y="96" width="130" height="38" rx="12" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <text x="613" y="121" font-size="17" font-weight="700" fill="#09090B" text-anchor="middle">663</text>
+        <text x="613" y="210" font-size="13" fill="#52525B" text-anchor="middle">overlooked</text>
+
+        <rect x="700" y="103" width="46" height="24" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="723" y="120" font-size="13" font-weight="700" fill="#09090B" text-anchor="middle">175</text>
+
+        <path d="M150 115 L190 115" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M182 110 L190 115 L182 120" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M326 115 L366 115" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M358 110 L366 115 L358 120" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M502 115 L542 115" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M534 110 L542 115 L534 120" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M678 115 L698 115" stroke="#0E7490" stroke-width="2" fill="none"/>
+
+        <path d="M164 84 L169 90 L179 78" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M340 84 L345 90 L355 78" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M516 84 L521 90 L531 78" stroke="#0E7490" stroke-width="2" fill="none"/>
+
+        <rect x="20" y="240" width="726" height="42" rx="10" fill="#E0F2F7" stroke="#E4E7EA"/>
+        <text x="36" y="266" font-size="13.5" fill="#09090B">Every step has a name and a number you can read on its own. A nested query has neither until the end.</text>
+      </g>
+    </svg>
+    <figcaption>The same work either way. Only one version lets you check it halfway.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What a CTE is, in one query</li>
+      <li>Stacking steps, and checking each one</li>
+      <li>The real four-step example</li>
+      <li>A CTE against a subquery, same answer</li>
+      <li>The full before and after</li>
+      <li>Edge cases and the honest limits</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>The worked example is real.</strong> Every number on this page comes from a published portfolio project: finding the genuinely overlooked games in a catalogue of 82,956, at <a href="https://github.com/michaelnocito/steam-hidden-gems" target="_blank" rel="noopener">Steam Hidden Gems on GitHub</a>. The steps below are the actual definition that produced the 175-game list. If <code>GROUP BY</code> is new, read <a href="../sql-group-by-having/">GROUP BY and HAVING</a> first, because step three here depends on it.</div>
+
+  <div class="step">
+    <h2>1. What a CTE is, in one query</h2>
+
+    <p>Before the explanation: you write <code>WITH rated AS (...)</code> at the top of a query. Is <code>rated</code> a real table that now exists in your database, and would a colleague be able to query it tomorrow?</p>
+
+    <p>CTE stands for common table expression. Ignore the name. It is a way to say "first work this out and call it X", and then use X in the query below as though it were a table.</p>
+
+    <pre><code>WITH rated AS (
+    SELECT *
+    FROM games
+    WHERE TotalReviews >= 500
+)
+SELECT COUNT(*) FROM rated;</code></pre>
+
+    <p>That returns 10,507. The <code>WITH</code> block defines a step and names it. The <code>SELECT</code> underneath uses that name. Nothing was created and nothing was saved, which is the answer to the prequestion: <code>rated</code> exists only while this one query runs, and a colleague tomorrow would find nothing.</p>
+
+    <p>That temporariness is the point. You get the readability of a saved table with none of the cleanup, permissions or staleness that a real table brings.</p>
+
+    <p>Two rules of syntax cover almost everything. Each named step is wrapped in brackets after <code>AS</code>. Multiple steps are separated by commas, and the word <code>WITH</code> appears only once, at the very top.</p>
+
+    <div class="note"><strong>A CTE is a name for a step, not a performance feature.</strong> Most databases run the same work either way. What you gain is a query you can read, test in pieces, and hand to someone else.</div>
+  </div>
+
+  <div class="step">
+    <h2>2. Stacking steps, and checking each one</h2>
+
+    <p>Before the explanation: your query has three stacked steps and the final answer is wrong. How many queries do you have to run to find out which step broke it?</p>
+
+    <p>One per step, and that is the whole argument for writing it this way. A later step can refer to any earlier one, so the steps form a chain.</p>
+
+    <pre><code>WITH rated AS (
+    SELECT * FROM games WHERE TotalReviews >= 500
+),
+well_liked AS (
+    SELECT * FROM rated WHERE PctPositive >= 90
+)
+SELECT COUNT(*) FROM well_liked;</code></pre>
+
+    <p>Note that <code>well_liked</code> reads from <code>rated</code>, not from <code>games</code>. Each step narrows the one before it. The count comes back 3,454.</p>
+
+    <p>Now the habit that makes this worth doing. To test any step, change nothing except the final line.</p>
+
+    <pre><code>-- Same CTEs above, then one of:
+SELECT COUNT(*) FROM rated;       -- 10,507
+SELECT COUNT(*) FROM well_liked;  -- 3,454
+SELECT * FROM well_liked LIMIT 5; -- eyeball actual rows</code></pre>
+
+    <p>Four counts down the chain tell you where a number went wrong, and they take seconds. A step that drops from 10,507 to 12 is a broken filter, and you find it at the step rather than at the end.</p>
+
+    <p>Say out loud why testing the third step of a deeply nested subquery is harder than this, before you read on. The answer is that a nested step has no name, so there is nothing to put after <code>FROM</code>. You have to cut the inner query out, paste it somewhere else, and hope you grabbed matching brackets. That friction is why people skip the check.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. The real four-step example</h2>
+
+    <p>Before the explanation: "an overlooked game" is not a column in any dataset. How many separate decisions do you think it takes to turn that phrase into rows?</p>
+
+    <p>Four, and naming them is most of the analysis. Here is the actual definition.</p>
+
+    <pre><code>WITH rated AS (
+    -- Step 1: enough reviews that the rating means something
+    SELECT * FROM games WHERE TotalReviews >= 500
+),
+well_liked AS (
+    -- Step 2: players actually rate it highly
+    SELECT * FROM rated WHERE PctPositive >= 90
+),
+overlooked AS (
+    -- Step 3: not many people own it
+    SELECT * FROM well_liked WHERE EstOwnersMid <= 50000
+),
+genre_avg AS (
+    -- Step 4: what "highly rated" means in its own genre
+    SELECT PrimaryGenre, AVG(PctPositive) AS genre_rating
+    FROM rated
+    GROUP BY PrimaryGenre
+    HAVING COUNT(*) >= 100
+)
+SELECT o.Name,
+       o.PrimaryGenre,
+       o.PctPositive,
+       ROUND(g.genre_rating, 1) AS genre_avg
+FROM overlooked AS o
+JOIN genre_avg AS g ON o.PrimaryGenre = g.PrimaryGenre
+ORDER BY o.PctPositive DESC;</code></pre>
+
+    <p>The counts down the chain are 82,956, then 10,507, then 3,454, then 663. Each drop is a decision someone can argue with, which is the right kind of argument to be able to have.</p>
+
+    <p>Step four is doing something different from the first three, and it is worth noticing. It does not narrow the rows. It calculates a genre average from the <code>rated</code> step, and then the final query joins it back on. A CTE used this way is a lookup table you build on the spot. That pattern, calculate a summary then join it back to the detail, is one of the most useful things CTEs do.</p>
+
+    <p>The results say something the raw ranking could not. Kabuto Park sits at 99.9% positive in Casual, a genre averaging 84.6%. The Werecleaner is at 99.4% in Action, where the average is 80.9%. Both were invisible in a plain top-rated list, because a plain list is full of games with forty reviews.</p>
+
+    <p>Picture running that chain against a table you actually work with. What would your four steps be, and which of them would you expect to be the one someone argues about?</p>
+  </div>
+
+  <div class="step">
+    <h2>4. A CTE against a subquery, same answer</h2>
+
+    <p>Before the explanation: both versions below return identical rows. If the database does the same work either way, does the choice matter at all?</p>
+
+    <p>Here is the nested version of just the first two steps.</p>
+
+    <pre><code>SELECT COUNT(*)
+FROM (
+    SELECT * FROM (
+        SELECT * FROM games WHERE TotalReviews >= 500
+    ) WHERE PctPositive >= 90
+);</code></pre>
+
+    <p>Same 3,454. It is correct, and the criticism is not that it is bad style. It is that you read it inside out, from the middle brackets to the edges, which is the opposite of the order the work happens in. Nothing has a name, so nothing can be tested without surgery.</p>
+
+    <p>The choice matters for the person reading it in three months, which is usually you. That is the entire argument, and it is enough.</p>
+
+    <table>
+      <tr><th>Situation</th><th>Reach for</th></tr>
+      <tr><td>Two or more steps stacked on each other</td><td>A CTE per step</td></tr>
+      <tr><td>A summary you need to join back to the detail</td><td>A CTE</td></tr>
+      <tr><td>A step you want to run and count on its own</td><td>A CTE</td></tr>
+      <tr><td>One small condition inside a <code>WHERE</code></td><td>A subquery, inline</td></tr>
+      <tr><td>A step used in many different queries over time</td><td>A view, saved in the database</td></tr>
+    </table>
+
+    <p>That last row is the honest boundary. A CTE vanishes when the query ends. If three people need the same step next week, it belongs in a view or a table, not copied into three files.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. The full before and after</h2>
+
+    <p>Same question: which highly rated games have very few owners, relative to their own genre?</p>
+
+    <h3>Before</h3>
+    <pre><code>SELECT Name, PrimaryGenre, PctPositive
+FROM games
+WHERE TotalReviews >= 500
+  AND PctPositive >= 90
+  AND EstOwnersMid <= 50000
+ORDER BY PctPositive DESC;</code></pre>
+
+    <p>It runs and returns 663 rows. Three problems, none of which produce an error. The three thresholds sit in one clause with no stated reason, so nobody can tell which was the judgement call. There is no way to see how many rows each condition removed. And it cannot answer the actual question, because comparing a game to its own genre needs an average that this query never calculates.</p>
+
+    <h3>After</h3>
+    <pre><code>-- ============================================================
+-- STEP 5: Which well-rated games are overlooked in their genre?
+-- WHY: A plain top-rated list is dominated by games with forty
+--      reviews. Each step below removes one specific problem,
+--      and each has a row count you can check on its own.
+-- COUNTS: 82,956 all games, 10,507 rated, 3,454 well liked,
+--      663 overlooked. Change a threshold and rerun the counts.
+-- ============================================================
+WITH rated AS (
+    --Games with enough reviews for the rating to be stable
+    SELECT * FROM games WHERE TotalReviews >= 500
+),
+well_liked AS (
+    --Of those, the ones players rate 90% positive or better
+    SELECT * FROM rated WHERE PctPositive >= 90
+),
+overlooked AS (
+    --Of those, the ones hardly anyone owns
+    SELECT * FROM well_liked WHERE EstOwnersMid <= 50000
+),
+genre_avg AS (
+    --Separately: the average rating within each genre,
+    --  built from rated so it is not skewed by tiny samples
+    SELECT PrimaryGenre, AVG(PctPositive) AS genre_rating
+    FROM rated
+    GROUP BY PrimaryGenre
+    HAVING COUNT(*) >= 100
+)
+--Finally: the overlooked games, each shown next to its genre average
+SELECT o.Name,
+       o.PrimaryGenre,
+       o.PctPositive,
+       ROUND(g.genre_rating, 1) AS genre_avg
+FROM overlooked AS o
+JOIN genre_avg AS g ON o.PrimaryGenre = g.PrimaryGenre
+ORDER BY o.PctPositive DESC;</code></pre>
+
+    <p>Every threshold now sits next to the reason for it. Every step can be counted. The genre comparison the question actually asked for is present. The comment format is the one from <a href="../sql-teaching-comments/">how to comment SQL so it teaches</a>.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Edge cases and the honest limits</h2>
+
+    <p>Before the explanation: you split a slow query into six tidy CTEs and it gets slower. What could naming a step possibly have to do with speed?</p>
+
+    <p>Six things worth knowing.</p>
+
+    <p><strong>Some databases treat a CTE as a fence.</strong> This is the answer to the prequestion. PostgreSQL before version 12 materialised every CTE, meaning it calculated each one fully instead of folding it into the wider plan, so a filter in the final query could not push down into the step above. Modern PostgreSQL inlines them by default, and you can force either behaviour with <code>AS MATERIALIZED</code> or <code>AS NOT MATERIALIZED</code>. If a rewrite got slower, that is the first thing to look at.</p>
+
+    <p><strong>A CTE referenced twice may be computed twice.</strong> Where CTEs are inlined, using the same step in two places can run it twice. Usually irrelevant. On a step that scans forty million rows, not irrelevant. <a href="../handle-large-datasets/">Handling large datasets</a> covers working at that size.</p>
+
+    <p><strong>Only one <code>WITH</code>, and commas between steps.</strong> Writing <code>WITH</code> again before the second step is the most common syntax error here, and the message rarely points at the real line.</p>
+
+    <p><strong>A trailing comma before the final <code>SELECT</code> breaks it.</strong> The last CTE has no comma after its closing bracket. This bites every time you reorder steps.</p>
+
+    <p><strong>Naming a step after a real table shadows it.</strong> If you write <code>WITH games AS (...)</code>, every mention of <code>games</code> below now means your step, not the table. Occasionally deliberate. More often an afternoon lost.</p>
+
+    <p><strong>Recursive CTEs are a different tool wearing the same word.</strong> <code>WITH RECURSIVE</code> lets a step refer to itself, which is how you walk a hierarchy such as an employee reporting chain or a folder tree. It shares the syntax and almost nothing else, and it is worth learning separately once ordinary CTEs feel automatic.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The readability gain is not a matter of taste, and the reason is about the reader rather than the database. Working memory holds only a few items at once, so comprehension collapses when a reader has to keep several unresolved pieces in mind at the same time. Sweller's work on cognitive load shows that material forcing you to hold and integrate separated elements imposes a load that is unrelated to the actual difficulty of the idea, and that removing that split improves both understanding and transfer (Sweller, 1988, <em>Cognitive Science</em>, 12(2), 257–285). A nested subquery is exactly that structure. You hold three open brackets in mind while hunting for the innermost one. Naming the step replaces the held item with a word, and the load goes away.</p>
+
+  <p>The testability gain comes from something simpler. Each named step is a relation in its own right, so the same operations apply to it as to any table, including <code>COUNT</code>. That closure is built into the relational model rather than added by CTE syntax: every operation returns a relation, so results can be fed into further operations without limit (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). A CTE only gives that property a name you can type.</p>
+
+  <p>There is a second reason this page keeps asking you to answer before it explains. Learners who are asked to explain a worked example to themselves as they go understand it better, and apply it to new problems better, than learners who read the same example straight through (Chi, Bassok, Lewis, Reimann, &amp; Glaser, 1989, <em>Cognitive Science</em>, 13(2), 145–182).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Think of the longest query you have written. Could you say what its middle does without reading the whole thing? If not, that is the one to split first.</p>
+
+  <p>Converting a whole project of queries at once is grim and you will stop halfway. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Write the steps in English first</strong>, before any SQL. "Enough reviews, then well rated, then few owners." If you cannot list the steps, the query is not ready to write.</li>
+    <li><strong>Give each step the name you just said.</strong> <code>rated</code> and <code>well_liked</code> beat <code>cte1</code> and <code>t2</code>, which are names that carry nothing.</li>
+    <li><strong>Count every step as you add it.</strong> Add the CTE, run <code>SELECT COUNT(*)</code> against it, look at the number, then write the next step. Catching a bad filter here costs seconds.</li>
+    <li><strong>Write the counts into the file</strong> as a comment. Anyone rerunning it later can tell immediately whether the data has shifted underneath them.</li>
+    <li><strong>Promote a step to a view</strong> the moment a second query needs it. Copying a CTE between files is how two definitions of the same thing start to drift.</li>
+  </ol>
+
+  <p>If you have paper nearby and five spare minutes, there is one drawing worth doing, and it is optional. Draw four boxes shrinking left to right, write your own project's step names under them, and put the row count you expect inside each. Then run the counts and compare. Where your guess was furthest off is where your data is not what you think it is.</p>
+
+  <div class="cta">
+    <strong>Want this reasoning on your own queries?</strong>
+    <p style="margin:6px 0 0">The reason behind a step is the first thing to vanish from an uncommented file, and the first thing a reviewer looks for. I packaged the prompts that make Claude, ChatGPT, or Gemini put that reasoning back onto your own queries, in about five minutes. Your portfolio then shows how you think, not only what you typed.</p>
+    <a class="btn" href="https://michaelnocito.gumroad.com/l/sql-prompt-pack" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','prompt_pack_click',{kit:'guide-sql-ctes'})">The SQL Teaching-Comment Prompt Pack, $7 →</a>
+    <p style="margin:10px 0 0;font-size:15px">Or get right into it and learn by writing queries: <a href="../../drill/">open SQL Drill</a>, thirteen queries that each add one thing to the last.</p>
+  </div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Concept</th><th>What it does</th></tr>
+    <tr><td>CTE</td><td>A named temporary result, defined before the main query and gone after it.</td></tr>
+    <tr><td><code>WITH name AS (...)</code></td><td>The whole syntax. <code>WITH</code> appears once, at the top.</td></tr>
+    <tr><td>Several steps</td><td>Separated by commas. No comma before the final <code>SELECT</code>.</td></tr>
+    <tr><td>Stacking</td><td>A later step selects from an earlier one, forming a chain.</td></tr>
+    <tr><td>Testing a step</td><td>Change only the last line to <code>SELECT COUNT(*) FROM step</code>.</td></tr>
+    <tr><td>Summary and join back</td><td>Build an average in a CTE, then join it to the detail rows.</td></tr>
+    <tr><td>Against a subquery</td><td>Same result. The CTE reads top to bottom and can be tested.</td></tr>
+    <tr><td>Against a view</td><td>A view persists for everyone. A CTE lives for one query.</td></tr>
+    <tr><td>Performance</td><td>Usually the same plan. Older PostgreSQL fenced CTEs, which can slow a rewrite.</td></tr>
+    <tr><td><code>AS MATERIALIZED</code></td><td>Forces the step to be computed once and held, in PostgreSQL 12 and later.</td></tr>
+    <tr><td>Shadowing</td><td>Naming a CTE after a real table hides that table for the rest of the query.</td></tr>
+    <tr><td><code>WITH RECURSIVE</code></td><td>A step that refers to itself. For hierarchies. A separate topic.</td></tr>
+    <tr><td>Naming</td><td>Say the step in English, then use those words. Not <code>cte1</code>.</td></tr>
+    <tr><td>The habit</td><td>Count every step as you add it, before writing the next one.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> If you take nothing else from this page, run <code>SELECT COUNT(*)</code> on each step as you write it. The chain is only worth building because you can check it halfway, and the check takes seconds. If a query breaks in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. Splitting my query into named steps changed the analysis, not just the formatting: once <code>rated</code> had a name, it was obvious that the genre average should be built from it rather than from the whole catalogue, and that one choice moved the results. Has naming a step ever changed what you decided to calculate?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+    <li>Sweller, J. (1988). Cognitive load during problem solving: Effects on learning. <em>Cognitive Science</em>, 12(2), 257–285.</li>
+    <li>Chi, M. T. H., Bassok, M., Lewis, M. W., Reimann, P., &amp; Glaser, R. (1989). Self-explanations: How students study and use examples in learning to solve problems. <em>Cognitive Science</em>, 13(2), 145–182.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice building queries in steps.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> runs SQLite in the browser, so you add a step, count it, and add the next. Worked examples, flash cards, and a mock exam sit alongside it. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../../drill/">SQL Drill</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../sql-teaching-comments/">Comment SQL So It Teaches</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-case-expression/">The CASE Expression</a> · <a href="../sql-aliasing/">SQL Aliases</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../tableau-concepts/">Tableau Concepts</a> · <a href="../build-a-tableau-dashboard/">Build a Tableau Dashboard</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin-top:10px"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee &#9749;</a></p>
+  </footer>
+</main>
+</body>
+</html>

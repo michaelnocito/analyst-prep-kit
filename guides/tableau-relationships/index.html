@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tableau Relationships: What the Noodle Actually Does — Analyst Prep Kit</title>
+<meta name="description" content="Relationships are the default way Tableau combines tables, and they behave nothing like a join. Here is what the noodle does, why your totals stop inflating, when you still want a join, and the settings that matter.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-relationships/">
+<meta property="og:title" content="Tableau Relationships: What the Noodle Actually Does">
+<meta property="og:description" content="Join two tables at different levels of detail and your totals inflate. A relationship keeps the tables apart and asks a different question per view. Here is the whole idea.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/tableau-relationships.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-relationships/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/tableau-relationships.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../tableau/">Tableau Kit</a> · <a href="../">All guides</a></p>
+  <h1>Tableau Relationships: What the Noodle Actually Does</h1>
+  <p class="meta">The default way Tableau combines tables, and why it fixed inflated totals · Written to be listened to · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can drag a second table onto the canvas and know exactly what Tableau will do with it. You will know what the flexible line between two tables means, why your grand totals stop being wrong when you use one, when you still want a real join instead, and what the two performance settings underneath actually claim about your data. It is about twenty minutes.</p>
+
+  <p>Here is what to actually do with it. Open any workbook where two tables are joined, and check one number: a total from the smaller table, like a target or a quota. If that total is far larger than it should be, the join is duplicating it, and the fix is to rebuild the connection as a relationship.</p>
+
+  <p>The short version: a join flattens two tables into one before you start. A relationship leaves them separate and lets Tableau write a different query for every view.</p>
+
+  <p>One idea decides everything else here, so it gets the picture. It is the difference between combining the data once, up front, and combining it per question.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 400" role="img" aria-labelledby="relTitle relDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="relTitle">One flat table against two tables kept apart</title>
+      <desc id="relDesc">The picture is in two halves. The upper half, labelled join, shows two small tables merging through a funnel into a single wide flat table of six rows, in which a value from the smaller table is repeated on every row, shown as the same shaded cell appearing six times. A single arrow leads from that one flat table to a single chart. The lower half, labelled relationship, shows the same two small tables side by side, connected by a curved flexible line and never merged. Three separate arrows lead from that pair to three different charts, indicating that each view generates its own query against the tables. The contrast shows that a join produces one fixed combined table used by everything, while a relationship keeps the tables intact and combines them differently for each view.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <text x="24" y="24" font-size="13" font-weight="700" fill="#B45309">join</text>
+
+        <rect x="24" y="38" width="80" height="40" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="24" y="86" width="80" height="26" rx="8" fill="#FDF3E3" stroke="#B45309"/>
+
+        <path d="M112 58 L150 74 L150 92 L112 99" stroke="#A1A1AA" stroke-width="1.5" fill="none"/>
+
+        <rect x="158" y="34" width="200" height="108" rx="10" fill="#FFFFFF" stroke="#B45309" stroke-width="2"/>
+        <rect x="168" y="44" width="60" height="12" rx="3" fill="#FDF3E3" stroke="#B45309"/>
+        <rect x="168" y="60" width="60" height="12" rx="3" fill="#FDF3E3" stroke="#B45309"/>
+        <rect x="168" y="76" width="60" height="12" rx="3" fill="#FDF3E3" stroke="#B45309"/>
+        <rect x="168" y="92" width="60" height="12" rx="3" fill="#FDF3E3" stroke="#B45309"/>
+        <rect x="168" y="108" width="60" height="12" rx="3" fill="#FDF3E3" stroke="#B45309"/>
+        <rect x="168" y="124" width="60" height="12" rx="3" fill="#FDF3E3" stroke="#B45309"/>
+        <rect x="238" y="44" width="110" height="12" rx="3" fill="#F1F3F5" stroke="#E4E7EA"/>
+        <rect x="238" y="60" width="110" height="12" rx="3" fill="#F1F3F5" stroke="#E4E7EA"/>
+        <rect x="238" y="76" width="110" height="12" rx="3" fill="#F1F3F5" stroke="#E4E7EA"/>
+        <rect x="238" y="92" width="110" height="12" rx="3" fill="#F1F3F5" stroke="#E4E7EA"/>
+        <rect x="238" y="108" width="110" height="12" rx="3" fill="#F1F3F5" stroke="#E4E7EA"/>
+        <rect x="238" y="124" width="110" height="12" rx="3" fill="#F1F3F5" stroke="#E4E7EA"/>
+
+        <path d="M358 88 L440 88" stroke="#A1A1AA" stroke-width="1.5" fill="none"/>
+        <path d="M432 83 L440 88 L432 93" stroke="#A1A1AA" stroke-width="1.5" fill="none"/>
+        <rect x="448" y="58" width="90" height="60" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="460" y="96" width="14" height="14" fill="#A1A1AA"/>
+        <rect x="480" y="82" width="14" height="28" fill="#A1A1AA"/>
+        <rect x="500" y="70" width="14" height="40" fill="#A1A1AA"/>
+
+        <path d="M24 176 L736 176" stroke="#E4E7EA" stroke-width="1"/>
+
+        <text x="24" y="208" font-size="13" font-weight="700" fill="#0E7490">relationship</text>
+
+        <rect x="24" y="222" width="80" height="40" rx="8" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <rect x="196" y="228" width="80" height="26" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <path d="M104 242 Q150 216 196 241" stroke="#0E7490" stroke-width="3" fill="none"/>
+
+        <path d="M276 241 L340 210" stroke="#0E7490" stroke-width="1.5" fill="none"/>
+        <path d="M332 209 L340 210 L337 217" stroke="#0E7490" stroke-width="1.5" fill="none"/>
+        <path d="M276 241 L340 285" stroke="#0E7490" stroke-width="1.5" fill="none"/>
+        <path d="M333 279 L340 285 L332 287" stroke="#0E7490" stroke-width="1.5" fill="none"/>
+        <path d="M276 241 L340 348" stroke="#0E7490" stroke-width="1.5" fill="none"/>
+        <path d="M334 341 L340 348 L332 349" stroke="#0E7490" stroke-width="1.5" fill="none"/>
+
+        <rect x="348" y="186" width="90" height="52" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="360" y="218" width="14" height="12" fill="#0E7490"/>
+        <rect x="380" y="204" width="14" height="26" fill="#0E7490"/>
+        <rect x="400" y="196" width="14" height="34" fill="#0E7490"/>
+
+        <rect x="348" y="256" width="90" height="52" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <path d="M358 296 L378 274 L398 288 L428 266" stroke="#0E7490" stroke-width="2" fill="none"/>
+
+        <rect x="348" y="326" width="90" height="52" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <circle cx="393" cy="352" r="20" fill="none" stroke="#0E7490" stroke-width="2"/>
+        <path d="M393 332 L393 352 L410 362" stroke="#0E7490" stroke-width="2" fill="none"/>
+
+        <rect x="470" y="222" width="266" height="130" rx="10" fill="#E0F2F7" stroke="#E4E7EA"/>
+        <text x="486" y="256" font-size="13.5" fill="#09090B">Above: combined once, so the</text>
+        <text x="486" y="276" font-size="13.5" fill="#09090B">repeated value is baked in.</text>
+        <text x="486" y="308" font-size="13.5" fill="#09090B">Below: combined per view, so</text>
+        <text x="486" y="328" font-size="13.5" fill="#09090B">each question gets its own query.</text>
+      </g>
+    </svg>
+    <figcaption>A join decides how the tables combine before you ask anything. A relationship decides once per view.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What the noodle is</li>
+      <li>The inflated total, and why a relationship fixes it</li>
+      <li>The two layers, and how to reach the join one</li>
+      <li>When you still want a join</li>
+      <li>The performance settings, and what they promise</li>
+      <li>Edge cases and things that surprise people</li>
+      <li>Why this works</li>
+      <li>Using this on your own workbook</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>This is on the certification.</strong> Relationships arrived in Tableau 2020.2 and are the default today. The Salesforce Certified Tableau Desktop Foundations exam currently tests on Tableau 2022.3, so the relationship model is in scope, not optional history. The <a href="../../tableau-cert/">Tableau Desktop Foundations kit</a> has practice questions on it.</div>
+
+  <div class="step">
+    <h2>1. What the noodle is</h2>
+
+    <p>Before the explanation: you drag a second table onto the canvas and a curved line appears between the two. At that moment, has Tableau combined your data yet?</p>
+
+    <p>No, and that is the entire idea. Tableau's documentation calls a relationship "a contract between two tables." You are describing how the tables relate, using a shared field. You are not telling Tableau to merge them.</p>
+
+    <p>People call that curved line the noodle, and its flexibility is a good visual joke. A join line is a rigid statement about what the combined data looks like. The noodle is a looser promise: these two tables can be matched on this field when a view needs them matched.</p>
+
+    <p>The combining happens later, one view at a time. When you build a chart, Tableau looks at which fields you actually used, then writes a query for that specific question. Drag different fields out and it writes a different query. The documentation puts it plainly: Tableau "adjusts join types intelligently and preserves the native level of detail in your data."</p>
+
+    <p><strong>Native level of detail</strong> is the important phrase, and it means what one row of a table represents. One row of an orders table is one order line. One row of a targets table is one month for one region. Those are different things, and a relationship keeps them different instead of forcing them into one shape.</p>
+
+    <div class="note"><strong>The noodle is a description, not an instruction.</strong> You are telling Tableau how the tables <em>could</em> be matched. It decides how they actually get matched each time you build a view.</div>
+  </div>
+
+  <div class="step">
+    <h2>2. The inflated total, and why a relationship fixes it</h2>
+
+    <p>Before the explanation: your region has a sales target of $50,000 for January. You join targets to orders, put the target on a chart, and it reads $4,150,000. Where did that number come from?</p>
+
+    <p>From the join repeating it. The targets table has one row per region per month. The orders table has thousands of rows per region per month. Joining them writes the January target onto every single order line, and there were 83 of them. Then <code>SUM</code> adds up all 83 copies.</p>
+
+    <p>Nothing errored. The chart drew. The number is off by a factor of 83, and only someone who knows the real target will spot it. This is the same duplication covered in <a href="../sql-joins/">SQL joins</a>, and it is the single most common wrong number in business intelligence work.</p>
+
+    <p>A relationship removes it, and the mechanism is worth understanding rather than trusting. Because the tables were never merged, Tableau aggregates each one at its own level of detail first, then brings the results together. It totals the targets among the targets, where each month appears once. It totals the sales among the orders. Then it lines the two answers up.</p>
+
+    <p>Say out loud why aggregating first and combining second gives a different answer from combining first and aggregating second, before you read on. That order is the hinge of this whole guide.</p>
+
+    <p>The reason is that duplication is created by the combining step. If you aggregate before that step, you are summing the original rows, and there is only one January target to sum. If you aggregate after, you are summing whatever the combining step produced, copies included. Same data, same <code>SUM</code>, different answer, and only one of them is the target.</p>
+
+    <p>There is a second gain in the same mechanism. With a join, a row that matches nothing can vanish from your analysis. With a relationship, Tableau's documentation states that "unmatched measure values aren't dropped," so a region with no target still shows its sales rather than quietly disappearing.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. The two layers, and how to reach the join one</h2>
+
+    <p>Before the explanation: relationships are the default now. Does that mean joins are gone from Tableau?</p>
+
+    <p>They are not. They moved down a level, and knowing where they went is most of what confuses people returning to Tableau after a few years.</p>
+
+    <p>The data source canvas has two layers.</p>
+
+    <table>
+      <tr><th>Layer</th><th>What you see</th><th>What it does</th></tr>
+      <tr><td><strong>Logical</strong>, the top canvas</td><td>Tables joined by noodles</td><td>Describes relationships. Tables stay separate.</td></tr>
+      <tr><td><strong>Physical</strong>, opened by double-clicking a table</td><td>The familiar Venn circles</td><td>Real joins and unions. Merges tables into one before analysis.</td></tr>
+    </table>
+
+    <p>So the answer to the prequestion is that a logical table can itself be built from several physically joined tables. Double-click any table on the top canvas and you drop into its physical layer, where you can join or union as before. Close it, and the result behaves as one logical table that other tables can relate to.</p>
+
+    <p>That is also where <strong>unions</strong> live, and unions answer a different question from either. A join or a relationship adds columns by matching on a key. A union stacks rows. If you have a January sales table and a February sales table with identical columns, and you want one table containing all of it, that is a union every time. No matching, no key, just more rows.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. When you still want a join</h2>
+
+    <p>Before the explanation: if relationships avoid duplication and avoid dropping rows, why would anyone deliberately choose a join?</p>
+
+    <p>Because sometimes you want the flattened table, and stating so up front is clearer than leaving it flexible. Three cases where a join is the right call.</p>
+
+    <p><strong>You genuinely want rows removed.</strong> A relationship's habit of keeping unmatched rows is usually a feature and occasionally not what you want. If your analysis is defined as "only orders that were returned," an inner join in the physical layer says that once, permanently, rather than relying on every view to filter correctly.</p>
+
+    <p><strong>The tables are at the same level of detail.</strong> If both tables have one row per order, no duplication is possible, and a join is simple and predictable. The relationship model is solving a problem you do not have.</p>
+
+    <p><strong>You are building a deliberately flat extract.</strong> Sometimes you want one wide table, materialised and fast, for a dashboard that many people open. Making that explicit is reasonable engineering.</p>
+
+    <p>Here is the short decision.</p>
+
+    <table>
+      <tr><th>You want</th><th>Use</th></tr>
+      <tr><td>To add columns from a table at a different level of detail</td><td>A relationship</td></tr>
+      <tr><td>To add columns from a table at the same level of detail</td><td>Either. A join is predictable.</td></tr>
+      <tr><td>To stack more rows of the same shape</td><td>A union</td></tr>
+      <tr><td>To permanently exclude rows that do not match</td><td>An inner join, in the physical layer</td></tr>
+      <tr><td>To combine data from two separate data sources</td><td>A blend, which is a different feature again</td></tr>
+    </table>
+
+    <p>That last row is worth naming so it does not ambush you. Relationships, joins and unions all combine tables <em>inside one data source</em>. Blending combines <em>two different data sources</em>, aggregates each separately, and matches the results on a linking field. Different tool, different canvas, and the one most likely to be confused with a relationship because the outcome sounds similar.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. The performance settings, and what they promise</h2>
+
+    <p>Before the explanation: Tableau asks you to describe your data's cardinality and referential integrity. If you get one of those answers wrong, what happens?</p>
+
+    <p>Click a noodle and you get Performance Options. Both settings default to the cautious answer, and both are promises you are making to Tableau about your data.</p>
+
+    <p><strong>Cardinality</strong> asks how many rows match. One region has many orders, so that side is many. Telling Tableau a side is "one" lets it skip the work of removing duplicates it would otherwise have to guard against.</p>
+
+    <p><strong>Referential integrity</strong> asks whether every record on one side always has a match on the other. If every order always has a valid region, Tableau can use a simpler and faster join internally instead of carefully preserving unmatched rows.</p>
+
+    <p>So the answer to the prequestion is that a wrong setting does not throw an error. It changes your numbers. Promise that every order has a region when 400 orders have a blank one, and those 400 can silently drop out of your totals. The default settings are slower and safe, which is the right default.</p>
+
+    <div class="note"><strong>Leave these alone until you have a reason.</strong> Change them when a dashboard is genuinely too slow and you can prove the promise is true, not while first building the data source. A performance setting that changes an answer is not a performance setting any more.</div>
+  </div>
+
+  <div class="step">
+    <h2>6. Edge cases and things that surprise people</h2>
+
+    <p>Before the explanation: you build a view using fields from only one of your two related tables. Does Tableau query the other one?</p>
+
+    <p>Six things worth knowing.</p>
+
+    <p><strong>Unused tables are not queried.</strong> This is the answer to the prequestion, and it surprises people who expect the whole model to load. If a view only uses order fields, Tableau does not touch the targets table at all. That is why a large relationship model can still be fast.</p>
+
+    <p><strong>The same measure can total differently in two views.</strong> Once you accept that each view gets its own query, this stops being alarming and starts being the point. It does mean you cannot assume a number matches another sheet just because the field name is the same.</p>
+
+    <p><strong>Grand totals can look wrong when they are right.</strong> With unmatched values preserved, a total may include records that no row in your table displays. Usually that is honest, and it is worth a note on the dashboard rather than a fix.</p>
+
+    <p><strong>Relationships need a shared field, and it has to actually match.</strong> Same values, compatible types. An id stored as text in one table and a number in the other matches nothing, exactly as in SQL.</p>
+
+    <p><strong>You can relate on more than one field.</strong> If a row is only identified by region plus month together, add both to the relationship. A single-field relationship there would match far too much.</p>
+
+    <p><strong>Workbooks built before 2020.2 still use the old model.</strong> Opening one shows a single physical-layer table, not a noodle. Nothing breaks, and nothing upgrades itself. Rebuilding the data source is a deliberate act.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The behaviour here is not a Tableau quirk. It is a direct consequence of what aggregation does, and the same rule governs any tool that combines tables at different levels of detail. Combining first and aggregating second sums duplicated values. Aggregating first and combining second sums original values. The relational model defines a join as the set of matching pairs of rows, which is precisely why a one-row target paired with 83 order lines becomes 83 rows carrying that target (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). Tableau's relationship model does not repeal that. It reorders the two operations so the duplication never reaches your <code>SUM</code>.</p>
+
+  <p>The product behaviour described on this page comes from Tableau's own documentation, which is the authority on it. Relate your data (Tableau Help, current version) states that relationships are "a dynamic, flexible way to combine data from multiple tables for analysis," that they "don't merge the tables together," and that unmatched measure values are not dropped. Where a secondary write-up disagrees with that page, the page wins.</p>
+
+  <p>There is a second reason this guide keeps asking you to answer before it explains. Learners who explain a worked example to themselves as they go understand it better, and apply it to new problems better, than learners who read the same example straight through (Chi, Bassok, Lewis, Reimann, &amp; Glaser, 1989, <em>Cognitive Science</em>, 13(2), 145–182). Relationships reward that, because the mistake is never in a button. It is in what you believe one row means.</p>
+
+  <h2>Using this on your own workbook</h2>
+
+  <p>Think of a dashboard you have already shared. Does any number on it come from a smaller table, like a target, a budget, a quota or a rate? If so, that is the number to check first.</p>
+
+  <p>Rebuilding every data source at once is grim work and you will stop halfway. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Say the level of detail of each table out loud</strong> before you connect anything. "One row per order line." "One row per region per month." If those differ, you want a relationship.</li>
+    <li><strong>Check one known total.</strong> Put a measure from the smaller table on a sheet on its own and compare it to a figure you already know. This is a ten-second test that catches the whole problem.</li>
+    <li><strong>Relate on every field the match actually needs.</strong> Region alone is not enough when the real key is region and month.</li>
+    <li><strong>Leave the performance settings on their defaults</strong> until a dashboard is measurably slow and you can prove the promise holds.</li>
+    <li><strong>Write down which tables are related and on what</strong>, in the workbook or alongside it. The next person cannot see your reasoning in a curved line.</li>
+  </ol>
+
+  <p>If you have paper nearby and five spare minutes, there is one drawing worth doing, and it is optional. Draw your two tables as boxes, write what one row of each means underneath, and draw the line. Then write the number you expect a total from the small table to be. Checking that guess against Tableau is the fastest audit of a data model there is.</p>
+
+  <div class="cta">
+    <strong>Practice this before the exam.</strong>
+    <p style="margin:6px 0 0">The <a href="../../tableau-cert/">Tableau Desktop Foundations kit</a> covers connecting and preparing data, which is 23% of the exam, with practice questions on relationships, joins, unions and blends. It runs in the browser and matches the real exam's format.</p>
+    <a class="btn" href="../../tableau-cert/">Open the certification kit →</a>
+    <p style="margin:10px 0 0;font-size:15px">Newer to the tool itself? <a href="../tableau-concepts/">Tableau concepts</a> covers dimensions, measures and aggregation first.</p>
+  </div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Concept</th><th>What it does</th></tr>
+    <tr><td>Relationship</td><td>A contract describing how two tables can be matched. Does not merge them.</td></tr>
+    <tr><td>The noodle</td><td>The flexible line showing that contract on the logical canvas.</td></tr>
+    <tr><td>Logical layer</td><td>The top canvas. Relationships live here. Tables stay separate.</td></tr>
+    <tr><td>Physical layer</td><td>Double-click a table. Joins and unions live here. Tables get merged.</td></tr>
+    <tr><td>Level of detail</td><td>What one row of a table means. Relationships preserve it.</td></tr>
+    <tr><td>The inflated total</td><td>A join repeats the small table's value on every matching row, then <code>SUM</code> counts every copy.</td></tr>
+    <tr><td>Why a relationship fixes it</td><td>It aggregates each table first, then combines the results.</td></tr>
+    <tr><td>Unmatched values</td><td>Kept, not dropped, unlike an inner join.</td></tr>
+    <tr><td>Join</td><td>Adds columns by matching a key, and merges the tables permanently.</td></tr>
+    <tr><td>Union</td><td>Stacks rows of the same shape. No key involved.</td></tr>
+    <tr><td>Blend</td><td>Combines two separate data sources, aggregating each first. Different feature.</td></tr>
+    <tr><td>Cardinality</td><td>How many rows match on each side. One or many.</td></tr>
+    <tr><td>Referential integrity</td><td>Whether every record always has a match. Getting it wrong changes numbers, not just speed.</td></tr>
+    <tr><td>Unused tables</td><td>Not queried at all if no field from them is in the view.</td></tr>
+    <tr><td>Introduced</td><td>Tableau 2020.2. The default since. Older workbooks keep the old model.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> If you take nothing else from this page, say the level of detail of both tables out loud before you connect them. Different levels of detail is the whole reason relationships exist, and hearing yourself say "one row per order" and "one row per month" tells you which tool you need before you touch anything.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The inflated target is the version of this everyone eventually meets, because a target is a number people already know by heart. What is the number that finally made you check your data model, and how far off was it?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Tableau. Relate your data. <em>Tableau Desktop and Web Authoring Help</em>, current version. help.tableau.com. The authority for the product behaviour described here.</li>
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+    <li>Chi, M. T. H., Bassok, M., Lewis, M. W., Reimann, P., &amp; Glaser, R. (1989). Self-explanations: How students study and use examples in learning to solve problems. <em>Cognitive Science</em>, 13(2), 145–182.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Build the charts, not just the model.</strong>
+    <p style="margin:6px 0 0">The <a href="../../tableau/">Tableau Kit</a> walks through dimensions, measures, aggregation and dashboard building, with worked examples and flash cards. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../tableau/">Open the Tableau Kit →</a>
+  </div>
+
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../tableau-concepts/">Tableau Concepts</a> · <a href="../build-a-tableau-dashboard/">Build a Tableau Dashboard</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../../drill/">SQL Drill</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../sql-teaching-comments/">Comment SQL So It Teaches</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-case-expression/">The CASE Expression</a> · <a href="../sql-aliasing/">SQL Aliases</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../tableau/">Tableau Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin-top:10px"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee &#9749;</a></p>
+  </footer>
+</main>
+</body>
+</html>

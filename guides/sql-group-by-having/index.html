@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GROUP BY and HAVING: How to Summarize Rows Without Getting a Fake Answer — Analyst Prep Kit</title>
+<meta name="description" content="What GROUP BY actually does to your rows, why WHERE and HAVING are not interchangeable, and the one line that stops a category of eleven records from topping your chart. Worked on 82,956 real games.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/">
+<meta property="og:title" content="GROUP BY and HAVING: How to Summarize Rows Without Getting a Fake Answer">
+<meta property="og:description" content="Without a minimum count, the highest-rated genre in 82,956 games is Accounting, on a sample of eleven. Here is what GROUP BY does, where HAVING goes, and why that ranking was never real.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-group-by-having.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-group-by-having.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>GROUP BY and HAVING: How to Summarize Rows Without Getting a Fake Answer</h1>
+  <p class="meta">One row per group, and the filter that has to run after · Written to be listened to · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can write a summary query and know its answer is real. You will know exactly what <code>GROUP BY</code> does to your rows, which columns you are allowed to select afterwards and why, where <code>WHERE</code> goes, where <code>HAVING</code> goes, and why swapping them is the difference between a finding and a number that means nothing. It is about twenty-five minutes.</p>
+
+  <p>Here is what to actually do with it. On the next summary query you write, add one line setting a minimum group size before you read the ranking. One line, and it removes the most common way a summary query produces a confident wrong answer.</p>
+
+  <p>The short version: <code>WHERE</code> filters rows before grouping. <code>HAVING</code> filters groups after. Without a <code>HAVING</code> floor, tiny groups float to the top of every ranking.</p>
+
+  <p>One idea decides everything else here, so it gets the picture. Grouping happens in the middle of the query, and the two filters sit on opposite sides of it.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 330" role="img" aria-labelledby="gbTitle gbDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="gbTitle">Where the two filters sit</title>
+      <desc id="gbDesc">A left-to-right pipeline in four stages. Stage one is a column of eight individual row boxes. Stage two is a gate labelled WHERE, through which six rows pass and two are crossed out and stopped. Stage three shows the surviving six rows collapsing into three group boxes, one holding three rows, one holding two rows, and one holding a single row. Stage four is a second gate labelled HAVING, through which the group of three and the group of two pass, while the group holding only one row is crossed out and stopped. The result at the far right is two groups. The picture shows that WHERE acts on individual rows before any grouping exists, and HAVING acts on whole groups after they have been formed, which is why the two filters cannot be swapped.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <text x="24" y="22" font-size="13" font-weight="700" fill="#09090B">rows</text>
+        <text x="196" y="22" font-size="13" font-weight="700" fill="#0E7490">WHERE</text>
+        <text x="392" y="22" font-size="13" font-weight="700" fill="#09090B">groups</text>
+        <text x="576" y="22" font-size="13" font-weight="700" fill="#0E7490">HAVING</text>
+
+        <rect x="24" y="38" width="96" height="22" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="24" y="66" width="96" height="22" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="24" y="94" width="96" height="22" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="24" y="122" width="96" height="22" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="24" y="150" width="96" height="22" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="24" y="178" width="96" height="22" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="24" y="206" width="96" height="22" rx="6" fill="#FFFFFF" stroke="#B45309" stroke-dasharray="5 4"/>
+        <rect x="24" y="234" width="96" height="22" rx="6" fill="#FFFFFF" stroke="#B45309" stroke-dasharray="5 4"/>
+
+        <path d="M150 30 L150 258" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M120 49 L230 49 M120 77 L230 77 M120 105 L230 105 M120 133 L230 133 M120 161 L230 161 M120 189 L230 189" stroke="#A1A1AA" stroke-width="1.3" fill="none"/>
+        <path d="M120 217 L142 217 M120 245 L142 245" stroke="#B45309" stroke-width="1.3" stroke-dasharray="5 4" fill="none"/>
+        <text x="146" y="222" font-size="14" font-weight="700" fill="#B45309">✕</text>
+        <text x="146" y="250" font-size="14" font-weight="700" fill="#B45309">✕</text>
+
+        <rect x="256" y="38" width="130" height="78" rx="10" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <rect x="268" y="48" width="106" height="18" rx="5" fill="#E0F2F7" stroke="#E4E7EA"/>
+        <rect x="268" y="70" width="106" height="18" rx="5" fill="#E0F2F7" stroke="#E4E7EA"/>
+        <rect x="268" y="92" width="106" height="18" rx="5" fill="#E0F2F7" stroke="#E4E7EA"/>
+
+        <rect x="256" y="128" width="130" height="56" rx="10" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <rect x="268" y="138" width="106" height="18" rx="5" fill="#E0F2F7" stroke="#E4E7EA"/>
+        <rect x="268" y="160" width="106" height="18" rx="5" fill="#E0F2F7" stroke="#E4E7EA"/>
+
+        <rect x="256" y="196" width="130" height="34" rx="10" fill="#FFFFFF" stroke="#B45309" stroke-width="2" stroke-dasharray="5 4"/>
+        <rect x="268" y="206" width="106" height="18" rx="5" fill="#FDF3E3" stroke="#E4E7EA"/>
+
+        <path d="M230 49 L256 60 M230 77 L256 77 M230 105 L256 94" stroke="#A1A1AA" stroke-width="1.3" fill="none"/>
+        <path d="M230 133 L256 147 M230 161 L256 165" stroke="#A1A1AA" stroke-width="1.3" fill="none"/>
+        <path d="M230 189 L256 210" stroke="#A1A1AA" stroke-width="1.3" fill="none"/>
+
+        <path d="M530 30 L530 258" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M386 77 L610 77 M386 156 L610 156" stroke="#A1A1AA" stroke-width="1.3" fill="none"/>
+        <path d="M386 213 L522 213" stroke="#B45309" stroke-width="1.3" stroke-dasharray="5 4" fill="none"/>
+        <text x="526" y="218" font-size="14" font-weight="700" fill="#B45309">✕</text>
+
+        <rect x="616" y="50" width="120" height="56" rx="10" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <rect x="616" y="128" width="120" height="56" rx="10" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+
+        <rect x="24" y="278" width="712" height="40" rx="10" fill="#E0F2F7" stroke="#E4E7EA"/>
+        <text x="40" y="303" font-size="13.5" fill="#09090B">The two gates are on opposite sides of the grouping step. That is the whole reason they are not interchangeable.</text>
+      </g>
+    </svg>
+    <figcaption>WHERE acts on rows that still exist individually. HAVING acts on groups that only exist after grouping.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What GROUP BY actually does to your rows</li>
+      <li>Which columns you can select, and the rule behind it</li>
+      <li>WHERE against HAVING, and why the order is forced</li>
+      <li>The small-group problem, and the line that fixes it</li>
+      <li>The full before and after</li>
+      <li>Edge cases that break summary queries in real data</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>The worked example is real.</strong> Every number on this page comes from a published portfolio project: 82,956 games from the Steam catalogue, with review counts, ratings and genres. The queries run against the full dataset at <a href="https://github.com/michaelnocito/steam-hidden-gems" target="_blank" rel="noopener">Steam Hidden Gems on GitHub</a>. If <code>SELECT</code> and <code>WHERE</code> are also new, start with <a href="../sql-foundations/">SQL foundations</a> and come back.</div>
+
+  <div class="step">
+    <h2>1. What GROUP BY actually does to your rows</h2>
+
+    <p>Before the explanation: your table has 82,956 rows. You group it by genre and get 28 rows back. Where did the other 82,928 rows go, and can you still see any of them?</p>
+
+    <p>Here is the rule. <code>GROUP BY</code> sorts every row into a bucket, then replaces each bucket with exactly one output row. Nothing is deleted. The rows are still in there, collapsed. What changes is what one row of your result means.</p>
+
+    <p>That last sentence is the whole idea. Before grouping, one row was one game. After grouping by genre, one row is one genre. The word for this is <strong>grain</strong>, and saying the new grain out loud before you write anything else prevents most of the mistakes on this page.</p>
+
+    <p>An aggregate function is how you get a value back out of a collapsed bucket. <code>COUNT(*)</code> asks how many rows are in this bucket. <code>AVG(PctPositive)</code> asks for the mean of that column across the bucket. <code>SUM</code>, <code>MIN</code> and <code>MAX</code> work the same way. Each one takes many values and returns one, which is exactly what a single output row needs.</p>
+
+    <pre><code>SELECT PrimaryGenre,
+       COUNT(*) AS games,
+       ROUND(AVG(PctPositive), 1) AS avg_rating
+FROM games
+GROUP BY PrimaryGenre;</code></pre>
+
+    <p>That returns 28 rows, one per genre. Action has 35,149 games and averages 75.4% positive. Adventure has 17,486 and averages 77.7%. The 82,956 original rows are all still accounted for, because every game landed in exactly one bucket.</p>
+
+    <div class="note"><strong>Name the new grain before you write the aggregate.</strong> "One row per genre" tells you immediately that a game's individual rating is no longer available, and that anything you select has to be true of the whole genre.</div>
+  </div>
+
+  <div class="step">
+    <h2>2. Which columns you can select, and the rule behind it</h2>
+
+    <p>Before the explanation: you group by genre and also select the game's name. The database either errors or hands you one name out of 35,149. Which name should it give you?</p>
+
+    <p>There is no sensible answer, which is why the rule exists. After grouping, every column in your <code>SELECT</code> must be one of two things.</p>
+    <ul>
+      <li><strong>A column you grouped by.</strong> It is safe because every row in the bucket has the same value for it. All 35,149 Action games have the genre Action.</li>
+      <li><strong>An aggregate.</strong> It is safe because it turns the whole bucket into one value on purpose.</li>
+    </ul>
+
+    <p>Anything else is a column with 35,149 different values and one slot to put them in. Most databases refuse. PostgreSQL and SQL Server raise an error naming the column. SQLite and older MySQL settings do something worse: they pick a value arbitrarily and return it without comment, so you get a real-looking name attached to a genre-wide average.</p>
+
+    <pre><code>-- Errors on PostgreSQL, returns a misleading row on SQLite
+SELECT PrimaryGenre, Name, AVG(PctPositive)
+FROM games
+GROUP BY PrimaryGenre;</code></pre>
+
+    <p>Say why that query has no correct answer, in your own words, before reading on. If you can state the reason, the error message will never confuse you again.</p>
+
+    <p>The reason is that <code>Name</code> is at the wrong grain. It describes one game, and the row now describes a genre. When you genuinely want the top name per group, that is a different tool, and it is the subject of <a href="../sql-window-functions/">window functions</a>.</p>
+
+    <p>Grouping by more than one column works the same way, with a finer bucket. <code>GROUP BY PrimaryGenre, ReleaseYear</code> makes one row per genre per year, and both of those columns are then safe to select.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. WHERE against HAVING, and why the order is forced</h2>
+
+    <p>Before the explanation: you want genres whose average rating is above 80. You try putting that condition in <code>WHERE</code> and the database refuses. Why can it not simply work it out?</p>
+
+    <p>Because when <code>WHERE</code> runs, the average does not exist yet. This is not a style preference. It is the order the database evaluates the clauses in, and that order is fixed.</p>
+
+    <table>
+      <tr><th>Order</th><th>Clause</th><th>What it can see</th></tr>
+      <tr><td>1</td><td><code>FROM</code></td><td>The tables</td></tr>
+      <tr><td>2</td><td><code>WHERE</code></td><td>Individual rows. No aggregates exist yet.</td></tr>
+      <tr><td>3</td><td><code>GROUP BY</code></td><td>Sorts surviving rows into buckets</td></tr>
+      <tr><td>4</td><td><code>HAVING</code></td><td>Whole groups, and their aggregates</td></tr>
+      <tr><td>5</td><td><code>SELECT</code></td><td>Builds the output row per group</td></tr>
+      <tr><td>6</td><td><code>ORDER BY</code></td><td>Sorts the finished output</td></tr>
+    </table>
+
+    <p>So <code>WHERE COUNT(*) &gt;= 500</code> is asking step two for a number that step four invents. The error is the database telling you the truth about its own sequence.</p>
+
+    <p>The practical version is short. If your condition is about one row, it goes in <code>WHERE</code>. If it is about a whole group, it goes in <code>HAVING</code>.</p>
+
+    <pre><code>SELECT PrimaryGenre,
+       COUNT(*) AS games,
+       ROUND(AVG(PctPositive), 1) AS avg_rating
+FROM games
+WHERE TotalReviews >= 500        -- about one game
+GROUP BY PrimaryGenre
+HAVING COUNT(*) >= 500           -- about a whole genre
+ORDER BY avg_rating DESC;</code></pre>
+
+    <p>Both filters in one query, and they are doing different jobs. The <code>WHERE</code> line says a game needs enough reviews for its own rating to mean anything, which drops the catalogue from 82,956 games to 10,507. The <code>HAVING</code> line says a genre needs enough games for its average to mean anything.</p>
+
+    <div class="note"><strong>Prefer WHERE when you have the choice.</strong> Filtering early means fewer rows to sort into buckets, so the query is faster. Use <code>HAVING</code> for the conditions that genuinely cannot be checked until the group exists.</div>
+  </div>
+
+  <div class="step">
+    <h2>4. The small-group problem, and the line that fixes it</h2>
+
+    <p>Before the explanation: which genre in a catalogue of 82,956 games do you think has the highest average rating? Commit to a guess before you read the answer.</p>
+
+    <p>It is Accounting, at 79.5% positive. Ahead of Adventure, ahead of RPG, ahead of everything. The query is correct, the data is real, and the answer is worthless, because there are eleven accounting games in the entire catalogue.</p>
+
+    <p>Here is the ranking without a floor.</p>
+
+    <pre><code>SELECT PrimaryGenre,
+       COUNT(*) AS games,
+       ROUND(AVG(PctPositive), 1) AS avg_rating
+FROM games
+GROUP BY PrimaryGenre
+ORDER BY avg_rating DESC;</code></pre>
+
+    <table>
+      <tr><th>Genre</th><th>Games</th><th>Average rating</th></tr>
+      <tr><td>Accounting</td><td>11</td><td>79.5</td></tr>
+      <tr><td>Game Development</td><td>7</td><td>79.1</td></tr>
+      <tr><td>Adventure</td><td>17,486</td><td>77.7</td></tr>
+      <tr><td>Photo Editing</td><td>21</td><td>77.2</td></tr>
+      <tr><td>Casual</td><td>15,007</td><td>76.9</td></tr>
+    </table>
+
+    <p>Three of the top five are categories with fewer than 25 items. This is not bad luck. It is arithmetic: a mean over eleven values moves freely, and a mean over seventeen thousand barely moves at all. So the extremes of any ranking fill up with the smallest groups every time, in both directions.</p>
+
+    <p>One line fixes it.</p>
+
+    <pre><code>SELECT PrimaryGenre,
+       COUNT(*) AS games,
+       ROUND(AVG(PctPositive), 1) AS avg_rating
+FROM games
+GROUP BY PrimaryGenre
+HAVING COUNT(*) >= 500
+ORDER BY avg_rating DESC;</code></pre>
+
+    <table>
+      <tr><th>Genre</th><th>Games</th><th>Average rating</th></tr>
+      <tr><td>Adventure</td><td>17,486</td><td>77.7</td></tr>
+      <tr><td>Casual</td><td>15,007</td><td>76.9</td></tr>
+      <tr><td>RPG</td><td>1,326</td><td>76.2</td></tr>
+      <tr><td>Strategy</td><td>1,227</td><td>75.8</td></tr>
+      <tr><td>Indie</td><td>7,982</td><td>75.6</td></tr>
+      <tr><td>Action</td><td>35,149</td><td>75.4</td></tr>
+    </table>
+
+    <p>That floor removed 20 of the 28 genres and produced the first ranking anyone could act on. The spread also collapsed, from a top of 79.5 down to 77.7, which is the honest picture: genres are much more alike than the first table suggested.</p>
+
+    <p>The number 500 is a judgement, not a fact, and it has to be defensible. Pick it from the data rather than from taste, write down why, and check whether the ranking survives a different choice. <a href="../data-driven-thresholds/">Choosing thresholds from the data</a> covers how to do that honestly.</p>
+
+    <p>Now picture the last summary query you shipped. If you added <code>HAVING COUNT(*) &gt;= 30</code> to it, would the top of the result change? That is the hinge of this guide, and for most real reports the answer is yes.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. The full before and after</h2>
+
+    <p>Same table, same question: which genres do players rate highest?</p>
+
+    <h3>Before</h3>
+    <pre><code>SELECT PrimaryGenre, AVG(PctPositive) AS avg_rating
+FROM games
+GROUP BY PrimaryGenre
+ORDER BY avg_rating DESC;</code></pre>
+
+    <p>Three problems, none of which produce an error. Games with three reviews count the same as games with thirty thousand. Genres with eleven games count the same as genres with thirty-five thousand. And the reader cannot see either problem, because the group sizes are not on the screen.</p>
+
+    <h3>After</h3>
+    <pre><code>-- ============================================================
+-- STEP 3: Which genres do players actually rate highest?
+-- WHY: A rating is only meaningful if enough people gave one,
+--      and a genre average is only meaningful if the genre has
+--      enough games. Both floors are here for that reason.
+-- COVERAGE: 10,507 of 82,956 games have 500+ reviews. Eight of
+--      28 genres clear the 500-game floor. The other 20 are
+--      reported separately, not silently dropped.
+-- ============================================================
+--SELECT the genre, how many games are behind the number,
+--   and their average positive rating:
+--   COUNT(*)          = games in this genre that passed WHERE
+--   AVG(PctPositive)  = mean positive rating across them
+--FROM the full game catalogue
+--WHERE the game itself has at least 500 reviews
+--GROUP BY genre, so each genre collapses to one row
+--HAVING at least 500 such games, so the average is stable
+--ORDER BY average rating, highest first
+SELECT PrimaryGenre,
+       COUNT(*) AS games,
+       ROUND(AVG(PctPositive), 1) AS avg_rating
+FROM games
+WHERE TotalReviews >= 500
+GROUP BY PrimaryGenre
+HAVING COUNT(*) >= 500
+ORDER BY avg_rating DESC;</code></pre>
+
+    <p>The group size is now a visible column, so a reader can judge the average for themselves. Both floors are stated with a reason. The coverage line names what was excluded. The comment format is the one from <a href="../sql-teaching-comments/">how to comment SQL so it teaches</a>.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Edge cases that break summary queries in real data</h2>
+
+    <p>Before the explanation: a genre you know exists is missing from your grouped result entirely. Not zero. Absent. What would you check first?</p>
+
+    <p>Six things that each cost someone an afternoon.</p>
+
+    <p><strong>A <code>WHERE</code> filter emptied the group.</strong> This is the answer to the prequestion. Grouping can only produce a bucket for rows that survived <code>WHERE</code>. If every game in a genre had fewer than 500 reviews, that genre has no rows to collapse and no output row at all. A group that should read zero is instead invisible, which is a different and more misleading thing.</p>
+
+    <p><strong><code>COUNT(*)</code> and <code>COUNT(column)</code> are not the same.</strong> <code>COUNT(*)</code> counts rows. <code>COUNT(column)</code> counts rows where that column is not <code>NULL</code>. On a column with missing values they return different numbers, and only one of them answers your question. <a href="../sql-count-function/">COUNT in SQL</a> goes through the whole family.</p>
+
+    <p><strong><code>NULL</code> becomes its own group.</strong> Rows with a missing genre collapse into a single bucket that usually prints as blank. It looks like a formatting glitch and it is really a count of your missing data, which is worth reading rather than hiding.</p>
+
+    <p><strong>Aggregates skip <code>NULL</code>, and that moves your average.</strong> <code>AVG</code> divides by the number of non-null values, not by the number of rows. So an average over a column that is 30% empty is an average of the 70% who answered, which is a genuinely different claim.</p>
+
+    <p><strong>You cannot use a <code>SELECT</code> alias in <code>HAVING</code> everywhere.</strong> <code>HAVING avg_rating &gt; 80</code> works in MySQL and SQLite and fails in PostgreSQL and SQL Server, because <code>SELECT</code> runs after <code>HAVING</code>. Repeating the full <code>AVG(PctPositive) &gt; 80</code> works everywhere.</p>
+
+    <p><strong>Grouping after a join counts duplicates.</strong> If a join multiplied your rows, <code>COUNT(*)</code> now counts pairs rather than things. <code>COUNT(DISTINCT id)</code> is usually what you meant. This is the most common wrong number in real reporting, and <a href="../sql-joins/">SQL joins</a> covers why it happens.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The clause order is not a convention that a database chose. Grouping is defined as a partition of the rows into disjoint sets, and an aggregate is a function from a set to a single value. Codd's relational model defines operations that way, over relations rather than over individual records (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). Once grouping is a partition, a filter on a group cannot possibly run before the partition exists, and a column at row grain cannot survive into a row that represents a set. Both rules on this page fall out of that, rather than being bolted on.</p>
+
+  <p>The small-group problem is older than SQL and it is not really a query bug. Any ranking of averages puts the smallest samples at both extremes, because the variance of a mean falls as the sample grows. Gelman and Price show that this makes maps and league tables of rates systematically misleading, and that no simple ranking of estimates escapes it (Gelman &amp; Price, 1999, <em>Statistics in Medicine</em>, 18(23), 3221–3234). The eleven accounting games are that exact effect. A <code>HAVING</code> floor is the blunt fix, and it is the right one for a report.</p>
+
+  <p>There is a second reason this page keeps asking you to guess before it answers. Being asked a question before you have been given the answer improves memory for that specific information, even when the guess is wrong, and the effect is reliable across a large body of studies (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725). Guessing which genre ranked highest is why the answer sticks.</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Think of a summary you have already sent to someone. Can you say how many records sit behind its top row? If you cannot, that is the one to check first.</p>
+
+  <p>Auditing every grouped query at once is miserable work and you will stop halfway. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Say the new grain out loud</strong> before you write the query. "One row per genre." Five seconds, and it tells you which columns are legal.</li>
+    <li><strong>Put <code>COUNT(*)</code> in every grouped query</strong>, even when nobody asked for it. It is the column that lets a reader judge the rest, and it costs nothing.</li>
+    <li><strong>Add a <code>HAVING</code> floor before you read the ranking</strong>, not after. Reading the unfiltered version first anchors you to an answer you will not want to give up.</li>
+    <li><strong>Write the floor and its reason into the file</strong> as a comment, in the same pass. This is the first number a reviewer questions.</li>
+    <li><strong>Check every non-aggregate column</strong> against the <code>GROUP BY</code> list. If a column is in neither place, your database may be quietly choosing a value for you.</li>
+  </ol>
+
+  <p>If you have paper nearby and five spare minutes, there is one drawing worth doing, and it is optional. Draw eight rows, cross two out, collapse the remaining six into three buckets, then cross out the bucket holding one row. Label the two crossings-out yourself. Redrawing that from memory is both a retrieval attempt and a check on whether you have it.</p>
+
+  <div class="cta">
+    <strong>Want this reasoning on your own queries?</strong>
+    <p style="margin:6px 0 0">The reason behind a threshold is the first thing to vanish from an uncommented file, and the first thing a reviewer looks for. I packaged the prompts that make Claude, ChatGPT, or Gemini put that reasoning back onto your own queries, in about five minutes. Your portfolio then shows how you think, not only what you typed.</p>
+    <a class="btn" href="https://michaelnocito.gumroad.com/l/sql-prompt-pack" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','prompt_pack_click',{kit:'guide-sql-group-by-having'})">The SQL Teaching-Comment Prompt Pack, $7 →</a>
+    <p style="margin:10px 0 0;font-size:15px">Or get right into it and learn by writing queries: <a href="../../drill/">open SQL Drill</a>, thirteen queries that each add one thing to the last.</p>
+  </div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Concept</th><th>What it does</th></tr>
+    <tr><td><code>GROUP BY</code></td><td>Sorts rows into buckets, then returns one row per bucket.</td></tr>
+    <tr><td>Grain after grouping</td><td>One row per group, not one row per record. Say it out loud.</td></tr>
+    <tr><td>Legal columns</td><td>Only grouped columns and aggregates. Everything else is at the wrong grain.</td></tr>
+    <tr><td><code>COUNT(*)</code></td><td>Rows in the bucket, including rows with nulls.</td></tr>
+    <tr><td><code>COUNT(col)</code></td><td>Rows where that column is not null. Often a different number.</td></tr>
+    <tr><td><code>COUNT(DISTINCT col)</code></td><td>Distinct values. What you usually want after a join.</td></tr>
+    <tr><td><code>AVG</code>, <code>SUM</code>, <code>MIN</code>, <code>MAX</code></td><td>Many values to one value. All of them skip nulls.</td></tr>
+    <tr><td><code>WHERE</code></td><td>Filters individual rows, before any group exists.</td></tr>
+    <tr><td><code>HAVING</code></td><td>Filters whole groups, after they are formed. The only one that sees an aggregate.</td></tr>
+    <tr><td>Clause order</td><td>FROM, WHERE, GROUP BY, HAVING, SELECT, ORDER BY.</td></tr>
+    <tr><td>Why they cannot swap</td><td>The aggregate does not exist when <code>WHERE</code> runs.</td></tr>
+    <tr><td>Alias in <code>HAVING</code></td><td>Works in MySQL and SQLite, fails in PostgreSQL and SQL Server. Repeat the expression.</td></tr>
+    <tr><td>The small-group problem</td><td>Tiny groups fill both ends of every ranking of averages.</td></tr>
+    <tr><td>The fix</td><td>A <code>HAVING COUNT(*)</code> floor, chosen from the data and written down.</td></tr>
+    <tr><td>Missing group</td><td>Every one of its rows was removed by <code>WHERE</code>, so no bucket formed.</td></tr>
+    <tr><td><code>NULL</code> group</td><td>Collapses into one blank-looking bucket. It is a count of your missing data.</td></tr>
+    <tr><td>Grouping after a join</td><td><code>COUNT(*)</code> counts pairs, not things. Use <code>COUNT(DISTINCT id)</code>.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> If you take nothing else from this page, put <code>COUNT(*)</code> in every grouped query and set a floor before you read the ranking. The wrong answer here never looks wrong. It looks like a result. If a summary query breaks in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. My eleven accounting games were obviously silly once I saw the count, but I only saw the count because I had put it in the query. What is the smallest group that has ever topped one of your charts, and how long did it take you to notice?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+    <li>Gelman, A., &amp; Price, P. N. (1999). All maps of parameter estimates are misleading. <em>Statistics in Medicine</em>, 18(23), 3221–3234.</li>
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice grouping with the data in front of you.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> runs SQLite in the browser, so you write the query, run it, and watch the row count collapse. Worked examples, flash cards, and a mock exam sit alongside it. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../../drill/">SQL Drill</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../sql-teaching-comments/">Comment SQL So It Teaches</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-case-expression/">The CASE Expression</a> · <a href="../sql-aliasing/">SQL Aliases</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../tableau-concepts/">Tableau Concepts</a> · <a href="../build-a-tableau-dashboard/">Build a Tableau Dashboard</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin-top:10px"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee &#9749;</a></p>
+  </footer>
+</main>
+</body>
+</html>
