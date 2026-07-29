@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL Path Trial: Type It, Read It, Check It &mdash; Analyst Prep Kit</title>
+<meta name="description" content="One lap of the rotation: a short primer, six typed queries against a real database, the Unit 1 lesson, and a four-question check. Then the SQL readiness checkpoint.">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="../assets/sqled/sqled.css">
+<!--
+  PATH TRIAL. One rotation, Unit 1 only.
+
+  What this page is testing: whether the rotation reads better than the lesson path on its
+  own. The lap is primer, type, lesson, mini quiz, checkpoint, in that order and no other.
+
+  Rules it inherits from the Drill Bible and DRILL_FIRST_CONCEPT.md:
+  1. The reference query is always on screen. Nothing is hidden, scored, or withheld
+     during the typing step.
+  2. Each rung is the rung before it plus one new thing, and the whole query gets retyped.
+  3. Every rung returns real rows. A rung that errors or returns nothing is a defect.
+  4. One directive, always the last thing on screen, and it survives scrolling.
+  5. No streak, no timer, no leaderboard.
+
+  What is deliberately NOT here, pending Mike's call after he walks it:
+  - Drill pass 2 (the blank-editor retrieval pass from the concept doc). This lap is pass 1
+    only, so the pass-2 reveal ladder stays parked.
+  - Units 2 to 4. One lap is the trial.
+  - Its own exam bank. The checkpoint hands off to the existing Final Exam Kit.
+
+  The lesson step hands off to the real kit lesson rather than restating it. Restating it
+  would create a second copy of Unit 1 to keep in sync, and the kit lesson is already the
+  better version.
+-->
+<style>
+  :root{
+    --bg:#F5F7F8; --ink:#09090B; --muted:#52525B; --accent:#0E7490;
+    --line:#E4E7EA; --card:#FFFFFF; --ok:#15803D; --no:#B91C1C;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --pad:18px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.65 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--accent)}
+  .shell{max-width:1240px;margin:0 auto;padding:20px 20px 96px}
+  .crumb{font-size:13.5px;margin:0 0 8px;color:var(--muted)}
+  h1{font-size:26px;line-height:1.2;margin:0}
+  .lead{font-size:15.5px;color:var(--muted);max-width:78ch;margin:6px 0 0}
+  .desktop-note{display:none;background:#E0F2F7;border:1px solid var(--line);
+    border-radius:10px;padding:10px 14px;font-size:14.5px;margin:12px 0 0}
+  @media (max-width:980px){ .desktop-note{display:block} }
+
+  /* The stepper. Four boxes, always visible, so nobody has to guess where the lap goes
+     next or how much of it is left. */
+  .stepper{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 0}
+  .step{flex:1 1 180px;background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:10px 13px;min-width:0}
+  .step[data-state="now"]{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+  .step[data-state="done"]{background:#F0FAF3;border-color:#BBE3C8}
+  .step .n{font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);display:block;margin-bottom:4px}
+  .step[data-state="now"] .n{color:var(--accent)}
+  .step .t{font-weight:600;font-size:15px}
+  .step .s{font-size:12.5px;color:var(--muted)}
+  .step[data-state="done"] .t::after{content:' \2713';color:var(--ok)}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:var(--pad) var(--pad) calc(var(--pad) + 2px);margin:14px 0 0}
+  .card h2{font-size:20px;margin:0 0 4px}
+  .card .sub{color:var(--muted);font-size:14.5px;margin:0 0 14px}
+  section[hidden]{display:none}
+
+  /* Primer: six lines, one idea each, nothing to click but Start typing. */
+  .primer{list-style:none;margin:0;padding:0}
+  .primer li{padding:11px 0;border-top:1px solid var(--line)}
+  .primer li:first-child{border-top:none;padding-top:0}
+  .primer b{display:block;font-size:15.5px}
+  .primer span{font-size:14.5px;color:var(--muted)}
+  code{font:13px/1.5 var(--mono);background:var(--bg);border:1px solid var(--line);
+    border-radius:5px;padding:1px 5px}
+
+  /* Typing step: the drill layout, unchanged from /drill/, because it is the part that
+     already tests well. */
+  .drillbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:12px var(--pad);margin:14px 0}
+  .rung{font:700 12px/1 inherit;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--accent);background:rgba(14,116,144,.09);border-radius:999px;
+    padding:7px 11px;white-space:nowrap}
+  .adds{font-size:16.5px;font-weight:600;margin:0;flex:1 1 320px;min-width:0}
+  .navbtns{display:flex;gap:8px;margin-left:auto}
+
+  .work{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+  @media (max-width:980px){ .work{grid-template-columns:1fr} }
+  .pane{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    display:flex;flex-direction:column;min-width:0}
+  .panehead{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:11px var(--pad);border-bottom:1px solid var(--line)}
+  .panehead h2{font:700 12px/1 inherit;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--muted);margin:0}
+  .panehead .note{font-size:12.5px;color:var(--muted)}
+  #query,.CodeMirror,textarea#sql{font:13.5px/1.65 var(--mono)}
+  .question{margin:0;padding:12px var(--pad);font-size:16.5px;line-height:1.4;
+    font-weight:600;background:rgba(14,116,144,.07);border-bottom:1px solid var(--line)}
+  .question span{display:block;font:700 10.5px/1 inherit;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+  .why{margin:0;padding:12px var(--pad);font-size:14px;color:var(--muted);
+    border-top:1px solid var(--line)}
+  #query{margin:0;padding:var(--pad);white-space:pre-wrap;word-break:break-word}
+  textarea#sql{width:100%;min-height:246px;padding:var(--pad);border:none;
+    background:transparent;color:var(--ink);resize:vertical;tab-size:2;white-space:pre}
+  textarea#sql:focus{outline:2px solid var(--accent);outline-offset:-2px}
+  .CodeMirror.CodeMirror{border:none;border-radius:0;background:transparent;min-height:246px}
+  .CodeMirror .CodeMirror-scroll{min-height:246px}
+  .runbar{border-top:1px solid var(--line);padding:12px var(--pad);display:flex;
+    align-items:center;gap:14px;flex-wrap:wrap}
+  .predict{flex:1 1 260px;font-size:14.5px;min-width:0}
+  .predict b{color:var(--accent)}
+
+  button{font:600 14.5px/1 inherit;padding:11px 16px;border-radius:9px;
+    border:1px solid var(--line);background:var(--card);color:var(--ink);
+    cursor:pointer;min-height:42px}
+  button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+  button.go{background:var(--accent);color:#fff;border-color:var(--accent)}
+  button.go:hover{background:#0b5f75;color:#fff}
+  button:disabled{opacity:.4;cursor:default}
+  button.copy{font-size:12px;padding:6px 10px;min-height:0;color:var(--muted)}
+
+  .output{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    margin:14px 0 0;padding:var(--pad)}
+  #verdict{font-size:15.5px;margin:0 0 10px}
+  #verdict .ok{color:var(--ok);font-weight:700}
+  #verdict .no{color:var(--no);font-weight:700}
+  #out{font:13px/1.6 var(--mono);overflow-x:auto}
+  #out table{border-collapse:collapse;font-size:12.5px}
+  #out th,#out td{border:1px solid var(--line);padding:4px 9px;text-align:left;
+    white-space:nowrap}
+  #out th{color:var(--muted);background:var(--bg)}
+  .dim{color:var(--muted)}
+  .hint{color:var(--muted);font-size:13.5px}
+
+  /* Lesson handoff: a list of real kit lessons, opened in a new tab so the lap keeps
+     its place in this one. */
+  .lessons{list-style:none;margin:0;padding:0}
+  .lessons li{border-top:1px solid var(--line)}
+  .lessons li:first-child{border-top:none}
+  .lessons a{display:flex;gap:12px;align-items:baseline;padding:12px 2px;
+    text-decoration:none;color:inherit;flex-wrap:wrap}
+  .lessons a:hover .lt{color:var(--accent);text-decoration:underline}
+  .lessons .lt{font-weight:600;font-size:15.5px}
+  .lessons .ls{font-size:13.5px;color:var(--muted);flex:1 1 240px}
+  .lessons .go-out{font-size:12.5px;color:var(--muted);white-space:nowrap}
+
+  /* Mini quiz: four questions, one screen, answered in place. */
+  .q{border-top:1px solid var(--line);padding:16px 0}
+  .q:first-of-type{border-top:none;padding-top:2px}
+  .q p.qt{font-weight:600;margin:0 0 10px;font-size:15.5px}
+  .opts{display:grid;gap:8px}
+  .opt{text-align:left;font-weight:500;padding:11px 14px;line-height:1.45;
+    font-family:inherit}
+  .opt.picked-ok{border-color:var(--ok);background:#F0FAF3;color:var(--ok)}
+  .opt.picked-no{border-color:var(--no);background:#FDF2F2;color:var(--no)}
+  .opt.showans{border-color:var(--ok);color:var(--ok)}
+  .opt code{background:transparent;border:none;padding:0}
+  .exp{margin:10px 0 0;font-size:14.5px;background:var(--bg);border:1px solid var(--line);
+    border-radius:9px;padding:11px 13px}
+  .score{font-size:15.5px;font-weight:600;margin:14px 0 0}
+
+  /* Checkpoint. Reuses the Final Exam Kit rather than inventing a second bank. */
+  .ck{background:rgba(14,116,144,.06);border-color:rgba(14,116,144,.35)}
+  .ckrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .ckrow a button{min-width:0}
+
+  #directive{position:fixed;left:0;right:0;bottom:0;background:var(--card);
+    border-top:1px solid var(--line);z-index:5;pointer-events:none}
+  #directive p{max-width:1240px;margin:0 auto;padding:13px 20px;font-weight:600;
+    font-size:15px}
+  footer{border-top:1px solid var(--line);margin:22px 0 0;padding:18px 0 0;
+    font-size:13.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <p class="crumb"><a href="../">&larr; Analyst Prep Kit</a> &middot; <a href="../sql/">SQL Kit</a> &middot; <a href="../drill/">SQL Drill</a></p>
+  <h1>SQL Path &middot; Unit 1</h1>
+  <p class="lead">One lap of the rotation. You get the handful of words you need, you type six real queries against a real database, you read the lesson, then four questions check that it stuck. About twenty minutes.</p>
+  <p class="desktop-note"><strong>Made for a desktop.</strong> The queries get long, and this page shows every line of them rather than shrinking them to fit a phone.</p>
+
+  <div class="stepper" id="stepper"></div>
+
+  <!-- STEP 1 ─ PRIMER ─────────────────────────────────────────────────────── -->
+  <section id="s-primer">
+    <div class="card">
+      <h2>The six words you need</h2>
+      <p class="sub">Read this once. It is not the lesson, it is just enough to type the first query without guessing.</p>
+      <ul class="primer" id="primer-list"></ul>
+      <p style="margin:16px 0 0"><button class="go" id="to-type">Start typing</button></p>
+    </div>
+  </section>
+
+  <!-- STEP 2 ─ TYPE ───────────────────────────────────────────────────────── -->
+  <section id="s-type" hidden>
+    <div class="drillbar">
+      <span class="rung" id="rung">Loading</span>
+      <p class="adds" id="adds">Starting the SQL engine.</p>
+      <span class="navbtns">
+        <button id="prev">Back</button>
+        <button id="next">Next query</button>
+        <button class="go" id="to-lesson" hidden>Go to the lesson</button>
+      </span>
+    </div>
+
+    <div class="work">
+      <div class="pane">
+        <div class="panehead">
+          <h2>Type this query</h2>
+          <button class="copy" id="copy-q">Copy</button>
+        </div>
+        <p class="question" id="question"></p>
+        <pre id="query"></pre>
+        <p class="why" id="why"></p>
+      </div>
+
+      <div class="pane">
+        <div class="panehead">
+          <h2>Your editor</h2>
+          <span class="note">Ctrl+Enter runs &middot; Ctrl+Space lists tables and columns</span>
+        </div>
+        <textarea id="sql" spellcheck="false" autocapitalize="off" autocomplete="off"
+                  autocorrect="off" placeholder="Type the query here."></textarea>
+        <div class="runbar">
+          <p class="predict"><b>Before you run it:</b> <span id="pretext"></span></p>
+          <button class="go" id="run">Run</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="output">
+      <div id="verdict" class="hint" aria-live="polite">Run your query and the rows appear here.</div>
+      <div id="out"></div>
+    </div>
+  </section>
+
+  <!-- STEP 3 ─ LESSON ─────────────────────────────────────────────────────── -->
+  <section id="s-lesson" hidden>
+    <div class="card">
+      <h2>Now read why it worked</h2>
+      <p class="sub">You have already typed all four of these clauses and watched them run. The lessons open in a new tab, so this page keeps your place. Read the first one at least.</p>
+      <ul class="lessons" id="lesson-list"></ul>
+      <p style="margin:16px 0 0"><button class="go" id="to-quiz">Done reading, check me</button></p>
+    </div>
+  </section>
+
+  <!-- STEP 4 ─ MINI QUIZ ──────────────────────────────────────────────────── -->
+  <section id="s-quiz" hidden>
+    <div class="card">
+      <h2>Four questions</h2>
+      <p class="sub">One per lesson. A wrong answer is not a mark against you, it points at the one clause worth retyping.</p>
+      <div id="quiz-list"></div>
+      <p class="score" id="score" hidden></p>
+      <p style="margin:14px 0 0"><button class="go" id="to-done" hidden>Finish the lap</button></p>
+    </div>
+  </section>
+
+  <!-- END ─ CHECKPOINT ────────────────────────────────────────────────────── -->
+  <section id="s-done" hidden>
+    <div class="card">
+      <h2>Lap done</h2>
+      <p class="sub" id="done-sub">You typed six queries, read Unit 1, and answered four questions about it.</p>
+      <p style="margin:0">Next in the rotation would be Unit 2: aggregation and shaping. Same lap, one clause deeper.</p>
+    </div>
+
+    <div class="card ck">
+      <h2>SQL checkpoint</h2>
+      <p class="sub">There is no SQL certification worth buying, so this is the stand-in: a scored readiness check you can retake as often as you like. Nothing is timed.</p>
+      <p style="margin:0">The SQL section of the Final Exam Kit is the checkpoint for now.</p>
+      <div class="ckrow">
+        <a href="../final/#exam-sql" target="_blank" rel="noopener"><button class="go">Take the SQL checkpoint</button></a>
+        <button id="again">Run this lap again</button>
+        <a href="../sql/"><button>Open the full SQL kit</button></a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    A trial layout, not the finished path. The pieces it uses are the real ones:
+    <a href="../drill/">SQL Drill</a>,
+    the <a href="../sql/">SQL kit lessons</a>, and the
+    <a href="../final/">Final Exam Kit</a>.
+  </footer>
+</div>
+
+<div id="directive"><p id="directive-text">Read the six lines, then click Start typing.</p></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<script src="../assets/sqled/sqled.js"></script>
+<!-- The database is the drill page's baked export, reused rather than copied. -->
+<script src="../drill/data.js?v=2"></script>
+<script src="ladder.js?v=1"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+
+let db = null, i = 0, step = 'primer';
+let ed = { getValue: () => $('sql').value, setValue: v => { $('sql').value = v; },
+           focus: () => $('sql').focus({preventScroll:true}), refresh: () => {} };
+
+// Bookmark, not a progress bar. Closing the tab should not cost the lap.
+const KEY = 'apk-path-trial-u1';
+try {
+  const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
+  if(saved.step) step = saved.step;
+  if(typeof saved.i === 'number') i = Math.min(saved.i, LAP.drills.length - 1);
+} catch(e){}
+const remember = () => { try { localStorage.setItem(KEY, JSON.stringify({step, i})); } catch(e){} };
+
+// ── the stepper and which section is on screen ──────────────────────────────
+const STEPS = [
+  {key:'primer', t:'Primer',    s:'the six words'},
+  {key:'type',   t:'Type',      s:'six real queries'},
+  {key:'lesson', t:'Lesson',    s:'why it worked'},
+  {key:'quiz',   t:'Mini quiz', s:'four questions'},
+];
+const ORDER = ['primer','type','lesson','quiz','done'];
+
+const DIRECTIVE = {
+  primer: 'Read the six lines, then click Start typing.',
+  lesson: 'Open the lesson, read it, then come back to this tab and click Done reading.',
+  quiz:   'Answer all four, then finish the lap.',
+  done:   'Take the checkpoint, or run the lap again for the reps.',
+};
+
+function paintStepper(){
+  const at = ORDER.indexOf(step);
+  $('stepper').innerHTML = STEPS.map((s, n) => {
+    const pos = ORDER.indexOf(s.key);
+    const state = pos < at ? 'done' : (pos === at ? 'now' : 'todo');
+    return `<div class="step" data-state="${state}">
+      <span class="n">Step ${n + 1}</span>
+      <span class="t">${s.t}</span>
+      <span class="s">${s.s}</span>
+    </div>`;
+  }).join('');
+}
+
+function show(next){
+  step = next;
+  ORDER.forEach(k => { const el = $('s-' + k); if(el) el.hidden = k !== step; });
+  paintStepper();
+  if(step === 'type') renderDrill(); else $('directive-text').textContent = DIRECTIVE[step];
+  remember();
+  scrollTo({top:0, behavior:'smooth'});
+}
+
+// ── step 1: primer ──────────────────────────────────────────────────────────
+$('primer-list').innerHTML = LAP.primer
+  .map(([h, b]) => `<li><b>${h}</b><span>${b}</span></li>`).join('');
+$('to-type').onclick = () => show('type');
+
+// ── step 2: typing ──────────────────────────────────────────────────────────
+function renderDrill(){
+  const d = LAP.drills[i];
+  $('rung').textContent = 'Query ' + (i + 1) + ' of ' + LAP.drills.length;
+  $('adds').textContent = d.adds;
+  $('question').innerHTML = '<span>The question</span>' + esc(d.q);
+  $('query').textContent = d.sql;
+  $('why').textContent = d.why;
+  $('pretext').textContent = d.pre;
+  $('verdict').className = 'hint';
+  $('verdict').textContent = 'Run your query and the rows appear here.';
+  $('out').innerHTML = '';
+  const last = i === LAP.drills.length - 1;
+  $('prev').disabled = i === 0;
+  $('next').hidden = last;
+  $('to-lesson').hidden = !last;
+  $('directive-text').textContent = last
+    ? 'Last query. Type it, run it, then go to the lesson.'
+    : 'Type the whole query, run it, then click Next query.';
+  // Never prefilled. Typing it out is the entire point.
+  ed.setValue('');
+  ed.focus();
+  remember();
+}
+
+function table(res){
+  if(!res.length) return 'Query ran. No rows returned.';
+  const {columns, values} = res[res.length - 1];
+  const head = '<tr>' + columns.map(c => '<th>' + esc(c) + '</th>').join('') + '</tr>';
+  const body = values.slice(0, 50).map(r => '<tr>' + r.map(v =>
+    '<td>' + (v === null ? '<span class="dim">NULL</span>' : esc(v)) + '</td>').join('') + '</tr>').join('');
+  const more = values.length > 50
+    ? '<div class="dim">Showing the first 50 of ' + values.length + ' rows.</div>' : '';
+  return '<table>' + head + body + '</table>' + more;
+}
+
+// Rows on a screen are not an answer until someone says what they mean.
+function answerLine(res){
+  if(!res.length) return '';
+  const {columns, values} = res[res.length - 1];
+  if(!values.length) return '';
+  const parts = columns.map((c, n) => {
+    const v = values[0][n];
+    if(typeof v !== 'number') return String(v);
+    return Number.isInteger(v) ? v.toLocaleString() : (Math.round(v * 10) / 10).toLocaleString();
+  });
+  return values.length === 1
+    ? '<b>Your answer:</b> ' + esc(parts.join(', ')) + '.'
+    : '<b>Top row:</b> ' + esc(parts.join(', ')) + '.';
+}
+
+function run(){
+  const typed = ed.getValue().trim();
+  if(!typed) return;
+  let res;
+  try { res = db.exec(typed); }
+  catch(e){
+    // An error is information, not a mark against anyone, and the right query is already
+    // on screen, so there is nothing to reveal or withhold.
+    $('verdict').className = '';
+    $('verdict').innerHTML = '<span class="no">SQLite could not run that.</span> It says: ' +
+      esc(e.message) + '. Compare your line against the query on the left.';
+    $('out').innerHTML = '';
+    return;
+  }
+  const got = res.length ? res[res.length - 1].values.length : 0;
+  const want = LAP.drills[i].rows;
+  $('verdict').className = '';
+  $('verdict').innerHTML = '<b>' + got + (got === 1 ? ' row' : ' rows') + ' back.</b> The query on the left returns ' +
+    want + (got === want ? '. ' : ', so the two are not doing the same thing yet. ') +
+    (got === want ? answerLine(res) : '');
+  $('out').innerHTML = table(res);
+}
+
+$('run').onclick = run;
+$('next').onclick = () => { if(i < LAP.drills.length - 1){ i++; renderDrill(); } };
+$('prev').onclick = () => { if(i > 0){ i--; renderDrill(); } };
+$('to-lesson').onclick = () => show('lesson');
+$('sql').addEventListener('keydown', e => {
+  if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); run(); }
+});
+$('copy-q').onclick = () => {
+  try { navigator.clipboard.writeText($('query').textContent); } catch(e){}
+  $('copy-q').textContent = 'Copied';
+  setTimeout(() => { $('copy-q').textContent = 'Copy'; }, 1400);
+};
+
+// ── step 3: the lesson handoff ──────────────────────────────────────────────
+$('lesson-list').innerHTML = LAP.lessons.map(l => `
+  <li><a href="../sql/#lesson-${l.id}" target="_blank" rel="noopener">
+    <span class="lt">${esc(l.title)}</span>
+    <span class="ls">${esc(l.sub)}</span>
+    <span class="go-out">opens in a new tab &nearr;</span>
+  </a></li>`).join('');
+$('to-quiz').onclick = () => show('quiz');
+
+// ── step 4: the mini quiz ───────────────────────────────────────────────────
+const answered = {};
+$('quiz-list').innerHTML = LAP.quiz.map((q, n) => `
+  <div class="q">
+    <p class="qt">${n + 1}. ${esc(q.q)}</p>
+    <div class="opts" id="opts-${n}">
+      ${q.opts.map((o, k) => `<button class="opt" data-q="${n}" data-k="${k}">${esc(o)}</button>`).join('')}
+    </div>
+    <p class="exp" id="exp-${n}" hidden></p>
+  </div>`).join('');
+
+$('quiz-list').querySelectorAll('.opt').forEach(b => {
+  b.onclick = () => {
+    const n = +b.dataset.q, k = +b.dataset.k;
+    if(n in answered) return;                       // one swing per question
+    const q = LAP.quiz[n];
+    answered[n] = k === q.ans;
+    b.classList.add(k === q.ans ? 'picked-ok' : 'picked-no');
+    // A wrong pick shows the right one immediately. Withholding it here would send
+    // someone away from the page to find out, which is where they stop coming back.
+    if(k !== q.ans) $('opts-' + n).children[q.ans].classList.add('showans');
+    $('opts-' + n).querySelectorAll('.opt').forEach(x => { x.disabled = true; });
+    $('exp-' + n).textContent = q.exp;
+    $('exp-' + n).hidden = false;
+    if(Object.keys(answered).length === LAP.quiz.length){
+      const got = Object.values(answered).filter(Boolean).length;
+      $('score').textContent = got + ' of ' + LAP.quiz.length + ' first time.' +
+        (got === LAP.quiz.length ? ' Unit 1 is in.' : ' The explanations above are the bit to retype.');
+      $('score').hidden = false;
+      $('to-done').hidden = false;
+      $('directive-text').textContent = 'Click Finish the lap.';
+    }
+  };
+});
+$('to-done').onclick = () => show('done');
+
+// ── end: run it again ───────────────────────────────────────────────────────
+$('again').onclick = () => { i = 0; show('type'); };
+
+// ── boot ────────────────────────────────────────────────────────────────────
+paintStepper();
+initSqlJs({locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/' + f})
+  .then(SQL => {
+    db = new SQL.Database();
+    db.run(SCHEMA);
+    for(const t in DATA){
+      const {cols, rows} = DATA[t];
+      const stmt = db.prepare('INSERT INTO ' + t + ' VALUES (' + cols.map(() => '?').join(',') + ')');
+      db.run('BEGIN');
+      rows.forEach(r => { stmt.run(r); stmt.reset(); });
+      db.run('COMMIT');
+      stmt.free();
+    }
+    ed = SQLED.attach($('sql'), {
+      schema: SQLED.schemaFromDb(db),
+      onRun: run,
+      onReady: h => { ed = h; if(step === 'type') renderDrill(); }
+    });
+    show(step);
+  })
+  .catch(e => { $('adds').textContent = 'The SQL engine failed to load: ' + e.message; });
+</script>
+</body>
+</html>
