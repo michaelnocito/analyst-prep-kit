@@ -14,6 +14,7 @@ const LADDER = {
   rungs: [
 
   { adds: 'Make a list of artists',
+    q: 'Which country artists are in this collection?',
     do: ['Drag <b>Artist</b> from the blue list onto the <b>Rows</b> shelf.'],
     why: 'Artist is a dimension. A dimension is a field you group by, and it is blue. Drop one on a shelf and you get one row per value.',
     sql: 'SELECT DISTINCT artist FROM country_gems',
@@ -21,6 +22,7 @@ const LADDER = {
     target: {rows: ['artist']} },
 
   { adds: 'Turn that list into bars',
+    q: 'Who has the biggest audience?',
     do: ['Drag <b>Listeners</b> from the green list onto the <b>Columns</b> shelf.'],
     why: 'Listeners is a measure. A measure is a number you add up, and it is green. Drop one on a shelf and every artist gets a bar.',
     sql: 'SELECT artist, SUM(listeners) FROM country_gems GROUP BY artist',
@@ -28,6 +30,7 @@ const LADDER = {
     target: {rows: ['artist'], cols: ['listeners'], agg: 'SUM'} },
 
   { adds: 'Put the biggest bar on top',
+    q: 'Who are the top few, at a glance?',
     do: ['Click <b>Desc</b> in the Sort buttons.'],
     why: 'Desc is short for descending. It means biggest first.',
     sql: 'ORDER BY SUM(listeners) DESC',
@@ -35,6 +38,7 @@ const LADDER = {
     target: {rows: ['artist'], cols: ['listeners'], sort: 'desc'} },
 
   { adds: 'Count tracks instead of adding up listeners',
+    q: 'Who has the most tracks in here?',
     do: ['Click the <b>x</b> on the Listeners pill to take it off Columns.',
          'Drag <b>Number of Records</b> onto <b>Columns</b>.'],
     why: 'Number of Records counts the rows. Here that means how many tracks each artist has.',
@@ -43,6 +47,7 @@ const LADDER = {
     target: {rows: ['artist'], cols: ['records'], sort: 'desc'} },
 
   { adds: 'Show only the newer artists',
+    q: 'Among newer artists only, who has the most tracks?',
     do: ['Drag <b>Era</b> onto the <b>Filter</b> shelf.',
          'Under the shelf, click <b>catalog</b> to switch it off.'],
     why: 'Every value starts switched on. Clicking one leaves it out. Era says whether an artist is new (modern) or older (catalog).',
@@ -51,6 +56,7 @@ const LADDER = {
     target: {rows: ['artist'], cols: ['records'], filter: 'era', filterVals: ['modern']} },
 
   { adds: 'Ask the question by decade instead of by artist',
+    q: 'Which decade of artists holds the biggest audience?',
     do: ['Click the <b>x</b> on the Era pill to clear the filter.',
          'Click the <b>x</b> on the Artist pill on Rows.',
          'Drag <b>Decade</b> onto <b>Rows</b>.',
@@ -61,6 +67,7 @@ const LADDER = {
     target: {rows: ['decade'], cols: ['listeners'], filter: null} },
 
   { adds: 'Put two blue fields on one shelf',
+    q: 'Inside each decade, which artists carry the audience?',
     do: ['Drag <b>Artist</b> onto <b>Rows</b>, to the right of Decade.'],
     why: 'A shelf holds a list, not one field. Two blue fields give you headers inside headers. The order you drop them is the order you see.',
     sql: 'SELECT debut_decade, artist, SUM(listeners) FROM country_gems GROUP BY debut_decade, artist',
@@ -68,6 +75,7 @@ const LADDER = {
     target: {rows: ['decade', 'artist'], cols: ['listeners']} },
 
   { adds: 'Put two green fields on one shelf',
+    q: 'Do listeners and plays tell the same story by decade?',
     do: ['Click the <b>x</b> on the Artist pill.',
          'Drag <b>Playcount</b> onto <b>Columns</b>, next to Listeners.'],
     why: 'Two numbers cannot share one bar. The tool splits them and colours them apart for you. Real Tableau calls that Measure Names.',
@@ -76,6 +84,7 @@ const LADDER = {
     target: {rows: ['decade'], cols: ['listeners', 'playcount']} },
 
   { adds: 'Colour the bars by a blue field',
+    q: 'Is the audience in new artists or older ones?',
     do: ['Click the <b>x</b> on the Playcount pill.',
          'Drag <b>Era</b> onto <b>Colour</b>, in the Marks box.'],
     why: 'A blue field on Colour gives one colour per value. Look at the legend under the Marks box.',
@@ -84,6 +93,7 @@ const LADDER = {
     target: {rows: ['decade'], cols: ['listeners'], color: 'era'} },
 
   { adds: 'Colour the bars by a green field instead',
+    q: 'Which decades get replayed hardest, not just heard most?',
     do: ['Drag <b>Playcount</b> onto <b>Colour</b>. It replaces Era.'],
     why: 'This is the drop that catches everyone. A green field on Colour does not split the bars. It shades them light to dark. The legend changes from patches to a strip.',
     sql: 'The rows do not change. The shade is a second number per bar.',
@@ -91,6 +101,7 @@ const LADDER = {
     target: {rows: ['decade'], cols: ['listeners'], color: 'playcount'} },
 
   { adds: 'Write the number on each bar',
+    q: 'What are the actual figures, without reading the axis?',
     do: ['Drag <b>Listeners</b> onto <b>Label</b>, in the Marks box.'],
     why: 'Label prints a value on the mark. It is why some charts need no axis.',
     sql: 'Nothing new is asked of the data. The number was already there.',
@@ -98,6 +109,7 @@ const LADDER = {
     target: {rows: ['decade'], cols: ['listeners'], color: 'playcount', label: 'listeners'} },
 
   { adds: 'Split the bars without showing why',
+    q: 'How much of a decade is one artist?',
     do: ['Click the <b>x</b> on the Playcount pill on Colour.',
          'Click the <b>x</b> on the Listeners pill on Label.',
          'Drag <b>Artist</b> onto <b>Detail</b>, in the Marks box.'],
@@ -107,6 +119,7 @@ const LADDER = {
     target: {rows: ['decade'], cols: ['listeners'], color: null, label: null, detail: 'artist'} },
 
   { adds: 'See the numbers as a table',
+    q: 'What exactly is behind the picture?',
     do: ['Click the <b>x</b> on the Artist pill on Detail.',
          'Click <b>Text table</b> in the Marks buttons.'],
     why: 'Every chart is a table underneath. This shows the table instead of drawing it.',
@@ -115,6 +128,7 @@ const LADDER = {
     target: {rows: ['decade'], cols: ['listeners'], detail: null, mark: 'text'} },
 
   { adds: 'Change the maths without changing the fields',
+    q: 'Is the typical track big, or just the total?',
     do: ['Click <b>Bar</b> to go back to bars.',
          'Click the body of the <b>Listeners</b> pill once. It reads AVG.'],
     why: 'SUM adds every track together. AVG gives the typical track. Same field, different question.',
@@ -123,6 +137,7 @@ const LADDER = {
     target: {rows: ['decade'], cols: ['listeners'], agg: 'AVG', mark: 'bar'} },
 
   { adds: 'Turn the chart on its side',
+    q: 'Same answer, easier to read across time?',
     do: ['Click the pill body until it reads <b>SUM</b> again.',
          'Take <b>Decade</b> off Rows and <b>Listeners</b> off Columns.',
          'Drag <b>Decade</b> onto <b>Columns</b>.',
@@ -133,6 +148,7 @@ const LADDER = {
     target: {cols: ['decade'], rows: ['listeners'], agg: 'SUM', mark: 'bar'} },
 
   { adds: 'Draw it as a line',
+    q: 'Is the audience rising decade by decade?',
     do: ['Click <b>Line</b> in the Marks buttons.'],
     why: 'A line says these points follow on from each other. Bars say compare these. Pick the one you mean.',
     sql: 'Still the same query underneath.',
@@ -140,6 +156,7 @@ const LADDER = {
     target: {cols: ['decade'], rows: ['listeners'], mark: 'line'} },
 
   { adds: 'Finish on the answer you already wrote in SQL',
+    q: 'Where does the country audience actually sit, new artists or old?',
     do: ['Click <b>Bar</b>.',
          'Take <b>Decade</b> off Columns.',
          'Drag <b>Era</b> onto <b>Columns</b>.',

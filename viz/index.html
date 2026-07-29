@@ -74,6 +74,15 @@
   .panehead h2{font:700 12px/1 inherit;letter-spacing:.07em;text-transform:uppercase;
     color:var(--muted);margin:0}
   .panebody{padding:var(--pad)}
+  /* The question comes first. Steps that say what to drag without saying what is being
+     asked teach the motions and none of the job. */
+  .question{margin:0 0 14px;font-size:17px;line-height:1.4;font-weight:600;
+    padding:11px 13px;background:rgba(14,116,144,.07);border-radius:10px;
+    border-left:3px solid var(--accent)}
+  .question span{display:block;font:700 10.5px/1 inherit;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+  .answer{margin:10px 0 0;font-size:15px}
+  .answer b{color:var(--ok)}
   /* Actions, not prose. One line each, numbered, big enough to follow while your hands
      are busy dragging. */
   .steps{margin:0;padding:0;list-style:none;counter-reset:s}
@@ -206,6 +215,7 @@
     <div class="pane">
       <div class="panehead"><h2>Do this</h2></div>
       <div class="panebody">
+        <p class="question" id="question"></p>
         <ol class="steps" id="task"></ol>
         <p class="why" id="why"></p>
       </div>
@@ -872,6 +882,21 @@ function say(msg){
   $('check').innerHTML = msg;
 }
 
+// Reading the chart back in words. A learner who has just placed a field is looking at
+// shapes; naming the biggest one is what turns the shapes into an answer, and it is the
+// sentence they would have to say out loud at work.
+function answerLine(){
+  const rs = resultSet();
+  if(!rs) return '';
+  if(!rs.measField)
+    return 'Your answer: ' + [...new Set(rs.rows.map(r => r.key))].length + ' of them.';
+  const top = rs.rows.reduce((a, b) => b.value > a.value ? b : a, rs.rows[0]);
+  if(!top) return '';
+  const num = Math.round(top.value).toLocaleString();
+  const what = rs.measFields.length > 1 && top.measure ? ' ' + FIELDS[top.measure].label.toLowerCase() : '';
+  return 'Your answer: <b>' + esc(top.key) + '</b> is the biggest, at ' + num + what + '.';
+}
+
 function draw(){
   fieldWells();
   SHELVES.forEach(s => {
@@ -930,7 +955,8 @@ function draw(){
   // Described, never scored. What is left to do, in the words of the tool.
   const missing = checkRung();
   say(missing.length === 0
-    ? '<span class="done">Done.</span> Look at the chart, then click Next step.'
+    ? '<span class="done">Done.</span> ' + answerLine() +
+      (i === LADDER.rungs.length - 1 ? ' That is the last step.' : ' Then click Next step.')
     : '<b>Not yet.</b> ' + missing.join(', then ').replace(/^./, c => c.toUpperCase()) + '.');
 }
 
@@ -939,6 +965,7 @@ function render(){
   const last = i === LADDER.rungs.length - 1;
   $('rung').textContent = 'Step ' + (i + 1) + ' of ' + LADDER.rungs.length;
   $('adds').textContent = r.adds;
+  $('question').innerHTML = '<span>The question</span>' + esc(r.q || '');
   $('task').innerHTML = (r.do || []).map(a => '<li>' + a + '</li>').join('');
   $('why').textContent = r.why || '';
   $('tie').textContent = r.tie;
