@@ -101,13 +101,21 @@
      empty white was measurably what pushed Run and the output tabs below the fold. */
   /* Wraps rather than scrolls sideways, matching the editor beside it, which has
      lineWrapping on. A query you have to scroll to read is a query you mistype. */
+  /* The question comes first, the same as Viz Drill. A query you type without knowing
+     what it is being asked teaches typing and none of the job. */
+  .question{margin:0;padding:12px var(--pad);font-size:16.5px;line-height:1.4;
+    font-weight:600;background:rgba(14,116,144,.07);border-bottom:1px solid var(--line)}
+  .question span{display:block;font:700 10.5px/1 inherit;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+  .why{margin:0;padding:12px var(--pad);font-size:14px;color:var(--muted);
+    border-top:1px solid var(--line)}
   #query{margin:0;padding:var(--pad);white-space:pre-wrap;word-break:break-word}
   .work{align-items:start}
-  textarea#sql{width:100%;min-height:262px;padding:var(--pad);border:none;
+  textarea#sql{width:100%;min-height:246px;padding:var(--pad);border:none;
     background:transparent;color:var(--ink);resize:vertical;tab-size:2;white-space:pre}
   textarea#sql:focus{outline:2px solid var(--accent);outline-offset:-2px}
-  .CodeMirror.CodeMirror{border:none;border-radius:0;background:transparent;min-height:262px}
-  .CodeMirror .CodeMirror-scroll{min-height:262px}
+  .CodeMirror.CodeMirror{border:none;border-radius:0;background:transparent;min-height:246px}
+  .CodeMirror .CodeMirror-scroll{min-height:246px}
 
   /* Prediction and the primary action, together, at the foot of the editor. */
   .runbar{border-top:1px solid var(--line);padding:12px var(--pad);display:flex;
@@ -211,7 +219,9 @@
         <h2>Type this query</h2>
         <button class="copy" data-copy="query">Copy</button>
       </div>
+      <p class="question" id="question"></p>
       <pre id="query"></pre>
+      <p class="why" id="why"></p>
     </div>
 
     <div class="pane">
@@ -309,6 +319,8 @@ function render(){
   $('tables').innerHTML = used.length
     ? (used.length > 1 ? 'TABLES: ' : 'TABLE: ') + used.map(n => '<b>' + esc(n) + '</b>').join(' &middot; ')
     : '';
+  $('question').innerHTML = '<span>The question</span>' + esc(d.q || '');
+  $('why').textContent = d.why || '';
   $('header').textContent = d.header;
   $('query').textContent = d.sql;
   $('pretext').textContent = d.pre;
@@ -397,6 +409,25 @@ function table(res){
   return '<table>' + head + body + '</table>' + more;
 }
 
+// Reading the result back as a sentence. Rows on a screen are not an answer until someone
+// says what they mean, and saying it is the part that transfers to the job.
+function answerLine(res){
+  if(!res.length) return '';
+  const {columns, values} = res[res.length - 1];
+  if(!values.length) return '';
+  const first = values[0];
+  const parts = columns.map((c, n) => {
+    const v = first[n];
+    if(typeof v !== 'number') return String(v);
+    // Rounding a percentage to a whole number quietly changes the answer, so decimals
+    // survive and only the big counts get shortened.
+    return Number.isInteger(v) ? v.toLocaleString() : (Math.round(v * 10) / 10).toLocaleString();
+  });
+  return values.length === 1
+    ? '<b>Your answer:</b> ' + esc(parts.join(', ')) + '.'
+    : '<b>Top row:</b> ' + esc(parts.join(', ')) + '.';
+}
+
 function run(){
   const typed = ed.getValue().trim();
   if(!typed) return;
@@ -418,7 +449,8 @@ function run(){
   const want = LADDER.drills[i].rows;
   $('verdict').className = '';
   $('verdict').innerHTML = '<b>' + got + ' rows back.</b> The query on the left returns ' +
-    want + (got === want ? '.' : ', so the two are not doing the same thing yet.');
+    want + (got === want ? '. ' : ', so the two are not doing the same thing yet. ') +
+    (got === want ? answerLine(res) : '');
   $('out').innerHTML = table(res);
 }
 
