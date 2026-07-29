@@ -79,9 +79,16 @@
   section[hidden]{display:none}
 
   /* Primer: six lines, one idea each, nothing to click but Start typing. */
+  /* Two columns on a desktop so Start typing clears the fold. Run 007 found it 116px
+     below it in a stacked single column, which sent someone hunting for a button the
+     page had not told them was further down. */
   .primer{list-style:none;margin:0;padding:0}
   .primer li{padding:11px 0;border-top:1px solid var(--line)}
   .primer li:first-child{border-top:none;padding-top:0}
+  @media (min-width:980px){
+    .primer{display:grid;grid-template-columns:1fr 1fr;gap:0 26px}
+    .primer li:nth-child(4){border-top:none;padding-top:0}
+  }
   .primer b{display:block;font-size:15.5px}
   .primer span{font-size:14.5px;color:var(--muted)}
   code{font:13px/1.5 var(--mono);background:var(--bg);border:1px solid var(--line);
@@ -125,13 +132,14 @@
   .CodeMirror .CodeMirror-scroll{min-height:246px}
   .runbar{border-top:1px solid var(--line);padding:12px var(--pad);display:flex;
     align-items:center;gap:14px;flex-wrap:wrap}
-  .predict{flex:1 1 100%;font-size:14.5px;min-width:0}
+  .predict{flex:1 1 260px;font-size:14.5px;min-width:0}
   .predict b{color:var(--accent)}
-  /* One row, read left to right in the order it is used: leave, run, move on. Back is
-     quiet because it is the rare click; Run is primary until the rows match, and then
-     the forward button takes over as the loud one. */
-  .actions{display:flex;align-items:center;gap:10px;width:100%}
-  .actions .fwd{margin-left:auto}
+  /* The row that leaves this query, sitting under the rows it produced. Back is quiet
+     because it is the rare click. The forward button stays next to it rather than pinned
+     to the far right: 714px of hand travel between two buttons in one path is what run
+     007 measured, and there is no reason for the gap. */
+  .actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    border-top:1px solid var(--line);margin-top:14px;padding-top:14px}
   #back{color:var(--muted);padding:11px 13px}
 
   button{font:600 14.5px/1 inherit;padding:11px 16px;border-radius:9px;
@@ -221,8 +229,8 @@
 <div class="shell">
   <p class="crumb"><a href="../">&larr; Analyst Prep Kit</a> &middot; <a href="../sql/">SQL Kit</a> &middot; <a href="../drill/">SQL Drill</a></p>
   <h1>SQL Path &middot; Unit 1</h1>
-  <p class="lead">One lap of the rotation. You get the handful of words you need, you type six real queries against a real database, you read the lesson, then four questions check that it stuck. About twenty minutes.</p>
-  <p class="desktop-note"><strong>Made for a desktop.</strong> The queries get long, and this page shows every line of them rather than shrinking them to fit a phone.</p>
+  <p class="lead">Six words, six typed queries, the lesson, four questions. About twenty minutes.</p>
+  <p class="desktop-note"><strong>Made for a desktop.</strong> The queries get long, and a keyboard makes this a lot better.</p>
 
   <div class="stepper" id="stepper"></div>
 
@@ -263,12 +271,7 @@
                   autocorrect="off" placeholder="Type the query here."></textarea>
         <div class="runbar">
           <p class="predict"><b>Before you run it:</b> <span id="pretext"></span></p>
-          <div class="actions">
-            <button id="back">&larr; Back</button>
-            <button class="go" id="run">Run</button>
-            <button class="fwd" id="next">Next query &rarr;</button>
-            <button class="fwd go" id="to-lesson" hidden>Go to the lesson &rarr;</button>
-          </div>
+          <button class="go" id="run">Run</button>
         </div>
       </div>
     </div>
@@ -276,6 +279,16 @@
     <div class="output">
       <div id="verdict" class="hint" aria-live="polite">Run your query and the rows appear here.</div>
       <div id="out"></div>
+      <!-- Moving on lives BELOW the rows, never above them. Real Test run 007: with the
+           forward button above the result table, colour and motion said "go forward" while
+           the rows you ran the query to see sat below, silent, and a first-timer clicks
+           through without reading one. Run stays up beside the editor because that is
+           where the typing hand already is. -->
+      <div class="actions">
+        <button id="back">&larr; Back</button>
+        <button class="fwd" id="next">Next query &rarr;</button>
+        <button class="fwd go" id="to-lesson" hidden>Go to the lesson &rarr;</button>
+      </div>
     </div>
   </section>
 
@@ -384,6 +397,9 @@ function pop(el){
   el.classList.remove('pop');
   void el.offsetWidth;                              // restart the animation on a re-run
   el.classList.add('pop');
+  // Clean the class off when it finishes. A one-shot animation leaves its name behind,
+  // which reads like a live pulse to anything inspecting the element.
+  el.addEventListener('animationend', () => el.classList.remove('pop'), {once:true});
 }
 
 // ── the stepper and which section is on screen ──────────────────────────────
@@ -395,8 +411,10 @@ const STEPS = [
 ];
 const ORDER = ['primer','type','lesson','quiz','done'];
 
+// Run 007: the bar named buttons that were below the fold, so it sent someone hunting for
+// a control it had not said was further down. Each line now says where the control is.
 const DIRECTIVE = {
-  primer: 'Read the six lines, then click Start typing.',
+  primer: 'Read the six lines, then click Start typing at the end of them.',
   lesson: 'Open the lesson, read it, then come back to this tab and click Done reading.',
   quiz:   'Answer all four, then finish the lap.',
   done:   'Take the checkpoint, or run the lap again for the reps.',
@@ -450,8 +468,8 @@ function renderDrill(){
   $('run').classList.add('go');
   $('next').classList.remove('go');
   $('directive-text').textContent = last
-    ? 'Last query. Type it, run it, then go to the lesson.'
-    : 'Type the whole query, run it, then click Next query.';
+    ? 'Last one. Type the query, then click Run under your editor.'
+    : 'Type the whole query, then click Run under your editor.';
   // Never prefilled. Typing it out is the entire point.
   ed.setValue('');
   ed.focus();
@@ -462,10 +480,13 @@ function table(res){
   if(!res.length) return 'Query ran. No rows returned.';
   const {columns, values} = res[res.length - 1];
   const head = '<tr>' + columns.map(c => '<th>' + esc(c) + '</th>').join('') + '</tr>';
-  const body = values.slice(0, 50).map(r => '<tr>' + r.map(v =>
+  // Twelve, not the drill page's fifty. Fifty rows put 1,400px of table between the rows
+  // and the button that leaves the query (run 007), and nobody reads row 40 of a warm-up.
+  const CAP = 12;
+  const body = values.slice(0, CAP).map(r => '<tr>' + r.map(v =>
     '<td>' + (v === null ? '<span class="dim">NULL</span>' : esc(v)) + '</td>').join('') + '</tr>').join('');
-  const more = values.length > 50
-    ? '<div class="dim">Showing the first 50 of ' + values.length + ' rows.</div>' : '';
+  const more = values.length > CAP
+    ? '<div class="dim">Showing the first ' + CAP + ' of ' + values.length + ' rows.</div>' : '';
   return '<table>' + head + body + '</table>' + more;
 }
 
@@ -491,17 +512,32 @@ function run(){
   try { res = db.exec(typed); }
   catch(e){
     // An error is information, not a mark against anyone, and the right query is already
-    // on screen, so there is nothing to reveal or withhold.
+    // on screen, so there is nothing to reveal or withhold. Run 007: the raw engine
+    // message alone sent the tester to the wrong repair. An Excel user reads "no such
+    // column: country" as "the table has no country column", which is the opposite of the
+    // truth, so the likely cause gets named in words before the engine gets quoted.
+    const msg = String(e.message || '');
+    let guess = 'Compare your query against the reference query, line by line. A stray comma or a missing word is the usual cause.';
+    if(/no such column/i.test(msg)){
+      guess = 'That usually means a text value is missing its quotes. ' +
+        "<code>WHERE genre = country</code> looks for a column called country; " +
+        "<code>WHERE genre = 'country'</code> looks for the word. The table is fine.";
+    } else if(/no such table/i.test(msg)){
+      guess = 'The only two tables here are <code>gem_page</code> and <code>artist_era</code>. Check the spelling.';
+    } else if(/syntax error/i.test(msg)){
+      guess = 'A word or a piece of punctuation is off. Read your query against the reference query one line at a time.';
+    }
     $('verdict').className = '';
-    $('verdict').innerHTML = '<span class="no">SQLite could not run that.</span> It says: ' +
-      esc(e.message) + '. Compare your line against the query on the left.';
+    $('verdict').innerHTML = '<span class="no">That query did not run.</span> ' + guess +
+      '<br><span class="hint">The database reported: ' + esc(msg) + '</span>';
     $('out').innerHTML = '';
+    $('directive-text').textContent = 'Fix the line the message points at, then click Run again.';
     return;
   }
   const got = res.length ? res[res.length - 1].values.length : 0;
   const want = LAP.drills[i].rows;
   $('verdict').className = '';
-  $('verdict').innerHTML = '<b>' + got + (got === 1 ? ' row' : ' rows') + ' back.</b> The query on the left returns ' +
+  $('verdict').innerHTML = '<b>' + got + (got === 1 ? ' row' : ' rows') + ' back.</b> The reference query returns ' +
     want + (got === want ? '. ' : ', so the two are not doing the same thing yet. ') +
     (got === want ? answerLine(res) : '');
   $('out').innerHTML = table(res);
@@ -515,8 +551,8 @@ function run(){
     pop(fwd);
     celebrate(last ? '✓ That is the whole lap of typing' : '✓ Rows match', last ? 34 : 20);
     $('directive-text').textContent = last
-      ? 'Rows match. Click Go to the lesson.'
-      : 'Rows match. Click Next query.';
+      ? 'Rows match. Read them, then click Go to the lesson under the table.'
+      : 'Rows match. Read them, then click Next query under the table.';
   }
 }
 
