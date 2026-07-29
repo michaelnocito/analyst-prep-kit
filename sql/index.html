@@ -189,6 +189,28 @@ p strong{color:var(--text)}
   .drill-instruction{position:sticky;top:56px;z-index:90;background:var(--surf);padding:10px 0 9px;border-bottom:1px solid var(--border)}
 }
 
+/* THE DIRECTIVE (roadmap R2, 2026-07-27)
+   One line per stage: the thing to do right now. It is pinned under the nav at every
+   width, because the failure it fixes is a learner typing an answer on a phone with the
+   instruction scrolled off screen — split attention spends working memory on finding the
+   task instead of doing it. Deliberately short and never taller than three lines, so it
+   cannot grow into a block that eats the viewport or covers the primary action. */
+.directive{position:sticky;top:56px;z-index:90;background:var(--surf);
+  border-bottom:1px solid var(--border);padding:11px 0 10px;margin:0 0 18px;
+  display:flex;gap:9px;align-items:flex-start;
+  /* Guardrail, not a behaviour: the longest question in the kit is five lines and 13% of
+     a 375x812 screen. The cap stops a future longer one from turning the pin into a
+     block that eats the viewport, and it scrolls rather than clipping if it ever hits. */
+  max-height:30vh;overflow-y:auto}
+.directive .d-eyebrow{font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted);font-weight:700;padding-top:3px;flex:0 0 auto}
+.directive p{margin:0;font-size:18px;line-height:1.45;font-weight:600;color:var(--text)}
+@media(max-width:640px){
+  .directive{padding:9px 0 8px;gap:7px}
+  .directive .d-eyebrow{display:none}
+  .directive p{font-size:16px;line-height:1.4}
+}
+
 /* QUIZ */
 .quiz-wrap{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-top:20px}
 .quiz-wrap h3{margin-bottom:14px}
@@ -1895,6 +1917,19 @@ function renderLesson(id){
 // One-time carry-over: the self-rating is gone, but someone who had already
 // rated lessons "Not yet"/"Almost" should keep the review list they built.
 // Convert those to a recorded miss, then drop the dead key.
+// R1 removed the Orient stage, so every saved stage index is one too high: someone who
+// left off on Build would come back to Try. Runs once, keyed in state so it cannot
+// double-apply and walk a returning learner backwards a stage per visit.
+function _migrateStageIndicesR1(){
+  if(state.stageBaseR1) return;
+  const m = state.lessonStage;
+  if(m && typeof m === 'object'){
+    Object.keys(m).forEach(id=>{ m[id] = Math.max(0, (m[id]|0) - 1); });
+  }
+  state.stageBaseR1 = 1;
+  saveState();
+}
+
 function _migrateConfidence(){
   const c = state.confidence;
   if(!c || typeof c !== 'object') return;
@@ -2544,8 +2579,8 @@ function v2ParsCheck(lid){
     // Continue is the only, obvious next tap instead of stacking a second
     // button row above the old one.
     const actions = document.getElementById('v2sql-pars-actions-'+lid);
-    if(actions) actions.innerHTML=`<button class="btn btn-ghost btn-sm" onclick="setSqlStage(${lid},1)">← Back</button>
-      <button class="btn btn-primary" onclick="setSqlStage(${lid},3)">Continue &rarr;</button>`;
+    if(actions) actions.innerHTML=`<button class="btn btn-ghost btn-sm" onclick="setSqlStage(${lid},0)">← Back</button>
+      <button class="btn btn-primary" onclick="setSqlStage(${lid},2)">Continue &rarr;</button>`;
   } else {
     recordMiss(lid, l.parsons.prompt);
     const fb = document.getElementById('v2sql-pars-fb-'+lid);
@@ -2568,8 +2603,8 @@ function v2BuildPick(btn, lid){
   if(fb) fb.innerHTML=`<div class="quiz-exp show" style="margin-top:10px">${l.build.exp}</div>`;
   if(!isCorrect){ recordMiss(lid, l.build.q); const cb=document.getElementById('v2sql-coach-build-'+lid); if(cb) cb.style.display=''; }
   const row = isCorrect
-    ? `<div class="row mt" style="gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setSqlStage(${lid},4)">Continue &rarr;</button></div>`
-    : `<div class="row mt" style="gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setSqlStage(${lid},3)">Try Again</button><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${lid},4)">Continue anyway</button></div>`;
+    ? `<div class="row mt" style="gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setSqlStage(${lid},3)">Continue &rarr;</button></div>`
+    : `<div class="row mt" style="gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setSqlStage(${lid},2)">Try Again</button><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${lid},3)">Continue anyway</button></div>`;
   if(fb) fb.insertAdjacentHTML('beforeend', row);
 }
 
@@ -2589,13 +2624,13 @@ function v2QuizAnswer(lid, chosen){
     celebrate();
     markDone('doneLessons', lid);
     wrap.insertAdjacentHTML('beforeend',`<div class="row mt" style="gap:10px;margin-top:14px">
-      <button class="btn btn-primary btn-sm" onclick="setSqlStage(${lid},5)">Continue &rarr;</button>
+      <button class="btn btn-primary btn-sm" onclick="setSqlStage(${lid},4)">Continue &rarr;</button>
     </div>`);
   } else {
     recordMiss(lid, l.quiz.q);
     wrap.insertAdjacentHTML('beforeend',`<div class="row mt" style="gap:10px;margin-top:14px">
       <button class="btn btn-primary btn-sm" onclick="v2QuizRetry(${lid})">Try Again</button>
-      <button class="btn btn-ghost btn-sm" onclick="markDone('doneLessons',${lid});setSqlStage(${lid},5)">Continue anyway</button>
+      <button class="btn btn-ghost btn-sm" onclick="markDone('doneLessons',${lid});setSqlStage(${lid},4)">Continue anyway</button>
     </div>`);
   }
 }
@@ -2606,10 +2641,9 @@ function v2QuizRetry(lid){
   const wrap = document.getElementById('v2sql-quiz-'+lid);
   if(!wrap) return;
   wrap.innerHTML=`<h3><i data-lucide="circle-check-big"></i> Quick Check</h3>
-    <p class="drill-instruction">${l.quiz.q}</p>
     ${l.quiz.opts.map((o,i)=>`<button class="quiz-opt" onclick="v2QuizAnswer(${lid},${i})">${o}</button>`).join('')}
     <div class="quiz-exp" id="v2sql-quiz-exp-${lid}">${l.quiz.exp}</div>
-      <div class="row" style="margin-top:14px"><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${lid},3)">&larr; Back</button></div>`;
+      <div class="row" style="margin-top:14px"><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${lid},2)">&larr; Back</button></div>`;
   if(window.lucide) lucide.createIcons();
 }
 
@@ -2674,26 +2708,38 @@ function v2CoachGap(lid){
 
 function v2SqlBody(l, done){
   const stage = getSqlStage(l.id);
-  const LABELS = ['Orient','Example','Try','Build','Check','Close'];
+  // R1 (2026-07-27): the "What's this about" orientation card is gone and the lesson
+  // opens on the worked example. Five stages, not six. R2: the one thing to do now is
+  // the directive bar below, which is pinned rather than scrolled past.
+  const LABELS = ['Example','Try','Build','Check','Close'];
   const dots = LABELS.map((L,i)=>{const can=(done||i<stage)&&i!==stage;return `<div class="v2-stage-dot${i<stage?' done':i===stage?' active':''}" title="${L}"${can?` style="cursor:pointer" onclick="setSqlStage(${l.id},${i})"`:''}></div>`;}).join('');
   const stageBar = `<div class="v2-stage-bar">${dots}<span class="v2-stage-label">${LABELS[Math.min(stage,LABELS.length-1)]}</span></div>`;
+
+  // One directive per stage, imperative, and it is the same sentence the stage used to
+  // print inside its own card — moved out and pinned rather than duplicated. Close has
+  // none: nothing is being asked of the learner there, and a bar saying so would be
+  // furniture. Missing lesson data falls through to no bar rather than an empty one.
+  const DIRECTIVE = [
+    'Read the query out loud, then say in one sentence what it gives you back.',
+    (l.parsons||{}).prompt,
+    (l.build||{}).q,
+    (l.quiz||{}).q,
+    null
+  ][Math.min(stage,4)];
+  const directive = DIRECTIVE
+    ? `<div class="directive"><span class="d-eyebrow">Do this</span><p>${DIRECTIVE}</p></div>` : '';
+
   let body='';
 
   if(stage===0){
-    // Spaced-recall cards due at this lesson position (Phase D)
-    // Progressive-artifact bridge: previous lesson in the same unit
+    // Progressive-artifact bridge: previous lesson in the same unit. One line, kept
+    // from the removed Orient card because it is the only part of it that told the
+    // learner where they were rather than restating the concept.
     const _pp=lessonPos(l.id), _prevOL=_pp>0?DATA.LESSONS[_pp-1]:null;
     const bridge=(_prevOL&&!l.unit.startsWith('Unit 0')&&_prevOL.unit===l.unit)
       ? `<p class="artifact-bridge">Last time you built: <strong>${_prevOL.title}</strong>. Now you'll add to it.</p>` : '';
-    body=`${bridge}<div class="v2-stage-card">
-      <h3><i data-lucide="compass"></i> What's this about</h3>
-      ${l.story?`<div class="lesson-story" style="margin-bottom:16px"><i data-lucide="book-open"></i><span>${l.story}</span></div>`:''}
-      <p style="margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.65">${l.intro||l.sub||''}</p>
-      <button class="btn btn-primary" onclick="setSqlStage(${l.id},1)">See how it works &rarr;</button>
-    </div>`;
-  } else if(stage===1){
     const ralLines=l.ral.lines.map(([chunk,desc])=>`<div class="ral-line"><span class="ral-chunk">${chunk}</span><span class="ral-arrow">→</span><span class="ral-desc">${desc}</span></div>`).join('');
-    body=`<div class="v2-stage-card">
+    body=`${bridge}<div class="v2-stage-card">
       <div class="row" style="margin-bottom:14px">
         <h3 style="margin:0"><i data-lucide="eye"></i> Worked Example</h3>
       </div>
@@ -2705,48 +2751,44 @@ function v2SqlBody(l, done){
       ${l.viz?lessonResultHTML(l.viz):''}
       ${l.chart?sqlChartHTML(l.chart):''}
       <div class="row" style="margin-top:18px;gap:10px">
-        <button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},0)">← Back</button>
-        <button class="btn btn-primary" onclick="setSqlStage(${l.id},2)">Try it yourself &rarr;</button>
+        <button class="btn btn-primary" onclick="setSqlStage(${l.id},1)">Try it yourself &rarr;</button>
       </div>
     </div>`;
-  } else if(stage===2){
+  } else if(stage===1){
     const p=l.parsons;
     const idxs=[...p.lines.keys()];
     for(let i=idxs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idxs[i],idxs[j]]=[idxs[j],idxs[i]];}
     const pool=idxs.map(i=>`<div class="v2-pars-chip" data-idx="${i}" onclick="v2ParsChipTap(${l.id},this)"><span class="pars-txt">${p.lines[i]}</span></div>`).join('');
     body=`<div class="v2-stage-card">
       <h3><i data-lucide="list-ordered"></i> Try It</h3>
-      <p class="drill-instruction">${p.prompt}</p>
       <p style="font-size:12px;color:var(--muted);margin:0 0 6px">Tap a piece to move it between the pool and your answer:</p>
       <div class="v2-pool" id="v2sql-pool-${l.id}">${pool}</div>
       <div class="v2-answer-zone" id="v2sql-ans-${l.id}"></div>
       <div id="v2sql-pars-fb-${l.id}" style="min-height:18px;margin-bottom:4px"></div>
       <div class="row" id="v2sql-pars-actions-${l.id}" style="gap:10px">
-        <button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},1)">← Back</button>
+        <button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},0)">← Back</button>
         <button class="btn btn-primary" onclick="v2ParsCheck(${l.id})">Check order</button>
-        <button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},3)">Skip &rarr;</button>
+        <button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},2)">Skip &rarr;</button>
       </div>
       <button class="v2-coach-btn" id="v2sql-coach-try-${l.id}" style="display:none" onclick="v2CoachStuck(${l.id},'try')"><i data-lucide="sparkles"></i> Stuck? Ask the AI Coach →</button>
       <div class="v2-coach-resp" id="v2sql-coach-resp-try-${l.id}"></div>
     </div>`;
-  } else if(stage===3){
+  } else if(stage===2){
     const b=l.build;
     body=`<div class="v2-stage-card" id="v2sql-build-${l.id}">
       <h3><i data-lucide="wrench"></i> Build It</h3>
-      <p class="drill-instruction">${b.q}</p>
       ${b.opts.map((o,i)=>`<button class="quiz-opt" data-correct="${i===b.ans?1:0}" onclick="v2BuildPick(this,${l.id})">${o}</button>`).join('')}
       <div id="v2sql-build-fb-${l.id}"></div>
       <button class="v2-coach-btn" id="v2sql-coach-build-${l.id}" style="display:none" onclick="v2CoachStuck(${l.id},'build')"><i data-lucide="sparkles"></i> Stuck? Ask the AI Coach →</button>
       <div class="v2-coach-resp" id="v2sql-coach-resp-build-${l.id}"></div>
-      <div class="row" style="margin-top:14px"><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},2)">&larr; Back</button></div>
+      <div class="row" style="margin-top:14px"><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},1)">&larr; Back</button></div>
     </div>`;
-  } else if(stage===4){
+  } else if(stage===3){
     body=`<div class="quiz-wrap" id="v2sql-quiz-${l.id}">
       <h3><i data-lucide="circle-check-big"></i> Quick Check</h3>
-      <p class="drill-instruction">${l.quiz.q}</p>
       ${l.quiz.opts.map((o,i)=>`<button class="quiz-opt" onclick="v2QuizAnswer(${l.id},${i})">${o}</button>`).join('')}
       <div class="quiz-exp" id="v2sql-quiz-exp-${l.id}">${l.quiz.exp}</div>
-      <div class="row" style="margin-top:14px"><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},3)">&larr; Back</button></div>
+      <div class="row" style="margin-top:14px"><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},2)">&larr; Back</button></div>
     </div>`;
   } else {
     const nextLesson=DATA.LESSONS.find(ll=>ll.id!==l.id&&!state.doneLessons.includes(ll.id));
@@ -2780,6 +2822,7 @@ function v2SqlBody(l, done){
     <h1>${l.title}</h1>
     ${isPremiumLesson(l)&&window.apkPass?apkPass.unlockedBanner():''}
     ${stageBar}
+    ${directive}
     ${body}`;
   if(window.lucide) lucide.createIcons();
 }
@@ -4776,6 +4819,7 @@ function showToast(msg){
 
 // ─── INIT ──────────────────────────────────────────────────────────────────
 loadState();
+_migrateStageIndicesR1();
 _migrateConfidence();
 bumpStreak(); // Batch 5 return loop: opening the kit counts toward today's streak
 

@@ -454,6 +454,20 @@
 >   products, not kits.
 
 > ## 🗒️ ROADMAP-ONLY INTAKE — 2026-07-25 (Mike; capture, do NOT build)
+> - **[R1]/[R2] SQL: ✅ SHIPPED 2026-07-27.** The Orient stage is gone, the lesson opens on
+>   the worked example, and the stage machine is five stages, not six. A one-time migration
+>   (`_migrateStageIndicesR1`, keyed on `state.stageBaseR1`) shifts every saved stage index
+>   down by one so a returning learner mid-Build does not come back to Try. The directive is
+>   now a pinned bar under the nav carrying one imperative line per stage, sourced from the
+>   sentence each stage used to print inside its own card: Example gets a written line, Try
+>   the parsons prompt, Build the build question, Check the quiz question, Close none.
+>   Verified live at 375px and 1280px: pins at 56px under the nav, 63px tall typically and
+>   108px on the longest question in the kit (13% of a phone screen), never covers the primary
+>   action, capped at 30vh as a guardrail. The one-line artifact bridge survived the card
+>   removal because it told the learner where they were rather than restating the concept.
+>   **Remaining: port to python · powerbi · tableau** (same six-stage shape, same recipe) and
+>   check the stats/excel stacked flows separately.
+>
 > - **[R1] Remove the "What's this about" section from lessons.** All-kits item. This is the
 >   boxed orientation card at the top of a lesson stage (compass icon heading + tinted
 >   book-icon paragraph explaining the concept in prose, e.g. the joins card: "You know the
