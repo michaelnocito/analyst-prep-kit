@@ -120,6 +120,31 @@ that return the same rows are both correct.
 
 ---
 
+## The rotation trial (built 2026-07-29)
+
+Mike asked to walk the pathing rather than read about it, so one lap is built and live at
+`analyst-prep-kit/path/` (noindex, not linked from any nav yet).
+
+The lap, in this order and no other: **primer → type → lesson → mini quiz → checkpoint.**
+
+- **Primer.** Six lines, one idea each. Only enough to type rung 1 without guessing.
+- **Type.** Six rungs, Unit 1 clauses only (SELECT, FROM, WHERE, AND, ORDER BY, LIMIT, and
+  a COUNT that shows a query always hands back a table). Pass 1 rules, so the reference
+  query is on screen the whole time. Ladder in `path/ladder.js`, every row count verified
+  against the baked drill database.
+- **Lesson.** Hands off to the real kit lessons (`sql/#lesson-1`, `-2`, `-104`, `-3`) in a
+  new tab. It does not restate them; a second copy of Unit 1 would drift.
+- **Mini quiz.** Four questions, one per lesson, taken from the kit's own lesson quizzes.
+- **Checkpoint.** The SQL section of the existing Final Exam Kit (`final/#exam-sql`),
+  called a readiness check, never a certification. Its own bank comes later.
+
+Settled with Mike before building: one lap only, Unit 1 only, lesson page rather than
+read-aloud, six typed items. Pass 2 stays parked, so the open question below is not
+blocking the trial.
+
+Next decision after he walks it: whether the rotation is one lap per unit (4 laps) or one
+lap per lesson, and where the second checkpoint lands.
+
 ## Open question for Mike
 
 "Passes on it" is read here as **skips**, not as "got it right". So the buckets are
