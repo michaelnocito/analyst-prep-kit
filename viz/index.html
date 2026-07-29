@@ -95,6 +95,12 @@
   .shelf{flex:1;min-height:40px;border:1px dashed var(--line);border-radius:9px;
     background:var(--bg);padding:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .shelf.over{border-color:var(--accent);background:rgba(14,116,144,.06)}
+  .shelf:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .shelf.eligible{border-color:var(--accent);border-style:solid;background:rgba(14,116,144,.05)}
+  .shelf.blocked{opacity:.5}
+  .pill .x{display:inline-flex;align-items:center;justify-content:center;
+    min-width:24px;min-height:24px;border-radius:50%}
+  .pill .x:hover{background:rgba(9,9,11,.08)}
   .shelf .ph{color:var(--muted);font-size:12.5px;padding-left:4px}
   .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;
     font:12.5px/1.2 inherit;border:1px solid transparent;cursor:pointer;min-height:0}
@@ -248,7 +254,10 @@
 
     <div class="tabpanel" id="panel-sql" role="tabpanel" aria-labelledby="tab-sql">
       <p class="tie" id="tie" style="margin:0"></p>
+      <p class="caption" style="margin:12px 0 0">What this step is asking for, written as SQL:</p>
       <pre class="sqlbox" id="sql"></pre>
+      <p class="caption" style="margin:12px 0 0">What your worksheet is asking for right now:</p>
+      <pre class="sqlbox" id="livesql"></pre>
     </div>
 
     <div class="tabpanel" id="panel-data" role="tabpanel" aria-labelledby="tab-data" hidden>
@@ -293,9 +302,15 @@ const SHELF_NAMES = {cols: 'Columns', rows: 'Rows', color: 'Colour', size: 'Size
                      label: 'Label', detail: 'Detail', filter: 'Filter'};
 
 const SHELVES = ['cols', 'rows', 'color', 'size', 'label', 'detail', 'filter'];
-const BLANK = {cols: null, rows: null, color: null, size: null, label: null, detail: null,
-               filter: null, filterVals: null, agg: 'SUM', mark: 'bar', sort: 'none'};
-let state = Object.assign({}, BLANK);
+// Columns and Rows hold a list, because that is what they hold in the real tools: two
+// dimensions nest into headers, and two measures become two sets of marks. Everything on
+// the marks card holds one field.
+const MULTI = ['cols', 'rows'];
+const blank = () => ({cols: [], rows: [], color: null, size: null, label: null,
+                      detail: null, filter: null, filterVals: null,
+                      agg: 'SUM', mark: 'bar', sort: 'none'});
+const BLANK = blank();
+let state = blank();
 let i = 0;
 const KEY = 'apk-viz-drill-rung';
 try { i = Math.min(parseInt(localStorage.getItem(KEY) || '0', 10) || 0, LADDER.rungs.length - 1); } catch(e){}
@@ -346,19 +361,39 @@ function place(shelf, field){
     say('This builder filters on dimension values. In the real tools a measure on Filter opens a range slider instead.');
     return;
   }
-  state[shelf] = field;
+  if(MULTI.includes(shelf)){
+    if(state[shelf].includes(field)){
+      say('That field is already on ' + SHELF_NAMES[shelf] + '. Drop a different one to nest it underneath.');
+      return;
+    }
+    state[shelf] = state[shelf].concat(field);
+  } else {
+    state[shelf] = field;
+  }
   if(shelf === 'filter') state.filterVals = [...new Set(ROWS.map(r => String(r[field])))].sort();
   picked = null;
   draw();
 }
-function clearShelf(shelf){
-  state[shelf] = null;
+function clearShelf(shelf, field){
+  if(MULTI.includes(shelf)) state[shelf] = state[shelf].filter(f => f !== field);
+  else state[shelf] = null;
   if(shelf === 'filter') state.filterVals = null;
   draw();
 }
 
 SHELVES.forEach(shelf => {
   const el = $('sh-' + shelf);
+  // A shelf is a control, so it has to be reachable and announceable. Without this the
+  // advertised tap-then-tap fallback needs a pointer, which makes it not a fallback.
+  el.setAttribute('role', 'button');
+  el.setAttribute('tabindex', '0');
+  el.setAttribute('aria-label', SHELF_NAMES[shelf] + ' shelf');
+  el.addEventListener('keydown', e => {
+    if(e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    if(picked) place(shelf, picked);
+    else say('Choose a field first: tab to one in the Dimensions or Measures list and press Enter, then come back here.');
+  });
   el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('over'); });
   el.addEventListener('dragleave', () => el.classList.remove('over'));
   el.addEventListener('drop', e => {
@@ -371,17 +406,24 @@ SHELVES.forEach(shelf => {
   });
 });
 
-function pillHTML(shelf){
-  const f = state[shelf];
-  if(!f) return '<span class="ph">Drop a field here</span>';
+function onePill(shelf, f){
   const kind = FIELDS[f].kind;
   // A measure is aggregated wherever it lands, including on the marks cards, and showing
   // the aggregation in the pill is how anyone learns that.
   const label = kind === 'meas' && shelf !== 'filter'
     ? state.agg + '(' + FIELDS[f].label + ')'
     : FIELDS[f].label;
-  return `<span class="pill ${kind}" data-shelf="${shelf}" title="${kind === 'meas' ? 'Click to change the aggregation' : 'Click the cross to remove'}">
-            ${esc(label)}<span class="x" data-remove="${shelf}">&times;</span></span>`;
+  return `<span class="pill ${kind}" data-shelf="${shelf}" data-field="${f}"
+            title="${kind === 'meas' ? 'Click to change the aggregation' : 'Click the cross to remove'}">
+            ${esc(label)}<span class="x" data-remove="${shelf}" data-field="${f}">&times;</span></span>`;
+}
+function pillHTML(shelf){
+  if(MULTI.includes(shelf)){
+    return state[shelf].length
+      ? state[shelf].map(f => onePill(shelf, f)).join('')
+      : '<span class="ph">Drop a field here. Drop a second to nest it.</span>';
+  }
+  return state[shelf] ? onePill(shelf, state[shelf]) : '<span class="ph">Drop a field here</span>';
 }
 
 $('markseg').querySelectorAll('button').forEach(b => {
@@ -413,58 +455,72 @@ function measureOf(rows, field){
 // Colour is in play. This is what the Underlying data tab shows, deliberately, because
 // the table is the bridge back to the query they already wrote.
 function resultSet(){
-  const dimField = isDim(state.rows) ? state.rows : (isDim(state.cols) ? state.cols : null);
-  const measField = !isDim(state.rows) && state.rows ? state.rows
-                  : (!isDim(state.cols) && state.cols ? state.cols : null);
+  const axis = state.rows.concat(state.cols);
+  const dimFields = axis.filter(isDim);
+  const measFields = axis.filter(f => !isDim(f));
+  const dimField = dimFields[0] || null;
+  const measField = measFields[0] || null;
   if(!dimField && !measField) return null;
 
   const rows = activeRows();
-  // A dimension anywhere makes more marks. Colour and Detail group; a measure on Colour
-  // or Size or Label does not, it just gets aggregated per mark. That difference is the
-  // whole lesson of the marks card, so the engine has to model it rather than fake it.
-  const splitters = [state.color, state.detail].filter(f => isDim(f));
-  const keys = dimField ? [...new Set(rows.map(r => String(r[dimField])))] : ['All'];
+  // Every dimension in play makes more marks, wherever it sits. Nesting two dimensions on
+  // one shelf is the same grouping as spreading them across two, which is exactly why the
+  // engine groups by the whole list rather than by one field per shelf.
+  // Colour and Detail group too. A measure on Colour, Size or Label does not: it is just
+  // aggregated per mark. That difference is the lesson of the marks card.
+  const splitters = [state.color, state.detail].filter(f => isDim(f) && !dimFields.includes(f));
+  const groupBy = dimFields.concat(splitters);
+
+  // Two measures on an axis make two sets of marks, one per measure. That is what Measure
+  // Names and Measure Values do in the real tools, and it is why the mark carries the
+  // measure it came from.
+  const marks = measFields.length ? measFields : [null];
+
+  const combos = groupBy.reduce((acc, f) => {
+    const vals = [...new Set(rows.map(r => String(r[f])))]
+      .sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
+    return acc.length ? acc.flatMap(c => vals.map(v => c.concat([[f, v]])))
+                      : vals.map(v => [[f, v]]);
+  }, []);
 
   let out = [];
-  keys.forEach(k => {
-    const base = rows.filter(r => !dimField || String(r[dimField]) === k);
-    const combos = splitters.reduce((acc, f) => {
-      const vals = [...new Set(base.map(r => String(r[f])))].sort();
-      return acc.length ? acc.flatMap(c => vals.map(v => c.concat([[f, v]])))
-                        : vals.map(v => [[f, v]]);
-    }, []);
-    (combos.length ? combos : [[]]).forEach(combo => {
-      const slice = base.filter(r => combo.every(([f, v]) => String(r[f]) === v));
-      if(!slice.length) return;
-      const colorVal = isDim(state.color)
-        ? (combo.find(([f]) => f === state.color) || [null, null])[1]
-        : (state.color ? measureOf(slice, state.color) : null);
+  (combos.length ? combos : [[]]).forEach(combo => {
+    const slice = rows.filter(r => combo.every(([f, v]) => String(r[f]) === v));
+    if(!slice.length) return;
+    const dimVals = dimFields.map(f => (combo.find(([g]) => g === f) || [null, ''])[1]);
+    const colorVal = isDim(state.color)
+      ? (combo.find(([f]) => f === state.color) || [null, null])[1]
+      : (state.color ? measureOf(slice, state.color) : null);
+    marks.forEach(mf => {
       out.push({
-        key: k,
-        color: colorVal,
+        key: dimVals.length ? dimVals.join(' / ') : 'All',
+        dimVals,
+        measure: mf,
+        // With more than one measure and nothing on Colour, the measure names take Colour,
+        // which is the default the real tools apply for the same reason: otherwise the
+        // two sets of marks are indistinguishable.
+        color: colorVal !== null ? colorVal : (marks.length > 1 ? FIELDS[mf].label : null),
         colorIsMeasure: !!state.color && !isDim(state.color),
         detail: (combo.find(([f]) => f === state.detail) || [null, null])[1],
         size: state.size ? (isDim(state.size) ? null : measureOf(slice, state.size)) : null,
         label: state.label ? (isDim(state.label)
                  ? [...new Set(slice.map(r => String(r[state.label])))].join(', ')
                  : measureOf(slice, state.label)) : null,
-        value: measField ? measureOf(slice, measField) : slice.length,
+        value: mf ? measureOf(slice, mf) : slice.length,
         n: slice.length
       });
     });
   });
 
   if(state.sort !== 'none' && measField){
-    // Sorting a chart sorts the headers, not the individual bars inside a colour split.
+    // Sorting sorts the headers, not the individual marks inside a split.
     const totals = {};
     out.forEach(o => { totals[o.key] = (totals[o.key] || 0) + o.value; });
     const order = Object.keys(totals).sort((a, b) =>
       state.sort === 'desc' ? totals[b] - totals[a] : totals[a] - totals[b]);
     out.sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
-  } else if(dimField === 'decade'){
-    out.sort((a, b) => a.key.localeCompare(b.key));
   }
-  return {dimField, measField, rows: out};
+  return {dimField, measField, dimFields, measFields, rows: out};
 }
 
 // ── drawing ─────────────────────────────────────────────────────────────────
@@ -472,15 +528,30 @@ const PALETTE = ['#0E7490', '#B45309', '#4338CA', '#15803D', '#9D174D', '#0F766E
 
 // Discrete swatches for a dimension, a light-to-dark ramp for a measure. Showing which
 // one you are looking at is how the legend teaches what you just did.
-function rampColor(v, min, max){
-  const t = max === min ? 1 : (v - min) / (max - min);
-  const from = [207, 232, 239], to = [14, 116, 144];
+// Ranked, not linear. Audience data is heavily skewed, and a linear ramp put five of seven
+// bars within a few units of each other, so the encoding was invisible on exactly the step
+// that teaches it. Rank spreads the steps evenly, which is what a quantile colour scale
+// does in the real tools and for the same reason.
+function rampColor(v, all){
+  const sorted = [...new Set(all)].sort((a, b) => a - b);
+  const t = sorted.length < 2 ? 1 : sorted.indexOf(v) / (sorted.length - 1);
+  const from = [214, 236, 242], to = [8, 74, 92];
   return 'rgb(' + from.map((c, n) => Math.round(c + (to[n] - c) * t)).join(',') + ')';
 }
 
 function drawLegend(rs){
   const el = $('legend');
-  if(!state.color || !rs){ el.innerHTML = ''; return; }
+  if(!rs){ el.innerHTML = ''; return; }
+  if(!state.color){
+    // Two measures with nothing on Colour: the measure names are doing the colouring.
+    if(rs.measFields && rs.measFields.length > 1){
+      el.innerHTML = '<b>Measure names</b> on Colour, added for you because two measures ' +
+        'cannot share a set of marks without one:' +
+        rs.measFields.map((m, n) => '<span class="sw" style="background:' +
+          PALETTE[n % PALETTE.length] + '"></span>' + esc(FIELDS[m].label)).join('');
+    } else el.innerHTML = '';
+    return;
+  }
   const f = FIELDS[state.color];
   if(isDim(state.color)){
     const keys = [...new Set(rs.rows.map(r => r.color))];
@@ -497,13 +568,19 @@ function drawLegend(rs){
 
 function drawTextTable(rs){
   // Every viz is a table underneath, and the text table is that table admitted out loud.
-  const head = '<tr><th>' + (rs.dimField ? esc(FIELDS[rs.dimField].label) : 'All') + '</th>' +
-    (isDim(state.color) ? '<th>' + esc(FIELDS[state.color].label) + '</th>' : '') +
-    (state.detail ? '<th>' + esc(FIELDS[state.detail].label) + '</th>' : '') +
-    '<th>' + esc(state.agg + '(' + FIELDS[rs.measField].label + ')') + '</th></tr>';
-  const body = rs.rows.map(r => '<tr><td>' + esc(r.key) + '</td>' +
-    (isDim(state.color) ? '<td>' + esc(String(r.color)) + '</td>' : '') +
-    (state.detail ? '<td>' + esc(String(r.detail)) + '</td>' : '') +
+  // One column per nested dimension, so the nesting is visible rather than joined up.
+  const head = '<tr>' +
+    (rs.dimFields.length ? rs.dimFields.map(f => '<th>' + esc(FIELDS[f].label) + '</th>').join('') : '<th>All</th>') +
+    (isDim(state.color) && !rs.dimFields.includes(state.color) ? '<th>' + esc(FIELDS[state.color].label) + '</th>' : '') +
+    (state.detail && !rs.dimFields.includes(state.detail) ? '<th>' + esc(FIELDS[state.detail].label) + '</th>' : '') +
+    (rs.measFields.length > 1 ? '<th>Measure</th>' : '') +
+    '<th>' + esc(rs.measFields.length > 1 ? state.agg + ' of the measure'
+                                          : state.agg + '(' + FIELDS[rs.measField].label + ')') + '</th></tr>';
+  const body = rs.rows.map(r => '<tr>' +
+    (r.dimVals.length ? r.dimVals.map(v => '<td>' + esc(v) + '</td>').join('') : '<td>All</td>') +
+    (isDim(state.color) && !rs.dimFields.includes(state.color) ? '<td>' + esc(String(r.color)) + '</td>' : '') +
+    (state.detail && !rs.dimFields.includes(state.detail) ? '<td>' + esc(String(r.detail)) + '</td>' : '') +
+    (rs.measFields.length > 1 ? '<td>' + esc(FIELDS[r.measure].label) + '</td>' : '') +
     '<td>' + (Math.round(r.value * 100) / 100).toLocaleString() + '</td></tr>').join('');
   return '<table class="data">' + head + body + '</table>';
 }
@@ -524,22 +601,32 @@ function drawChart(){
   }
   svg.style.display = '';
 
-  if(!rs || !rs.measField){
-    svg.innerHTML = `<text x="14" y="28" fill="#52525B" font-size="13">` +
-      (rs ? 'A dimension gives you headers. Add a measure to draw something.'
-          : 'Drop a field on Rows or Columns to start.') + `</text>`;
+  // A dimension on its own is a real state, not an empty one: it is a list of headers,
+  // which is exactly what the first step is teaching. Drawing nothing here taught that
+  // the step had failed.
+  if(rs && !rs.measField){
+    const keys = [...new Set(rs.rows.map(r => r.key))];
+    svg.innerHTML = keys.slice(0, 16).map((k, n) =>
+      `<text x="16" y="${22 + n * 18}" font-size="12.5" fill="#09090B">${esc(k)}</text>`).join('') +
+      (keys.length > 16 ? `<text x="16" y="${22 + 16 * 18}" font-size="11.5" fill="#52525B">and ${keys.length - 16} more</text>` : '') +
+      `<text x="16" y="${22 + Math.min(keys.length, 17) * 18 + 10}" font-size="11.5" fill="#52525B">${keys.length} headers, one per value. Add a measure and they become marks.</text>`;
+    $('caption').textContent = keys.length + ' headers from ' +
+      rs.dimFields.map(f => FIELDS[f].label).join(', then ') + '. No measure yet, so nothing is being counted.';
+    return;
+  }
+  if(!rs){
+    svg.innerHTML = `<text x="14" y="28" fill="#52525B" font-size="13">Drop a field on Rows or Columns to start.</text>`;
     $('caption').textContent = '';
     return;
   }
 
-  const vertical = !isDim(state.rows) && !!state.rows;   // measure on Rows = vertical bars
+  const vertical = state.rows.some(f => !isDim(f));   // a measure on Rows = vertical bars
   const data = rs.rows;
   const max = Math.max(...data.map(d => d.value), 1);
   const colorKeys = [...new Set(data.map(d => d.color))];
-  const cMin = Math.min(...data.map(d => Number(d.color) || 0));
-  const cMax = Math.max(...data.map(d => Number(d.color) || 0));
-  const colorOf = d => !state.color ? PALETTE[0]
-    : (d.colorIsMeasure ? rampColor(Number(d.color), cMin, cMax)
+  const colorNums = data.map(d => Number(d.color) || 0);
+  const colorOf = d => !state.color && colorKeys.length < 2 ? PALETTE[0]
+    : (d.colorIsMeasure ? rampColor(Number(d.color), colorNums)
                         : PALETTE[Math.max(0, colorKeys.indexOf(d.color)) % PALETTE.length]);
   // Size scales the thickness of a mark rather than its length, which is why a measure on
   // Size never changes the answer the chart gives, only how loudly it says it.
@@ -551,8 +638,55 @@ function drawChart(){
     : (typeof d.label === 'number' ? Math.round(d.label).toLocaleString() : String(d.label));
   const fmt = v => v >= 1000 ? Math.round(v).toLocaleString() : Math.round(v * 100) / 100;
 
+  // Scatter needs a measure on each axis, which is the lesson of the mark type: it plots
+  // one measure against another. Anything else falls back, and says so rather than
+  // quietly drawing bars under a label that claims otherwise.
+  const scatterReady = state.mark === 'scatter' &&
+    state.cols.some(f => !isDim(f)) && state.rows.some(f => !isDim(f));
+  const lineReady = state.mark === 'line' && vertical;
+  let fellBack = '';
+  if(state.mark === 'scatter' && !scatterReady)
+    fellBack = 'Scatter plots one measure against another, so it needs a measure on Columns and a measure on Rows. Drawing bars until it has both.';
+  else if(state.mark === 'line' && !lineReady)
+    fellBack = 'A line runs along an axis, so it needs the measure on Rows and the dimension on Columns. Drawing bars until then.';
+
   let svgHTML = '';
-  if(state.mark === 'line' && vertical){
+  if(scatterReady){
+    const xField = state.cols.find(f => !isDim(f)), yField = state.rows.find(f => !isDim(f));
+    // One point per group, not one per measure: a scatter spends both measures on the two
+    // axes, so the usual mark-per-measure split would plot every point twice.
+    const seenKeys = new Set();
+    const pts = data.filter(d => {
+      const k = d.key + '|' + d.detail;
+      if(seenKeys.has(k)) return false;
+      seenKeys.add(k); return true;
+    }).map(d => ({
+      x: measureOf(activeRows().filter(r => !rs.dimFields.length ||
+           rs.dimFields.every((f, n) => String(r[f]) === d.dimVals[n])), xField),
+      y: measureOf(activeRows().filter(r => !rs.dimFields.length ||
+           rs.dimFields.every((f, n) => String(r[f]) === d.dimVals[n])), yField),
+      d
+    }));
+    const padL = 62, padB = 30, padT = 14;
+    const w = W - padL - 20, h = H - padB - padT;
+    const xMax = Math.max(...pts.map(p => p.x), 1), yMax = Math.max(...pts.map(p => p.y), 1);
+    pts.forEach(p => {
+      const cx = padL + p.x / xMax * w, cy = padT + h - p.y / yMax * h;
+      const r = state.size ? 4 + 7 * (thickness(p.d) - .35) / .55 : 5;
+      svgHTML += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${colorOf(p.d)}" fill-opacity=".8">
+        <title>${esc(p.d.key)}: ${fmt(p.x)} by ${fmt(p.y)}</title></circle>`;
+      const lab = labelOf(p.d);
+      if(lab) svgHTML += `<text x="${cx + 7}" y="${cy - 6}" font-size="10" fill="#52525B">${esc(lab)}</text>`;
+    });
+    svgHTML += `<text x="10" y="${padT + 10}" font-size="11" fill="#52525B">${fmt(yMax)}</text>`;
+    svgHTML += `<text x="${W - 60}" y="${H - 10}" font-size="11" fill="#52525B">${fmt(xMax)}</text>`;
+    svgHTML += `<text x="${padL}" y="${H - 10}" font-size="11" fill="#52525B">${esc(FIELDS[xField].label)} across, ${esc(FIELDS[yField].label)} up</text>`;
+    svg.innerHTML = svgHTML;
+    $('caption').textContent = data.length + ' points, ' + state.agg + '(' + FIELDS[xField].label +
+      ') against ' + state.agg + '(' + FIELDS[yField].label + ')';
+    return;
+  }
+  if(lineReady){
     const padL = 60, padB = 34, padT = 14, w = W - padL - 16, h = H - padB - padT;
     const keys = [...new Set(data.map(d => d.key))];
     colorKeys.forEach((ck, ci) => {
@@ -604,27 +738,59 @@ function drawChart(){
 
   const shown = data.length;
   $('caption').textContent = (state.agg) + ' of ' +
-    (rs.measField === 'records' ? 'Number of Records' : FIELDS[rs.measField].label) +
-    (rs.dimField ? ' by ' + FIELDS[rs.dimField].label : '') +
+    rs.measFields.map(m => FIELDS[m].label).join(' and ') +
+    (rs.dimFields.length ? ' by ' + rs.dimFields.map(f => FIELDS[f].label).join(', then ') : '') +
     (state.color ? ', coloured by ' + FIELDS[state.color].label : '') +
     (state.size ? ', sized by ' + FIELDS[state.size].label : '') +
     (state.detail ? ', split by ' + FIELDS[state.detail].label : '') +
     ' · ' + shown + ' marks' +
-    (state.filter ? ' · filtered on ' + FIELDS[state.filter].label : '');
+    (state.filter ? ' · filtered on ' + FIELDS[state.filter].label : '') +
+    (fellBack ? ' · ' + fellBack : '');
 }
 
 function drawData(){
   const rs = resultSet();
   if(!rs){ $('datatable').innerHTML = '<p class="caption">Nothing on the shelves yet.</p>'; return; }
-  const head = '<tr><th>' + (rs.dimField ? esc(FIELDS[rs.dimField].label) : 'All') + '</th>' +
-    (state.color ? '<th>' + esc(FIELDS[state.color].label) + '</th>' : '') +
-    '<th>' + (rs.measField ? esc(state.agg + '(' + FIELDS[rs.measField].label + ')') : 'Rows') + '</th>' +
+  const head = '<tr>' +
+    (rs.dimFields.length ? rs.dimFields.map(f => '<th>' + esc(FIELDS[f].label) + '</th>').join('') : '<th>All</th>') +
+    (rs.measFields.length > 1 ? '<th>Measure</th>' : '') +
+    '<th>' + (rs.measField ? esc(state.agg + (rs.measFields.length > 1 ? '' : '(' + FIELDS[rs.measField].label + ')')) : 'Rows') + '</th>' +
     '<th>rows behind it</th></tr>';
-  const body = rs.rows.slice(0, 40).map(r =>
-    '<tr><td>' + esc(r.key) + '</td>' + (state.color ? '<td>' + esc(r.color) + '</td>' : '') +
+  const body = rs.rows.slice(0, 40).map(r => '<tr>' +
+    (r.dimVals.length ? r.dimVals.map(v => '<td>' + esc(v) + '</td>').join('') : '<td>All</td>') +
+    (rs.measFields.length > 1 ? '<td>' + esc(FIELDS[r.measure].label) + '</td>' : '') +
     '<td>' + (Math.round(r.value * 100) / 100).toLocaleString() + '</td><td>' + r.n + '</td></tr>').join('');
   $('datatable').innerHTML = '<table class="data">' + head + body + '</table>' +
     (rs.rows.length > 40 ? '<p class="caption">Showing the first 40 of ' + rs.rows.length + ' rows.</p>' : '');
+}
+
+// The query the shelves are actually asking for, generated from state. The step's own SQL
+// is fixed, so without this the one tab whose job is the SQL tie goes stale the moment
+// anybody changes an aggregation.
+const COLUMN_SQL = {artist: 'artist', track: 'track', decade: 'debut_decade',
+                    era: 'era_group', listeners: 'listeners', playcount: 'playcount',
+                    ppl: 'plays_per_listener'};
+function liveSQL(){
+  const rs = resultSet();
+  if(!rs) return '-- Nothing on the shelves yet.';
+  const dims = rs.dimFields.concat([state.color, state.detail]
+    .filter(f => isDim(f) && !rs.dimFields.includes(f)));
+  const measures = rs.measFields.map(m => m === 'records'
+    ? 'COUNT(*) AS number_of_records'
+    : state.agg + '(' + COLUMN_SQL[m] + ') AS ' + state.agg.toLowerCase() + '_' + COLUMN_SQL[m]);
+  const select = dims.map(d => COLUMN_SQL[d]).concat(measures);
+  let sql = 'SELECT ' + (select.length ? select.join(',\n       ') : '*') + '\nFROM country_gems';
+  if(state.filter && state.filterVals){
+    const all = [...new Set(ROWS.map(r => String(r[state.filter])))];
+    if(state.filterVals.length !== all.length)
+      sql += '\nWHERE ' + COLUMN_SQL[state.filter] + ' IN (' +
+        state.filterVals.map(v => "'" + v + "'").join(', ') + ')';
+  }
+  if(dims.length) sql += '\nGROUP BY ' + dims.map(d => COLUMN_SQL[d]).join(', ');
+  if(state.sort !== 'none' && measures.length)
+    sql += '\nORDER BY ' + (state.agg + '(' + COLUMN_SQL[rs.measField] + ')') +
+      (state.sort === 'desc' ? ' DESC' : ' ASC');
+  return sql + ';';
 }
 
 function drawFields(){
@@ -642,6 +808,20 @@ function checkRung(){
   const missing = [];
   const name = f => f ? FIELDS[f].label : 'nothing';
   Object.keys(t).forEach(k => {
+    // Columns and Rows are lists now, and order matters, because nesting order is what
+    // the learner is being asked to get right.
+    if(MULTI.includes(k)){
+      const want = [].concat(t[k] || []);
+      const have = state[k];
+      if(want.join('|') === have.join('|')) return;
+      const extra = have.filter(f => !want.includes(f));
+      const absent = want.filter(f => !have.includes(f));
+      if(absent.length) missing.push('put ' + absent.map(name).join(' then ') + ' on ' + SHELF_NAMES[k]);
+      if(extra.length) missing.push('take ' + extra.map(name).join(' and ') + ' off ' + SHELF_NAMES[k]);
+      if(!absent.length && !extra.length)
+        missing.push('reorder ' + SHELF_NAMES[k] + ' to ' + want.map(name).join(' then '));
+      return;
+    }
     if(k === 'filterVals'){
       const want = [...t.filterVals].sort().join('|');
       const have = [...(state.filterVals || [])].sort().join('|');
@@ -664,14 +844,21 @@ function say(msg){
 
 function draw(){
   fieldWells();
-  SHELVES.forEach(s => { $('sh-' + s).innerHTML = pillHTML(s); });
+  SHELVES.forEach(s => {
+    $('sh-' + s).innerHTML = pillHTML(s);
+    // Once a field is armed, say where it can land. Seven identical dashed boxes is not
+    // an invitation, it is a guess.
+    const ok = picked ? !( (s === 'detail' || s === 'filter') && !isDim(picked) ) : false;
+    $('sh-' + s).classList.toggle('eligible', ok);
+    $('sh-' + s).classList.toggle('blocked', !!picked && !ok);
+  });
   // Clicking a measure pill cycles the aggregation, which is where beginners learn that
   // the aggregation is a property of the pill and not of the field.
   document.querySelectorAll('.pill').forEach(p => {
     p.onclick = e => {
       const shelf = p.dataset.shelf;
-      if(e.target.dataset.remove){ clearShelf(shelf); return; }
-      const f = state[shelf];
+      if(e.target.dataset.remove){ clearShelf(shelf, e.target.dataset.field); return; }
+      const f = p.dataset.field;
       if(FIELDS[f].kind === 'meas' && shelf !== 'filter'){
         state.agg = AGGS[(AGGS.indexOf(state.agg) + 1) % AGGS.length];
         draw();
@@ -679,9 +866,16 @@ function draw(){
     };
   });
 
+  // Every value starts included, as a quick filter does, so the action is exclusion. The
+  // label has to say that, because a lit button that removes data on click reads backwards.
   $('filtvals').innerHTML = state.filter
-    ? [...new Set(ROWS.map(r => String(r[state.filter])))].sort().map(v =>
-        `<button class="fv" data-v="${esc(v)}" aria-pressed="${(state.filterVals || []).includes(v)}">${esc(v)}</button>`).join('')
+    ? '<span class="hint" style="width:100%">Values of ' + esc(FIELDS[state.filter].label) +
+      '. Everything starts included; click one to leave it out.</span>' +
+      [...new Set(ROWS.map(r => String(r[state.filter])))].sort().map(v => {
+        const on = (state.filterVals || []).includes(v);
+        return `<button class="fv" data-v="${esc(v)}" aria-pressed="${on}"
+          title="${on ? 'Included, click to leave it out' : 'Left out, click to put it back'}">${esc(v)}</button>`;
+      }).join('')
     : '';
   $('filtvals').querySelectorAll('.fv').forEach(b => {
     b.onclick = () => {
@@ -700,6 +894,7 @@ function draw(){
   $('markstate').textContent = state.mark + ' marks';
 
   drawChart(); drawData(); drawFields();
+  $('livesql').textContent = liveSQL();
 
   // Described, never scored. What is left to do, in the words of the tool.
   const missing = checkRung();
