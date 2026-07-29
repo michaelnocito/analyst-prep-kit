@@ -89,6 +89,10 @@
 
   /* Typing step: the drill layout, unchanged from /drill/, because it is the part that
      already tests well. */
+  /* The drill bar orients and does nothing else. Navigation used to live up here, which
+     put Next a full pane away from Run: you clicked Run at the bottom right, then had to
+     travel back up to the top right to move on. The controls now sit in one row under the
+     editor in the order a hand uses them. */
   .drillbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
     background:var(--card);border:1px solid var(--line);border-radius:12px;
     padding:12px var(--pad);margin:14px 0}
@@ -96,7 +100,6 @@
     color:var(--accent);background:rgba(14,116,144,.09);border-radius:999px;
     padding:7px 11px;white-space:nowrap}
   .adds{font-size:16.5px;font-weight:600;margin:0;flex:1 1 320px;min-width:0}
-  .navbtns{display:flex;gap:8px;margin-left:auto}
 
   .work{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
   @media (max-width:980px){ .work{grid-template-columns:1fr} }
@@ -122,8 +125,14 @@
   .CodeMirror .CodeMirror-scroll{min-height:246px}
   .runbar{border-top:1px solid var(--line);padding:12px var(--pad);display:flex;
     align-items:center;gap:14px;flex-wrap:wrap}
-  .predict{flex:1 1 260px;font-size:14.5px;min-width:0}
+  .predict{flex:1 1 100%;font-size:14.5px;min-width:0}
   .predict b{color:var(--accent)}
+  /* One row, read left to right in the order it is used: leave, run, move on. Back is
+     quiet because it is the rare click; Run is primary until the rows match, and then
+     the forward button takes over as the loud one. */
+  .actions{display:flex;align-items:center;gap:10px;width:100%}
+  .actions .fwd{margin-left:auto}
+  #back{color:var(--muted);padding:11px 13px}
 
   button{font:600 14.5px/1 inherit;padding:11px 16px;border-radius:9px;
     border:1px solid var(--line);background:var(--card);color:var(--ink);
@@ -179,6 +188,26 @@
   .ckrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
   .ckrow a button{min-width:0}
 
+  /* CELEBRATION. Lifted from the kits (sql/index.html celebrate + showToast) so a right
+     answer feels the same here as it does in a lesson. Confetti and a toast, no sound. */
+  #celebrate-overlay{position:fixed;inset:0;pointer-events:none;z-index:999}
+  .confetti{position:absolute;width:8px;height:8px;border-radius:2px;
+    animation:fall 1.2s ease-in forwards}
+  @keyframes fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}
+    100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+  #toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--accent);color:#fff;padding:12px 24px;border-radius:9px;
+    font-weight:600;font-size:14px;z-index:1000;transition:.35s;opacity:0;
+    pointer-events:none}
+  #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  /* The small one: the thing you just got right moves, so the eye knows where to look. */
+  .pop{animation:pop .42s ease-out}
+  @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.045)}100%{transform:scale(1)}}
+  @media (prefers-reduced-motion:reduce){
+    .confetti,.pop{animation:none}
+    #toast{transition:none}
+  }
+
   #directive{position:fixed;left:0;right:0;bottom:0;background:var(--card);
     border-top:1px solid var(--line);z-index:5;pointer-events:none}
   #directive p{max-width:1240px;margin:0 auto;padding:13px 20px;font-weight:600;
@@ -212,11 +241,6 @@
     <div class="drillbar">
       <span class="rung" id="rung">Loading</span>
       <p class="adds" id="adds">Starting the SQL engine.</p>
-      <span class="navbtns">
-        <button id="prev">Back</button>
-        <button id="next">Next query</button>
-        <button class="go" id="to-lesson" hidden>Go to the lesson</button>
-      </span>
     </div>
 
     <div class="work">
@@ -239,7 +263,12 @@
                   autocorrect="off" placeholder="Type the query here."></textarea>
         <div class="runbar">
           <p class="predict"><b>Before you run it:</b> <span id="pretext"></span></p>
-          <button class="go" id="run">Run</button>
+          <div class="actions">
+            <button id="back">&larr; Back</button>
+            <button class="go" id="run">Run</button>
+            <button class="fwd" id="next">Next query &rarr;</button>
+            <button class="fwd go" id="to-lesson" hidden>Go to the lesson &rarr;</button>
+          </div>
         </div>
       </div>
     </div>
@@ -299,6 +328,9 @@
   </footer>
 </div>
 
+<div id="celebrate-overlay" aria-hidden="true"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
 <div id="directive"><p id="directive-text">Read the six lines, then click Start typing.</p></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
@@ -322,6 +354,37 @@ try {
   if(typeof saved.i === 'number') i = Math.min(saved.i, LAP.drills.length - 1);
 } catch(e){}
 const remember = () => { try { localStorage.setItem(KEY, JSON.stringify({step, i})); } catch(e){} };
+
+// ── celebration, same as the kits ───────────────────────────────────────────
+// sql/index.html celebrate() and showToast(), reused so a right answer feels the same
+// here as it does inside a lesson. Confetti and a toast. No sound, no streak, no score.
+function showToast(msg){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+function celebrate(msg, pieces){
+  const overlay = $('celebrate-overlay');
+  const colors = ['#0E7490','#38BDF8','#15803D','#F59E0B','#67E8F9'];
+  overlay.innerHTML = '';
+  for(let n = 0; n < (pieces || 28); n++){
+    const d = document.createElement('div');
+    d.className = 'confetti';
+    d.style.cssText = 'left:' + (Math.random() * 100) + '%;background:' + colors[n % colors.length] +
+      ';animation-delay:' + (Math.random() * .4) + 's;animation-duration:' + (.9 + Math.random() * .6) + 's';
+    overlay.appendChild(d);
+  }
+  showToast(msg || '✓ Nice work!');
+  setTimeout(() => { overlay.innerHTML = ''; }, 1800);
+}
+// The thing you just got right moves, so the eye knows where the good news is.
+function pop(el){
+  if(!el) return;
+  el.classList.remove('pop');
+  void el.offsetWidth;                              // restart the animation on a re-run
+  el.classList.add('pop');
+}
 
 // ── the stepper and which section is on screen ──────────────────────────────
 const STEPS = [
@@ -379,9 +442,13 @@ function renderDrill(){
   $('verdict').textContent = 'Run your query and the rows appear here.';
   $('out').innerHTML = '';
   const last = i === LAP.drills.length - 1;
-  $('prev').disabled = i === 0;
+  $('back').disabled = i === 0;
   $('next').hidden = last;
   $('to-lesson').hidden = !last;
+  // Run is the loud button until the rows match. Nothing is disabled: someone who wants
+  // to skip ahead without running can, the same as the drill page.
+  $('run').classList.add('go');
+  $('next').classList.remove('go');
   $('directive-text').textContent = last
     ? 'Last query. Type it, run it, then go to the lesson.'
     : 'Type the whole query, run it, then click Next query.';
@@ -438,11 +505,24 @@ function run(){
     want + (got === want ? '. ' : ', so the two are not doing the same thing yet. ') +
     (got === want ? answerLine(res) : '');
   $('out').innerHTML = table(res);
+  // Right answer: the kits' confetti, and the loud button moves from Run to the way out,
+  // so the next click is the one the hand is already heading for.
+  if(got === want){
+    const last = i === LAP.drills.length - 1;
+    const fwd = last ? $('to-lesson') : $('next');
+    $('run').classList.remove('go');
+    fwd.classList.add('go');
+    pop(fwd);
+    celebrate(last ? '✓ That is the whole lap of typing' : '✓ Rows match', last ? 34 : 20);
+    $('directive-text').textContent = last
+      ? 'Rows match. Click Go to the lesson.'
+      : 'Rows match. Click Next query.';
+  }
 }
 
 $('run').onclick = run;
 $('next').onclick = () => { if(i < LAP.drills.length - 1){ i++; renderDrill(); } };
-$('prev').onclick = () => { if(i > 0){ i--; renderDrill(); } };
+$('back').onclick = () => { if(i > 0){ i--; renderDrill(); } };
 $('to-lesson').onclick = () => show('lesson');
 $('sql').addEventListener('keydown', e => {
   if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); run(); }
@@ -480,6 +560,7 @@ $('quiz-list').querySelectorAll('.opt').forEach(b => {
     const q = LAP.quiz[n];
     answered[n] = k === q.ans;
     b.classList.add(k === q.ans ? 'picked-ok' : 'picked-no');
+    if(k === q.ans){ pop(b); showToast('✓ Right'); }
     // A wrong pick shows the right one immediately. Withholding it here would send
     // someone away from the page to find out, which is where they stop coming back.
     if(k !== q.ans) $('opts-' + n).children[q.ans].classList.add('showans');
@@ -492,6 +573,11 @@ $('quiz-list').querySelectorAll('.opt').forEach(b => {
         (got === LAP.quiz.length ? ' Unit 1 is in.' : ' The explanations above are the bit to retype.');
       $('score').hidden = false;
       $('to-done').hidden = false;
+      pop($('to-done'));
+      // A clean sweep gets the full confetti. A mixed run gets the toast only, because
+      // confetti over two wrong answers reads as the page not paying attention.
+      if(got === LAP.quiz.length) celebrate('✓ Four for four', 34);
+      else showToast('Lap done, ' + got + ' of ' + LAP.quiz.length);
       $('directive-text').textContent = 'Click Finish the lap.';
     }
   };
