@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL Foundations, Start to Finish (Written to Be Listened To) — Analyst Prep Kit</title>
+<meta name="description" content="Every core SQL idea in the order they build on each other: tables and grain, the six clauses and the order they really run in, NULL, filtering, aggregation, GROUP BY and HAVING, joins, CASE, subqueries, CTEs, window functions, keys and indexes.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-foundations/">
+<meta property="og:title" content="SQL Foundations, Start to Finish">
+<meta property="og:description" content="Every core SQL idea, in the order they build on each other, explained so you can say each one out loud. Written to be listened to.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-foundations.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-foundations/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-foundations.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:620px}
+  .figure figcaption{font-size:14px;color:var(--muted);margin-top:10px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>SQL Foundations, Start to Finish</h1>
+  <p class="meta">Every core SQL idea, in the order they build on each other · Written to be listened to · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can say, out loud and in your own words, what every core piece of SQL does. What a table and a row really are. The six clauses, and the order they actually run in, which is not the order you type them. <code>NULL</code>, and why it breaks comparisons. Filtering, aggregation, <code>GROUP BY</code> and <code>HAVING</code>. Joins. <code>CASE</code>. Subqueries, CTEs and window functions. Keys and indexes. That list is most of what an analyst job, an interview, and a first real dataset will ask of you.</p>
+
+  <p>Here is what to actually do with it. Go through once end to end without stopping, just for the shape. Then come back to the retrieval sheet near the bottom, cover the right-hand column, and try to say each answer before you read it. That second pass is where the learning happens, and there is measured evidence for it further down.</p>
+
+  <p>The short version: SQL is one sentence with six parts, and every part answers a different question about your rows. Learn what each part does and where it runs, and the rest is vocabulary.</p>
+
+  <p>One idea decides more of your SQL experience than any other, so it gets the picture. You write a query in one order. The database runs it in a different order. Almost every confusing SQL error is that gap.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 340" role="img" aria-labelledby="ordTitle ordDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="ordTitle">You write a query in one order and it runs in another</title>
+      <desc id="ordDesc">Two columns of stacked boxes face each other. The left column, headed "you write", lists the clauses in typing order from top to bottom: SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT. The right column, headed "it runs", lists the same clauses in execution order: FROM, WHERE, GROUP BY, HAVING, SELECT, ORDER BY, LIMIT. Curved lines connect each clause on the left to the same clause on the right. Six of the seven lines run roughly straight across. One line, the one belonging to SELECT, is drawn in a strong accent colour and sweeps steeply downward from the very top of the left column to the fifth position on the right, showing that SELECT is written first but runs almost last, after grouping has already happened.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <text x="90" y="30" font-size="13" font-weight="700" fill="#52525B">you write</text>
+        <text x="470" y="30" font-size="13" font-weight="700" fill="#52525B">it runs</text>
+
+        <rect x="90" y="50" width="200" height="30" rx="6" fill="#0E7490"/>
+        <text x="104" y="70" font-size="13" font-weight="700" fill="#FFFFFF">SELECT</text>
+        <rect x="90" y="88" width="200" height="30" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="104" y="108" font-size="13" fill="#09090B">FROM</text>
+        <rect x="90" y="126" width="200" height="30" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="104" y="146" font-size="13" fill="#09090B">WHERE</text>
+        <rect x="90" y="164" width="200" height="30" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="104" y="184" font-size="13" fill="#09090B">GROUP BY</text>
+        <rect x="90" y="202" width="200" height="30" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="104" y="222" font-size="13" fill="#09090B">HAVING</text>
+        <rect x="90" y="240" width="200" height="30" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="104" y="260" font-size="13" fill="#09090B">ORDER BY</text>
+        <rect x="90" y="278" width="200" height="30" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="104" y="298" font-size="13" fill="#09090B">LIMIT</text>
+
+        <rect x="470" y="50" width="200" height="30" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="484" y="70" font-size="13" fill="#09090B">FROM</text>
+        <rect x="470" y="88" width="200" height="30" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="484" y="108" font-size="13" fill="#09090B">WHERE</text>
+        <rect x="470" y="126" width="200" height="30" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="484" y="146" font-size="13" fill="#09090B">GROUP BY</text>
+        <rect x="470" y="164" width="200" height="30" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="484" y="184" font-size="13" fill="#09090B">HAVING</text>
+        <rect x="470" y="202" width="200" height="30" rx="6" fill="#0E7490"/>
+        <text x="484" y="222" font-size="13" font-weight="700" fill="#FFFFFF">SELECT</text>
+        <rect x="470" y="240" width="200" height="30" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="484" y="260" font-size="13" fill="#09090B">ORDER BY</text>
+        <rect x="470" y="278" width="200" height="30" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="484" y="298" font-size="13" fill="#09090B">LIMIT</text>
+
+        <path d="M290 65 C 380 65, 380 217, 470 217" stroke="#0E7490" stroke-width="3" fill="none"/>
+        <path d="M290 103 C 380 103, 380 65, 470 65" stroke="#A1A1AA" stroke-width="1.5" fill="none"/>
+        <path d="M290 141 C 380 141, 380 103, 470 103" stroke="#A1A1AA" stroke-width="1.5" fill="none"/>
+        <path d="M290 179 C 380 179, 380 141, 470 141" stroke="#A1A1AA" stroke-width="1.5" fill="none"/>
+        <path d="M290 217 C 380 217, 380 179, 470 179" stroke="#A1A1AA" stroke-width="1.5" fill="none"/>
+        <path d="M290 255 L470 255" stroke="#A1A1AA" stroke-width="1.5" fill="none"/>
+        <path d="M290 293 L470 293" stroke="#A1A1AA" stroke-width="1.5" fill="none"/>
+      </g>
+    </svg>
+    <figcaption>The clause you type first is almost the last one to run.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>Tables, rows, and the one word that prevents most mistakes</li>
+      <li>The six clauses, and the order they really run in</li>
+      <li>Filtering, and what NULL does to it</li>
+      <li>Aggregation, GROUP BY and HAVING</li>
+      <li>Joining two tables</li>
+      <li>Shaping the output: DISTINCT, ORDER BY, CASE, aliases</li>
+      <li>Subqueries, CTEs and window functions</li>
+      <li>Keys, indexes, and what relational means</li>
+      <li>How to study this so it sticks</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>What this page is, and what it is not.</strong> This is the concept layer: what each piece is and what it does. It is not a typing course. If you want reps, the companion drill hands you thirteen runnable queries that each add one thing to the last. Doing that once while listening to this once is the fastest route through both.</div>
+
+  <div class="step">
+    <h2>1. Tables, rows, and the one word that prevents most mistakes</h2>
+
+    <p>Before the explanation: two tables both have 500 rows. Does that tell you they hold the same amount of information about the same things?</p>
+
+    <p>A <strong>table</strong> is a grid. Columns are the fields, and every value in a column is the same kind of thing. Rows are the records. A <strong>database</strong> is a set of tables that know about each other.</p>
+
+    <p>Now the word that prevents most SQL mistakes: <strong>grain</strong>. The grain of a table is what one row means. Say it as a sentence starting with "one row per".</p>
+    <ul>
+      <li>A customer table has a grain of one row per customer.</li>
+      <li>An order table has a grain of one row per order.</li>
+      <li>An order-lines table has a grain of one row per product within an order.</li>
+    </ul>
+    <p>Those three tables can all have 500 rows and mean completely different things. Grain is the answer to "what am I counting", and every count, sum and average you write is an answer at some grain. When a number comes out wrong, it is usually right at a grain you did not intend.</p>
+
+    <p>The other thing to know about a table before you query it is its <strong>data types</strong>. Broadly: integers, decimals, text, dates, and booleans. Types are not decoration. A date stored as text will sort alphabetically, so the first of December lands before the second of January. A number stored as text will not compare or add correctly. When something obvious refuses to work, check the type first.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. The six clauses, and the order they really run in</h2>
+
+    <p>Before the explanation: you name a column <code>revenue</code> in your <code>SELECT</code>, then try to filter on <code>revenue</code> in your <code>WHERE</code>, and the database says no such column. It is right there on the line above. Why does the database not see it?</p>
+
+    <p>Here is a query using every clause. This is the whole shape of SQL, and everything else is a variation on it.</p>
+
+    <pre><code>SELECT   region, COUNT(*) AS orders
+FROM     orders
+WHERE    order_date >= '2026-01-01'
+GROUP BY region
+HAVING   COUNT(*) > 100
+ORDER BY orders DESC
+LIMIT    10;</code></pre>
+
+    <p>Read in typing order it is: show me these things, from here, where this is true, grouped like this, keeping only groups like that, sorted this way, and stop after ten.</p>
+
+    <p>But the database does not run it in that order. It runs <code>FROM</code>, then <code>WHERE</code>, then <code>GROUP BY</code>, then <code>HAVING</code>, then <code>SELECT</code>, then <code>ORDER BY</code>, then <code>LIMIT</code>. That is the order in the picture above, and it explains three things people otherwise memorise as arbitrary rules.</p>
+
+    <p>The first is your prequestion. <code>WHERE</code> runs before <code>SELECT</code>, so at the moment <code>WHERE</code> is evaluated the alias <code>revenue</code> does not exist yet. That is why you have to repeat the whole expression in the <code>WHERE</code>, or wrap the query in another one.</p>
+
+    <p>The second is <code>WHERE</code> against <code>HAVING</code>, which is the single most asked SQL interview question after joins. <code>WHERE</code> runs before grouping, so it filters individual rows. <code>HAVING</code> runs after grouping, so it filters groups, and it is the only one that can see an aggregate like <code>COUNT(*)</code>. "Orders over 500 dollars" is a <code>WHERE</code>. "Regions with more than 100 orders" is a <code>HAVING</code>.</p>
+
+    <p>The third is that <code>ORDER BY</code> runs after <code>SELECT</code>, which is why it <em>can</em> use your alias. <code>ORDER BY orders DESC</code> works in the query above, on a name that <code>WHERE</code> could not see. Same query, same alias, different answer, purely because of when each clause runs.</p>
+
+    <p>Say this one out loud before you read on: why can <code>ORDER BY</code> use an alias that <code>WHERE</code> cannot?</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Filtering, and what NULL does to it</h2>
+
+    <p>Before the explanation: a table has 100 rows. You run one filter and get 60 rows, then run the exact opposite filter and get 30. Where are the other 10?</p>
+
+    <p><code>WHERE</code> keeps rows that make a condition true. The building blocks are small.</p>
+    <table>
+      <tr><th>Operator</th><th>What it does</th></tr>
+      <tr><td><code>=</code> <code>&lt;&gt;</code> <code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code></td><td>Compare one value to another</td></tr>
+      <tr><td><code>AND</code> <code>OR</code> <code>NOT</code></td><td>Combine conditions. <code>AND</code> is applied before <code>OR</code>, so use brackets when you mix them.</td></tr>
+      <tr><td><code>IN (a, b, c)</code></td><td>Matches any value in a list. Shorter than a chain of <code>OR</code>.</td></tr>
+      <tr><td><code>BETWEEN x AND y</code></td><td>A range, and both ends are included</td></tr>
+      <tr><td><code>LIKE 'north%'</code></td><td>Text pattern. <code>%</code> means any run of characters, <code>_</code> means exactly one.</td></tr>
+      <tr><td><code>IS NULL</code> / <code>IS NOT NULL</code></td><td>The only correct way to test for a missing value</td></tr>
+    </table>
+
+    <p>Which brings us to the answer to the prequestion. <code>NULL</code> does not mean zero and it does not mean empty text. It means unknown. And a comparison against an unknown does not come back false, it comes back unknown, which is a third state. A row whose value is unknown fails both <code>region = 'North'</code> and <code>region &lt;&gt; 'North'</code>, because SQL cannot say either is true. Those ten rows are not in either result.</p>
+
+    <p>This is why <code>= NULL</code> never works and <code>IS NULL</code> is a separate piece of syntax. It is also why <code>NOT IN</code> against a list containing a <code>NULL</code> returns nothing at all, which is a genuinely nasty afternoon the first time it happens.</p>
+
+    <p>The everyday habit that saves you: whenever you write a filter that excludes something, ask what happens to the rows where the column is unknown, and decide on purpose. Often you want <code>WHERE region &lt;&gt; 'North' OR region IS NULL</code>.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Aggregation, GROUP BY and HAVING</h2>
+
+    <p>Before the explanation: <code>COUNT(*)</code> and <code>COUNT(customer_id)</code> on the same table can return different numbers. What is the difference between what those two questions are asking?</p>
+
+    <p>An <strong>aggregate function</strong> takes many rows and returns one value. There are five you will use constantly: <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code>.</p>
+
+    <p><code>GROUP BY</code> decides what "many rows" means. Without it, an aggregate collapses the entire table to a single row. With <code>GROUP BY region</code>, it collapses to one row per region, and the aggregate is recalculated inside each one. This is the same idea as the level of detail of a view in Tableau, and if you have met that, it is exactly the same mechanic wearing different clothes. There is a walkthrough of it in the <a href="../tableau-concepts/">Tableau concepts guide</a>.</p>
+
+    <p>The rule that follows: every column in your <code>SELECT</code> must either be in the <code>GROUP BY</code> or be wrapped in an aggregate. There is no third option, because there is no sensible answer to "give me the customer name for this group of 400 customers."</p>
+
+    <p>Now the three counts, which is the prequestion.</p>
+    <table>
+      <tr><th>Written as</th><th>Counts</th></tr>
+      <tr><td><code>COUNT(*)</code></td><td>Rows. Every row, including ones full of <code>NULL</code>.</td></tr>
+      <tr><td><code>COUNT(customer_id)</code></td><td>Rows where that column is not <code>NULL</code>. Missing values are skipped.</td></tr>
+      <tr><td><code>COUNT(DISTINCT customer_id)</code></td><td>How many different customers, no matter how many rows each occupies.</td></tr>
+    </table>
+    <p>Those are three genuinely different questions: how many rows, how many rows have this, and how many distinct things. The gap between the first and the third is the fastest way to detect duplicate rows, which is why it comes back in the joins guide.</p>
+
+    <p><code>AVG</code> skips <code>NULL</code> too, which matters more than it sounds. If 40 of 100 rows have no value, <code>AVG</code> divides by 60, not 100. When a missing value really means zero, replace it first with <code>COALESCE(column, 0)</code>, which returns the first thing in its list that is not <code>NULL</code>.</p>
+
+    <p>Now picture your own data. If you grouped it by its most obvious category column and counted rows, which group would be biggest, and would that be a finding or just a reflection of how the data was collected?</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Joining two tables</h2>
+
+    <p>Before the explanation: you join a customer table to an order table. Neither table changed. Why can the result have more rows than both of them?</p>
+
+    <p>A <strong>join</strong> combines two tables by matching rows on a shared value, called the key. The mechanic is one sentence, and it is worth holding onto: for every row on the left, the database finds every row on the right whose key matches, and writes one output row per pair.</p>
+
+    <p>That sentence answers the prequestion. A customer with three orders produces three pairs, so three output rows, with the customer's details repeated on each. Multiply that across a table and the result is bigger than either input.</p>
+
+    <p>The same sentence explains the opposite failure. A customer with no orders produces no pairs, so no output rows, and they vanish from the result with no error and no warning.</p>
+
+    <p>The types, briefly. <code>INNER JOIN</code> keeps only matched pairs. <code>LEFT JOIN</code> keeps every row from the left table, filling the right side with <code>NULL</code> where nothing matched. <code>RIGHT JOIN</code> does the same the other way round. <code>FULL OUTER JOIN</code> keeps unmatched rows from both sides. <code>CROSS JOIN</code> pairs everything with everything and is almost never what you want by accident.</p>
+
+    <p>Joins are where the largest share of real analyst errors live, and both failure modes are invisible in the query text and obvious in the row count. That is a whole guide on its own: <a href="../sql-joins/">how to join two tables without losing or doubling rows</a> works through both on 41 million real rows, with the two counts that catch each one.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Shaping the output: DISTINCT, ORDER BY, CASE, aliases</h2>
+
+    <p>Before the explanation: your result has the same customer listed nine times. Is <code>DISTINCT</code> the fix, or is it a way of hiding the question you should be asking?</p>
+
+    <p><code>DISTINCT</code> removes duplicate rows from the result. It is useful for a genuine question like "which regions appear in this table". It is dangerous as a reflex, because duplicate rows usually mean a join multiplied your data, and removing them by hand hides that rather than fixing it. Ask where the duplicates came from first, then decide.</p>
+
+    <p><code>ORDER BY</code> sorts. Ascending by default, <code>DESC</code> for descending, and you can sort by several columns in priority order. <code>LIMIT</code> takes the first n rows and is your best friend on a table you have never opened before, because <code>SELECT * FROM big_table LIMIT 10</code> shows you what you are dealing with in a second.</p>
+
+    <p><strong>Aliases</strong> rename things. <code>AS avg_hours</code> names an output column, and <code>FROM customers AS c</code> nicknames a table so you can write <code>c.name</code>. Two joined tables almost always need those nicknames, because both can carry a column of the same name. The whole habit is covered in <a href="../sql-aliasing/">SQL aliases, and reading a query out loud</a>.</p>
+
+    <p><code>CASE</code> is the if-then of SQL, and it turns a column into categories.</p>
+    <pre><code>SELECT name,
+       CASE WHEN tenure_months &lt; 12 THEN 'First year'
+            WHEN tenure_months &lt; 36 THEN 'Established'
+            ELSE 'Loyal'
+       END AS segment
+FROM customers;</code></pre>
+    <p>It reads top to bottom and stops at the first match, which is why the ranges above do not need an upper bound each. Anything not matched falls to <code>ELSE</code>, and with no <code>ELSE</code> it becomes <code>NULL</code>. <code>CASE</code> also works inside an aggregate, which is how you count a subset in the same query: <code>SUM(CASE WHEN churned = 1 THEN 1 ELSE 0 END)</code>.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Subqueries, CTEs and window functions</h2>
+
+    <p>Before the explanation: you want each customer's spend compared to their region's average. That needs two different groupings in one result. How can one query have two grains at once?</p>
+
+    <p>Three tools, and they are the step from writing queries to structuring them.</p>
+
+    <p>A <strong>subquery</strong> is a query inside another query. It can sit in <code>FROM</code>, where it acts as a temporary table, or in <code>WHERE</code>, where it supplies a value or a list to compare against.</p>
+
+    <p>A <strong>CTE</strong>, a common table expression, is the same idea written so a human can read it. You name a result up front with <code>WITH</code>, then use that name below.</p>
+    <pre><code>WITH regional AS (
+  SELECT region, AVG(spend) AS region_avg
+  FROM customers
+  GROUP BY region
+)
+SELECT c.name, c.spend, r.region_avg
+FROM customers AS c
+JOIN regional AS r ON c.region = r.region;</code></pre>
+    <p>That is the answer to the prequestion, done the explicit way. Compute the region-level answer once, name it, then join it back to the customer-level rows. Reading it top to bottom is the same order the work happens in, which is why CTEs are worth reaching for even when a nested subquery would do. A query someone else can follow is a query someone else will trust.</p>
+
+    <p>A <strong>window function</strong> gets you the same result without the join. It computes across a set of related rows while keeping every row.</p>
+    <pre><code>SELECT name, spend,
+       AVG(spend) OVER (PARTITION BY region) AS region_avg
+FROM customers;</code></pre>
+    <p>That is the whole idea: <code>OVER</code> says "look across a window of rows", and <code>PARTITION BY</code> says which rows belong to the same window. An ordinary <code>GROUP BY</code> collapses your rows. A window function does the same math and keeps them. The other common ones are <code>ROW_NUMBER</code>, <code>RANK</code> and <code>DENSE_RANK</code> for numbering rows inside each group, and <code>LAG</code> and <code>LEAD</code> for reaching at the previous or next row, which is how you calculate month-over-month change.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. Keys, indexes, and what relational means</h2>
+
+    <p>Before the explanation: why is the same customer's address stored in one table rather than repeated on every one of their orders?</p>
+
+    <p>A <strong>primary key</strong> is the column that uniquely identifies a row. One customer id, one customer, never repeated, never <code>NULL</code>. A <strong>foreign key</strong> is that same id appearing in another table to point back, so an order carries the customer id of whoever placed it.</p>
+
+    <p>That pair is the whole answer to the prequestion. The address lives in one place, so changing it changes it everywhere, and there is no way for two copies to disagree. Splitting data into tables that reference each other by key is called normalisation, and it is what relational means in practice.</p>
+
+    <p>An <strong>index</strong> is a lookup structure the database keeps on a column so it does not have to read every row to find a value. The cost is a little space and slightly slower writes. The benefit on a large table is dramatic: matching 125,855 rows against 41 million goes from a full scan to a lookup. Index the columns you join and filter on. The <a href="../handle-large-datasets/">guide to handling large datasets</a> covers the rest of working at that size.</p>
+
+    <p>One last thing worth knowing before you meet it. SQL is a standard, but every database extends it. Date functions, string functions, and how you limit rows all differ between PostgreSQL, MySQL, SQLite, SQL Server and BigQuery. The core in this guide is the same everywhere. When a function does not exist, you are usually in a different dialect rather than wrong.</p>
+  </div>
+
+  <h2>How to study this so it sticks</h2>
+
+  <p>Reading this page again will feel like learning and mostly will not be. Three findings change what an hour of study is worth, and all three are cheap to act on.</p>
+
+  <p>The first is that retrieving something from memory stores it better than reviewing it does. Students who read a passage once and then took recall tests remembered far more a week later than students who read the same passage four times, even though the re-readers felt more confident (Roediger &amp; Karpicke, 2006, <em>Psychological Science</em>, 17(3), 249–255). Applied here: cover the right-hand column of the retrieval sheet below and say each answer before you look. The struggle is the mechanism, not a sign you are doing it badly.</p>
+
+  <p>The second is spacing. The same total study time, spread across days rather than packed into one sitting, produces substantially better retention, and the effect holds across hundreds of experiments (Cepeda, Pashler, Vul, Wixted, &amp; Rohrer, 2006, <em>Psychological Bulletin</em>, 132(3), 354–380). Three twenty-minute passes on three days beats one hour tonight.</p>
+
+  <p>The third is why this guide keeps asking you to say things out loud. Learners who explain a worked example to themselves as they go understand it substantially better, and transfer it to new problems better, than learners who read the same example without explaining it (Chi, Bassok, Lewis, Reimann, &amp; Glaser, 1989, <em>Cognitive Science</em>, 13(2), 145–182). SQL is where that pays off most, because the mistake is almost never in a keyword. It is in what you believe one row means.</p>
+
+  <p>If you have paper nearby and a spare five minutes, there is one drawing worth doing, and it is optional. Draw the two columns from the picture at the top from memory, typing order on the left, running order on the right, and join them up. It is the concept with the most downstream consequences, and drawing it from memory is both a retrieval attempt and a check on whether you actually have it.</p>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Concept</th><th>What it does</th></tr>
+    <tr><td>Grain</td><td>What one row means. Say it as "one row per something".</td></tr>
+    <tr><td>Execution order</td><td>FROM, WHERE, GROUP BY, HAVING, SELECT, ORDER BY, LIMIT.</td></tr>
+    <tr><td>Why WHERE cannot use an alias</td><td>WHERE runs before SELECT, so the alias does not exist yet.</td></tr>
+    <tr><td>Why ORDER BY can</td><td>ORDER BY runs after SELECT.</td></tr>
+    <tr><td>WHERE</td><td>Filters individual rows, before grouping.</td></tr>
+    <tr><td>HAVING</td><td>Filters groups, after grouping. The only one that sees an aggregate.</td></tr>
+    <tr><td>NULL</td><td>Unknown, not zero and not empty. Comparisons against it are neither true nor false.</td></tr>
+    <tr><td>IS NULL</td><td>The only correct test for a missing value. <code>= NULL</code> never works.</td></tr>
+    <tr><td>COALESCE</td><td>Returns the first value in its list that is not NULL.</td></tr>
+    <tr><td>COUNT(*)</td><td>Counts rows, including rows full of NULL.</td></tr>
+    <tr><td>COUNT(column)</td><td>Counts rows where that column is not NULL.</td></tr>
+    <tr><td>COUNT(DISTINCT column)</td><td>Counts how many different values, ignoring repeats.</td></tr>
+    <tr><td>GROUP BY</td><td>Decides which rows an aggregate is calculated inside.</td></tr>
+    <tr><td>The GROUP BY rule</td><td>Every selected column is either grouped or aggregated. No third option.</td></tr>
+    <tr><td>INNER JOIN</td><td>Keeps only matched pairs. Unmatched rows vanish silently.</td></tr>
+    <tr><td>LEFT JOIN</td><td>Keeps every left row, filling the right side with NULL where nothing matched.</td></tr>
+    <tr><td>Fan-out</td><td>One row matching many produces many rows, repeating the one side's values.</td></tr>
+    <tr><td>DISTINCT</td><td>Removes duplicate rows. Ask where they came from before using it.</td></tr>
+    <tr><td>LIMIT</td><td>Returns the first n rows. The fastest way to look at an unfamiliar table.</td></tr>
+    <tr><td>Alias</td><td>A nickname for a column or table. <code>AS</code> is optional but clearer.</td></tr>
+    <tr><td>CASE</td><td>If-then. Reads top to bottom, stops at the first match, unmatched falls to ELSE.</td></tr>
+    <tr><td>Subquery</td><td>A query inside a query, in FROM as a temporary table or in WHERE as a value.</td></tr>
+    <tr><td>CTE (WITH)</td><td>A named result defined up front, so the query reads in the order it works.</td></tr>
+    <tr><td>Window function</td><td>Math across related rows that keeps every row. GROUP BY collapses, OVER does not.</td></tr>
+    <tr><td>PARTITION BY</td><td>Says which rows belong to the same window.</td></tr>
+    <tr><td>LAG and LEAD</td><td>Reach at the previous or next row. How period-over-period change is built.</td></tr>
+    <tr><td>Primary key</td><td>Uniquely identifies a row. Never repeated, never NULL.</td></tr>
+    <tr><td>Foreign key</td><td>That id appearing in another table to point back at it.</td></tr>
+    <tr><td>Index</td><td>A lookup structure so the database does not read every row. Index what you join and filter on.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Before you write an aggregate, say the grain of what you are aggregating out loud. "One row per order" or "one row per review". Nearly every wrong number in SQL is a correct calculation performed at a grain you did not intend, and that one sentence catches it before the query runs. If it does not catch yours, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One genuine question, and I would like other people's answers. The concept that took me longest was <code>NULL</code>, because I kept treating it as a value rather than as an absence of one, and it kept nearly working. Which SQL idea did you understand wrongly for the longest, and what finally fixed it?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+    <li>Roediger, H. L., &amp; Karpicke, J. D. (2006). Test-enhanced learning: Taking memory tests improves long-term retention. <em>Psychological Science</em>, 17(3), 249–255.</li>
+    <li>Cepeda, N. J., Pashler, H., Vul, E., Wixted, J. T., &amp; Rohrer, D. (2006). Distributed practice in verbal recall tasks: A review and quantitative synthesis. <em>Psychological Bulletin</em>, 132(3), 354–380.</li>
+    <li>Chi, M. T. H., Bassok, M., Lewis, M. W., Reimann, P., &amp; Glaser, R. (1989). Self-explanations: How students study and use examples in learning to solve problems. <em>Cognitive Science</em>, 13(2), 145–182.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Want to practise these instead of only reading them?</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> turns the same concepts into worked examples, flash cards, a JOIN Lab that runs a real database in the browser, and a mock exam, in the order this page introduces them. Nothing to install and no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+    <p style="margin:10px 0 0;font-size:15px">Or get straight into typing: <a href="../../drill/">open SQL Drill</a>, thirteen queries that each add one thing to the last.</p>
+  </div>
+
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-aliasing/">SQL Aliases</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-case-expression/">The CASE Expression</a> · <a href="../sql-teaching-comments/">Comment SQL So It Teaches</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../">All Guides</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../tableau-concepts/">Tableau Concepts</a> · <a href="../build-a-tableau-dashboard/">Build a Tableau Dashboard</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin-top:10px"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee &#9749;</a></p>
+  </footer>
+</main>
+</body>
+</html>

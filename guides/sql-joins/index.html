@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <!-- Google tag (gtag.js) -->
@@ -12,10 +12,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SQL JOINs: How to Join Two Tables Without Losing or Doubling Rows — Analyst Prep Kit</title>
-<meta name="description" content="A join can silently drop rows or silently multiply them, and both look like a query that worked. How INNER and LEFT JOIN differ, what grain means, the two checks that catch each failure, and a worked example on 41 million rows.">
+<meta name="description" content="Every join concept in the order they build on each other: the pair rule, grain, all six join types, the silent delete, the silent multiply, the two counts that catch each one, and the edge cases that break joins in real data. Worked on 41 million rows.">
 <link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/">
 <meta property="og:title" content="SQL JOINs: How to Join Two Tables Without Losing or Doubling Rows">
-<meta property="og:description" content="An inner join deleted a third of my result and said nothing. Here is how joins drop and multiply rows, and the two checks that catch it before you report a number.">
+<meta property="og:description" content="A join can silently drop rows or silently multiply them, and both look like a query that worked. Here is every join type, both failures, and the two counts that catch them.">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-joins.png">
 <meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/">
@@ -46,47 +46,36 @@
   footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
   .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
   .toc ol{margin:6px 0 4px;padding-left:22px}
-  .refs{font-size:14px;color:var(--muted)}
-  .refs li{margin-bottom:6px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
   .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
   .figure svg{display:block;width:100%;height:auto;min-width:640px}
-  .figcap{color:var(--muted);font-size:13.5px;margin:8px 2px 0}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
 </style>
 </head>
 <body>
 <main>
   <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
   <h1>SQL JOINs: How to Join Two Tables Without Losing or Doubling Rows</h1>
-  <p class="meta">The two ways a join goes wrong without erroring, and the counts that catch both · Part of the <a href="../../">Analyst Prep Kit</a></p>
+  <p class="meta">Every join concept, in the order they build on each other · Written to be listened to · Part of the <a href="../../">Analyst Prep Kit</a></p>
 
-  <p>A join can quietly drop rows, or quietly duplicate them, and neither one raises an error. This guide shows you both failures on real data, and the two counts that catch them before you trust a number.</p>
+  <p>By the end of this page you can predict, before you run it, how many rows any join will return. You will know all six join types and what each keeps. You will know the two ways a join goes wrong without ever raising an error, and the two counts that catch each one. That is the whole subject, and it is about forty minutes of listening.</p>
 
-  <p>Here is a query that runs, returns a clean table, and is wrong.</p>
+  <p>Here is what to actually do with it. Go through once end to end for the shape. Then, on the next join you write, run the two counts before you trust any number that comes out of it. Two extra queries, ten seconds, and they catch the class of mistake that ends up in a report.</p>
 
-  <pre><code>SELECT g.Name, AVG(r.hours) AS avg_hours
-FROM hidden_gems AS g
-JOIN recommendations AS r ON g.AppID = r.app_id
-GROUP BY g.AppID, g.Name
-ORDER BY avg_hours DESC;</code></pre>
+  <p>The short version: a join can drop rows that found no match, and duplicate rows that found several. So count your rows before and after, every time.</p>
 
-  <p>Every query on this page nicknames its tables. <code>FROM hidden_gems AS g</code> means "for the rest of this query, call that table <code>g</code>", so <code>g.Name</code> is the Name column of <code>hidden_gems</code>. Two joined tables almost always need those nicknames, because both can carry a column of the same name. <a href="../sql-aliasing/">SQL Aliases: How to Read a Query Out Loud</a> covers the whole habit if it is new to you.</p>
+  <p>One idea decides everything else here, so it gets the picture. A join does not add columns to your table. It builds a new table, and you have to work out its row count yourself.</p>
 
-  <p>I ran that against a list of 175 games and a table of 41,154,794 player reviews. It came back with a tidy ranked list and no errors. What it did not tell me is that roughly 57 of those 175 games were not in the result at all. They had no matching reviews, so the join dropped them, silently. I was about to call the list "our games and how long people play them". It was actually about two thirds of them.</p>
-
-  <p>That is the first of two ways a join fails without complaining. The second is the opposite: instead of losing rows, it multiplies them, and every total you calculate afterward comes out too big. Neither one throws an error. Both produce a result that looks finished.</p>
-
-  <div class="note"><strong>The short version.</strong> A join can drop rows that found no match, and duplicate rows that found several. So count your rows before and after, every time.</div>
-
-  <div class="figure">
+  <figure class="figure">
     <svg viewBox="0 0 760 372" role="img" aria-labelledby="joinDiagTitle joinDiagDesc" xmlns="http://www.w3.org/2000/svg">
       <title id="joinDiagTitle">What a join does to your row count</title>
-      <desc id="joinDiagDesc">Three games on the left are matched to review rows on the right. The first game matches one review. The second game matches three reviews and becomes three rows in the result. The third game matches nothing and disappears from an inner join result.</desc>
+      <desc id="joinDiagDesc">Three games listed on the left are matched to review rows listed in the middle. The first game, Parabox, connects by a single line to one review of 12 hours, and appears once in the result column on the right. The second game, Maj'Eyal, connects by three lines to three separate reviews of 174, 96 and 310 hours, and appears three times in the result column, its name repeated on each row. The third game, Until Then, has a line that ends in a cross because no review matches it, and it does not appear in the result column at all. The result column therefore holds four rows, while neither of the two original tables had four rows.</desc>
       <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
         <text x="30" y="24" font-size="13" font-weight="700" fill="#09090B">games (one row per game)</text>
         <text x="270" y="24" font-size="13" font-weight="700" fill="#09090B">reviews (one row per review)</text>
         <text x="540" y="24" font-size="13" font-weight="700" fill="#09090B">INNER JOIN result</text>
 
-        <!-- games -->
         <rect x="30" y="44" width="170" height="34" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
         <text x="44" y="66" font-size="13" fill="#09090B">Parabox</text>
         <rect x="30" y="104" width="170" height="34" rx="8" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
@@ -94,7 +83,6 @@ ORDER BY avg_hours DESC;</code></pre>
         <rect x="30" y="164" width="170" height="34" rx="8" fill="#FFFFFF" stroke="#B45309" stroke-width="2" stroke-dasharray="5 4"/>
         <text x="44" y="186" font-size="13" fill="#09090B">Until Then</text>
 
-        <!-- reviews -->
         <rect x="270" y="44" width="170" height="30" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
         <text x="284" y="64" font-size="13" fill="#52525B">12 hours</text>
         <rect x="270" y="88" width="170" height="30" rx="8" fill="#FFFFFF" stroke="#0E7490"/>
@@ -104,7 +92,6 @@ ORDER BY avg_hours DESC;</code></pre>
         <rect x="270" y="164" width="170" height="30" rx="8" fill="#FFFFFF" stroke="#0E7490"/>
         <text x="284" y="184" font-size="13" fill="#52525B">310 hours</text>
 
-        <!-- connectors -->
         <path d="M200 61 L270 59" stroke="#A1A1AA" stroke-width="1.5" fill="none"/>
         <path d="M200 121 L270 103" stroke="#0E7490" stroke-width="1.5" fill="none"/>
         <path d="M200 121 L270 141" stroke="#0E7490" stroke-width="1.5" fill="none"/>
@@ -112,7 +99,6 @@ ORDER BY avg_hours DESC;</code></pre>
         <path d="M200 181 L250 181" stroke="#B45309" stroke-width="1.5" stroke-dasharray="5 4" fill="none"/>
         <text x="255" y="186" font-size="15" font-weight="700" fill="#B45309">✕</text>
 
-        <!-- results -->
         <rect x="540" y="44" width="190" height="30" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
         <text x="554" y="64" font-size="13" fill="#09090B">Parabox · 12</text>
         <rect x="540" y="82" width="190" height="30" rx="8" fill="#FFFFFF" stroke="#0E7490"/>
@@ -137,141 +123,153 @@ ORDER BY avg_hours DESC;</code></pre>
         <text x="46" y="340" font-size="13.5" fill="#09090B">The result has four rows. Neither table had four rows. That change is the whole subject of this guide.</text>
       </g>
     </svg>
-    <p class="figcap">A join does not add columns to your table. It builds a new table whose row count you have to work out.</p>
-  </div>
+    <figcaption>A join builds a new table whose row count is neither of the two you started with.</figcaption>
+  </figure>
 
   <div class="toc">
-    <strong>What's here</strong>
+    <strong>What you'll learn</strong>
     <ol>
       <li>What a join actually does to your rows</li>
-      <li>Grain, the idea that makes joins make sense</li>
-      <li>Failure one: the silent delete</li>
-      <li>The check that catches it</li>
-      <li>LEFT JOIN, and why an empty column is a finding</li>
-      <li>Failure two: the silent multiply</li>
-      <li>The check that catches that one</li>
+      <li>The six join types, and what each one keeps</li>
+      <li>Failure one: the silent delete, and the check that catches it</li>
+      <li>Failure two: the silent multiply, and the check that catches it</li>
       <li>The full before and after</li>
       <li>Edge cases that break joins in real data</li>
       <li>Why this works</li>
       <li>Using this on your own project</li>
-      <li>A cheat sheet</li>
+      <li>The whole thing on one screen</li>
     </ol>
   </div>
 
-  <h2>What a join actually does to your rows</h2>
+  <div class="note"><strong>The worked example is real.</strong> Every number on this page comes from a published portfolio project: a list of 175 games joined to a table of 41,154,794 player reviews. The queries run against the full datasets at <a href="https://github.com/michaelnocito/steam-hidden-gems" target="_blank" rel="noopener">Steam Hidden Gems on GitHub</a>. If joins are the only thing here that is new, and clauses like <code>GROUP BY</code> and <code>HAVING</code> are too, start with <a href="../sql-foundations/">SQL foundations</a> and come back.</div>
 
-  <p>The Venn diagram is where most people meet joins, and it is a reasonable start. It just describes the wrong thing. It shows you which <em>keys</em> survive. What you need to predict is how many <em>rows</em> come out, and those are different questions.</p>
+  <div class="step">
+    <h2>1. What a join actually does to your rows</h2>
 
-  <p>A join walks the left table, and for every row it finds every row on the right whose key matches. Then it writes one output row per pair. That single sentence explains both failures:</p>
+    <p>Before the explanation: you join two tables and get a result with more rows than either of them had. Nothing errored. What did the database do to produce extra rows out of nowhere?</p>
 
-  <ul>
-    <li>A left row that finds <strong>no</strong> match produces <strong>zero</strong> output rows. It disappears.</li>
-    <li>A left row that finds <strong>three</strong> matches produces <strong>three</strong> output rows. It is duplicated, and every one of its column values is duplicated with it.</li>
-  </ul>
+    <p>The Venn diagram is where most people meet joins, and it is a reasonable start. It just describes the wrong thing. It shows which <em>keys</em> survive. What you need to predict is how many <em>rows</em> come out, and those are different questions.</p>
 
-  <p>So the output row count is not the left count, and it is not the right count. It is the number of matching pairs, which can be smaller than either table or larger than both.</p>
+    <p>Here is the rule that answers both. A join walks the left table, and for every row it finds every row on the right whose key matches. Then it writes one output row per pair. That single sentence explains everything on this page.</p>
+    <ul>
+      <li>A left row that finds <strong>no</strong> match produces <strong>zero</strong> output rows. It disappears.</li>
+      <li>A left row that finds <strong>three</strong> matches produces <strong>three</strong> output rows. It is duplicated, and every one of its column values is duplicated with it.</li>
+    </ul>
+    <p>So the output row count is not the left count, and it is not the right count. It is the number of matching pairs, which can be smaller than either table or larger than both.</p>
 
-  <h2>Grain, the idea that makes joins make sense</h2>
+    <h3>Grain, the idea that makes joins make sense</h3>
+    <p>The <strong>grain</strong> of a table is what one row means. Say it out loud before you join anything.</p>
+    <ul>
+      <li><code>games</code> has a grain of one row per game. 125,855 rows, 125,855 games.</li>
+      <li><code>recommendations</code> has a grain of one row per player review. 41,154,794 rows, and a popular game owns thousands of them.</li>
+    </ul>
+    <p>Joining those two gives you a table whose grain is one row per review, not one row per game. The game columns are still there, but they now repeat once for every review that game received. The moment you forget that, a <code>SUM</code> on a game column stops meaning what its name says.</p>
+    <div class="note"><strong>Name the grain of the result before you write the aggregate.</strong> Almost every wrong number that comes out of a join comes from aggregating a column at the wrong grain. If you can say "one row per review" out loud, you already know that <code>SUM(price)</code> is now price times review count.</div>
 
-  <p>The grain of a table is what one row means. Say it out loud before you join anything:</p>
+    <p>Every query on this page nicknames its tables. <code>FROM hidden_gems AS g</code> means "for the rest of this query, call that table <code>g</code>", so <code>g.Name</code> is the Name column of <code>hidden_gems</code>. Two joined tables almost always need those nicknames, because both can carry a column of the same name. <a href="../sql-aliasing/">SQL aliases, and reading a query out loud</a> covers the whole habit if it is new.</p>
+  </div>
 
-  <ul>
-    <li><code>games</code> has a grain of <strong>one row per game</strong>. 125,855 rows, 125,855 games.</li>
-    <li><code>recommendations</code> has a grain of <strong>one row per player review</strong>. 41,154,794 rows, and a popular game owns thousands of them.</li>
-  </ul>
+  <div class="step">
+    <h2>2. The six join types, and what each one keeps</h2>
 
-  <p>Joining those two gives you a table whose grain is <strong>one row per review</strong>, not one row per game. The game columns are still there, but they now repeat once for every review that game received. The moment you forget that, a <code>SUM</code> on a game column stops meaning what its name says.</p>
+    <p>Before the explanation: five of the six join types below match rows on a key. One of them does not match on anything at all. Which do you think it is, and what could it possibly be for?</p>
 
-  <div class="note"><strong>Name the grain of the result before you write the aggregate.</strong> Almost every wrong number that comes out of a join comes from aggregating a column at the wrong grain. If you can say "one row per review" out loud, you already know that <code>SUM(price)</code> is now price times review count.</div>
+    <p>Each type keeps a different set of rows. The pair rule from section one still applies to all of them. All they change is what happens to rows that found no partner.</p>
 
-  <h2>Failure one: the silent delete</h2>
-  <p>Before the explanation: you join two tables and get fewer rows back than you started with. No error, no warning. Where did the missing rows go, and who decided they should go?</p>
+    <table>
+      <tr><th>Type</th><th>What it keeps</th><th>When you want it</th></tr>
+      <tr><td><code>INNER JOIN</code></td><td>Only matched pairs. Unmatched rows from both sides are gone.</td><td>When a row without a partner is genuinely not part of the question</td></tr>
+      <tr><td><code>LEFT JOIN</code></td><td>Every left row. Right columns come back <code>NULL</code> where nothing matched.</td><td>The safe default. You keep your population and can see what did not match.</td></tr>
+      <tr><td><code>RIGHT JOIN</code></td><td>Every right row, same idea reversed.</td><td>Rarely. Most people swap the table order and use <code>LEFT</code> instead, because reading two directions in one query is hard.</td></tr>
+      <tr><td><code>FULL OUTER JOIN</code></td><td>Everything from both sides, matched or not.</td><td>Reconciling two lists that should agree and do not</td></tr>
+      <tr><td><code>CROSS JOIN</code></td><td>Every left row paired with every right row. No key at all.</td><td>Building a complete grid on purpose, such as every month crossed with every region so empty combinations still appear</td></tr>
+      <tr><td>Self join</td><td>Not a keyword. A table joined to itself under two different aliases.</td><td>Rows that relate to other rows in the same table, such as an employee and their manager</td></tr>
+    </table>
 
-  <p>A plain <code>JOIN</code> is an <code>INNER JOIN</code>. It keeps only rows that matched on both sides. Rows that matched nothing are not flagged, not counted, and not mentioned. They are simply absent from the result.</p>
+    <p><code>CROSS JOIN</code> is the answer to the prequestion, and it is worth knowing precisely because of the accident. Two tables of 1,000 rows each cross-joined produce a million rows. If you ever write a join and forget the <code>ON</code> clause, some databases give you exactly that, and the first sign is a query that never finishes.</p>
 
-  <p>On my two datasets, that mattered enormously. The two tables were collected by different people at different times, so their coverage does not line up. Checking how many games had any matching review at all:</p>
+    <p>A note on the word "outer". <code>LEFT</code>, <code>RIGHT</code> and <code>FULL</code> are all outer joins, and you will see them written as <code>LEFT OUTER JOIN</code>. The word <code>OUTER</code> is optional and means the same thing. Similarly, a plain <code>JOIN</code> with no word in front of it is an <code>INNER JOIN</code>, which is worth remembering because that default is what causes the first failure below.</p>
 
-  <pre><code>SELECT COUNT(DISTINCT g.AppID) AS games_with_reviews
+    <p>Two more pieces of syntax show up constantly. <code>ON</code> states the matching condition, as in <code>ON g.AppID = r.app_id</code>. <code>USING (app_id)</code> is a shorthand for when the column has the same name in both tables. And when a join condition is not a plain equals, for example matching a date to a range, that is a non-equi join. It works the same way and it fans out enthusiastically, so count your rows.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Failure one: the silent delete</h2>
+
+    <p>Before the explanation: you join two tables and get fewer rows back than you started with. No error, no warning. Where did the missing rows go, and who decided they should go?</p>
+
+    <p>A plain <code>JOIN</code> is an <code>INNER JOIN</code>. It keeps only rows that matched on both sides. Rows that matched nothing are not flagged, not counted, and not mentioned. They are simply absent.</p>
+
+    <p>On my two datasets, that mattered enormously. The two tables were collected by different people at different times, so their coverage does not line up. Checking how many games had any matching review at all:</p>
+
+    <pre><code>SELECT COUNT(DISTINCT g.AppID) AS games_with_reviews
 FROM games_raw AS g
 JOIN recommendations AS r ON g.AppID = r.app_id;</code></pre>
 
-  <p>The answer was 36,255 out of 125,855 games, which is about 29%. Roughly seven out of ten games in the left table would vanish from any inner join with the review table. Narrowed to the 175 games I actually cared about, about 57 of them had no reviews. An inner join quietly reduced my population by a third before I calculated anything.</p>
+    <p>The answer was 36,255 out of 125,855 games, which is about 29%. Roughly seven out of ten games in the left table would vanish from any inner join with the review table. Narrowed to the 175 games I actually cared about, about 57 of them had no reviews. An inner join quietly reduced my population by a third before I calculated anything, and the result set looked finished. The columns were right, the ordering was right, the numbers were plausible.</p>
 
-  <p>Nothing about the result set announced this. The columns were right, the ordering was right, the numbers were plausible. The only clue was a row count I had not thought to check.</p>
+    <h3>The check that catches it</h3>
+    <p>Two lines, run before you trust anything downstream. First, how many rows went in. Second, how many distinct keys came out.</p>
 
-  <h2>The check that catches it</h2>
-
-  <p>Two lines, run before you trust anything downstream. First, how many distinct keys went in. Second, how many came out.</p>
-
-  <pre><code>SELECT COUNT(*) AS rows_in FROM hidden_gems;
+    <pre><code>SELECT COUNT(*) AS rows_in FROM hidden_gems;
 
 SELECT COUNT(DISTINCT g.AppID) AS keys_out
 FROM hidden_gems AS g
 JOIN recommendations AS r ON g.AppID = r.app_id;</code></pre>
 
-  <p>If <code>keys_out</code> is smaller than <code>rows_in</code>, your join is dropping records, and you now have a decision to make rather than an accident to discover later. Either the drop is fine and you say so in writing, or it is not and you switch to a <code>LEFT JOIN</code>.</p>
+    <p>If <code>keys_out</code> is smaller than <code>rows_in</code>, your join is dropping records, and you now have a decision to make rather than an accident to discover later. Either the drop is fine and you say so in writing, or it is not and you switch to a <code>LEFT JOIN</code>.</p>
 
-  <p>Write the match rate down either way. "The playtime analysis covers 118 of 175 games, or 67%, because the review dataset does not include the rest" is a sentence that makes a reviewer trust the whole document. Leaving it out is the thing that makes them stop trusting it.</p>
+    <p>Write the match rate down either way. "The playtime analysis covers 118 of 175 games, or 67%, because the review dataset does not include the rest" is a sentence that makes a reviewer trust the whole document. Leaving it out is what makes them stop trusting it.</p>
 
-  <h2>LEFT JOIN, and why an empty column is a finding</h2>
+    <h3>The anti-join, and why an empty column is a finding</h3>
+    <p>A <code>LEFT JOIN</code> keeps every row from the left table whether it matched or not, filling the right side with <code>NULL</code>. That gives you a way to ask the question an inner join cannot answer: which rows found nothing? Keep everything, then keep only the ones where the right side came back empty. This pattern is called an <strong>anti-join</strong>, and it shows up in interviews constantly.</p>
 
-  <p>A <code>LEFT JOIN</code> keeps every row from the left table whether it matched or not. Where there was no match, the right table's columns come back empty, as <code>NULL</code>.</p>
-
-  <p>That gives you a way to ask the question an inner join cannot answer: which rows found nothing? Keep everything, then keep only the ones where the right side came back empty. This pattern has a name, the <strong>anti-join</strong>, and it shows up in interviews constantly.</p>
-
-  <pre><code>SELECT g.Name, g.pct_positive
+    <pre><code>SELECT g.Name, g.pct_positive
 FROM hidden_gems AS g
 LEFT JOIN recommendations AS r ON g.AppID = r.app_id
 WHERE r.app_id IS NULL
 ORDER BY g.pct_positive DESC;</code></pre>
 
-  <p>Read the <code>WHERE</code> clause carefully, because it is the part that surprises people. <code>r.app_id IS NULL</code> cannot be true for any row that matched, since a matched row has a real value there. It is only true for the rows the <code>LEFT JOIN</code> invented to keep an unmatched left row alive. So the filter means "keep the rows that found nothing."</p>
+    <p>Read the <code>WHERE</code> clause carefully, because it is the part that surprises people. <code>r.app_id IS NULL</code> cannot be true for any row that matched, since a matched row has a real value there. It is only true for rows the <code>LEFT JOIN</code> invented to keep an unmatched left row alive. So the filter means "keep the rows that found nothing".</p>
 
-  <p>When I ran it, the 57 missing games were not noise. They fell into three groups, and every group told me something:</p>
+    <p>When I ran it, the 57 missing games were not noise. They fell into three groups, and every group told me something. Several were mainstream blockbusters that an earlier data-quality pass had already flagged for impossible price and ownership values, and a completely separate method fingering the same rows is strong confirmation those rows are broken. Others were released after the reviews were collected in August 2024, so they could not possibly match, which turned a vague limitation into a nameable list. The rest were genuinely uncovered titles the review dataset never sampled.</p>
 
-  <ul>
-    <li><strong>Records I already suspected were bad.</strong> Several mainstream blockbusters appeared, the same ones an earlier data-quality pass had flagged for impossible price and ownership values. A completely separate method fingering the same rows is strong confirmation that those rows are broken.</li>
-    <li><strong>Games newer than the review snapshot.</strong> The reviews were collected around August 2024, so anything released after that could not possibly match. The abstract limitation "two different snapshots" turned into a concrete, nameable list.</li>
-    <li><strong>Genuinely uncovered titles</strong> that the review dataset never sampled.</li>
-  </ul>
+    <p>None of that would have existed in an inner join. An empty column is not a hole in your work. It is often the most interesting result you have, and it belongs in your write-up: <a href="../documenting-data-limitations/">documenting data limitations</a> covers how.</p>
+  </div>
 
-  <p>None of that would have existed in an inner join. The rows would have been gone, and the analysis would have been quietly narrower than it claimed. An empty column is not a hole in your work. It is often the most interesting result you have. There is more on this in <a href="../documenting-data-limitations/">Documenting Data Limitations</a>.</p>
+  <div class="step">
+    <h2>4. Failure two: the silent multiply</h2>
 
-  <h2>Failure two: the silent multiply</h2>
+    <p>Before the explanation: one customer has three orders. You join customers to orders, then sum a column that lives on the customer, like their credit limit. What number comes out, and why is it not the credit limit?</p>
 
-  <p>Now the opposite problem, and the one that produces confidently wrong numbers in reports. Predict this one before reading: if one customer has three orders, and you join customers to orders, how many rows does that customer occupy in the result? Then ask what happens to their revenue if you sum a column that lives on the customer.</p>
+    <p>When a game with 2,498 reviews is joined to the review table, that one game becomes 2,498 rows. Its name repeats 2,498 times. Its price repeats 2,498 times. This is called <strong>fan-out</strong>, and the trouble starts the moment you aggregate a column that came from the one-row-per-game side.</p>
 
-  <p>When a game with 2,498 reviews is joined to the review table, that one game becomes 2,498 rows. Its name repeats 2,498 times. Its price repeats 2,498 times. This is called <strong>fan-out</strong>, and the trouble starts the moment you aggregate a column that came from the one-row-per-game side.</p>
+    <p>Here is the wrong query. It looks entirely reasonable.</p>
 
-  <p>Here is the wrong query. It looks entirely reasonable:</p>
-
-  <pre><code>SELECT g.Name, SUM(g.Price) AS total_price
+    <pre><code>SELECT g.Name, SUM(g.Price) AS total_price
 FROM hidden_gems AS g
 JOIN recommendations AS r ON g.AppID = r.app_id
 GROUP BY g.AppID, g.Name;</code></pre>
 
-  <p>For one game in my data, priced at $3.49 with 2,498 matched reviews, that <code>SUM</code> returns 8,718.02. The price of the game is still $3.49. The query added it up once per review, because after the join there are 2,498 rows carrying that price. No error, no warning, and a number roughly 2,500 times too big sitting in a column labelled total price.</p>
+    <p>For one game in my data, priced at $3.49 with 2,498 matched reviews, that <code>SUM</code> returns 8,718.02. The price of the game is still $3.49. The query added it up once per review, because after the join there are 2,498 rows carrying that price. No error, no warning, and a number roughly 2,500 times too big sitting in a column labelled total price.</p>
 
-  <p>The rule that prevents it:</p>
+    <div class="note"><strong>Only aggregate columns that came from the many side.</strong> Columns from the one side belong in <code>GROUP BY</code>, never in <code>SUM</code>. In this join, <code>hours</code> and <code>review_id</code> are on the many side, so counting and averaging them is correct. <code>Name</code> and <code>Price</code> are on the one side, so they get grouped.</div>
 
-  <div class="note"><strong>Only aggregate columns that came from the many side. Columns from the one side belong in <code>GROUP BY</code>, not in <code>SUM</code>.</strong> In this join, <code>hours</code> and <code>review_id</code> are on the many side, so counting and averaging them is correct. <code>Name</code> and <code>Price</code> are on the one side, so they get grouped, never summed.</div>
+    <p>Averages hide this better than sums, which makes them more dangerous. <code>AVG(g.Price)</code> across 2,498 duplicated rows returns $3.49, the right answer, so nothing looks wrong. Then the same pattern meets a game with two rows in a second joined table. The duplication stops being uniform, and the average silently starts weighting some records more than others. Say out loud why uneven duplication breaks an average but even duplication does not, before you read on. That one is the hinge of this whole guide.</p>
 
-  <p>Averages hide this better than sums, which makes them more dangerous. <code>AVG(g.Price)</code> across 2,498 duplicated rows returns $3.49, the right answer, so nothing looks wrong. Then the same pattern meets a game with two rows in a second joined table. The duplication stops being uniform. The average silently starts weighting some records more than others.</p>
+    <h3>The check that catches it</h3>
+    <p>Compare total rows to distinct keys. If they differ, you have fan-out, and you should know its size before you aggregate.</p>
 
-  <h2>The check that catches that one</h2>
-
-  <p>Compare total rows to distinct keys. If they differ, you have fan-out, and you should know its size before you aggregate.</p>
-
-  <pre><code>SELECT COUNT(*) AS joined_rows,
+    <pre><code>SELECT COUNT(*) AS joined_rows,
        COUNT(DISTINCT g.AppID) AS distinct_games
 FROM hidden_gems AS g
 JOIN recommendations AS r ON g.AppID = r.app_id;</code></pre>
 
-  <p>If <code>joined_rows</code> is much larger than <code>distinct_games</code>, the join expanded your table, which is completely fine as long as you meant it. Fan-out is not a bug. It is what a one-to-many join is for. It only becomes a bug when you aggregate as if it did not happen.</p>
+    <p>If <code>joined_rows</code> is much larger than <code>distinct_games</code>, the join expanded your table, which is completely fine as long as you meant it. Fan-out is not a bug. It is what a one-to-many join is for. It only becomes a bug when you aggregate as if it did not happen.</p>
 
-  <p>The other half of the fix is <code>HAVING</code>. Once you group, a filter on an aggregate has to run after the grouping, which is what <code>HAVING</code> does and what <code>WHERE</code> cannot:</p>
+    <p>The other half of the fix is <code>HAVING</code>. Once you group, a filter on an aggregate has to run after the grouping, which is what <code>HAVING</code> does and <code>WHERE</code> cannot.</p>
 
-  <pre><code>SELECT g.Name,
+    <pre><code>SELECT g.Name,
        g.Price,
        COUNT(r.review_id) AS num_reviews,
        ROUND(AVG(r.hours), 1) AS avg_hours
@@ -281,14 +279,16 @@ GROUP BY g.AppID, g.Name, g.Price
 HAVING COUNT(r.review_id) >= 50
 ORDER BY avg_hours DESC;</code></pre>
 
-  <p>That floor of 50 matters more than it looks. Without it, a game with three reviews and one obsessive player outranks everything else in the result. With it, the top of my list became games with hundreds or thousands of reviews behind their averages, which is the difference between a finding and an artifact. There is more on choosing that number honestly in <a href="../data-driven-thresholds/">Data-Driven Thresholds</a>.</p>
+    <p>That floor of 50 matters more than it looks. Without it, a game with three reviews and one obsessive player outranks everything else. With it, the top of my list became games with hundreds or thousands of reviews behind their averages, which is the difference between a finding and an artifact. There is more on choosing that number honestly in <a href="../data-driven-thresholds/">data-driven thresholds</a>.</p>
+  </div>
 
-  <h2>The full before and after</h2>
+  <div class="step">
+    <h2>5. The full before and after</h2>
 
-  <p>Same two tables, same question. The first version runs and lies. The second runs, tells the truth, and states its own coverage.</p>
+    <p>Same two tables, same question. The first version runs and lies. The second runs, tells the truth, and states its own coverage.</p>
 
-  <h3>Before</h3>
-  <pre><code>SELECT g.Name,
+    <h3>Before</h3>
+    <pre><code>SELECT g.Name,
        SUM(g.Price) AS total_price,
        AVG(r.hours) AS avg_hours
 FROM hidden_gems AS g
@@ -296,10 +296,10 @@ JOIN recommendations AS r ON g.AppID = r.app_id
 GROUP BY g.AppID, g.Name
 ORDER BY avg_hours DESC;</code></pre>
 
-  <p>Three problems, none of which produce an error. <code>SUM(g.Price)</code> is multiplied by the review count. The inner join has removed every game with no reviews, unmentioned. And with no minimum review count, a game with two reviews can top the ranking.</p>
+    <p>Three problems, none of which produce an error. <code>SUM(g.Price)</code> is multiplied by the review count. The inner join has removed every game with no reviews, unmentioned. And with no minimum review count, a game with two reviews can top the ranking.</p>
 
-  <h3>After</h3>
-  <pre><code>-- ============================================================
+    <h3>After</h3>
+    <pre><code>-- ============================================================
 -- STEP 6: Which games do players actually keep playing?
 -- WHY: A high rating says people liked it once. Average hours
 --      says they stayed. Joining the game list to real playtime
@@ -327,100 +327,98 @@ GROUP BY g.AppID, g.Name, g.Price
 HAVING COUNT(r.review_id) >= 50
 ORDER BY avg_hours DESC;</code></pre>
 
-  <p>The price column is grouped rather than summed, so it stays $3.49. The coverage line names what the join removed, so a reader knows the scope. The floor stops the ranking from being decided by a sample of two. The comment format above is the one from <a href="../sql-teaching-comments/">How to Comment SQL So It Teaches</a>.</p>
+    <p>The price column is grouped rather than summed, so it stays $3.49. The coverage line names what the join removed, so a reader knows the scope. The floor stops the ranking from being decided by a sample of two. The comment format is the one from <a href="../sql-teaching-comments/">how to comment SQL so it teaches</a>.</p>
 
-  <h2>Edge cases that break joins in real data</h2>
-
-  <div class="step">
-    <h2>The key columns are named differently</h2>
-    <p><code>games_raw.AppID</code> and <code>recommendations.app_id</code> are the same number from the same source, spelled two ways because two people built the datasets. That is normal. What matters is that they hold the same identifier, not that they share a name. Check a few values by eye before you trust the match.</p>
+    <p>Now picture the last join you wrote against your own data. Which of those three problems is most likely already sitting in it, and what would the row count have told you?</p>
   </div>
 
   <div class="step">
-    <h2>The key columns have different types</h2>
-    <p>An id stored as text in one table and a number in the other will match nothing at all, and the result is an empty table rather than an error. If a join returns zero rows and you expected thousands, check the types before you check anything else.</p>
-  </div>
+    <h2>6. Edge cases that break joins in real data</h2>
 
-  <div class="step">
-    <h2>A boolean is stored as text</h2>
-    <p>In the review table, <code>is_recommended</code> holds the lowercase text <code>'true'</code> and <code>'false'</code>, not 1 and 0. Filtering on <code>is_recommended = 1</code> matches nothing and returns a count of zero, which reads as a real answer. Look at how a column is actually stored before you build a number on it.</p>
-  </div>
+    <p>Before the explanation: a join returns zero rows. Not few. Zero. The tables are both full and the ids look identical on screen. What would you check first?</p>
 
-  <div class="step">
-    <h2>NULLs in the join key</h2>
-    <p>A <code>NULL</code> key never matches anything, including another <code>NULL</code>, because <code>NULL</code> means unknown rather than empty. Rows with a missing key drop out of an inner join without a word. Count them first: <code>SELECT COUNT(*) FROM t WHERE key_column IS NULL</code>.</p>
-  </div>
+    <p>Seven things that have each stopped someone for an afternoon.</p>
 
-  <div class="step">
-    <h2>Joining many to many</h2>
-    <p>If both sides hold several rows per key, the output multiplies both ways: three rows on the left and four on the right produce twelve. This is almost never what anyone wants and it is the classic cause of an inflated total. Aggregate one side down to one row per key first, then join.</p>
-  </div>
+    <p><strong>The key columns are named differently.</strong> <code>games_raw.AppID</code> and <code>recommendations.app_id</code> are the same number from the same source, spelled two ways because two people built the datasets. What matters is that they hold the same identifier, not that they share a name.</p>
 
-  <div class="step">
-    <h2>The join is slow because one side is huge</h2>
-    <p>Matching 125,855 rows against 41 million takes real work. An index on the key column of the large table turns a full scan into a lookup: <code>CREATE INDEX idx_rec_appid ON recommendations(app_id);</code>. Build it once. Every join afterward is quick. <a href="../handle-large-datasets/">Handle Large Datasets</a> covers the rest of working at this size.</p>
-  </div>
+    <p><strong>The key columns have different types.</strong> This is the answer to the prequestion. An id stored as text in one table and a number in the other matches nothing at all, and the result is an empty table rather than an error. If a join returns zero rows and you expected thousands, check the types before anything else.</p>
 
-  <div class="step">
-    <h2>The two tables describe different moments</h2>
-    <p>My game list and my review list were collected at different times, so some of the unmatched rows are not data errors, they are calendar. A join makes it trivially easy to combine sources that were never meant to be combined. That is exactly why the write-up has to say where each source came from.</p>
+    <p><strong>A boolean is stored as text.</strong> In the review table, <code>is_recommended</code> holds the lowercase text <code>'true'</code> and <code>'false'</code>, not 1 and 0. Filtering on <code>is_recommended = 1</code> matches nothing and returns a count of zero, which reads as a real answer.</p>
+
+    <p><strong>NULLs in the join key.</strong> A <code>NULL</code> key never matches anything, including another <code>NULL</code>, because <code>NULL</code> means unknown rather than empty. Rows with a missing key drop out of an inner join without a word. Count them first with <code>SELECT COUNT(*) FROM t WHERE key_column IS NULL</code>.</p>
+
+    <p><strong>Joining many to many.</strong> If both sides hold several rows per key, the output multiplies both ways: three rows on the left and four on the right produce twelve. This is almost never what anyone wants and it is the classic cause of an inflated total. Aggregate one side down to one row per key first, then join.</p>
+
+    <p><strong>The join is slow because one side is huge.</strong> Matching 125,855 rows against 41 million takes real work. An index on the key column of the large table turns a full scan into a lookup: <code>CREATE INDEX idx_rec_appid ON recommendations(app_id);</code>. Build it once and every join afterward is quick. <a href="../handle-large-datasets/">Handling large datasets</a> covers the rest of working at this size.</p>
+
+    <p><strong>The two tables describe different moments.</strong> My game list and my review list were collected at different times, so some unmatched rows are not data errors, they are calendar. A join makes it trivially easy to combine sources that were never meant to be combined, which is exactly why the write-up has to say where each source came from.</p>
   </div>
 
   <h2>Why this works</h2>
 
-  <p>The behaviour above is not an implementation quirk of one database. It falls out of how the relational model defines the operation. Codd's original formulation defines a join as a derived relation. It is built from the pairs of rows that satisfy the matching condition (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). Once the result is defined as the set of matching pairs, both behaviours are forced. A row with no partner contributes no pair, and a row with several partners contributes several. Dropping and multiplying are not edge cases sitting on top of joins. They are what a join is.</p>
+  <p>The behaviour above is not an implementation quirk of one database. It falls out of how the relational model defines the operation. Codd's original formulation defines a join as a derived relation, built from the pairs of rows that satisfy the matching condition (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). Once the result is defined as the set of matching pairs, both behaviours are forced. A row with no partner contributes no pair, and a row with several partners contributes several. Dropping and multiplying are not edge cases sitting on top of joins. They are what a join is.</p>
 
   <p>That is why the two checks in this guide are counts rather than inspections. You are not hunting for a mistake in the query text. You are measuring how many pairs the operation produced, which is the one thing the syntax will never show you.</p>
 
-  <p>There is a second reason to write the read-out-loud block above these queries rather than only reading them. Learners who explain a worked example to themselves as they go understand it substantially better. They also transfer it better than learners who read the same example without explaining it (Chi, Bassok, Lewis, Reimann &amp; Glaser, 1989, <em>Cognitive Science</em>, 13(2), 145–182). Joins are where that pays off most, because the mistake is never in a keyword. It is in what you believe one row means.</p>
+  <p>There is a second reason this page keeps asking you to say things out loud rather than only read them. Learners who explain a worked example to themselves as they go understand it substantially better, and transfer it to new problems better, than learners who read the same example without explaining it (Chi, Bassok, Lewis, Reimann, &amp; Glaser, 1989, <em>Cognitive Science</em>, 13(2), 145–182). Joins are where that pays off most, because the mistake is never in a keyword. It is in what you believe one row means.</p>
 
   <h2>Using this on your own project</h2>
 
-  <p>Think of a query you have already written and shipped. Can you say, right now, what one row of its result means, and whether that is the same thing one row meant before the join? If that takes you more than a few seconds, that query is the one to check first.</p>
-  <p>Auditing every join in an existing project at once is grim work and you will stop halfway. Do this instead, in order:</p>
+  <p>Think of a query you have already written and shipped. Can you say, right now, what one row of its result means, and whether that is the same thing one row meant before the join? If that takes more than a few seconds, that query is the one to check first.</p>
+
+  <p>Auditing every join in an existing project at once is grim work and you will stop halfway. Do this instead, in order.</p>
 
   <ol>
     <li><strong>Say the grain of both tables out loud</strong> before you write the join. "One row per customer" and "one row per order." Ten seconds, and it predicts the shape of the result.</li>
-    <li><strong>Run the two counts.</strong> Distinct keys in, distinct keys out for the drop check. Total rows against distinct keys for the multiply check. Two queries.</li>
+    <li><strong>Run the two counts.</strong> Rows in against distinct keys out for the drop check. Total rows against distinct keys for the multiply check. Two queries.</li>
     <li><strong>Write the match rate into the file</strong> as a comment, in the same pass. Not later. Later never happens, and this is the number a reviewer asks about first.</li>
     <li><strong>Check every aggregate against the grain.</strong> Anything from the one side goes in <code>GROUP BY</code>. Anything from the many side can be counted or averaged. Go through them one at a time.</li>
-    <li><strong>Run the anti-join once</strong>, even when you plan to use an inner join. Look at what fell out. If the unmatched rows have a pattern, that pattern is a finding about your data, and you would rather learn it now than in a review.</li>
+    <li><strong>Run the anti-join once</strong>, even when you plan to use an inner join. If the unmatched rows have a pattern, that pattern is a finding about your data, and you would rather learn it now than in a review.</li>
   </ol>
 
   <p>If you are starting fresh rather than auditing, do step one and step two before writing the real query. A join you have already predicted the row count of is a join that cannot surprise you.</p>
 
+  <p>If you have paper nearby and a spare five minutes, there is one drawing worth doing, and it is optional. Draw three rows on the left, four on the right, connect them the way the picture at the top does, and count the output rows yourself. It is the concept everything else here rests on, and drawing it from memory is both a retrieval attempt and a check on whether you actually have it.</p>
+
   <div class="cta">
     <strong>Want this reasoning on your own queries?</strong>
-    <p style="margin:6px 0 0">The reason behind a threshold is the first thing to vanish from an uncommented file, and it is the first thing a reviewer looks for. I packaged the prompts that make Claude, ChatGPT, or Gemini put that reasoning back onto your own queries, in about five minutes. Your portfolio then shows how you think, not only what you typed.</p>
+    <p style="margin:6px 0 0">The reason behind a threshold is the first thing to vanish from an uncommented file, and the first thing a reviewer looks for. I packaged the prompts that make Claude, ChatGPT, or Gemini put that reasoning back onto your own queries, in about five minutes. Your portfolio then shows how you think, not only what you typed.</p>
     <a class="btn" href="https://michaelnocito.gumroad.com/l/sql-prompt-pack" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','prompt_pack_click',{kit:'guide-sql-joins'})">The SQL Teaching-Comment Prompt Pack, $7 →</a>
-      <p style="margin:10px 0 0;font-size:15px">Or get right into it and learn by writing queries: <a href="../../drill/">open SQL Drill</a>, thirteen queries that each add one thing to the last.</p>
+    <p style="margin:10px 0 0;font-size:15px">Or get right into it and learn by writing queries: <a href="../../drill/">open SQL Drill</a>, thirteen queries that each add one thing to the last.</p>
   </div>
 
-  <h2>A cheat sheet</h2>
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
   <table>
-    <tr><th>Situation</th><th>What happens</th><th>What to do</th></tr>
-    <tr><td>Left row matches nothing, <code>INNER JOIN</code></td><td>The row disappears from the result</td><td>Compare distinct keys in against keys out</td></tr>
-    <tr><td>Left row matches nothing, <code>LEFT JOIN</code></td><td>The row is kept, right columns are <code>NULL</code></td><td>Filter <code>WHERE right.key IS NULL</code> to list them</td></tr>
-    <tr><td>Left row matches many</td><td>One output row per match, left values repeat</td><td>Compare <code>COUNT(*)</code> against <code>COUNT(DISTINCT key)</code></td></tr>
-    <tr><td>Both sides match many</td><td>Rows multiply on both sides at once</td><td>Aggregate one side to one row per key first</td></tr>
-    <tr><td>Aggregating a one-side column</td><td><code>SUM</code> counts it once per matched row</td><td>Put one-side columns in <code>GROUP BY</code>, never <code>SUM</code></td></tr>
-    <tr><td>Filtering on an aggregate</td><td><code>WHERE</code> runs before grouping and fails</td><td>Use <code>HAVING</code> after <code>GROUP BY</code></td></tr>
-    <tr><td>Join returns zero rows</td><td>Usually a type or format mismatch on the key</td><td>Check the key's stored type on both sides</td></tr>
-    <tr><td>Join is very slow</td><td>The large side is being scanned in full</td><td>Index the key column on the large table</td></tr>
+    <tr><th>Concept</th><th>What it does</th></tr>
+    <tr><td>The pair rule</td><td>For every left row, find every matching right row, write one output row per pair.</td></tr>
+    <tr><td>Grain</td><td>What one row means. The grain of a join result is usually the many side.</td></tr>
+    <tr><td>Plain <code>JOIN</code></td><td>An <code>INNER JOIN</code>. That default causes the silent delete.</td></tr>
+    <tr><td><code>INNER JOIN</code></td><td>Only matched pairs. Unmatched rows from both sides are gone.</td></tr>
+    <tr><td><code>LEFT JOIN</code></td><td>Every left row kept. Right columns are <code>NULL</code> where nothing matched.</td></tr>
+    <tr><td><code>RIGHT JOIN</code></td><td>Every right row kept. Usually rewritten as a <code>LEFT JOIN</code> with the tables swapped.</td></tr>
+    <tr><td><code>FULL OUTER JOIN</code></td><td>Unmatched rows kept from both sides.</td></tr>
+    <tr><td><code>CROSS JOIN</code></td><td>Every left row paired with every right row. No key. 1,000 by 1,000 is a million rows.</td></tr>
+    <tr><td>Self join</td><td>A table joined to itself under two aliases. Employees and managers.</td></tr>
+    <tr><td>Anti-join</td><td><code>LEFT JOIN</code> plus <code>WHERE right.key IS NULL</code>. Lists the rows that found nothing.</td></tr>
+    <tr><td>The silent delete</td><td>Unmatched rows vanish from an inner join with no error.</td></tr>
+    <tr><td>Check for it</td><td>Rows in, against <code>COUNT(DISTINCT key)</code> out.</td></tr>
+    <tr><td>Fan-out</td><td>One row matching many becomes many rows, repeating the one side's values.</td></tr>
+    <tr><td>Check for it</td><td><code>COUNT(*)</code> against <code>COUNT(DISTINCT key)</code> in the joined result.</td></tr>
+    <tr><td>The aggregate rule</td><td>Many-side columns can be summed or averaged. One-side columns go in <code>GROUP BY</code>.</td></tr>
+    <tr><td><code>WHERE</code> against <code>HAVING</code></td><td><code>WHERE</code> filters rows before grouping. <code>HAVING</code> filters groups after, and is the only one that sees an aggregate.</td></tr>
+    <tr><td>Join returns zero rows</td><td>Usually a type mismatch on the key. Check the stored type on both sides.</td></tr>
+    <tr><td><code>NULL</code> in the key</td><td>Never matches anything, including another <code>NULL</code>. Those rows drop out silently.</td></tr>
+    <tr><td>Many-to-many join</td><td>Three left and four right becomes twelve. Aggregate one side to one row per key first.</td></tr>
+    <tr><td>Slow join</td><td>The large side is being scanned in full. Index the key column.</td></tr>
+    <tr><td>Match rate</td><td>The share of your population that survived the join. Write it into the file, every time.</td></tr>
   </table>
 
-  <div class="note"><strong>The one habit to keep.</strong> If you take nothing else from this page, count your rows before and after every join and write the match rate down. Both failures in this guide are invisible in the query text and obvious in the row count.</div>
+  <div class="note"><strong>The one habit to keep.</strong> If you take nothing else from this page, count your rows before and after every join and write the match rate down. Both failures here are invisible in the query text and obvious in the row count. If a join goes wrong in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
 
-  <p>One last thought, and I would genuinely like other people's answers to it. The 57 games my join dropped turned out to be the most useful thing in the whole analysis, because the reason they were missing was itself the story. What has an anti-join surfaced in your data that you would not have found any other way?</p>
-
-  <div class="cta">
-    <strong>Practice joins with the data in front of you.</strong>
-    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> has a JOIN Lab that runs SQLite in the browser, so you write the join, run it, and see the rows change. Worked examples, flash cards, and a mock exam sit alongside it. Nothing to install, no account needed.</p>
-    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
-  </div>
-
-  <h2>The queries in this guide</h2>
-  <p>All of them come from a published portfolio project. There they run against the full 125,855-game and 41,154,794-review datasets, with the reasoning written above each query: <a href="https://github.com/michaelnocito/steam-hidden-gems" target="_blank" rel="noopener">Steam Hidden Gems on GitHub</a>.</p>
+  <p>One last thought, and I would genuinely like other people's answers. The 57 games my join dropped turned out to be the most useful thing in the whole analysis, because the reason they were missing was itself the story. What has an anti-join surfaced in your data that you would not have found any other way?</p>
 
   <h2>References</h2>
   <ul class="refs">
@@ -428,8 +426,14 @@ ORDER BY avg_hours DESC;</code></pre>
     <li>Chi, M. T. H., Bassok, M., Lewis, M. W., Reimann, P., &amp; Glaser, R. (1989). Self-explanations: How students study and use examples in learning to solve problems. <em>Cognitive Science</em>, 13(2), 145–182.</li>
   </ul>
 
+  <div class="cta">
+    <strong>Practice joins with the data in front of you.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> has a JOIN Lab that runs SQLite in the browser, so you write the join, run it, and see the rows change. Worked examples, flash cards, and a mock exam sit alongside it. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
   <footer>
-    <a href="../../">← Analyst Prep Kit</a> · <a href="../../drill/">SQL Drill</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../sql-teaching-comments/">Comment SQL So It Teaches</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-case-expression/">The CASE Expression</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../build-a-tableau-dashboard/">Build a Tableau Dashboard</a> · <a href="../sql-aliasing/">SQL Aliases</a> &middot; <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../../drill/">SQL Drill</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../sql-teaching-comments/">Comment SQL So It Teaches</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-case-expression/">The CASE Expression</a> · <a href="../sql-aliasing/">SQL Aliases</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../tableau-concepts/">Tableau Concepts</a> · <a href="../build-a-tableau-dashboard/">Build a Tableau Dashboard</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
     <p style="margin-top:10px"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee &#9749;</a></p>
   </footer>
 </main>
