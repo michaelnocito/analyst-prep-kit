@@ -142,8 +142,40 @@ Settled with Mike before building: one lap only, Unit 1 only, lesson page rather
 read-aloud, six typed items. Pass 2 stays parked, so the open question below is not
 blocking the trial.
 
-Next decision after he walks it: whether the rotation is one lap per unit (4 laps) or one
-lap per lesson, and where the second checkpoint lands.
+Next decision after he walks it: whether the rotation is one round per unit (4 rounds) or one
+round per lesson, and where the second checkpoint lands.
+
+### Real Test runs 007 and 007b, and what they changed
+
+Two passes, both aimed at the feel of the buttons. What they caught, and what shipped:
+
+- **The forward button sat above the result table.** Colour, motion and the directive all
+  said "go forward" while the rows the query was run for sat below, silent. Moved below the
+  table; Run stays beside the editor. Rows capped at 12, not 50.
+- **The lesson tab was a dead end.** `/sql/#lesson-1` is a 4,441px page carrying four
+  back-shaped controls, none of which returns to the round. Fixed on the kit side: the round
+  links with `?from=path`, and `sql/index.html` renders one persistent "Back to the SQL Path
+  round" pill when that param is present. Nobody arriving any other way sees it. The path
+  page also gets its own favicon and a title that does not start with "SQL", because the two
+  tabs were indistinguishable in a tab strip.
+- **The finish card ignored the score.** Same congratulation for 0 of 4 as for 4 of 4, and
+  the loud button pointed at the scored checkpoint. The card now states typed / opened /
+  score, and under 3 of 4 the loud button becomes another round.
+- **The error copy sent the tester to the wrong repair.** "no such column: country" reads to
+  an Excel user as "the table has no country column". Now names the cause in words, shows
+  both spellings, and quotes the engine second.
+- Smaller: `<a><button>` nesting removed (two tab stops for one control), the checkpoint link
+  labelled as opening a new tab, lessons marked "opened", every directive line says where
+  its control is, and the primer runs two columns so Start typing clears the fold.
+
+Known and not fixed:
+
+- The Start-typing collision with the directive bar returns below a **676px viewport**
+  (measured). A maximised browser on 1366x768 clears it by 25px.
+- The 0.42s pop on the forward button fires roughly 990px from where the eye was at Run.
+  Mike's eyes are the only instrument for whether it registers.
+- The Copy button above the editor still exists on a page built for typing. Mike's call.
+- "round" replaced "lap" and "rotation" on screen, on the same precedent as "rung".
 
 ## Open question for Mike
 
