@@ -636,13 +636,9 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 </div>
 
 <script src="https://unpkg.com/lucide@latest"></script>
-<script src="../assets/apk-pass.js"></script>
 <script>
 localStorage.removeItem('apk-basics'); // Bare Basics mode removed
 // ─── Interview Prep Pass (premium gate) ──────────────────────────────────────
-if(window.apkPass) apkPass.setKit('excel');
-function isPremiumLesson(l){ return l && l.id >= 500; }            // Units 7-10 = interview tracks
-function isLockedLesson(l){ return isPremiumLesson(l) && !(window.apkPass && apkPass.isUnlocked()); }
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const DATA = {
 LESSONS:[
@@ -2492,7 +2488,6 @@ function renderHome(){
   // Skill Readiness — derived from the LIVE lesson set so it always reflects
   // every lesson (incl. newly added units/tracks). Each accessible lesson is
   // counted once under the first skill area it matches; locked premium-track
-  // lessons only count once the All-Access Pass unlocks them.
   const SKILL_AREAS = [
     {label:'Foundations', match:u=>/Unit 0/.test(u)},
     {label:'Formulas & Logic', match:u=>/Formulas/.test(u)},
@@ -2501,7 +2496,7 @@ function renderHome(){
     {label:'Charts, Formatting & Tools', match:u=>/Charts|Power Tools/.test(u)},
     {label:'Interview Tracks', match:u=>/Unit (7|8|9|10)\b/.test(u)},
   ];
-  const _accessible = DATA.LESSONS.filter(l=>!isLockedLesson(l));
+  const _accessible = DATA.LESSONS;
   const skills = SKILL_AREAS.map(a=>({label:a.label, total:0, done:0}));
   _accessible.forEach(l=>{
     const ai = SKILL_AREAS.findIndex(a=>a.match(l.unit));
@@ -2569,12 +2564,11 @@ function renderLessonList(){
     ls.forEach(l => {
       const done = S.lessonsDone.includes(l.id);
       const isCur = cur && l.id === cur.id;
-      const lock = isPremiumLesson(l)&&window.apkPass ? ' '+apkPass.lessonBadge() : '';
       const sub = l.intro ? l.intro.split('.')[0]+'.' : '';
       html += `<div class="pmap-node ${done?'done':isCur?'current':'up'}" onclick="openLesson(${l.id})">
         <div class="pmap-dot">${done?'✓':lessonPos(l.id)+1}</div>
         <div class="pmap-info">
-          <div class="pmap-title">${l.title}${lock}</div>
+          <div class="pmap-title">${l.title}</div>
           <div class="pmap-sub">${sub}</div>
           ${isCur?`<button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="event.stopPropagation();openLesson(${l.id})">▶ Continue</button>`:''}
         </div>
@@ -2653,17 +2647,6 @@ function renderLesson(){
   const _viewId = (S.lessonStage==='done' && S.doneLesson!=null) ? S.doneLesson : S.currentLesson;
   const l = DATA.LESSONS.find(x=>x.id===_viewId);
   if(!l) return;
-  if(isLockedLesson(l)){
-    document.getElementById('lessonContent').innerHTML = `
-      <div class="flex-between mb8">
-        <button class="btn btn-outline btn-sm" onclick="show('lessons')">← Lessons</button>
-        <span class="tag">${l.unit}</span>
-      </div>
-      <h1>${l.title}</h1>
-      ${window.apkPass ? apkPass.gateHTML({title:'Premium lesson'}) : ''}`;
-    refreshIcons();
-    return;
-  }
   const pct = Math.round(lessonPos(l.id)/DATA.LESSONS.length*100);
   const done = S.lessonsDone.includes(l.id);
   let html = `
@@ -2677,7 +2660,6 @@ function renderLesson(){
       <div class="prog-bar mb12"><div class="prog-fill" style="width:${pct}%"></div></div>
       <h1>${l.title}</h1>
     </div>
-    ${isPremiumLesson(l)&&window.apkPass?apkPass.unlockedBanner():''}
     ${l.flow!=='v2'?(l.story?`<div class="lesson-story"><i data-lucide="book-open"></i><span>${l.story}</span></div>`:l.prereq?`<div class="lesson-story"><i data-lucide="corner-down-right"></i><span><strong>Before this:</strong> ${l.prereq}</span></div>`:''):''}
     ${l.flow!=='v2'&&l.intro?`<div class="card"><p class="lead">${l.intro}</p></div>`:''}`;
     // NOTE: legacy "On the job" briefcase blurb removed here (Medium #2, v1.101.1). All lessons are flow:'v2',
@@ -3856,7 +3838,6 @@ window.addEventListener('load', function(){
 });
 // Medium #5: fire the one-time "you've unlocked" moment (no-op unless a genuine
 // member who hasn't seen it), then async-hydrate the account entitlement.
-if(window.apkPass){ apkPass.celebrateUnlock(); apkPass.hydrateAcct(function(){ renderLessonList(); renderLesson(); }); }
 </script>
 <div id="settingsModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);align-items:center;justify-content:center" onclick="if(event.target===this)closeSettings()">
   <div style="background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:28px;min-width:300px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.4)">
@@ -3864,13 +3845,6 @@ if(window.apkPass){ apkPass.celebrateUnlock(); apkPass.hydrateAcct(function(){ r
       <span style="font-weight:700;font-size:.95rem">Settings</span>
       <button onclick="closeSettings()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:1.3rem;line-height:1;padding:0 4px">&times;</button>
     </div>
-    <p style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:12px">Redeem Code</p>
-    <p style="font-size:.75rem;color:var(--dim);margin-bottom:10px">Have an unlock code? Paste it to unlock premium content.</p>
-    <div style="display:flex;gap:6px;margin-bottom:12px">
-      <input id="excelPromoCode" type="text" placeholder="Paste your code" autocomplete="off" style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:12px">
-      <button type="button" onclick="redeemCodeFromSettings()" style="padding:8px 14px;border:1px solid var(--border);background:transparent;color:var(--text);border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;white-space:nowrap">Redeem</button>
-    </div>
-    <div id="excelCodeMsg" style="font-size:.72rem;min-height:14px;margin-bottom:18px"></div>
     <p style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:12px">Reset Progress</p>
     <button id="resetKitBtn" onclick="handleResetKit(this)" style="display:block;width:100%;text-align:left;padding:11px 14px;background:var(--surf2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:.88rem;font-family:inherit;margin-bottom:6px;transition:all .2s">↺ Reset this kit</button>
     <p style="font-size:.75rem;color:var(--dim);margin-bottom:18px;padding:0 2px">Clears progress for this kit only. Other kits stay intact.</p>
@@ -3916,36 +3890,19 @@ function handleResetAll(btn){
     // The per-kit recall/streak keys used to be listed by hand here and drifted
     // out of sync kit to kit - Tableau and Stats listed none - so a reset wiped
     // lesson progress but left the review list standing (playtest S1). Sweeping
-    // by prefix keeps every kit honest. A purchase (apk-pass) and any API key
+    // by prefix keeps every kit honest. Any API key
     // the user supplied are deliberately never touched by a progress reset.
     var _pfx=['sqlkit','epk','ppk','tpk','spk','pbikt','ipk','clk','fmk'];
     Object.keys(localStorage).forEach(function(k){
-      if(/apikey|api-key|apk-pass|coach-key/.test(k)) return;
+      if(/apikey|api-key|coach-key/.test(k)) return;
       if(_pfx.some(function(p){return k===p||k.indexOf(p+'-')===0;})) localStorage.removeItem(k);
     });
     location.reload();
   }
 }
 
-function redeemCodeFromSettings(){
-  var inp=document.getElementById('excelPromoCode');
-  var msg=document.getElementById('excelCodeMsg');
-  if(!inp||!msg)return;
-  if(window.apkPass&&window.apkPass.unlock(inp.value)){
-    msg.textContent='✓ Code redeemed! Premium content unlocked.';
-    msg.style.color='var(--good)';
-    inp.value='';
-    setTimeout(function(){msg.textContent=''},4000);
-    if(window.gtag)gtag('event','pass_unlock',{location:'settings',kit:'excel'});
-  }else{
-    msg.textContent="That code didn't match. Check for typos or spaces.";
-    msg.style.color='#c0392b';
-  }
-}
 document.addEventListener('DOMContentLoaded',function(){
   _migrateConfidence();
-  var inp=document.getElementById('excelPromoCode');
-  if(inp)inp.addEventListener('keydown',function(e){if(e.key==='Enter')redeemCodeFromSettings();});
 });
 
 /* -- Hint System JS ---- */

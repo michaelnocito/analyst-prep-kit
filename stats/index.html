@@ -1392,7 +1392,6 @@ function _ringSVG(done,total){
 // order, never id order — this kit's ids are non-sequential (Unit 0 is ids
 // 101-104, Unit 1 is 1-4), so the visible step number is lessonPos()+1. No lab
 // nodes (this kit has no unit labs) and no lock badges (nothing here is
-// premium — apkPass is only wired to the shared unlock-code box).
 function renderLessonList(){
   const total=DATA.LESSONS.length;
   const doneCount=DATA.LESSONS.filter(l=>S.done['lesson'+l.id]).length;
@@ -2748,13 +2747,6 @@ function grainRefreshIcons(){
       <span style="font-weight:700;font-size:.95rem">Settings</span>
       <button onclick="closeSettings()" style="background:none;border:none;color:var(--txt2);cursor:pointer;font-size:1.3rem;line-height:1;padding:0 4px">&times;</button>
     </div>
-    <p style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--txt2);margin-bottom:12px">Redeem Code</p>
-    <p style="font-size:.75rem;color:var(--txt2);margin-bottom:10px">Have an unlock code? Paste it to unlock premium content.</p>
-    <div style="display:flex;gap:6px;margin-bottom:12px">
-      <input id="statsPromoCode" type="text" placeholder="Paste your code" autocomplete="off" style="flex:1;padding:8px 10px;border:1px solid var(--bord);border-radius:6px;background:var(--bg);color:var(--txt);font-size:12px">
-      <button type="button" onclick="redeemCodeFromSettings()" style="padding:8px 14px;border:1px solid var(--bord);background:transparent;color:var(--txt);border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;white-space:nowrap">Redeem</button>
-    </div>
-    <div id="statsCodeMsg" style="font-size:.72rem;min-height:14px;margin-bottom:18px"></div>
     <p style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--txt2);margin-bottom:12px">Hints</p>
     <p style="font-size:.75rem;color:var(--txt2);margin-bottom:10px">Paste your Anthropic API key to enable in-lesson hints and gap analysis. Stored only in this browser; shared with the other kits' coaches.</p>
     <div style="display:flex;gap:6px;margin-bottom:18px">
@@ -2811,35 +2803,18 @@ function handleResetAll(btn){
     // The per-kit recall/streak keys used to be listed by hand here and drifted
     // out of sync kit to kit - Tableau and Stats listed none - so a reset wiped
     // lesson progress but left the review list standing (playtest S1). Sweeping
-    // by prefix keeps every kit honest. A purchase (apk-pass) and any API key
+    // by prefix keeps every kit honest. Any API key
     // the user supplied are deliberately never touched by a progress reset.
     var _pfx=['sqlkit','epk','ppk','tpk','spk','pbikt','ipk','clk','fmk'];
     Object.keys(localStorage).forEach(function(k){
-      if(/apikey|api-key|apk-pass|coach-key/.test(k)) return;
+      if(/apikey|api-key|coach-key/.test(k)) return;
       if(_pfx.some(function(p){return k===p||k.indexOf(p+'-')===0;})) localStorage.removeItem(k);
     });
     location.reload();
   }
 }
 
-function redeemCodeFromSettings(){
-  var inp=document.getElementById('statsPromoCode');
-  var msg=document.getElementById('statsCodeMsg');
-  if(!inp||!msg)return;
-  if(window.apkPass&&window.apkPass.unlock(inp.value)){
-    msg.textContent='✓ Code redeemed! Premium content unlocked.';
-    msg.style.color='var(--good)';
-    inp.value='';
-    setTimeout(function(){msg.textContent=''},4000);
-    if(window.gtag)gtag('event','pass_unlock',{location:'settings',kit:'stats'});
-  }else{
-    msg.textContent="That code didn't match. Check for typos or spaces.";
-    msg.style.color='#c0392b';
-  }
-}
 document.addEventListener('DOMContentLoaded',function(){
-  var inp=document.getElementById('statsPromoCode');
-  if(inp)inp.addEventListener('keydown',function(e){if(e.key==='Enter')redeemCodeFromSettings();});
 });
 
 /* -- Hint System JS ---- */

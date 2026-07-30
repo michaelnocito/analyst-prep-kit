@@ -561,11 +561,7 @@ df.isnull().sum()</div>
 </div>
 
 <script src="https://unpkg.com/lucide@latest"></script>
-<script src="../assets/apk-pass.js"></script>
 <script>
-if(window.apkPass) apkPass.setKit('python');
-function isPremiumLesson(l){ return l && l.id >= 400; }
-function isLockedLesson(l){ return isPremiumLesson(l) && !(window.apkPass && apkPass.isUnlocked()); }
 localStorage.removeItem('apk-basics'); // Bare Basics mode removed
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const DATA = {
@@ -1492,7 +1488,7 @@ function renderHome(){
     const p=Math.round(d/ls.length*100);
     return `<div style="margin-bottom:10px"><div class="flex-between" style="margin-bottom:3px"><span style="font-size:13px;font-weight:600">${u}</span><span style="font-size:12px;font-family:var(--mono);color:var(--dim)">${d}/${ls.length}</span></div><div class="prog-bar" style="height:5px"><div class="prog-fill" style="width:${p}%"></div></div></div>`;
   }).join('');
-  const _accessible=DATA.LESSONS.filter(l=>!isLockedLesson(l));
+  const _accessible=DATA.LESSONS;
   const _nxtL=_accessible.filter(l=>!S.lessonsDone.includes(l.id)).slice(0,3);
   document.getElementById('home-next-lessons').innerHTML=_nxtL.length?_nxtL.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 2px;border-top:1px solid var(--border);cursor:pointer" onclick="openLesson(${l.id})"><div><span style="font-size:11px;color:var(--dim);font-family:var(--mono);margin-right:8px">L${lessonPos(l.id)+1}</span><span style="font-size:14px;font-weight:600">${l.title}</span></div><span style="color:var(--accent);font-weight:700">→</span></div>`).join(''):`<p style="font-size:13px;color:var(--dim);margin:8px 0 0">All ${_accessible.length} lessons complete!</p>`;
 }
@@ -1529,12 +1525,11 @@ function renderLessonList(){
     ls.forEach(l => {
       const done = S.lessonsDone.includes(l.id);
       const isCur = cur && l.id === cur.id;
-      const lock = isPremiumLesson(l)&&window.apkPass ? ' '+apkPass.lessonBadge() : '';
       const sub = l.intro ? l.intro.split('.')[0]+'.' : '';
       html += `<div class="pmap-node ${done?'done':isCur?'current':'up'}" onclick="openLesson(${l.id})">
         <div class="pmap-dot">${done?'✓':lessonPos(l.id)+1}</div>
         <div class="pmap-info">
-          <div class="pmap-title">${l.title}${lock}</div>
+          <div class="pmap-title">${l.title}</div>
           <div class="pmap-sub">${sub}</div>
           ${isCur?`<button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="event.stopPropagation();openLesson(${l.id})">▶ Continue</button>`:''}
         </div>
@@ -1580,18 +1575,6 @@ function renderLesson(){
   const _viewId=(S.lessonStage==='done' && S.doneLesson!=null) ? S.doneLesson : S.currentLesson;
   const l=DATA.LESSONS.find(x=>x.id===_viewId);
   if(!l) return;
-  if(isLockedLesson(l)){
-    document.getElementById('lessonContent').innerHTML=`<div class="lesson-header">
-      <div class="flex-between mb8">
-        <button class="btn btn-outline btn-sm" onclick="show('lessons')">← Lessons</button>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><span class="tag">${l.unit}</span></div>
-      </div>
-      <h1>${l.title}</h1>
-    </div>
-    ${window.apkPass ? apkPass.gateHTML({title:'Premium lesson'}) : ''}`;
-    if(window.lucide) lucide.createIcons();
-    return;
-  }
   if(l.parsons){ v2PyBody(l, S.lessonsDone.includes(l.id)); return; }
   const pct=Math.round(lessonPos(l.id)/DATA.LESSONS.length*100);
   const done=S.lessonsDone.includes(l.id);
@@ -2592,7 +2575,6 @@ function v2PyBody(l, done){
       <div class="prog-bar mb12"><div class="prog-fill" style="width:${pct}%"></div></div>
       <h1>${l.title}</h1>
     </div>
-    ${isPremiumLesson(l)&&window.apkPass?apkPass.unlockedBanner():''}
     ${stageBar}
     ${body}`;
   if(window.lucide) lucide.createIcons();
@@ -3096,7 +3078,6 @@ window.addEventListener('load', function(){
   }catch(e){} }
 });
 // Medium #5: one-time "you've unlocked" moment + async account-entitlement hydrate.
-if(window.apkPass){ apkPass.celebrateUnlock(); apkPass.hydrateAcct(function(){ renderLessonList(); renderLesson(); }); }
 </script>
 <div id="settingsModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);align-items:center;justify-content:center" onclick="if(event.target===this)closeSettings()">
   <div style="background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:28px;min-width:300px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.4)">
@@ -3104,13 +3085,6 @@ if(window.apkPass){ apkPass.celebrateUnlock(); apkPass.hydrateAcct(function(){ r
       <span style="font-weight:700;font-size:.95rem">Settings</span>
       <button onclick="closeSettings()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:1.3rem;line-height:1;padding:0 4px">&times;</button>
     </div>
-    <p style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:12px">Redeem Code</p>
-    <p style="font-size:.75rem;color:var(--dim);margin-bottom:10px">Have an unlock code? Paste it to unlock premium content.</p>
-    <div style="display:flex;gap:6px;margin-bottom:12px">
-      <input id="pythonPromoCode" type="text" placeholder="Paste your code" autocomplete="off" style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:12px">
-      <button type="button" onclick="redeemCodeFromSettings()" style="padding:8px 14px;border:1px solid var(--border);background:transparent;color:var(--text);border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;white-space:nowrap">Redeem</button>
-    </div>
-    <div id="pythonCodeMsg" style="font-size:.72rem;min-height:14px;margin-bottom:18px"></div>
     <p style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:12px">Hints</p>
     <p style="font-size:.75rem;color:var(--dim);margin-bottom:10px">Paste your Anthropic API key to enable AI hints on the Try &amp; Build stages (bring-your-own-key; stored only in this browser).</p>
     <div style="display:flex;gap:6px;margin-bottom:4px">
@@ -3164,36 +3138,19 @@ function handleResetAll(btn){
     // The per-kit recall/streak keys used to be listed by hand here and drifted
     // out of sync kit to kit - Tableau and Stats listed none - so a reset wiped
     // lesson progress but left the review list standing (playtest S1). Sweeping
-    // by prefix keeps every kit honest. A purchase (apk-pass) and any API key
+    // by prefix keeps every kit honest. Any API key
     // the user supplied are deliberately never touched by a progress reset.
     var _pfx=['sqlkit','epk','ppk','tpk','spk','pbikt','ipk','clk','fmk'];
     Object.keys(localStorage).forEach(function(k){
-      if(/apikey|api-key|apk-pass|coach-key/.test(k)) return;
+      if(/apikey|api-key|coach-key/.test(k)) return;
       if(_pfx.some(function(p){return k===p||k.indexOf(p+'-')===0;})) localStorage.removeItem(k);
     });
     location.reload();
   }
 }
 
-function redeemCodeFromSettings(){
-  var inp=document.getElementById('pythonPromoCode');
-  var msg=document.getElementById('pythonCodeMsg');
-  if(!inp||!msg)return;
-  if(window.apkPass&&window.apkPass.unlock(inp.value)){
-    msg.textContent='✓ Code redeemed! Premium content unlocked.';
-    msg.style.color='var(--good)';
-    inp.value='';
-    setTimeout(function(){msg.textContent=''},4000);
-    if(window.gtag)gtag('event','pass_unlock',{location:'settings',kit:'python'});
-  }else{
-    msg.textContent="That code didn't match. Check for typos or spaces.";
-    msg.style.color='#c0392b';
-  }
-}
 document.addEventListener('DOMContentLoaded',function(){
   _migrateConfidence();
-  var inp=document.getElementById('pythonPromoCode');
-  if(inp)inp.addEventListener('keydown',function(e){if(e.key==='Enter')redeemCodeFromSettings();});
 });
 
 /* -- Hint System JS ---- */

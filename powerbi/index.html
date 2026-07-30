@@ -441,12 +441,8 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 <div id="toast"></div>
 
 <script src="https://unpkg.com/lucide@latest"></script>
-<script src="../assets/apk-pass.js"></script>
 <script>
 localStorage.removeItem('apk-basics'); // Bare Basics mode removed
-if(window.apkPass) apkPass.setKit('powerbi');
-function isPremiumLesson(l){ return l && l.id >= 400; }
-function isLockedLesson(l){ return isPremiumLesson(l) && !(window.apkPass && apkPass.isUnlocked()); }
 // ─── DATA ──────────────────────────────────────────────────────────────────
 const DATA = {
 
@@ -1726,7 +1722,7 @@ function renderHome(){
     const p = Math.round(d/ls.length*100);
     return `<div style="margin-bottom:10px"><div class="row" style="justify-content:space-between;margin-bottom:3px"><span style="font-size:13px;font-weight:600">${u}</span><span style="font-size:12px;font-family:var(--mono);color:var(--muted)">${d}/${ls.length}</span></div><div class="prog-wrap" style="height:5px"><div class="prog-bar" style="width:${p}%"></div></div></div>`;
   }).join('');
-  const _accessible = DATA.LESSONS.filter(l=>!isLockedLesson(l));
+  const _accessible = DATA.LESSONS;
   const _nxtL = _accessible.filter(l=>!state.doneLessons.includes(l.id)).slice(0,3);
   const nextUp = _nxtL.length ? _nxtL.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 2px;border-top:1px solid var(--border);cursor:pointer" onclick="navigate('lesson',${l.id})"><div><span style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-right:8px">L${lessonPos(l.id)+1}</span><span style="font-size:14px;font-weight:600">${l.title}</span></div><span style="color:var(--accent);font-weight:700">→</span></div>`).join('') : `<p class="text-sm text-muted" style="margin:8px 0 0">All ${_accessible.length} lessons complete!</p>`;
 
@@ -1832,11 +1828,10 @@ function renderLessons(){
     ls.forEach(l => {
       const done = state.doneLessons.includes(l.id);
       const isCur = cur && l.id === cur.id;
-      const lock = isPremiumLesson(l)&&window.apkPass ? ' '+apkPass.lessonBadge() : '';
       html += `<div class="pmap-node ${done?'done':isCur?'current':'up'}" onclick="navigate('lesson',${l.id})">
         <div class="pmap-dot">${done?'✓':lessonPos(l.id)+1}</div>
         <div class="pmap-info">
-          <div class="pmap-title">${l.title}${lock}</div>
+          <div class="pmap-title">${l.title}</div>
           <div class="pmap-sub">${l.sub}</div>
           ${isCur?`<button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="event.stopPropagation();navigate('lesson',${l.id})">▶ Continue</button>`:''}
         </div>
@@ -1851,16 +1846,6 @@ function renderLessons(){
 function renderLesson(id){
   const l = DATA.LESSONS.find(x => x.id === id);
   if(!l) return;
-  if(isLockedLesson(l)){
-    document.getElementById('main').innerHTML = `
-      <div class="row mb">
-        <button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">← Lessons</button>
-        <span class="badge badge-unit">${l.unit}</span>
-      </div>
-      <h1>${l.title}</h1>
-      ${window.apkPass ? apkPass.gateHTML({title:'Premium lesson'}) : ''}`;
-    return;
-  }
   const done = state.doneLessons.includes(l.id);
   _syncRecalls(l.id, l);
   if(l.parsons){ v2PbiBody(l, done); return; }
@@ -2466,7 +2451,6 @@ function bumpStreak(){
 // visible progress toward it. A few surprise badges (hidden until earned) for
 // delight. Deliberately NO attendance trinkets — the streak above is shown as
 // a count, never converted into a reward.
-// Units 0-3 are the free core; Units 4-7 are premium (isPremiumLesson), so
 // they get no unit badge — a free learner can still fill the whole board.
 function _unitProg(re){
   let d=0, t=0;
@@ -2831,7 +2815,6 @@ function v2PbiBody(l, done){
       ${done?`<button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="v2ResetLesson(${l.id})">↺ Reset</button>`:''}
     </div>
     <h1>${l.title}</h1>
-    ${isPremiumLesson(l)&&window.apkPass?apkPass.unlockedBanner():''}
     ${stageBar}
     ${body}`;
   if(window.lucide) lucide.createIcons();
@@ -3417,7 +3400,6 @@ window.addEventListener('load', function(){
   if(m){ try{ if(m[2]) v2ResetLesson(+m[1]); else navigate('lesson', +m[1]); }catch(e){} }
 });
 // Medium #5: one-time "you've unlocked" moment + async account-entitlement hydrate.
-if(window.apkPass){ apkPass.celebrateUnlock(); apkPass.hydrateAcct(function(){ if(currentView==='lessons') renderLessons(); }); }
 
 /* -- Hint System JS ---- */
 var _hd={hint:'',ans:'',state:0};

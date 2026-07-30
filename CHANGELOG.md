@@ -9,6 +9,22 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [2.0.0] — 2026-07-30 — The paywall is gone; every lesson is free
+
+### Removed
+- **The All-Access Pass, the freemium plan, and the August 1 launch.** Decision: Mike, 2026-07-30. There is no paywall and there will not be one. Deleted `assets/apk-pass.js` (gate, unlock code `PREP-PASS-2026`, badges, celebration toast), the `<script>` tags that loaded it in the hub and in SQL/Excel/Python/Power BI/Final Exam, the `isPremiumLesson`/`isLockedLesson` checks and the locked-lesson render branches, the "Redeem Code" panels in every kit's Settings, the hub promo-code block, and the Final Exam's whole-kit gate.
+- The Buy Me a Coffee Pass covers (`assets/cover-all-access-pass-*`).
+- `HANDOFF-all-access-pass.md`, and the two forward-looking paywall items in `ROADMAP.md` (August premium gap analysis, server-side entitlement enforcement) are marked cancelled so no future session rebuilds them.
+
+### Changed
+- `terms.html` is now **Terms of Use**, not Terms of Sale: the "What you're buying", "Price", "How access works", "Refunds" and "Payments" sections are gone, replaced by a statement that everything is open and nothing is sold here.
+- `privacy.html` drops the payment-information paragraph.
+- Progress-sync key exclusion lists no longer reference the dead `apk-pass` key.
+
+**Major bump** because the product's access model changed. Verified: all inline scripts parse; `render-smoke` 13/13 clean; `de-test` 121 passed / 5 failed and `headless-test` 24/0, both identical to the pre-change baseline (the 5 are pre-existing).
+
+---
+
 ## [1.178.0] — 2026-07-29 — Three new guides, and the hub links to guides again
 
 ### Added

@@ -611,18 +611,9 @@
 >
 > **Cadence:** DESIGN_SYSTEM.md first; then one surface-group per chat (same one-per-chat discipline as the kit rollouts); verify each on the LIVE URL in both light + dark before shipping.
 >
-> ### 🔒 B. PREMIUM — AUGUST LAUNCH GAP ANALYSIS (bare minimum to charge)
-> **VERIFIED against current code 2026-07-18 (not memory):** the gate is BUILT and working — `MODE='founding'`, `apk-pass.js` gating the 4 tool kits (excel/sql/python/powerbi premium units) **and the Final Exam whole-kit gate** (`final/index.html` `apkPass.isUnlocked()` → `gateHTML`). BMC founding product LIVE ($5.55/yr, code `PREP-PASS-2026`). So catalog + gate + storefront already exist — the gap is smaller than the older notes implied.
+> ### 🔒 B. PREMIUM — CANCELLED
 >
-> **BARE MINIMUM to launch premium in August (ordered):**
-> 1. **DECISION (Mike) — gate enforcement level.** Gate is client-side only (view-source/devtools bypass). **PM rec: ship Aug 1 on the client-side gate** (honest founding framing, ~5 users, negligible $ at risk); land server-side Supabase Edge Function enforcement as a **Q3 fast-follow** — do NOT block the Aug 1 date on it. (Already scoped in the High-bucket PAYWALL item.)
-> 2. **MODE + copy call — ✅ DECIDED (Mike, 2026-07-21, v1.171.0): NO subscription.** Launch price = **$11.11 ONE-TIME for a year of access** (was $11.11/mo). Evidence: BLS median job search 11 wks; RevenueCat monthly retention 17% at 1yr vs 44% annual, education near-bottom; closest competitors (Interview Query/StrataScratch/DataLemur) sell one-time passes. Keep `founding` ($5.55) until launch; at launch flip MODE='live' and update the BMC product to $11.11 one-time. Possible later step-up: $22.22 once traffic exists.
->    **✅ ALSO (v1.172.0): ACCESS NEVER EXPIRES.** The 1-year cap was a subscription-era leftover that genuinely re-locked buyers after 365 days — removed from code AND copy. Legacy `apk-pass-exp` values are ignored so early redeemers can't be locked out. ⚠️ The BMC product name still says "(Founding, 1 year)" — Mike must rename it to drop the year (manual, automation-blocked). Post-hire cert-prep subscription = separate future product idea, not this one.
-> 3. **Post-purchase "unlocked" UX** (existing Medium item) — after unlock, clearly mark which lessons/kits are now open (lesson-list badge + hub). Small, real trust win.
-> 4. **Manual (Mike — automation-blocked):** upload BMC cover PNGs (`assets/cover-all-access-pass-*.png`); rewrite BMC public About + banner (still old gardening copy); **verify the live buy flow end-to-end** (founding button → $5.55 checkout → code shows post-purchase).
-> 5. **Catalog polish (NICE-TO-HAVE, not a blocker):** fill Excel Dry Run question bank (~20% stocked) toward SQL Dry Run parity; playtest + publish good-enough-analytics. These EXPAND the free tier; premium can launch without them.
-> 6. **✅ DECIDED + SHIPPED (Mike, 2026-07-21, v1.170.0):** SQL Dry Run / Spreadsheet Archaeology / Excel Dry Run are GAMES and stay FREE (marketed, never pass-gated) — unless premium content is later discovered inside them. Gate card + terms.html + hub banner copy trimmed to match: the pass = 4 interview tracks + final exam + future advanced modules. Do not re-add job-sim/mock-exam promises to premium copy.
->
+> **❌ CANCELLED 2026-07-30 (Mike).** There is no paywall and there will not be one. The freemium plan, the All-Access Pass, the Aug 1 launch, the `PREP-PASS-2026` code and `assets/apk-pass.js` are all deleted from the repo. Every lesson in every kit is open to everyone. Do not rebuild a gate, do not re-add premium copy, and do not raise this again. Monetization is one-time PDF guide packs sold off-site.
 > **NOT in scope for August** (per the locked quarterly plan): Portfolio Projects = Q3/Nov 1 · Memory & Comprehension = Q4/Feb 1 · AI Coach = Q1 candidate.
 
 > ### 🧪 SQL-KIT PLAYTEST TRIAGE 2026-07-18 — MOBILE CODE-OVERFLOW (4 inbox notes) — SQL fix ✅ v1.167.0; mobile initiative = roadmap
@@ -1118,14 +1109,7 @@ _Response time: current cycle. Clear before accepting new feedback._
   - _Est. effort:_ Large (audit across 6+ kits, then a design/build pass — one kit per chat per backlog discipline).
   - _Related:_ Depends on/overlaps the Guided Knowledge Path rollout above (same "SQL is the reference kit" precedent) and the Zinc & Sky brand migration (same friction-vs-identity classification approach, applied to layout instead of color).
 
-- **🔒 PAYWALL: server-side entitlement enforcement (harden the freemium gate) — DUE BEFORE AUG 1, 2026 LAUNCH** _(added July 15, 2026 — TOP PRIORITY this cycle)_
-  - _Why now:_ The current gate (`assets/apk-pass.js` + the `PREP-PASS-2026` code → `localStorage['apk-pass']`) is **client-side only** and trivially bypassable (view-source reveals every premium lesson; anyone can set the flag in devtools). Fine as a launch stopgap, NOT fine to charge $11.11/mo against. Revisit + decide the enforcement level before flipping `MODE='live'`.
-  - _Root fix (the real one):_ move the entitlement CHECK server-side. Premium lesson content stops shipping inside the static HTML; instead a **Supabase Edge Function** verifies the logged-in user's `user_entitlements` row (`hasInterviewPass()`) and returns the gated content only to entitled users. Reuses the LIVE Supabase backend (auth Google+email, `user_progress`/`user_entitlements`, `SUPABASE_INTEGRATION.md`) — same proxy pattern the AI Coach research already scoped. Site stays vanilla/static on GitHub Pages.
-  - _Hosting note:_ if the Edge Function path needs a friendlier home (custom domain, native edge functions), Cloudflare Pages / Netlify is the move — still free, and it also sidesteps GitHub Pages' "no primarily-commercial sites" ToS wrinkle ([[project_monetization_strategy]]). Not required for v1 (Supabase Edge Functions work from a GH-Pages front-end via fetch).
-  - _Scope decision to make with Mike (before build):_ (a) keep client-side gate through Aug 1 and ship server-side enforcement as a fast-follow, OR (b) block launch on it. Mike's call July 15: **revisit before Aug 1** — this item is the reminder + scoping home. **✅ DECIDED 2026-07-18 (Mike): option (a) — ship Aug 1 on the client-side gate, land server-side Supabase Edge Function enforcement as a Q3 fast-follow. Do NOT block the Aug 1 date on it.**
-  - _DoD:_ A non-purchaser cannot reach premium lesson CONTENT via view-source or devtools (content isn't in the payload); a purchaser (verified entitlement) gets it seamlessly across devices via their account. Verified live, both states.
-  - _Est:_ Medium (backend exists; the lift is content-splitting + the Edge Function + wiring the fetch into each kit's lesson render).
-  - _Related:_ [[project_freemium_ecosystem]], `SUPABASE_INTEGRATION.md`, the "premium-unlocked badges" Medium item (post-purchase UX pairs with this).
+- **🔒 PAYWALL: server-side entitlement enforcement** — **❌ CANCELLED 2026-07-30 (Mike).** There is no paywall and there will not be one. The freemium plan, the All-Access Pass, the Aug 1 launch, the `PREP-PASS-2026` code and `assets/apk-pass.js` are all deleted from the repo. Every lesson in every kit is open to everyone. Do not rebuild a gate, do not re-add premium copy, and do not raise this again. Monetization is one-time PDF guide packs sold off-site.
 
 _(GR-F-1, GR-F-2, GR-F-3 shipped May 28, 2026 — see CHANGELOG v1.4.1)_
 
