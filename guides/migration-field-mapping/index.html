@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field Mapping in a Data Migration: Building the Blueprint &mdash; Analyst Prep Kit</title>
+<meta name="description" content="How to build a field mapping document for a data migration: what each row needs, how to handle fields with no home, why one unique ID ties everything together, and why nothing moves until the map is signed off.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/migration-field-mapping/">
+<meta property="og:title" content="Stage 3: Map the Fields">
+<meta property="og:description" content="How to build a field mapping document for a data migration: what each row needs, how to handle fields with no home, why one unique ID ties everything together, and why nothing moves until the map is signed off.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/migration-field-mapping/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14px;color:var(--muted)}
+  .refs li{margin-bottom:8px}
+  .seriesnav{font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:26px 0}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../">All Guides</a> &middot; <a href="../data-migration-stages/">Data Migration Series</a></p>
+  <h1>Stage 3: Map the Fields</h1>
+  <p class="meta">Stage 3 of 8 &middot; Every field gets a home before anything moves &middot; Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>The field map is a line by line list saying what each field in the old system becomes in the new one. It is the blueprint for the entire job, it is the document the client signs, and nothing loads until it is agreed. This article covers what goes in each row, how to handle fields with nowhere to go, and the ID rule that keeps records and documents together.</p>
+
+  <p><strong>The short version.</strong> One row per source field. Every row ends in a home, a transformation, or a written decision that it does not travel.</p>
+
+  <h2>What a mapping row contains</h2>
+  <p>Before the list: what do you think is the column people forget, that causes the most arguments later?</p>
+  <table>
+    <tr><th>Column</th><th>Why it is there</th></tr>
+    <tr><td>Source table and field</td><td>Exactly where it comes from</td></tr>
+    <tr><td>Sample values</td><td>Three real values. This is what makes the map reviewable by someone who is not technical</td></tr>
+    <tr><td>Target field</td><td>Where it lands, or "not migrated"</td></tr>
+    <tr><td>Required in target</td><td>Yes or no. Drives the blanks problem from profiling</td></tr>
+    <tr><td>Transformation</td><td>What has to change about the value, in words</td></tr>
+    <tr><td>Decision and who made it</td><td>The column people forget. Six months later, this is the only thing that settles a dispute</td></tr>
+  </table>
+  <p>The sample values column is what turns the map from a technical document into something a client can actually check. Nobody can review a field called <code>cl_stat_cd</code>. Everybody can review it once they see that it holds ACT, INACT and HOLD.</p>
+
+  <h2>Fields with nowhere to go</h2>
+  <p>Every migration has them. The old system tracked something the new one does not, or tracks it somewhere different. There are four honest outcomes and you pick one per field.</p>
+  <p><strong>It maps to a different field.</strong> Fine. Write the transformation down.</p>
+  <p><strong>It merges with another field.</strong> Two address lines becoming one. Write down the joining rule, including what happens when one side is empty.</p>
+  <p><strong>It goes into a notes or custom field.</strong> The pressure valve. Use it sparingly, because a value in a notes field cannot be reported on, and the client will eventually want to report on it.</p>
+  <p><strong>It does not travel.</strong> A real answer, and the one that needs the clearest written record. Name the field, say why, and get it confirmed alongside the exclusions agreed at <a href="../migration-kickoff-scope/">kickoff</a>.</p>
+  <p>Say which of those four you would push a client towards for a field nobody has used since 2018. Then read the next line. It is the fourth one, and the profiling row count is your evidence.</p>
+
+  <h2>One ID ties it together</h2>
+  <p>Pick a single identifier per real thing, usually the client, and carry it through everything. Records reference it. Documents reference it. Your working files reference it.</p>
+  <p>This is what stops orphans. A document loaded with the client's name on it and nothing else is a document that will end up attached to the wrong person or to nobody. A document loaded with the client ID lands where it belongs.</p>
+  <p>The old system's key is usually the right thing to carry, even when the new system generates its own. Keep a crosswalk table of old ID to new ID. You will need it during the <a href="../migration-dry-run/">dry run</a>, and you will need it again if anything has to be reloaded.</p>
+
+  <h2>Documents are data too</h2>
+  <p>Files get treated as an afterthought and they are half the job in a regulated industry. Every document needs the same treatment as a record: where it comes from, what it is called, what type it is, what date it carries, who it belongs to, and where it lands.</p>
+  <p>If some of the source is paper, that is a separate workstream with its own timeline. Scanning and indexing runs in parallel and it is usually the thing that determines the go-live date. Put it on the critical path in week one, not week six.</p>
+
+  <h2>Getting it signed off</h2>
+  <p>Do not send a spreadsheet with four hundred rows and ask for approval. You will get silence, and silence is not approval.</p>
+  <p>Send it in pieces the client can actually review. One table at a time, with the rows needing a decision marked and everything mechanical collapsed into a summary line. Ask for a decision on the marked rows by a date.</p>
+  <p>The gate closes when every row has a target or a written decision, and the client has confirmed. That confirmation email is the one you will point at every time somebody says the data is wrong. It converts the question from "is this right" to "does this match what we agreed", which you can answer in ten seconds.</p>
+
+  <h2>The one habit</h2>
+  <p>Nothing moves until the map is signed off. Not a test load, not a quick sample, nothing. The rule only works if it has no exceptions, because the first exception is the one somebody remembers.</p>
+  <p>Have you ever inherited a system where you could not tell what a field was for? What would the map have needed to say?</p>
+
+<p class="seriesnav">Previous: <a href="../migration-profiling/">Stage 2: Profile the Source</a> &nbsp;·&nbsp; Next: <a href="../migration-cleaning/">Stage 4: Clean and De-dupe</a> &nbsp;·&nbsp; All eight stages: <a href="../data-migration-stages/">the series hub</a></p>
+
+  <div class="cta">
+    <strong>The checking work is SQL, and it is not advanced SQL.</strong>
+    <p style="margin:6px 0 0">Counting rows, grouping to find duplicates, and joining to find orphans covers most of what a migration asks of you. The <a href="../../sql/">SQL Kit</a> teaches those moves in order, with the data in front of you.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit &rarr;</a>
+    <p style="margin:10px 0 0;font-size:15px">Or start typing straight away: <a href="../../drill/">open SQL Drill</a>, thirteen queries that each add one thing to the last.</p>
+  </div>
+
+  <h2>References</h2>
+  <ol class="refs">
+    <li>Haller, K., Matthes, F., &amp; Schulz, C. (2012). A detailed process model for large scale data migration projects. <em>Business Information Systems (BIS 2012), Lecture Notes in Business Information Processing, 117</em>. Springer.</li>
+    <li>Wang, R. Y., &amp; Strong, D. M. (1996). Beyond accuracy: What data quality means to data consumers. <em>Journal of Management Information Systems, 12</em>(4), 5&ndash;33.</li>
+  </ol>
+
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../entity-resolution/">Entity Resolution</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin-top:10px"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee &#9749;</a></p>
+  </footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cleaning and De-duplication Before a Data Migration &mdash; Analyst Prep Kit</title>
+<meta name="description" content="How to clean data before a migration: what to fix by rule, what has to go on an exception list for the client to decide, how to de-duplicate without merging real records, and why the exception list is a gate.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cleaning/">
+<meta property="og:title" content="Stage 4: Clean and De-dupe">
+<meta property="og:description" content="How to clean data before a migration: what to fix by rule, what has to go on an exception list for the client to decide, how to de-duplicate without merging real records, and why the exception list is a gate.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cleaning/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14px;color:var(--muted)}
+  .refs li{margin-bottom:8px}
+  .seriesnav{font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:26px 0}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../">All Guides</a> &middot; <a href="../data-migration-stages/">Data Migration Series</a></p>
+  <h1>Stage 4: Clean and De-dupe</h1>
+  <p class="meta">Stage 4 of 8 &middot; Fix by rule, escalate by exception, decide before you move &middot; Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>Cleaning is where you fix what can be fixed automatically and escalate everything else to the client. The output is a source that the target system will accept, and an exception list where every row has a decision. This article covers the split between the two, and how to de-duplicate without destroying real records.</p>
+
+  <p><strong>The short version.</strong> If a rule can fix it safely, fix it. If a human has to decide, it goes on the exception list, and the list is a gate that closes only when every row has an answer.</p>
+
+  <h2>What a rule can fix</h2>
+  <p>Which of these do you think is riskier to automate: trimming spaces, or standardizing a date? Have an answer before the list.</p>
+  <p>Safe to fix by rule, because the intent is not in doubt: leading and trailing spaces, inconsistent capitalization in codes, a date format that is unambiguous, a phone number written with different punctuation, a country name that appears in two spellings.</p>
+  <p>Not safe by rule, because you would be guessing at meaning: a date that could be March 4th or April 3rd, a status string nobody recognizes, a blank in a required field, two records that look similar but might be two real people.</p>
+  <p>The date one is the trap. 03/04/24 is ambiguous, and a rule that picks a side silently converts thousands of rows to the wrong day. Check the source system's setting, confirm it with a value you can verify independently, then apply the rule.</p>
+
+  <h2>Every rule gets previewed</h2>
+  <p>Never run a transformation you have not looked at on real rows. Show the original and the result side by side, twenty rows, and read them.</p>
+  <p>This catches the thing that no error message will. A rule that strips a suffix and accidentally invents a value that does not exist will run without complaint on a hundred thousand rows. The only defence is looking at the output. The <a href="../entity-resolution/">entity resolution guide</a> walks a real example where two rounds of preview caught two separate defects in one rule.</p>
+
+  <h2>De-duplication without damage</h2>
+  <p>One client becoming two in the new system is the failure users notice first. Merging two real people into one is worse, and harder to undo.</p>
+  <p>Work in three passes.</p>
+  <p><strong>Exact duplicates first.</strong> Same identifier, same name, same date of birth. These are safe and they are usually the bulk of the problem.</p>
+  <p><strong>Near matches second.</strong> Same person, different spelling. These are candidates, not decisions. Build the list, sort it so the most consequential are at the top, and read it.</p>
+  <p><strong>Ambiguous cases to the client.</strong> A father and son with the same name at the same address are not a duplicate, and no rule will tell you that. The client knows. Ask.</p>
+  <p>Picture two records in front of you: same name, same address, birth dates two years apart. Say what you would do before reading on. The answer is that you do not decide it. That row goes on the exception list.</p>
+
+  <h2>The exception list is a gate, not a document</h2>
+  <p>Format it so a non-technical person can work through it. One row per problem, the record identifier, what is wrong in words, the options, and an empty decision column.</p>
+  <p>Send it in batches with a date attached. A four hundred row list arriving in one email gets nothing back. Fifty rows with a Friday deadline gets answers.</p>
+  <p>The stage closes when every row has a decision. "Leave it for now" is not a decision, it is a deferred problem that resurfaces during <a href="../migration-uat/">user testing</a> when there is no time left. Write down who decided and when, next to each row.</p>
+
+  <h2>What you do not clean</h2>
+  <p>Resist fixing things that are merely untidy. A client's data does not have to be good, it has to be acceptable to the target system and true to what they had.</p>
+  <p>Cleaning past that point costs time, introduces risk, and changes records the client never asked you to change. When you find genuine quality problems that are out of scope, write them up as a limitation and hand them over at close. That is a gift to the client, not a failure. <a href="../documenting-data-limitations/">Documenting limitations</a> covers how to write them so they are useful.</p>
+
+  <h2>Cheat sheet</h2>
+  <table>
+    <tr><th>Situation</th><th>Rule or exception</th></tr>
+    <tr><td>Trailing spaces, mixed case codes</td><td>Rule</td></tr>
+    <tr><td>Unambiguous date reformat</td><td>Rule, after confirming source format</td></tr>
+    <tr><td>Ambiguous date</td><td>Exception</td></tr>
+    <tr><td>Blank required field</td><td>Exception</td></tr>
+    <tr><td>Exact duplicate</td><td>Rule</td></tr>
+    <tr><td>Near duplicate</td><td>Exception</td></tr>
+    <tr><td>Unrecognized status value</td><td>Exception</td></tr>
+    <tr><td>Untidy but valid data</td><td>Leave it, note it at close</td></tr>
+  </table>
+
+  <h2>The one habit</h2>
+  <p>Preview every rule on real rows before you run it at scale. The data will not tell you when a rule is wrong.</p>
+  <p>What is the cleaning rule you have seen do the most damage?</p>
+
+<p class="seriesnav">Previous: <a href="../migration-field-mapping/">Stage 3: Map the Fields</a> &nbsp;·&nbsp; Next: <a href="../migration-dry-run/">Stage 5: The Dry Run</a> &nbsp;·&nbsp; All eight stages: <a href="../data-migration-stages/">the series hub</a></p>
+
+  <div class="cta">
+    <strong>The checking work is SQL, and it is not advanced SQL.</strong>
+    <p style="margin:6px 0 0">Counting rows, grouping to find duplicates, and joining to find orphans covers most of what a migration asks of you. The <a href="../../sql/">SQL Kit</a> teaches those moves in order, with the data in front of you.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit &rarr;</a>
+    <p style="margin:10px 0 0;font-size:15px">Or start typing straight away: <a href="../../drill/">open SQL Drill</a>, thirteen queries that each add one thing to the last.</p>
+  </div>
+
+  <h2>References</h2>
+  <ol class="refs">
+    <li>Fellegi, I. P., &amp; Sunter, A. B. (1969). A theory for record linkage. <em>Journal of the American Statistical Association, 64</em>(328), 1183&ndash;1210. doi:10.1080/01621459.1969.10501049</li>
+    <li>Wang, R. Y., &amp; Strong, D. M. (1996). Beyond accuracy: What data quality means to data consumers. <em>Journal of Management Information Systems, 12</em>(4), 5&ndash;33.</li>
+    <li>Matthes, F., Schulz, C., &amp; Haller, K. (2011). Testing &amp; quality assurance in data migration projects. <em>27th IEEE International Conference on Software Maintenance (ICSM)</em>, 438&ndash;447.</li>
+  </ol>
+
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../entity-resolution/">Entity Resolution</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin-top:10px"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee &#9749;</a></p>
+  </footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Eight Stages of a Data Migration, and the Gate That Closes Each One &mdash; Analyst Prep Kit</title>
+<meta name="description" content="The eight stages of a data migration end to end: kickoff, profiling, mapping, cleaning, dry run, UAT, cutover and hypercare, with the checkpoint that has to close before the next stage starts.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/">
+<meta property="og:title" content="The Eight Stages of a Data Migration">
+<meta property="og:description" content="The eight stages of a data migration end to end: kickoff, profiling, mapping, cleaning, dry run, UAT, cutover and hypercare, with the checkpoint that has to close before the next stage starts.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14px;color:var(--muted)}
+  .refs li{margin-bottom:8px}
+  .seriesnav{font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:26px 0}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../">All Guides</a> &middot; <a href="../data-migration-stages/">Data Migration Series</a></p>
+  <h1>The Eight Stages of a Data Migration</h1>
+  <p class="meta">The industry pattern, with commentary from ten years of running them &middot; Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>This is the whole shape of a migration on one page. Eight stages, and for each one the single checkpoint that has to close before the next stage may start. Use it to plan a job, to explain to a client why you are not loading yet, or to work out which stage you are actually stuck in.</p>
+
+  <p>The stage list below is the industry pattern. It is what the research describes and what the large vendors sell. The commentary under each one is mine, from running these for a living, and it is where I say what the pattern gets right and where real projects bend it.</p>
+
+  <p><strong>The short version.</strong> Eight stages, eight gates. A gate is a checkpoint with an owner and a written answer, and skipping one does not save time, it moves the cost later.</p>
+
+  <table>
+    <tr><th>#</th><th>Stage</th><th>The gate that closes it</th></tr>
+    <tr><td>1</td><td><a href="../migration-kickoff-scope/">Kickoff and scope</a></td><td>Success criteria, stakeholders and what does not migrate, confirmed in writing</td></tr>
+    <tr><td>2</td><td><a href="../migration-profiling/">Profile the source</a></td><td>Row counts, blanks, duplicates and bad values documented</td></tr>
+    <tr><td>3</td><td><a href="../migration-field-mapping/">Map the fields</a></td><td>Signed off data map. Nothing moves before this</td></tr>
+    <tr><td>4</td><td><a href="../migration-cleaning/">Clean and de-dupe</a></td><td>Exception list returned with a client decision on every row</td></tr>
+    <tr><td>5</td><td><a href="../migration-dry-run/">Dry run in a sandbox</a></td><td>Clean reconciliation, issues logged, zero orphans</td></tr>
+    <tr><td>6</td><td><a href="../migration-uat/">User acceptance testing</a></td><td>Client validates a real sample and confirms in writing</td></tr>
+    <tr><td>7</td><td><a href="../migration-cutover/">Freeze, cutover, bridge</a></td><td>Counts tie old to new, bridge data loaded, live together</td></tr>
+    <tr><td>8</td><td><a href="../migration-hypercare/">Hypercare and close</a></td><td>Final reconciliation report, readout, handoff to support</td></tr>
+  </table>
+
+  <h2>Stage 1: Kickoff and scope</h2>
+  <p>Before reading on: what is the one question a kickoff has to answer, that nothing later can fix if it is missed?</p>
+  <p>The pattern says define scope, roles and success criteria. That is correct and it is thin. In practice the kickoff is where you settle four things: why the client is doing this at all, what success looks like in numbers, what is <em>not</em> coming across, and who the one person is that you route everything through.</p>
+  <p><strong>My commentary.</strong> The scope item people underspend on is the exclusion list. Agreeing that seven years of history comes over is easy. Agreeing that three of those years arrive as reference only, and what that means the day a nurse cannot find a note, is the conversation that saves the project.</p>
+
+  <h2>Stage 2: Profile the source</h2>
+  <p>The pattern splits this from cleaning, and it is right to. Profiling is finding out what is really there. Cleaning is doing something about it.</p>
+  <p><strong>My commentary.</strong> This is the only stage whose output tells you whether your timeline is real, so it belongs before you commit to dates rather than after. A source with a free text field where a dropdown should be is not a cleaning problem, it is a scope problem, and it is cheaper to learn in week two than week six.</p>
+
+  <h2>Stage 3: Map the fields</h2>
+  <p>Every field in the source gets a home in the target, or an explicit decision that it does not travel. The map is a document the client signs.</p>
+  <p><strong>My commentary.</strong> Nothing moves until the map is signed off. That rule sounds rigid and it is the single highest value rule in the list. A map signed by the client turns "the data is wrong" into "the data matches what we agreed", which is a completely different meeting.</p>
+
+  <h2>Stage 4: Clean and de-dupe</h2>
+  <p>Fix what can be fixed by rule. Everything that cannot goes on an exception list, and the client decides row by row.</p>
+  <p><strong>My commentary.</strong> The exception list is a gate, not a document. It closes when every row has a decision, and "we will deal with it later" is not a decision. De-duplication in particular has to happen here, because one client turning into two in the new system is the failure users notice first and forgive last.</p>
+
+  <h2>Stage 5: The dry run</h2>
+  <p>Load the whole thing into a sandbox, reconcile it, and log everything that broke. This is the stage the research is loudest about.</p>
+  <p><strong>My commentary.</strong> Treat the dry run as the real migration and the go-live as a repeat performance. If the dry run needed manual intervention, it is not finished, because you will not have time to intervene on the night.</p>
+
+  <h2>Stage 6: User acceptance testing</h2>
+  <p>The client's own people open real records in the new system and say whether it is right.</p>
+  <p><strong>My commentary.</strong> Give them named records, not a general invitation to look around. "Open these ten clients and check the visit history against the old system" gets answers. "Have a look and let us know" gets silence, and silence at this stage is what turns into a dispute later.</p>
+
+  <h2>Stage 7: Freeze, cutover and the bridge</h2>
+  <p>The source goes read only. The final export runs. The load runs. Counts are compared. Everyone goes live together.</p>
+  <p><strong>My commentary.</strong> This is where the standard write-ups skip the part clients actually feel. A migration takes weeks, and business does not stop for it. The bridge is the plan for the records created during those weeks, and having one is the difference between a calm go-live and a scramble. <a href="../migration-cutover/">The cutover article</a> covers how to run it.</p>
+
+  <h2>Stage 8: Hypercare and close</h2>
+  <p>A defined window of close support after go-live, then a final reconciliation report, a readout, and a handoff to whoever supports the client from here.</p>
+  <p><strong>My commentary.</strong> Hypercare needs an end date agreed at the start, or it becomes free consulting. The close also needs a real handoff, because a client who has worked with one person for three months does not want to be handed a support address and nothing else.</p>
+
+  <h2>What a gate actually is</h2>
+  <p>Say what makes a gate different from a status update before you read the answer.</p>
+  <p>A gate has three parts. Something happened, a named person confirmed it in writing, and the confirmation is somewhere both sides can find. A status update has none of those. In real projects the confirmation is almost never a formal signature. It is an email that says what was completed, what is starting, and asks the client to confirm the first part meets expectations. <a href="../migration-emails/">The emails article</a> has the wording.</p>
+
+  <h2>Where this comes from</h2>
+  <p>Haller, Matthes and Schulz built their process model from the literature plus twenty five industry interviews, and the companion paper argues that testing and quality assurance, rather than the loading itself, determine whether a migration succeeds. The large cloud vendors describe the same arc in fewer words: assess, prove it small, migrate at scale, then hypercare.</p>
+  <p>The eight here are those two views merged, with profiling separated out and the bridge added, because those are the two places I have seen real projects lose the most time.</p>
+
+  <h2>The one habit</h2>
+  <p>Never start a stage whose previous gate has not closed in writing. If you cannot point at the email, the gate did not close.</p>
+  <p>Which of the eight do you think gets skipped most often on the jobs you have seen?</p>
+
+<p class="seriesnav">Previous: <a href="../what-is-data-migration/">What Data Migration Actually Is</a> &nbsp;·&nbsp; Next: <a href="../migration-kickoff-scope/">Stage 1: Kickoff and Scope</a></p>
+
+  <div class="cta">
+    <strong>The checking work is SQL, and it is not advanced SQL.</strong>
+    <p style="margin:6px 0 0">Counting rows, grouping to find duplicates, and joining to find orphans covers most of what a migration asks of you. The <a href="../../sql/">SQL Kit</a> teaches those moves in order, with the data in front of you.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit &rarr;</a>
+    <p style="margin:10px 0 0;font-size:15px">Or start typing straight away: <a href="../../drill/">open SQL Drill</a>, thirteen queries that each add one thing to the last.</p>
+  </div>
+
+  <h2>References</h2>
+  <ol class="refs">
+    <li>Haller, K., Matthes, F., &amp; Schulz, C. (2012). A detailed process model for large scale data migration projects. <em>Business Information Systems (BIS 2012), Lecture Notes in Business Information Processing, 117</em>. Springer.</li>
+    <li>Matthes, F., Schulz, C., &amp; Haller, K. (2011). Testing &amp; quality assurance in data migration projects. <em>27th IEEE International Conference on Software Maintenance (ICSM)</em>, 438&ndash;447.</li>
+  </ol>
+
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../entity-resolution/">Entity Resolution</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin-top:10px"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee &#9749;</a></p>
+  </footer>
+</main>
+</body>
+</html>

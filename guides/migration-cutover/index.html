@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cutover, the Freeze, and the Bridge Import &mdash; Analyst Prep Kit</title>
+<meta name="description" content="How to run a data migration cutover: freezing the source system as read only, what staff do during the gap, how a bridge import covers records created mid-migration, and the checks that have to pass before you call it live.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cutover/">
+<meta property="og:title" content="Stage 7: Freeze, Cutover, Bridge">
+<meta property="og:description" content="How to run a data migration cutover: freezing the source system as read only, what staff do during the gap, how a bridge import covers records created mid-migration, and the checks that have to pass before you call it live.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cutover/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14px;color:var(--muted)}
+  .refs li{margin-bottom:8px}
+  .seriesnav{font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:26px 0}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../">All Guides</a> &middot; <a href="../data-migration-stages/">Data Migration Series</a></p>
+  <h1>Stage 7: Freeze, Cutover, Bridge</h1>
+  <p class="meta">Stage 7 of 8 &middot; The switch, and the plan for the weeks in between &middot; Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>Cutover is the switch from old system to new. The part most write-ups skip is the gap: a migration takes weeks, and the business does not stop while you run it. This article covers the freeze, what staff do during the gap, and the bridge import that catches everything created in between.</p>
+
+  <p><strong>The short version.</strong> Freeze the old system as read only on the day you take the final export, capture new work in a structured sheet during the gap, and load that sheet the moment the new system is live.</p>
+
+  <h2>The gap, and why it is your problem</h2>
+  <p>Before the answer: a client's staff sign up four new customers the week after you take the export. Where does that data live? Think it through.</p>
+  <p>It has to live somewhere, and if you have not decided where, it lives in four different places. Someone's notebook, an email, a spreadsheet nobody else can find, and the old system, which you are about to stop using.</p>
+  <p>This is the single biggest difference between a migration that feels professional to the client's staff and one that feels like an outage. The data work is invisible to them. The gap is not.</p>
+
+  <h2>The freeze</h2>
+  <p>On the day the final export is taken, the old system goes read only. Staff can look things up. They cannot add, edit, or delete.</p>
+  <p>Read only rather than switched off matters. People need their history during the gap, and taking it away for two weeks is how you lose the room. The point of the freeze is that the export you are working from stays true, not that the old system disappears.</p>
+  <p>Announce the freeze date at least two weeks ahead, and again the week of. Say what read only means in concrete terms: you can look, you cannot change, here is where new work goes instead.</p>
+
+  <h2>The bridge</h2>
+  <p>New work during the gap goes onto a structured sheet, built by you, shaped exactly like the import that will load it.</p>
+  <p>That last part is the whole trick. If the sheet has the same columns, the same value lists and the same date format as your load file, then the moment the new system is live you import it in minutes. If the sheet is a free form list somebody invented, you spend a day cleaning it while the client waits.</p>
+  <p>Build it with the same rules as the <a href="../migration-field-mapping/">field map</a>: required fields marked, dropdowns where the target has dropdowns, one row per record, and the client ID column present. Give it to the client before the freeze starts and walk one person through filling a row.</p>
+  <p>Picture a scheduler at 4pm on a Friday during the freeze, signing up a new client. What has to be true about your sheet for that to take them two minutes? That is the design brief.</p>
+
+  <h2>Cutover day, in order</h2>
+  <ol>
+    <li>Confirm the freeze held. Ask, do not assume.</li>
+    <li>Take the final export.</li>
+    <li>Run the load, exactly as rehearsed in the <a href="../migration-dry-run/">dry run</a>.</li>
+    <li>Reconcile: counts, totals, orphans, spot checks. Same four as the dry run.</li>
+    <li>Load the bridge sheet.</li>
+    <li>Reconcile again, including the bridge rows.</li>
+    <li>Confirm with the client that the new system is open, and say so in writing.</li>
+  </ol>
+  <p>Go live together. The client's team and yours, on a call, crossing at the same moment. It costs an hour and it is the difference between a milestone and an email nobody read.</p>
+
+  <h2>What can still go wrong</h2>
+  <p><strong>The freeze did not hold.</strong> Somebody kept working in the old system. You find this in reconciliation when counts do not match the export. Ask early rather than discovering it late.</p>
+  <p><strong>The bridge sheet grew.</strong> Two weeks of new work is manageable. Six weeks is a second migration. If the gap stretches, the sheet needs a mid point load into the sandbox to prove it still imports cleanly.</p>
+  <p><strong>Something needs reloading.</strong> This is why you kept the crosswalk of old ID to new ID. Without it, a reload creates duplicates, and now you have the failure users hate most.</p>
+
+  <h2>The gate</h2>
+  <p>The stage closes when counts tie old to new including bridge records, spot checks pass, and the client has been told in writing that they are live, with the hypercare window and its end date stated.</p>
+
+  <h2>The one habit</h2>
+  <p>Design the bridge sheet as an import file, not as a form. Everything else about the gap follows from that.</p>
+  <p>How has your workplace handled the gap when a system changed over?</p>
+
+<p class="seriesnav">Previous: <a href="../migration-uat/">Stage 6: User Acceptance Testing</a> &nbsp;·&nbsp; Next: <a href="../migration-hypercare/">Stage 8: Hypercare and Close</a> &nbsp;·&nbsp; All eight stages: <a href="../data-migration-stages/">the series hub</a></p>
+
+  <div class="cta">
+    <strong>The checking work is SQL, and it is not advanced SQL.</strong>
+    <p style="margin:6px 0 0">Counting rows, grouping to find duplicates, and joining to find orphans covers most of what a migration asks of you. The <a href="../../sql/">SQL Kit</a> teaches those moves in order, with the data in front of you.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit &rarr;</a>
+    <p style="margin:10px 0 0;font-size:15px">Or start typing straight away: <a href="../../drill/">open SQL Drill</a>, thirteen queries that each add one thing to the last.</p>
+  </div>
+
+  <h2>References</h2>
+  <ol class="refs">
+    <li>Haller, K., Matthes, F., &amp; Schulz, C. (2012). A detailed process model for large scale data migration projects. <em>Business Information Systems (BIS 2012), Lecture Notes in Business Information Processing, 117</em>. Springer.</li>
+    <li>Matthes, F., Schulz, C., &amp; Haller, K. (2011). Testing &amp; quality assurance in data migration projects. <em>27th IEEE International Conference on Software Maintenance (ICSM)</em>, 438&ndash;447.</li>
+  </ol>
+
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../entity-resolution/">Entity Resolution</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin-top:10px"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee &#9749;</a></p>
+  </footer>
+</main>
+</body>
+</html>

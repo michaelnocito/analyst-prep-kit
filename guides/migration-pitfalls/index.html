@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Migration Pitfalls: What Goes Wrong and What It Costs &mdash; Analyst Prep Kit</title>
+<meta name="description" content="The most common data migration failures and what each one costs: duplicates that survive, moves nobody can prove, orphaned documents, silent loader failures, ambiguous dates, and the gap nobody planned for.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/migration-pitfalls/">
+<meta property="og:title" content="What Goes Wrong, and What It Costs">
+<meta property="og:description" content="The most common data migration failures and what each one costs: duplicates that survive, moves nobody can prove, orphaned documents, silent loader failures, ambiguous dates, and the gap nobody planned for.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/migration-pitfalls/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14px;color:var(--muted)}
+  .refs li{margin-bottom:8px}
+  .seriesnav{font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:26px 0}
+</style>
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../">All Guides</a> &middot; <a href="../data-migration-stages/">Data Migration Series</a></p>
+  <h1>What Goes Wrong, and What It Costs</h1>
+  <p class="meta">The failures I have seen most, and the check that catches each one &middot; Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>Every one of these has a cheap check that catches it early and an expensive version that catches it late. This is the list, ordered by how much the late version costs.</p>
+
+  <p><strong>The short version.</strong> Almost all migration pain comes from six failures, and five of them are caught by counting things before and after.</p>
+
+  <h2>1. Duplicates that survive</h2>
+  <p>One client becomes two in the new system. Their history splits between the two records. Staff pick whichever they find first, and now both are half right.</p>
+  <p>This is the failure users notice first and forgive last, because it makes the new system look worse than the old one on day one.</p>
+  <p><strong>The cheap check.</strong> Group by the identifying field and count anything appearing more than once, during <a href="../migration-profiling/">profiling</a>. <strong>The expensive version.</strong> Finding out from a user in month two, when both records have new activity on them and merging is no longer clean.</p>
+
+  <h2>2. A move nobody can prove</h2>
+  <p>The load ran, nothing errored, and no one compared the numbers. Weeks later someone notices a year of visits is missing.</p>
+  <p>Say what makes this one so much worse than the others before reading on. It is the fallback: by the time it surfaces, the old system may be gone.</p>
+  <p><strong>The cheap check.</strong> Row counts and totals, written down before and after. <strong>The expensive version.</strong> An audit finding, with no source left to recover from.</p>
+
+  <h2>3. Orphaned documents</h2>
+  <p>A file loads successfully but attaches to nothing, or to the wrong person. In a regulated industry that is not untidy, it is a compliance problem, and a document attached to the wrong client is worse than a missing one.</p>
+  <p><strong>The cheap check.</strong> A left join from documents to clients where the client is null. The answer must be zero. <strong>The expensive version.</strong> Finding it during an inspection.</p>
+
+  <h2>4. The loader that fails quietly</h2>
+  <p>Bulk loaders reject rows without always making it obvious. A load reports success, and four thousand rows are simply not there.</p>
+  <p><strong>The cheap check.</strong> Compare the row count in your load file to the row count in the target, every single time, and keep the rejected rows file from every attempt. <strong>The expensive version.</strong> Discovering the shortfall after go-live, when you no longer know which attempt dropped them.</p>
+
+  <h2>5. The ambiguous date</h2>
+  <p>03/04/24 is either March 4th or April 3rd. A rule that picks silently converts thousands of records to the wrong day, and nothing errors.</p>
+  <p>Picture a care visit dated three weeks off. Who notices, and when? Usually nobody, until a bill or an audit disagrees.</p>
+  <p><strong>The cheap check.</strong> Confirm the source system's date format against a value you can verify independently, then preview the transformation on real rows. <strong>The expensive version.</strong> A billing dispute traced back to a format assumption.</p>
+
+  <h2>6. The gap nobody planned for</h2>
+  <p>The migration takes three weeks and the business keeps running. Nobody decided where new work goes, so it goes into four places, and the client's first week on the new system is spent re-keying.</p>
+  <p><strong>The cheap check.</strong> A bridge sheet, shaped like the import file, handed over before the freeze. <a href="../migration-cutover/">The cutover article</a> covers it. <strong>The expensive version.</strong> A go-live that feels like an outage to every member of staff.</p>
+
+  <h2>The pitfalls that are not about data</h2>
+  <p><strong>Silence treated as approval.</strong> No reply to a sign off request is not a yes. It is the thing that becomes a dispute later, and <a href="../migration-quiet-client/">chasing it properly</a> is a skill of its own.</p>
+  <p><strong>Scope that grew without the plan changing.</strong> Each addition was small and reasonable. The date did not move, because nobody showed what the additions cost. <a href="../migration-scope-creep/">Handling that</a> is mostly a matter of having a plan to point at.</p>
+  <p><strong>Working files nobody can find.</strong> Including your own, three weeks later. <a href="../migration-file-hygiene/">Keeping your files straight</a> is unglamorous and it is time you get back every day.</p>
+
+  <h2>The cheat sheet</h2>
+  <table>
+    <tr><th>Failure</th><th>Catch it with</th><th>Which stage</th></tr>
+    <tr><td>Duplicates survive</td><td>Group by identifier, count &gt; 1</td><td>Profiling</td></tr>
+    <tr><td>Unprovable move</td><td>Counts and totals, before and after</td><td>Dry run and cutover</td></tr>
+    <tr><td>Orphans</td><td>Left join, right side null, expect zero</td><td>Dry run</td></tr>
+    <tr><td>Silent loader failure</td><td>Load file count against target count</td><td>Every load</td></tr>
+    <tr><td>Ambiguous dates</td><td>Confirm format, preview the rule</td><td>Cleaning</td></tr>
+    <tr><td>The gap</td><td>Bridge sheet before the freeze</td><td>Cutover</td></tr>
+    <tr><td>Silence as approval</td><td>Written confirmation at each gate</td><td>All</td></tr>
+  </table>
+
+  <h2>Where this comes from</h2>
+  <p>Matthes, Schulz and Haller's work on testing in migration projects lands on the same conclusion from the research side: the quality assurance activity, rather than the loading, is what separates a migration that worked from one that appeared to. Wang and Strong's fitness for use standard is the other half. Data does not have to be perfect. It has to be good enough for what it is about to be used for, and the target system defines that.</p>
+
+  <h2>The one habit</h2>
+  <p>Write the counts down before you load. Almost every failure on this page is caught by a number you already had.</p>
+  <p>Which of these six have you actually lived through?</p>
+
+<p class="seriesnav">Previous: <a href="../migration-questions/">Ask the Right Questions First</a> &nbsp;·&nbsp; Next: <a href="../migration-quiet-client/">When the Client Goes Quiet</a> &nbsp;·&nbsp; All eight stages: <a href="../data-migration-stages/">the series hub</a></p>
+
+  <div class="cta">
+    <strong>The checking work is SQL, and it is not advanced SQL.</strong>
+    <p style="margin:6px 0 0">Counting rows, grouping to find duplicates, and joining to find orphans covers most of what a migration asks of you. The <a href="../../sql/">SQL Kit</a> teaches those moves in order, with the data in front of you.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit &rarr;</a>
+    <p style="margin:10px 0 0;font-size:15px">Or start typing straight away: <a href="../../drill/">open SQL Drill</a>, thirteen queries that each add one thing to the last.</p>
+  </div>
+
+  <h2>References</h2>
+  <ol class="refs">
+    <li>Matthes, F., Schulz, C., &amp; Haller, K. (2011). Testing &amp; quality assurance in data migration projects. <em>27th IEEE International Conference on Software Maintenance (ICSM)</em>, 438&ndash;447.</li>
+    <li>Wang, R. Y., &amp; Strong, D. M. (1996). Beyond accuracy: What data quality means to data consumers. <em>Journal of Management Information Systems, 12</em>(4), 5&ndash;33.</li>
+  </ol>
+
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../entity-resolution/">Entity Resolution</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin-top:10px"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee &#9749;</a></p>
+  </footer>
+</main>
+</body>
+</html>
