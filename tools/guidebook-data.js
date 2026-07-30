@@ -179,11 +179,12 @@ function loadModule(slug) {
   // which belong in a different target than the reading book.
   groups.sort((a, b) => b.lessons.length - a.lessons.length);
 
-  const titleMatch = html.match(/<title>([^<]*)<\/title>/i);
-
   return {
     slug,
-    title: titleMatch ? titleMatch[1].split('—')[0].split('|')[0].trim() : slug,
+    // Deliberately NOT the page <title>. Those carry SEO wording ("Free
+    // Interview Practice in Browser") that has no business in a paid book,
+    // so the caller supplies a clean part title instead.
+    title: slug,
     lessons: groups.length ? groups[0].lessons : [],
     sources: groups.map((g) => g.key + ' (' + g.lessons.length + ')'),
   };
@@ -191,15 +192,68 @@ function loadModule(slug) {
 
 /* ── shape 2: standalone guides ──────────────────────────────────────── */
 
+/**
+ * Remove every element carrying `cls`, including its children. Depth-counted
+ * rather than regex-matched to the closing tag, so a nested element inside a
+ * .cta block cannot end the match early. Class names are compared as whole
+ * tokens so "btn" never matches "btn-row".
+ */
+function dropByClass(html, cls) {
+  const openTag = /<([a-z][a-z0-9]*)([^>]*)>/gi;
+  for (;;) {
+    openTag.lastIndex = 0;
+    let hit = null;
+    let m;
+    while ((m = openTag.exec(html))) {
+      const attrs = m[2] || '';
+      const cm = attrs.match(/class\s*=\s*"([^"]*)"/i);
+      if (!cm) continue;
+      if (!cm[1].split(/\s+/).includes(cls)) continue;
+      hit = { tag: m[1], at: m.index, len: m[0].length, selfClosing: /\/\s*$/.test(attrs) };
+      break;
+    }
+    if (!hit) return html;
+
+    if (hit.selfClosing) {
+      html = html.slice(0, hit.at) + html.slice(hit.at + hit.len);
+      continue;
+    }
+
+    const scan = new RegExp('<(/?)' + hit.tag + '(?=[\\s>/])[^>]*>', 'gi');
+    scan.lastIndex = hit.at;
+    let depth = 0;
+    let stop = -1;
+    let t;
+    while ((t = scan.exec(html))) {
+      depth += t[1] ? -1 : 1;
+      if (depth === 0) { stop = t.index + t[0].length; break; }
+    }
+    html = stop === -1
+      ? html.slice(0, hit.at) + html.slice(hit.at + hit.len)
+      : html.slice(0, hit.at) + html.slice(stop);
+  }
+}
+
 function stripFurniture(main) {
-  return main
-    .replace(/<script[\s\S]*?<\/script>/g, '')
-    .replace(/<style[\s\S]*?<\/style>/g, '')
-    .replace(/<nav\b[\s\S]*?<\/nav>/g, '')
-    .replace(/<footer\b[\s\S]*?<\/footer>/g, '')
-    // Buttons and other controls are dead on paper.
-    .replace(/<button\b[\s\S]*?<\/button>/g, '')
-    .trim();
+  let out = main
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<nav[\s\S]*?<\/nav>/gi, '')
+    .replace(/<footer[\s\S]*?<\/footer>/gi, '')
+    .replace(/<button[\s\S]*?<\/button>/gi, '');
+
+  // Web furniture with no meaning on paper, matched by the classes the guides
+  // actually use. `crumb` is the "← All Kits · All Guides" bar that opened
+  // every chapter; `cta` and `btn` are buy and "open the kit" prompts; `toc`
+  // and `seriesnav` are anchor menus whose targets do not exist in print.
+  for (const cls of ['crumb', 'cta', 'btn', 'toc', 'seriesnav']) {
+    out = dropByClass(out, cls);
+  }
+
+  // A link cannot be followed from paper. Keep the words, drop the anchor.
+  out = out.replace(/<a[^>]*>/gi, '').replace(/<\/a>/gi, '');
+
+  return out.trim();
 }
 
 function loadGuide(slug) {
@@ -243,8 +297,7 @@ module.exports = {
   loadGuide,
   listGuides,
   listModules,
-  // exported for the self-check below and for future targets
-  _internals: { inlineScripts, literalsFrom, matchBracket, isLessonish },
+  _internals: { inlineScripts, literalsFrom, matchBracket, isLessonish, dropByClass, stripFurniture },
 };
 
 /* Run directly for a content census: `node tools/guidebook-data.js` */
