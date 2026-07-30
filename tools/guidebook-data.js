@@ -1,0 +1,276 @@
+/* ============================================================
+   guidebook-data.js — content extraction for the PDF guide packs.
+
+   Reads the LIVE kit files, so a book can never drift from the site.
+   Nothing here knows about layout; `build-guidebook.js` owns that.
+   Split deliberately: an audio-script target plugs in at this seam
+   without touching the book layout.
+
+   Two content shapes exist in this repo, so there are two loaders:
+
+   1. TOPIC MODULES (`sql/index.html`, `excel/index.html`, …) keep their
+      content in JS object/array literals inside inline <script> tags.
+      We do NOT execute those scripts — they touch document/localStorage
+      and would need a whole DOM. Instead we slice each top-level literal
+      out of the source text and evaluate that literal alone in a bare vm
+      context. Pure data in, pure data out, no app code runs.
+
+   2. STANDALONE GUIDES (`guides/<slug>/index.html`) are ordinary rendered
+      articles. For those we just take <main> and drop the furniture.
+
+   Zero npm dependencies — node built-ins only.
+   ============================================================ */
+
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+
+const ROOT = path.resolve(__dirname, '..');
+
+/* ── source text helpers ─────────────────────────────────────────────── */
+
+function readKit(relPath) {
+  return fs.readFileSync(path.join(ROOT, relPath), 'utf8');
+}
+
+/** Inline <script> bodies (those without a src=), in document order. */
+function inlineScripts(html) {
+  const out = [];
+  const re = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g;
+  let m;
+  while ((m = re.exec(html))) out.push(m[1]);
+  return out;
+}
+
+/**
+ * Walk forward from `open` (an index pointing at { or [) and return the
+ * index just past its matching close. String, template, comment and
+ * escape aware — a naive brace count breaks on `"}"` inside lesson prose,
+ * and this content is full of it.
+ */
+function matchBracket(src, open) {
+  const pairs = { '{': '}', '[': ']' };
+  const close = pairs[src[open]];
+  if (!close) throw new Error('matchBracket: not a bracket at ' + open);
+
+  let depth = 0;
+  let i = open;
+  while (i < src.length) {
+    const c = src[i];
+
+    if (c === '"' || c === "'" || c === '`') {
+      const quote = c;
+      i++;
+      while (i < src.length) {
+        if (src[i] === '\\') { i += 2; continue; }
+        if (src[i] === quote) break;
+        // A template literal can nest a full expression, brackets and all.
+        if (quote === '`' && src[i] === '$' && src[i + 1] === '{') {
+          i = matchBracket(src, i + 1);
+          continue;
+        }
+        i++;
+      }
+      i++;
+      continue;
+    }
+
+    if (c === '/' && src[i + 1] === '/') {
+      while (i < src.length && src[i] !== '\n') i++;
+      continue;
+    }
+    if (c === '/' && src[i + 1] === '*') {
+      i = src.indexOf('*/', i + 2);
+      if (i === -1) throw new Error('unterminated block comment');
+      i += 2;
+      continue;
+    }
+
+    if (c === '{' || c === '[') depth++;
+    else if (c === '}' || c === ']') {
+      depth--;
+      if (depth === 0) return i + 1;
+    }
+    i++;
+  }
+  throw new Error('unbalanced bracket from ' + open);
+}
+
+/**
+ * Every top-level `const/let/var NAME = {…}` or `= […]` in a script body,
+ * evaluated in isolation. Literals that reference anything outside
+ * themselves simply fail to evaluate and are skipped — that is the point
+ * of the try, not a swallowed bug.
+ */
+function literalsFrom(scriptSrc) {
+  const found = {};
+  const re = /(?:^|\n)\s*(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*([{[])/g;
+  let m;
+  while ((m = re.exec(scriptSrc))) {
+    const name = m[1];
+    const openAt = m.index + m[0].length - 1;
+    let end;
+    try {
+      end = matchBracket(scriptSrc, openAt);
+    } catch (e) {
+      continue;
+    }
+    const literal = scriptSrc.slice(openAt, end);
+    try {
+      found[name] = vm.runInNewContext('(' + literal + ')', Object.create(null), { timeout: 5000 });
+    } catch (e) {
+      /* not a self-contained literal (calls a helper, references a var) — skip */
+    }
+    re.lastIndex = end;
+  }
+  return found;
+}
+
+/* ── shape 1: topic modules ──────────────────────────────────────────── */
+
+/** Does this object look like a lesson we can typeset? */
+function isLessonish(o) {
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return false;
+  if (typeof o.title !== 'string' || !o.title.trim()) return false;
+  return ['story', 'intro', 'sections', 'parts', 'close', 'ral', 'quiz', 'build']
+    .some((k) => k in o);
+}
+
+function lessonArrays(bag) {
+  const out = [];
+  const seen = new Set();
+
+  const visit = (value, trail) => {
+    if (Array.isArray(value)) {
+      const hits = value.filter(isLessonish);
+      // Require most of the array to look like lessons, so a stray array of
+      // {title} chart configs doesn't get typeset as a chapter.
+      if (hits.length && hits.length >= value.length * 0.6) {
+        out.push({ key: trail, lessons: hits });
+        return;
+      }
+      value.forEach((v, i) => visit(v, trail + '[' + i + ']'));
+      return;
+    }
+    if (value && typeof value === 'object') {
+      if (seen.has(value)) return;
+      seen.add(value);
+      for (const k of Object.keys(value)) visit(value[k], trail ? trail + '.' + k : k);
+    }
+  };
+
+  for (const name of Object.keys(bag)) visit(bag[name], name);
+  return out;
+}
+
+/**
+ * Load one topic module.
+ * @returns {{slug, title, lessons: Array, sources: string[]}}
+ */
+function loadModule(slug) {
+  const html = readKit(path.join(slug, 'index.html'));
+  const bag = {};
+  for (const src of inlineScripts(html)) Object.assign(bag, literalsFrom(src));
+
+  const groups = lessonArrays(bag);
+  // Biggest run of lessons wins; the rest are exercise banks and flashcards,
+  // which belong in a different target than the reading book.
+  groups.sort((a, b) => b.lessons.length - a.lessons.length);
+
+  const titleMatch = html.match(/<title>([^<]*)<\/title>/i);
+
+  return {
+    slug,
+    title: titleMatch ? titleMatch[1].split('—')[0].split('|')[0].trim() : slug,
+    lessons: groups.length ? groups[0].lessons : [],
+    sources: groups.map((g) => g.key + ' (' + g.lessons.length + ')'),
+  };
+}
+
+/* ── shape 2: standalone guides ──────────────────────────────────────── */
+
+function stripFurniture(main) {
+  return main
+    .replace(/<script[\s\S]*?<\/script>/g, '')
+    .replace(/<style[\s\S]*?<\/style>/g, '')
+    .replace(/<nav\b[\s\S]*?<\/nav>/g, '')
+    .replace(/<footer\b[\s\S]*?<\/footer>/g, '')
+    // Buttons and other controls are dead on paper.
+    .replace(/<button\b[\s\S]*?<\/button>/g, '')
+    .trim();
+}
+
+function loadGuide(slug) {
+  const html = readKit(path.join('guides', slug, 'index.html'));
+  const main = html.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
+  const h1 = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  const desc = html.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
+  if (!main) throw new Error('guides/' + slug + ': no <main>');
+
+  const body = stripFurniture(main[1]);
+  return {
+    slug,
+    title: h1 ? h1[1].replace(/<[^>]+>/g, '').trim() : slug,
+    summary: desc ? desc[1] : '',
+    html: body,
+    words: body.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length,
+  };
+}
+
+function listGuides() {
+  const dir = path.join(ROOT, 'guides');
+  return fs.readdirSync(dir)
+    .filter((n) => fs.statSync(path.join(dir, n)).isDirectory())
+    .filter((n) => fs.existsSync(path.join(dir, n, 'index.html')))
+    .sort();
+}
+
+function listModules() {
+  return fs.readdirSync(ROOT)
+    .filter((n) => !n.startsWith('.') && n !== 'guides' && n !== 'assets' && n !== 'tools')
+    .filter((n) => {
+      const p = path.join(ROOT, n);
+      return fs.statSync(p).isDirectory() && fs.existsSync(path.join(p, 'index.html'));
+    })
+    .sort();
+}
+
+module.exports = {
+  ROOT,
+  loadModule,
+  loadGuide,
+  listGuides,
+  listModules,
+  // exported for the self-check below and for future targets
+  _internals: { inlineScripts, literalsFrom, matchBracket, isLessonish },
+};
+
+/* Run directly for a content census: `node tools/guidebook-data.js` */
+if (require.main === module) {
+  console.log('MODULES');
+  for (const slug of listModules()) {
+    let line;
+    try {
+      const m = loadModule(slug);
+      line = String(m.lessons.length).padStart(4) + '  lessons   ' + slug;
+      if (!m.lessons.length) line += '   (no lesson array found: ' + (m.sources[0] || 'none') + ')';
+    } catch (e) {
+      line = '  !!  ' + slug + '  ' + e.message;
+    }
+    console.log(line);
+  }
+  console.log('\nGUIDES');
+  let total = 0;
+  for (const slug of listGuides()) {
+    try {
+      const g = loadGuide(slug);
+      total += g.words;
+      console.log(String(g.words).padStart(6) + '  words  ' + slug);
+    } catch (e) {
+      console.log('    !!  ' + slug + '  ' + e.message);
+    }
+  }
+  console.log(String(total).padStart(6) + '  words  TOTAL');
+}
