@@ -114,6 +114,14 @@ main{max-width:780px;margin:0 auto;padding:32px 20px 80px}
 .conf-chip.on.mid{border-color:var(--warn);color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,transparent)}
 .conf-chip.on.high{border-color:var(--good);color:var(--good);background:color-mix(in srgb,var(--good) 10%,transparent)}
 .lesson-link{font-size:12px;font-weight:600;white-space:nowrap}
+.hint-btn{font-size:12px;font-weight:600;white-space:nowrap;padding:2px 10px;border-radius:12px;border:1px solid var(--border);color:var(--accent);background:none;cursor:pointer;transition:.12s}
+.hint-btn:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.hint-resp{display:none;margin-top:9px;padding:11px 13px;background:var(--surf);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:7px;font-size:13.5px;line-height:1.65;color:var(--text);white-space:pre-wrap}
+.hint-resp.show{display:block}
+.hint-key-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.hint-key-row input{flex:1;min-width:200px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:12px}
+.hint-key-row button{padding:8px 14px;border:1px solid var(--border);background:transparent;color:var(--text);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap}
+.hint-key-row button:hover{border-color:var(--accent);color:var(--accent)}
 .expand-all.rf-on{border-color:var(--warn);color:var(--warn)}
 
 .expand-all{font-size:13px;background:none;border:1px solid var(--border);color:var(--dim);padding:6px 14px;border-radius:var(--r-md);margin-bottom:16px}
@@ -266,6 +274,66 @@ state.examStart = state.examStart || null;    // epoch ms when a timed run began
 state.timed = state.timed !== undefined ? state.timed : null; // null = not chosen yet
 state.view = location.hash ? (state.view || 'home') : 'home';
 function save(){ localStorage.setItem(STORE, JSON.stringify(state)); }
+
+/* ============== HINTS ==============
+   Same shared Anthropic key as the SQL / Excel / Python / Power BI / Tableau / Stats kits
+   (localStorage 'apk-coach-key'), so a key saved in any of them works here too. */
+function getCoachKey(){ return localStorage.getItem('apk-coach-key') || ''; }
+function setCoachKey(k){
+  localStorage.setItem('apk-coach-key', k.trim());
+  toast(k.trim() ? 'Key saved — hints are on.' : 'Key cleared.');
+  render();
+}
+function stripTags(html){
+  const d = document.createElement('div');
+  d.innerHTML = html;
+  return (d.textContent || '').replace(/\s+/g,' ').trim();
+}
+async function hintCall(prompt, targetId){
+  const el = document.getElementById(targetId);
+  if(!el) return;
+  const key = getCoachKey();
+  el.classList.add('show');
+  if(!key){ el.textContent = 'Add your Anthropic API key on the home page under Hints to turn hints on.'; return; }
+  el.textContent = 'Thinking…';
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'x-api-key':key,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:350,messages:[{role:'user',content:prompt}]})
+    });
+    const data = await res.json();
+    if(!res.ok){ el.textContent = data?.error?.message || 'Request refused — check your key.'; return; }
+    el.textContent = data.content?.[0]?.text || 'No response — check your key.';
+  } catch(e){ el.textContent = 'Request failed — check your key and your connection.'; }
+}
+function hintStudy(key, i){
+  const s = STUDY.find(x=>x.key===key);
+  if(!s) return;
+  const fact = stripTags(s.must[i]);
+  const prompt = `You are a plain-spoken Tableau tutor helping someone study for the Salesforce Certified Tableau Desktop Foundations exam (formerly Tableau Desktop Specialist), which tests Tableau 2022.3.
+
+Explain this exam point a different way than it is written here:
+"${fact}"
+
+Rules: 3 sentences at most. One idea per sentence. Use an everyday comparison if it helps. Say what the exam is likely to ask about it. No preamble, no restating the question.`;
+  hintCall(prompt, `hint-resp-${key}-${i}`);
+}
+function hintQuestion(qid){
+  const q = QUESTIONS.find(x=>x.id===qid);
+  if(!q) return;
+  const chosen = state.answers[qid];
+  const picked = Array.isArray(chosen) ? chosen.map(i=>q.choices[i]).join(' / ') : (chosen!==undefined ? q.choices[chosen] : '(no answer)');
+  const right = q.type==='ms' ? q.correct.map(i=>q.choices[i]).join(' / ') : q.choices[q.correct];
+  const prompt = `You are a plain-spoken Tableau tutor. A student got this Tableau certification practice question wrong.
+
+Question: ${stripTags(q.q)}
+They chose: ${picked}
+The correct answer: ${right}
+
+In 3 sentences at most, explain what their answer confuses with the correct one, and give them one way to remember the difference. No preamble.`;
+  hintCall(prompt, `hint-resp-q-${qid}`);
+}
 
 /* ============== DOMAINS (official exam outline, help.salesforce.com art. 005298988, verified 2026-07-16)
    Salesforce Certified Tableau Desktop Foundations (renamed from Tableau Desktop Specialist).
@@ -829,6 +897,16 @@ function renderHome(){
       <strong>🔁 ${needsReviewCount()} concept${needsReviewCount()===1?'':'s'} flagged for review.</strong> You rated ${needsReviewCount()===1?'it':'them'} "Not yet" or "Almost" in the study guide — <a href="#" onclick="openReview();return false;">filter to just those →</a>
     </div>`:''}
 
+    <div class="method-callout" style="border-left-color:var(--accent)">
+      <strong>💡 Hints.</strong> ${getCoachKey()
+        ? `Hints are on. Every study-guide point has a <em>Stuck? Get a hint →</em> button that explains it a different way, and every missed exam question gets one too. <a href="#" onclick="setCoachKey('');return false;">Turn hints off</a>`
+        : `Optional. Paste an Anthropic API key and every study-guide point gets a <em>Stuck? Get a hint →</em> button that explains it a different way. Missed exam questions get one too. The key is stored only in this browser, and it is the same key the SQL, Excel, Python, Power BI, Tableau and Stats kits use.
+      <div class="hint-key-row">
+        <input id="hintKey" type="password" placeholder="sk-ant-..." autocomplete="off">
+        <button type="button" onclick="setCoachKey(document.getElementById('hintKey').value)">Save key</button>
+      </div>`}
+    </div>
+
     <div class="method-callout" style="border-left-color:var(--c-d2)">
       <strong>New to these topics?</strong> The <a href="../tableau/">Tableau Kit</a> teaches them as interactive lessons — Units 4 and 5 were built for cert Domains 1 and 2. Do the lessons first, then come back here to drill the exam.
     </div>
@@ -878,7 +956,7 @@ function studyItemHTML(key,i,m){
   const chip = (l,txt)=>`<button class="conf-chip ${lvl===l?('on '+l):''}" onclick="rateConf('${id}','${l}')">${txt}</button>`;
   const href = LESSON_LINKS[id];
   const link = href ? `<a class="lesson-link" href="${href}">Open the lesson →</a>` : '';
-  return `<li>${m}<div class="li-foot"><span class="conf-chips">${chip('low','✗ Not yet')}${chip('mid','~ Almost')}${chip('high','✓ Have it')}</span>${link}</div></li>`;
+  return `<li>${m}<div class="li-foot"><span class="conf-chips">${chip('low','✗ Not yet')}${chip('mid','~ Almost')}${chip('high','✓ Have it')}</span><button class="hint-btn" onclick="hintStudy('${key}',${i})">Stuck? Get a hint →</button>${link}</div><div class="hint-resp" id="hint-resp-${id}"></div></li>`;
 }
 function rateConf(id,lvl){
   if(state.conf[id]===lvl) delete state.conf[id];
@@ -1081,7 +1159,7 @@ function renderQuestion(q){
   }).join('')}</div>`;
 
   const explanation = state.submitted
-    ? `<div class="explanation show"><strong>${isCorrect(q) ? 'Correct.' : 'Heads up: '}</strong> ${q.explain}${guideLinkHtml(q.id)}</div>`
+    ? `<div class="explanation show"><strong>${isCorrect(q) ? 'Correct.' : 'Heads up: '}</strong> ${q.explain}${guideLinkHtml(q.id)}${isCorrect(q) ? '' : `<div style="margin-top:10px"><button class="hint-btn" onclick="hintQuestion('${q.id}')">Still unclear? Get a hint →</button></div><div class="hint-resp" id="hint-resp-q-${q.id}"></div>`}</div>`
     : '';
 
   return `
