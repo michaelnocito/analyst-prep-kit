@@ -246,7 +246,9 @@ function stripFurniture(main) {
   // actually use. `crumb` is the "← All Kits · All Guides" bar that opened
   // every chapter; `cta` and `btn` are buy and "open the kit" prompts; `toc`
   // and `seriesnav` are anchor menus whose targets do not exist in print.
-  for (const cls of ['crumb', 'cta', 'btn', 'toc', 'seriesnav']) {
+  // `book` is the site's pointer at this very PDF, which must never print
+  // inside it.
+  for (const cls of ['crumb', 'cta', 'btn', 'toc', 'seriesnav', 'book']) {
     out = dropByClass(out, cls);
   }
 
