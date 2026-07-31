@@ -257,6 +257,18 @@ function dropByClass(html, cls) {
   }
 }
 
+/**
+ * A guide's screenshots sit next to its index.html and are referenced
+ * relatively. The book HTML is written to `dist/`, where those paths point at
+ * nothing, so the image prints as a broken box. Absolute file URLs survive the
+ * move and Chrome loads them straight off disk.
+ */
+function absolutiseImages(html, slug) {
+  const dir = path.join(ROOT, 'guides', slug).replace(/\\/g, '/');
+  return html.replace(/(<img\b[^>]*?\bsrc=")(?!https?:|data:|file:|\/)([^"]+)"/gi,
+    (_, head, src) => head + 'file:///' + dir + '/' + src + '"');
+}
+
 function stripFurniture(main) {
   let out = main
     .replace(/<script[\s\S]*?<\/script>/gi, '')
@@ -288,7 +300,7 @@ function siteBody(slug) {
   const html = readKit(path.join('guides', slug, 'index.html'));
   const main = html.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
   if (!main) throw new Error('guides/' + slug + ': no <main>');
-  return stripFurniture(main[1]);
+  return absolutiseImages(stripFurniture(main[1]), slug);
 }
 
 /**
