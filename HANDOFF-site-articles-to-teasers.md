@@ -173,6 +173,41 @@ Every trimmed guide ends with one pointer. One, not three.
 
 ---
 
+## 7b. ⚠️ Read this before you cut a single guide (added 2026-07-31)
+
+**The books are generated from the site pages.** `tools/guidebook-data.js`
+reads `guides/<slug>/index.html` and nothing else. As originally written, this
+handoff would have deleted the same words from the book it was trying to make
+worth buying. The Playbook would have dropped from 53 pages to roughly 30, and
+the $29 listing that promises 53 pages would have become false.
+
+**The fix is in and tested.** A guide can now keep its full-length text in a
+book-source file outside this repo, at
+`C:\Users\Mike\Projects\packs-internal\guidebook-source\<slug>.html`. Outside,
+because this repo is public. When that file exists the book builds from it and
+the site page is free to be short. When it does not, the site page is the
+source, exactly as before.
+
+**Nothing is split yet, so nothing has moved.** All 42 guides still build from
+their live pages.
+
+**The order of operations is not optional:**
+
+1. `node tools/split-guide.js <slug>` snapshots the full page into the book
+   source. Do this FIRST.
+2. Then cut `guides/<slug>/index.html` back.
+3. `node tools/split-guide.js --status` shows what is split and flags any
+   stored chapter that is shorter than its own live page.
+
+Re-seeding after the page is cut would overwrite the long version with the
+short one. The tool refuses that and exits non-zero. If a split chapter needs
+to change, edit the book-source file by hand.
+
+**Once a guide is split, the book source is the only copy of the long text.**
+See §10.
+
+---
+
 ## 8. Sequencing
 
 1. Confirm with Mike which books are published (§7). Nothing else blocks you.
@@ -195,3 +230,33 @@ Every trimmed guide ends with one pointer. One, not three.
   which Mike does by hand. The three packs hit Gumroad's 10-per-day cap and are
   not created yet.
 - **No site article has been touched. This handoff is the whole of that work.**
+
+---
+
+## 10. Progress (updated 2026-07-31)
+
+**Data Migration batch: done, live, verified on all 16 URLs.**
+
+- All 16 migration guides carry one closing pointer at the Playbook, after
+  the SQL Kit CTA. Outcome first, two sentences, per `PACK_BIBLE.md` Part 1.
+  Each carries a `guide_book_click` GA4 event labelled per page.
+- `book` added to the print strip list, so the PDF never carries an ad to buy
+  itself.
+- **No prose was cut.** These 16 were already written at 890 to 1,500 words
+  against a 700 to 1,000 target, and those counts include the footer link row
+  and the references. §4 covers this: already at target, pointer only.
+- The Playbook is **published** and buyable at $29. §7 is out of date on that.
+  Checked against the live Gumroad page, not the status code.
+- The book still builds at exactly 53 pages. No regression.
+
+**Split-source builder: built and tested.** See §7b.
+
+**⚠️ Open, needs Mike's call.** `C:\Users\Mike\Projects\packs-internal\` is
+not a git repository and has no remote. The moment a guide is split, the
+book-source file there is the ONLY copy of that long text, with no version
+history and no backup. Do not split the SQL or Thinking guides until that
+folder is under version control with a private remote.
+
+**Next:** SQL batch (11 `sql-*` guides plus `set-up-a-sql-database`), then
+Thinking (11 guides). Both are `sql-for-analysts` and
+`thinking-like-an-analyst`, both published.

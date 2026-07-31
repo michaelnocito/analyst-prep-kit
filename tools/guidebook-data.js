@@ -18,6 +18,15 @@
    2. STANDALONE GUIDES (`guides/<slug>/index.html`) are ordinary rendered
       articles. For those we just take <main> and drop the furniture.
 
+   SPLIT SOURCE (added 2026-07-31). The site guides are being cut back to
+   short direct pieces, and the books are built from those same files, so a
+   cut to the site was a cut to the book. A guide may now keep its full-length
+   text in a book-source file outside this repo. When that file exists the
+   book uses it and the site page is free to be shorter; when it does not,
+   the site page is the source exactly as before. Nothing splits until
+   somebody runs `tools/split-guide.js`, so this change moves no content on
+   its own.
+
    Zero npm dependencies — node built-ins only.
    ============================================================ */
 
@@ -28,6 +37,20 @@ const path = require('path');
 const vm = require('vm');
 
 const ROOT = path.resolve(__dirname, '..');
+
+/**
+ * Where full-length book chapters live, for guides whose site page has been
+ * cut back. Deliberately outside this repo: this repo is public, so anything
+ * committed here is readable by anyone, and the whole point of the split is
+ * that the long version ships in the book.
+ *
+ * Override with GUIDEBOOK_SOURCE to build from somewhere else.
+ */
+const BOOK_SOURCE = process.env.GUIDEBOOK_SOURCE
+  ? path.resolve(process.env.GUIDEBOOK_SOURCE)
+  : path.resolve(ROOT, '..', 'packs-internal', 'guidebook-source');
+
+const bookSourceFile = (slug) => path.join(BOOK_SOURCE, slug + '.html');
 
 /* ── source text helpers ─────────────────────────────────────────────── */
 
@@ -258,20 +281,44 @@ function stripFurniture(main) {
   return out.trim();
 }
 
-function loadGuide(slug) {
+const countWords = (html) => html.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+
+/** The <main> of a guide's site page, furniture removed. */
+function siteBody(slug) {
   const html = readKit(path.join('guides', slug, 'index.html'));
   const main = html.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
+  if (!main) throw new Error('guides/' + slug + ': no <main>');
+  return stripFurniture(main[1]);
+}
+
+/**
+ * Load one standalone guide as a book chapter.
+ *
+ * The title and summary always come from the live page, so the book and the
+ * site can never disagree about what a chapter is called. Only the body can
+ * differ, and only when a book-source file exists for this slug.
+ */
+function loadGuide(slug) {
+  const html = readKit(path.join('guides', slug, 'index.html'));
   const h1 = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
   const desc = html.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
-  if (!main) throw new Error('guides/' + slug + ': no <main>');
 
-  const body = stripFurniture(main[1]);
+  const site = siteBody(slug);
+  const longFile = bookSourceFile(slug);
+  const split = fs.existsSync(longFile);
+  const body = split ? stripFurniture(fs.readFileSync(longFile, 'utf8')) : site;
+
   return {
     slug,
     title: h1 ? h1[1].replace(/<[^>]+>/g, '').trim() : slug,
     summary: desc ? desc[1] : '',
     html: body,
-    words: body.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length,
+    words: countWords(body),
+    // Where this chapter's text came from, and what the site still shows.
+    // A split chapter shorter than its own site page means the book-source
+    // file is stale and the book is about to lose material.
+    source: split ? 'book' : 'site',
+    siteWords: countWords(site),
   };
 }
 
@@ -295,6 +342,9 @@ function listModules() {
 
 module.exports = {
   ROOT,
+  BOOK_SOURCE,
+  bookSourceFile,
+  siteBody,
   loadModule,
   loadGuide,
   listGuides,
@@ -316,16 +366,30 @@ if (require.main === module) {
     }
     console.log(line);
   }
-  console.log('\nGUIDES');
+  console.log('\nGUIDES   (book source: ' + BOOK_SOURCE + ')');
   let total = 0;
+  let split = 0;
+  const stale = [];
   for (const slug of listGuides()) {
     try {
       const g = loadGuide(slug);
       total += g.words;
-      console.log(String(g.words).padStart(6) + '  words  ' + slug);
+      let line = String(g.words).padStart(6) + '  words  ' + slug;
+      if (g.source === 'book') {
+        split++;
+        line += '   [book source, site shows ' + g.siteWords + ']';
+        if (g.words < g.siteWords) stale.push(slug);
+      }
+      console.log(line);
     } catch (e) {
       console.log('    !!  ' + slug + '  ' + e.message);
     }
   }
   console.log(String(total).padStart(6) + '  words  TOTAL');
+  console.log('\n' + split + ' of ' + listGuides().length + ' guides use a book source file.');
+  if (stale.length) {
+    console.log('\n!! STALE BOOK SOURCE: shorter than the live site page, so the');
+    console.log('   book would lose material. Re-seed with tools/split-guide.js --force:');
+    for (const s of stale) console.log('   - ' + s);
+  }
 }
