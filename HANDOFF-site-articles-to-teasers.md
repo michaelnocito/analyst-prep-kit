@@ -152,15 +152,30 @@ Every trimmed guide ends with one pointer. One, not three.
 - Not a banner, not a popup, not mid-article.
 - After the content, in the closing block.
 - Names the book, says what it adds, links to the Gumroad product.
-- Gumroad URLs are `michaelnocito.gumroad.com/l/<slug>` and do not exist yet.
-  **Get the real URLs from Mike before writing links.** The books were created
-  unpublished on 2026-07-30.
+- **The URLs exist. Use these exactly.** All are `https://michaelnocito.gumroad.com/l/<slug>`:
+
+| Book | Slug |
+|---|---|
+| SQL for Analysts | `sql-for-analysts` |
+| Excel for Analysts | `excel-for-analysts` |
+| Python for Analysts | `python-for-analysts` |
+| Power BI for Analysts | `power-bi-for-analysts` |
+| Tableau for Analysts | `tableau-for-analysts` |
+| Statistics for Analysts | `statistics-for-analysts` |
+| Thinking Like an Analyst | `thinking-like-an-analyst` |
+| Charts and Visualization | `charts-and-visualization` |
+| Forecasting for Analysts | `forecasting-for-analysts` |
+| The Data Migration Playbook | `data-migration-playbook` |
+
+  ⚠️ As of 2026-07-30 only `sql-for-analysts` is published. The rest are live
+  listings awaiting their files. **Check the link resolves before shipping a
+  page that points at it**, or you publish a dead buy link.
 
 ---
 
 ## 8. Sequencing
 
-1. Get the live Gumroad URLs from Mike (§7). Nothing else blocks you.
+1. Confirm with Mike which books are published (§7). Nothing else blocks you.
 2. Rewrite in batches, **one book's worth per chat** (`feedback_backlog_discipline`,
    `project_apk_kit_rollout_train`). Start with Data Migration: 16 guides, one
    clean book, and the material with the least search traffic to lose.
@@ -170,7 +185,13 @@ Every trimmed guide ends with one pointer. One, not three.
 
 ## 9. State when this was written
 
-- 13 books built and verified. Real page numbers in every contents.
-- Covers generated to `dist/cover-<id>.png`.
-- Gumroad listings created **unpublished**. Mike publishes.
-- No site article has been touched yet. This handoff is the whole of that work.
+- 13 books built, tagged for screen readers, and verified. Real page numbers in
+  every contents. Built by `node tools/build-guidebook.js`.
+- Covers and thumbnails at `dist/cover-<id>.png` and `dist/thumb-<id>.png`.
+  Files staged for upload by `node tools/stage-uploads.js` into `dist/UPLOAD/`.
+- 10 of 13 Gumroad listings created. Names, prices, URLs, descriptions,
+  summaries, categories, tags, receipts and the VAT flag are all set. Only
+  `sql-for-analysts` is published; the other nine await their file uploads,
+  which Mike does by hand. The three packs hit Gumroad's 10-per-day cap and are
+  not created yet.
+- **No site article has been touched. This handoff is the whole of that work.**
