@@ -488,6 +488,43 @@ or a reload would overwrite "last run" with the run you are looking at.
 
 **No streaks and no timers.** Those are things to game, and the Drill Bible rules them out.
 
+## RABBIT CAUGHT (2026-08-01, Mike)
+
+Mike, on the four-step round: *"mark that as rabbit caught. This is the core verbs: drill,
+review, repeat."*
+
+Against **GAME_BIBLE.md principle 13, "The first 30 seconds are the whole pitch. Chase the
+rabbit"** — the Mario 64 method, tune the verb in an empty room before there is a level.
+
+**The core verb is settled: type a query, run it, see real rows.** Everything the round did
+before today was scaffolding around that verb, and every piece of scaffolding that got added
+this session got cut again. What survived is the shape:
+
+**Drill** (type it with the query on screen) → **review** (what you did, why it worked, where
+it is used) → **repeat** (the covered-up pass, the loop, the score to beat).
+
+That is the loop this product is built on, and it is the one to port to the other kits.
+
+### Where it actually stands against the 30-second test, honestly
+
+The bible says to record 30 seconds and name the exact second of first-press, first-win and
+first-read, and it says the opening must have **no text block** in front of the verb.
+
+- **First win and first read: good.** The first query returns 500 real rows and the popup
+  says what it was for. That is a clean success at the core verb with a reward beat.
+- **First press: not yet clean.** The round opens on **How it works**, which is a screen of
+  text, and the verb is one click behind it. By principle 13 that is a menu wall.
+
+Two ways to close it, and this is Mike's call, not mine:
+
+1. **Open on query 1** with the how-it-works content moved into the first screen's left pane,
+   where the layout it describes is actually in front of them.
+2. **Keep How it works but make it pressable**: a live editor on the same screen with one
+   toy query already in it, so the first press happens inside the explanation.
+
+I would take option 1. The screen explains a two-pane layout the learner cannot see while
+they are reading about it, which is the weakest place to put that explanation.
+
 ## Open question for Mike
 
 "Passes on it" is read here as **skips**, not as "got it right". So the buckets are
