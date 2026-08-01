@@ -430,6 +430,64 @@ that no longer exist — and with the new auto-loop, two unclearable items would
 loop that never empties. Restored recall state is now filtered against the current ladder
 length.
 
+## Cut back to the run (2026-08-01, and this is where it landed)
+
+Mike, after a day of adding: *"I just want how it works, type this query, recall type query,
+what you did (very brief explanation of each NEW SQL concept), your score / best score / last
+score. That's it. That's the run. I like how the type this query and type recall are set up,
+I just don't want all the extra steps. It's jump in, learn by repetition, just enough theory
+in the why it worked, and where it's used in different industries and roles."*
+
+**The round is four steps and a score card:**
+
+1. **How it works** — the left/right layout, then what the other steps do.
+2. **Type** — four queries, reference query on screen.
+3. **Recall** — the same four, covered up.
+4. **What you did** — one block per new piece of SQL.
+5. **Your score** — this run, best, last.
+
+**Cut today, after being built today:** the Before pre-test, the Six words primer, the
+four-read in-app Lesson, the After quiz, and the before/after comparison card. Everything
+that had accumulated around the two typing passes, which are the part that works.
+
+`lessons.js` stays on disk and is no longer loaded. The kit's Unit 1 text is in it, copied,
+and the checkpoint work will want it back. The unused CSS for the primer, lesson and quiz
+went with them.
+
+### What you did
+
+One block per NEW thing the four queries introduce: SELECT and FROM, WHERE, ORDER BY and
+LIMIT, then COUNT with DISTINCT and AS. Each one carries what the words do, why *your* query
+worked, and **where you will use it** as three named jobs rather than an abstraction. A nurse
+manager pulling patient IDs, a claims analyst pulling denied claims, a media buyer sorting
+the worst ad sets worst-first. The industry framing is the half Mike asked for and the half
+that is missing everywhere else.
+
+### The score
+
+Scored on the **covered-up pass only**. The typing pass has the answer on screen, so scoring
+it would measure copying.
+
+Twenty-five points a query, less whatever help it took:
+
+| Help needed | Points |
+|---|---|
+| Nothing uncovered | 25 |
+| Half uncovered | 15 |
+| Three quarters | 10 |
+| All of it | 5 |
+| Never written from memory | 0 |
+
+Out of 100. The card shows **this run, best, and last**, and a table underneath saying what
+each query cost, so the number has its working attached.
+
+`helpUsed` records the **worst** help an item ever needed, not the last, because a query you
+had to uncover once is not a query you knew. Best and last live in their own localStorage
+key, so clearing round progress does not wipe the record. Banked once per visit to the card,
+or a reload would overwrite "last run" with the run you are looking at.
+
+**No streaks and no timers.** Those are things to game, and the Drill Bible rules them out.
+
 ## Open question for Mike
 
 "Passes on it" is read here as **skips**, not as "got it right". So the buckets are

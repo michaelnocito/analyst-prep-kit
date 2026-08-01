@@ -108,7 +108,52 @@ WHERE genre = 'country';`,
       rows: 1 },
   ],
 
-  // ── STEP 3: the lesson handoff ────────────────────────────────────────────
+  // ── STEP 4: what you did ──────────────────────────────────────────────────
+  // One block per NEW thing the four queries introduced, and nothing else. Short enough to
+  // read standing up. Each one says what the words do, why the query worked, and where a
+  // working person actually meets it, across industries and roles rather than in the
+  // abstract. This replaced a four-read lesson step that sat between the two typing passes.
+  concepts: [
+    { name: 'SELECT and FROM',
+      does: 'SELECT names the columns you want back. FROM names the table to read them from. Every query you write starts with these two.',
+      worked: 'You asked for three columns out of a table of 500 songs and got three columns back. Nothing else came with them, because you did not ask for anything else.',
+      where: [
+        ['Marketing analyst', 'pulling campaign names and spend out of an ad platform export'],
+        ['Nurse manager', 'pulling patient IDs and admission dates for a shift handover'],
+        ['Warehouse planner', 'pulling SKUs and stock counts before a reorder']
+      ] },
+
+    { name: 'WHERE',
+      does: 'WHERE checks every row against a condition and keeps only the rows where it is true. Text values go in single quotes, which is how SQL knows country is a word and not a column name.',
+      worked: 'The 500 rows became 52. The table did not change; you just stopped asking for the rest of it.',
+      where: [
+        ['Retail analyst', 'narrowing to one region before a quarterly review'],
+        ['Claims analyst', 'pulling only the denied claims out of a year of submissions'],
+        ['Recruiter', 'pulling only the roles still open']
+      ] },
+
+    { name: 'ORDER BY and LIMIT',
+      does: 'ORDER BY sorts the rows you already have. LIMIT caps how many come back. The order of the two is fixed: sort first, cap second, or you cap a pile of unsorted rows.',
+      worked: 'Sorting put the biggest audience on top without adding or removing a single row, then LIMIT kept the first ten of them.',
+      where: [
+        ['Sales operations', 'the top ten accounts by revenue, every Monday morning'],
+        ['Support lead', 'the ten oldest tickets still open'],
+        ['Media buyer', 'the worst-performing ad sets, worst first, so the cuts are obvious']
+      ] },
+
+    { name: 'COUNT, DISTINCT and AS',
+      does: 'COUNT(*) counts rows. COUNT(DISTINCT column) counts each different value once. AS gives the number you produced a name, because it is not a column that exists in the table.',
+      worked: 'One row came back holding two numbers. A query always hands back a table, even when the answer is a single figure.',
+      where: [
+        ['Any analyst, first day on a new table', 'counting rows against counting distinct IDs is how you find out what one row of it actually represents'],
+        ['Ecommerce', 'how many orders against how many customers, which tells you repeat rate'],
+        ['Healthcare', 'how many visits against how many patients, which is a completely different number and a completely different story']
+      ] },
+  ],
+
+  // ── unused since 2026-08-01 ───────────────────────────────────────────────
+  // Kept because the checkpoint work will want them back. The round no longer has a lesson
+  // handoff step or a mini quiz.
   // The existing kit lessons, unchanged. Deep links open the lesson directly.
   lessons: [
     { id: 1,   title: 'SELECT & FROM',                    sub: 'Pull columns from a table' },
