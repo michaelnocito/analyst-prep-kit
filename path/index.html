@@ -386,6 +386,19 @@
     flex-wrap:wrap}
   .win footer .dismiss{color:var(--muted)}
 
+  /* The before-and-after table on the finish card. Same four questions, asked twice, so the
+     round can show what changed rather than assert it. */
+  .ba{width:100%;border-collapse:collapse;margin:12px 0 0;font-size:14.5px}
+  .ba th,.ba td{border-top:1px solid var(--line);padding:9px 10px;text-align:left;
+    vertical-align:top}
+  .ba th{font:700 11px/1.4 inherit;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--muted);border-top:none}
+  .ba td.mark{white-space:nowrap;font-weight:600;width:1%}
+  .ba .yes{color:var(--ok)}
+  .ba .no{color:var(--no)}
+  .gain{font-size:16.5px;font-weight:600;margin:0}
+  .gain .up{color:var(--ok)}
+
   #directive{position:fixed;left:0;right:0;bottom:0;background:var(--card);
     border-top:1px solid var(--line);z-index:5;pointer-events:none}
   #directive p{max-width:1240px;margin:0 auto;padding:13px 20px;font-weight:600;
@@ -404,8 +417,29 @@
 
   <div class="stepper" id="stepper"></div>
 
-  <!-- STEP 1 ─ PRIMER ─────────────────────────────────────────────────────── -->
-  <section id="s-primer">
+  <!-- STEP 1 ─ WHERE YOU ARE NOW ──────────────────────────────────────────── -->
+  <!-- The same four questions the round ends on, asked before anything is taught. Two jobs:
+       it shows the learner what this round is about before they spend twenty minutes on it,
+       and it gives the finish card something true to compare against.
+
+       Nothing is marked here and no answer is revealed. If the right answers were shown now,
+       the check at the end would measure who remembered a reveal rather than who learned
+       the material, and the comparison would be worthless. -->
+  <section id="s-pretest" hidden>
+    <div class="card">
+      <h2>Where you are right now</h2>
+      <p class="sub">Four questions, before anything is taught. Nothing is marked and no
+        answers are shown &mdash; this is the map, not a test. You will be asked these same
+        four at the end, and the round will show you what changed.</p>
+      <p class="sub" style="margin-bottom:0"><strong>Guessing is fine.</strong> Not knowing
+        yet is the whole reason the round exists.</p>
+      <div id="pre-list"></div>
+      <p style="margin:14px 0 0"><button class="go" id="to-primer" disabled>Answer all four to start</button></p>
+    </div>
+  </section>
+
+  <!-- STEP 2 ─ PRIMER ─────────────────────────────────────────────────────── -->
+  <section id="s-primer" hidden>
     <div class="card">
       <h2>The six words you need</h2>
       <p class="sub">Read this once. It is not the lesson, it is just enough to type the first query without guessing.</p>
@@ -524,8 +558,10 @@
   <!-- STEP 4 ─ MINI QUIZ ──────────────────────────────────────────────────── -->
   <section id="s-quiz" hidden>
     <div class="card">
-      <h2>Four questions</h2>
-      <p class="sub">One per lesson. A wrong answer is not a mark against you, it points at the one clause worth retyping.</p>
+      <h2>The same four questions</h2>
+      <p class="sub">The four you answered at the start, before any of this. One per lesson.
+        A wrong answer is not a mark against you, it points at the one clause worth
+        retyping.</p>
       <div id="quiz-list"></div>
       <p class="score" id="score" hidden></p>
       <p style="margin:14px 0 0"><button class="go" id="to-done" hidden>Finish the round</button></p>
@@ -543,22 +579,38 @@
       <p style="margin:0">Next would be Unit 2: aggregation and shaping. Same round, one clause deeper.</p>
     </div>
 
+    <!-- Before and after, question by question. The same four, so the comparison is real. -->
+    <div class="card" id="ba-card" hidden>
+      <h2>What changed</h2>
+      <p class="sub">The four questions you answered before any of this, next to the same
+        four just now.</p>
+      <p class="gain" id="ba-gain"></p>
+      <table class="ba" id="ba-table"></table>
+    </div>
+
+    <!-- Every action button on this card keeps the learner in the round. The card used to
+         carry two that left it — "Take the SQL checkpoint" opening the Final Exam Kit in a
+         new tab, and "Open the full SQL kit" — sitting beside the one that stayed. A person
+         who has just finished a round and is looking for what to do next reads all three as
+         the next step, and two of them are a different product with its own nav and its own
+         progress. Those are side quests, and coming back from one is the frustration.
+         Mike's rule, 2026-08-01: content may link out; an action button may not. -->
     <div class="card ck">
-      <h2>SQL checkpoint</h2>
-      <p class="sub">There is no SQL certification worth buying, so this is the stand-in: a scored readiness check you can retake as often as you like. Nothing is timed.</p>
-      <p style="margin:0" id="ck-line">The SQL section of the Final Exam Kit is the checkpoint for now.</p>
-      <!-- Which button is loud is decided by the score in JS, not fixed here. A half-wrong
-           quiz pointing loudly at the exam was run 007b's finding. -->
+      <h2>What is next</h2>
+      <p class="sub">There is no SQL certification worth buying, so the checkpoint here will
+        be the stand-in: a scored readiness check you can retake as often as you like,
+        nothing timed. It is not built into the round yet.</p>
+      <p style="margin:0" id="ck-line">Until it is, another round is the move.</p>
+      <!-- Which button is loud is decided by the score in JS, not fixed here. -->
       <div class="ckrow">
-        <a class="btn go" id="ck-take" href="../final/#exam-sql" target="_blank" rel="noopener">Take the SQL checkpoint <span class="newtab">opens in a new tab &nearr;</span></a>
-        <button id="again">Type the queries again</button>
-        <a class="btn" href="../sql/">Open the full SQL kit</a>
+        <button class="go" id="again">Type the queries again</button>
+        <button id="again-blind">Write them from memory again</button>
       </div>
     </div>
   </section>
 
   <footer>
-    A trial layout, not the finished path. The pieces it uses are the real ones:
+    A trial layout, not the finished path. The pieces it stands on are the real ones:
     <a href="../drill/">SQL Drill</a>,
     the <a href="../sql/">SQL kit lessons</a>, and the
     <a href="../final/">Final Exam Kit</a>.
@@ -595,7 +647,7 @@
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
 
-let db = null, i = 0, step = 'primer';
+let db = null, i = 0, step = 'pretest';
 let ed = { getValue: () => $('sql').value, setValue: v => { $('sql').value = v; },
            focus: () => $('sql').focus({preventScroll:true}), refresh: () => {} };
 
@@ -608,12 +660,15 @@ try {
   if(typeof saved.i === 'number') i = Math.min(saved.i, LAP.drills.length - 1);
   if(Array.isArray(saved.readLessons)) state.readLessons = saved.readLessons;
   if(typeof saved.score === 'number') state.score = saved.score;
+  if(Array.isArray(saved.pre)) state.pre = saved.pre;
+  if(Array.isArray(saved.post)) state.post = saved.post;
   if(saved.recall) state.recall = saved.recall;
 } catch(e){}
 const remember = () => {
   try {
     localStorage.setItem(KEY, JSON.stringify({
       step, i, readLessons: state.readLessons || [], score: state.score,
+      pre: state.pre || [], post: state.post || [],
       // The recall pass has to survive a closed tab too, or someone on round 3 of the
       // missed pile loses the pile and the page tells them they cleared everything.
       recall: { pool, p, roundNo,
@@ -720,17 +775,19 @@ document.addEventListener('keydown', e => {
 
 // ── the stepper and which section is on screen ──────────────────────────────
 const STEPS = [
-  {key:'primer', t:'Primer',    s:'the six words'},
-  {key:'type',   t:'Type',      s:'four real queries'},
-  {key:'recall', t:'Recall',    s:'the same four, blank'},
-  {key:'lesson', t:'Lesson',    s:'why it worked'},
-  {key:'quiz',   t:'Mini quiz', s:'four questions'},
+  {key:'pretest', t:'Before',    s:'four questions, unmarked'},
+  {key:'primer',  t:'Primer',    s:'the six words'},
+  {key:'type',    t:'Type',      s:'four real queries'},
+  {key:'recall',  t:'Recall',    s:'the same four, blank'},
+  {key:'lesson',  t:'Lesson',    s:'why it worked'},
+  {key:'quiz',    t:'After',     s:'the same four questions'},
 ];
-const ORDER = ['primer','type','recall','lesson','quiz','done'];
+const ORDER = ['pretest','primer','type','recall','lesson','quiz','done'];
 
 // Run 007: the bar named buttons that were below the fold, so it sent someone hunting for
 // a control it had not said was further down. Each line now says where the control is.
 const DIRECTIVE = {
+  pretest: 'Answer all four. Guess where you have to — nothing here is marked.',
   primer: 'Read the six lines, then click Start typing at the end of them.',
   lesson: 'Read this one, then click Next read at the bottom.',
   quiz:   'Answer all four questions. Finish the round is at the bottom, under the last one.',
@@ -755,11 +812,11 @@ function paintStepper(){
 
 // Type and recall are the SAME section. Recall is this screen with the query covered up,
 // not a second layout, so it shares every element on it.
-const SECT = {primer:'s-primer', type:'s-type', recall:'s-type',
+const SECT = {pretest:'s-pretest', primer:'s-primer', type:'s-type', recall:'s-type',
               lesson:'s-lesson', quiz:'s-quiz', done:'s-done'};
 function show(next){
   step = next;
-  ['s-primer','s-type','s-lesson','s-quiz','s-done']
+  ['s-pretest','s-primer','s-type','s-lesson','s-quiz','s-done']
     .forEach(id => { $(id).hidden = id !== SECT[step]; });
   paintStepper();
   if(step === 'type' || step === 'recall') renderDrill();
@@ -770,7 +827,48 @@ function show(next){
   scrollTo({top:0, behavior:'smooth'});
 }
 
-// ── step 1: primer ──────────────────────────────────────────────────────────
+// ── step 1: where you are now ───────────────────────────────────────────────
+// The same four questions the round ends on, before anything is taught. Nothing is marked
+// and nothing is revealed: show the right answers here and the check at the end measures
+// who remembered a reveal, not who learned the material.
+state.pre = Array.isArray(state.pre) ? state.pre : [];
+$('pre-list').innerHTML = LAP.quiz.map((q, n) => `
+  <div class="q">
+    <p class="qt">${n + 1}. ${esc(q.q)}</p>
+    <div class="opts" id="pre-${n}">
+      ${q.opts.map((o, k) => `<button class="opt" data-q="${n}" data-k="${k}">${esc(o)}</button>`).join('')}
+    </div>
+  </div>`).join('');
+
+function paintPre(){
+  LAP.quiz.forEach((q, n) => {
+    [...$('pre-' + n).children].forEach((b, k) => {
+      const picked = state.pre[n] === k;
+      // Picked, not right or wrong. The only colour on this screen says "this is the one
+      // you chose", and a pick can be changed until the learner moves on.
+      b.setAttribute('aria-pressed', picked);
+      b.style.borderColor = picked ? 'var(--accent)' : '';
+      b.style.color = picked ? 'var(--accent)' : '';
+      b.style.background = picked ? 'rgba(14,116,144,.07)' : '';
+    });
+  });
+  const all = LAP.quiz.every((q, n) => typeof state.pre[n] === 'number');
+  $('to-primer').disabled = !all;
+  $('to-primer').textContent = all
+    ? 'Now go and learn it →'
+    : 'Answer all four to start';
+  $('directive-text').textContent = all
+    ? 'Click Now go and learn it, under the last question.'
+    : 'Answer all four. Guess where you have to — nothing here is marked.';
+  remember();
+}
+$('pre-list').querySelectorAll('.opt').forEach(b => {
+  b.onclick = () => { state.pre[+b.dataset.q] = +b.dataset.k; paintPre(); };
+});
+paintPre();
+$('to-primer').onclick = () => show('primer');
+
+// ── step 2: primer ──────────────────────────────────────────────────────────
 $('primer-list').innerHTML = LAP.primer
   .map(([h, b]) => `<li><b>${h}</b><span>${b}</span></li>`).join('');
 $('to-type').onclick = () => show('type');
@@ -1394,6 +1492,9 @@ $('quiz-list').querySelectorAll('.opt').forEach(b => {
     if(n in answered) return;                       // one swing per question
     const q = LAP.quiz[n];
     answered[n] = k === q.ans;
+    // Kept so the finish card can put this pick next to the one from before the round.
+    state.post = state.post || [];
+    state.post[n] = k;
     b.classList.add(k === q.ans ? 'picked-ok' : 'picked-no');
     b.setAttribute('aria-label', b.textContent + (k === q.ans
       ? ' — your answer, correct' : ' — your answer, not right'));
@@ -1440,7 +1541,43 @@ $('to-done').onclick = () => show('done');
 // ── end: the card states the score and follows it ───────────────────────────
 // Under three of four the honest next move is another round, not a scored exam, so the
 // loud button follows the score instead of always pointing at the checkpoint.
+// Before and after, question by question. The same four, so this is a comparison rather
+// than a claim. It is the reason the first step exists.
+function paintBeforeAfter(){
+  const pre = state.pre || [], post = state.post || [];
+  const answeredBoth = LAP.quiz.every((q, n) =>
+    typeof pre[n] === 'number' && typeof post[n] === 'number');
+  $('ba-card').hidden = !answeredBoth;
+  if(!answeredBoth) return;
+
+  const was = LAP.quiz.filter((q, n) => pre[n] === q.ans).length;
+  const now = LAP.quiz.filter((q, n) => post[n] === q.ans).length;
+  const mark = ok => ok ? '<span class="yes">✓</span>' : '<span class="no">✗</span>';
+
+  // Say what moved. A learner who was already at four of four did not fail to improve, and
+  // telling them "no change" would read as one.
+  $('ba-gain').innerHTML =
+    now > was ? '<span class="up">' + was + ' of ' + LAP.quiz.length + ' before, ' + now +
+        ' of ' + LAP.quiz.length + ' after.</span> That is the round doing its job.'
+    : now === was && now === LAP.quiz.length
+      ? 'Four of four before and after. You already had Unit 1 — the typing was the part worth doing.'
+    : now === was
+      ? was + ' of ' + LAP.quiz.length + ' before and after. The explanations under the questions are where to look next.'
+      : was + ' of ' + LAP.quiz.length + ' before, ' + now + ' of ' + LAP.quiz.length +
+        ' after. Worth another round before the checkpoint.';
+
+  $('ba-table').innerHTML =
+    '<tr><th>Question</th><th>Before</th><th>After</th></tr>' +
+    LAP.quiz.map((q, n) => {
+      const a = pre[n] === q.ans, b = post[n] === q.ans;
+      return '<tr><td>' + esc(q.q) + (a || !b ? '' :
+          '<br><span class="dim">You picked: ' + esc(q.opts[pre[n]]) + '</span>') +
+        '</td><td class="mark">' + mark(a) + '</td><td class="mark">' + mark(b) + '</td></tr>';
+    }).join('');
+}
+
 function paintDone(){
+  paintBeforeAfter();
   const total = LAP.quiz.length;
   const got = typeof state.score === 'number' ? state.score : null;
   const typed = LAP.drills.length;
@@ -1453,26 +1590,30 @@ function paintDone(){
     ' questions right first time') + '.';
   // Recall counts here too. Someone who needed the answer shown on half the queries is not
   // ready for a scored exam, however well they did on four multiple-choice questions.
+  // Which of the two rounds is promoted follows what actually went badly. Both stay in the
+  // round: neither of them is a trip to another product.
   const shaky = (got !== null && got < total - 1) || cleared.size < LAP.drills.length - 1;
-  $('ck-take').classList.toggle('go', !shaky);
-  $('again').classList.toggle('go', shaky);
-  // Name the promoted button rather than describing how it looks. Read the button's own
-  // label only: ck-take carries a nested "opens in a new tab" note, and textContent swept it
-  // in, so the bar was telling people to click "Take the SQL checkpoint opens in a new tab".
-  const loud = shaky ? $('again') : $('ck-take');
-  const label = (loud.querySelector('.newtab')
-    ? loud.firstChild.textContent : loud.textContent).trim().replace(/\s*[→↗]\s*$/, '');
-  $('directive-text').textContent = 'Read the card, then click ' + label + '.';
+  const blind = cleared.size < LAP.drills.length;
+  const loud = blind ? $('again-blind') : $('again');
+  $('again').classList.toggle('go', !blind);
+  $('again-blind').classList.toggle('go', blind);
+  // Name the promoted button rather than describing how it looks.
+  $('directive-text').textContent = 'Read the card, then click ' + loud.textContent.trim() + '.';
   $('ck-line').textContent = shaky
-    ? 'The checkpoint is the SQL section of the Final Exam Kit, and it is scored. With ' +
-      cleared.size + ' of ' + LAP.drills.length + ' queries written from memory' +
+    ? 'With ' + cleared.size + ' of ' + LAP.drills.length + ' queries written from memory' +
       (got === null ? '' : ' and ' + got + ' of ' + total + ' questions right') +
-      ', another round of the ' + LAP.drills.length + ' queries is the cheaper move first.'
-    : 'The SQL section of the Final Exam Kit is the checkpoint for now.';
+      ', another round is the cheaper move than sitting a scored check.'
+    : 'You are ready for a scored check when it lands. Another round costs you nothing in the meantime.';
 }
 
 // ── end: run it again ───────────────────────────────────────────────────────
+// Both of these restart inside the round. Nothing on the finish card navigates out.
 $('again').onclick = () => { i = 0; show('type'); };
+$('again-blind').onclick = () => {
+  cleared = new Set(); skipped = new Set();
+  startRecall(LAP.drills.map((_, n) => n), 1);
+  show('recall');
+};
 
 // ── boot ────────────────────────────────────────────────────────────────────
 paintStepper();

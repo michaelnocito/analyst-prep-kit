@@ -300,6 +300,59 @@ Row counts re-verified against the baked database after the cut: 500, 52, 10, 1.
 Everything that names a count now reads it from `LAP.drills.length` rather than saying
 "six", so the next change to the ladder length does not leave copy behind.
 
+## Before and after (2026-08-01)
+
+Mike: *"give them the test as the first step, telling them it's so they know where they are
+headed, and at the end we give them a comparison of how they did."*
+
+The round is six steps now: **Before → Primer → Type → Recall → Lesson → After.** Step 1 and
+step 6 are the **same four questions**, and the finish card puts them side by side.
+
+Rules the Before step obeys, and each of them is load-bearing:
+
+- **Nothing is marked and no answer is revealed.** This is the one that makes the comparison
+  worth anything. Show the right answers at the start and the check at the end measures who
+  remembered a reveal, not who learned the material.
+- **The only colour on that screen means "this is the one you picked."** Not right, not
+  wrong. A pick can be changed until the learner leaves the step.
+- **It says out loud that guessing is fine**, and why: not knowing yet is the reason the
+  round exists. A learner who reads step 1 as a test they are failing will not reach step 2.
+- **All four have to be answered to move on.** A blank before is not comparable to an after.
+
+The finish card reads the gain and says what actually happened, in four cases: went up, was
+already four of four, did not move, went down. "Four of four before and after" gets its own
+line, because a learner who arrived knowing Unit 1 did not fail to improve and should not be
+told they did. Every question the learner got wrong before and right after shows what they
+had picked, so the change is legible rather than asserted.
+
+Same-form pre/post is deliberate. Parallel forms would be cleaner measurement, but this is
+feedback to a learner, not an experiment, and two different question sets cannot be compared
+by the person reading them.
+
+## No action button leaves the round (2026-08-01)
+
+Mike, on the finish card: *"the SQL checkpoint part has two action buttons that navigate them
+away from the app. No need for those teasers."*
+
+The card carried three action buttons. One restarted the round; the other two opened the
+Final Exam Kit in a new tab and the full SQL kit. Two thirds of the "what do I do next" row
+led out of the twenty-minute thing the learner had just finished.
+
+Both are gone. The card now offers two rounds, both inside: type them again, or write them
+from memory again. Which one is loud follows what actually went badly — recall short of full
+promotes the blind pass, otherwise the typing pass. The checkpoint is described as coming,
+not linked, because there is nothing in-app to link to yet.
+
+**The rule, now canon in `REAL_TEST.md` as sweep 5e:** content may link out; an action button
+may not. A sentence with a link in it is read and considered. An action button sits in the
+row where the next step lives, and a person looking for what to do next reads every button
+in that row as the next step. "Opens in a new tab" is not a defence — it is still a different
+product with its own nav and no route back, and now there are two tabs to tell apart.
+
+Swept the whole round after the change: zero out-of-app destinations on any action control,
+on any of the six steps. The footer credits and the breadcrumb still link out, and stay:
+those are content, read and taken or not.
+
 ## Open question for Mike
 
 "Passes on it" is read here as **skips**, not as "got it right". So the buckets are
