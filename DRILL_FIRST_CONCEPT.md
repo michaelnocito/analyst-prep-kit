@@ -222,6 +222,12 @@ What shipped in `path/index.html`:
 - **The wrong-answer line names the actual difference**: row count, column count, or same
   shape with different contents. Row count alone produced "You got 500 rows; the answer has
   500" whenever the columns were wrong.
+- **The database is on the screen.** The schema browser from `/drill/` now sits under the
+  editor on both passes: every table, its row count, its grain, and every column with its
+  type, read out of the database rather than written down. Click a column and it types
+  itself at the cursor. It matters most in recall, where the query is covered and a column
+  name is the one thing nobody should be made to remember. Open or shut is the learner's
+  call and it sticks.
 - **The end card** offers the two from the spec, "try the ones you passed on" and "write all
   six again", plus the way on to the lesson.
 - The finish card and the checkpoint now read recall as well as the quiz. Fewer than five of

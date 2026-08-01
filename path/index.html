@@ -250,6 +250,38 @@
   }
   @keyframes lift{0%{background:rgba(14,116,144,.16)}100%{background:transparent}}
   #skip{color:var(--muted)}
+
+  /* Schema browser, lifted from /drill/ so the database reads the same in both places.
+     It matters most in recall, where the query is covered and a column name is the one
+     thing nobody should have to remember. */
+  details.db{border:1px solid var(--line);border-radius:12px;background:var(--card);
+    margin:14px 0 0;overflow:hidden}
+  details.db > summary{cursor:pointer;padding:11px var(--pad);list-style:none;
+    display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  details.db > summary::-webkit-details-marker{display:none}
+  details.db > summary::before{content:'\25B8';color:var(--muted);font-size:11px}
+  details.db[open] > summary::before{content:'\25BE'}
+  details.db > summary:hover .dbt{color:var(--accent)}
+  .dbt{font:700 12px/1 inherit;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--muted)}
+  .dbh{font-size:13px;color:var(--muted)}
+  .schema-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
+    gap:12px;align-items:start;padding:0 var(--pad) var(--pad)}
+  .tbl{border:1px solid var(--line);border-radius:10px;background:var(--bg);
+    overflow:hidden}
+  .tbl .thead{padding:9px 12px;font:13px/1.5 var(--mono);display:flex;gap:9px;
+    align-items:baseline;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+  .tbl .tname{font-weight:700;color:var(--accent)}
+  .tbl .tmeta{color:var(--muted);font-size:12px;font-family:inherit}
+  .cols{padding:6px 6px 8px}
+  /* Real buttons, not styled spans: these insert text, so they must be reachable by
+     keyboard and announced as controls. */
+  .col{display:flex;gap:10px;align-items:baseline;width:100%;text-align:left;
+    padding:4px 10px;font:12.5px/1.6 var(--mono);border:1px solid transparent;
+    background:none;border-radius:6px;min-height:0;cursor:pointer}
+  .col:hover,.col:focus-visible{background:rgba(14,116,144,.09);border-color:var(--line)}
+  .col .cname{color:var(--ink)}
+  .col .ctype{color:var(--muted);font-size:11.5px;letter-spacing:.04em}
   .summary li{margin:0 0 6px}
   .offers{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
 
@@ -320,6 +352,16 @@
         </div>
       </div>
     </div>
+
+    <!-- Every table in the database, read out of the database itself. Under the editor
+         rather than beside it, so it never pushes the panes around. -->
+    <details class="db" id="db">
+      <summary>
+        <span class="dbt">The database</span>
+        <span class="dbh" id="dbhint">Table and column names &middot; click one to type it</span>
+      </summary>
+      <div id="schema" class="schema-grid"></div>
+    </details>
 
     <div class="output">
       <div id="verdict" class="hint" aria-live="polite">Run your query and the rows appear here.</div>
@@ -617,6 +659,54 @@ function renderDrill(){
   ed.focus();
   remember();
 }
+
+// ── the database, read out of the database ──────────────────────────────────
+// Name, row count, grain, every column and its type. The same information a desktop SQL
+// client puts in its object tree, which is where a learner meets it next. Nothing here is
+// written down by hand, so it cannot drift from the data.
+const GRAIN = {
+  gem_page: 'one row = one curated gem track',
+  artist_era: 'one row = one artist'
+};
+function renderSchema(){
+  const names = db.exec("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name");
+  if(!names.length) return;
+  const tables = names[0].values.map(([t]) => {
+    const info = db.exec('PRAGMA table_info(' + t + ')');
+    return {
+      name: t,
+      rows: db.exec('SELECT COUNT(*) FROM ' + t)[0].values[0][0],
+      cols: info.length ? info[0].values.map(r => ({name: r[1], type: r[2] || ''})) : []
+    };
+  });
+  $('dbhint').textContent = tables.length + (tables.length === 1 ? ' table' : ' tables') +
+    ' · click a column name to type it';
+  $('schema').innerHTML = tables.map(t => `
+    <div class="tbl">
+      <div class="thead"><span class="tname">${esc(t.name)}</span>
+        <span class="tmeta">${t.rows.toLocaleString()} rows${GRAIN[t.name] ? ' &middot; ' + GRAIN[t.name] : ''}</span></div>
+      <div class="cols">${t.cols.map(c => `
+        <button type="button" class="col" data-insert="${esc(c.name)}">
+          <span class="cname">${esc(c.name)}</span>
+          <span class="ctype">${esc(c.type || 'TEXT')}</span>
+        </button>`).join('')}</div>
+    </div>`).join('');
+
+  // Clicking a column types it for you, at the cursor. Every pro client does this, and it
+  // keeps a learner in the editor instead of scrolling off to check a spelling.
+  $('schema').querySelectorAll('.col').forEach(el => {
+    el.onclick = () => {
+      const name = el.dataset.insert;
+      if(ed.cm){ ed.cm.replaceSelection(name); ed.cm.focus(); }
+      else { ed.setValue(ed.getValue() + name); ed.focus(); }
+    };
+  });
+}
+// Open or shut is the learner's call and it sticks, so nobody reopens it six times.
+$('db').open = localStorage.getItem(KEY + '-db') !== 'shut';
+$('db').addEventListener('toggle', () => {
+  try { localStorage.setItem(KEY + '-db', $('db').open ? 'open' : 'shut'); } catch(e){}
+});
 
 function table(res){
   if(!res.length) return 'Query ran. No rows returned.';
@@ -1013,6 +1103,7 @@ initSqlJs({locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.
       stmt.free();
     }
     bakeReference();
+    renderSchema();
     const schema = SQLED.schemaFromDb(db);
     ed = SQLED.attach($('sql'), {
       schema, onRun: run,
