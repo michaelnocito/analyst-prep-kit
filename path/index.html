@@ -140,11 +140,43 @@
   .given{margin:8px 0 0;padding-left:20px}
   .given li{margin:0 0 3px}
   #query{margin:0;padding:var(--pad);white-space:pre-wrap;word-break:break-word}
-  textarea#sql{width:100%;min-height:246px;padding:var(--pad);border:none;
+  textarea#sql{width:100%;min-height:200px;padding:var(--pad);border:none;
     background:transparent;color:var(--ink);resize:vertical;tab-size:2;white-space:pre}
   textarea#sql:focus{outline:2px solid var(--accent);outline-offset:-2px}
-  .CodeMirror.CodeMirror{border:none;border-radius:0;background:transparent;min-height:246px}
-  .CodeMirror .CodeMirror-scroll{min-height:246px}
+  /* Run 008: at 246px the Run row landed at y=694 with the directive bar starting at 699,
+     so 37 of Run's 42px sat under an opaque bar — on the recall screen, where Run is the
+     only thing to press. The longest query in the ladder is five lines, so 200px is still
+     four lines of headroom and it lifts the whole action row clear. */
+  .CodeMirror.CodeMirror{border:none;border-radius:0;background:transparent;min-height:200px}
+  .CodeMirror .CodeMirror-scroll{min-height:200px}
+  /* Run 008, the half that 200px did not reach. Measured at 1366x700, a maximised browser
+     on a very common laptop: Run's bottom sat at 691 with the directive bar starting at
+     648, so the whole 42px button was under an opaque bar on the one screen where Run is
+     the only control. The editor is the only block on the screen with slack in it, and the
+     floor is a floor — the box still grows to fit a longer query, and the longest in the
+     ladder is five lines, about 110px. Keyed to viewport height because that is the thing
+     that actually varies. */
+  @media (max-height:800px){
+    textarea#sql{min-height:140px}
+    .CodeMirror.CodeMirror,.CodeMirror .CodeMirror-scroll{min-height:140px}
+    .shell{padding-top:10px}
+    /* And the chrome gives up its share. The criteria list (REAL_TEST.md 5d) added real
+       height to the left pane, and on drill 4 it pushed the last 172px of the reference
+       query under the bar at 1366x700 — on the screen that says "type this query". The
+       question, the criteria and the query are the work. The title, the standfirst and the
+       stepper's subtitles are orientation you have already read, so they shrink first. */
+    h1{font-size:20px}
+    .lead{display:none}
+    .stepper{gap:6px;margin-top:8px}
+    .step{padding:6px 11px;flex-basis:120px}
+    .step .s{display:none}
+    .drillbar{padding:8px var(--pad);margin:10px 0}
+    .question{padding:9px var(--pad)}
+    .wants{padding:8px var(--pad)}
+    #query{padding:12px var(--pad)}
+    .panehead{padding:8px var(--pad)}
+    .pile{margin-bottom:8px}
+  }
   .runbar{border-top:1px solid var(--line);padding:12px var(--pad);display:flex;
     align-items:center;gap:14px;flex-wrap:wrap}
   .predict{flex:1 1 260px;font-size:14.5px;min-width:0}
@@ -224,9 +256,15 @@
   .opts{display:grid;gap:8px}
   .opt{text-align:left;font-weight:500;padding:11px 14px;line-height:1.45;
     font-family:inherit}
+  /* Run 008: the answered state was carried by border and text colour alone, so a
+     red/green colour-blind reader and a screen-reader user got four identical buttons.
+     Each state now carries a word as well as a colour. */
   .opt.picked-ok{border-color:var(--ok);background:#F0FAF3;color:var(--ok)}
   .opt.picked-no{border-color:var(--no);background:#FDF2F2;color:var(--no)}
   .opt.showans{border-color:var(--ok);color:var(--ok)}
+  .opt.picked-ok::after{content:" — your answer, correct";font-weight:600}
+  .opt.picked-no::after{content:" — your answer, not right";font-weight:600}
+  .opt.showans::after{content:" — the right answer";font-weight:600}
   .opt code{background:transparent;border:none;padding:0}
   .exp{margin:10px 0 0;font-size:14.5px;background:var(--bg);border:1px solid var(--line);
     border-radius:9px;padding:11px 13px}
@@ -625,8 +663,8 @@ function pop(el){
 // Canon across the kit: a right answer opens a popup that carries the result, celebrates,
 // and waits. It never times out and it never auto-advances. One Continue button is the way
 // forward, so the reward and the next action are the same click.
-let winNext = null, winCameFrom = null;
-function winPopup({title, lead, body, label, onContinue, pieces, toast, tone}){
+let winNext = null, winCameFrom = null, winPrevCue = null;
+function winPopup({title, lead, body, label, onContinue, pieces, toast, tone, cue}){
   winNext = onContinue || null;
   winCameFrom = document.activeElement;
   // A wrong answer opens the same popup: same result table, same one button. Only the
@@ -640,12 +678,26 @@ function winPopup({title, lead, body, label, onContinue, pieces, toast, tone}){
   $('win-body').hidden = !body;
   $('win-go').textContent = label || 'Continue';
   $('win-go').hidden = !winNext;
+  // Run 008: the directive named "Continue" on every success popup while the button itself
+  // said "Next query →", "Now cover it up →" or "Next →". The one line that is always on
+  // screen was pointing at a control that did not exist by that name, in three places. The
+  // popup now writes its own directive from its own label, so the two cannot drift again,
+  // and the screen's directive is put back when the popup closes without advancing.
+  winPrevCue = $('directive-text').textContent;
+  if(!$('win-go').hidden){
+    $('directive-text').textContent = (cue || 'Read what came back') +
+      ', then click ' + $('win-go').textContent.replace(/\s*[→↗]\s*$/, '') + '.';
+  }
   $('scrim').hidden = false;
   celebrate(toast, pieces);
   $('win-go').focus({preventScroll:true});
 }
 function winClose(){
   $('scrim').hidden = true;
+  // Dismissing without advancing used to leave the directive pointing at the popup's button,
+  // which had just gone with the popup. "Stay on this screen" left the bar reading "click
+  // Try again" with no Try again anywhere on the page. Put the screen's own line back.
+  if(winPrevCue !== null){ $('directive-text').textContent = winPrevCue; winPrevCue = null; }
   if(winCameFrom && document.contains(winCameFrom)) winCameFrom.focus({preventScroll:true});
 }
 $('win-go').onclick = () => { const go = winNext; winClose(); if(go) go(); };
@@ -682,7 +734,10 @@ const DIRECTIVE = {
   primer: 'Read the six lines, then click Start typing at the end of them.',
   lesson: 'Read this one, then click Next read at the bottom.',
   quiz:   'Answer all four questions. Finish the round is at the bottom, under the last one.',
-  done:   'Read the card, then pick the loud button.',
+  // "the loud button" was a build word, and it identified a control by how it looks, which
+  // is nothing at all to a screen reader or a read-aloud. paintDone() overwrites this with
+  // the name of whichever button the score actually promotes.
+  done:   'Read the card, then pick your next move below it.',
 };
 
 function paintStepper(){
@@ -735,7 +790,17 @@ const FRACTIONS = [0, .5, .75, 1];
 // back the dead second swing this ladder exists to remove. Characters always differ.
 function coverUp(sql, frac){
   if(frac >= 1) return esc(sql);
-  const keep = frac <= 0 ? 0 : Math.min(sql.length - 1, Math.round(sql.length * frac));
+  let keep = frac <= 0 ? 0 : Math.min(sql.length - 1, Math.round(sql.length * frac));
+  // Run 008: still cut on characters, for the reason above, but never mid-word. The half
+  // reveal was landing on "FRO" and "COUNT(DISTINCT ar", which reads as a rendering fault
+  // rather than a hint, and stops one character short of the word being reached for.
+  // Walk back to the token boundary, but only a little: a long snap would collapse half
+  // and three quarters back into the same reveal, which is what the character cut avoids.
+  if(keep > 0 && /\w/.test(sql[keep] || '') && /\w/.test(sql[keep - 1])){
+    let b = keep;
+    while(b > 0 && /\w/.test(sql[b - 1])) b--;
+    if(keep - b <= 12) keep = b;
+  }
   const shown = sql.slice(0, keep);
   // What is still covered keeps the width of the code it stands in for, so uncovering
   // never shuffles the rest of the query around the screen.
@@ -788,8 +853,13 @@ function renderDrill(){
   if(rec) $('query').innerHTML = coverUp(d.sql, 0);
   else $('query').textContent = d.sql;
 
-  $('why').textContent = rec ? '' : d.why;
-  $('why').hidden = rec;
+  // What the new clause does is read AFTER it runs, in the success popup, not above the
+  // editor before it. Run 008 measured the left pane at 1366x700: with the question, the
+  // criteria list, the query and this paragraph stacked, the bottom two lines of the query
+  // sat under the directive bar on the screen whose whole instruction is "type this query".
+  // The query wins the space. The explanation is not lost, it is one beat later.
+  $('why').textContent = '';
+  $('why').hidden = true;
   $('pretext').textContent = d.pre;
   $('pretext').parentElement.hidden = rec;
   $('verdict').className = 'hint';
@@ -908,10 +978,23 @@ function run(){
     // truth, so the likely cause gets named in words before the engine gets quoted.
     const msg = String(e.message || '');
     let guess = 'Compare your query against the reference query, line by line. A stray comma or a missing word is the usual cause.';
-    if(/no such column/i.test(msg)){
+    // Run 008: this fired the quotes explanation for EVERY "no such column", including two
+    // cases where quotes had nothing to do with it. The sharpest was drill 4: the given list
+    // says the answer brings back total_rows and artists, so the likely first attempt is
+    // SELECT total_rows, artists — names the query is supposed to create, not columns that
+    // exist. Being told to add quotes there sends a learner further from the repair.
+    const missing = (msg.match(/no such column:\s*([\w.]+)/i) || [])[1] || '';
+    const aliases = (LAP.drills[at()].sql.match(/\bAS\s+(\w+)/gi) || [])
+      .map(s => s.replace(/\bAS\s+/i, ''));
+    if(missing && aliases.some(a => a.toLowerCase() === missing.toLowerCase())){
+      guess = '<code>' + esc(missing) + '</code> is a name the query has to <em>create</em>, ' +
+        'not a column sitting in the table. <code>AS</code> is what names a result column: ' +
+        '<code>COUNT(*) AS ' + esc(missing) + '</code>.';
+    } else if(/no such column/i.test(msg)){
       guess = 'That usually means a text value is missing its quotes. ' +
         "<code>WHERE genre = country</code> looks for a column called country; " +
-        "<code>WHERE genre = 'country'</code> looks for the word. The table is fine.";
+        "<code>WHERE genre = 'country'</code> looks for the word. The table is fine. " +
+        'If your query has its quotes already, check the column name against the table panel.';
     } else if(/no such table/i.test(msg)){
       guess = 'The only two tables here are <code>gem_page</code> and <code>artist_era</code>. Check the spelling.';
     } else if(/syntax error/i.test(msg)){
@@ -929,8 +1012,9 @@ function run(){
     $('verdict').className = '';
     $('verdict').innerHTML = '<span class="no">That query did not run.</span> ' + guess +
       '<br><span class="hint">The database reported: ' + esc(msg) + '</span>';
-    $('directive-text').textContent = 'Read what went wrong, then click Try again.';
+    $('directive-text').textContent = 'Fix your query, then click Run under the editor.';
     winPopup({
+      cue: 'Read what went wrong',
       tone: 'no',
       title: 'That query did not run',
       lead: guess,
@@ -956,8 +1040,9 @@ function run(){
   if(got !== want){
     // Wrong on the typing pass gets the same popup too. The reference query is on screen
     // here, so the repair is a line-by-line comparison rather than a hint.
-    $('directive-text').textContent = 'Read what came back, then click Try again.';
+    $('directive-text').textContent = 'Fix your query, then click Run under the editor.';
     winPopup({
+      cue: 'Read what came back',
       tone: 'no',
       title: 'Not the same rows',
       lead: 'You got ' + got + (got === 1 ? ' row' : ' rows') + '; the query on the left returns ' +
@@ -976,8 +1061,10 @@ function run(){
     const fwd = last ? $('to-lesson') : $('next');
     $('run').classList.remove('go');
     fwd.classList.add('go');
-    $('directive-text').textContent = 'Read your rows, then click Continue.';
+    $('directive-text').textContent = 'Read your rows, then click ' +
+      fwd.textContent.trim().replace(/\s*[→↗]\s*$/, '') + ' under the editor.';
     winPopup({
+      cue: 'Read your rows',
       title: last ? 'That is all ' + LAP.drills.length : 'Rows match',
       lead: answerLine(res) || esc(LAP.drills[i].why),
       body: '<p class="note">' + esc(LAP.drills[i].why) + '</p>' + table(res),
@@ -1099,10 +1186,12 @@ function judgeRecall(res){
     $('next').hidden = false;
     $('next').classList.add('go');
     $('skip').disabled = true;
-    $('directive-text').textContent = 'Read your rows, then click Continue.';
+    $('directive-text').textContent = 'Read your rows, then click ' +
+      $('next').textContent.trim().replace(/\s*[→↗]\s*$/, '') + ' under the editor.';
     paintPile();
     remember();
     winPopup({
+      cue: 'Read your rows',
       title: honest ? 'You had it' : 'That runs',
       lead: honest ? esc(LAP.drills[idx].why)
         : 'You had the whole query in front of you, so this one comes back in the next round.',
@@ -1154,12 +1243,14 @@ function missRecall(html, footnote, opts){
   // The engine's own words go last. They are the least useful line on the screen and they
   // must never sit between the explanation and the help.
   $('verdict').innerHTML = html + ' ' + helped + (footnote ? '<br>' + footnote : '');
-  $('directive-text').textContent = 'Read the left pane, fix your query, then click Run again.';
+  // "the left pane" is a build word and a sighted-only instruction. Say what to read.
+  $('directive-text').textContent = 'Read the uncovered query, fix yours, then click Run under the editor.';
   paintPile();
   remember();
   // Same popup as a right answer, so a wrong one is not the quiet outcome. It carries what
   // their query actually returned, what is different about it, and what just got uncovered.
   winPopup({
+    cue: 'Read what went wrong',
     tone: 'no',
     title: (opts && opts.title) || 'Not the same table',
     lead: (opts && opts.lead) || '',
@@ -1178,14 +1269,28 @@ function paintRecallSummary(){
   $('r-summary-sub').textContent = skipped.size
     ? 'Every query you attempted came back to you. ' + skipped.size +
       (skipped.size === 1 ? ' is' : ' are') + ' still sitting in the passed-on pile.'
-    : 'You wrote all ' + total + ' from the question with nothing on screen.';
+    // Was "with nothing on screen", which is not true: the question, the given list and the
+    // table panel are all on screen in recall. Only the query itself is covered, and
+    // overclaiming makes the praise read as unearned to anyone who leaned on the given list.
+    // Also gated on actually clearing them. This headline used to fire whenever the
+    // passed-on pile was empty, so a run that cleared 2 of 4 still read "You wrote all 4"
+    // directly above a list saying "2 of 4 cleared from memory".
+    : cleared.size === total
+      ? 'You wrote all ' + total + ' from the question, with the query covered up.'
+      : 'You wrote ' + cleared.size + ' of ' + total +
+        ' from the question, with the query covered up.';
   $('r-summary-list').innerHTML =
     '<li><b>' + cleared.size + '</b> of ' + total + ' cleared from memory</li>' +
     (skipped.size ? '<li><b>' + skipped.size + '</b> passed on</li>' : '') +
     '<li>Rounds it took: <b>' + roundNo + '</b></li>';
   $('r-do-skipped').hidden = skipped.size === 0;
   if(cleared.size === total) celebrate('✓ All ' + total + ' from memory', 34);
-  $('directive-text').textContent = 'Click Go to the lesson, or take one of the two offers beside it.';
+  // Run 008: this said "one of the two offers" unconditionally, but the second offer
+  // (redo the passed-on ones) is hidden when nothing was passed on, so a clean run read a
+  // directive that pointed at a button that was not there. Count what is actually showing.
+  $('directive-text').textContent = $('r-do-skipped').hidden
+    ? 'Click Go to the lesson, or write them all again beside it.'
+    : 'Click Go to the lesson, or take one of the two offers beside it.';
   remember();
 }
 
@@ -1290,12 +1395,20 @@ $('quiz-list').querySelectorAll('.opt').forEach(b => {
     const q = LAP.quiz[n];
     answered[n] = k === q.ans;
     b.classList.add(k === q.ans ? 'picked-ok' : 'picked-no');
+    b.setAttribute('aria-label', b.textContent + (k === q.ans
+      ? ' — your answer, correct' : ' — your answer, not right'));
     if(k === q.ans){ pop(b); showToast('✓ Right'); }
     // A wrong pick shows the right one immediately. Withholding it here would send
     // someone away from the page to find out, which is where they stop coming back.
-    if(k !== q.ans) $('opts-' + n).children[q.ans].classList.add('showans');
+    if(k !== q.ans){
+      const right = $('opts-' + n).children[q.ans];
+      right.classList.add('showans');
+      right.setAttribute('aria-label', right.textContent + ' — the right answer');
+    }
     $('opts-' + n).querySelectorAll('.opt').forEach(x => { x.disabled = true; });
-    $('exp-' + n).textContent = q.exp;
+    // The verdict leads the explanation, so it survives read-aloud and colour blindness
+    // even where ::after content is not announced.
+    $('exp-' + n).textContent = (k === q.ans ? 'Right. ' : 'Not right. ') + q.exp;
     $('exp-' + n).hidden = false;
     if(Object.keys(answered).length === LAP.quiz.length){
       const got = Object.values(answered).filter(Boolean).length;
@@ -1305,11 +1418,12 @@ $('quiz-list').querySelectorAll('.opt').forEach(b => {
         (got === LAP.quiz.length ? ' Unit 1 is in.' : ' The explanations above are the bit to retype.');
       $('score').hidden = false;
       $('to-done').hidden = false;
-      $('directive-text').textContent = 'Read your score, then click Continue.';
+      $('directive-text').textContent = 'Read your score, then click Finish the round at the bottom.';
       // Same popup as a right query. A clean sweep gets the full confetti; a mixed run gets
       // none, because confetti over two wrong answers reads as the page not paying attention.
       const clean = got === LAP.quiz.length;
       winPopup({
+        cue: 'Read your score',
         title: got + ' of ' + LAP.quiz.length,
         lead: clean ? 'Unit 1 is in.'
           : 'The explanations under the questions you missed are the bit worth retyping.',
@@ -1342,6 +1456,13 @@ function paintDone(){
   const shaky = (got !== null && got < total - 1) || cleared.size < LAP.drills.length - 1;
   $('ck-take').classList.toggle('go', !shaky);
   $('again').classList.toggle('go', shaky);
+  // Name the promoted button rather than describing how it looks. Read the button's own
+  // label only: ck-take carries a nested "opens in a new tab" note, and textContent swept it
+  // in, so the bar was telling people to click "Take the SQL checkpoint opens in a new tab".
+  const loud = shaky ? $('again') : $('ck-take');
+  const label = (loud.querySelector('.newtab')
+    ? loud.firstChild.textContent : loud.textContent).trim().replace(/\s*[→↗]\s*$/, '');
+  $('directive-text').textContent = 'Read the card, then click ' + label + '.';
   $('ck-line').textContent = shaky
     ? 'The checkpoint is the SQL section of the Final Exam Kit, and it is scored. With ' +
       cleared.size + ' of ' + LAP.drills.length + ' queries written from memory' +

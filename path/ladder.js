@@ -36,7 +36,8 @@ const LAP = {
   drills: [
     { adds: 'Ask for three columns',
       q: 'What artists, tracks and audience sizes are in the collection?',
-      given: ['Every song in the table — nothing filtered out'],
+      given: ['The table is <code>gem_page</code>',
+              'Every song in the table — nothing filtered out'],
       why: 'The skeleton of every query you will ever write: SELECT the columns, FROM the table.',
       sql:
 `SELECT artist, track, listeners
@@ -46,7 +47,8 @@ FROM gem_page;`,
 
     { adds: 'Keep only the country songs',
       q: 'Which of those songs are country?',
-      given: ["Country means the <code>genre</code> column is exactly <code>country</code>"],
+      given: ['The table is <code>gem_page</code>',
+              "Country means the <code>genre</code> column is exactly <code>country</code>"],
       why: 'WHERE filters rows. The single quotes are how SQL knows country is text, not a column name.',
       sql:
 `SELECT artist, track, listeners
@@ -57,7 +59,8 @@ WHERE genre = 'country';`,
 
     { adds: 'Sort them and cut to a top ten',
       q: 'What are the ten biggest country songs?',
-      given: ["Country means the <code>genre</code> column is exactly <code>country</code>",
+      given: ['The table is <code>gem_page</code>',
+              "Country means the <code>genre</code> column is exactly <code>country</code>",
               'Biggest means the most <code>listeners</code>, largest first',
               'Ten rows, no more'],
       why: 'ORDER BY sorts what you already have, then LIMIT caps it. That order matters: cap first and you would cap before sorting. This is how every top-ten report you will ever ship is built.',
@@ -72,8 +75,18 @@ LIMIT 10;`,
 
     { adds: 'Count what you are working with',
       q: 'How many country songs are there, and how many different artists made them?',
-      given: ["Country means the <code>genre</code> column is exactly <code>country</code>",
-              'Name the two numbers <code>total_rows</code> and <code>artists</code>',
+      given: ['The table is <code>gem_page</code>',
+              "Country means the <code>genre</code> column is exactly <code>country</code>",
+              // Run 008: this drill needs three words the primer never taught (COUNT,
+              // DISTINCT, AS) and step 3 covers the query, so a learner was being asked to
+              // retrieve syntax that had no source on the screen. Naming the words satisfies
+              // 5d without writing the line: assembling them is still the work.
+              '<code>COUNT(*)</code> counts rows; <code>COUNT(DISTINCT ...)</code> counts each value once',
+              // The old wording said "Name the two numbers total_rows and artists", which
+              // read exactly like the "Bring back" column lists on drills 1 to 3. The likely
+              // first attempt was SELECT total_rows, artists — a real column that does not
+              // exist. Say plainly that these are names being created.
+              '<code>total_rows</code> and <code>artists</code> are names you create with <code>AS</code>, not columns in the table',
               'Different artists means each artist counted once'],
       why: 'A query always hands back a table, even when the answer is two numbers. Comparing the two tells you one artist can hold several songs.',
       sql:
