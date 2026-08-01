@@ -570,7 +570,9 @@
         <div class="runbar">
           <p class="predict"><b>Before you run it:</b> <span id="pretext"></span></p>
           <button class="go" id="run">Run</button>
-          <button id="skip" hidden>Pass on this one</button>
+          <!-- Not "pass", because it does not pass. It comes back this round or the next
+               one, and saying so up front is fairer than letting someone use it as an exit. -->
+          <button id="skip" hidden>Come back to this one</button>
         </div>
       </div>
     </div>
@@ -596,22 +598,11 @@
       <div class="actions">
         <button id="back">&larr; Back</button>
         <button class="fwd" id="next">Next query &rarr;</button>
-        <button class="fwd go" id="to-lesson" hidden>Now cover it up &rarr;</button>
+        <button class="fwd go" id="to-lesson" hidden>Now read why &rarr;</button>
       </div>
     </div>
    </div>
 
-   <!-- Recall mode only, when the missed pile is empty. -->
-   <div class="card" id="r-summary" hidden>
-     <h2>Nothing left in the missed pile</h2>
-     <p class="sub" id="r-summary-sub"></p>
-     <ul class="summary" id="r-summary-list"></ul>
-     <div class="offers">
-       <button class="go" id="r-to-lesson">Go to the lesson &rarr;</button>
-       <button id="r-do-skipped" hidden>Try the ones you passed on</button>
-       <button id="r-do-all">Write them all again</button>
-     </div>
-   </div>
   </section>
 
   <!-- STEP 4 ─ LESSON ─────────────────────────────────────────────────────── -->
@@ -634,7 +625,7 @@
       <div class="offers">
         <button class="go" id="lesson-next">Next read &rarr;</button>
         <button id="lesson-prev">&larr; Previous</button>
-        <button id="to-quiz">Skip to the four questions</button>
+        <button id="to-quiz">Skip to writing them covered up</button>
       </div>
     </div>
   </section>
@@ -870,14 +861,19 @@ const STEPS = [
    does:'Six short lines. Only enough to type the first query without guessing.'},
   {key:'type',    t:'Type',      s:'four real queries',
    does:'Four queries, each one the last plus one new thing. The query is on the left; you type it on the right and run it.'},
-  {key:'recall',  t:'Recall',    s:'the same four, blank',
-   does:'The same four, with the query covered up. Get one wrong and more of it uncovers. Anything you miss comes back until you have it.'},
   {key:'lesson',  t:'Lesson',    s:'why it worked',
    does:'Four short reads explaining what you just typed. They happen here, on this page.'},
+  {key:'recall',  t:'Recall',    s:'the same four, covered',
+   does:'The same four again, with the query covered up. Get one wrong and more of it uncovers. Anything you do not get comes back until you do.'},
   {key:'quiz',    t:'After',     s:'the same four questions',
    does:'The four questions from the start, again. Then the round shows you what changed.'},
 ];
-const ORDER = ['how','pretest','primer','type','recall','lesson','quiz','done'];
+// Type, then why it worked, then do it unaided. The lesson moved in front of recall on
+// 2026-08-01 (Mike). Two reasons: the Before step at the front already does the retrieve-
+// before-you-are-told job that used to justify recall coming first, and putting four reads
+// between the typing and the recall is what makes the recall genuinely unaided rather than
+// an echo of the query still on the screen a minute ago.
+const ORDER = ['how','pretest','primer','type','lesson','recall','quiz','done'];
 
 // The running order, written from the steps themselves so the promise and the round cannot
 // drift apart. The first step is not in its own list.
@@ -1016,14 +1012,15 @@ function coverUp(sql, frac){
 
 function renderDrill(){
   const rec = inRecall();
-  // Recall with an empty pool means the round is over: the missed pile becomes the next
-  // round, and when there is nothing left the summary takes the screen.
+  // Recall with an empty pool means the round is over. Everything not cleared comes back,
+  // whether it was missed or passed on, and it comes back without being asked. When there is
+  // nothing left the round moves itself on to the lesson.
   if(rec && p >= pool.length){
-    if(missed.size) startRecall([...missed].sort((a, b) => a - b), roundNo + 1);
-    else return paintRecallSummary();
+    const again = [...new Set([...missed, ...skipped])].sort((a, b) => a - b);
+    if(again.length){ skipped = new Set(); startRecall(again, roundNo + 1); }
+    else return recallDone();
   }
   $('t-work').hidden = false;
-  $('r-summary').hidden = true;
 
   const idx = at(), d = LAP.drills[idx];
   const last = !rec && i === LAP.drills.length - 1;
@@ -1087,7 +1084,7 @@ function renderDrill(){
   $('directive-text').textContent = rec
     ? 'Type whatever you remember, then click Run under your editor.'
     : last
-      ? 'Last one. Type the query, then click Run under your editor. After this the query gets covered up and you write all ' + LAP.drills.length + ' again.'
+      ? 'Last one. Type the query, then click Run under your editor. After this you read why each of them worked.'
       : 'Type the whole query, then click Run under your editor.';
   // Never prefilled, in either mode. Typing it out is the entire point.
   ed.setValue('');
@@ -1276,10 +1273,12 @@ function run(){
       lead: answerLine(res),
       body: didAndMatters(LAP.drills[i]) +
         '<p class="note">' + (last
-          ? 'That is the last of them. Next you write all ' + LAP.drills.length +
-            ' again with the query covered up.'
+          ? 'That is the last of them. Next you read why each one worked, then write all ' +
+            LAP.drills.length + ' again with the query covered up.'
           : 'What your query returned:') + '</p>' + table(res),
-      label: last ? 'Now cover it up →' : 'Next query →',
+      // Read off the button it presses, not written twice. The two said different things
+      // for a while after the lesson and recall steps swapped places.
+      label: fwd.textContent.trim(),
       onContinue: () => fwd.click(),
       toast: last ? '✓ That is all ' + LAP.drills.length : '✓ Rows match',
       pieces: last ? 34 : 20
@@ -1293,7 +1292,7 @@ $('next').onclick = () => {
   if(i < LAP.drills.length - 1){ i++; renderDrill(); }
 };
 $('back').onclick = () => { if(i > 0){ i--; renderDrill(); } };
-$('to-lesson').onclick = () => { startRecall(LAP.drills.map((_, n) => n), 1); show('recall'); };
+$('to-lesson').onclick = () => show('lesson');
 $('skip').onclick = () => {
   // Passing is not failing. Its own pile, never the missed loop, offered once at the end.
   skipped.add(at()); missed.delete(at());
@@ -1312,17 +1311,24 @@ $('copy-q').onclick = () => {
 // Buckets, straight from the concept doc. An item is in exactly one of them.
 //   cleared — got it right, leaves the pool
 //   missed  — attempted and failed, comes back next round
-//   skipped — passed on, kept in its own pile and never mixed with missed
+//   skipped - come back to this one, which now rejoins the loop with the missed ones rather
+//             than sitting in a pile the learner is offered at the end
 let pool = [], p = 0, roundNo = 1, misses = 0, revealed = 0;
 let cleared = new Set(), missed = new Set(), skipped = new Set();
 if(state.recall){
   const r = state.recall;
-  if(Array.isArray(r.pool)) pool = r.pool;
-  if(typeof r.p === 'number') p = r.p;
-  if(typeof r.roundNo === 'number') roundNo = r.roundNo;
-  if(Array.isArray(r.cleared)) cleared = new Set(r.cleared);
-  if(Array.isArray(r.missed))  missed  = new Set(r.missed);
-  if(Array.isArray(r.skipped)) skipped = new Set(r.skipped);
+  // Anything saved by an older, longer ladder is dropped. The round shipped with six rungs
+  // and now has four, so a returning learner could restore indices 4 and 5 and be told
+  // "6 passed on" out of four queries — with two of them impossible to clear, because the
+  // items they point at no longer exist and the loop would never empty.
+  const live = n => Number.isInteger(n) && n >= 0 && n < LAP.drills.length;
+  const clean = a => Array.isArray(a) ? a.filter(live) : [];
+  pool = clean(r.pool);
+  roundNo = typeof r.roundNo === 'number' ? r.roundNo : 1;
+  p = typeof r.p === 'number' ? Math.min(r.p, pool.length) : 0;
+  cleared = new Set(clean(r.cleared));
+  missed  = new Set(clean(r.missed));
+  skipped = new Set(clean(r.skipped));
 }
 
 // The reference result set, computed once at boot by running the reference query itself.
@@ -1362,10 +1368,13 @@ function startRecall(items, n){
 
 function paintPile(){
   const total = LAP.drills.length;
+  // Two numbers, because there are only two states that matter now: got it, or coming back.
+  // Missed and passed-on used to be counted apart, which mattered when the end of the round
+  // offered them as separate choices. They are one pile now, so they are one number.
+  const back = new Set([...missed, ...skipped]).size;
   $('pile').innerHTML =
-    '<span class="tally ok"><b>' + cleared.size + '</b> of ' + total + ' cleared</span>' +
-    '<span class="tally no"><b>' + missed.size + '</b> in the missed pile</span>' +
-    (skipped.size ? '<span class="tally"><b>' + skipped.size + '</b> passed on</span>' : '');
+    '<span class="tally ok"><b>' + cleared.size + '</b> of ' + total + ' from memory</span>' +
+    (back ? '<span class="tally no"><b>' + back + '</b> coming back to you</span>' : '');
 }
 
 // Uncover more of the query in the box it already lives in. Nothing new appears on the
@@ -1488,52 +1497,18 @@ function missRecall(html, footnote, opts){
   });
 }
 
-function paintRecallSummary(){
-  $('t-work').hidden = true;
-  $('r-summary').hidden = false;
-  const total = LAP.drills.length;
-  $('r-summary-sub').textContent = skipped.size
-    ? 'Every query you attempted came back to you. ' + skipped.size +
-      (skipped.size === 1 ? ' is' : ' are') + ' still sitting in the passed-on pile.'
-    // Was "with nothing on screen", which is not true: the question, the given list and the
-    // table panel are all on screen in recall. Only the query itself is covered, and
-    // overclaiming makes the praise read as unearned to anyone who leaned on the given list.
-    // Also gated on actually clearing them. This headline used to fire whenever the
-    // passed-on pile was empty, so a run that cleared 2 of 4 still read "You wrote all 4"
-    // directly above a list saying "2 of 4 cleared from memory".
-    : cleared.size === total
-      ? 'You wrote all ' + total + ' from the question, with the query covered up.'
-      : 'You wrote ' + cleared.size + ' of ' + total +
-        ' from the question, with the query covered up.';
-  $('r-summary-list').innerHTML =
-    '<li><b>' + cleared.size + '</b> of ' + total + ' cleared from memory</li>' +
-    (skipped.size ? '<li><b>' + skipped.size + '</b> passed on</li>' : '') +
-    '<li>Rounds it took: <b>' + roundNo + '</b></li>';
-  $('r-do-skipped').hidden = skipped.size === 0;
-  if(cleared.size === total) celebrate('✓ All ' + total + ' from memory', 34);
-  // Run 008: this said "one of the two offers" unconditionally, but the second offer
-  // (redo the passed-on ones) is hidden when nothing was passed on, so a clean run read a
-  // directive that pointed at a button that was not there. Count what is actually showing.
-  $('directive-text').textContent = $('r-do-skipped').hidden
-    ? 'Click Go to the lesson, or write them all again beside it.'
-    : 'Click Go to the lesson, or take one of the two offers beside it.';
-  remember();
+// Nothing to decide at the end of a round. Anything not cleared comes straight back, and
+// when there is nothing left the round moves on by itself.
+//
+// This replaced a card offering three buttons: go to the lesson, retry the passed-on ones,
+// or write them all again. Mike: "don't give them choices here, make them try mistakes
+// again, then next one they auto move on." A menu at that moment asks a learner to plan
+// their own remediation, which is the one thing they are least equipped to do, and the
+// cheapest button on it was always the one that skipped the work.
+function recallDone(){
+  celebrate('✓ All ' + LAP.drills.length + ' from memory', 34);
+  show('quiz');
 }
-
-// Two offers and no third, plus the way on. The concept doc calls for the two offers only;
-// the lesson button is here because recall sits inside a round rather than ending it.
-$('r-to-lesson').onclick = () => show('lesson');
-$('r-do-skipped').onclick = () => {
-  const s = [...skipped].sort((a, b) => a - b);
-  skipped = new Set();
-  startRecall(s, roundNo + 1);
-  renderDrill();
-};
-$('r-do-all').onclick = () => {
-  cleared = new Set(); skipped = new Set();
-  startRecall(LAP.drills.map((_, n) => n), 1);
-  renderDrill();
-};
 
 // ── step 4: the lesson, read in the app ─────────────────────────────────────
 // Nothing here leaves the page. The text is in lessons.js, copied from the kit's Unit 1 so
@@ -1587,21 +1562,24 @@ function paintLesson(){
   paintLessonNav();
   const last = li === LESSON_TEXT.length - 1;
   $('lesson-prev').hidden = li === 0;
-  $('lesson-next').textContent = last ? 'Done reading, check me' : 'Next read →';
+  $('lesson-next').textContent = last ? 'Now write them covered up →' : 'Next read →';
   $('to-quiz').hidden = last;                 // the skip and the finish would be the same
   $('directive-text').textContent = last
-    ? 'Read this one, then click Done reading, check me at the bottom.'
+    ? 'Read this one, then click Now write them covered up at the bottom.'
     : 'Read this one, then click Next read at the bottom.';
   remember();
   scrollTo({top:0, behavior:'smooth'});
 }
 
+// The lesson hands off to recall now, not to the quiz. Everything after the reads is done
+// without the query on screen.
+const startRecallPass = () => { startRecall(LAP.drills.map((_, n) => n), 1); show('recall'); };
 $('lesson-next').onclick = () => {
   if(li < LESSON_TEXT.length - 1){ li++; paintLesson(); }
-  else show('quiz');
+  else startRecallPass();
 };
 $('lesson-prev').onclick = () => { if(li > 0){ li--; paintLesson(); } };
-$('to-quiz').onclick = () => show('quiz');
+$('to-quiz').onclick = startRecallPass;
 
 // ── step 4: the mini quiz ───────────────────────────────────────────────────
 const answered = {};

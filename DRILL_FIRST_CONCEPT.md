@@ -381,6 +381,55 @@ promise and the round cannot drift apart. Adding a step writes its own line.
 The round is seven steps: **How it works → Before → Six words → Type → Recall → Lesson →
 After.**
 
+## Lesson before recall, and no menu at the end of it (2026-08-01)
+
+**Two changes, both Mike's, and they work together.**
+
+### The order swapped
+
+Mike: *"should we move step 4 to step 3, so it's type, learn why you typed, then you try from
+memory?"* Yes. The round is now:
+
+**How it works → Before → Six words → Type → Lesson → Recall → After.**
+
+The original spec put recall before the lesson: *type it, type it again without help, then
+read why it worked.* The argument for that order was retrieve-before-you-are-told. **The
+Before step now does that job**, on the same four questions the round ends on, so recall no
+longer has to carry it.
+
+What the new order buys: four reads sit between typing a query and writing it covered up,
+which makes the recall genuinely unaided instead of an echo of a query that was on screen a
+minute earlier. The gap is the point. And the round ends on the learner performing without
+help rather than on them reading.
+
+### The end-of-recall menu is gone
+
+Mike: *"don't give them choices here, make them try mistakes again, then next one they auto
+move on."*
+
+Recall used to end on a card offering three buttons: go to the lesson, retry the ones you
+passed on, or write them all again. That card asked a learner to plan their own remediation,
+which is the one thing they are least equipped to do, and the cheapest button on it was
+always the one that skipped the work.
+
+Now: anything not cleared comes straight back, missed and passed-on together, without being
+asked. When nothing is left, the round moves itself on. **Skipped is no longer a separate
+pile** — it rejoins the loop — so the button says **Come back to this one** rather than "Pass
+on this one", because that is what it does. The tally is two numbers instead of three: from
+memory, and coming back to you.
+
+An item only counts as cleared if it was cleared before the whole query was uncovered, so the
+loop cannot be ended by copying. That rule now also guarantees the celebration at the end is
+earned: the only way out of recall is having actually written all four.
+
+### A bug that came with the six-to-four cut
+
+Mike's screenshot showed **"6 passed on"** under a round of four queries. Saved progress from
+the six-rung build was being restored whole, so indices 4 and 5 came back pointing at rungs
+that no longer exist — and with the new auto-loop, two unclearable items would have meant a
+loop that never empties. Restored recall state is now filtered against the current ladder
+length.
+
 ## Open question for Mike
 
 "Passes on it" is read here as **skips**, not as "got it right". So the buckets are
