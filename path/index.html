@@ -160,6 +160,11 @@
   .wants code{font-size:12.5px}
   .given{margin:8px 0 0;padding-left:20px}
   .given li{margin:0 0 3px}
+  /* The invitation on the covered-up pass. Warm, and it sits where the query would be, so
+     it is read before the first attempt rather than after the first miss. */
+  .tryline{margin:0;padding:12px var(--pad);font-size:15px;line-height:1.5;
+    border-bottom:1px solid var(--line);background:#F0FAF3;color:#14532D}
+  .tryline[hidden]{display:none}
   #query{margin:0;padding:var(--pad);white-space:pre-wrap;word-break:break-word}
   textarea#sql{width:100%;min-height:200px;padding:var(--pad);border:none;
     background:transparent;color:var(--ink);resize:vertical;tab-size:2;white-space:pre}
@@ -537,6 +542,10 @@
         <!-- The columns the answer has to bring back. The check compares the whole table,
              so "which of those songs are country?" is not answerable without them. -->
         <p class="wants" id="wants"></p>
+        <!-- Recall only. Nobody types into a blank editor while they think the page is
+             waiting to catch them out. Say what the deal is before the first try. -->
+        <p class="tryline" id="tryline" hidden>Just try whatever you remember. We help you
+          with every try &mdash; each one uncovers more of the query.</p>
         <pre id="query"></pre>
         <p class="why" id="why"></p>
       </div>
@@ -1029,6 +1038,9 @@ function renderDrill(){
       d.given.map(g => '<li>' + g + '</li>').join('') + '</ul>' : '');
   $('wants').hidden = !want && !d.given;
   $('qhead').textContent = rec ? 'Write it from the question' : 'Type this query';
+  // Only before the first try. Once something is uncovered the pane is showing help rather
+  // than promising it, and a standing invitation over a half-revealed query reads as noise.
+  $('tryline').hidden = !rec;
   $('covernote').hidden = !rec;
   $('copy-q').hidden = rec;                    // nothing to copy, and copying is the enemy
   $('pile').hidden = !rec;
@@ -1063,7 +1075,7 @@ function renderDrill(){
   $('run').classList.add('go');
   $('next').classList.remove('go');
   $('directive-text').textContent = rec
-    ? 'Write the query from the question, then click Run under your editor.'
+    ? 'Type whatever you remember, then click Run under your editor.'
     : last
       ? 'Last one. Type the query, then click Run under your editor. After this the query gets covered up and you write all ' + LAP.drills.length + ' again.'
       : 'Type the whole query, then click Run under your editor.';
@@ -1347,6 +1359,8 @@ function paintPile(){
 function uncover(){
   const d = LAP.drills[at()];
   $('query').innerHTML = coverUp(d.sql, FRACTIONS[Math.min(revealed, 3)]);
+  // The invitation is for the blank pane. Once help is on screen, the help speaks for itself.
+  $('tryline').hidden = revealed > 0;
 }
 
 function judgeRecall(res){
