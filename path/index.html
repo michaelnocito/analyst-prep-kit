@@ -192,7 +192,15 @@
        question, the criteria and the query are the work. The title, the standfirst and the
        stepper's subtitles are orientation you have already read, so they shrink first. */
     h1{font-size:20px}
-    .lead{display:none}
+    /* Only the page standfirst goes. It used to say plain `.lead`, which also matched
+       #win-lead inside the success popup — so on any window under 800px tall (a maximised
+       1366x768 laptop is about 660) every popup silently lost its lead line. That line is
+       where the error explanation lives ("that usually means a text value is missing its
+       quotes", with both spellings), where the wrong-answer difference lives, and where
+       recall says "you had the whole query in front of you, so this one comes back". All
+       of it was in the DOM, read by screen readers, and painted nowhere. The run-007 fix
+       to the error copy looked like it had never shipped. */
+    .shell>.lead{display:none}
     .stepper{gap:6px;margin-top:8px}
     .step{padding:6px 11px;flex-basis:120px}
     .step .s{display:none}
@@ -599,6 +607,10 @@
         <button id="back">&larr; Back</button>
         <button class="fwd" id="next">Next query &rarr;</button>
         <button class="fwd go" id="to-lesson" hidden>Now read why &rarr;</button>
+        <!-- Recall only, and only after a full pass through all four. Before that it is not
+             on the screen, so nobody bails out of a pass they have not done yet. After it,
+             the loop is still the default, but staying in it becomes a choice. -->
+        <button id="move-on" hidden>Move on to the questions &rarr;</button>
       </div>
     </div>
    </div>
@@ -746,7 +758,7 @@ const remember = () => {
       pre: state.pre || [], post: state.post || [],
       // The recall pass has to survive a closed tab too, or someone on round 3 of the
       // missed pile loses the pile and the page tells them they cleared everything.
-      recall: { pool, p, roundNo,
+      recall: { pool, p, roundNo, firstPassDone,
                 cleared: [...cleared], missed: [...missed], skipped: [...skipped] }
     }));
   } catch(e){}
@@ -756,6 +768,13 @@ const remember = () => {
 // sql/index.html celebrate() and showToast(), reused so a right answer feels the same
 // here as it does inside a lesson. Confetti and a toast. No sound, no streak, no score.
 function showToast(msg){
+  // Not while the popup is up. The toast is fixed at bottom:70px in the accent colour at
+  // z-index 1000, which is above the scrim — so on a tall popup it landed inside the
+  // footer, the same teal as the primary button and taller than it, next to "Next query".
+  // Three teal things in the row where the next step lives, one of them not pressable.
+  // The popup already states the verdict in its heading, so the toast was saying it twice
+  // and competing with the one control that matters. The toast predates the popup.
+  if(!$('scrim').hidden) return;
   const t = $('toast');
   t.textContent = msg;
   t.classList.add('show');
@@ -913,6 +932,14 @@ const SECT = {how:'s-how', pretest:'s-pretest', primer:'s-primer', type:'s-type'
               recall:'s-type', lesson:'s-lesson', quiz:'s-quiz', done:'s-done'};
 let booted = false;
 function show(next){
+  // A step key we do not recognise used to hide every section and render a page with a
+  // heading, seven blank chips and no buttons at all — the only things left to click were
+  // the breadcrumb and the footer, every one of which leaves the round. Saved state is the
+  // way in: `if(saved.step) step = saved.step` takes whatever is in localStorage, and this
+  // ladder has already renamed and re-cut its steps once (the six-to-four cut left indices
+  // pointing at rungs that no longer existed). An unknown step now restarts the round,
+  // which loses a bookmark; the old behaviour lost the round.
+  if(!SECT[next]) next = 'how';
   step = next;
   // The resume notice is about the load, not about the round. The first move of this visit
   // retires it.
@@ -1016,6 +1043,7 @@ function renderDrill(){
   // whether it was missed or passed on, and it comes back without being asked. When there is
   // nothing left the round moves itself on to the lesson.
   if(rec && p >= pool.length){
+    firstPassDone = true;                       // every item has now been faced at least once
     const again = [...new Set([...missed, ...skipped])].sort((a, b) => a - b);
     if(again.length){ skipped = new Set(); startRecall(again, roundNo + 1); }
     else return recallDone();
@@ -1077,6 +1105,7 @@ function renderDrill(){
   $('skip').disabled = false;
   $('next').hidden = rec || last;
   $('to-lesson').hidden = rec || !last;
+  $('move-on').hidden = !(rec && firstPassDone);
   // Run is the loud button until the rows match. Nothing is disabled: someone who wants
   // to skip ahead without running can, the same as the drill page.
   $('run').classList.add('go');
@@ -1294,10 +1323,13 @@ $('next').onclick = () => {
 $('back').onclick = () => { if(i > 0){ i--; renderDrill(); } };
 $('to-lesson').onclick = () => show('lesson');
 $('skip').onclick = () => {
-  // Passing is not failing. Its own pile, never the missed loop, offered once at the end.
+  // Not failing, and not an exit either: it rejoins the loop with the missed ones.
   skipped.add(at()); missed.delete(at());
   p++; renderDrill();
 };
+// The way out, once a full pass is behind them. Not styled loud: the loop is still what the
+// round wants, and a learner who has been round twice has earned the right to leave anyway.
+$('move-on').onclick = () => show('quiz');
 $('sql').addEventListener('keydown', e => {
   if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); run(); }
 });
@@ -1314,6 +1346,10 @@ $('copy-q').onclick = () => {
 //   skipped - come back to this one, which now rejoins the loop with the missed ones rather
 //             than sitting in a pile the learner is offered at the end
 let pool = [], p = 0, roundNo = 1, misses = 0, revealed = 0;
+// Set the moment every item has been faced once, whether it was cleared, missed or put off.
+// It is what puts the way out on screen: the loop keeps going by itself, but after one full
+// pass nobody is held in it.
+let firstPassDone = false;
 let cleared = new Set(), missed = new Set(), skipped = new Set();
 if(state.recall){
   const r = state.recall;
@@ -1329,6 +1365,9 @@ if(state.recall){
   cleared = new Set(clean(r.cleared));
   missed  = new Set(clean(r.missed));
   skipped = new Set(clean(r.skipped));
+  // Also true for anyone restored past round 1, so a returning learner does not have to
+  // earn the way out a second time.
+  firstPassDone = !!r.firstPassDone || roundNo > 1;
 }
 
 // The reference result set, computed once at boot by running the reference query itself.
