@@ -16,7 +16,7 @@
      the lesson tab it opens were indistinguishable in a tab strip, which is half of why
      nobody came back. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E7490'/%3E%3Cpath d='M10 8h7a5 5 0 0 1 0 10h-3v6h-4z' fill='%23fff'/%3E%3C/svg%3E">
-<meta name="description" content="One round of the SQL path: a short primer, four typed queries against a real database, the same four again from memory, the Unit 1 lessons, and a four-question check.">
+<meta name="description" content="One round of the SQL path: four questions before you start, six words, four typed queries against a real database, the same four again from memory, the Unit 1 lessons, and the same four questions again.">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="../assets/sqled/sqled.css">
 <!--
@@ -64,11 +64,17 @@
   .desktop-note{display:none;background:#E0F2F7;border:1px solid var(--line);
     border-radius:10px;padding:10px 14px;font-size:14.5px;margin:12px 0 0}
   @media (max-width:980px){ .desktop-note{display:block} }
+  .resume{display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+    background:rgba(14,116,144,.07);border:1px solid rgba(14,116,144,.3);
+    border-radius:10px;padding:10px 14px;margin:12px 0 0}
+  .resume[hidden]{display:none}
+  .resume p{margin:0;font-size:14.5px;flex:1 1 320px}
+  .resume button{padding:8px 12px;min-height:0;font-size:13.5px}
 
   /* The stepper. Four boxes, always visible, so nobody has to guess where the lap goes
      next or how much of it is left. */
   .stepper{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}
-  .step{flex:1 1 180px;background:var(--card);border:1px solid var(--line);
+  .step{flex:1 1 138px;background:var(--card);border:1px solid var(--line);
     border-radius:10px;padding:8px 13px;min-width:0}
   .step[data-state="now"]{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
   .step[data-state="done"]{background:#F0FAF3;border-color:#BBE3C8}
@@ -84,6 +90,21 @@
   .card h2{font-size:20px;margin:0 0 4px}
   .card .sub{color:var(--muted);font-size:14.5px;margin:0 0 14px}
   section[hidden]{display:none}
+
+  /* How this works. The two mock panes stand in the same left/right relationship as the
+     real working screen, so the layout is learned before it is used. */
+  .mini{font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);margin:18px 0 8px}
+  .panes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:700px){ .panes{grid-template-columns:1fr} }
+  .mock{border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:12px 14px}
+  .mocklabel{display:block;font:700 10.5px/1 inherit;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+  .mock b{display:block;font-size:15.5px;margin-bottom:4px}
+  .mock p{margin:0;font-size:14px;color:var(--muted)}
+  .howlist{margin:0;padding-left:22px}
+  .howlist li{margin:0 0 6px;font-size:14.5px}
+  .howlist b{font-weight:600}
 
   /* Primer: six lines, one idea each, nothing to click but Start typing. */
   /* Two columns on a desktop so Start typing clears the fold. Run 007 found it 116px
@@ -415,9 +436,53 @@
   <p class="lead">Six words, four typed queries, the same four from memory, the lessons, four questions. About twenty minutes.</p>
   <p class="desktop-note"><strong>Made for a desktop.</strong> The queries get long, and a keyboard makes this a lot better.</p>
 
+  <!-- Only on a return visit. The round remembers where you were, which is right, but it
+       used to do it silently: you landed in the middle with green ticks on steps you had
+       not done this visit, and the ones you skipped past looked broken rather than
+       finished. Say it, and offer the way back to the start. -->
+  <div class="resume" id="resume" hidden>
+    <p id="resume-line"></p>
+    <button id="restart">Start the round over</button>
+  </div>
+
   <div class="stepper" id="stepper"></div>
 
-  <!-- STEP 1 ─ WHERE YOU ARE NOW ──────────────────────────────────────────── -->
+  <!-- STEP 1 ─ HOW THIS WORKS ─────────────────────────────────────────────── -->
+  <!-- Mike, 2026-08-01: the first screen tells them how it works before it asks them for
+       anything. Two things, in this order: how the working screen is laid out (what to type
+       on the left, where you type it on the right), and what the whole round is going to do
+       to them, step by step. Nobody should meet a two-pane editor for the first time while
+       also being asked a question. -->
+  <section id="s-how">
+    <div class="card">
+      <h2>How this works</h2>
+      <p class="sub">One round of SQL, about twenty minutes. Read this once and the rest of
+        it will not surprise you.</p>
+
+      <h3 class="mini">The working screen</h3>
+      <div class="panes">
+        <div class="mock">
+          <span class="mocklabel">On the left</span>
+          <b>What to type</b>
+          <p>The question in plain English, what the answer has to bring back, and the query
+            itself. Later on the query gets covered up and you write it yourself.</p>
+        </div>
+        <div class="mock">
+          <span class="mocklabel">On the right</span>
+          <b>Where you type it</b>
+          <p>A real editor on a real database of 500 songs. Press Run and you get real rows
+            back, not a tick. Every table and column is listed under it.</p>
+        </div>
+      </div>
+
+      <h3 class="mini">What happens, in order</h3>
+      <ol class="howlist" id="how-list"></ol>
+
+      <p style="margin:16px 0 0"><button class="go" id="to-pretest">Start</button></p>
+    </div>
+  </section>
+
+  <!-- STEP 2 ─ WHERE YOU ARE NOW ──────────────────────────────────────────── -->
   <!-- The same four questions the round ends on, asked before anything is taught. Two jobs:
        it shows the learner what this round is about before they spend twenty minutes on it,
        and it gives the finish card something true to compare against.
@@ -425,7 +490,7 @@
        Nothing is marked here and no answer is revealed. If the right answers were shown now,
        the check at the end would measure who remembered a reveal rather than who learned
        the material, and the comparison would be worthless. -->
-  <section id="s-pretest" hidden>
+  <section id="s-pretest" hidden data-was-first>
     <div class="card">
       <h2>Where you are right now</h2>
       <p class="sub">Four questions, before anything is taught. Nothing is marked and no
@@ -647,7 +712,7 @@
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
 
-let db = null, i = 0, step = 'pretest';
+let db = null, i = 0, step = 'how';
 let ed = { getValue: () => $('sql').value, setValue: v => { $('sql').value = v; },
            focus: () => $('sql').focus({preventScroll:true}), refresh: () => {} };
 
@@ -775,18 +840,35 @@ document.addEventListener('keydown', e => {
 
 // ── the stepper and which section is on screen ──────────────────────────────
 const STEPS = [
-  {key:'pretest', t:'Before',    s:'four questions, unmarked'},
-  {key:'primer',  t:'Primer',    s:'the six words'},
-  {key:'type',    t:'Type',      s:'four real queries'},
-  {key:'recall',  t:'Recall',    s:'the same four, blank'},
-  {key:'lesson',  t:'Lesson',    s:'why it worked'},
-  {key:'quiz',    t:'After',     s:'the same four questions'},
+  {key:'how',     t:'How it works', s:'read this once',
+   does:'What the screen looks like and what the round is going to ask of you.'},
+  {key:'pretest', t:'Before',    s:'four questions, unmarked',
+   does:'Four questions before anything is taught, so you can see what this is about. Nothing is marked.'},
+  // "Primer" was ours, not the learner's and not the profession's — the insider-word sweep
+  // (REAL_TEST.md 5a) should have caught it and did not. Mike, reading his own page: "wth is
+  // primer". It is six words, so it says six words.
+  {key:'primer',  t:'Six words', s:'just enough to start',
+   does:'Six short lines. Only enough to type the first query without guessing.'},
+  {key:'type',    t:'Type',      s:'four real queries',
+   does:'Four queries, each one the last plus one new thing. The query is on the left; you type it on the right and run it.'},
+  {key:'recall',  t:'Recall',    s:'the same four, blank',
+   does:'The same four, with the query covered up. Get one wrong and more of it uncovers. Anything you miss comes back until you have it.'},
+  {key:'lesson',  t:'Lesson',    s:'why it worked',
+   does:'Four short reads explaining what you just typed. They happen here, on this page.'},
+  {key:'quiz',    t:'After',     s:'the same four questions',
+   does:'The four questions from the start, again. Then the round shows you what changed.'},
 ];
-const ORDER = ['pretest','primer','type','recall','lesson','quiz','done'];
+const ORDER = ['how','pretest','primer','type','recall','lesson','quiz','done'];
+
+// The running order, written from the steps themselves so the promise and the round cannot
+// drift apart. The first step is not in its own list.
+$('how-list').innerHTML = STEPS.slice(1)
+  .map(s => '<li><b>' + esc(s.t) + '.</b> ' + esc(s.does) + '</li>').join('');
 
 // Run 007: the bar named buttons that were below the fold, so it sent someone hunting for
 // a control it had not said was further down. Each line now says where the control is.
 const DIRECTIVE = {
+  how:     'Read this once, then click Start at the bottom.',
   pretest: 'Answer all four. Guess where you have to — nothing here is marked.',
   primer: 'Read the six lines, then click Start typing at the end of them.',
   lesson: 'Read this one, then click Next read at the bottom.',
@@ -812,11 +894,15 @@ function paintStepper(){
 
 // Type and recall are the SAME section. Recall is this screen with the query covered up,
 // not a second layout, so it shares every element on it.
-const SECT = {pretest:'s-pretest', primer:'s-primer', type:'s-type', recall:'s-type',
-              lesson:'s-lesson', quiz:'s-quiz', done:'s-done'};
+const SECT = {how:'s-how', pretest:'s-pretest', primer:'s-primer', type:'s-type',
+              recall:'s-type', lesson:'s-lesson', quiz:'s-quiz', done:'s-done'};
+let booted = false;
 function show(next){
   step = next;
-  ['s-pretest','s-primer','s-type','s-lesson','s-quiz','s-done']
+  // The resume notice is about the load, not about the round. The first move of this visit
+  // retires it.
+  if(booted) $('resume').hidden = true;
+  ['s-how','s-pretest','s-primer','s-type','s-lesson','s-quiz','s-done']
     .forEach(id => { $(id).hidden = id !== SECT[step]; });
   paintStepper();
   if(step === 'type' || step === 'recall') renderDrill();
@@ -867,6 +953,7 @@ $('pre-list').querySelectorAll('.opt').forEach(b => {
 });
 paintPre();
 $('to-primer').onclick = () => show('primer');
+$('to-pretest').onclick = () => show('pretest');
 
 // ── step 2: primer ──────────────────────────────────────────────────────────
 $('primer-list').innerHTML = LAP.primer
@@ -1615,6 +1702,31 @@ $('again-blind').onclick = () => {
   show('recall');
 };
 
+// ── returning visit ─────────────────────────────────────────────────────────
+// Shown once, on load, and only when the saved position is past the first step. Without it
+// a return visit lands mid-round with ticks on steps this visit never did, and whatever it
+// skipped past reads as broken rather than done.
+function paintResume(){
+  const at = ORDER.indexOf(step);
+  if(at <= 0){ $('resume').hidden = true; return; }
+  const here = (STEPS.find(s => s.key === step) || {}).t ||
+    (step === 'done' ? 'the finish card' : step);
+  $('resume-line').innerHTML = 'Picking up where you left off, at <b>' + esc(here) +
+    '</b>. The steps behind it are ticked from last time, not from this visit.';
+  $('resume').hidden = false;
+}
+$('restart').onclick = () => {
+  try { localStorage.removeItem(KEY); } catch(e){}
+  location.reload();
+};
+// Any first action of the visit retires it, not only a step change. Pressing Next inside
+// the typing step never calls show(), so the notice used to sit there for the rest of the
+// round telling someone about a load they had long since moved on from.
+document.addEventListener('click', e => {
+  if($('resume').hidden || $('resume').contains(e.target)) return;
+  $('resume').hidden = true;
+}, true);
+
 // ── boot ────────────────────────────────────────────────────────────────────
 paintStepper();
 initSqlJs({locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/' + f})
@@ -1636,7 +1748,9 @@ initSqlJs({locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.
       schema, onRun: run,
       onReady: h => { ed = h; if(step === 'type' || step === 'recall') renderDrill(); }
     });
+    paintResume();                 // before show(), which is what moves off the saved step
     show(step);
+    booted = true;
   })
   .catch(e => { $('adds').textContent = 'The SQL engine failed to load: ' + e.message; });
 </script>

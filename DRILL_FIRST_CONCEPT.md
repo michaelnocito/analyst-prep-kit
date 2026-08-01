@@ -353,6 +353,34 @@ Swept the whole round after the change: zero out-of-app destinations on any acti
 on any of the six steps. The footer credits and the breadcrumb still link out, and stay:
 those are content, read and taken or not.
 
+## "Wth is primer" (2026-08-01)
+
+Three things came out of Mike reading his own step 1.
+
+**"Primer" was ours.** Not the learner's word, not the profession's. The insider-word sweep
+(REAL_TEST.md 5a) exists precisely for this and did not catch it, because it reads as an
+ordinary English word. The step is six lines long, so it is called **Six words**.
+
+**It looked like it was always skipped and always green.** It was not being skipped. The
+round remembers where you left off, which is right, but it did it silently: a return visit
+landed mid-round with ticks on steps this visit never did, and whatever it had jumped past
+read as broken rather than finished. There is now a line at the top on a returning visit,
+naming the step it resumed at, saying the ticks behind it are from last time, and offering
+**Start the round over**. Any first action of the visit retires it — the first version only
+retired on a step change, so pressing Next inside the typing step left it sitting there.
+
+**The first screen now explains how it works.** Mike: *"first screen should tell them how it
+works, that's step 1: you will see what to type on the left, you type on the right, then this
+then this."* Step 1 is **How it works**, and it does two things before asking for anything:
+shows the left/right split of the working screen as two labelled panes in the same
+arrangement as the real thing, then lists what every remaining step will do.
+
+The running order on that screen is generated from the step definitions themselves, so the
+promise and the round cannot drift apart. Adding a step writes its own line.
+
+The round is seven steps: **How it works → Before → Six words → Type → Recall → Lesson →
+After.**
+
 ## Open question for Mike
 
 "Passes on it" is read here as **skips**, not as "got it right". So the buckets are
