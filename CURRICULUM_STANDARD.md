@@ -193,10 +193,10 @@ read and what you hear are the same thing.**
 **Status: on hold for Mike's review.** Live on two pages only. No rollout to the kits
 until he has listened and said go.
 
-## Standing rule — Success is a popup (added 2026-08-01, Mike)
+## Standing rule — A checked answer is a popup (added 2026-08-01, Mike)
 
-**When a learner gets something right, it opens a popup. It is not a line of text further
-down the page.**
+**When a learner's answer gets checked, the outcome opens a popup. It is not a line of text
+further down the page. Right and wrong both.**
 
 The popup carries four things and nothing else:
 
@@ -221,6 +221,25 @@ Rules the popup obeys:
 - **It replaces the trip down the page.** This is what the rule is for: the result used to
   live below the editor, below the fold, and a first-timer clicked forward without reading
   one row. The rows come to them now.
+
+**A wrong answer gets the same popup.** Same shape, same result table, same single button.
+What changes is the colour, the words, and where the button goes:
+
+| | Right | Wrong |
+|---|---|---|
+| Heading | What they achieved | What is different about it |
+| Result shown | The result they produced | The result they produced |
+| Celebration | Confetti and toast | Neither |
+| Button | **Continue** — starts the next action | **Try again** — closes and puts the cursor back in the editor |
+
+The reason they are symmetric: a wrong answer that only writes a line below the fold is the
+quiet outcome, and quiet reads as nothing happened. The learner needs to see what their own
+work actually returned — not the right answer, *theirs* — because that is the repair.
+
+**Say what the answer has to contain.** A business question does not name its columns, and a
+result comparison checks all of them. Any surface that checks a whole result must state what
+to bring back, and that statement must be read off the reference result rather than written
+by hand, so it cannot disagree with the check.
 
 Where it applies: any checked answer that produces a result — a query, a formula, a computed
 statistic, a completed quiz. Not micro-interactions like a single multiple-choice pick inside

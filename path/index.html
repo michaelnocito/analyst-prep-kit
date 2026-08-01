@@ -131,6 +131,12 @@
     text-transform:uppercase;color:var(--accent);margin-bottom:6px}
   .why{margin:0;padding:12px var(--pad);font-size:14px;color:var(--muted);
     border-top:1px solid var(--line)}
+  /* Which columns to bring back. Part of the question, not a hint, so it sits with the
+     question rather than under the code. */
+  .wants{margin:0;padding:10px var(--pad);font-size:14.5px;
+    background:rgba(14,116,144,.07);border-bottom:1px solid var(--line)}
+  .wants b{font-weight:600}
+  .wants code{font-size:12.5px}
   #query{margin:0;padding:var(--pad);white-space:pre-wrap;word-break:break-word}
   textarea#sql{width:100%;min-height:246px;padding:var(--pad);border:none;
     background:transparent;color:var(--ink);resize:vertical;tab-size:2;white-space:pre}
@@ -325,6 +331,9 @@
   @media (prefers-reduced-motion:reduce){ .win{animation:none} }
   .win header{padding:18px var(--pad) 0}
   .win h2{margin:0;font-size:21px;color:var(--ok)}
+  /* A wrong answer gets the same popup, the same result table and the same one button.
+     Only the colour and the words on the button change. */
+  .win.no h2{color:var(--no)}
   .win .lead{margin:6px 0 0;font-size:15px}
   .win .body{padding:14px var(--pad);overflow:auto;font:13px/1.6 var(--mono)}
   .win .body table{border-collapse:collapse;font-size:12.5px}
@@ -386,6 +395,9 @@
           <span class="note" id="covernote" hidden>Covered up &middot; a miss uncovers more</span>
         </div>
         <p class="question" id="question"></p>
+        <!-- The columns the answer has to bring back. The check compares the whole table,
+             so "which of those songs are country?" is not answerable without them. -->
+        <p class="wants" id="wants"></p>
         <pre id="query"></pre>
         <p class="why" id="why"></p>
       </div>
@@ -515,7 +527,7 @@
 
 <!-- The success popup. One per page, filled in by winPopup(). -->
 <div class="scrim" id="scrim" hidden>
-  <div class="win" role="dialog" aria-modal="true" aria-labelledby="win-title">
+  <div class="win" id="win" role="dialog" aria-modal="true" aria-labelledby="win-title">
     <header>
       <h2 id="win-title"></h2>
       <p class="lead" id="win-lead"></p>
@@ -612,9 +624,13 @@ function pop(el){
 // and waits. It never times out and it never auto-advances. One Continue button is the way
 // forward, so the reward and the next action are the same click.
 let winNext = null, winCameFrom = null;
-function winPopup({title, lead, body, label, onContinue, pieces, toast}){
+function winPopup({title, lead, body, label, onContinue, pieces, toast, tone}){
   winNext = onContinue || null;
   winCameFrom = document.activeElement;
+  // A wrong answer opens the same popup: same result table, same one button. Only the
+  // colour and the button's words change, so the two outcomes are read the same way and
+  // nobody has to hunt below the fold for either of them.
+  $('win').classList.toggle('no', tone === 'no');
   $('win-title').textContent = title;
   $('win-lead').innerHTML = lead || '';
   $('win-lead').hidden = !lead;
@@ -747,6 +763,15 @@ function renderDrill(){
     : 'Round ' + roundNo + ' · ' + (p + 1) + ' of ' + pool.length;
   $('adds').textContent = d.adds;
   $('question').innerHTML = '<span>The question</span>' + esc(d.q);
+  // Read off the reference result, never written down, so it cannot disagree with the check.
+  // A business question does not name its columns, and the check compares the whole table:
+  // without this line "which of those songs are country?" has no single right answer.
+  const want = refRows[idx];
+  $('wants').innerHTML = want
+    ? '<b>Bring back:</b> ' + want.columns.map(c => '<code>' + esc(c) + '</code>').join(', ') +
+      (want.values.length === 1 ? ' &middot; one row' : '')
+    : '';
+  $('wants').hidden = !want;
   $('qhead').textContent = rec ? 'Write it from the question' : 'Type this query';
   $('covernote').hidden = !rec;
   $('copy-q').hidden = rec;                    // nothing to copy, and copying is the enemy
@@ -892,11 +917,23 @@ function run(){
     // help is wanted, so it uncovers. Nothing on this screen tells someone to compare their
     // query against a reference query, because the reference query is under the covers.
     if(inRecall()) return missRecall('<span class="no">That query did not run.</span> ' + guess,
-      '<span class="hint">The database reported: ' + esc(msg) + '</span>');
+      '<span class="hint">The database reported: ' + esc(msg) + '</span>',
+      {title: 'That query did not run', lead: guess,
+       body: '<p class="note">The database reported: ' + esc(msg) + '</p>'});
     $('verdict').className = '';
     $('verdict').innerHTML = '<span class="no">That query did not run.</span> ' + guess +
       '<br><span class="hint">The database reported: ' + esc(msg) + '</span>';
-    $('directive-text').textContent = 'Fix the line the message points at, then click Run again.';
+    $('directive-text').textContent = 'Read what went wrong, then click Try again.';
+    winPopup({
+      tone: 'no',
+      title: 'That query did not run',
+      lead: guess,
+      body: '<p class="note">The database reported: ' + esc(msg) + '</p>',
+      label: 'Try again',
+      onContinue: () => ed.focus(),
+      toast: false,
+      pieces: 0
+    });
     return;
   }
   $('out').innerHTML = table(res);
@@ -910,6 +947,24 @@ function run(){
     (got === want ? answerLine(res) : '');
   // Right answer: the kits' confetti, and the loud button moves from Run to the way out,
   // so the next click is the one the hand is already heading for.
+  if(got !== want){
+    // Wrong on the typing pass gets the same popup too. The reference query is on screen
+    // here, so the repair is a line-by-line comparison rather than a hint.
+    $('directive-text').textContent = 'Read what came back, then click Try again.';
+    winPopup({
+      tone: 'no',
+      title: 'Not the same rows',
+      lead: 'You got ' + got + (got === 1 ? ' row' : ' rows') + '; the query on the left returns ' +
+        want + '. ' + (got > want ? 'Something is not being filtered out.'
+                                  : 'Something is filtering too much.'),
+      body: '<p class="note">Read your query against the one on the left, one line at a ' +
+        'time. What came back:</p>' + table(res),
+      label: 'Try again',
+      onContinue: () => ed.focus(),
+      toast: false,
+      pieces: 0
+    });
+  }
   if(got === want){
     const last = i === LAP.drills.length - 1;
     const fwd = last ? $('to-lesson') : $('next');
@@ -1070,28 +1125,44 @@ function judgeRecall(res){
   } else {
     diff = 'Same shape, different contents. The values or the sort order are not matching.';
   }
-  missRecall('<span class="no">Not the same table.</span> ' + diff);
+  missRecall('<span class="no">Not the same table.</span> ' + diff, null, {
+    title: 'Not the same table',
+    lead: diff,
+    // Their rows, not the answer's. Seeing what they actually asked for is the repair.
+    body: '<p class="note">What your query returned:</p>' + table(res)
+  });
 }
 
 // One miss, however it went wrong. A query that will not run and a query that runs and
 // gives the wrong table are the same event here: you did not have it, so more of it gets
 // uncovered. Half, three quarters, all of it.
-function missRecall(html, footnote){
+function missRecall(html, footnote, opts){
   misses++;
   missed.add(at());
   revealed = Math.min(misses, 3);
   uncover();
-  $('verdict').className = '';
-  $('verdict').innerHTML = html + ' ' +
-    (misses === 1 ? 'Half the query is uncovered on the left.'
+  const helped = misses === 1 ? 'Half the query is uncovered on the left.'
      : misses === 2 ? 'Three quarters of it is uncovered now.'
-     : 'All of it is uncovered now. Type it out; it never goes into the editor for you.') +
-    // The engine's own words go last. They are the least useful line on the screen and they
-    // must never sit between the explanation and the help.
-    (footnote ? '<br>' + footnote : '');
+     : 'All of it is uncovered now. Type it out; it never goes into the editor for you.';
+  $('verdict').className = '';
+  // The engine's own words go last. They are the least useful line on the screen and they
+  // must never sit between the explanation and the help.
+  $('verdict').innerHTML = html + ' ' + helped + (footnote ? '<br>' + footnote : '');
   $('directive-text').textContent = 'Read the left pane, fix your query, then click Run again.';
   paintPile();
   remember();
+  // Same popup as a right answer, so a wrong one is not the quiet outcome. It carries what
+  // their query actually returned, what is different about it, and what just got uncovered.
+  winPopup({
+    tone: 'no',
+    title: (opts && opts.title) || 'Not the same table',
+    lead: (opts && opts.lead) || '',
+    body: '<p class="note">' + helped + '</p>' + ((opts && opts.body) || ''),
+    label: 'Try again',
+    onContinue: () => ed.focus(),
+    toast: false,
+    pieces: 0
+  });
 }
 
 function paintRecallSummary(){
