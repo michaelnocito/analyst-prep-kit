@@ -232,6 +232,13 @@ p strong{color:var(--text)}
 
 /* FILLS */
 .fill-prompt{font-size:17px;line-height:1.55;color:var(--text);font-weight:500;margin-bottom:10px}
+.fill-input{width:100%;box-sizing:border-box;font-family:var(--mono);font-size:15px;padding:11px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:var(--surf2);color:var(--text)}
+.fill-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,109,240,.15)}
+/* Check and Next share one row, so the advance control is already on screen
+   the moment the answer lands. Nothing that grows after the press pushes it. */
+.fill-action-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+.fill-help{color:var(--text);font-size:13px;line-height:1.55;background:rgba(212,160,64,.12);border:1px solid rgba(212,160,64,.3);border-radius:6px;padding:9px 12px}
+.fill-reveal{font-family:var(--mono);font-size:14px;background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:8px 11px;margin:7px 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .fill-partial{font-family:var(--mono);font-size:14px;background:var(--surf2);border:1px solid var(--border);border-radius:var(--r2);padding:12px 16px;margin-bottom:16px;white-space:pre;overflow-x:auto}
 
 /* BUGS */
@@ -3141,15 +3148,18 @@ function renderFill(idx){
       <p class="fill-prompt">${f.q}</p>
       <div class="fill-partial">${f.partial}</div>
       ${drillTablesNote(f.partial)}
-      <p class="drill-instruction" style="margin-top:12px">Tap the piece that fills the blank:</p>
-      <div id="fillChoices" style="display:flex;flex-direction:column;gap:8px">
-        ${_shuf(f.choices).map(c=>`<button class="bug-choice${done&&c===f.choices[0]?' is-answered':''}" data-correct="${c===f.choices[0]?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:rgba(47,109,240,.08);color:var(--accent);font-family:var(--mono);font-size:14px;font-weight:600;cursor:pointer" onclick="pickFill(this,${idx})" ${done?'disabled':''}>${c}</button>`).join('')}
+      <p class="drill-instruction" style="margin-top:12px">Type the piece that fills the blank:</p>
+      <input id="fillInput" class="fill-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+        placeholder="type your answer here" value="${done?_escAttr(f.ans):''}"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();checkFill(${idx})}">
+      <div class="fill-action-row">
+        <button class="btn btn-primary btn-sm" onclick="checkFill(${idx})">Check</button>
+        <span id="fill-next">${done?_fillAdvance(idx):''}</span>
       </div>
-      <div id="fill-result" class="mt">${done?_answeredNote('fillChoices','fill-result'):''}</div>
+      <div id="fill-result" class="mt">${done?_fillAnsweredNote():''}</div>
       <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button>
       <div class="hint-panel" id="drill-hint"></div>
       <div class="answer-panel" id="drill-answer"></div>
-      <div id="fill-next" class="mt">${done?_fillAdvance(idx):''}</div>
     </div>`;
   if(guided) return body;
   document.getElementById('main').innerHTML = `
@@ -3159,7 +3169,11 @@ function renderFill(idx){
     </div>` + body;
 }
 
-// Fill in the Blank — tap the correct piece (no free typing).
+// Fill in the Blank — the learner types the missing piece. Typing it is the
+// rep, so there are no choice buttons to tap and no answer is ever pasted in
+// for them at the end. Help escalates on wrong attempts: miss 1 → first half
+// of the answer typed into the box, miss 2 → three quarters, miss 3 → the
+// whole answer shown and the box cleared so they type it out themselves.
 // In guided mode the shell's uniform bottom nav is the advance control.
 function _fillAdvance(idx){
   return guided
@@ -3171,22 +3185,74 @@ function _fillAdvance(idx){
 // Drills reached from the guided path belong to that lesson; standalone
 // practice has no lesson to file the miss against, so it records nothing.
 function _drillLesson(){ return guided && guided.lessonId!=null ? guided.lessonId : null; }
-function pickFill(btn, idx){
+// Wrong-attempt counter per fill id, so the scaffold escalates across tries
+// within a sitting. A correct answer resets it — the next visit starts clean.
+let _fillAttempts = {};
+function _escHTML(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _escAttr(s){ return _escHTML(s).replace(/"/g,'&quot;'); }
+// Compare on meaning, not keystrokes: case and run-length of whitespace never
+// change what SQL does, and a trailing semicolon on a fragment is harmless.
+function _normFill(s){ return String(s==null?'':s).trim().replace(/\s+/g,' ').replace(/;+$/,'').trim().toLowerCase(); }
+// Fills a fraction of the answer into the box and reports whether it managed
+// to leave anything to type. Some answers here are a single character ("=") or
+// three ("ASC"), where half rounds up to the whole thing — that is a giveaway,
+// not a scaffold, so the caller falls back to the hint instead.
+function _fillPrefill(ans, frac){
+  const inp = document.getElementById('fillInput');
+  const s = String(ans);
+  if(!inp || s.length < 2) return false;
+  const n = Math.min(s.length - 1, Math.max(1, Math.round(s.length * frac)));
+  inp.value = s.slice(0, n);
+  inp.focus();
+  try{ inp.setSelectionRange(inp.value.length, inp.value.length); }catch(e){}
+  return true;
+}
+function _fillAnsweredNote(){
+  return `<span style="color:var(--green);font-weight:600">✓ You've answered this one — the answer is in the box.</span>
+    <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="retryFill()">Try again</button>`;
+}
+function retryFill(){
+  const inp = document.getElementById('fillInput');
+  if(inp){ inp.value = ''; inp.focus(); }
+  const res = document.getElementById('fill-result'); if(res) res.innerHTML = '';
+}
+function checkFill(idx){
   const f = DATA.FILLS[idx];
+  const inp = document.getElementById('fillInput');
   const res = document.getElementById('fill-result');
-  if(btn.dataset.correct === '1'){
-    btn.style.background='var(--green,#1a7f37)'; btn.style.color='#fff'; btn.style.borderColor='var(--green,#1a7f37)';
-    document.querySelectorAll('#fillChoices .bug-choice').forEach(x=>x.disabled=true);
+  if(!f || !inp || !res) return;
+  if(!_normFill(inp.value)){
+    res.innerHTML = `<span class="text-muted">Type your answer in the box, then press Check.</span>`;
+    inp.focus();
+    return;
+  }
+  if(_normFill(inp.value) === _normFill(f.ans)){
+    _fillAttempts[f.id] = 0;
     res.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Correct!</span>`;
     _appendFillResult(f, res);
     celebrate();
     markDone('doneFills', f.id);
-    document.getElementById('fill-next').innerHTML = _fillAdvance(idx);
-  } else {
-    recordMiss(_drillLesson(), f.q);
-    btn.style.background='rgba(207,34,46,.12)'; btn.style.borderColor='var(--red,#cf222e)'; btn.style.color='var(--red,#cf222e)'; btn.style.opacity='.8'; btn.disabled=true;
-    res.innerHTML = `<span style="color:var(--red)">Not quite — try another, or use the hint.</span>`;
+    const nx = document.getElementById('fill-next');
+    if(nx) nx.innerHTML = _fillAdvance(idx);
+    return;
   }
+  recordMiss(_drillLesson(), f.q);
+  const att = (_fillAttempts[f.id] || 0) + 1;
+  _fillAttempts[f.id] = att;
+  let help;
+  if(att === 1){
+    help = _fillPrefill(f.ans, 0.5)
+      ? `Not quite. I've typed the <strong>first half</strong> into the box — finish it and Check again.`
+      : `Not quite — this answer is too short to give you half of it, so here's the hint instead: ${f.hint}`;
+  } else if(att === 2){
+    help = _fillPrefill(f.ans, 0.75)
+      ? `Still off. Now <strong>three quarters</strong> is in the box — finish it and Check again.`
+      : `Still off. ${f.hint}`;
+  } else {
+    inp.value = ''; inp.focus();
+    help = `Here's the whole answer:<div class="fill-reveal">${_escHTML(f.ans)}</div>Type it out yourself in the empty box and Check. Typing it is the part that sticks.`;
+  }
+  res.innerHTML = `<div class="fill-help">${help}</div>`;
 }
 // ─── BUG DRILL ─────────────────────────────────────────────────────────────
 function renderBug(idx){
@@ -4254,9 +4320,10 @@ async function renderLabJoin(){
 }
 
 // ─── JOIN CHALLENGES: progressive scaffold, no hint button ─────────────────
-// Each wrong Run escalates: miss 1 fills the first third of the answer into the
-// editor + a first guidance line; miss 2 fills two thirds + another line; miss 3
-// drops in the full answer. The grey help block under each terminal is persistent
+// Each wrong Run escalates on the kit-wide ladder: miss 1 fills the first half
+// of the answer into the editor + a first guidance line; miss 2 fills three
+// quarters + another line; miss 3 shows the whole query without pasting it, so
+// it gets typed out. The grey help block under each terminal is persistent
 // and grows one line per miss. A correct answer resets that challenge's counter.
 let _jcAttempts = {}, _jcHelp = {};
 
@@ -4297,16 +4364,15 @@ function runJoinChallenge(i){
   const att = (_jcAttempts[i] || 0) + 1; _jcAttempts[i] = att;
   const log = _jcHelp[i] || (_jcHelp[i] = []);
   if(att === 1){
-    log.push(`<strong>Try 1.</strong> ${t.hint} <span style="opacity:.85">(I filled the opening of the query in above — build on it.)</span>`);
-    _labFillPartial('jc-editor-'+i, t.answer, 1/3);
+    log.push(`<strong>Try 1.</strong> ${t.hint} <span style="opacity:.85">(I filled the first half of the query in above — build on it.)</span>`);
+    _labFillPartial('jc-editor-'+i, t.answer, 0.5);
   } else if(att === 2){
-    log.push(`<strong>Try 2.</strong> Closer. I filled more of the query in above — carry on from where it stops. ${err ? 'Your last run had a syntax error, so check the SQL keywords.' : 'Compare your rows against what the prompt asks for.'}`);
-    _labFillPartial('jc-editor-'+i, t.answer, 2/3);
+    log.push(`<strong>Try 2.</strong> Closer. Three quarters of the query is in the editor now — carry on from where it stops. ${err ? 'Your last run had a syntax error, so check the SQL keywords.' : 'Compare your rows against what the prompt asks for.'}`);
+    _labFillPartial('jc-editor-'+i, t.answer, 0.75);
   } else if(att === 3){
-    log.push(`<strong>Try 3 — here's the full answer.</strong> Run it, then read it line by line against the prompt. ${t.note}`);
-    if(editor){ editor.value = t.answer; editor.focus(); }
+    log.push(`<strong>Try 3.</strong> ${_labRevealAnswer(t.answer)} ${t.note}`);
   } else {
-    log.push(`<strong>The full answer is in the editor.</strong> Run it and compare it with what you had.`);
+    log.push(`<strong>The answer is above.</strong> Type it out and Run it, then compare it with what you had.`);
   }
 
   const head = err
@@ -4338,10 +4404,17 @@ function toggleJoinSchema(){
 }
 
 // ─── SHARED LAB RUN + PROGRESSIVE SCAFFOLD ─────────────────────────────────
-// Wrong-attempt counter per "<kind><taskIdx>" so each task escalates help
-// the same way the Parsons drill does: miss 1 → auto-hint, miss 2 → first
-// half of the answer filled in, miss 3 → full answer filled in.
+// Wrong-attempt counter per "<kind><taskIdx>". One ladder across the whole
+// kit, the same one the Fill drill uses: miss 1 → hint plus the first half of
+// the answer filled in, miss 2 → three quarters, miss 3 → the whole answer
+// shown but never pasted into the editor, because typing it out is the rep.
 let _labAttempts = {};
+
+// The last rung, shared by every lab runner. Shows the answer, leaves the
+// editor alone, and asks for it to be typed.
+function _labRevealAnswer(answer){
+  return `<strong>Here's the whole query:</strong><div class="fill-reveal">${_escHTML(answer)}</div>Type it out in the editor yourself, then Run it. Typing it is the part that sticks.`;
+}
 
 function _labOpenHint(kind){
   if(kind==='join') _joinHintOpen = true; else _aggHintOpen = true;
@@ -4384,14 +4457,13 @@ function _runLabQuery(kind, taskIdx){
     let help;
     if(att === 1){
       _labOpenHint(kind);
-      help = `Not quite — ${syntaxErrMsg ? 'your query had a syntax error' : 'no rows returned'}. <i data-lucide="lightbulb" style="width:14px;height:14px;vertical-align:-2px"></i> <strong>Hint opened below</strong> — adjust and Run again.`;
-    } else if(att === 2){
       _labFillPartial(cfg.editor, cfg.arr[taskIdx].answer, 0.5);
-      help = `Still off — I filled in the <strong>first half</strong> of the query for you. Finish it and Run again.`;
+      help = `Not quite — ${syntaxErrMsg ? 'your query had a syntax error' : 'no rows returned'}. <i data-lucide="lightbulb" style="width:14px;height:14px;vertical-align:-2px"></i> <strong>Hint opened below</strong>, and I filled in the <strong>first half</strong> of the query. Finish it and Run again.`;
+    } else if(att === 2){
+      _labFillPartial(cfg.editor, cfg.arr[taskIdx].answer, 0.75);
+      help = `Still off — now <strong>three quarters</strong> of the query is in the editor. Finish it and Run again.`;
     } else {
-      const ed = document.getElementById(cfg.editor);
-      if(ed){ ed.value = cfg.arr[taskIdx].answer; ed.focus(); }
-      help = `<strong>Full answer filled in</strong> — Run it to see the target result, then compare it line-by-line with the prompt.`;
+      help = _labRevealAnswer(cfg.arr[taskIdx].answer);
     }
     const head = syntaxErrMsg
       ? `<div style="color:var(--red);font-family:var(--mono);font-size:12px;margin-bottom:8px">Error: ${syntaxErrMsg}</div>`
@@ -4431,14 +4503,13 @@ function _runLabQuery(kind, taskIdx){
   let help;
   if(att === 1){
     _labOpenHint(kind);
-    help = `Not quite — your result doesn't match the target yet. <i data-lucide="lightbulb" style="width:14px;height:14px;vertical-align:-2px"></i> <strong>Hint opened below</strong> — adjust and Run again.`;
-  } else if(att === 2){
     _labFillPartial(cfg.editor, t.answer, 0.5);
-    help = `Still off — I filled in the <strong>first half</strong> of the query for you. Finish it and Run again.`;
+    help = `Not quite — your result doesn't match the target yet. <i data-lucide="lightbulb" style="width:14px;height:14px;vertical-align:-2px"></i> <strong>Hint opened below</strong>, and I filled in the <strong>first half</strong> of the query. Finish it and Run again.`;
+  } else if(att === 2){
+    _labFillPartial(cfg.editor, t.answer, 0.75);
+    help = `Still off — now <strong>three quarters</strong> of the query is in the editor. Finish it and Run again.`;
   } else {
-    const ed = document.getElementById(cfg.editor);
-    if(ed){ ed.value = t.answer; ed.focus(); }
-    help = `<strong>Full answer filled in</strong> — Run it to see the target result, then compare it line-by-line with the prompt.`;
+    help = _labRevealAnswer(t.answer);
   }
   results.innerHTML = `${tableHTML}
     <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
