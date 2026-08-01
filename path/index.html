@@ -288,9 +288,9 @@
   .opt.picked-ok{border-color:var(--ok);background:#F0FAF3;color:var(--ok)}
   .opt.picked-no{border-color:var(--no);background:#FDF2F2;color:var(--no)}
   .opt.showans{border-color:var(--ok);color:var(--ok)}
-  .opt.picked-ok::after{content:" — your answer, correct";font-weight:600}
-  .opt.picked-no::after{content:" — your answer, not right";font-weight:600}
-  .opt.showans::after{content:" — the right answer";font-weight:600}
+  .opt.picked-ok::after{content:": your answer, correct";font-weight:600}
+  .opt.picked-no::after{content:": your answer, not right";font-weight:600}
+  .opt.showans::after{content:": the right answer";font-weight:600}
   .opt code{background:transparent;border:none;padding:0}
   .exp{margin:10px 0 0;font-size:14.5px;background:var(--bg);border:1px solid var(--line);
     border-radius:9px;padding:11px 13px}
@@ -408,6 +408,16 @@
   .win .body th{color:var(--muted);background:var(--bg)}
   .win .note{font:14px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
     color:var(--muted);margin:0 0 10px}
+  /* What you just did, and why it matters. The reason the popup is worth stopping for: the
+     rows prove it ran, these two say what it was for. */
+  .win .did{font:15px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    margin:0 0 14px}
+  .win .did h3{font:700 10.5px/1 inherit;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 5px}
+  .win .did p{margin:0 0 12px}
+  .win .did .why{background:rgba(14,116,144,.06);border:1px solid rgba(14,116,144,.3);
+    border-radius:9px;padding:11px 13px;margin:0}
+  .win .did .why h3{color:var(--accent)}
   .win footer{padding:0 var(--pad) 18px;display:flex;gap:12px;align-items:center;
     flex-wrap:wrap}
   .win footer .dismiss{color:var(--muted)}
@@ -469,8 +479,8 @@
         <div class="mock">
           <span class="mocklabel">On the left</span>
           <b>What to type</b>
-          <p>The question in plain English, what the answer has to bring back, and the query
-            itself. Later on the query gets covered up and you write it yourself.</p>
+          <p>The question in words, what the answer has to bring back, and the query itself.
+            Later on the query gets covered up and you write it yourself.</p>
         </div>
         <div class="mock">
           <span class="mocklabel">On the right</span>
@@ -499,7 +509,7 @@
     <div class="card">
       <h2>Where you are right now</h2>
       <p class="sub">Four questions, before anything is taught. Nothing is marked and no
-        answers are shown &mdash; this is the map, not a test. You will be asked these same
+        answers are shown. This is the map, not a test. You will be asked these same
         four at the end, and the round will show you what changed.</p>
       <p class="sub" style="margin-bottom:0"><strong>Guessing is fine.</strong> Not knowing
         yet is the whole reason the round exists.</p>
@@ -545,7 +555,7 @@
         <!-- Recall only. Nobody types into a blank editor while they think the page is
              waiting to catch them out. Say what the deal is before the first try. -->
         <p class="tryline" id="tryline" hidden>Just try whatever you remember. We help you
-          with every try &mdash; each one uncovers more of the query.</p>
+          with every try, and each one uncovers more of the query.</p>
         <pre id="query"></pre>
         <p class="why" id="why"></p>
       </div>
@@ -878,7 +888,7 @@ $('how-list').innerHTML = STEPS.slice(1)
 // a control it had not said was further down. Each line now says where the control is.
 const DIRECTIVE = {
   how:     'Read this once, then click Start at the bottom.',
-  pretest: 'Answer all four. Guess where you have to — nothing here is marked.',
+  pretest: 'Answer all four. Guess where you have to. Nothing here is marked.',
   primer: 'Read the six lines, then click Start typing at the end of them.',
   lesson: 'Read this one, then click Next read at the bottom.',
   quiz:   'Answer all four questions. Finish the round is at the bottom, under the last one.',
@@ -954,7 +964,7 @@ function paintPre(){
     : 'Answer all four to start';
   $('directive-text').textContent = all
     ? 'Click Now go and learn it, under the last question.'
-    : 'Answer all four. Guess where you have to — nothing here is marked.';
+    : 'Answer all four. Guess where you have to. Nothing here is marked.';
   remember();
 }
 $('pre-list').querySelectorAll('.opt').forEach(b => {
@@ -1263,8 +1273,12 @@ function run(){
     winPopup({
       cue: 'Read your rows',
       title: last ? 'That is all ' + LAP.drills.length : 'Rows match',
-      lead: answerLine(res) || esc(LAP.drills[i].why),
-      body: '<p class="note">' + esc(LAP.drills[i].why) + '</p>' + table(res),
+      lead: answerLine(res),
+      body: didAndMatters(LAP.drills[i]) +
+        '<p class="note">' + (last
+          ? 'That is the last of them. Next you write all ' + LAP.drills.length +
+            ' again with the query covered up.'
+          : 'What your query returned:') + '</p>' + table(res),
       label: last ? 'Now cover it up →' : 'Next query →',
       onContinue: () => fwd.click(),
       toast: last ? '✓ That is all ' + LAP.drills.length : '✓ Rows match',
@@ -1363,6 +1377,18 @@ function uncover(){
   $('tryline').hidden = revealed > 0;
 }
 
+// What you just did, and why it matters. Built once so both passes say the same thing about
+// the same query, and so a ladder item that has not been given the words yet degrades to the
+// one-line explanation rather than to nothing.
+function didAndMatters(d){
+  const did = d.did || d.why;
+  return '<div class="did">' +
+    '<h3>What you just did</h3><p>' + esc(did) + '</p>' +
+    (d.matters ? '<div class="why"><h3>Why it matters</h3><p style="margin:0">' +
+      esc(d.matters) + '</p></div>' : '') +
+    '</div>';
+}
+
 function judgeRecall(res){
   const idx = at(), want = refRows[idx];
   const got = res.length ? res[res.length - 1] : null;
@@ -1392,9 +1418,10 @@ function judgeRecall(res){
     winPopup({
       cue: 'Read your rows',
       title: honest ? 'You had it' : 'That runs',
-      lead: honest ? esc(LAP.drills[idx].why)
+      lead: honest ? 'You wrote it from memory, with the query covered up.'
         : 'You had the whole query in front of you, so this one comes back in the next round.',
-      body: '<p class="note">' + esc(LAP.drills[idx].q) + '</p>' + table(res),
+      body: didAndMatters(LAP.drills[idx]) +
+        '<p class="note">What your query returned:</p>' + table(res),
       label: 'Next →',
       onContinue: () => $('next').click(),
       toast: honest ? '✓ From memory' : 'Query runs',
@@ -1598,14 +1625,14 @@ $('quiz-list').querySelectorAll('.opt').forEach(b => {
     state.post[n] = k;
     b.classList.add(k === q.ans ? 'picked-ok' : 'picked-no');
     b.setAttribute('aria-label', b.textContent + (k === q.ans
-      ? ' — your answer, correct' : ' — your answer, not right'));
+      ? ': your answer, correct' : ': your answer, not right'));
     if(k === q.ans){ pop(b); showToast('✓ Right'); }
     // A wrong pick shows the right one immediately. Withholding it here would send
     // someone away from the page to find out, which is where they stop coming back.
     if(k !== q.ans){
       const right = $('opts-' + n).children[q.ans];
       right.classList.add('showans');
-      right.setAttribute('aria-label', right.textContent + ' — the right answer');
+      right.setAttribute('aria-label', right.textContent + ': the right answer');
     }
     $('opts-' + n).querySelectorAll('.opt').forEach(x => { x.disabled = true; });
     // The verdict leads the explanation, so it survives read-aloud and colour blindness
@@ -1661,7 +1688,7 @@ function paintBeforeAfter(){
     now > was ? '<span class="up">' + was + ' of ' + LAP.quiz.length + ' before, ' + now +
         ' of ' + LAP.quiz.length + ' after.</span> That is the round doing its job.'
     : now === was && now === LAP.quiz.length
-      ? 'Four of four before and after. You already had Unit 1 — the typing was the part worth doing.'
+      ? 'Four of four before and after. You already had Unit 1, so the typing was the part worth doing.'
     : now === was
       ? was + ' of ' + LAP.quiz.length + ' before and after. The explanations under the questions are where to look next.'
       : was + ' of ' + LAP.quiz.length + ' before, ' + now + ' of ' + LAP.quiz.length +

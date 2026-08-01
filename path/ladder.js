@@ -37,8 +37,12 @@ const LAP = {
     { adds: 'Ask for three columns',
       q: 'What artists, tracks and audience sizes are in the collection?',
       given: ['The table is <code>gem_page</code>',
-              'Every song in the table — nothing filtered out'],
+              'Every song in the table, nothing filtered out'],
       why: 'The skeleton of every query you will ever write: SELECT the columns, FROM the table.',
+      // `did` and `matters` are what the celebration popup carries. What you just did, in
+      // words, and why a working analyst cares. Not a restatement of the syntax.
+      did: 'You pulled three named columns out of a table of 500 songs.',
+      matters: 'Naming the columns you want, instead of asking for all of them, is what makes a query readable to the next person and what stops it breaking when somebody adds a column to the table.',
       sql:
 `SELECT artist, track, listeners
 FROM gem_page;`,
@@ -50,6 +54,8 @@ FROM gem_page;`,
       given: ['The table is <code>gem_page</code>',
               "Country means the <code>genre</code> column is exactly <code>country</code>"],
       why: 'WHERE filters rows. The single quotes are how SQL knows country is text, not a column name.',
+      did: 'You cut 500 songs down to the country ones, and the table told you how many there were.',
+      matters: 'WHERE is the clause you will use more than any other. Almost every question anyone brings you is a filter wearing a business question: this region, this quarter, these customers.',
       sql:
 `SELECT artist, track, listeners
 FROM gem_page
@@ -64,6 +70,8 @@ WHERE genre = 'country';`,
               'Biggest means the most <code>listeners</code>, largest first',
               'Ten rows, no more'],
       why: 'ORDER BY sorts what you already have, then LIMIT caps it. That order matters: cap first and you would cap before sorting. This is how every top-ten report you will ever ship is built.',
+      did: 'You put the biggest audience on top and kept the first ten rows.',
+      matters: 'Every top-ten report, every leaderboard and every "show me the latest" is this exact shape. The order of the two clauses is the part people get wrong: sort first, cap second, or you cap a pile of unsorted rows and ship the wrong ten.',
       sql:
 `SELECT artist, track, listeners
 FROM gem_page
@@ -89,6 +97,8 @@ LIMIT 10;`,
               '<code>total_rows</code> and <code>artists</code> are names you create with <code>AS</code>, not columns in the table',
               'Different artists means each artist counted once'],
       why: 'A query always hands back a table, even when the answer is two numbers. Comparing the two tells you one artist can hold several songs.',
+      did: 'You got one row back holding two numbers: how many country songs there are, and how many different artists made them.',
+      matters: 'Counting rows against counting distinct values is how you find out what one row of a table actually represents. Get that wrong and every number you report afterwards is wrong in a way nobody notices, because the query still runs.',
       sql:
 `SELECT COUNT(*) AS total_rows,
        COUNT(DISTINCT artist) AS artists
