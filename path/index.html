@@ -171,17 +171,43 @@
   .dim{color:var(--muted)}
   .hint{color:var(--muted);font-size:13.5px}
 
-  /* Lesson handoff: a list of real kit lessons, opened in a new tab so the lap keeps
-     its place in this one. */
-  .lessons{list-style:none;margin:0;padding:0}
-  .lessons li{border-top:1px solid var(--line)}
-  .lessons li:first-child{border-top:none}
-  .lessons a{display:flex;gap:12px;align-items:baseline;padding:12px 2px;
-    text-decoration:none;color:inherit;flex-wrap:wrap}
-  .lessons a:hover .lt{color:var(--accent);text-decoration:underline}
-  .lessons .lt{font-weight:600;font-size:15.5px}
-  .lessons .ls{font-size:13.5px;color:var(--muted);flex:1 1 240px}
-  .lessons .go-out{font-size:12.5px;color:var(--muted);white-space:nowrap}
+  /* The lesson, read in the app. Four reads, one on screen at a time, picked from a row of
+     four buttons so the whole unit is visible without scrolling through it. */
+  .lessonnav{display:flex;gap:8px;flex-wrap:wrap}
+  .lnav{flex:1 1 180px;text-align:left;padding:9px 12px;line-height:1.35;font-weight:600;
+    font-family:inherit;min-width:0}
+  .lnav .ln{display:block;font:700 10.5px/1 inherit;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  .lnav[aria-current="true"]{border-color:var(--accent);color:var(--accent);
+    box-shadow:inset 3px 0 0 var(--accent)}
+  .lnav[aria-current="true"] .ln{color:var(--accent)}
+  .lnav.read .ln::after{content:' \2713';color:var(--ok)}
+
+  .lesson h2{font-size:22px;margin:0}
+  .lesson .lsub{color:var(--muted);font-size:14.5px;margin:4px 0 0}
+  .lesson h3{font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);margin:20px 0 8px}
+  .lesson p{margin:0 0 10px;max-width:74ch}
+  .lesson .story{background:var(--bg);border:1px solid var(--line);border-radius:10px;
+    padding:13px 15px;margin:14px 0 0;max-width:none}
+  /* Read-aloud walkthrough: the query, then what each line is doing, in the order the
+     query reads. Same shape the kit uses. */
+  .ral{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--bg)}
+  .ral pre{margin:0;padding:13px 15px;font:13.5px/1.65 var(--mono);white-space:pre-wrap;
+    border-bottom:1px solid var(--line)}
+  .ral .say{margin:0;padding:11px 15px;font-size:14.5px;border-bottom:1px solid var(--line)}
+  .ral .say b{color:var(--accent)}
+  .ral dl{margin:0;padding:6px 15px 12px}
+  .ral dt{font:12.5px/1.7 var(--mono);color:var(--ink);margin-top:8px}
+  .ral dd{margin:0;font-size:14px;color:var(--muted)}
+  .lesson .viz{overflow-x:auto}
+  .lesson .viz table{border-collapse:collapse;font:12.5px/1.6 var(--mono)}
+  .lesson .viz th,.lesson .viz td{border:1px solid var(--line);padding:4px 9px;
+    text-align:left;white-space:nowrap}
+  .lesson .viz th{color:var(--muted);background:var(--bg)}
+  .lesson .cap{font-size:13.5px;color:var(--muted);margin:8px 0 0}
+  .lesson .note{background:rgba(14,116,144,.06);border:1px solid rgba(14,116,144,.3);
+    border-radius:10px;padding:12px 14px;margin:0;max-width:none}
 
   /* Mini quiz: four questions, one screen, answered in place. */
   .q{border-top:1px solid var(--line);padding:16px 0}
@@ -419,12 +445,27 @@
   </section>
 
   <!-- STEP 4 ─ LESSON ─────────────────────────────────────────────────────── -->
+  <!-- The lesson is read HERE. It used to open /sql/#lesson-1 in a new tab, which put a
+       learner four steps into a round onto a 4,441px kit page with its own progress and its
+       own nav, and Real Test run 007b measured that no control on it pointed back. The text
+       now lives in lessons.js. The kit's Unit 1 progress and this round's progress are
+       deliberately independent: finishing a round marks nothing in the kit. -->
   <section id="s-lesson" hidden>
     <div class="card">
-      <h2>Now read why it worked</h2>
-      <p class="sub">You just typed most of this and watched it run. The lessons open in a new tab, so this page keeps your place, and every lesson carries a link back to this round. Read the first one at least.</p>
-      <ul class="lessons" id="lesson-list"></ul>
-      <p style="margin:16px 0 0"><button class="go" id="to-quiz">Done reading, check me</button></p>
+      <h2 id="lesson-head">Now read why it worked</h2>
+      <p class="sub">You just typed these and watched them run. Four short reads, in this
+        order. Nothing here opens another page.</p>
+      <div class="lessonnav" id="lesson-tabs"></div>
+    </div>
+
+    <article class="card lesson" id="lesson-body"></article>
+
+    <div class="card">
+      <div class="offers">
+        <button class="go" id="lesson-next">Next read &rarr;</button>
+        <button id="lesson-prev">&larr; Previous</button>
+        <button id="to-quiz">Skip to the four questions</button>
+      </div>
     </div>
   </section>
 
@@ -497,6 +538,7 @@
 <!-- The database is the drill page's baked export, reused rather than copied. -->
 <script src="../drill/data.js?v=2"></script>
 <script src="ladder.js?v=1"></script>
+<script src="lessons.js?v=1"></script>
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
@@ -620,7 +662,7 @@ const ORDER = ['primer','type','recall','lesson','quiz','done'];
 // a control it had not said was further down. Each line now says where the control is.
 const DIRECTIVE = {
   primer: 'Read the six lines, then click Start typing at the end of them.',
-  lesson: 'Open the first lesson. When you are done, use the SQL Path link at the top of it to come back here.',
+  lesson: 'Read this one, then click Next read at the bottom.',
   quiz:   'Answer all four questions. Finish the round is at the bottom, under the last one.',
   done:   'Read the card, then pick the loud button.',
 };
@@ -649,7 +691,7 @@ function show(next){
   paintStepper();
   if(step === 'type' || step === 'recall') renderDrill();
   else $('directive-text').textContent = DIRECTIVE[step];
-  if(step === 'lesson') paintLessons();
+  if(step === 'lesson') paintLesson();
   if(step === 'done') paintDone();
   remember();
   scrollTo({top:0, behavior:'smooth'});
@@ -1085,31 +1127,72 @@ $('r-do-all').onclick = () => {
   renderDrill();
 };
 
-// ── step 4: the lesson handoff ──────────────────────────────────────────────
-// ?from=path is what makes the kit lesson show a "back to the round" bar. Without it the
-// lesson page has four back-shaped controls and every one of them leaves the rotation
-// (run 007b measured it: no control anywhere on that 4,441px page points here).
-function paintLessons(){
+// ── step 4: the lesson, read in the app ─────────────────────────────────────
+// Nothing here leaves the page. The text is in lessons.js, copied from the kit's Unit 1 so
+// that the round and the kit keep their own progress and a first-timer four steps into a
+// round is never dropped onto the full kit to find their own way back.
+let li = 0;
+
+function paintLessonNav(){
   const seen = state.readLessons || [];
-  $('lesson-list').innerHTML = LAP.lessons.map(l => `
-    <li><a href="../sql/?from=path#lesson-${l.id}" target="_blank" rel="noopener" data-lid="${l.id}">
-      <span class="lt">${esc(l.title)}</span>
-      <span class="ls">${esc(l.sub)}</span>
-      <span class="go-out">${seen.includes(l.id) ? 'opened &check;' : 'opens in a new tab &nearr;'}</span>
-    </a></li>`).join('');
-  // Opened, not read. The page cannot know if someone read it, and pretending otherwise
-  // would be a fake checkmark.
-  $('lesson-list').querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => {
-      const lid = +a.dataset.lid;
-      state.readLessons = state.readLessons || [];
-      if(!state.readLessons.includes(lid)) state.readLessons.push(lid);
-      remember();
-      paintLessons();
-    });
+  $('lesson-tabs').innerHTML = LESSON_TEXT.map((l, n) => `
+    <button class="lnav${seen.includes(l.id) ? ' read' : ''}" data-n="${n}"
+            aria-current="${n === li}">
+      <span class="ln">Read ${n + 1}</span>${esc(l.title)}
+    </button>`).join('');
+  $('lesson-tabs').querySelectorAll('.lnav').forEach(b => {
+    b.onclick = () => { li = +b.dataset.n; paintLesson(); };
   });
 }
-paintLessons();
+
+function vizTable(v){
+  if(!v) return '';
+  return '<div class="viz"><table><tr>' +
+    v.columns.map(c => '<th>' + esc(c) + '</th>').join('') + '</tr>' +
+    v.rows.map(r => '<tr>' + r.map(c => '<td>' + esc(c) + '</td>').join('') + '</tr>').join('') +
+    '</table></div>' + (v.caption ? '<p class="cap">' + esc(v.caption) + '</p>' : '');
+}
+
+function paintLesson(){
+  const l = LESSON_TEXT[li];
+  // Read, and it is honest this time: the text is on the screen, so opening it is reading
+  // it. The old version could only say "opened", because the words were in another tab.
+  state.readLessons = state.readLessons || [];
+  if(!state.readLessons.includes(l.id)) state.readLessons.push(l.id);
+
+  $('lesson-head').textContent = 'Now read why it worked';
+  $('lesson-body').innerHTML =
+    '<h2>' + esc(l.title) + '</h2><p class="lsub">' + esc(l.sub) + '</p>' +
+    '<p class="story">' + esc(l.story) + '</p>' +
+    '<h3>The idea</h3><p>' + l.intro + '</p>' +
+    '<h3>Read it aloud</h3><div class="ral"><pre>' + esc(l.ral.sql) + '</pre>' +
+      '<p class="say"><b>Say it:</b> ' + esc(l.ral.say) + '</p><dl>' +
+      l.ral.lines.map(([code, what]) =>
+        '<dt>' + esc(code) + '</dt><dd>' + esc(what) + '</dd>').join('') +
+    '</dl></div>' +
+    '<h3>What comes back</h3>' + vizTable(l.viz) +
+    '<h3>Worth knowing</h3><p>' + l.notes + '</p>' +
+    '<h3>The order matters</h3><p>' + esc(l.compare) + '</p>' +
+    '<h3>What you can do now</h3><p>' + esc(l.close) + '</p>' +
+    '<p class="note"><b>One level deeper.</b> ' + esc(l.unlock) + '</p>';
+
+  paintLessonNav();
+  const last = li === LESSON_TEXT.length - 1;
+  $('lesson-prev').hidden = li === 0;
+  $('lesson-next').textContent = last ? 'Done reading, check me' : 'Next read →';
+  $('to-quiz').hidden = last;                 // the skip and the finish would be the same
+  $('directive-text').textContent = last
+    ? 'Read this one, then click Done reading, check me at the bottom.'
+    : 'Read this one, then click Next read at the bottom.';
+  remember();
+  scrollTo({top:0, behavior:'smooth'});
+}
+
+$('lesson-next').onclick = () => {
+  if(li < LESSON_TEXT.length - 1){ li++; paintLesson(); }
+  else show('quiz');
+};
+$('lesson-prev').onclick = () => { if(li > 0){ li--; paintLesson(); } };
 $('to-quiz').onclick = () => show('quiz');
 
 // ── step 4: the mini quiz ───────────────────────────────────────────────────
@@ -1174,7 +1257,7 @@ function paintDone(){
   $('done-sub').textContent =
     'You typed ' + typed + ' queries, wrote ' +
     (cleared.size === typed ? 'all ' + typed : cleared.size + ' of ' + typed) +
-    ' again from memory, opened ' + opened + ' of ' + LAP.lessons.length +
+    ' again from memory, read ' + opened + ' of ' + LESSON_TEXT.length +
     ' Unit 1 lessons' + (got === null ? '' : ', and answered ' + got + ' of ' + total +
     ' questions right first time') + '.';
   // Recall counts here too. Someone who needed the answer shown on half the queries is not

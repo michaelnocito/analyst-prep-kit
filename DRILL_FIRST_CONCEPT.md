@@ -132,8 +132,8 @@ The lap, in this order and no other: **primer → type → lesson → mini quiz 
   a COUNT that shows a query always hands back a table). Pass 1 rules, so the reference
   query is on screen the whole time. Ladder in `path/ladder.js`, every row count verified
   against the baked drill database.
-- **Lesson.** Hands off to the real kit lessons (`sql/#lesson-1`, `-2`, `-104`, `-3`) in a
-  new tab. It does not restate them; a second copy of Unit 1 would drift.
+- **Lesson.** ~~Hands off to the real kit lessons in a new tab.~~ **Reversed 2026-08-01,
+  Mike's call: the lesson is read in the app.** See "The lesson comes inside" below.
 - **Mini quiz.** Four questions, one per lesson, taken from the kit's own lesson quizzes.
 - **Checkpoint.** The SQL section of the existing Final Exam Kit (`final/#exam-sql`),
   called a readiness check, never a certification. Its own bank comes later.
@@ -244,6 +244,36 @@ sits inside a round rather than ending a unit, so the lesson button is there as 
 one and the two offers sit beside it quiet.
 
 Next: Mike walks it, then units 2 to 4, then the SQL kit front door points at the track.
+
+## The lesson comes inside (2026-08-01)
+
+Mike, walking the round: *"here's where the user friction is too much. When they get to
+lesson we push them out of the app and into the kit."*
+
+The lesson step no longer opens `/sql/#lesson-1` in a new tab. The Unit 1 teaching text now
+lives in `path/lessons.js` and is read on the page, four reads picked from a row of four
+buttons, one on screen at a time, with Next read at the bottom and no link out of the round.
+
+Each read carries what the kit lesson carries: the story, the idea, the read-it-aloud
+walkthrough of a query line by line, the picture of what comes back, the operator notes, the
+clause-order note, the close, and the one-level-deeper unlock. What it does **not** carry is
+each lesson's quiz, Parsons problem and build question — the round has its own mini quiz
+drawn from the same lessons, and a second copy of the drills would be three ways to answer
+the same four questions.
+
+**The two progress states are deliberately separate.** Finishing a round marks nothing in
+the SQL kit, and kit progress does not mark anything here. That was the second half of
+Mike's reason: kit progress must not mess with the round.
+
+**The cost, stated plainly:** this is a second copy of Unit 1's teaching, and it can drift
+from the kit's. `lessons.js` names its source (the `LESSONS` array in `sql/index.html`,
+entries 1, 2, 104, 3) and the date it was copied. Any change to the kit's Unit 1 wording has
+a second place to change. That trade was made on purpose: the alternative was dropping a
+first-timer four steps into a round onto a 4,441px kit page that run 007b measured as having
+no control anywhere on it pointing back.
+
+The "read" checkmarks are honest now. The old version could only say **opened**, because the
+words were in another tab. The words are on this page, so opening one is reading it.
 
 ## Open question for Mike
 
