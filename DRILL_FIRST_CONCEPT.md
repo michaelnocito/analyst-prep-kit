@@ -177,6 +177,48 @@ Known and not fixed:
 - The Copy button above the editor still exists on a page built for typing. Mike's call.
 - "round" replaced "lap" and "rotation" on screen, on the same precedent as "rung".
 
+## Pass 2 built (2026-08-01)
+
+Mike's call: the round becomes the kit's front door, full lessons stay in nav, and pass 2
+gets built before units 2 to 4. Only SQL for now; the other ten kits wait until this proves
+out.
+
+The round is five steps: **primer → type → recall → lesson → mini quiz → checkpoint.**
+Recall is pass 2 and sits before the lesson, because the concept is type it, type it again
+without help, *then* read why it worked.
+
+What shipped in `path/index.html`:
+
+- **The blank pass.** Same six items, same order, the business question and nothing else.
+  Two buttons: Run, and Pass on this one.
+- **Buckets.** Cleared, missed, skipped, shown as a live tally above the panes. Skipped is
+  never mixed into the missed loop.
+- **The loop.** When the pool empties, the missed pile becomes the next round, and so on
+  until it is empty. The rung label switches from "Query 3 of 6" to "Round 2 · 1 of 1".
+- **Reveal ladder.** Miss 1 shows the first half of the query plus a count of the lines
+  still hidden. Miss 2 shows nothing new. Miss 3 shows the whole thing. An item cleared
+  after the full reveal is **not** counted as cleared; it goes back in the missed pile,
+  because copying the answer back in is not retrieval.
+- **A query that errors is not an attempt.** The ladder only moves on a query that ran and
+  returned the wrong table, so a typo costs nothing.
+- **Correctness is a result comparison**, never a string match on the code. The reference
+  result is computed at boot by running the ladder's own query, so nothing is hand-kept in
+  sync. Column order counts; SQL text never does.
+- **The wrong-answer line names the actual difference**: row count, column count, or same
+  shape with different contents. Row count alone produced "You got 500 rows; the answer has
+  500" whenever the columns were wrong.
+- **The end card** offers the two from the spec, "try the ones you passed on" and "write all
+  six again", plus the way on to the lesson.
+- The finish card and the checkpoint now read recall as well as the quiz. Fewer than five of
+  six from memory makes another round the loud button, not the scored exam.
+- Recall state survives a closed tab, or round 3 of the missed pile would lose the pile.
+
+Deliberate deviation from the spec: the concept doc says two offers and no third. Recall
+sits inside a round rather than ending a unit, so the lesson button is there as the loud
+one and the two offers sit beside it quiet.
+
+Next: Mike walks it, then units 2 to 4, then the SQL kit front door points at the track.
+
 ## Open question for Mike
 
 "Passes on it" is read here as **skips**, not as "got it right". So the buckets are
