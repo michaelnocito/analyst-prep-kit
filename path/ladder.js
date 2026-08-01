@@ -29,9 +29,14 @@ const LAP = {
   // was followed by a LIMIT rung. ORDER BY and LIMIT are one lesson and one idea — a top
   // ten — so they are one rung. AND survives in the WHERE lesson's notes and in the mini
   // quiz, which is where a learner meets it next.
+  // `given` is the answerable-from-the-screen rule (REAL_TEST.md 5d): every decision the
+  // check compares against is stated in words, on the screen, at the moment of the ask.
+  // A business question does not carry its own thresholds, sort order or caps, and a learner
+  // who cannot see them is being asked to guess and then told they were wrong.
   drills: [
     { adds: 'Ask for three columns',
       q: 'What artists, tracks and audience sizes are in the collection?',
+      given: ['Every song in the table — nothing filtered out'],
       why: 'The skeleton of every query you will ever write: SELECT the columns, FROM the table.',
       sql:
 `SELECT artist, track, listeners
@@ -41,6 +46,7 @@ FROM gem_page;`,
 
     { adds: 'Keep only the country songs',
       q: 'Which of those songs are country?',
+      given: ["Country means the <code>genre</code> column is exactly <code>country</code>"],
       why: 'WHERE filters rows. The single quotes are how SQL knows country is text, not a column name.',
       sql:
 `SELECT artist, track, listeners
@@ -51,6 +57,9 @@ WHERE genre = 'country';`,
 
     { adds: 'Sort them and cut to a top ten',
       q: 'What are the ten biggest country songs?',
+      given: ["Country means the <code>genre</code> column is exactly <code>country</code>",
+              'Biggest means the most <code>listeners</code>, largest first',
+              'Ten rows, no more'],
       why: 'ORDER BY sorts what you already have, then LIMIT caps it. That order matters: cap first and you would cap before sorting. This is how every top-ten report you will ever ship is built.',
       sql:
 `SELECT artist, track, listeners
@@ -63,6 +72,9 @@ LIMIT 10;`,
 
     { adds: 'Count what you are working with',
       q: 'How many country songs are there, and how many different artists made them?',
+      given: ["Country means the <code>genre</code> column is exactly <code>country</code>",
+              'Name the two numbers <code>total_rows</code> and <code>artists</code>',
+              'Different artists means each artist counted once'],
       why: 'A query always hands back a table, even when the answer is two numbers. Comparing the two tells you one artist can hold several songs.',
       sql:
 `SELECT COUNT(*) AS total_rows,

@@ -137,6 +137,8 @@
     background:rgba(14,116,144,.07);border-bottom:1px solid var(--line)}
   .wants b{font-weight:600}
   .wants code{font-size:12.5px}
+  .given{margin:8px 0 0;padding-left:20px}
+  .given li{margin:0 0 3px}
   #query{margin:0;padding:var(--pad);white-space:pre-wrap;word-break:break-word}
   textarea#sql{width:100%;min-height:246px;padding:var(--pad);border:none;
     background:transparent;color:var(--ink);resize:vertical;tab-size:2;white-space:pre}
@@ -767,11 +769,15 @@ function renderDrill(){
   // A business question does not name its columns, and the check compares the whole table:
   // without this line "which of those songs are country?" has no single right answer.
   const want = refRows[idx];
-  $('wants').innerHTML = want
+  $('wants').innerHTML = (want
     ? '<b>Bring back:</b> ' + want.columns.map(c => '<code>' + esc(c) + '</code>').join(', ') +
       (want.values.length === 1 ? ' &middot; one row' : '')
-    : '';
-  $('wants').hidden = !want;
+    : '') +
+    // Every criterion the check compares against, in words. REAL_TEST.md 5d: if a threshold,
+    // a definition or a cap decides the answer, it is on the screen at the moment of the ask.
+    (d.given ? '<ul class="given">' +
+      d.given.map(g => '<li>' + g + '</li>').join('') + '</ul>' : '');
+  $('wants').hidden = !want && !d.given;
   $('qhead').textContent = rec ? 'Write it from the question' : 'Type this query';
   $('covernote').hidden = !rec;
   $('copy-q').hidden = rec;                    // nothing to copy, and copying is the enemy
