@@ -275,6 +275,31 @@ no control anywhere on it pointing back.
 The "read" checkmarks are honest now. The old version could only say **opened**, because the
 words were in another tab. The words are on this page, so opening one is reading it.
 
+## Four rungs, not six (2026-08-01)
+
+Mike: *"lower to a 4 query sequence. Just enough for people to feel like 'god, 1 more…'"*
+
+The ladder is four. One rung per read in step 3, so the typing and the lessons now line up
+exactly:
+
+| Rung | Adds | Read it matches |
+|---|---|---|
+| 1 | SELECT three columns FROM the table | SELECT & FROM |
+| 2 | WHERE genre = 'country' | WHERE |
+| 3 | ORDER BY listeners DESC, LIMIT 10 | ORDER BY & LIMIT |
+| 4 | COUNT(\*) and COUNT(DISTINCT artist) | A query returns a table |
+
+What the cut dropped: the standalone AND rung, and the split between an ORDER BY rung and a
+LIMIT rung. ORDER BY and LIMIT are one lesson and one idea — a top ten — so they are one
+rung, and the ladder rule still holds: each rung is the one before it plus one new thing.
+AND survives in the WHERE lesson's notes and in the mini quiz, which is where a learner
+meets it next.
+
+Row counts re-verified against the baked database after the cut: 500, 52, 10, 1.
+
+Everything that names a count now reads it from `LAP.drills.length` rather than saying
+"six", so the next change to the ladder length does not leave copy behind.
+
 ## Open question for Mike
 
 "Passes on it" is read here as **skips**, not as "got it right". So the buckets are

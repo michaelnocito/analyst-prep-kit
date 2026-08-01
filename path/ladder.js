@@ -21,6 +21,14 @@ const LAP = {
   ],
 
   // ── STEP 2: the typing rungs ──────────────────────────────────────────────
+  // FOUR rungs, cut down from six on 2026-08-01 (Mike: short enough that someone finishes
+  // wanting one more). One rung per read in step 3, so the typing and the lessons line up
+  // exactly: SELECT & FROM, WHERE, ORDER BY & LIMIT, and a query always returns a table.
+  //
+  // What the cut dropped: the standalone AND rung, and the standalone ORDER BY rung that
+  // was followed by a LIMIT rung. ORDER BY and LIMIT are one lesson and one idea — a top
+  // ten — so they are one rung. AND survives in the WHERE lesson's notes and in the mini
+  // quiz, which is where a learner meets it next.
   drills: [
     { adds: 'Ask for three columns',
       q: 'What artists, tracks and audience sizes are in the collection?',
@@ -41,40 +49,16 @@ WHERE genre = 'country';`,
       pre: 'Out of 500 songs, is country more or fewer than 100 of them?',
       rows: 52 },
 
-    { adds: 'Add a second condition',
-      q: 'Which country songs have a real audience behind them?',
-      why: 'AND stacks conditions. A row now has to pass both to stay in.',
-      sql:
-`SELECT artist, track, listeners
-FROM gem_page
-WHERE genre = 'country'
-  AND listeners > 20000;`,
-      pre: 'You had 52 rows. Adding a condition can only do one thing to that number. Which way?',
-      rows: 22 },
-
-    { adds: 'Put the biggest audience on top',
-      q: 'Which country song has the largest audience?',
-      why: 'ORDER BY sorts what you already have. It never adds or removes a row.',
-      sql:
-`SELECT artist, track, listeners
-FROM gem_page
-WHERE genre = 'country'
-  AND listeners > 20000
-ORDER BY listeners DESC;`,
-      pre: 'Still 22 rows, or does sorting change the count?',
-      rows: 22 },
-
-    { adds: 'Cut it to a top ten',
+    { adds: 'Sort them and cut to a top ten',
       q: 'What are the ten biggest country songs?',
-      why: 'LIMIT caps the list after the sort. This is how every top-ten report you will ever ship is built.',
+      why: 'ORDER BY sorts what you already have, then LIMIT caps it. That order matters: cap first and you would cap before sorting. This is how every top-ten report you will ever ship is built.',
       sql:
 `SELECT artist, track, listeners
 FROM gem_page
 WHERE genre = 'country'
-  AND listeners > 20000
 ORDER BY listeners DESC
 LIMIT 10;`,
-      pre: 'Ten rows come back. How many different artists do you expect inside them?',
+      pre: 'You had 52 rows. How many come back now?',
       rows: 10 },
 
     { adds: 'Count what you are working with',
