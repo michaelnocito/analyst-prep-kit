@@ -525,6 +525,53 @@ Two ways to close it, and this is Mike's call, not mine:
 I would take option 1. The screen explains a two-pane layout the learner cannot see while
 they are reading about it, which is the weakest place to put that explanation.
 
+## Chasing the rabbit, and killing the loop (2026-08-01)
+
+### The round opens on the verb
+
+The How it works screen is gone. It was a screen of text in front of the verb, which is what
+GAME_BIBLE principle 13 calls a menu wall, and it explained a two-pane layout the reader
+could not see while reading about it.
+
+The round now **opens on query 1**. The orientation lives inside the left pane of that first
+screen, where the layout it describes is on the screen around it and the editor is one press
+away: what this pane holds, what the pane on the right is, and the running order underneath.
+It shows on query 1 of the typing pass and never again.
+
+The running order is still generated from the step definitions, so it cannot drift.
+
+### The uncovered part now announces itself
+
+Every reveal marks **only the slice that just appeared**, and it flashes twice before
+settling into ordinary code. The eye is in the editor when Run is pressed and the help
+arrives in the other pane, so without it the reveal could be missed entirely. Motion-reduced
+users get the highlight without the pulse, so the same information lands.
+
+`keepIndex()` was pulled out of `coverUp()` so the same rule decides both edges of a reveal
+and the new slice cannot be off by a character.
+
+### One pass. No forced repeats.
+
+Mike: *"stuck in a step 3 loop. Don't force them to redo mistakes, it's creating a
+frustration loop."*
+
+Recall was looping every unanswered query back until it was cleared, and an item answered
+after a full uncover did not count, so it came back too. Two people-sized problems: getting
+one wrong already costs the query on screen and the points, and being marched through it a
+third and fourth time costs the round.
+
+**Recall is one pass now.** Four queries, then it moves on:
+
+- Answered is answered. However much of the query it took, it counts, and `helpUsed` puts
+  the cost in the score instead of in another lap.
+- **Come back to this one** scores zero and moves on. Nobody is held on a query they do not
+  want to fight.
+- Repeating is **Run it again**, which is the learner's call.
+
+Gone with it: the round counter, the missed and passed-on piles, the Move on button that
+existed to escape the loop, and the send-back on a fully uncovered answer. The tally reads as
+progress rather than debt: how many answered, and how many of those took no help.
+
 ## Open question for Mike
 
 "Passes on it" is read here as **skips**, not as "got it right". So the buckets are

@@ -16,7 +16,7 @@
      the lesson tab it opens were indistinguishable in a tab strip, which is half of why
      nobody came back. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E7490'/%3E%3Cpath d='M10 8h7a5 5 0 0 1 0 10h-3v6h-4z' fill='%23fff'/%3E%3C/svg%3E">
-<meta name="description" content="One round of the SQL path: four questions before you start, six words, four typed queries against a real database, the same four again from memory, the Unit 1 lessons, and the same four questions again.">
+<meta name="description" content="One round of the SQL path: type four queries against a real database, write the same four again with the query covered up, read what each new piece of SQL does and which jobs use it, then see your score.">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="../assets/sqled/sqled.css">
 <!--
@@ -91,23 +91,14 @@
   .card .sub{color:var(--muted);font-size:14.5px;margin:0 0 14px}
   section[hidden]{display:none}
 
-  /* How this works. The two mock panes stand in the same left/right relationship as the
-     real working screen, so the layout is learned before it is used. */
-  .mini{font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;
-    color:var(--muted);margin:18px 0 8px}
-  .panes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media (max-width:700px){ .panes{grid-template-columns:1fr} }
-  .mock{border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:12px 14px}
-  .mocklabel{display:block;font:700 10.5px/1 inherit;letter-spacing:.08em;
-    text-transform:uppercase;color:var(--accent);margin-bottom:6px}
-  .mock b{display:block;font-size:15.5px;margin-bottom:4px}
-  .mock p{margin:0;font-size:14px;color:var(--muted)}
-  .howlist{margin:0;padding-left:22px}
-  .howlist li{margin:0 0 6px;font-size:14.5px}
-  .howlist b{font-weight:600}
-
-  code{font:13px/1.5 var(--mono);background:var(--bg);border:1px solid var(--line);
-    border-radius:5px;padding:1px 5px}
+  /* The one-off orientation block, inside the left pane on query 1. Quiet and small: it is
+     read once and then never seen again, and it must not push the query down the screen. */
+  .intro{padding:12px var(--pad);border-bottom:1px solid var(--line);background:var(--bg)}
+  .intro[hidden]{display:none}
+  .intro p{margin:0 0 8px;font-size:14.5px}
+  .runorder{margin:0;padding-left:20px;font-size:13.5px;color:var(--muted)}
+  .runorder li{margin:0 0 2px}
+  .runorder b{color:var(--ink);font-weight:600}
 
   /* Typing step: the drill layout, unchanged from /drill/, because it is the part that
      already tests well. */
@@ -279,10 +270,28 @@
      for, so uncovering one does not move the rest of the query on the screen. */
   .mask{display:inline-block;height:1.05em;vertical-align:-0.15em;border-radius:4px;
     background:repeating-linear-gradient(135deg,#E8ECEF 0 6px,#DFE4E8 6px 12px)}
+  /* The bit that just came out from under the cover. The eye is on the editor when Run is
+     pressed, and the help appears in the other pane, so without this it can be missed
+     entirely. It glows, then settles into ordinary code, so the emphasis does not outstay
+     the moment it is marking. */
+  .justnow{border-radius:4px;padding:1px 0;
+    background:rgba(14,116,144,.34);box-shadow:0 0 0 3px rgba(14,116,144,.34)}
   @media (prefers-reduced-motion:no-preference){
-    #query .just{animation:lift .5s ease-out}
+    .justnow{animation:uncovered 1.9s cubic-bezier(.2,.7,.3,1) forwards}
   }
-  @keyframes lift{0%{background:rgba(14,116,144,.16)}100%{background:transparent}}
+  @keyframes uncovered{
+    0%   {background:rgba(14,116,144,.55);box-shadow:0 0 0 5px rgba(14,116,144,.55)}
+    12%  {background:rgba(14,116,144,.14);box-shadow:0 0 0 5px rgba(14,116,144,.14)}
+    24%  {background:rgba(14,116,144,.55);box-shadow:0 0 0 5px rgba(14,116,144,.55)}
+    36%  {background:rgba(14,116,144,.14);box-shadow:0 0 0 5px rgba(14,116,144,.14)}
+    50%  {background:rgba(14,116,144,.42);box-shadow:0 0 0 4px rgba(14,116,144,.42)}
+    100% {background:transparent;box-shadow:0 0 0 0 rgba(14,116,144,0)}
+  }
+  /* Motion off: it still lands highlighted and simply stays that way, so the same
+     information is carried without anything moving. */
+  @media (prefers-reduced-motion:reduce){
+    .justnow{background:rgba(14,116,144,.2);box-shadow:0 0 0 3px rgba(14,116,144,.2)}
+  }
   #skip{color:var(--muted)}
 
   /* Schema browser, lifted from /drill/ so the database reads the same in both places.
@@ -410,7 +419,7 @@
 <div class="shell">
   <p class="crumb"><a href="../">&larr; Analyst Prep Kit</a> &middot; <a href="../sql/">SQL Kit</a> &middot; <a href="../drill/">SQL Drill</a></p>
   <h1>SQL Path &middot; Unit 1</h1>
-  <p class="lead">Six words, four typed queries, the same four from memory, the lessons, four questions. About twenty minutes.</p>
+  <p class="lead">Type four queries, write them again from memory, then see what you did and what it scored. About fifteen minutes.</p>
   <p class="desktop-note"><strong>Made for a desktop.</strong> The queries get long, and a keyboard makes this a lot better.</p>
 
   <!-- Only on a return visit. The round remembers where you were, which is right, but it
@@ -423,41 +432,6 @@
   </div>
 
   <div class="stepper" id="stepper"></div>
-
-  <!-- STEP 1 ─ HOW THIS WORKS ─────────────────────────────────────────────── -->
-  <!-- Mike, 2026-08-01: the first screen tells them how it works before it asks them for
-       anything. Two things, in this order: how the working screen is laid out (what to type
-       on the left, where you type it on the right), and what the whole round is going to do
-       to them, step by step. Nobody should meet a two-pane editor for the first time while
-       also being asked a question. -->
-  <section id="s-how">
-    <div class="card">
-      <h2>How this works</h2>
-      <p class="sub">One round of SQL, about twenty minutes. Read this once and the rest of
-        it will not surprise you.</p>
-
-      <h3 class="mini">The working screen</h3>
-      <div class="panes">
-        <div class="mock">
-          <span class="mocklabel">On the left</span>
-          <b>What to type</b>
-          <p>The question in words, what the answer has to bring back, and the query itself.
-            Later on the query gets covered up and you write it yourself.</p>
-        </div>
-        <div class="mock">
-          <span class="mocklabel">On the right</span>
-          <b>Where you type it</b>
-          <p>A real editor on a real database of 500 songs. Press Run and you get real rows
-            back, not a tick. Every table and column is listed under it.</p>
-        </div>
-      </div>
-
-      <h3 class="mini">What happens, in order</h3>
-      <ol class="howlist" id="how-list"></ol>
-
-      <p style="margin:16px 0 0"><button class="go" id="to-type">Start typing</button></p>
-    </div>
-  </section>
 
   <!-- STEPS 2 AND 3 ─ TYPE, THEN RECALL ───────────────────────────────────── -->
   <!-- ONE screen, two modes. Recall is not a different layout: it is this exact layout with
@@ -478,6 +452,16 @@
           <h2 id="qhead">Type this query</h2>
           <button class="copy" id="copy-q">Copy</button>
           <span class="note" id="covernote" hidden>Covered up &middot; a miss uncovers more</span>
+        </div>
+        <!-- Query 1 of the typing pass only. The layout gets explained inside the layout,
+             with the editor already on screen and one press away, rather than on a screen of
+             text in front of the verb. GAME_BIBLE principle 13: nothing stands between a new
+             arrival and the thing they came to do. -->
+        <div class="intro" id="intro" hidden>
+          <p><b>This pane is what to type.</b> The question, what the answer has to bring
+            back, and the query itself. The pane on the right is where you type it, on a real
+            database of 500 songs. Press Run and you get real rows back.</p>
+          <ol class="runorder" id="run-order"></ol>
         </div>
         <p class="question" id="question"></p>
         <!-- The columns the answer has to bring back. The check compares the whole table,
@@ -530,10 +514,6 @@
         <button id="back">&larr; Back</button>
         <button class="fwd" id="next">Next query &rarr;</button>
         <button class="fwd go" id="to-lesson" hidden>Now write them covered up &rarr;</button>
-        <!-- Recall only, and only after a full pass through all four. Before that it is not
-             on the screen, so nobody bails out of a pass they have not done yet. After it,
-             the loop is still the default, but staying in it becomes a choice. -->
-        <button id="move-on" hidden>Move on to the questions &rarr;</button>
       </div>
     </div>
    </div>
@@ -622,7 +602,7 @@
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
 
-let db = null, i = 0, step = 'how';
+let db = null, i = 0, step = 'type';
 let ed = { getValue: () => $('sql').value, setValue: v => { $('sql').value = v; },
            focus: () => $('sql').focus({preventScroll:true}), refresh: () => {} };
 
@@ -642,7 +622,7 @@ const remember = () => {
       step, i,
       // The recall pass has to survive a closed tab too, or someone on round 3 of the
       // missed pile loses the pile and the page tells them they cleared everything.
-      recall: { pool, p, roundNo, firstPassDone,
+      recall: { pool, p,
                 cleared: [...cleared], missed: [...missed], skipped: [...skipped] }
     }));
   } catch(e){}
@@ -753,30 +733,28 @@ document.addEventListener('keydown', e => {
 
 // ── the stepper and which section is on screen ──────────────────────────────
 const STEPS = [
-  {key:'how',      t:'How it works', s:'read this once',
-   does:'What the screen looks like and what the round is going to ask of you.'},
   {key:'type',     t:'Type',      s:'four real queries',
-   does:'Four queries, each one the last plus one new thing. The query is on the left; you type it on the right and run it.'},
+   does:'the query is on the left, you type it on the right'},
   {key:'recall',   t:'Recall',    s:'the same four, covered',
-   does:'The same four again, with the query covered up. Get one wrong and more of it uncovers. Anything you do not get comes back until you do.'},
+   does:'same four, query covered up, a miss uncovers more of it'},
   {key:'concepts', t:'What you did', s:'and where it is used',
-   does:'A short block per new piece of SQL: what the words do, why your query worked, and the jobs that use it.'},
+   does:'the new SQL, and the jobs that use it'},
 ];
 // Jump in, repeat, then just enough theory. Cut to this on 2026-08-01 (Mike): the round had
 // grown a pre-test, a six-word primer, a four-read lesson and a mini quiz around the two
 // typing passes, which are the part that works. Those are gone. What is left is the doing,
 // then the why, then the score.
-const ORDER = ['how','type','recall','concepts','done'];
+const ORDER = ['type','recall','concepts','done'];
 
-// The running order, written from the steps themselves so the promise and the round cannot
-// drift apart. The first step is not in its own list.
-$('how-list').innerHTML = STEPS.slice(1)
-  .map(s => '<li><b>' + esc(s.t) + '.</b> ' + esc(s.does) + '</li>').join('');
+// The running order, written from the steps themselves so what the round promises and what
+// it does cannot drift apart. It rides along on query 1 rather than on a screen of its own.
+$('run-order').innerHTML = STEPS
+  .map(s => '<li><b>' + esc(s.t) + '</b> ' + esc(s.does) + '</li>').join('') +
+  '<li><b>Your score</b> out of 100, with your best and last run beside it</li>';
 
 // Run 007: the bar named buttons that were below the fold, so it sent someone hunting for
 // a control it had not said was further down. Each line now says where the control is.
 const DIRECTIVE = {
-  how:      'Read this once, then click Start at the bottom.',
   concepts: 'Read the blocks, then click See your score at the bottom.',
   // "the loud button" was a build word, and it identified a control by how it looks, which
   // is nothing at all to a screen reader or a read-aloud. paintDone() overwrites this with
@@ -799,7 +777,7 @@ function paintStepper(){
 
 // Type and recall are the SAME section. Recall is this screen with the query covered up,
 // not a second layout, so it shares every element on it.
-const SECT = {how:'s-how', type:'s-type', recall:'s-type',
+const SECT = {type:'s-type', recall:'s-type',
               concepts:'s-concepts', done:'s-done'};
 let booted = false;
 function show(next){
@@ -815,7 +793,7 @@ function show(next){
   // The resume notice is about the load, not about the round. The first move of this visit
   // retires it.
   if(booted) $('resume').hidden = true;
-  ['s-how','s-type','s-concepts','s-done']
+  ['s-type','s-concepts','s-done']
     .forEach(id => { $(id).hidden = id !== SECT[step]; });
   paintStepper();
   if(step === 'type' || step === 'recall') renderDrill();
@@ -839,9 +817,12 @@ const FRACTIONS = [0, .5, .75, 1];
 // Cut on characters, not lines. Most of these queries are two or three lines, and a
 // line-based half and three quarters round to the same thing on a two-liner, which puts
 // back the dead second swing this ladder exists to remove. Characters always differ.
-function coverUp(sql, frac){
-  if(frac >= 1) return esc(sql);
-  let keep = frac <= 0 ? 0 : Math.min(sql.length - 1, Math.round(sql.length * frac));
+// Where the cut lands for a given fraction. Pulled out of coverUp so the same rule decides
+// both edges of a reveal and the "what is new this time" slice cannot be off by a character.
+function keepIndex(sql, frac){
+  if(frac <= 0) return 0;
+  if(frac >= 1) return sql.length;
+  let keep = Math.min(sql.length - 1, Math.round(sql.length * frac));
   // Run 008: still cut on characters, for the reason above, but never mid-word. The half
   // reveal was landing on "FRO" and "COUNT(DISTINCT ar", which reads as a rendering fault
   // rather than a hint, and stops one character short of the word being reached for.
@@ -852,13 +833,24 @@ function coverUp(sql, frac){
     while(b > 0 && /\w/.test(sql[b - 1])) b--;
     if(keep - b <= 12) keep = b;
   }
-  const shown = sql.slice(0, keep);
+  return keep;
+}
+
+// `from` is what was already uncovered before this run. Everything between there and the new
+// edge is the part that just appeared, and it is the part that gets marked: the eye is on the
+// editor when Run is pressed, and the help arrives in the other pane.
+function coverUp(sql, frac, from){
+  const to = keepIndex(sql, frac);
+  const had = keepIndex(sql, from || 0);
+  const fresh = sql.slice(Math.min(had, to), to);
   // What is still covered keeps the width of the code it stands in for, so uncovering
   // never shuffles the rest of the query around the screen.
-  const hidden = sql.slice(keep).split('\n').map(ln =>
+  const hidden = sql.slice(to).split('\n').map(ln =>
     ln.length ? '<span class="mask" style="width:' + ln.length + 'ch"></span>' : ''
   ).join('\n');
-  return esc(shown) + hidden;
+  return esc(sql.slice(0, Math.min(had, to))) +
+    (fresh ? '<span class="justnow">' + esc(fresh) + '</span>' : '') +
+    hidden;
 }
 
 function renderDrill(){
@@ -866,21 +858,18 @@ function renderDrill(){
   // Recall with an empty pool means the round is over. Everything not cleared comes back,
   // whether it was missed or passed on, and it comes back without being asked. When there is
   // nothing left the round moves itself on to the lesson.
-  if(rec && p >= pool.length){
-    firstPassDone = true;                       // every item has now been faced at least once
-    const again = [...new Set([...missed, ...skipped])].sort((a, b) => a - b);
-    if(again.length){ skipped = new Set(); startRecall(again, roundNo + 1); }
-    else return recallDone();
-  }
+  // Recall is ONE pass. Mike, 2026-08-01: "don't force them to redo mistakes, it's creating
+  // a frustration loop." Getting one wrong already costs you the query on screen and the
+  // points; being marched back through it a third and fourth time costs the round.
+  // Repeating is what "Run it again" is for, and that is the learner's call.
+  if(rec && p >= pool.length) return recallDone();
   $('t-work').hidden = false;
 
   const idx = at(), d = LAP.drills[idx];
   const last = !rec && i === LAP.drills.length - 1;
   if(rec){ misses = 0; revealed = 0; }
 
-  $('rung').textContent = !rec ? 'Query ' + (idx + 1) + ' of ' + LAP.drills.length
-    : roundNo === 1 ? 'Query ' + (idx + 1) + ' of ' + LAP.drills.length
-    : 'Round ' + roundNo + ' · ' + (p + 1) + ' of ' + pool.length;
+  $('rung').textContent = 'Query ' + ((rec ? p : i) + 1) + ' of ' + LAP.drills.length;
   $('adds').textContent = d.adds;
   $('question').innerHTML = '<span>The question</span>' + esc(d.q);
   // Read off the reference result, never written down, so it cannot disagree with the check.
@@ -905,6 +894,7 @@ function renderDrill(){
   $('pile').hidden = !rec;
   if(rec) paintPile();
 
+  $('intro').hidden = rec || i !== 0;
   // The one box that changes between the two modes: the whole query, or the covered one.
   if(rec) $('query').innerHTML = coverUp(d.sql, 0);
   else $('query').textContent = d.sql;
@@ -929,7 +919,6 @@ function renderDrill(){
   $('skip').disabled = false;
   $('next').hidden = rec || last;
   $('to-lesson').hidden = rec || !last;
-  $('move-on').hidden = !(rec && firstPassDone);
   // Run is the loud button until the rows match. Nothing is disabled: someone who wants
   // to skip ahead without running can, the same as the drill page.
   $('run').classList.add('go');
@@ -1146,15 +1135,13 @@ $('next').onclick = () => {
 };
 $('back').onclick = () => { if(i > 0){ i--; renderDrill(); } };
 // The typing pass hands straight to the covered-up pass. Nothing in between.
-$('to-lesson').onclick = () => { startRecall(LAP.drills.map((_, n) => n), 1); show('recall'); };
+$('to-lesson').onclick = () => { startRecall(LAP.drills.map((_, n) => n)); show('recall'); };
 $('skip').onclick = () => {
-  // Not failing, and not an exit either: it rejoins the loop with the missed ones.
+  // One pass, so this is the last time this query comes up. It scores nothing and the round
+  // carries on: nobody is held on a query they do not want to fight.
   skipped.add(at()); missed.delete(at());
   p++; renderDrill();
 };
-// The way out, once a full pass is behind them. Not styled loud: the loop is still what the
-// round wants, and a learner who has been round twice has earned the right to leave anyway.
-$('move-on').onclick = () => show('concepts');
 $('sql').addEventListener('keydown', e => {
   if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); run(); }
 });
@@ -1170,11 +1157,7 @@ $('copy-q').onclick = () => {
 //   missed  — attempted and failed, comes back next round
 //   skipped - come back to this one, which now rejoins the loop with the missed ones rather
 //             than sitting in a pile the learner is offered at the end
-let pool = [], p = 0, roundNo = 1, misses = 0, revealed = 0;
-// Set the moment every item has been faced once, whether it was cleared, missed or put off.
-// It is what puts the way out on screen: the loop keeps going by itself, but after one full
-// pass nobody is held in it.
-let firstPassDone = false;
+let pool = [], p = 0, misses = 0, revealed = 0;
 // How much of the query each item ended up needing on screen, across every round: 0 none,
 // 1 half, 2 three quarters, 3 all of it. It is the score. Kept as the WORST help the item
 // ever needed, not the last, because a query you had to uncover once is not a query you
@@ -1190,14 +1173,10 @@ if(state.recall){
   const live = n => Number.isInteger(n) && n >= 0 && n < LAP.drills.length;
   const clean = a => Array.isArray(a) ? a.filter(live) : [];
   pool = clean(r.pool);
-  roundNo = typeof r.roundNo === 'number' ? r.roundNo : 1;
   p = typeof r.p === 'number' ? Math.min(r.p, pool.length) : 0;
   cleared = new Set(clean(r.cleared));
   missed  = new Set(clean(r.missed));
   skipped = new Set(clean(r.skipped));
-  // Also true for anyone restored past round 1, so a returning learner does not have to
-  // earn the way out a second time.
-  firstPassDone = !!r.firstPassDone || roundNo > 1;
 }
 
 // The reference result set, computed once at boot by running the reference query itself.
@@ -1228,29 +1207,32 @@ function sameTable(got, want){
   return true;
 }
 
-function startRecall(items, n){
+function startRecall(items){
   pool = items.slice();
-  p = 0; roundNo = n;
+  p = 0;
   missed = new Set();
   remember();
 }
 
 function paintPile(){
   const total = LAP.drills.length;
-  // Two numbers, because there are only two states that matter now: got it, or coming back.
-  // Missed and passed-on used to be counted apart, which mattered when the end of the round
-  // offered them as separate choices. They are one pile now, so they are one number.
-  const back = new Set([...missed, ...skipped]).size;
+  // Progress, not a debt. There is nothing coming back any more, so nothing is counted
+  // against anyone: how many are answered, and how many of those took no help at all.
+  const clean = LAP.drills.filter((d, n) => cleared.has(n) && !(helpUsed[n] > 0)).length;
   $('pile').innerHTML =
-    '<span class="tally ok"><b>' + cleared.size + '</b> of ' + total + ' from memory</span>' +
-    (back ? '<span class="tally no"><b>' + back + '</b> coming back to you</span>' : '');
+    '<span class="tally ok"><b>' + cleared.size + '</b> of ' + total + ' answered</span>' +
+    (clean ? '<span class="tally ok"><b>' + clean + '</b> with no help</span>' : '');
 }
 
 // Uncover more of the query in the box it already lives in. Nothing new appears on the
 // screen and nothing moves: the covered lines are already there, they just turn into code.
-function uncover(){
+// `was` is the reveal level before this one, so the new slice can be told apart from the
+// slice that was already sitting there. Passed explicitly rather than remembered, because a
+// re-render for any other reason must not re-flash code the learner has already read.
+function uncover(was){
   const d = LAP.drills[at()];
-  $('query').innerHTML = coverUp(d.sql, FRACTIONS[Math.min(revealed, 3)]);
+  $('query').innerHTML = coverUp(d.sql, FRACTIONS[Math.min(revealed, 3)],
+                                FRACTIONS[Math.min(was || 0, 3)]);
   // The invitation is for the blank pane. Once help is on screen, the help speaks for itself.
   $('tryline').hidden = revealed > 0;
 }
@@ -1272,19 +1254,18 @@ function judgeRecall(res){
   const got = res.length ? res[res.length - 1] : null;
 
   if(sameTable(got, want)){
-    // Cleared, but only if it was cleared before the whole query went on screen. Copying
-    // the answer back in is not recall, and calling it cleared would put a checkmark on
-    // something nobody retrieved.
-    const honest = revealed < 3;
-    if(honest){ cleared.add(idx); missed.delete(idx); }
-    else { missed.add(idx); }
+    // Answered. How much of the query it took is what the score is for; it is not a reason
+    // to send anyone round again. `helpUsed` already holds the worst help this one needed.
+    const unaided = !(helpUsed[idx] > 0);
+    cleared.add(idx); missed.delete(idx);
     $('verdict').className = '';
-    $('verdict').innerHTML = honest
-      ? '<span class="ok">That is the table.</span> ' + esc(LAP.drills[idx].why)
-      : '<span class="ok">That runs.</span> You had the whole query in front of you, so this one comes back in the next round.';
-    // Cleared or not, the query stops being covered once it is answered: there is nothing
-    // left to protect, and the point now is to read it against what you wrote.
-    revealed = 3; uncover();
+    $('verdict').innerHTML = unaided
+      ? '<span class="ok">That is the table, and you had it.</span> ' + esc(LAP.drills[idx].why)
+      : '<span class="ok">That is the table.</span> ' + esc(LAP.drills[idx].why);
+    // The query stops being covered once it is answered: there is nothing left to protect,
+    // and the point now is to read it against what you wrote. The rest is marked as new,
+    // because on a clean answer this is the first time any of it has been on screen.
+    const had = revealed; revealed = 3; uncover(had);
     $('run').classList.remove('go');
     $('next').hidden = false;
     $('next').classList.add('go');
@@ -1295,15 +1276,16 @@ function judgeRecall(res){
     remember();
     winPopup({
       cue: 'Read your rows',
-      title: honest ? 'You had it' : 'That runs',
-      lead: honest ? 'You wrote it from memory, with the query covered up.'
-        : 'You had the whole query in front of you, so this one comes back in the next round.',
+      title: unaided ? 'You had it' : 'That is the table',
+      lead: unaided
+        ? 'Written from memory with the query covered up. Full marks on this one.'
+        : 'You got there with some of the query on screen. It scores less, and it still counts.',
       body: didAndMatters(LAP.drills[idx]) +
         '<p class="note">What your query returned:</p>' + table(res),
       label: 'Next →',
       onContinue: () => $('next').click(),
-      toast: honest ? '✓ From memory' : 'Query runs',
-      pieces: honest ? 20 : 0
+      toast: unaided ? '✓ From memory' : '✓ Answered',
+      pieces: unaided ? 20 : 8
     });
     return;
   }
@@ -1336,11 +1318,12 @@ function judgeRecall(res){
 // gives the wrong table are the same event here: you did not have it, so more of it gets
 // uncovered. Half, three quarters, all of it.
 function missRecall(html, footnote, opts){
+  const had = revealed;
   misses++;
   missed.add(at());
   revealed = Math.min(misses, 3);
   helpUsed[at()] = Math.max(helpUsed[at()] || 0, revealed);
-  uncover();
+  uncover(had);
   const helped = misses === 1 ? 'Half the query is uncovered on the left.'
      : misses === 2 ? 'Three quarters of it is uncovered now.'
      : 'All of it is uncovered now. Type it out; it never goes into the editor for you.';
@@ -1376,7 +1359,12 @@ function missRecall(html, footnote, opts){
 // their own remediation, which is the one thing they are least equipped to do, and the
 // cheapest button on it was always the one that skipped the work.
 function recallDone(){
-  celebrate('✓ All ' + LAP.drills.length + ' from memory', 34);
+  const total = LAP.drills.length;
+  const clean = LAP.drills.filter((d, n) => cleared.has(n) && !(helpUsed[n] > 0)).length;
+  // Confetti for a clean sweep only. Everyone else gets the step change and the score,
+  // which is the honest amount of noise for what happened.
+  if(clean === total) celebrate('✓ All ' + total + ' from memory', 34);
+  else if(cleared.size) showToast(cleared.size + ' of ' + total + ' answered');
   show('concepts');
 }
 
@@ -1457,7 +1445,6 @@ function paintDone(){
     : 'The fastest way up is the covered-up pass on its own. The queries are the same four.';
 }
 
-$('to-type').onclick = () => { i = 0; show('type'); };
 $('to-done').onclick = () => show('done');
 
 // ── end: run it again ───────────────────────────────────────────────────────
@@ -1465,13 +1452,13 @@ $('to-done').onclick = () => show('done');
 // A new run is a new score, so the banking flag resets with it.
 $('again').onclick = () => {
   i = 0; helpUsed = {}; cleared = new Set(); skipped = new Set(); missed = new Set();
-  firstPassDone = false; state.scoreBanked = false;
+  state.scoreBanked = false;
   show('type');
 };
 $('again-blind').onclick = () => {
   cleared = new Set(); skipped = new Set(); helpUsed = {};
-  firstPassDone = false; state.scoreBanked = false;
-  startRecall(LAP.drills.map((_, n) => n), 1);
+  state.scoreBanked = false;
+  startRecall(LAP.drills.map((_, n) => n));
   show('recall');
 };
 
