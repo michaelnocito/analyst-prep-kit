@@ -50,8 +50,8 @@ Reveal ladder on attempts:
 | Attempt | What appears |
 |---|---|
 | Miss 1 | The first half of the code |
-| Miss 2 | (nothing new — one more swing on the half) |
-| Miss 3 | The whole code |
+| Miss 2 | Three quarters of it |
+| Miss 3 | The whole code, shown but never pasted in — it gets typed |
 
 Every item lands in exactly one bucket:
 
@@ -196,7 +196,8 @@ What shipped in `path/index.html`:
 - **The loop.** When the pool empties, the missed pile becomes the next round, and so on
   until it is empty. The rung label switches from "Query 3 of 6" to "Round 2 · 1 of 1".
 - **Reveal ladder.** Miss 1 shows the first half of the query plus a count of the lines
-  still hidden. Miss 2 shows nothing new. Miss 3 shows the whole thing. An item cleared
+  still hidden. Miss 2 shows three quarters. Miss 3 shows the whole thing, in the left pane
+  only — the editor is never prefilled, so it gets typed out. An item cleared
   after the full reveal is **not** counted as cleared; it goes back in the missed pile,
   because copying the answer back in is not retrieval.
 - **A query that errors is not an attempt.** The ladder only moves on a query that ran and

@@ -799,24 +799,34 @@ function renderRecall(){
   remember();
 }
 
-// The reveal ladder: half on the first miss, nothing new on the second, the whole query
-// on the third. The second swing with no new help is deliberate — that is the swing where
-// the clause usually comes back on its own, and handing over the answer kills it.
+// The reveal ladder: half the query on the first miss, three quarters on the second, the
+// whole thing on the third. It is never pasted into the editor at any rung — it sits in
+// the left pane and gets typed, because typing it is the whole point of the pass.
 function paintReveal(){
   const d = LAP.drills[pool[p]];
-  const lines = d.sql.split('\n');
-  const half = Math.ceil(lines.length / 2);
   $('r-blank').hidden = true;
   $('r-reveal').hidden = false;
-  if(revealed === 1){
-    $('r-reveal-h').textContent = 'A start';
-    $('r-reveal-code').innerHTML = esc(lines.slice(0, half).join('\n')) +
-      '\n<span class="rest">' + '… and ' + (lines.length - half) +
-      (lines.length - half === 1 ? ' more line' : ' more lines') + '</span>';
-  } else {
+  if(revealed >= 3){
     $('r-reveal-h').textContent = 'The whole query';
     $('r-reveal-code').textContent = d.sql;
+    return;
   }
+  // Cut on characters, not lines. Most of these queries are two or three lines, and a
+  // line-based half and three quarters round to the same thing on a two-liner — which puts
+  // back the dead second swing this ladder exists to remove. Characters always differ.
+  const frac = revealed === 1 ? 0.5 : 0.75;
+  const keep = Math.min(d.sql.length - 1, Math.max(1, Math.round(d.sql.length * frac)));
+  const shown = d.sql.slice(0, keep);
+  const hidden = d.sql.slice(keep);
+  // Say what is left in whatever unit is true: whole lines if the cut landed on a line
+  // break, otherwise the rest of the line you are standing in.
+  const restLines = hidden.replace(/^\n/, '').split('\n').length;
+  const rest = shown.endsWith('\n')
+    ? '… and ' + restLines + (restLines === 1 ? ' more line' : ' more lines')
+    : '… finish this line' + (restLines > 1 ? ', then ' + (restLines - 1) +
+        (restLines - 1 === 1 ? ' more line' : ' more lines') : '');
+  $('r-reveal-h').textContent = revealed === 1 ? 'A start' : 'Most of it';
+  $('r-reveal-code').innerHTML = esc(shown) + '<span class="rest"> ' + rest + '</span>';
 }
 
 function recallRun(){
@@ -853,7 +863,7 @@ function recallRun(){
     // Cleared, but only if it was cleared before the whole query went on screen. Copying
     // the answer back in is not recall, and calling it cleared would put a checkmark on
     // something nobody retrieved.
-    const honest = revealed < 2;
+    const honest = revealed < 3;
     if(honest){ cleared.add(idx); missed.delete(idx); }
     else { missed.add(idx); }
     $('r-verdict').className = '';
@@ -875,7 +885,8 @@ function recallRun(){
   misses++;
   missed.add(idx);
   if(misses === 1) revealed = 1;
-  if(misses >= 3) revealed = 2;
+  if(misses === 2) revealed = 2;
+  if(misses >= 3) revealed = 3;
   if(revealed) paintReveal();
   // Name the difference that is actually there. "You got 500 rows; the answer has 500" is
   // what the row count alone says when the columns are wrong, and it reads as nonsense.
@@ -896,8 +907,8 @@ function recallRun(){
   $('r-verdict').className = '';
   $('r-verdict').innerHTML = '<span class="no">Not the same table.</span> ' + diff + ' ' +
     (misses === 1 ? 'Half the query is now on the left.'
-     : misses === 2 ? 'Same half on the left. One more swing before the rest of it.'
-     : 'The whole query is on the left now.');
+     : misses === 2 ? 'Three quarters of it is on the left now.'
+     : 'The whole query is on the left now. Type it out; it never goes in the editor for you.');
   $('directive-text').textContent = 'Read the left pane, fix your query, then click Run again.';
   paintPile();
   remember();
