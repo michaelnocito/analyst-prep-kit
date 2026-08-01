@@ -285,6 +285,32 @@
   .summary li{margin:0 0 6px}
   .offers{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
 
+  /* SUCCESS POPUP. Canon: a right answer is a popup, not a line of text further down the
+     page. It carries the result table, it celebrates, it does not time out, and the only
+     way forward is one Continue button. The rows a learner worked for stop being something
+     they have to go and find. */
+  .scrim{position:fixed;inset:0;background:rgba(9,9,11,.42);z-index:990;
+    display:flex;align-items:center;justify-content:center;padding:20px}
+  .scrim[hidden]{display:none}
+  .win{background:var(--card);border-radius:14px;border:1px solid var(--line);
+    max-width:760px;width:100%;max-height:86vh;display:flex;flex-direction:column;
+    box-shadow:0 24px 60px rgba(9,9,11,.28);animation:rise .22s ease-out}
+  @keyframes rise{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+  @media (prefers-reduced-motion:reduce){ .win{animation:none} }
+  .win header{padding:18px var(--pad) 0}
+  .win h2{margin:0;font-size:21px;color:var(--ok)}
+  .win .lead{margin:6px 0 0;font-size:15px}
+  .win .body{padding:14px var(--pad);overflow:auto;font:13px/1.6 var(--mono)}
+  .win .body table{border-collapse:collapse;font-size:12.5px}
+  .win .body th,.win .body td{border:1px solid var(--line);padding:4px 9px;
+    text-align:left;white-space:nowrap}
+  .win .body th{color:var(--muted);background:var(--bg)}
+  .win .note{font:14px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    color:var(--muted);margin:0 0 10px}
+  .win footer{padding:0 var(--pad) 18px;display:flex;gap:12px;align-items:center;
+    flex-wrap:wrap}
+  .win footer .dismiss{color:var(--muted)}
+
   #directive{position:fixed;left:0;right:0;bottom:0;background:var(--card);
     border-top:1px solid var(--line);z-index:5;pointer-events:none}
   #directive p{max-width:1240px;margin:0 auto;padding:13px 20px;font-weight:600;
@@ -446,6 +472,21 @@
   </footer>
 </div>
 
+<!-- The success popup. One per page, filled in by winPopup(). -->
+<div class="scrim" id="scrim" hidden>
+  <div class="win" role="dialog" aria-modal="true" aria-labelledby="win-title">
+    <header>
+      <h2 id="win-title"></h2>
+      <p class="lead" id="win-lead"></p>
+    </header>
+    <div class="body" id="win-body"></div>
+    <footer>
+      <button class="go" id="win-go">Continue</button>
+      <button class="dismiss" id="win-stay">Stay on this screen</button>
+    </footer>
+  </div>
+</div>
+
 <div id="celebrate-overlay" aria-hidden="true"></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -500,14 +541,17 @@ function celebrate(msg, pieces){
   const overlay = $('celebrate-overlay');
   const colors = ['#0E7490','#38BDF8','#15803D','#F59E0B','#67E8F9'];
   overlay.innerHTML = '';
-  for(let n = 0; n < (pieces || 28); n++){
+  // Zero pieces means the toast only. A run that needed the whole query shown is still a
+  // result worth seeing, but it is not a win, and confetti over it would say otherwise.
+  const count = pieces == null ? 28 : pieces;
+  for(let n = 0; n < count; n++){
     const d = document.createElement('div');
     d.className = 'confetti';
     d.style.cssText = 'left:' + (Math.random() * 100) + '%;background:' + colors[n % colors.length] +
       ';animation-delay:' + (Math.random() * .4) + 's;animation-duration:' + (.9 + Math.random() * .6) + 's';
     overlay.appendChild(d);
   }
-  showToast(msg || '✓ Nice work!');
+  if(msg !== false) showToast(msg || '✓ Nice work!');
   setTimeout(() => { overlay.innerHTML = ''; }, 1800);
 }
 // The thing you just got right moves, so the eye knows where the good news is.
@@ -520,6 +564,47 @@ function pop(el){
   // which reads like a live pulse to anything inspecting the element.
   el.addEventListener('animationend', () => el.classList.remove('pop'), {once:true});
 }
+
+// ── the success popup ───────────────────────────────────────────────────────
+// Canon across the kit: a right answer opens a popup that carries the result, celebrates,
+// and waits. It never times out and it never auto-advances. One Continue button is the way
+// forward, so the reward and the next action are the same click.
+let winNext = null, winCameFrom = null;
+function winPopup({title, lead, body, label, onContinue, pieces, toast}){
+  winNext = onContinue || null;
+  winCameFrom = document.activeElement;
+  $('win-title').textContent = title;
+  $('win-lead').innerHTML = lead || '';
+  $('win-lead').hidden = !lead;
+  $('win-body').innerHTML = body || '';
+  $('win-body').hidden = !body;
+  $('win-go').textContent = label || 'Continue';
+  $('win-go').hidden = !winNext;
+  $('scrim').hidden = false;
+  celebrate(toast, pieces);
+  $('win-go').focus({preventScroll:true});
+}
+function winClose(){
+  $('scrim').hidden = true;
+  if(winCameFrom && document.contains(winCameFrom)) winCameFrom.focus({preventScroll:true});
+}
+$('win-go').onclick = () => { const go = winNext; winClose(); if(go) go(); };
+$('win-stay').onclick = winClose;
+// The backdrop and Escape dismiss without advancing. Someone who wants to sit and read the
+// rows against what they typed should not be forced through the door to do it.
+$('scrim').onclick = e => { if(e.target === $('scrim')) winClose(); };
+document.addEventListener('keydown', e => {
+  if($('scrim').hidden) return;
+  if(e.key === 'Escape'){ e.preventDefault(); winClose(); }
+  // A modal keeps its own focus. Two buttons, so the trap is a wrap, not a ring walk.
+  if(e.key === 'Tab'){
+    const btns = [$('win-go'), $('win-stay')].filter(b => !b.hidden);
+    if(!btns.length) return;
+    const first = btns[0], last = btns[btns.length - 1];
+    if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  }
+});
 
 // ── the stepper and which section is on screen ──────────────────────────────
 const STEPS = [
@@ -788,11 +873,16 @@ function run(){
     const fwd = last ? $('to-lesson') : $('next');
     $('run').classList.remove('go');
     fwd.classList.add('go');
-    pop(fwd);
-    celebrate(last ? '✓ That is all six' : '✓ Rows match', last ? 34 : 20);
-    $('directive-text').textContent = last
-      ? 'Rows match. Read them, then click Now cover it up under the table.'
-      : 'Rows match. Read them, then click Next query under the table.';
+    $('directive-text').textContent = 'Read your rows, then click Continue.';
+    winPopup({
+      title: last ? 'That is all six' : 'Rows match',
+      lead: answerLine(res) || esc(LAP.drills[i].why),
+      body: '<p class="note">' + esc(LAP.drills[i].why) + '</p>' + table(res),
+      label: last ? 'Now cover it up →' : 'Next query →',
+      onContinue: () => fwd.click(),
+      toast: last ? '✓ That is all six' : '✓ Rows match',
+      pieces: last ? 34 : 20
+    });
   }
 }
 
@@ -905,12 +995,20 @@ function judgeRecall(res){
     $('run').classList.remove('go');
     $('next').hidden = false;
     $('next').classList.add('go');
-    pop($('next'));
     $('skip').disabled = true;
-    if(honest) celebrate('✓ From memory', 20);
-    $('directive-text').textContent = 'Compare it with the left pane, then click Next under the table.';
+    $('directive-text').textContent = 'Read your rows, then click Continue.';
     paintPile();
     remember();
+    winPopup({
+      title: honest ? 'You had it' : 'That runs',
+      lead: honest ? esc(LAP.drills[idx].why)
+        : 'You had the whole query in front of you, so this one comes back in the next round.',
+      body: '<p class="note">' + esc(LAP.drills[idx].q) + '</p>' + table(res),
+      label: 'Next →',
+      onContinue: () => $('next').click(),
+      toast: honest ? '✓ From memory' : 'Query runs',
+      pieces: honest ? 20 : 0
+    });
     return;
   }
 
@@ -1047,12 +1145,19 @@ $('quiz-list').querySelectorAll('.opt').forEach(b => {
         (got === LAP.quiz.length ? ' Unit 1 is in.' : ' The explanations above are the bit to retype.');
       $('score').hidden = false;
       $('to-done').hidden = false;
-      pop($('to-done'));
-      // A clean sweep gets the full confetti. A mixed run gets the toast only, because
-      // confetti over two wrong answers reads as the page not paying attention.
-      if(got === LAP.quiz.length) celebrate('✓ Four for four', 34);
-      else showToast('Lap done, ' + got + ' of ' + LAP.quiz.length);
-      $('directive-text').textContent = 'Click Finish the round, under the last question.';
+      $('directive-text').textContent = 'Read your score, then click Continue.';
+      // Same popup as a right query. A clean sweep gets the full confetti; a mixed run gets
+      // none, because confetti over two wrong answers reads as the page not paying attention.
+      const clean = got === LAP.quiz.length;
+      winPopup({
+        title: got + ' of ' + LAP.quiz.length,
+        lead: clean ? 'Unit 1 is in.'
+          : 'The explanations under the questions you missed are the bit worth retyping.',
+        label: 'Finish the round →',
+        onContinue: () => $('to-done').click(),
+        toast: clean ? '✓ Four for four' : false,
+        pieces: clean ? 34 : 0
+      });
     }
   };
 });

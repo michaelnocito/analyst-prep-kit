@@ -192,3 +192,39 @@ read and what you hear are the same thing.**
 
 **Status: on hold for Mike's review.** Live on two pages only. No rollout to the kits
 until he has listened and said go.
+
+## Standing rule — Success is a popup (added 2026-08-01, Mike)
+
+**When a learner gets something right, it opens a popup. It is not a line of text further
+down the page.**
+
+The popup carries four things and nothing else:
+
+1. **What they achieved**, in a short heading. "Rows match." "You had it." "4 of 4."
+2. **The result itself** — the table their query returned, the value their formula produced,
+   the number they computed. Whatever they did the work to see.
+3. **The celebration.** Confetti and a toast, the kit's existing `celebrate()`. A result
+   that is right but did not come from them gets the popup without the confetti.
+4. **One Continue button**, which is the next action. Clicking it closes the popup and
+   starts that action.
+
+Rules the popup obeys:
+
+- **It persists.** No timer, no fade, no auto-advance. It waits as long as they look at it.
+- **The reward and the next step are the same click.** Continue is the only forward control,
+  so nobody has to hunt for one after being congratulated.
+- **A dismiss that does not advance.** The backdrop, Escape, and a quiet second button all
+  close it and leave the learner where they are. Someone comparing the rows against what
+  they typed should not have to go through the door to do it.
+- **It takes focus and gives it back.** Focus lands on Continue when it opens and returns to
+  where it came from when it closes. Tab wraps inside it.
+- **It replaces the trip down the page.** This is what the rule is for: the result used to
+  live below the editor, below the fold, and a first-timer clicked forward without reading
+  one row. The rows come to them now.
+
+Where it applies: any checked answer that produces a result — a query, a formula, a computed
+statistic, a completed quiz. Not micro-interactions like a single multiple-choice pick inside
+a longer set; those keep their inline marking, and the popup fires when the set is done.
+
+Reference implementation: `path/index.html`, `winPopup()`. Rollout across the kits and the
+apps is tracked in `ROADMAP.md`.

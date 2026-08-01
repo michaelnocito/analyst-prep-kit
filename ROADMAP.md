@@ -1089,6 +1089,21 @@ _Definition: visible bug or UX miss that hurts trust or learning, OR
 a feature that directly serves a Vision Principle and has clear ROI._
 _Response time: current cycle. Clear before accepting new feedback._
 
+- **SUCCESS POPUP: roll the "success is a popup" standing rule across every surface that checks an answer** _(added August 1, 2026; Mike's call while walking the SQL Path round)_
+  - _What:_ When a learner gets something right, a popup opens carrying the result itself (the table their query returned, the value their formula produced, the number they computed), the celebration, and **one Continue button that is the next action**. It persists — no timer, no fade, no auto-advance. Backdrop, Escape and a quiet second button dismiss it without advancing. Canon is the standing rule in `CURRICULUM_STANDARD.md`; reference implementation is `winPopup()` in `path/index.html`.
+  - _Why it's here:_ Mike: the results were at the bottom of the page, below the fold, so a first-timer clicked forward without reading a single row they had just worked for. The popup brings the rows to them and makes the reward and the next step the same click. Serves Vision #2 ("always know what to do next") and the standing rule on directive visibility.
+  - _Scope — every surface that checks an answer:_
+    1. ✅ **SQL Path round** (`path/`) — shipped August 1, 2026. Typing pass, recall pass, and the mini quiz.
+    2. **SQL Drill** (`drill/`) — same engine, same result table, closest port.
+    3. **The six lesson kits** — SQL, Excel, Python, Stats, Tableau, Power BI. Their guided-path steps and lab tasks. One kit per chat, per the rollout train.
+    4. **Final Exam Kit** (`final/`) and the cert kits — end-of-section results.
+    5. **The dry-run and sprint apps** — SQL Dry Run, the Excel/SQL Analyst Sprint apps.
+    6. **The job-sims** — Spreadsheet Archaeology, Tableau Archaeology, Good Enough Analytics.
+  - _Applies to:_ any checked answer that produces a result. NOT a single multiple-choice pick inside a longer set — those keep inline marking and the popup fires when the set is done.
+  - _Definition of Done:_ On every surface above, a correct answer opens the popup with its result inside, focus lands on Continue and returns on close, and no forward control is hidden below the fold. The old "read the verdict line below the editor" pattern is gone from every one of them.
+  - _Est. effort:_ Medium per surface, large in total. One surface per chat.
+  - _Open for Mike:_ whether the six lesson kits keep their existing inline "correct!" markers alongside the popup during rollout, or lose them in the same commit.
+
 - **Guided knowledge path (Duolingo-style) — thread the orphaned features into the lesson flow** _(added July 16, 2026 — 5:17 PM ET; from SQL-kit playtest inbox note, July 16)_
   - _What:_ A single guided path that walks the learner step-to-step through everything, instead of the current core-lesson spine with cards, Parsons problems, and labs "hanging out by themselves" waiting for a click. The path should route the learner through the extra modes at the right moments so they actually get used to drive the material home.
   - _Why it's here:_ Mike's direct playtest note on the SQL kit — the side features are important for retention but effectively invisible unless the user goes hunting. Also aligns with the spaced-retrieval gap in the learning-science gap analysis and the GR-A cross-kit-flow thread.

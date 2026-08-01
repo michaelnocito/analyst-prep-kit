@@ -228,6 +228,11 @@ What shipped in `path/index.html`:
   itself at the cursor. It matters most in recall, where the query is covered and a column
   name is the one thing nobody should be made to remember. Open or shut is the learner's
   call and it sticks.
+- **Success is a popup** (added 2026-08-01, now canon for the whole kit — see the standing
+  rule in `CURRICULUM_STANDARD.md`). A right answer opens a popup carrying the result table,
+  the celebration, and one Continue button that is the next action. It persists; the backdrop
+  and Escape dismiss it without advancing. Both passes and the mini quiz use it. This is what
+  took the results out of the bottom of the page, where a first-timer never read them.
 - **The end card** offers the two from the spec, "try the ones you passed on" and "write all
   six again", plus the way on to the lesson.
 - The finish card and the checkpoint now read recall as well as the quiz. Fewer than five of
