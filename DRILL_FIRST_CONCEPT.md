@@ -211,8 +211,11 @@ What shipped in `path/index.html`:
   never prefilled, so it gets typed out. An item cleared after the full uncover is **not**
   counted as cleared; it goes back in the missed pile, because copying the answer back in is
   not retrieval.
-- **A query that errors is not an attempt.** The ladder only moves on a query that ran and
-  returned the wrong table, so a typo costs nothing.
+- **Every wrong run is a miss.** A query that will not run and a query that runs and gives
+  the wrong table are the same event: you did not have it, so more of it gets uncovered.
+  The first build excluded errors, which meant typing something broken uncovered nothing at
+  the exact moment the help was wanted. The engine's own words go last on the line, after
+  the explanation and after the help.
 - **Correctness is a result comparison**, never a string match on the code. The reference
   result is computed at boot by running the ladder's own query, so nothing is hand-kept in
   sync. Column order counts; SQL text never does.

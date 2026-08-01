@@ -667,12 +667,18 @@ function run(){
     } else if(/no such table/i.test(msg)){
       guess = 'The only two tables here are <code>gem_page</code> and <code>artist_era</code>. Check the spelling.';
     } else if(/syntax error/i.test(msg)){
-      guess = 'A word or a piece of punctuation is off. Read your query against the reference query one line at a time.';
+      guess = 'A word or a piece of punctuation is off.' + (inRecall() ? ''
+        : ' Read your query against the reference query one line at a time.');
     }
+    $('out').innerHTML = '';
+    // In recall a query that will not run is a miss like any other. It is the moment the
+    // help is wanted, so it uncovers. Nothing on this screen tells someone to compare their
+    // query against a reference query, because the reference query is under the covers.
+    if(inRecall()) return missRecall('<span class="no">That query did not run.</span> ' + guess,
+      '<span class="hint">The database reported: ' + esc(msg) + '</span>');
     $('verdict').className = '';
     $('verdict').innerHTML = '<span class="no">That query did not run.</span> ' + guess +
       '<br><span class="hint">The database reported: ' + esc(msg) + '</span>';
-    $('out').innerHTML = '';
     $('directive-text').textContent = 'Fix the line the message points at, then click Run again.';
     return;
   }
@@ -818,13 +824,6 @@ function judgeRecall(res){
     return;
   }
 
-  // Ran, wrong table. This is the swing that moves the ladder.
-  misses++;
-  missed.add(idx);
-  if(misses === 1) revealed = 1;
-  if(misses === 2) revealed = 2;
-  if(misses >= 3) revealed = 3;
-  uncover();
   // Name the difference that is actually there. "You got 500 rows; the answer has 500" is
   // what the row count alone says when the columns are wrong, and it reads as nonsense.
   const gotN = got ? got.values.length : 0;
@@ -841,11 +840,25 @@ function judgeRecall(res){
   } else {
     diff = 'Same shape, different contents. The values or the sort order are not matching.';
   }
+  missRecall('<span class="no">Not the same table.</span> ' + diff);
+}
+
+// One miss, however it went wrong. A query that will not run and a query that runs and
+// gives the wrong table are the same event here: you did not have it, so more of it gets
+// uncovered. Half, three quarters, all of it.
+function missRecall(html, footnote){
+  misses++;
+  missed.add(at());
+  revealed = Math.min(misses, 3);
+  uncover();
   $('verdict').className = '';
-  $('verdict').innerHTML = '<span class="no">Not the same table.</span> ' + diff + ' ' +
+  $('verdict').innerHTML = html + ' ' +
     (misses === 1 ? 'Half the query is uncovered on the left.'
      : misses === 2 ? 'Three quarters of it is uncovered now.'
-     : 'All of it is uncovered now. Type it out; it never goes into the editor for you.');
+     : 'All of it is uncovered now. Type it out; it never goes into the editor for you.') +
+    // The engine's own words go last. They are the least useful line on the screen and they
+    // must never sit between the explanation and the help.
+    (footnote ? '<br>' + footnote : '');
   $('directive-text').textContent = 'Read the left pane, fix your query, then click Run again.';
   paintPile();
   remember();
