@@ -241,16 +241,15 @@
   .tally b{color:var(--ink)}
   .tally.ok b{color:var(--ok)}
   .tally.no b{color:var(--no)}
-  .blank{padding:16px var(--pad);color:var(--muted);font-size:14.5px;
-    border-top:1px solid var(--line)}
-  /* The reveal ladder. Half the query first, the whole thing only on the third swing. */
-  .reveal{border-top:1px solid var(--line);padding:12px var(--pad)}
-  .reveal h3{font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;
-    color:var(--muted);margin:0 0 8px}
-  .reveal pre{margin:0;font:13.5px/1.65 var(--mono);white-space:pre-wrap;
-    word-break:break-word}
-  .reveal .rest{color:var(--muted)}
-  #r-skip{color:var(--muted)}
+  /* A covered line. Same box, same place, same line height as the code it is standing in
+     for, so uncovering one does not move the rest of the query on the screen. */
+  .mask{display:inline-block;height:1.05em;vertical-align:-0.15em;border-radius:4px;
+    background:repeating-linear-gradient(135deg,#E8ECEF 0 6px,#DFE4E8 6px 12px)}
+  @media (prefers-reduced-motion:no-preference){
+    #query .just{animation:lift .5s ease-out}
+  }
+  @keyframes lift{0%{background:rgba(14,116,144,.16)}100%{background:transparent}}
+  #skip{color:var(--muted)}
   .summary li{margin:0 0 6px}
   .offers{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
 
@@ -283,17 +282,24 @@
   </section>
 
   <!-- STEP 2 ─ TYPE ───────────────────────────────────────────────────────── -->
+  <!-- ONE screen, two modes. Recall is not a different layout: it is this exact layout with
+       the left-hand query covered up. Every miss uncovers more of it, half then three
+       quarters then all of it, and the code is never pasted into the editor. It gets typed. -->
   <section id="s-type" hidden>
+   <div id="t-work">
     <div class="drillbar">
       <span class="rung" id="rung">Loading</span>
       <p class="adds" id="adds">Starting the SQL engine.</p>
     </div>
 
+    <div class="pile" id="pile" hidden></div>
+
     <div class="work">
       <div class="pane">
         <div class="panehead">
-          <h2>Type this query</h2>
+          <h2 id="qhead">Type this query</h2>
           <button class="copy" id="copy-q">Copy</button>
+          <span class="note" id="covernote" hidden>Covered up &middot; a miss uncovers more</span>
         </div>
         <p class="question" id="question"></p>
         <pre id="query"></pre>
@@ -310,6 +316,7 @@
         <div class="runbar">
           <p class="predict"><b>Before you run it:</b> <span id="pretext"></span></p>
           <button class="go" id="run">Run</button>
+          <button id="skip" hidden>Pass on this one</button>
         </div>
       </div>
     </div>
@@ -325,81 +332,22 @@
       <div class="actions">
         <button id="back">&larr; Back</button>
         <button class="fwd" id="next">Next query &rarr;</button>
-        <button class="fwd go" id="to-lesson" hidden>Now write them blind &rarr;</button>
+        <button class="fwd go" id="to-lesson" hidden>Now cover it up &rarr;</button>
       </div>
     </div>
-  </section>
+   </div>
 
-  <!-- STEP 3 ─ RECALL (drill pass 2) ──────────────────────────────────────── -->
-  <!-- The blank-editor pass from DRILL_FIRST_CONCEPT.md. Same six items, same order, the
-       question only. Three buckets and nothing else: cleared, missed, skipped. Missed
-       items come back as another round until the pile is empty; skipped ones are never
-       mixed in with them, and are offered once at the end.
-
-       Correctness here compares the full result set to the reference query, not the row
-       count pass 1 uses. Pass 1 has the answer on screen so a count is enough feedback;
-       this pass is the graded one, and a count alone would pass a query that returns 500
-       of the wrong rows. It is never a string match on the code: two different queries
-       that return the same table are both right. -->
-  <section id="s-recall" hidden>
-    <div id="r-work">
-      <div class="drillbar">
-        <span class="rung" id="r-rung">Round 1</span>
-        <p class="adds" id="r-adds"></p>
-      </div>
-
-      <div class="pile" id="r-pile"></div>
-
-      <div class="work">
-        <div class="pane">
-          <div class="panehead">
-            <h2>Write it from the question</h2>
-            <span class="note">No reference query this time</span>
-          </div>
-          <p class="question" id="r-question"></p>
-          <p class="blank" id="r-blank">You typed this one already. Write it again from the
-            question. If it will not come, run what you have and the page starts showing it
-            to you.</p>
-          <div class="reveal" id="r-reveal" hidden>
-            <h3 id="r-reveal-h">A start</h3>
-            <pre id="r-reveal-code"></pre>
-          </div>
-        </div>
-
-        <div class="pane">
-          <div class="panehead">
-            <h2>Your editor</h2>
-            <span class="note">Ctrl+Enter runs &middot; Ctrl+Space lists tables and columns</span>
-          </div>
-          <textarea id="rsql" spellcheck="false" autocapitalize="off" autocomplete="off"
-                    autocorrect="off" placeholder="Write the query here."></textarea>
-          <div class="runbar">
-            <button class="go" id="r-run">Run</button>
-            <button id="r-skip">Pass on this one</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="output">
-        <div id="r-verdict" class="hint" aria-live="polite">Run it and the rows appear here.</div>
-        <div id="r-out"></div>
-        <div class="actions">
-          <button class="fwd go" id="r-next" hidden>Next &rarr;</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Shown when the missed pile is empty. Two offers, and the way on. -->
-    <div class="card" id="r-summary" hidden>
-      <h2>Nothing left in the missed pile</h2>
-      <p class="sub" id="r-summary-sub"></p>
-      <ul class="summary" id="r-summary-list"></ul>
-      <div class="offers">
-        <button class="go" id="r-to-lesson">Go to the lesson &rarr;</button>
-        <button id="r-do-skipped" hidden>Try the ones you passed on</button>
-        <button id="r-do-all">Write all six again</button>
-      </div>
-    </div>
+   <!-- Recall mode only, when the missed pile is empty. -->
+   <div class="card" id="r-summary" hidden>
+     <h2>Nothing left in the missed pile</h2>
+     <p class="sub" id="r-summary-sub"></p>
+     <ul class="summary" id="r-summary-list"></ul>
+     <div class="offers">
+       <button class="go" id="r-to-lesson">Go to the lesson &rarr;</button>
+       <button id="r-do-skipped" hidden>Try the ones you passed on</button>
+       <button id="r-do-all">Write all six again</button>
+     </div>
+   </div>
   </section>
 
   <!-- STEP 4 ─ LESSON ─────────────────────────────────────────────────────── -->
@@ -563,12 +511,16 @@ function paintStepper(){
   }).join('');
 }
 
+// Type and recall are the SAME section. Recall is this screen with the query covered up,
+// not a second layout, so it shares every element on it.
+const SECT = {primer:'s-primer', type:'s-type', recall:'s-type',
+              lesson:'s-lesson', quiz:'s-quiz', done:'s-done'};
 function show(next){
   step = next;
-  ORDER.forEach(k => { const el = $('s-' + k); if(el) el.hidden = k !== step; });
+  ['s-primer','s-type','s-lesson','s-quiz','s-done']
+    .forEach(id => { $(id).hidden = id !== SECT[step]; });
   paintStepper();
-  if(step === 'type') renderDrill();
-  else if(step === 'recall') renderRecall();
+  if(step === 'type' || step === 'recall') renderDrill();
   else $('directive-text').textContent = DIRECTIVE[step];
   if(step === 'lesson') paintLessons();
   if(step === 'done') paintDone();
@@ -581,30 +533,86 @@ $('primer-list').innerHTML = LAP.primer
   .map(([h, b]) => `<li><b>${h}</b><span>${b}</span></li>`).join('');
 $('to-type').onclick = () => show('type');
 
-// ── step 2: typing ──────────────────────────────────────────────────────────
+// ── steps 2 and 3: one screen, two modes ────────────────────────────────────
+const inRecall = () => step === 'recall';
+// Which ladder item is on screen. Pass 1 walks straight down the six; recall walks the
+// current pool, which is the whole six on round 1 and the missed pile after that.
+const at = () => inRecall() ? pool[p] : i;
+
+// How much of the query is uncovered, by how many times this item has been missed.
+// Nothing, half, three quarters, all of it. The uncovered part is the real code, and it is
+// never pasted into the editor: it gets typed.
+const FRACTIONS = [0, .5, .75, 1];
+// Cut on characters, not lines. Most of these queries are two or three lines, and a
+// line-based half and three quarters round to the same thing on a two-liner, which puts
+// back the dead second swing this ladder exists to remove. Characters always differ.
+function coverUp(sql, frac){
+  if(frac >= 1) return esc(sql);
+  const keep = frac <= 0 ? 0 : Math.min(sql.length - 1, Math.round(sql.length * frac));
+  const shown = sql.slice(0, keep);
+  // What is still covered keeps the width of the code it stands in for, so uncovering
+  // never shuffles the rest of the query around the screen.
+  const hidden = sql.slice(keep).split('\n').map(ln =>
+    ln.length ? '<span class="mask" style="width:' + ln.length + 'ch"></span>' : ''
+  ).join('\n');
+  return esc(shown) + hidden;
+}
+
 function renderDrill(){
-  const d = LAP.drills[i];
-  $('rung').textContent = 'Query ' + (i + 1) + ' of ' + LAP.drills.length;
+  const rec = inRecall();
+  // Recall with an empty pool means the round is over: the missed pile becomes the next
+  // round, and when there is nothing left the summary takes the screen.
+  if(rec && p >= pool.length){
+    if(missed.size) startRecall([...missed].sort((a, b) => a - b), roundNo + 1);
+    else return paintRecallSummary();
+  }
+  $('t-work').hidden = false;
+  $('r-summary').hidden = true;
+
+  const idx = at(), d = LAP.drills[idx];
+  const last = !rec && i === LAP.drills.length - 1;
+  if(rec){ misses = 0; revealed = 0; }
+
+  $('rung').textContent = !rec ? 'Query ' + (idx + 1) + ' of ' + LAP.drills.length
+    : roundNo === 1 ? 'Query ' + (idx + 1) + ' of ' + LAP.drills.length
+    : 'Round ' + roundNo + ' · ' + (p + 1) + ' of ' + pool.length;
   $('adds').textContent = d.adds;
   $('question').innerHTML = '<span>The question</span>' + esc(d.q);
-  $('query').textContent = d.sql;
-  $('why').textContent = d.why;
+  $('qhead').textContent = rec ? 'Write it from the question' : 'Type this query';
+  $('covernote').hidden = !rec;
+  $('copy-q').hidden = rec;                    // nothing to copy, and copying is the enemy
+  $('pile').hidden = !rec;
+  if(rec) paintPile();
+
+  // The one box that changes between the two modes: the whole query, or the covered one.
+  if(rec) $('query').innerHTML = coverUp(d.sql, 0);
+  else $('query').textContent = d.sql;
+
+  $('why').textContent = rec ? '' : d.why;
+  $('why').hidden = rec;
   $('pretext').textContent = d.pre;
+  $('pretext').parentElement.hidden = rec;
   $('verdict').className = 'hint';
-  $('verdict').textContent = 'Run your query and the rows appear here.';
+  $('verdict').textContent = rec
+    ? 'Write it, run it, and the rows appear here.'
+    : 'Run your query and the rows appear here.';
   $('out').innerHTML = '';
-  const last = i === LAP.drills.length - 1;
+  $('back').hidden = rec;
   $('back').disabled = i === 0;
-  $('next').hidden = last;
-  $('to-lesson').hidden = !last;
+  $('skip').hidden = !rec;
+  $('skip').disabled = false;
+  $('next').hidden = rec || last;
+  $('to-lesson').hidden = rec || !last;
   // Run is the loud button until the rows match. Nothing is disabled: someone who wants
   // to skip ahead without running can, the same as the drill page.
   $('run').classList.add('go');
   $('next').classList.remove('go');
-  $('directive-text').textContent = last
-    ? 'Last one. Type the query, then click Run under your editor. The next step writes these six again with nothing on screen.'
-    : 'Type the whole query, then click Run under your editor.';
-  // Never prefilled. Typing it out is the entire point.
+  $('directive-text').textContent = rec
+    ? 'Write the query from the question, then click Run under your editor.'
+    : last
+      ? 'Last one. Type the query, then click Run under your editor. After this the query gets covered up and you write all six again.'
+      : 'Type the whole query, then click Run under your editor.';
+  // Never prefilled, in either mode. Typing it out is the entire point.
   ed.setValue('');
   ed.focus();
   remember();
@@ -668,13 +676,15 @@ function run(){
     $('directive-text').textContent = 'Fix the line the message points at, then click Run again.';
     return;
   }
+  $('out').innerHTML = table(res);
+  if(inRecall()) return judgeRecall(res);
+
   const got = res.length ? res[res.length - 1].values.length : 0;
   const want = LAP.drills[i].rows;
   $('verdict').className = '';
   $('verdict').innerHTML = '<b>' + got + (got === 1 ? ' row' : ' rows') + ' back.</b> The reference query returns ' +
     want + (got === want ? '. ' : ', so the two are not doing the same thing yet. ') +
     (got === want ? answerLine(res) : '');
-  $('out').innerHTML = table(res);
   // Right answer: the kits' confetti, and the loud button moves from Run to the way out,
   // so the next click is the one the hand is already heading for.
   if(got === want){
@@ -685,15 +695,23 @@ function run(){
     pop(fwd);
     celebrate(last ? '✓ That is all six' : '✓ Rows match', last ? 34 : 20);
     $('directive-text').textContent = last
-      ? 'Rows match. Read them, then click Now write them blind under the table.'
+      ? 'Rows match. Read them, then click Now cover it up under the table.'
       : 'Rows match. Read them, then click Next query under the table.';
   }
 }
 
 $('run').onclick = run;
-$('next').onclick = () => { if(i < LAP.drills.length - 1){ i++; renderDrill(); } };
+$('next').onclick = () => {
+  if(inRecall()){ p++; return renderDrill(); }
+  if(i < LAP.drills.length - 1){ i++; renderDrill(); }
+};
 $('back').onclick = () => { if(i > 0){ i--; renderDrill(); } };
 $('to-lesson').onclick = () => { startRecall(LAP.drills.map((_, n) => n), 1); show('recall'); };
+$('skip').onclick = () => {
+  // Passing is not failing. Its own pile, never the missed loop, offered once at the end.
+  skipped.add(at()); missed.delete(at());
+  p++; renderDrill();
+};
 $('sql').addEventListener('keydown', e => {
   if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); run(); }
 });
@@ -719,9 +737,6 @@ if(state.recall){
   if(Array.isArray(r.missed))  missed  = new Set(r.missed);
   if(Array.isArray(r.skipped)) skipped = new Set(r.skipped);
 }
-
-let red = { getValue: () => $('rsql').value, setValue: v => { $('rsql').value = v; },
-            focus: () => $('rsql').focus({preventScroll:true}) };
 
 // The reference result set, computed once at boot by running the reference query itself.
 // Nothing is hand-maintained: if a ladder query changes, the answer changes with it.
@@ -760,104 +775,22 @@ function startRecall(items, n){
 
 function paintPile(){
   const total = LAP.drills.length;
-  $('r-pile').innerHTML =
+  $('pile').innerHTML =
     '<span class="tally ok"><b>' + cleared.size + '</b> of ' + total + ' cleared</span>' +
     '<span class="tally no"><b>' + missed.size + '</b> in the missed pile</span>' +
     (skipped.size ? '<span class="tally"><b>' + skipped.size + '</b> passed on</span>' : '');
 }
 
-function renderRecall(){
-  // Pool empty means the round is over. Missed items become the next round; when there
-  // are none left, the summary takes the screen.
-  if(p >= pool.length){
-    if(missed.size){ startRecall([...missed].sort((a, b) => a - b), roundNo + 1); }
-    else { return paintRecallSummary(); }
-  }
-  $('r-work').hidden = false;
-  $('r-summary').hidden = true;
-
-  const idx = pool[p], d = LAP.drills[idx];
-  misses = 0; revealed = 0;
-  $('r-rung').textContent = roundNo === 1
-    ? 'Query ' + (idx + 1) + ' of ' + LAP.drills.length
-    : 'Round ' + roundNo + ' · ' + (p + 1) + ' of ' + pool.length;
-  $('r-adds').textContent = d.adds;
-  $('r-question').innerHTML = '<span>The question</span>' + esc(d.q);
-  $('r-blank').hidden = false;
-  $('r-reveal').hidden = true;
-  $('r-verdict').className = 'hint';
-  $('r-verdict').textContent = 'Run it and the rows appear here.';
-  $('r-out').innerHTML = '';
-  $('r-next').hidden = true;
-  $('r-run').classList.add('go');
-  $('r-skip').disabled = false;
-  red.setValue('');
-  red.focus();
-  paintPile();
-  $('directive-text').textContent =
-    'Write the query from the question, then click Run under your editor.';
-  remember();
+// Uncover more of the query in the box it already lives in. Nothing new appears on the
+// screen and nothing moves: the covered lines are already there, they just turn into code.
+function uncover(){
+  const d = LAP.drills[at()];
+  $('query').innerHTML = coverUp(d.sql, FRACTIONS[Math.min(revealed, 3)]);
 }
 
-// The reveal ladder: half the query on the first miss, three quarters on the second, the
-// whole thing on the third. It is never pasted into the editor at any rung — it sits in
-// the left pane and gets typed, because typing it is the whole point of the pass.
-function paintReveal(){
-  const d = LAP.drills[pool[p]];
-  $('r-blank').hidden = true;
-  $('r-reveal').hidden = false;
-  if(revealed >= 3){
-    $('r-reveal-h').textContent = 'The whole query';
-    $('r-reveal-code').textContent = d.sql;
-    return;
-  }
-  // Cut on characters, not lines. Most of these queries are two or three lines, and a
-  // line-based half and three quarters round to the same thing on a two-liner — which puts
-  // back the dead second swing this ladder exists to remove. Characters always differ.
-  const frac = revealed === 1 ? 0.5 : 0.75;
-  const keep = Math.min(d.sql.length - 1, Math.max(1, Math.round(d.sql.length * frac)));
-  const shown = d.sql.slice(0, keep);
-  const hidden = d.sql.slice(keep);
-  // Say what is left in whatever unit is true: whole lines if the cut landed on a line
-  // break, otherwise the rest of the line you are standing in.
-  const restLines = hidden.replace(/^\n/, '').split('\n').length;
-  const rest = shown.endsWith('\n')
-    ? '… and ' + restLines + (restLines === 1 ? ' more line' : ' more lines')
-    : '… finish this line' + (restLines > 1 ? ', then ' + (restLines - 1) +
-        (restLines - 1 === 1 ? ' more line' : ' more lines') : '');
-  $('r-reveal-h').textContent = revealed === 1 ? 'A start' : 'Most of it';
-  $('r-reveal-code').innerHTML = esc(shown) + '<span class="rest"> ' + rest + '</span>';
-}
-
-function recallRun(){
-  const typed = red.getValue().trim();
-  if(!typed) return;
-  const idx = pool[p], want = refRows[idx];
-  let res;
-  try { res = db.exec(typed); }
-  catch(e){
-    // An error is not an attempt. Nothing gets marked against someone for a typo they can
-    // see and fix; the reveal ladder only moves on a query that ran and gave wrong rows.
-    const msg = String(e.message || '');
-    let guess = 'Read the message, fix that line, and run it again. Nothing is marked yet.';
-    if(/no such column/i.test(msg)){
-      guess = 'That usually means a text value is missing its quotes. ' +
-        "<code>WHERE genre = country</code> looks for a column called country; " +
-        "<code>WHERE genre = 'country'</code> looks for the word. The table is fine.";
-    } else if(/no such table/i.test(msg)){
-      guess = 'The only two tables here are <code>gem_page</code> and <code>artist_era</code>. Check the spelling.';
-    } else if(/syntax error/i.test(msg)){
-      guess = 'A word or a piece of punctuation is off. Read your query one line at a time.';
-    }
-    $('r-verdict').className = '';
-    $('r-verdict').innerHTML = '<span class="no">That query did not run.</span> ' + guess +
-      '<br><span class="hint">The database reported: ' + esc(msg) + '</span>';
-    $('r-out').innerHTML = '';
-    $('directive-text').textContent = 'Fix the line the message points at, then click Run again.';
-    return;
-  }
+function judgeRecall(res){
+  const idx = at(), want = refRows[idx];
   const got = res.length ? res[res.length - 1] : null;
-  $('r-out').innerHTML = table(res);
 
   if(sameTable(got, want)){
     // Cleared, but only if it was cleared before the whole query went on screen. Copying
@@ -866,16 +799,20 @@ function recallRun(){
     const honest = revealed < 3;
     if(honest){ cleared.add(idx); missed.delete(idx); }
     else { missed.add(idx); }
-    $('r-verdict').className = '';
-    $('r-verdict').innerHTML = honest
+    $('verdict').className = '';
+    $('verdict').innerHTML = honest
       ? '<span class="ok">That is the table.</span> ' + esc(LAP.drills[idx].why)
       : '<span class="ok">That runs.</span> You had the whole query in front of you, so this one comes back in the next round.';
-    $('r-run').classList.remove('go');
-    $('r-next').hidden = false;
-    pop($('r-next'));
-    $('r-skip').disabled = true;
+    // Cleared or not, the query stops being covered once it is answered: there is nothing
+    // left to protect, and the point now is to read it against what you wrote.
+    revealed = 3; uncover();
+    $('run').classList.remove('go');
+    $('next').hidden = false;
+    $('next').classList.add('go');
+    pop($('next'));
+    $('skip').disabled = true;
     if(honest) celebrate('✓ From memory', 20);
-    $('directive-text').textContent = 'Click Next under the table.';
+    $('directive-text').textContent = 'Compare it with the left pane, then click Next under the table.';
     paintPile();
     remember();
     return;
@@ -887,7 +824,7 @@ function recallRun(){
   if(misses === 1) revealed = 1;
   if(misses === 2) revealed = 2;
   if(misses >= 3) revealed = 3;
-  if(revealed) paintReveal();
+  uncover();
   // Name the difference that is actually there. "You got 500 rows; the answer has 500" is
   // what the row count alone says when the columns are wrong, and it reads as nonsense.
   const gotN = got ? got.values.length : 0;
@@ -904,31 +841,18 @@ function recallRun(){
   } else {
     diff = 'Same shape, different contents. The values or the sort order are not matching.';
   }
-  $('r-verdict').className = '';
-  $('r-verdict').innerHTML = '<span class="no">Not the same table.</span> ' + diff + ' ' +
-    (misses === 1 ? 'Half the query is now on the left.'
-     : misses === 2 ? 'Three quarters of it is on the left now.'
-     : 'The whole query is on the left now. Type it out; it never goes in the editor for you.');
+  $('verdict').className = '';
+  $('verdict').innerHTML = '<span class="no">Not the same table.</span> ' + diff + ' ' +
+    (misses === 1 ? 'Half the query is uncovered on the left.'
+     : misses === 2 ? 'Three quarters of it is uncovered now.'
+     : 'All of it is uncovered now. Type it out; it never goes into the editor for you.');
   $('directive-text').textContent = 'Read the left pane, fix your query, then click Run again.';
   paintPile();
   remember();
 }
 
-$('r-run').onclick = recallRun;
-$('rsql').addEventListener('keydown', e => {
-  if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); recallRun(); }
-});
-// Passing is not failing. It goes in its own pile, it never joins the missed loop, and it
-// is offered once at the end.
-$('r-skip').onclick = () => {
-  const idx = pool[p];
-  skipped.add(idx); missed.delete(idx);
-  p++; renderRecall();
-};
-$('r-next').onclick = () => { p++; renderRecall(); };
-
 function paintRecallSummary(){
-  $('r-work').hidden = true;
+  $('t-work').hidden = true;
   $('r-summary').hidden = false;
   const total = LAP.drills.length;
   $('r-summary-sub').textContent = skipped.size
@@ -952,12 +876,12 @@ $('r-do-skipped').onclick = () => {
   const s = [...skipped].sort((a, b) => a - b);
   skipped = new Set();
   startRecall(s, roundNo + 1);
-  renderRecall();
+  renderDrill();
 };
 $('r-do-all').onclick = () => {
   cleared = new Set(); skipped = new Set();
   startRecall(LAP.drills.map((_, n) => n), 1);
-  renderRecall();
+  renderDrill();
 };
 
 // ── step 4: the lesson handoff ──────────────────────────────────────────────
@@ -1079,11 +1003,7 @@ initSqlJs({locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.
     const schema = SQLED.schemaFromDb(db);
     ed = SQLED.attach($('sql'), {
       schema, onRun: run,
-      onReady: h => { ed = h; if(step === 'type') renderDrill(); }
-    });
-    red = SQLED.attach($('rsql'), {
-      schema, onRun: recallRun,
-      onReady: h => { red = h; if(step === 'recall') renderRecall(); }
+      onReady: h => { ed = h; if(step === 'type' || step === 'recall') renderDrill(); }
     });
     show(step);
   })

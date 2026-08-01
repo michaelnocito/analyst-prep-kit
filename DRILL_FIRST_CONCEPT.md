@@ -187,19 +187,30 @@ The round is five steps: **primer → type → recall → lesson → mini quiz �
 Recall is pass 2 and sits before the lesson, because the concept is type it, type it again
 without help, *then* read why it worked.
 
+**Recall is the same screen, not a second one.** This is the correction after the first
+build: it shipped as a separate pane with its own layout and its own copy, which read as a
+different page and hid the mechanic. There is one screen. Recall is that screen with the
+left-hand query covered up, and every miss uncovers more of it in place.
+
 What shipped in `path/index.html`:
 
+- **The cover-up.** Same layout, same two panes, same buttons. The query box on the left
+  holds grey bars the width of the code they stand in for, so uncovering never shuffles the
+  query around the screen. Copy is hidden, because there is nothing to copy and copying is
+  the enemy.
 - **The blank pass.** Same six items, same order, the business question and nothing else.
   Two buttons: Run, and Pass on this one.
 - **Buckets.** Cleared, missed, skipped, shown as a live tally above the panes. Skipped is
   never mixed into the missed loop.
 - **The loop.** When the pool empties, the missed pile becomes the next round, and so on
   until it is empty. The rung label switches from "Query 3 of 6" to "Round 2 · 1 of 1".
-- **Reveal ladder.** Miss 1 shows the first half of the query plus a count of the lines
-  still hidden. Miss 2 shows three quarters. Miss 3 shows the whole thing, in the left pane
-  only — the editor is never prefilled, so it gets typed out. An item cleared
-  after the full reveal is **not** counted as cleared; it goes back in the missed pile,
-  because copying the answer back in is not retrieval.
+- **Reveal ladder.** Miss 1 uncovers the first half of the query, miss 2 three quarters,
+  miss 3 all of it. The cut is on characters, not lines: on a two-line query a line-based
+  half and three quarters round to the same thing, which puts back the dead second swing
+  this ladder exists to remove. The code is uncovered in the left pane only — the editor is
+  never prefilled, so it gets typed out. An item cleared after the full uncover is **not**
+  counted as cleared; it goes back in the missed pile, because copying the answer back in is
+  not retrieval.
 - **A query that errors is not an attempt.** The ladder only moves on a query that ran and
   returned the wrong table, so a typo costs nothing.
 - **Correctness is a result comparison**, never a string match on the code. The reference
