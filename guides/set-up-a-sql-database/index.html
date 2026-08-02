@@ -108,13 +108,16 @@
   <h1>How to Set Up a SQL Database for Beginners</h1>
   <p class="meta">Two desktop tools, no server, about 15 minutes · Part of the <a href="../../">Analyst Prep Kit</a></p>
 
-  <p>You downloaded a dataset as a CSV file. Every SQL tutorial assumes your data is already "in a database." Nobody explains the step in between. This guide is that step. You'll create your first real database on your own computer, load your CSV into it, and run your first query. It takes two desktop tools and zero server setup.</p>
+  <p>Every SQL tutorial assumes your data is already "in a database." Nobody explains the step in between. This guide is that step. You'll get a data file, create your first real database on your own computer, load the file into it, and run your first query. It takes two desktop tools and zero server setup.</p>
+
+  <p>You do not need to bring your own data. Step 1 gives you a file to download, and every query in this guide runs against it.</p>
 
   <div class="toc">
     <strong>What you'll do</strong>
     <ol>
       <li>Understand what you're actually building (60 seconds)</li>
-      <li>Install DB Browser for SQLite (free)</li>
+      <li>Get a CSV file to work with</li>
+      <li>Install DB Browser for SQLite</li>
       <li>Create a database file</li>
       <li>Import your CSV as a table</li>
       <li>Verify the import with one query</li>
@@ -129,7 +132,19 @@
   <div class="note"><strong>Why SQLite and not MySQL or Postgres?</strong> Those need a server installed and running before you can do anything. SQLite needs nothing — and the SQL you write on it (SELECT, WHERE, JOIN, GROUP BY) is the same SQL you'll use on the job. Start here; switch later if a job requires it.</div>
 
   <div class="step">
-    <h2>Step 1 — Install DB Browser for SQLite</h2>
+    <h2>Step 1 — Get a CSV file to work with</h2>
+    <p>A CSV is a plain text file holding a table, one row per line, values separated by commas. It is what almost every "download this data" button gives you.</p>
+    <p>If you already have one, use it and skip ahead. If not, here is the file the rest of this guide uses. Right-click the link, choose <strong>Save link as</strong>, and put it somewhere you can find again.</p>
+    <ol>
+      <li><a href="https://raw.githubusercontent.com/vega/vega-datasets/main/data/seattle-weather.csv" target="_blank" rel="noopener">seattle-weather.csv</a> — four years of daily Seattle weather. 1,461 rows, about 60 KB, no sign-up.</li>
+      <li>Open it once in Excel or a text editor before you go further. Six columns: date, precipitation, temp_max, temp_min, wind, weather. Knowing what is in the file is what lets you tell later whether it loaded correctly.</li>
+    </ol>
+    <p>Before you move on, say out loud how many rows you expect to end up in the database. You just read the number. Holding on to it is what makes step 5 mean something.</p>
+    <div class="note"><strong>Want different data?</strong> Any CSV works, and the steps do not change. Two places that hand you one without an account: <a href="https://github.com/vega/vega-datasets/tree/main/data" target="_blank" rel="noopener">vega-datasets</a> has around twenty small, clean files, and <a href="https://data.cityofnewyork.us/" target="_blank" rel="noopener">NYC Open Data</a> has thousands of large real ones. If you pick your own, use your own table name everywhere this guide says <code>weather_raw</code>.</div>
+  </div>
+
+  <div class="step">
+    <h2>Step 2 — Install DB Browser for SQLite</h2>
     <p><strong>Where you'll type everything in this guide is a free desktop app called DB Browser for SQLite.</strong> It gives SQLite a friendly point-and-click window plus a tab where you can type SQL.</p>
     <ol>
       <li>Go to <a href="https://sqlitebrowser.org/dl/" target="_blank" rel="noopener">sqlitebrowser.org/dl</a></li>
@@ -139,7 +154,7 @@
   </div>
 
   <div class="step">
-    <h2>Step 2 — Create your database file</h2>
+    <h2>Step 3 — Create your database file</h2>
     <ol>
       <li>Click <strong>New Database</strong> (top-left)</li>
       <li>Pick a folder you can find again, name the file something like <code>portfolio.db</code>, click Save</li>
@@ -149,13 +164,13 @@
   </div>
 
   <div class="step">
-    <h2>Step 3 — Import your CSV as a table</h2>
+    <h2>Step 4 — Import your CSV as a table</h2>
     <ol>
       <li>In the menu: <strong>File → Import → Table from CSV file…</strong></li>
-      <li>Pick your CSV file</li>
+      <li>Pick the CSV you downloaded in step 1</li>
       <li>In the import dialog:
         <ul>
-          <li><strong>Table name:</strong> give it a name ending in <code>_raw</code>, like <code>steam_games_raw</code>. The <code>_raw</code> suffix is an analyst habit: it marks this table as the untouched original. Any cleaning happens later, in a copy — never in the original. Naming rule: <strong>underscores, never hyphens or spaces</strong>. DB Browser auto-fills the name from the filename, so <code>hot-100-current.csv</code> becomes table <code>hot-100-current</code> — legal, but SQL reads the hyphens as subtraction, forcing you to quote the name in every query forever. Rename to something like <code>hot100_raw</code> before clicking OK.</li>
+          <li><strong>Table name:</strong> type <code>weather_raw</code>. The <code>_raw</code> suffix is an analyst habit: it marks this table as the untouched original. Any cleaning happens later, in a copy — never in the original. Naming rule: <strong>underscores, never hyphens or spaces</strong>. DB Browser auto-fills the name from the filename, so <code>seattle-weather.csv</code> arrives as <code>seattle-weather</code> — legal, but SQL reads the hyphens as subtraction, forcing you to quote the name in every query forever. Rename it before clicking OK.</li>
           <li><strong>Tick "Column names in first line"</strong> — otherwise your header row gets imported as a data row.</li>
         </ul>
       </li>
@@ -165,13 +180,14 @@
   </div>
 
   <div class="step">
-    <h2>Step 4 — Verify it with your first query</h2>
-    <p>Before you run it, say what number you expect back. You know how many rows your file had. That expectation is the whole point of this step, because a query with nothing to compare it to cannot verify anything.</p>
+    <h2>Step 5 — Verify it with your first query</h2>
+    <p>Before you run it, say what number you expect back. That expectation is the whole point of this step, because a query with nothing to compare it to cannot verify anything.</p>
     <p>Click the <strong>Execute SQL</strong> tab. This is where you type SQL from now on. Type this and press the ▶ (play) button:</p>
-    <pre><code>SELECT COUNT(*) FROM steam_games_raw;</code></pre>
-    <p>It returns one number: how many rows are in your table. <strong>Compare it to the row count of the source CSV</strong> (open the CSV in Excel and check the last row number, minus 1 for the header). If they match, every row arrived. Then eyeball a few rows:</p>
-    <pre><code>SELECT * FROM steam_games_raw LIMIT 10;</code></pre>
-    <p>If the columns look right and the count matches — you're done. You have a working SQL database, and every SQL lesson you take from here on applies to your own data.</p>
+    <pre><code>SELECT COUNT(*) FROM weather_raw;</code></pre>
+    <p>It returns one number: how many rows are in your table. With the Seattle weather file it should be <strong>1461</strong>. If you brought your own CSV, swap <code>weather_raw</code> for the table name you typed in step 4, and <strong>compare the number to the row count of the source file</strong> (open it in Excel and check the last row number, minus 1 for the header).</p>
+    <p>If they match, every row arrived. Then eyeball a few rows:</p>
+    <pre><code>SELECT * FROM weather_raw LIMIT 10;</code></pre>
+    <p>You should see dates in the first column and numbers in the next four, with words like drizzle and rain in the last. If the columns look right and the count matches — you're done. You have a working SQL database, and every SQL lesson you take from here on applies to your own data.</p>
   </div>
 
   <h2>The two problems that bite everyone once</h2>
@@ -184,6 +200,7 @@
   <h2>Cheat sheet</h2>
   <table>
     <tr><th>Step</th><th>Where</th><th>Action</th></tr>
+    <tr><td>Get data</td><td>Browser</td><td>Save a CSV to disk. <code>seattle-weather.csv</code> from vega-datasets if you have none</td></tr>
     <tr><td>Create database</td><td>DB Browser</td><td>New Database → save a .db file → Cancel the table dialog</td></tr>
     <tr><td>Import CSV</td><td>File menu</td><td>Import → Table from CSV → name it <code>something_raw</code> → tick "column names in first line"</td></tr>
     <tr><td>Save</td><td>DB Browser</td><td>Ctrl+S — changes aren't in the file until you save</td></tr>
