@@ -117,7 +117,7 @@
   <h1>Stage 5: The Dry Run</h1>
   <p class="meta">Stage 5 of 8 &middot; Load the whole thing somewhere safe and prove it worked &middot; Part of the <a href="../../">Analyst Prep Kit</a></p>
 
-  <p>The dry run is a full load into a sandbox, followed by reconciliation. It is the stage the research is loudest about, and it is the one that decides whether your go-live is calm. This article covers what to load, the four checks that have to pass, and how to log what breaks so the second run is faster.</p>
+  <p>The dry run is a full load into a sandbox, followed by reconciliation. It is the stage the research is loudest about, and it is the one that decides whether your go-live is calm. This article covers what to load, the six checks that have to pass, and how to log what breaks so the second run is faster.</p>
 
   <p><strong>The short version.</strong> Load everything, reconcile it four ways, and log every fix. If the run needed you to intervene by hand, it is not finished.</p>
 
@@ -126,11 +126,15 @@
   <p>A sample proves the mapping. A full load proves the mapping, the volume, the timing, and the long tail of weird values that only exist a few hundred times in a million rows. Those are what break a go-live, and a sample cannot see them.</p>
   <p>The full load also tells you how long the real one takes. That number goes on the plan and it drives the freeze window.</p>
 
-  <h2>The four checks</h2>
+  <h2>The six checks</h2>
   <p><strong>1. Counts.</strong> Rows in the source against rows in the target, per table. They match, or you can explain the difference with a number. "We are 412 short because 412 records were excluded on the exception list" is an explanation. "Roughly the same" is not.</p>
   <p><strong>2. Totals.</strong> Sum the numbers that matter. Visit hours, invoice amounts, balances. Counts can match while values are wrong, and a total catches a transformation that shifted a decimal.</p>
   <p><strong>3. Orphans.</strong> Zero. Every document attached to a client, every visit attached to a staff member. This is a <a href="../sql-joins/">left join where the right side is null</a>, and the answer has to be an empty result.</p>
   <p><strong>4. Spot checks on real records.</strong> Pick ten clients, including the two most complicated, and compare them field by field against the old system. This is the check that finds what the aggregates hide.</p>
+  <p><strong>5. Processability.</strong> The data loaded and it looks right on screen. Now make the target system actually <em>use</em> it. Run a real workflow end to end: generate an invoice, schedule a visit, produce the report the client runs every Monday. Data can display perfectly and still be unusable, because the loader wrote straight into the tables and skipped a value the application expects to be there.</p>
+  <p><strong>6. Integration.</strong> Everything that talks to this system still works. The payroll export, the reporting feed, the billing handoff. Those break quietly, and they break after go-live, in front of somebody else.</p>
+  <p>Checks 1 to 4 ask whether the data arrived. Checks 5 and 6 ask whether it works. Those are different questions and a clean reconciliation only answers the first one.</p>
+
   <p>Picture a load where counts match perfectly and totals are ten percent low. Say what could cause that before you read the next sentence. A currency or unit conversion applied to some rows and not others is the usual answer, and only the totals check finds it.</p>
 
   <h2>Log everything that breaks</h2>
