@@ -1089,6 +1089,17 @@ _Definition: visible bug or UX miss that hurts trust or learning, OR
 a feature that directly serves a Vision Principle and has clear ROI._
 _Response time: current cycle. Clear before accepting new feedback._
 
+- **MIGRATION MARKETING HANDOFF: final pass Sunday 2 August, before the push starts Monday** _(added August 2, 2026 — 1:58 AM ET)_
+  - _What:_ Re-read `analyst-prep-kit/marketing/HANDOFF-migration-marketing-push.md` on Sunday 2 August and fold in anything that changed since it was written. Then hand it to a fresh chat to build the eight carousels and eight Bluesky posts.
+  - _Why it's here:_ Mike wants a deliberate gap between writing the brief and executing it, so any change he runs into over the weekend lands in the handoff rather than being discovered mid-build. The brief is only useful if it is current on the morning the work starts.
+  - _Known changes already waiting for this pass:_
+    1. **Day 7's concept has a stronger option now.** The brief says control totals. The cutover rehearsal, added August 2, is the better teach: the dry run proves the data is right, the rehearsal proves the move fits the window, and those are different failures.
+    2. **Day 5's concept moved.** Stage 5 is now six checks, not four. Processability and integration were added, so "load everything, never a sample" can stay or be swapped for the arrive-versus-works split.
+    3. **Every date in the worked example changed.** Kickoff is now 23 February and the gates are 13 Mar, 1 Apr, 1 May, 1 Jun, 24 Jun, 14 Jul, with go-live 3 August. Any slide quoting a date must be read off the current workbook.
+    4. **Do not use the Gartner 83% statistic.** It traces to an Oracle/LumenData whitepaper citing Gartner with no locatable original, methodology or sample. Bloor's own numbers moved too: over 80% overran in their 2007 survey, 38.3% in their 2011 follow-up. Decide whether the push cites Bloor 2011 or stays off failure stats entirely.
+  - _Definition of Done:_ The handoff file reflects the current guides, the current workbook dates and the stat decision; the eight-day table is confirmed against what actually shipped; a start date is set; and the full text is pasted into a new chat.
+  - _Est. effort:_ Small
+
 - **CHECKED-ANSWER POPUP: roll the "a checked answer is a popup" standing rule across every surface that checks an answer** _(added August 1, 2026; Mike's call while walking the SQL Path round)_
   - _What:_ When a learner's answer gets checked, the outcome opens a popup carrying the result itself (the table their query returned, the value their formula produced, the number they computed) and **one button**. Right: celebration plus **Continue**, which is the next action. Wrong: same popup, same result table, no celebration, and **Try again**, which closes and puts the cursor back in the editor. It persists — no timer, no fade, no auto-advance. Backdrop, Escape and a quiet second button dismiss it without advancing. Canon is the standing rule in `CURRICULUM_STANDARD.md`; reference implementation is `winPopup()` in `path/index.html`.
   - _Carries with it:_ **say what the answer has to contain.** A business question does not name its columns and a result comparison checks all of them, so every surface that checks a whole result states what to bring back, read off the reference result rather than written by hand.
