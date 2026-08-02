@@ -572,6 +572,40 @@ Gone with it: the round counter, the missed and passed-on piles, the Move on but
 existed to escape the loop, and the send-back on a fully uncovered answer. The tally reads as
 progress rather than debt: how many answered, and how many of those took no help.
 
+## The orientation is a first-run popup (2026-08-02)
+
+Mike, looking at the intro block sitting in the left pane above the query: *"this should be a
+popup the first time the user goes to step 1, with a box that says do not show again. This is
+a user preference over cluttering the screen with intro info that goes stale quickly."*
+
+Right, and the research backs it hard enough that it is now a Real Test sweep (`REAL_TEST.md`
+5f, "Standing intro text is a finding"). Four findings, all primary:
+
+- **Expertise reversal.** Support that helps a novice actively harms the same learner once
+  they know the material (Kalyuga, Ayres, Chandler & Sweller 2003, *Educational Psychologist*
+  38(1):23-31, doi:10.1207/S15326985EP3801_4). A round designed to be re-run puts permanent
+  intro text on the wrong side of that line by design.
+- **Redundancy.** Material duplicating what the learner can already see loads working memory
+  rather than supporting it (Kalyuga, Chandler & Sweller 1999, *Applied Cognitive Psychology*
+  13(4):351-371, doi:10.1002/(SICI)1099-0720(199908)13:4<351::AID-ACP589>3.0.CO;2-6). "This
+  pane is what to type" directly above the thing to type is the textbook case.
+- **Banner blindness.** Prominent standing blocks near the content get filtered out, and the
+  harder they work at grabbing attention the more reliably they are skipped (Benway 1998,
+  *Proc. HFES Annual Meeting* 42(5):463-467, doi:10.1177/154193129804200504). The clutter is
+  paid for every visit and read on almost none.
+- **Tutorials are not free.** Across ~45,000 players they raised play time only in the most
+  complex of three games and did nothing in the simpler two (Andersen et al. 2012, CHI '12,
+  doi:10.1145/2207676.2207687). A four-query round is cheap to explain, so the explanation
+  has to be cheap to leave.
+
+What shipped: a modal on first arrival at query 1, carrying the two-pane explanation and the
+running order, with **Do not show this again** in its footer and a single way out. The
+preference lives in its own key (`apk-path-intro-u1`), so clearing round progress does not
+resurrect it. It never opens over a round already in progress.
+
+The popup's dismiss-without-advancing button is hidden here: on an orientation modal there is
+one door, and it is Start typing.
+
 ## Open question for Mike
 
 "Passes on it" is read here as **skips**, not as "got it right". So the buckets are

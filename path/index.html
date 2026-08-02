@@ -91,15 +91,6 @@
   .card .sub{color:var(--muted);font-size:14.5px;margin:0 0 14px}
   section[hidden]{display:none}
 
-  /* The one-off orientation block, inside the left pane on query 1. Quiet and small: it is
-     read once and then never seen again, and it must not push the query down the screen. */
-  .intro{padding:12px var(--pad);border-bottom:1px solid var(--line);background:var(--bg)}
-  .intro[hidden]{display:none}
-  .intro p{margin:0 0 8px;font-size:14.5px}
-  .runorder{margin:0;padding-left:20px;font-size:13.5px;color:var(--muted)}
-  .runorder li{margin:0 0 2px}
-  .runorder b{color:var(--ink);font-weight:600}
-
   /* Typing step: the drill layout, unchanged from /drill/, because it is the part that
      already tests well. */
   /* The drill bar orients and does nothing else. Navigation used to live up here, which
@@ -366,6 +357,11 @@
   .win footer{padding:0 var(--pad) 18px;display:flex;gap:12px;align-items:center;
     flex-wrap:wrap}
   .win footer .dismiss{color:var(--muted)}
+  .win.plain h2{color:var(--ink)}
+  .never{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);
+    cursor:pointer;margin-left:auto}
+  .never[hidden]{display:none}
+  .never input{width:17px;height:17px;accent-color:var(--accent);cursor:pointer}
 
   /* The before-and-after table on the finish card. Same four questions, asked twice, so the
      round can show what changed rather than assert it. */
@@ -450,16 +446,6 @@
           <h2 id="qhead">Type this query</h2>
           <button class="copy" id="copy-q">Copy</button>
           <span class="note" id="covernote" hidden>Covered up &middot; a miss uncovers more</span>
-        </div>
-        <!-- Query 1 of the typing pass only. The layout gets explained inside the layout,
-             with the editor already on screen and one press away, rather than on a screen of
-             text in front of the verb. GAME_BIBLE principle 13: nothing stands between a new
-             arrival and the thing they came to do. -->
-        <div class="intro" id="intro" hidden>
-          <p><b>This pane is what to type.</b> The question, what the answer has to bring
-            back, and the query itself. The pane on the right is where you type it, on a real
-            database of 500 songs. Press Run and you get real rows back.</p>
-          <ol class="runorder" id="run-order"></ol>
         </div>
         <p class="question" id="question"></p>
         <!-- The columns the answer has to bring back. The check compares the whole table,
@@ -576,6 +562,11 @@
     <footer>
       <button class="go" id="win-go">Continue</button>
       <button class="dismiss" id="win-stay">Stay on this screen</button>
+      <!-- Only on the orientation popup. Shown once, and the learner decides whether it is
+           ever shown again. -->
+      <label class="never" id="win-never" hidden>
+        <input type="checkbox" id="win-never-box"> Do not show this again
+      </label>
     </footer>
   </div>
 </div>
@@ -668,14 +659,20 @@ function pop(el){
 // Canon across the kit: a right answer opens a popup that carries the result, celebrates,
 // and waits. It never times out and it never auto-advances. One Continue button is the way
 // forward, so the reward and the next action are the same click.
-let winNext = null, winCameFrom = null, winPrevCue = null;
-function winPopup({title, lead, body, label, onContinue, pieces, toast, tone, cue}){
+let winNext = null, winCameFrom = null, winPrevCue = null, winNever = null;
+function winPopup({title, lead, body, label, onContinue, pieces, toast, tone, cue, never}){
   winNext = onContinue || null;
   winCameFrom = document.activeElement;
   // A wrong answer opens the same popup: same result table, same one button. Only the
   // colour and the button's words change, so the two outcomes are read the same way and
   // nobody has to hunt below the fold for either of them.
   $('win').classList.toggle('no', tone === 'no');
+  $('win').classList.toggle('plain', tone === 'plain');
+  // The opt-out only appears where it is offered, and what it writes is the caller's key.
+  winNever = never || null;
+  $('win-never').hidden = !winNever;
+  $('win-never-box').checked = false;
+  $('win-stay').hidden = !!winNever;            // one way out of an orientation popup
   $('win-title').textContent = title;
   $('win-lead').innerHTML = lead || '';
   $('win-lead').hidden = !lead;
@@ -698,6 +695,11 @@ function winPopup({title, lead, body, label, onContinue, pieces, toast, tone, cu
   $('win-go').focus({preventScroll:true});
 }
 function winClose(){
+  // Honour the opt-out on the way out, whichever control closed it.
+  if(winNever && $('win-never-box').checked){
+    try { localStorage.setItem(winNever, 'off'); } catch(e){}
+  }
+  winNever = null;
   $('scrim').hidden = true;
   // Dismissing without advancing used to leave the directive pointing at the popup's button,
   // which had just gone with the popup. "Stay on this screen" left the bar reading "click
@@ -739,10 +741,10 @@ const STEPS = [
 const ORDER = ['type','recall','concepts','done'];
 
 // The running order, written from the steps themselves so what the round promises and what
-// it does cannot drift apart. It rides along on query 1 rather than on a screen of its own.
-$('run-order').innerHTML = STEPS
+// it does cannot drift apart.
+const runOrderHtml = () => '<ol class="runorder">' + STEPS
   .map(s => '<li><b>' + esc(s.t) + '</b> ' + esc(s.does) + '</li>').join('') +
-  '<li><b>Your score</b> out of 100, with your best and last run beside it</li>';
+  '<li><b>Your score</b> out of 100, with your best and last run beside it</li></ol>';
 
 // Run 007: the bar named buttons that were below the fold, so it sent someone hunting for
 // a control it had not said was further down. Each line now says where the control is.
@@ -886,7 +888,6 @@ function renderDrill(){
   $('pile').hidden = !rec;
   if(rec) paintPile();
 
-  $('intro').hidden = rec || i !== 0;
   // The one box that changes between the two modes: the whole query, or the covered one.
   if(rec) $('query').innerHTML = coverUp(d.sql, 0);
   else $('query').textContent = d.sql;
@@ -1454,6 +1455,55 @@ $('again-blind').onclick = () => {
   show('recall');
 };
 
+// ── the orientation popup ───────────────────────────────────────────────────
+// Shown once, on the first arrival at query 1, and never again if the learner says so.
+//
+// Why a popup with an opt-out rather than a block on the page (Mike, 2026-08-02, and this
+// is the reasoning worth keeping):
+//
+// - Orientation help that stays on screen becomes the thing that hurts. Instructional
+//   support that helps a novice measurably harms the same learner once they know the
+//   material — the expertise reversal effect (Kalyuga, Ayres, Chandler & Sweller 2003,
+//   Educational Psychologist 38(1):23-31, doi:10.1207/S15326985EP3801_4). On a page built
+//   for repeat runs, permanent intro text is guaranteed to end up on the wrong side of that.
+// - Saying the same thing twice costs rather than helps. Material that duplicates what the
+//   learner can already see loads working memory instead of supporting it — the redundancy
+//   effect (Kalyuga, Chandler & Sweller 1999, Applied Cognitive Psychology 13(4):351-371,
+//   doi:10.1002/(SICI)1099-0720(199908)13:4<351::AID-ACP589>3.0.CO;2-6). "This pane is what
+//   to type" sitting directly above the thing to type is exactly that.
+// - Prominent standing blocks get skipped anyway. Users learn to ignore banner-shaped
+//   content near the material they came for, and the better it is at grabbing attention the
+//   more reliably it is filtered out (Benway 1998, Proceedings of the Human Factors and
+//   Ergonomics Society Annual Meeting 42(5):463-467, doi:10.1177/154193129804200504).
+// - And a tutorial is not free. Across ~45,000 players, tutorials raised play time only in
+//   the most complex game and did nothing in the simpler ones (Andersen, O'Rourke, Liu,
+//   Snider, Lowdermilk, Truong, Cooper & Popovic 2012, CHI '12,
+//   doi:10.1145/2207676.2207687). Ours is a four-query round: cheap to explain, so the
+//   explanation must be cheap to leave.
+//
+// A modal is the honest shape for something that is worth one read and no more: it is
+// unmissable once, then gone, and the learner owns whether it returns.
+const INTRO_KEY = 'apk-path-intro-u1';
+function maybeIntro(){
+  let off = null;
+  try { off = localStorage.getItem(INTRO_KEY); } catch(e){}
+  if(off === 'off') return;
+  winPopup({
+    tone: 'plain',
+    title: 'How this works',
+    lead: 'One round of SQL, about fifteen minutes.',
+    body: '<p class="note"><b>The pane on the left is what to type:</b> the question, what ' +
+      'the answer has to bring back, and the query itself. <b>The pane on the right is ' +
+      'where you type it</b>, on a real database of 500 songs. Press Run and you get real ' +
+      'rows back.</p>' + runOrderHtml(),
+    label: 'Start typing',
+    onContinue: () => ed.focus(),
+    never: INTRO_KEY,
+    toast: false,
+    pieces: 0
+  });
+}
+
 // ── returning visit ─────────────────────────────────────────────────────────
 // Shown once, on load, and only when the saved position is past the first step. Without it
 // a return visit lands mid-round with ticks on steps this visit never did, and whatever it
@@ -1503,6 +1553,8 @@ initSqlJs({locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.
     paintResume();                 // before show(), which is what moves off the saved step
     show(step);
     booted = true;
+    // Only on the way in at the top, never over a round already in progress.
+    if(step === 'type' && i === 0) maybeIntro();
   })
   .catch(e => { $('adds').textContent = 'The SQL engine failed to load: ' + e.message; });
 </script>
