@@ -23,8 +23,8 @@
 
   The rules this page must keep, in order:
   1. The query is always on screen. Nothing is hidden, scored, or withheld.
-  2. Each drill is the previous drill plus one new thing, and the learner retypes
-     the whole query. Retyping the known part is the repetition.
+  2. Each drill is the previous drill plus one new thing. The lines the last drill
+     already made them type are filled in; the new code never is. That line is the drill.
   3. Every drill returns real rows. A drill that errors or returns nothing is a defect.
 
   LAYOUT, and the research behind it:
@@ -34,8 +34,11 @@
     working memory while reading the other, which is the split-attention effect
     (Chandler & Sweller 1992; Ayres & Sweller 2005). Physically integrating them is the
     documented fix, and here it is the whole activity, so it gets the best real estate.
-  - The prediction sits directly above Run, because it is used in the second before
-    running. Same principle: put it where it is spent.
+  - One slot beside Run holds the prediction before the press and the answer after it.
+    Same principle: put it where it is spent. The answer used to render in the output panel
+    143px below Run, which is below the fold at every viewport height from 630 to 900, so
+    on a laptop pressing Run changed nothing on screen and was indistinguishable from a
+    dead button. The slot has a min-height so the swap cannot move Run.
   - Everything read after typing (results, the database) lives in one tabbed output area
     rather than a stack of panels. Tabs suit a few long distinct sections and let someone
     switch without losing their place, where an accordion or a long scroll hides content
@@ -186,13 +189,28 @@
   /* Prediction and the primary action, together, at the foot of the editor. */
   .runbar{border-top:1px solid var(--line);padding:12px var(--pad);display:flex;
     align-items:center;gap:14px;flex-wrap:wrap}
-  .predict{flex:1 1 260px;font-size:14.5px;min-width:0}
+  /* This slot holds the prediction before Run and the verdict after it. Same place on
+     purpose: the prediction is spent the instant Run is pressed, and the answer is wanted
+     in the second after, by the same pair of eyes in the same spot. The floor is there so
+     swapping a one line prediction for a two line verdict cannot move Run. */
+  /* 76px is the tallest this slot gets across both ladders: a three line verdict at the
+     narrowest the pane reaches. Sized to the tallest state rather than the current one,
+     because a floor that only fits the prediction lets the verdict push Run down 13px on
+     every press, and Run not moving is the rule. Re-measure if a verdict string grows. */
+  .predict{flex:1 1 260px;font-size:14.5px;min-width:0;min-height:76px;
+    display:flex;flex-direction:column;justify-content:center}
   .predict b{color:var(--accent)}
+  .predict .ok{color:var(--ok);font-weight:700}
+  .predict .no{color:var(--no);font-weight:700}
+  .predict .onward{color:var(--ok);font-weight:600}
   .keys{font-size:12.5px;color:var(--muted);width:100%}
   /* The shortcut sits against Run, not in a note at the top of the pane. A keyboard
      shortcut is learned by being read at the moment the hand reaches for the mouse. */
   .keyhint{font-size:12.5px;color:var(--muted);white-space:nowrap}
-  .keyhint kbd{font:600 11.5px/1 var(--mono);border:1px solid var(--line);
+  /* The carried lines, dimmed in the reference query. Still perfectly readable, because it
+     is still the query; just not the thing this rung is about. */
+  #query .carried{color:var(--muted)}
+  .keyhint kbd,.keys kbd{font:600 11.5px/1 var(--mono);border:1px solid var(--line);
     border-bottom-width:2px;border-radius:5px;padding:4px 6px;background:var(--bg);
     color:var(--ink)}
 
@@ -222,7 +240,10 @@
   #verdict{font-size:15.5px;margin:0 0 10px}
   #verdict .ok{color:var(--ok);font-weight:700}
   #verdict .no{color:var(--no);font-weight:700}
-  #out{font:13px/1.6 var(--mono);overflow-x:auto}
+  /* Capped, and it scrolls inside itself. Uncapped, a result set grew the document by
+     1000 to 1300 pixels on every single Run, so nothing below the editor sat in the same
+     place twice and the page never looked the same after a press as before it. */
+  #out{font:13px/1.6 var(--mono);overflow:auto;max-height:340px}
   #out table{border-collapse:collapse;font-size:12.5px}
   #out th,#out td{border:1px solid var(--line);padding:4px 9px;text-align:left;
     white-space:nowrap}
@@ -270,7 +291,7 @@
   <p class="lead">Get right into it and learn by writing queries. Each drill is the query you just typed plus one new thing. Nothing is graded, the answer is on screen the whole time, and the only job is typing it out.</p>
   <p class="desktop-note"><strong>Made for a desktop.</strong> The queries get long, and this page shows every line of them rather than shrinking them to fit a phone. A keyboard makes it a lot better.</p>
 
-  <nav class="ladders" id="ladders" aria-label="Ladders"></nav>
+  <nav class="ladders" id="ladders" aria-label="Tracks"></nav>
   <p class="ladder-blurb" id="ladder-blurb"></p>
 
   <div class="timer" id="timer">
@@ -309,12 +330,12 @@
     <div class="pane">
       <div class="panehead">
         <h2>Your editor</h2>
-        <span class="note">The header is already in. Type the query under it</span>
+        <span class="note" id="carrynote" hidden>Everything you typed last drill is already in. Carry on from the cursor.</span>
       </div>
       <textarea id="sql" spellcheck="false" autocapitalize="off" autocomplete="off"
                 autocorrect="off" placeholder="Type the query here."></textarea>
       <div class="runbar">
-        <p class="predict"><b>Before you run it:</b> <span id="pretext"></span></p>
+        <p class="predict" id="predict" aria-live="polite"></p>
         <span class="keyhint" id="keyhint"></span>
         <button class="go" id="run">Run</button>
       </div>
@@ -351,7 +372,7 @@
   </footer>
 </div>
 
-<div id="directive"><p id="directive-text">Type the whole query, run it, then click Next drill.</p></div>
+<div id="directive"><p id="directive-text">Type the whole query, run it, then take the next drill.</p></div>
 
 <div id="breakwrap" hidden role="dialog" aria-modal="true" aria-labelledby="breakhead">
   <div class="breakcard">
@@ -450,11 +471,15 @@ function render(){
   $('question').innerHTML = '<span>The question</span>' + esc(d.q || '');
   $('why').textContent = d.why || '';
   paintCols(d.sql);
-  $('query').textContent = d.sql;
-  $('pretext').textContent = d.pre;
+  // Always measured against the rung below this one, whichever direction you arrived from,
+  // so a drill looks the same every time you land on it.
+  const mask = carryMask(i > 0 ? LADDER.drills[i - 1].sql : '', d.sql);
+  const carried = carriedText(d.sql, mask);
+  paintQuery(d.sql, mask);
   $('verdict').className = 'hint';
   $('verdict').textContent = 'Run your query and the rows appear here.';
   $('out').innerHTML = '';
+  $('predict').innerHTML = '<span><b>Before you run it:</b> ' + esc(d.pre || '') + '</span>';
   // The last rung is a finish, not a dead end. Telling someone to click Next drill while
   // Next drill is greyed out is the page instructing you to use a control it disabled.
   const last = i === LADDER.drills.length - 1;
@@ -464,9 +489,10 @@ function render(){
   $('restart').hidden = !last;
   $('directive-text').textContent = last
     ? 'Last drill. Type it, run it, then start over from drill 1 whenever you want the practice.'
-    : 'Type the whole query, run it, then click Next drill.';
+    : 'Type the whole query, run it, then take the next drill.';
   showTab('results');
-  seedHeader(d.header);
+  seedHeader(d.header, carried, mask);
+  $('carrynote').hidden = !carried;
   remember();
 }
 
@@ -475,11 +501,13 @@ function render(){
 // aliases and expressions to get the outer SELECT list right, and the day it got one
 // wrong the page would be confidently telling someone the wrong thing. sql.js already
 // knows, so ask it.
+let WANT_COLS = [];
 function paintCols(sql){
   let cols = [];
   if(db){
     try { const r = db.exec(sql); if(r.length) cols = r[r.length - 1].columns; } catch(e){}
   }
+  WANT_COLS = cols;
   $('colsask').hidden = !cols.length;
   $('colsask').innerHTML = cols.length
     ? '<span class="lab">Come back with</span>' +
@@ -487,21 +515,84 @@ function paintCols(sql){
     : '';
 }
 
-// The header is written in for them; the query never is. Typing the SQL out is the entire
-// point, and the header sitting above it is the thing they should be reading while they do.
-function seedHeader(header){
-  const text = (header || '').replace(/\s+$/, '') + '\n\n';
+// Which lines of this drill the previous drill already made them type.
+//
+// A longest common subsequence, not a shared opening. A shared opening only pays when the
+// change is at the bottom, and these ladders change the SELECT list or the join type on
+// line one constantly: measured across both ladders it fired on 7 rungs out of 26 and saved
+// 3 percent of the typing on the joins ladder. The subsequence catches an unchanged FROM
+// and WHERE sitting under a rewritten SELECT, which is the common shape.
+//
+// Line level, not character level, because a character cut lands mid-token and hands
+// someone half a word to finish, which reads as a typo rather than a starting point. A
+// trailing semicolon is ignored: a clause that ended the last drill and sits mid query in
+// this one is the same line, and the semicolon just moved down.
+//
+// The safety property that makes this worth doing: a line is only ever filled with ITS OWN
+// text. The match decides WHETHER a line is already written, never WHAT goes in it, so a
+// misalignment can only ever fill in less than it might have. It cannot put a wrong line
+// in front of anyone.
+function carryMask(prevSql, curSql){
+  const b = curSql.split('\n');
+  const none = b.map(() => false);
+  if(!prevSql) return none;
+  const norm = l => l.replace(/;\s*$/, '').trim();
+  const A = prevSql.split('\n').map(norm), B = b.map(norm);
+  const dp = Array.from({length: A.length + 1}, () => new Array(B.length + 1).fill(0));
+  for(let x = A.length - 1; x >= 0; x--)
+    for(let y = B.length - 1; y >= 0; y--)
+      dp[x][y] = (A[x] === B[y] && A[x] !== '')
+        ? dp[x + 1][y + 1] + 1
+        : Math.max(dp[x + 1][y], dp[x][y + 1]);
+  const mask = b.map(() => false);
+  let x = 0, y = 0;
+  while(x < A.length && y < B.length){
+    if(A[x] === B[y] && A[x] !== ''){ mask[y] = true; x++; y++; }
+    else if(dp[x + 1][y] >= dp[x][y + 1]) x++;
+    else y++;
+  }
+  // Never hand over the whole query. The line a drill lands on is the point of the drill.
+  if(mask.every(Boolean)) mask[mask.length - 1] = false;
+  return mask.some(Boolean) ? mask : none;
+}
+
+// The skeleton that goes in the editor: carried lines in place, new ones left blank so the
+// shape of the query is visible and the gap to fill is obvious.
+function carriedText(sql, mask){
+  if(!mask.some(Boolean)) return '';
+  const b = sql.split('\n');
+  return b.map((l, n) => mask[n] ? l : '').join('\n');
+}
+
+// The header is written in, and so is whatever the last drill already made them type. The
+// new code is never written in: that line is the drill. Set 2026-08-03 by Mike, replacing
+// the retype-the-whole-query rule in the bible.
+function seedHeader(header, carried, mask){
+  const lead = (header || '').replace(/\s+$/, '') + '\n\n';
+  const text = lead + (carried || '');
   ed.setValue(text);
-  // Cursor under the header, not at the top of it, or the first keystroke lands inside
-  // the comment block and the query is silently commented out.
+  // The cursor lands on the first line they still have to write, not at the bottom of the
+  // box. With the middle of a query already filled in, the bottom is the wrong place and
+  // the first keystroke would land in the wrong clause.
+  const offset = lead.split('\n').length - 1;
+  const first = carried ? mask.indexOf(false) : 0;
+  const line = offset + (first < 0 ? 0 : first);
   if(ed.cm){
-    ed.cm.setCursor({line: ed.cm.lineCount() - 1, ch: 0});
+    ed.cm.setCursor({line: line, ch: (ed.cm.getLine(line) || '').length});
     ed.cm.focus();
   } else {
     const el = $('sql');
     el.focus({preventScroll:true});
-    el.setSelectionRange(text.length, text.length);
+    const at = text.split('\n').slice(0, line + 1).join('\n').length;
+    el.setSelectionRange(at, at);
   }
+}
+
+// The reference query, with the part already in the editor dimmed and the new code left at
+// full ink. One idea per look: this line is what this drill is.
+function paintQuery(sql, mask){
+  $('query').innerHTML = sql.split('\n').map((l, n) =>
+    mask[n] ? '<span class="carried">' + esc(l) + '</span>' : esc(l)).join('\n');
 }
 
 // What is left once the comment lines and blank lines come out. Used to tell "they have
@@ -599,9 +690,8 @@ function run(){
   // With the header pre-filled the editor is never empty, so an empty run has to be
   // caught on the body rather than on the box, or it comes back as a bare zero rows.
   if(!bodyOf(typed)){
-    $('verdict').className = '';
-    $('verdict').innerHTML = 'That is the comment header on its own. The query goes on the ' +
-      'blank line under it, and the one to type is on the left.';
+    say('That is the comment header on its own. The query goes under it, and the one to ' +
+        'type is on the left.', false);
     $('out').innerHTML = '';
     return;
   }
@@ -609,22 +699,65 @@ function run(){
   try { res = db.exec(typed); }
   catch(e){
     // An error is information, not a mark against anyone, and the correct query is
-    // already on screen, so there is nothing here to reveal or withhold.
-    $('verdict').className = '';
-    $('verdict').innerHTML = '<span class="no">SQLite could not run that.</span> It says: ' +
-      esc(e.message) + '. Compare your line against the query on the left.';
+    // already on screen, so there is nothing here to reveal or withhold. It goes beside
+    // Run like every other answer: a typo used to render a thousand pixels below the fold,
+    // which is indistinguishable from the button doing nothing.
+    say('<span class="no">SQLite could not run that.</span> It says: ' + esc(e.message) +
+        '. Compare your line against the query on the left.', false);
     $('out').innerHTML = '';
     return;
   }
   // Described, not graded. The page promises no score, so the row count is reported as a
   // fact next to the reference count rather than as a verdict on the person typing.
-  const got = res.length ? res[res.length - 1].values.length : 0;
+  const last = res.length ? res[res.length - 1] : null;
+  const got = last ? last.values.length : 0;
+  const gotCols = last ? last.columns : [];
   const want = LADDER.drills[i].rows;
-  $('verdict').className = '';
-  $('verdict').innerHTML = '<b>' + got + ' rows back.</b> The query on the left returns ' +
-    want + (got === want ? '. ' : ', so the two are not doing the same thing yet. ') +
-    (got === want ? answerLine(res) : '');
+  const rowsOk = got === want;
+  // Row count alone calls a one column answer a match whenever the count happens to line
+  // up, which it does on a filtered query more often than you would guess. The columns are
+  // already stated on screen, so they are part of the ask and part of the check.
+  const colsOk = gotCols.length === WANT_COLS.length &&
+                 gotCols.every((c, n) => c === WANT_COLS[n]);
+  const matched = rowsOk && colsOk;
+
+  let line;
+  if(matched){
+    line = '<span class="ok">Match.</span> ' + got + ' rows, and the ' + WANT_COLS.length +
+           ' columns asked for. ' + answerLine(res);
+  } else if(rowsOk){
+    line = '<span class="no">Not yet.</span> ' + got + ' rows is right, but ' +
+           gotCols.length + ' column' + (gotCols.length === 1 ? '' : 's') + ' back and the ' +
+           'drill asks for ' + WANT_COLS.length + '.';
+  } else {
+    line = '<span class="no">Not yet.</span> You got ' + got + ' rows, the query on the ' +
+           'left returns ' + want + '.';
+  }
+  say(line, matched);
   $('out').innerHTML = table(res);
+  handOff(matched);
+}
+
+// The answer goes in two places from one string: beside Run, which is the only one on
+// screen at the moment of the press on a laptop, and above the rows for anyone who has
+// scrolled down to read them.
+function say(line, matched){
+  const onward = matched
+    ? ' <span class="onward"><kbd>Enter</kbd> takes the next drill.</span>'
+    : '';
+  $('predict').innerHTML = '<span>' + line + onward + '</span>';
+  $('verdict').className = '';
+  $('verdict').innerHTML = line;
+}
+
+// The hand should not have to find the mouse between one drill and the next. On a match,
+// focus moves to the control that carries on, so Enter is the whole gesture. On a miss it
+// stays in the editor, because the next thing to do there is fix a line, not move on.
+// CodeMirror keeps Tab for indenting, which is correct in an editor and is also why the
+// route out has to be given rather than tabbed to.
+function handOff(matched){
+  if(!matched) return;
+  (i === LADDER.drills.length - 1 ? $('restart') : $('next')).focus({preventScroll:true});
 }
 
 // Ctrl+Enter, because that is what DBeaver, DataGrip, BigQuery and Snowflake all run on,
@@ -735,7 +868,7 @@ document.addEventListener('keydown', e => {
 // The picker is drawn from the registry, not written out by hand, so adding a ladder is
 // one entry in LADDERS and nothing else.
 function renderLadders(){
-  $('ladders').innerHTML = '<span class="lab">Ladder</span>' +
+  $('ladders').innerHTML = '<span class="lab">Track</span>' +
     Object.keys(LADDERS).map(k =>
       '<a href="?ladder=' + k + '"' + (k === SLUG ? ' aria-current="true"' : '') + '>' +
       esc(LADDERS[k].title) + '</a>').join('');

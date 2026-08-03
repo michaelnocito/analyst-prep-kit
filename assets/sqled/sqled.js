@@ -159,7 +159,11 @@
           // Tab indents rather than leaving the editor, which is what a learner expects
           // from every editor they will meet on the job.
           Tab: cmi => cmi.execCommand('indentMore'),
-          'Shift-Tab': cmi => cmi.execCommand('indentLess')
+          'Shift-Tab': cmi => cmi.execCommand('indentLess'),
+          // Esc is the way out. Because Tab is taken for indenting, without this there is
+          // no keyboard route off the editor at all, which is a keyboard trap and fails
+          // WCAG 2.1.2 at Level A. Escape then Tab reaches the controls around it.
+          Esc: cmi => cmi.getInputField().blur()
         }
       });
 

@@ -29,7 +29,7 @@ const LADDER = {
 
   { adds: 'Look at what the old system is handing over',
     q: 'Who is in the old customer system, and what state are their accounts in?',
-    why: 'The base shape, and the number the whole rest of the ladder is measured against.',
+    why: 'The base shape, and the number every drill after it is measured against.',
     header:
 `-- Purpose: The full customer list coming out of the legacy system before cutover
 -- Source:  legacy_customer, one row = one customer in the old system`,
