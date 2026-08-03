@@ -36,12 +36,17 @@
     documented fix, and here it is the whole activity, so it gets the best real estate.
   - The prediction sits directly above Run, because it is used in the second before
     running. Same principle: put it where it is spent.
-  - Everything read after typing (results, the database, the comment header) lives in one
-    tabbed output area rather than a stack of panels. Tabs suit a few long distinct
-    sections and let someone switch without losing their place, where an accordion or a
-    long scroll hides content and costs discoverability (NN/g, Tabs Used Right). It is
-    also the layout of every SQL client they will meet at work: editor above, tabbed
-    output below, schema browser one click away.
+  - Everything read after typing (results, the database) lives in one tabbed output area
+    rather than a stack of panels. Tabs suit a few long distinct sections and let someone
+    switch without losing their place, where an accordion or a long scroll hides content
+    and costs discoverability (NN/g, Tabs Used Right). It is also the layout of every SQL
+    client they will meet at work: editor above, tabbed output below, schema browser one
+    click away.
+  - The comment header is written into the editor for them, above a blank line, and the
+    cursor starts under it. It used to be a third tab that had to be opened, read, and
+    pasted, which put the one thing that should be in view while they type behind a click.
+    Seeing Purpose, Source and grain sitting over the query every single rung is what makes
+    the habit transfer; typing the header out is not the rep, typing the SQL is.
   - One primary action, Run, and it never moves.
 
   Data is baked into a data file per ladder so the page runs entirely in the browser with
@@ -201,10 +206,6 @@
   .col .cname{color:var(--ink)}
   .col .ctype{color:var(--muted);font-size:11.5px;letter-spacing:.04em}
 
-  .headerbox{border:1px solid var(--line);border-radius:10px;background:var(--bg);
-    padding:14px;margin:10px 0 0;font:13.5px/1.6 var(--mono);
-    white-space:pre-wrap;word-break:break-word}
-
   /* A label, never a surface. Without pointer-events:none it swallows clicks on the
      controls whenever they scroll underneath it. */
   #directive{position:fixed;left:0;right:0;bottom:0;background:var(--card);
@@ -251,7 +252,7 @@
     <div class="pane">
       <div class="panehead">
         <h2>Your editor</h2>
-        <span class="note">Ctrl+Enter runs &middot; Ctrl+Space lists tables, columns and functions</span>
+        <span class="note">The header is already in. Type the query under it &middot; Ctrl+Enter runs</span>
       </div>
       <textarea id="sql" spellcheck="false" autocapitalize="off" autocomplete="off"
                 autocorrect="off" placeholder="Type the query here."></textarea>
@@ -266,7 +267,6 @@
     <div class="tabs" role="tablist" aria-label="Output">
       <button class="tab" id="tab-results" role="tab" aria-selected="true" aria-controls="panel-results">Results</button>
       <button class="tab" id="tab-database" role="tab" aria-selected="false" aria-controls="panel-database">Database</button>
-      <button class="tab" id="tab-header" role="tab" aria-selected="false" aria-controls="panel-header">Comment header</button>
     </div>
 
     <div class="tabpanel" id="panel-results" role="tabpanel" aria-labelledby="tab-results">
@@ -277,12 +277,6 @@
     <div class="tabpanel" id="panel-database" role="tabpanel" aria-labelledby="tab-database" hidden>
       <p class="hint" style="margin:0">Every table in this database, the way a desktop SQL client shows it. Click a column name to drop it into your query at the cursor.</p>
       <div id="schema" class="schema-grid"></div>
-    </div>
-
-    <div class="tabpanel" id="panel-header" role="tabpanel" aria-labelledby="tab-header" hidden>
-      <p class="hint" style="margin:0">Paste this above your query. Writing it a dozen times is how the habit transfers to the job.</p>
-      <pre class="headerbox" id="header"></pre>
-      <button class="copy" data-copy="header" style="margin-top:10px">Copy header</button>
     </div>
   </div>
 
@@ -358,7 +352,7 @@ const remember = () => { try { localStorage.setItem(KEY, String(i)); } catch(e){
 const esc = s => String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
 
 // ── tabs ────────────────────────────────────────────────────────────────────
-const TABS = ['results', 'database', 'header'];
+const TABS = ['results', 'database'];
 function showTab(name){
   TABS.forEach(t => {
     const on = t === name;
@@ -379,7 +373,6 @@ function render(){
     : '';
   $('question').innerHTML = '<span>The question</span>' + esc(d.q || '');
   $('why').textContent = d.why || '';
-  $('header').textContent = d.header;
   $('query').textContent = d.sql;
   $('pretext').textContent = d.pre;
   $('verdict').className = 'hint';
@@ -396,10 +389,33 @@ function render(){
     ? 'Last drill. Type it, run it, then start over from drill 1 whenever you want the practice.'
     : 'Type the whole query, run it, then click Next drill.';
   showTab('results');
-  // The editor is never prefilled with the answer. Typing it out is the entire point.
-  ed.setValue('');
-  ed.focus();
+  seedHeader(d.header);
   remember();
+}
+
+// The header is written in for them; the query never is. Typing the SQL out is the entire
+// point, and the header sitting above it is the thing they should be reading while they do.
+function seedHeader(header){
+  const text = (header || '').replace(/\s+$/, '') + '\n\n';
+  ed.setValue(text);
+  // Cursor under the header, not at the top of it, or the first keystroke lands inside
+  // the comment block and the query is silently commented out.
+  if(ed.cm){
+    ed.cm.setCursor({line: ed.cm.lineCount() - 1, ch: 0});
+    ed.cm.focus();
+  } else {
+    const el = $('sql');
+    el.focus({preventScroll:true});
+    el.setSelectionRange(text.length, text.length);
+  }
+}
+
+// What is left once the comment lines and blank lines come out. Used to tell "they have
+// not written anything yet" apart from "they wrote something and it returned nothing".
+function bodyOf(text){
+  return text.split('\n')
+    .filter(l => !/^\s*--/.test(l))
+    .join('\n').trim();
 }
 
 // What the database actually holds, read out of it rather than written down anywhere:
@@ -485,8 +501,16 @@ function answerLine(res){
 
 function run(){
   const typed = ed.getValue().trim();
-  if(!typed) return;
   showTab('results');
+  // With the header pre-filled the editor is never empty, so an empty run has to be
+  // caught on the body rather than on the box, or it comes back as a bare zero rows.
+  if(!bodyOf(typed)){
+    $('verdict').className = '';
+    $('verdict').innerHTML = 'That is the comment header on its own. The query goes on the ' +
+      'blank line under it, and the one to type is on the left.';
+    $('out').innerHTML = '';
+    return;
+  }
   let res;
   try { res = db.exec(typed); }
   catch(e){
@@ -525,8 +549,7 @@ $('sql').addEventListener('keydown', e => {
 document.querySelectorAll('.copy').forEach(b => {
   const was = b.textContent;
   b.onclick = () => {
-    const text = $(b.dataset.copy === 'header' ? 'header' : 'query').textContent;
-    try { navigator.clipboard.writeText(text); } catch(e){}
+    try { navigator.clipboard.writeText($('query').textContent); } catch(e){}
     b.textContent = 'Copied';
     setTimeout(() => { b.textContent = was; }, 1400);
   };
