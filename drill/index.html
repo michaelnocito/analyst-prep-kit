@@ -189,6 +189,12 @@
   .predict{flex:1 1 260px;font-size:14.5px;min-width:0}
   .predict b{color:var(--accent)}
   .keys{font-size:12.5px;color:var(--muted);width:100%}
+  /* The shortcut sits against Run, not in a note at the top of the pane. A keyboard
+     shortcut is learned by being read at the moment the hand reaches for the mouse. */
+  .keyhint{font-size:12.5px;color:var(--muted);white-space:nowrap}
+  .keyhint kbd{font:600 11.5px/1 var(--mono);border:1px solid var(--line);
+    border-bottom-width:2px;border-radius:5px;padding:4px 6px;background:var(--bg);
+    color:var(--ink)}
 
   button{font:600 14.5px/1 inherit;padding:11px 16px;border-radius:9px;
     border:1px solid var(--line);background:var(--card);color:var(--ink);
@@ -303,12 +309,13 @@
     <div class="pane">
       <div class="panehead">
         <h2>Your editor</h2>
-        <span class="note">The header is already in. Type the query under it &middot; Ctrl+Enter runs</span>
+        <span class="note">The header is already in. Type the query under it</span>
       </div>
       <textarea id="sql" spellcheck="false" autocapitalize="off" autocomplete="off"
                 autocorrect="off" placeholder="Type the query here."></textarea>
       <div class="runbar">
         <p class="predict"><b>Before you run it:</b> <span id="pretext"></span></p>
+        <span class="keyhint" id="keyhint"></span>
         <button class="go" id="run">Run</button>
       </div>
     </div>
@@ -619,6 +626,12 @@ function run(){
     (got === want ? answerLine(res) : '');
   $('out').innerHTML = table(res);
 }
+
+// Ctrl+Enter, because that is what DBeaver, DataGrip, BigQuery and Snowflake all run on,
+// and the shortcut worth building into the hand is the one that works at the next desk.
+// Cmd+Enter is bound too, so Mac users are shown theirs rather than a key they do not have.
+$('keyhint').innerHTML = (/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
+  ? '<kbd>&#8984;</kbd> <kbd>Enter</kbd>' : '<kbd>Ctrl</kbd> <kbd>Enter</kbd>') + ' runs it';
 
 $('run').onclick = run;
 $('next').onclick = () => { if(i < LADDER.drills.length - 1){ i++; render(); } };
