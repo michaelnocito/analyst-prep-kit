@@ -16,7 +16,7 @@
 <link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/drill/">
 <link rel="stylesheet" href="../assets/sqled/sqled.css">
 <meta property="og:title" content="SQL Drill: Learn SQL by Writing Queries">
-<meta property="og:description" content="Thirteen drills against a real music database. Each one adds a single new idea to the query you just typed. No score, no pass, no fail.">
+<meta property="og:description" content="Two ladders against real databases: country music, and JOINs framed as a data migration. Each drill adds a single new idea to the query you just typed. No score, no pass, no fail.">
 <meta property="og:type" content="website">
 <!--
   SQL DRILL. A typing rep, not a test.
@@ -44,8 +44,14 @@
     output below, schema browser one click away.
   - One primary action, Run, and it never moves.
 
-  Data is baked into data.js (gem_page 500 rows, artist_era 8,896 rows, both exported from
-  music_gems.db) so the page runs entirely in the browser with no server.
+  Data is baked into a data file per ladder so the page runs entirely in the browser with
+  no server. The music ladder uses data.js (gem_page 500 rows, artist_era 8,896 rows,
+  exported from music_gems.db); the joins ladder uses ladders/migration-joins-data.js
+  (five small migration tables, built and verified by ladders/build_migration_data.py).
+
+  LADDERS. The page holds several and loads exactly one, chosen by ?ladder= and remembered.
+  A ladder is two files that between them declare SCHEMA, DATA and LADDER, injected at boot
+  before the engine starts. Nothing below this point knows which ladder it is running.
 
   Desktop is the intended surface. The queries run past twenty lines by the end of a
   ladder and the layout must never shrink the SQL to fit a phone.
@@ -70,6 +76,21 @@
   .desktop-note{display:none;background:#E0F2F7;border:1px solid var(--line);
     border-radius:10px;padding:10px 14px;font-size:14.5px;margin:12px 0 0}
   @media (max-width:980px){ .desktop-note{display:block} }
+
+  /* Ladder picker. Two facts: which climb you are on, and what else there is.
+     A row of links, not a dropdown: with a handful of ladders the whole set should be
+     readable without opening anything. */
+  .ladders{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:16px 0 0;
+    font-size:14.5px}
+  .ladders .lab{font:700 11px/1 inherit;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--muted)}
+  .ladders a{display:inline-block;padding:6px 12px;border-radius:999px;
+    border:1px solid var(--line);background:var(--card);text-decoration:none;
+    color:var(--ink);font-weight:600;font-size:14px}
+  .ladders a:hover{border-color:var(--accent);color:var(--accent)}
+  .ladders a[aria-current="true"]{background:var(--accent);border-color:var(--accent);
+    color:#fff}
+  .ladder-blurb{font-size:14.5px;color:var(--muted);margin:8px 0 0;max-width:78ch}
 
   /* Drill bar: the same four facts in the same place on every rung. */
   .drillbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
@@ -202,6 +223,9 @@
   <p class="lead">Get right into it and learn by writing queries. Each drill is the query you just typed plus one new thing. Nothing is graded, the answer is on screen the whole time, and the only job is typing it out.</p>
   <p class="desktop-note"><strong>Made for a desktop.</strong> The queries get long, and this page shows every line of them rather than shrinking them to fit a phone. A keyboard makes it a lot better.</p>
 
+  <nav class="ladders" id="ladders" aria-label="Ladders"></nav>
+  <p class="ladder-blurb" id="ladder-blurb"></p>
+
   <div class="drillbar">
     <span class="rung" id="rung">Loading</span>
     <p class="adds" id="adds">Starting the SQL engine.</p>
@@ -263,7 +287,7 @@
   </div>
 
   <footer>
-    The chart half of this practice is <a href="../viz/">Viz Drill</a>: same 52 country tracks, same questions, built with shelves instead of clauses.
+    <span id="footnote"></span>
     <br>
     Part of the <a href="../">Analyst Prep Kit</a>. Reading works better after typing:
     <a href="../guides/sql-aliasing/">SQL Aliases</a> &middot;
@@ -279,22 +303,56 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
 <script src="../assets/sqled/sqled.js"></script>
-<!-- ?v is bumped whenever these files change, so a cached ladder can never run against a
-     fresh page. -->
-<script src="data.js?v=2"></script>
-<script src="drills.js?v=2"></script>
 <script>
 const $ = id => document.getElementById(id);
 let db = null, i = 0;
+
+// ── ladders ─────────────────────────────────────────────────────────────────
+// Each entry names the two files that declare SCHEMA, DATA and LADDER. Exactly one
+// ladder is ever loaded, so the three names never collide.
+// ?v is bumped whenever a ladder's files change, so a cached ladder can never run
+// against a fresh page.
+const LADDERS = {
+  'music-country': { title: 'Country gems',
+                     files: ['data.js?v=2', 'drills.js?v=3'] },
+  'joins':         { title: 'JOINs, a data migration',
+                     files: ['ladders/migration-joins-data.js?v=1',
+                             'ladders/migration-joins.js?v=1'] }
+};
+const LADDER_KEY = 'apk-sql-drill-ladder';
+const DEFAULT_LADDER = 'music-country';
+
+// The URL wins, then whatever was open last, then the default. Picking a ladder is
+// remembered so coming back does not dump anyone at the top of a ladder they finished.
+function chooseLadder(){
+  const asked = new URLSearchParams(location.search).get('ladder');
+  if(asked && LADDERS[asked]) return asked;
+  let saved = null;
+  try { saved = localStorage.getItem(LADDER_KEY); } catch(e){}
+  return (saved && LADDERS[saved]) ? saved : DEFAULT_LADDER;
+}
+const SLUG = chooseLadder();
+try { localStorage.setItem(LADDER_KEY, SLUG); } catch(e){}
+
+function loadScript(src){
+  return new Promise((ok, no) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = ok;
+    s.onerror = () => no(new Error('could not load ' + src));
+    document.head.appendChild(s);
+  });
+}
+
 // The editor handle. Starts as the plain textarea and is upgraded in place once
 // CodeMirror lands, so nothing below has to care which one it is talking to.
 let ed = { getValue: () => $('sql').value, setValue: v => { $('sql').value = v; },
            focus: () => $('sql').focus({preventScroll:true}), refresh: () => {} };
 
 // Position is a bookmark so closing the tab does not cost the session. Deliberately
-// not a progress bar: no percentage, no streak, nothing to beat.
-const KEY = 'apk-sql-drill-rung';
-try { i = Math.min(parseInt(localStorage.getItem(KEY) || '0', 10) || 0, LADDER.drills.length - 1); } catch(e){}
+// not a progress bar: no percentage, no streak, nothing to beat. Kept per ladder, so
+// switching climbs does not throw away where you were on either of them.
+const KEY = 'apk-sql-drill-rung-' + SLUG;
 const remember = () => { try { localStorage.setItem(KEY, String(i)); } catch(e){} };
 
 const esc = s => String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
@@ -347,10 +405,7 @@ function render(){
 // What the database actually holds, read out of it rather than written down anywhere:
 // name, row count, grain, and every column with its type. Same information a desktop
 // client puts in its object tree, which is where a learner will meet it next.
-const GRAIN = {
-  gem_page: 'one row = one curated gem track',
-  artist_era: 'one row = one artist'
-};
+let GRAIN = {};
 let SCHEMA_INFO = [];
 
 function readSchema(){
@@ -477,7 +532,26 @@ document.querySelectorAll('.copy').forEach(b => {
   };
 });
 
-initSqlJs({locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/' + f})
+// The picker is drawn from the registry, not written out by hand, so adding a ladder is
+// one entry in LADDERS and nothing else.
+function renderLadders(){
+  $('ladders').innerHTML = '<span class="lab">Ladder</span>' +
+    Object.keys(LADDERS).map(k =>
+      '<a href="?ladder=' + k + '"' + (k === SLUG ? ' aria-current="true"' : '') + '>' +
+      esc(LADDERS[k].title) + '</a>').join('');
+}
+
+Promise.all(LADDERS[SLUG].files.map(loadScript))
+ .then(() => {
+  GRAIN = LADDER.grain || {};
+  renderLadders();
+  $('ladder-blurb').textContent = LADDER.blurb || '';
+  $('footnote').innerHTML = LADDER.footnote || '';
+  document.title = 'SQL Drill: ' + LADDER.name + ' · Analyst Prep Kit';
+  try { i = Math.min(parseInt(localStorage.getItem(KEY) || '0', 10) || 0, LADDER.drills.length - 1); } catch(e){}
+
+  return initSqlJs({locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/' + f});
+ })
   .then(SQL => {
     db = new SQL.Database();
     db.run(SCHEMA);
@@ -499,7 +573,7 @@ initSqlJs({locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.
     });
     render();
   })
-  .catch(e => { $('adds').textContent = 'The SQL engine failed to load: ' + e.message; });
+  .catch(e => { $('adds').textContent = 'This ladder failed to load: ' + e.message; });
 </script>
 </body>
 </html>

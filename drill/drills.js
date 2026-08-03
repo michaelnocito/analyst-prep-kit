@@ -4,6 +4,13 @@
 
 const LADDER = {
   name: "Country gems, generalist junior BA",
+  short: "Country gems",
+  blurb: "Start at a filtered list of country tracks and climb to the two row answer about where the audience actually sits.",
+  grain: {
+    gem_page: 'one row = one curated gem track',
+    artist_era: 'one row = one artist'
+  },
+  footnote: 'The chart half of this practice is <a href="../viz/">Viz Drill</a>: same 52 country tracks, same questions, built with shelves instead of clauses.',
   drills: [
 
   { adds: 'List the country tracks',
