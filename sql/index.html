@@ -2871,13 +2871,25 @@ let _labReturn = null; // {lessonId, pos}          — JOIN/Agg lab opened from 
 let guided = null; // { lessonId, seq:[[type,idx]], pos, review?, reviewUnit?, nextLid? }
 let _parsonsAttempts = {}; // tracks wrong-attempt count per drill idx for progressive scaffolding
 
+// Cards and Bug Hunt are deliberately NOT in this sequence. Both are still whole
+// features on their own tabs. They came out because of what they do to the step
+// AFTER them, not because of what they are.
+//
+// Every step the path keeps has the same shape: you type or arrange something,
+// you press one button, the build tells you if it is right. A card has no answer
+// box and no check, and a bug asks you to find a fault instead of produce a line,
+// so each one moved four of six slots on the way in and four on the way out.
+// Switching the machinery is a cost that buys no retention (Monsell 2003, Trends
+// in Cognitive Sciences 7(3):134-140). Switching the topic is what buys it, and
+// the path still does that on every step.
+//
+// To put either back, add its line to M and re-concat. renderGuidedStep still
+// handles both step types, so nothing else has to change.
 function guidedSeqFor(lessonId){
-  const M = {fills:'FILLS', bugs:'BUGS', parsons:'PARSONS'};
-  const cards = (LESSON_CARDS[lessonId] || [])
-    .filter(i => DATA.CARDS[i]).map(i => ['cards', i]);
+  const M = {fills:'FILLS', parsons:'PARSONS'};
   const drills = (LESSON_DRILLS[lessonId] || []).filter(s => M[s[0]] && DATA[M[s[0]]] && DATA[M[s[0]]][s[1]]);
   const lab = LESSON_LABS[lessonId] ? [['lab', LESSON_LABS[lessonId]]] : [];
-  return cards.concat(drills, lab);
+  return drills.concat(lab);
 }
 
 function startGuided(lessonId){
@@ -2895,18 +2907,27 @@ function startGuided(lessonId){
 function startUnitReview(finishedUnit, nextLid){
   const nextPos = DATA.LESSONS.findIndex(l=>l.id===nextLid);
   const priorLessons = DATA.LESSONS.filter((l,i)=>i<nextPos);
-  let cardPool=[], drillPool=[];
+  // Same rule as guidedSeqFor: this node is in the path, so it holds the same
+  // shape as every other step. It used to be 3 cards then 3 drills, which put
+  // the biggest machinery change in the run at a unit boundary, where the point
+  // is to mix topics and not to mix formats.
+  let drillPool=[];
   priorLessons.forEach(l=>{
-    (LESSON_CARDS[l.id]||[]).forEach(i=>{ if(DATA.CARDS[i]) cardPool.push(['cards',i]); });
-    (LESSON_DRILLS[l.id]||[]).forEach(s=>drillPool.push(s));
+    (LESSON_DRILLS[l.id]||[]).forEach(s=>{ if(s[0]!=='bugs') drillPool.push(s); });
   });
   const pick=(pool,n)=>{ const out=[]; while(pool.length && out.length<n){ out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]); } return out; };
-  // Prefer drills of distinct types so the review actually interleaves.
-  const pickDrills=(pool,n)=>{ const out=[],seen={}; const shuffled=pick(pool,pool.length);
-    for(const s of shuffled){ if(out.length>=n) break; if(!seen[s[0]]){ seen[s[0]]=1; out.push(s); } }
-    for(const s of shuffled){ if(out.length>=n) break; if(!out.includes(s)) out.push(s); }
+  // Round-robin by type so no two review items in a row are the same type.
+  // The old pass only guaranteed the FIRST few were distinct, which was fine
+  // when the pool held four types and produced runs like parsons,parsons,parsons
+  // once it held two. The topics still mix; that is the part worth keeping.
+  const pickDrills=(pool,n)=>{
+    const buckets={}; pick(pool,pool.length).forEach(s=>{ (buckets[s[0]]=buckets[s[0]]||[]).push(s); });
+    const keys=Object.keys(buckets), out=[];
+    while(out.length<n && keys.some(k=>buckets[k].length)){
+      for(const k of keys){ if(out.length>=n) break; if(buckets[k].length) out.push(buckets[k].shift()); }
+    }
     return out; };
-  const seq = pick(cardPool,3).concat(pickDrills(drillPool,3));
+  const seq = pickDrills(drillPool,4);
   if(!seq.length){ navigate('lesson', nextLid); return; }
   guided = {lessonId:null, seq, pos:0, review:true, reviewUnit:finishedUnit, nextLid};
   renderGuidedStep();
