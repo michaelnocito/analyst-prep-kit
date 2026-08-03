@@ -97,6 +97,34 @@
     color:#fff}
   .ladder-blurb{font-size:14.5px;color:var(--muted);margin:8px 0 0;max-width:78ch}
 
+  /* Break timer. It counts DOWN to a rest, it never counts up to a target, and it never
+     reports how many drills went by. The page promises nothing to beat, and a timer that
+     scored the session would break that promise on the same screen it is written on. */
+  .timer{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 0}
+  .timer .lab{font:700 11px/1 inherit;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--muted)}
+  .timer button{font:600 13.5px/1 inherit;padding:7px 12px;border-radius:999px;
+    min-height:0}
+  .timer button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);
+    color:#fff}
+  .timer button[aria-pressed="true"]:hover{background:#0b5f75;color:#fff}
+  #clock{font:700 15px/1 var(--mono);color:var(--accent);min-width:5ch}
+  #clock[hidden]{display:none}
+  #stoptimer[hidden]{display:none}
+
+  /* The break card. A full overlay on purpose: the whole point is to stop looking at the
+     query, and a corner toast beside the SQL is something you read and then keep typing. */
+  #breakwrap{position:fixed;inset:0;z-index:20;background:rgba(9,9,11,.55);
+    display:flex;align-items:center;justify-content:center;padding:20px}
+  #breakwrap[hidden]{display:none}
+  .breakcard{background:var(--card);border-radius:16px;padding:26px 28px;
+    max-width:560px;width:100%;box-shadow:0 18px 60px rgba(9,9,11,.3)}
+  .breakcard h2{margin:0;font-size:22px;line-height:1.25}
+  .breakcard .sub{margin:8px 0 0;color:var(--muted);font-size:15px}
+  .breakcard ul{margin:16px 0 0;padding-left:20px;font-size:15.5px;line-height:1.7}
+  .breakcard ul strong{font-weight:700}
+  .breakrow{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 0}
+
   /* Drill bar: the same four facts in the same place on every rung. */
   .drillbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
     background:var(--card);border:1px solid var(--line);border-radius:12px;
@@ -133,6 +161,18 @@
     font-weight:600;background:rgba(14,116,144,.07);border-bottom:1px solid var(--line)}
   .question span{display:block;font:700 10.5px/1 inherit;letter-spacing:.08em;
     text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+  /* What the answer has to come back with. The question names a business ask and the
+     query below spells the columns out, but the SELECT list is the one thing you have to
+     get exactly right and it was only ever readable by parsing the code. Stated once,
+     plainly, between the two. */
+  .colsask{margin:0;padding:11px var(--pad);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:14px}
+  .colsask .lab{font:700 10.5px/1 inherit;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted)}
+  .colsask code{font:12.5px/1.5 var(--mono);background:rgba(14,116,144,.09);
+    border-radius:6px;padding:3px 8px;color:var(--ink)}
+  .colsask[hidden]{display:none}
+
   .why{margin:0;padding:12px var(--pad);font-size:14px;color:var(--muted);
     border-top:1px solid var(--line)}
   #query{margin:0;padding:var(--pad);white-space:pre-wrap;word-break:break-word}
@@ -227,6 +267,16 @@
   <nav class="ladders" id="ladders" aria-label="Ladders"></nav>
   <p class="ladder-blurb" id="ladder-blurb"></p>
 
+  <div class="timer" id="timer">
+    <span class="lab">Break timer</span>
+    <button type="button" class="mins" data-mins="5"  aria-pressed="false">5 min</button>
+    <button type="button" class="mins" data-mins="10" aria-pressed="false">10 min</button>
+    <button type="button" class="mins" data-mins="15" aria-pressed="false">15 min</button>
+    <button type="button" class="mins" data-mins="20" aria-pressed="false">20 min</button>
+    <span id="clock" role="timer" aria-live="off" hidden></span>
+    <button type="button" id="stoptimer" hidden>Stop</button>
+  </div>
+
   <div class="drillbar">
     <span class="rung" id="rung">Loading</span>
     <p class="adds" id="adds">Starting the SQL engine.</p>
@@ -245,6 +295,7 @@
         <button class="copy" data-copy="query">Copy</button>
       </div>
       <p class="question" id="question"></p>
+      <p class="colsask" id="colsask"></p>
       <pre id="query"></pre>
       <p class="why" id="why"></p>
     </div>
@@ -294,6 +345,24 @@
 </div>
 
 <div id="directive"><p id="directive-text">Type the whole query, run it, then click Next drill.</p></div>
+
+<div id="breakwrap" hidden role="dialog" aria-modal="true" aria-labelledby="breakhead">
+  <div class="breakcard">
+    <h2 id="breakhead">Time to stop for a minute.</h2>
+    <p class="sub" id="breaksub"></p>
+    <ul>
+      <li><strong>Look out a window</strong> at the furthest thing you can find, and hold it for twenty seconds. Focusing close up for a long stretch is what makes eyes ache.</li>
+      <li><strong>Blink hard, ten times.</strong> Staring at a screen cuts your blink rate, which is why they end up dry.</li>
+      <li><strong>Stand up and walk out of the room.</strong> Even a lap of the kitchen counts.</li>
+      <li><strong>Cold water on your face and wrists.</strong> It wakes you up faster than another coffee.</li>
+      <li><strong>Roll your shoulders back and drop them.</strong> They have been up by your ears for the last stretch.</li>
+    </ul>
+    <div class="breakrow">
+      <button type="button" class="go" id="breakclose">Back to the drill</button>
+      <button type="button" id="breakagain">Set another timer</button>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
 <script src="../assets/sqled/sqled.js"></script>
@@ -373,6 +442,7 @@ function render(){
     : '';
   $('question').innerHTML = '<span>The question</span>' + esc(d.q || '');
   $('why').textContent = d.why || '';
+  paintCols(d.sql);
   $('query').textContent = d.sql;
   $('pretext').textContent = d.pre;
   $('verdict').className = 'hint';
@@ -391,6 +461,23 @@ function render(){
   showTab('results');
   seedHeader(d.header);
   remember();
+}
+
+// The columns the answer has to come back with, read out of the database by running the
+// drill rather than parsed out of the SQL text. A parser would have to understand CTEs,
+// aliases and expressions to get the outer SELECT list right, and the day it got one
+// wrong the page would be confidently telling someone the wrong thing. sql.js already
+// knows, so ask it.
+function paintCols(sql){
+  let cols = [];
+  if(db){
+    try { const r = db.exec(sql); if(r.length) cols = r[r.length - 1].columns; } catch(e){}
+  }
+  $('colsask').hidden = !cols.length;
+  $('colsask').innerHTML = cols.length
+    ? '<span class="lab">Come back with</span>' +
+      cols.map(c => '<code>' + esc(c) + '</code>').join('')
+    : '';
 }
 
 // The header is written in for them; the query never is. Typing the SQL out is the entire
@@ -554,6 +641,83 @@ document.querySelectorAll('.copy').forEach(b => {
     setTimeout(() => { b.textContent = was; }, 1400);
   };
 });
+
+// ── break timer ─────────────────────────────────────────────────────────────
+// A clock that ends in a rest, not a score. It counts down, it never reports how much
+// was done, and stopping it early costs nothing. Shared across ladders on purpose: your
+// eyes do not care which climb you are on.
+const T_END = 'apk-sql-drill-break-end', T_MINS = 'apk-sql-drill-break-mins';
+let tick = null, endAt = 0, mins = 0, lastMins = 10;
+
+const clockText = ms => {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+};
+
+function paintTimer(){
+  document.querySelectorAll('.mins').forEach(b =>
+    b.setAttribute('aria-pressed', endAt && Number(b.dataset.mins) === mins ? 'true' : 'false'));
+  $('clock').hidden = !endAt;
+  $('stoptimer').hidden = !endAt;
+  if(endAt) $('clock').textContent = clockText(endAt - Date.now());
+}
+
+function stopTimer(){
+  endAt = 0; mins = 0;
+  clearInterval(tick); tick = null;
+  try { localStorage.removeItem(T_END); localStorage.removeItem(T_MINS); } catch(e){}
+  paintTimer();
+}
+
+function startTimer(m, resumeEnd){
+  mins = m; lastMins = m;
+  endAt = resumeEnd || (Date.now() + m * 60000);
+  try { localStorage.setItem(T_END, String(endAt)); localStorage.setItem(T_MINS, String(m)); } catch(e){}
+  clearInterval(tick);
+  // Read off the deadline every tick rather than counting ticks. A backgrounded tab gets
+  // throttled, and a clock built on counting comes back minutes behind the real time.
+  tick = setInterval(() => { Date.now() >= endAt ? fireBreak() : paintTimer(); }, 1000);
+  paintTimer();
+}
+
+function fireBreak(){
+  const ran = mins;
+  stopTimer();
+  $('breaksub').textContent = 'That is ' + ran + ' minutes of writing SQL by hand, which is the ' +
+    'whole point of this page. Take two minutes before the next stretch.';
+  $('breakwrap').hidden = false;
+  $('breakclose').focus();
+}
+
+function closeBreak(){
+  $('breakwrap').hidden = true;
+  ed.focus();
+}
+
+document.querySelectorAll('.mins').forEach(b => {
+  b.onclick = () => startTimer(Number(b.dataset.mins));
+});
+$('stoptimer').onclick = stopTimer;
+$('breakclose').onclick = closeBreak;
+// lastMins, not the stored key: firing the break clears storage, so reading it back here
+// would quietly hand everyone the same default no matter what they picked.
+$('breakagain').onclick = () => { closeBreak(); startTimer(lastMins); };
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && !$('breakwrap').hidden) closeBreak();
+});
+
+// A timer that was still running when the tab closed picks up where it was. One that ran
+// out while nobody was looking is dropped rather than fired on arrival, because a break
+// card is an interruption and there is nothing to interrupt on a fresh page.
+(function resumeTimer(){
+  let saved = 0, savedMins = 0;
+  try {
+    saved = Number(localStorage.getItem(T_END)) || 0;
+    savedMins = Number(localStorage.getItem(T_MINS)) || 0;
+  } catch(e){}
+  if(saved > Date.now() && savedMins) startTimer(savedMins, saved);
+  else if(saved) stopTimer();
+})();
 
 // The picker is drawn from the registry, not written out by hand, so adding a ladder is
 // one entry in LADDERS and nothing else.
