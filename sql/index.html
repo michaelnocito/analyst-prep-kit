@@ -1527,7 +1527,12 @@ INSERT INTO customers_old VALUES
 
 // ─── STATE ──────────────────────────────────────────────────────────────────
 const SK = 'sqlkit-v1';
-let state = {
+// Every progress key lives here, and Reset rebuilds from this object rather than
+// naming keys one at a time. The hand-written list had drifted: lessonStage,
+// misses, doneCapstone, doneCardDrills and confidence were all being kept, so
+// "Reset all" cleared the ticks and still reopened every lesson on the stage you
+// left off on. Add a key here and Reset picks it up for free.
+const DEFAULT_STATE = {
   doneLessons: [],
   doneFills: [],
   doneBugs: [],
@@ -1537,9 +1542,18 @@ let state = {
   doneCapstone: [],
   unitReviewsDone: [],
   unitLabsDone: [],
+  badgesEarned: [],
+  badgeMarks: {},
+  lessonStage: {},   // lessonId -> stage index. This is the one Reset kept missing.
+  misses: {},        // lessonId -> the things that come back
+  confidence: {},    // legacy, migrated on load
   flagged: [],
   theme: 'light'
 };
+// Preferences and one-time migration flags are NOT progress and survive a reset.
+const RESET_KEEPS = ['theme', 'stageBaseR1'];
+const freshState = () => JSON.parse(JSON.stringify(DEFAULT_STATE));
+let state = freshState();
 function loadState(){
   try { const s = JSON.parse(localStorage.getItem(SK)); if(s) state = {...state, ...s}; } catch(e){}
   document.documentElement.classList.toggle('light', state.theme === 'light');
@@ -1669,11 +1683,15 @@ function renderHome(){
 
   let resumeHtml = '';
   if(next){
+    // "Resume" with nothing behind you reads as a reset that did not work, which
+    // is exactly how the missing-keys bug above showed up. Say Start when there
+    // is nothing to resume.
+    const _fresh = !state.doneLessons.length;
     resumeHtml = `<div class="resume-card">
       ${_chips ? `<div>${_chips}</div>` : ''}
-      <h2>Continue Learning</h2>
-      <p>Up next: <strong>Lesson ${lessonPos(next.id)+1} — ${next.title}</strong></p>${_greet}${_signoff}
-      <button class="btn" onclick="navigate('lesson',${next.id})">▶ Resume →</button>
+      <h2>${_fresh ? 'Start Here' : 'Continue Learning'}</h2>
+      <p>${_fresh ? 'First up' : 'Up next'}: <strong>Lesson ${lessonPos(next.id)+1} — ${next.title}</strong></p>${_greet}${_signoff}
+      <button class="btn" onclick="navigate('lesson',${next.id})">${_fresh ? '▶ Start →' : '▶ Resume →'}</button>
     </div>`;
   } else {
     resumeHtml = `<div class="resume-card">
@@ -4831,10 +4849,15 @@ function renderSettings(){
 
 function resetProgress(){
   if(!confirm('Reset all progress? This cannot be undone.')) return;
-  state.doneLessons=[]; state.doneFills=[]; state.doneBugs=[]; state.doneParsons=[]; state.doneCards=[];
-  state.unitReviewsDone=[]; state.unitLabsDone=[]; state.badgesEarned=[]; state.badgeMarks={};
+  const keep = {};
+  RESET_KEEPS.forEach(k => { if(state[k] !== undefined) keep[k] = state[k]; });
+  state = Object.assign(freshState(), keep);
   ['sqlkit-recalls','sqlkit-recall-wins','sqlkit-last-visit','sqlkit-streak'].forEach(k=>localStorage.removeItem(k));
+  // In-memory position too, or a reset mid-path drops you back into the old
+  // sequence on the next press.
   _pendingRecalls=[]; _recallLesson=null;
+  guided=null; _capReturn=null; _labReturn=null;
+  _parsonsAttempts={}; _v2ParsAttempt={}; _v2ParsWasWrong={}; _drillRan=false;
   saveState();
   navigate('home');
 }
