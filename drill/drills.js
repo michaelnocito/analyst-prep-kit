@@ -4,7 +4,7 @@
 
 const LADDER = {
   name: "Country gems, generalist junior BA",
-  short: "Country gems",
+  short: "General",
   blurb: "Start at a filtered list of country tracks and climb to the two row answer about where the audience actually sits.",
   grain: {
     gem_page: 'one row = one curated gem track',
