@@ -247,3 +247,46 @@ a longer set; those keep their inline marking, and the popup fires when the set 
 
 Reference implementation: `path/index.html`, `winPopup()`. Rollout across the kits and the
 apps is tracked in `ROADMAP.md`.
+
+## Standing rule — Name the fork (added 2026-08-04, Mike)
+
+Canon lives in `marketing/ARTICLE_STANDARD.md` §2. It governs lessons and
+walkthroughs as well as articles.
+
+Before a learner does a step whose purpose is not obvious, tell them what
+the step decides:
+
+1. The question, in one line.
+2. The possible answers, numbered, each saying what it would mean if true.
+3. What decides between them.
+4. Why the answer matters.
+
+Failure mode this fixes: framing a step with language that sounds meaningful
+and explains nothing. "This is the pivot that carries the argument." The
+learner does not know what the argument is, so the sentence lands as noise
+and they stop and ask what you meant.
+
+Applies to: every lesson step, every walkthrough block, every drill that
+builds toward a finding.
+
+The test: could the learner state both possible outcomes before running the
+step? If not, rewrite.
+
+Pairs with the predict-then-check habit. Naming the fork is what makes a
+prediction possible.
+
+## Standing rule — Setup is one paragraph (added 2026-08-04, Mike)
+
+The block before a task states the task and what it decides. One short
+paragraph. Nothing else.
+
+No mechanism, no "there are two ways to do this", no concept the learner has
+to carry into the work. Every explanation of WHY moves to the block AFTER the
+task, where it lands on something they have just felt rather than something
+they must hold.
+
+Mike, 2026-08-04: "don't want them juggling concepts right before doing the
+task."
+
+Pairs with Name the fork. The fork is allowed in the setup because it is the
+purpose of the step. Mechanism is not.
