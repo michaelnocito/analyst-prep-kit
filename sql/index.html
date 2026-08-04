@@ -167,6 +167,16 @@ p strong{color:var(--text)}
 .ral-note-tail{padding-left:0;margin-top:10px;padding-top:9px;border-top:1px solid var(--stone-700)}
 .ral-note-tail::before{content:none}
 .ral-say-inline{font-family:var(--font);font-size:13px;font-style:italic;color:var(--stone-300);border-left:3px solid var(--clay-400);padding:2px 0 2px 11px;margin-bottom:14px;line-height:1.55;white-space:normal}
+/* "What this is" — the orientation block under a lesson title. Three short
+   lines and a link out to the full guide. It sits ABOVE the directive so the
+   directive stays the last thing read before acting. */
+.lx{background:var(--surf);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 var(--r2) var(--r2) 0;padding:12px 15px;margin:0 0 14px;font-size:13.5px;line-height:1.62}
+.lx>div{margin-bottom:6px;color:var(--muted)}
+.lx>div:last-child{margin-bottom:0}
+.lx-k{font-weight:700;color:var(--text)}
+.lx-like{font-style:italic}
+.lx-guide{font-size:12.5px;padding-top:8px;border-top:1px solid var(--border);margin-top:9px}
+.lx-guide a{color:var(--accent);font-weight:600}
 .ral-body{padding:16px 18px}
 .ral-say{font-size:14px;font-style:italic;color:var(--clay-800);background:var(--clay-50);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:9px 13px 9px 11px;margin-bottom:14px;line-height:1.55;display:flex;gap:7px;align-items:flex-start}
 .ral-say .lucide{width:15px;height:15px;color:var(--accent);flex-shrink:0;margin-top:3px}
@@ -518,6 +528,11 @@ LESSONS: [
    unlock:"The create → import → verify workflow is universal: SQLite today, Postgres COPY or MySQL LOAD DATA on the job. Keeping an untouched _raw table plus a cleaned working table is the habit that separates portfolio projects that survive scrutiny from ones that don't."},
   // UNIT 1
   {id:1, core:true, unit:"Unit 1: First Queries", title:"SELECT & FROM", sub:"Pull columns from a table",
+   explain:{
+     is:"SELECT names the columns you want back. FROM names the table they live in.",
+     use:"Every query starts with these two. What you want, then where it is kept.",
+     like:"A request slip at a library desk. You write down the details you need, then the shelf to pull them from.",
+     guide:"sql-foundations", guideLabel:"SQL Foundations, start to finish"},
    story:"You know the mental model: databases are tables, rows have a grain, keys connect tables, queries return tables. Now write your first actual question. SELECT names the columns you want; FROM names the table to get them from. That's the whole skeleton. Every query you'll ever write starts with these two words.",
    intro:"A SELECT query is like ordering at a deli counter: you name what you want (the columns) and which counter to get it from (the table). Every SQL query starts with <code>SELECT</code> to choose columns and <code>FROM</code> to name the table. Think of it as: &ldquo;Give me <em>these columns</em> from <em>this table</em>.&rdquo;",
    ral:{
@@ -540,6 +555,11 @@ LESSONS: [
    close:"You can pull any column from any table. Every query you'll ever write starts with exactly this.",
    unlock:"Naming columns explicitly instead of SELECT * is a production habit — it makes queries self-documenting and immune to breaking when someone later adds a column to the table."},
   {id:2, core:true, unit:"Unit 1: First Queries", title:"WHERE", sub:"Filter rows by condition",
+   explain:{
+     is:"WHERE keeps only the rows that pass a test you write.",
+     use:"It goes after FROM. You name a column, then what it has to be.",
+     like:"A guest list at the door. Every row walks up, and only the names on the list get in.",
+     guide:"sql-foundations", guideLabel:"SQL Foundations, start to finish"},
    story:"You can pull columns from a table. Your manager's first real question isn't 'show me everything' — it's 'show me just the West region.' WHERE is the filter: it checks a condition row by row and only returns the rows where it's true. SELECT tells SQL what to show; WHERE tells it which rows.",
    intro:"WHERE is like a guest list at the door — only the rows whose name is on it (the condition is true) get in. <code>WHERE</code> filters which rows come back. Only rows where the condition is TRUE are returned.",
    ral:{
@@ -1821,6 +1841,31 @@ function renderHome(){
   renderFlagged();
 }
 
+// ─── WHAT THIS IS ──────────────────────────────────────────────────────────
+// Three lines under the lesson title: what the thing is, how you use it, and
+// one ordinary-life comparison. Then a link to the full guide on the same site.
+//
+// Written into DATA as l.explain rather than pulled out of l.story or l.intro,
+// which are prose and were never in a fixed shape. Every lesson already has a
+// sub and a story; the lesson view had stopped showing either, so a learner
+// landed on the word WHERE with no sentence saying what WHERE is.
+//
+// Stays above the directive, so the last thing read before acting is still the
+// instruction (CURRICULUM_STANDARD, directive always visible).
+function lessonExplainHTML(l){
+  const e = l.explain;
+  if(!e) return '';
+  const guide = e.guide
+    ? `<div class="lx-guide"><a href="../guides/${e.guide}/">Full guide: ${e.guideLabel || l.title}</a></div>`
+    : '';
+  return `<div class="lx">
+      ${e.is  ? `<div><span class="lx-k">What it is.</span> ${e.is}</div>` : ''}
+      ${e.use ? `<div><span class="lx-k">How you use it.</span> ${e.use}</div>` : ''}
+      ${e.like? `<div class="lx-like"><span class="lx-k">Like this.</span> ${e.like}</div>` : ''}
+      ${guide}
+    </div>`;
+}
+
 // ─── SAY IT OUT LOUD ───────────────────────────────────────────────────────
 // The meaning of each piece sits on the code it explains, inside the block,
 // instead of in a list underneath it. Splitting something you have to use
@@ -1940,7 +1985,7 @@ function renderLesson(id){
     ${l.story?`<div class="lesson-story"><i data-lucide="book-open"></i><span>${l.story}</span></div>`:l.prereq?`<div class="lesson-story"><i data-lucide="corner-down-right"></i><span><strong>Before this:</strong> ${l.prereq}</span></div>`:''}
     ${l.intro?`<p style="margin-bottom:20px">${l.intro}</p>`:''}
     ${ralBlockHTML(l.ral)}
-    ${l.viz?lessonResultHTML(l.viz):''}
+    ${l.viz&&l.viz.show?lessonResultHTML(l.viz):''}
     <div class="card" style="margin-top:16px">
       <h3><i data-lucide="lightbulb"></i>Watch out</h3>
       <p style="margin:0">${l.notes}</p>
@@ -2020,7 +2065,13 @@ function missPanelHTML(id){
     </div>`;
 }
 
-// "See it on screen" — the result table a lesson's query returns.
+// "See it on screen" — the result table a lesson's query returns. OFF by
+// default since 2026-08-03: on most lessons it restated what the query
+// obviously returns, and a panel that is usually noise trains people to skip
+// the panel on the lesson where it would have helped.
+//
+// The data is kept, not deleted, so a visual can be turned back on for the
+// lessons that actually need one: add show:true to that lesson's viz.
 function lessonResultHTML(v){
   const cell=c=>(''+c)==='NULL'?'<span style="opacity:.5;font-style:italic">NULL</span>':c;
   return `<div class="card" style="margin-top:16px">
@@ -2772,6 +2823,10 @@ function v2SqlBody(l, done){
     (l.quiz||{}).q,
     null
   ][Math.min(stage,4)];
+  // Orientation first, instruction last. Only on the opening stage: by stage 2
+  // the learner has read it, and support that helps a novice starts costing the
+  // same person once they know it (Kalyuga, Ayres, Chandler & Sweller 2003).
+  const explain = stage===0 ? lessonExplainHTML(l) : '';
   const directive = DIRECTIVE
     ? `<div class="directive"><span class="d-eyebrow">Do this</span><p>${DIRECTIVE}</p></div>` : '';
 
@@ -2789,7 +2844,7 @@ function v2SqlBody(l, done){
         <h3 style="margin:0"><i data-lucide="eye"></i> Worked Example</h3>
       </div>
       ${ralBlockHTML(l.ral)}
-      ${l.viz?lessonResultHTML(l.viz):''}
+      ${l.viz&&l.viz.show?lessonResultHTML(l.viz):''}
       ${l.chart?sqlChartHTML(l.chart):''}
       <div class="row" style="margin-top:18px;gap:10px">
         <button class="btn btn-primary" onclick="setSqlStage(${l.id},1)">Try it yourself &rarr;</button>
@@ -2862,6 +2917,7 @@ function v2SqlBody(l, done){
     </div>
     <h1>${l.title}</h1>
     ${stageBar}
+    ${explain}
     ${directive}
     ${body}`;
   if(window.lucide) lucide.createIcons();
