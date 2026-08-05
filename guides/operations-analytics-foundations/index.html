@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operations Analytics, Start to Finish — Analyst Prep Kit</title>
+<meta name="description" content="Every core operations analytics idea in the order they build on each other: the unit of work, throughput, cycle time, Little's Law, backlog, utilization, first pass yield, service levels and percentiles, and telling a real change from noise.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/operations-analytics-foundations/">
+<meta property="og:title" content="Operations Analytics, Start to Finish">
+<meta property="og:description" content="The numbers that describe how work moves through a process, in the order they build on each other. Written for someone new to the field.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/operations-analytics-foundations.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/operations-analytics-foundations/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/operations-analytics-foundations.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:620px}
+  .figure figcaption{font-size:14px;color:var(--muted);margin-top:10px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .book{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px}
+  .book p{margin:6px 0 0}
+  .book a.booklink{display:inline-block;margin-top:10px;font-weight:600}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Operations Analytics, Start to Finish",
+  "description": "Every core operations analytics idea in the order they build on each other: the unit of work, throughput, cycle time, Little's Law, backlog, utilization, first pass yield, service levels and percentiles, and telling a real change from noise.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/operations-analytics-foundations/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/operations-analytics-foundations/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-05",
+  "dateModified": "2026-08-05"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Operations Analytics, Start to Finish",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/operations-analytics-foundations/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../stats/">Statistics Kit</a> · <a href="../">All guides</a></p>
+  <h1>Operations Analytics, Start to Finish</h1>
+  <p class="meta">Every core operations idea, in the order they build on each other · Written to be listened to · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can say, out loud and in your own words, what every core operations number does. What the unit of work is. Throughput, and why a count on its own answers nothing. Cycle time, and the rule that ties it to how much work is sitting open. Backlog. Utilization, and why aiming for 100 percent makes everything slower. Error rate, rework and first pass yield. Service levels, and why the average hides the customers you are failing. That list is most of what an operations analyst job, a technical screen, and a first real dataset will ask of you.</p>
+
+  <p>Here is what to actually do with it. Go through once end to end without stopping, just for the shape. Then come back to the retrieval sheet near the bottom, cover the right-hand column, and try to say each answer before you read it. That second pass is where the learning happens, and there is measured evidence for it further down.</p>
+
+  <p>The short version: operations analytics is the study of how work moves through a process. Every number in it is either how much, how fast, how much is stuck, or how much was wrong.</p>
+
+  <p>One idea decides more of your operations work than any other, so it gets the picture. Work arrives, waits, gets done, and leaves. How much is in progress and how long each item takes are two different spans over that same picture, and they are locked to each other.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 300" role="img" aria-labelledby="flowTitle flowDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="flowTitle">Work arrives, waits, is worked on, and leaves</title>
+      <desc id="flowDesc">A left-to-right process diagram. On the far left an arrow labelled "arriving" points into a row of three small stacked boxes labelled "waiting", representing a queue. An arrow leads from the queue into a single larger rounded box labelled "working", representing the person or machine doing the job. A final arrow leads out of that box to the right and is labelled "done". Above the queue and the working box, a bracket in a strong accent colour spans both and is labelled "in progress", showing that work in progress includes everything waiting as well as everything actively being worked on. Below, a second bracket in the same accent colour spans from the arrival arrow all the way to the exit arrow and is labelled "time in system", showing that the time an item experiences covers its whole journey, waiting included, not just the part where somebody is working on it. The two brackets deliberately cover different spans of the same picture.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <text x="40" y="128" font-size="13" font-weight="700" fill="#52525B">arriving</text>
+        <path d="M40 150 L118 150" stroke="#A1A1AA" stroke-width="2" fill="none"/>
+        <path d="M118 150 l-9 -5 v10 z" fill="#A1A1AA"/>
+
+        <rect x="130" y="127" width="40" height="46" rx="6" fill="#FFFFFF" stroke="#E4E7EA" stroke-width="2"/>
+        <rect x="180" y="127" width="40" height="46" rx="6" fill="#FFFFFF" stroke="#E4E7EA" stroke-width="2"/>
+        <rect x="230" y="127" width="40" height="46" rx="6" fill="#FFFFFF" stroke="#E4E7EA" stroke-width="2"/>
+        <text x="176" y="197" font-size="13" font-weight="700" fill="#52525B" text-anchor="middle">waiting</text>
+
+        <path d="M282 150 L330 150" stroke="#A1A1AA" stroke-width="2" fill="none"/>
+        <path d="M330 150 l-9 -5 v10 z" fill="#A1A1AA"/>
+
+        <rect x="342" y="120" width="96" height="60" rx="10" fill="#0E7490"/>
+        <text x="390" y="197" font-size="13" font-weight="700" fill="#52525B" text-anchor="middle">working</text>
+
+        <path d="M450 150 L560 150" stroke="#A1A1AA" stroke-width="2" fill="none"/>
+        <path d="M560 150 l-9 -5 v10 z" fill="#A1A1AA"/>
+        <text x="500" y="128" font-size="13" font-weight="700" fill="#52525B" text-anchor="middle">done</text>
+
+        <path d="M130 96 v-12 h308 v12" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+        <text x="284" y="70" font-size="14" font-weight="700" fill="#0E7490" text-anchor="middle">in progress</text>
+
+        <path d="M40 214 v12 h520 v-12" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+        <text x="300" y="256" font-size="14" font-weight="700" fill="#0E7490" text-anchor="middle">time in system</text>
+      </g>
+    </svg>
+    <figcaption>Waiting is part of the time an item takes, and most of it.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What this field is called, and what a process is</li>
+      <li>The unit of work, and the one word that prevents most mistakes</li>
+      <li>Throughput, and why a count on its own answers nothing</li>
+      <li>Cycle time, and the three numbers that lock together</li>
+      <li>Backlog, which is just arrivals minus completions</li>
+      <li>Utilization, and why 100 percent is the wrong target</li>
+      <li>Quality: error rate, rework, and first pass yield</li>
+      <li>Service levels, and why the average hides your worst customers</li>
+      <li>Telling a real change from noise</li>
+      <li>The same report, counts and rates side by side</li>
+      <li>Where these ideas come from</li>
+      <li>How to study this so it sticks</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>What this page is, and what it is not.</strong> This is the concept layer: what each number is and what question it answers. It is not a course in a particular tool. The calculations here are all division and subtraction, and they run in a spreadsheet or in SQL equally well.</div>
+
+  <div class="step">
+    <h2>1. What this field is called, and what a process is</h2>
+
+    <p>Before the explanation: a coffee shop, a hospital ward, a warehouse and a support inbox all get measured with the same handful of numbers. What do those four things have in common?</p>
+
+    <p>The job title is usually <strong>operations analyst</strong>, <strong>operations data analyst</strong>, or <strong>business operations analyst</strong>. The field is called <strong>operations analytics</strong>, and you will also see <strong>operational analytics</strong> and <strong>process analytics</strong> for the same work. All of them mean measuring how work gets done and finding where it gets stuck.</p>
+
+    <p>There is one older name that means something different, and it is worth knowing so a job posting does not confuse you. <strong>Operations research</strong> is a mathematical field about optimizing decisions, built on things like linear programming. It shares an ancestor with operations analytics and it is a much heavier maths discipline. If a posting says operations research and asks for a maths degree, that is a different job from the one this guide prepares you for.</p>
+
+    <p>Now the thing all four examples share. A <strong>process</strong> is any repeated sequence of steps that turns something arriving into something finished. Coffee orders arrive and become drinks. Patients arrive and become discharges. Pallets arrive and become shipments. Tickets arrive and become resolutions.</p>
+
+    <p>Every process has the same four parts, and every number in this guide measures one of them:</p>
+    <ul>
+      <li><strong>Arrivals.</strong> Work showing up.</li>
+      <li><strong>A queue.</strong> Work that has arrived and is waiting.</li>
+      <li><strong>Capacity.</strong> The people, machines or hours available to do it.</li>
+      <li><strong>Completions.</strong> Work leaving, finished.</li>
+    </ul>
+    <p>That is the whole vocabulary. Once you can name those four parts in a business you have never seen before, you can measure it.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. The unit of work, and the one word that prevents most mistakes</h2>
+
+    <p>Before the explanation: a warehouse says it shipped 4,000 things last month. Do you know how much work that was?</p>
+
+    <p>You do not, and that is the point. Four thousand what? Orders, boxes, individual items, or pallets? A pallet might hold 200 items. An order might be one item or forty. The number 4,000 is useless until somebody says what one of them is.</p>
+
+    <p>The <strong>unit of work</strong> is the thing you are counting. Pick it first, name it out loud, and keep it the same all the way through the analysis. In a support inbox it is usually the ticket. In a warehouse it might be the order line. In a clinic it is the visit.</p>
+
+    <p>The related idea in the data itself is <strong>grain</strong>, which means what one row of your table represents. Say it as a sentence starting with "one row per". One row per order. One row per order line. One row per shipment. Those three tables can all have 4,000 rows and describe completely different amounts of work.</p>
+
+    <p>This is the single most common way an operations number comes out wrong. Somebody counts rows in a table whose grain is order lines and reports it as orders. The calculation is correct and the answer is wrong. Grain is covered in more depth in the <a href="../sql-foundations/">SQL foundations guide</a>, because it is the same idea wearing different clothes.</p>
+
+    <p>Say this one out loud before you read on: in a hospital, what is the difference between counting patients and counting visits?</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Throughput, and why a count on its own answers nothing</h2>
+
+    <p>Before the explanation: night shift processed 900 orders and day shift processed 500. Which shift is better?</p>
+
+    <p>You cannot say yet, and the reason is the most important habit in this whole guide.</p>
+
+    <p>A <strong>count</strong> is how many things happened. 900 orders. It tells you the volume that got done and nothing else.</p>
+
+    <p>A <strong>rate</strong> is that count divided by the opportunity somebody had to produce it. Almost always hours. In operations the rate has a name: <strong>throughput</strong>, meaning completed work per unit of time.</p>
+
+    <p>Back to the two shifts. Night worked 160 hours, day worked 60.</p>
+    <ul>
+      <li>Night: 900 ÷ 160 = <strong>5.6 orders per hour</strong></li>
+      <li>Day: 500 ÷ 60 = <strong>8.3 orders per hour</strong></li>
+    </ul>
+    <p>Day shift is faster. The count said the opposite, because night shift simply had more hours to work with.</p>
+
+    <p>Both numbers are real and both have a job. The count tells you how much got delivered, which is what a customer experiences. The rate tells you how efficiently it was produced, which is what a manager can act on. Reporting only one of them is the mistake, in either direction.</p>
+
+    <p>The habit to keep from this section is short. Before you compare two operational numbers, ask what each one was divided by. If neither was divided by anything, you are comparing volumes and you should say so out loud.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Cycle time, and the three numbers that lock together</h2>
+
+    <p>Before the explanation: your team wants tickets resolved twice as fast. Nobody is allowed to work faster and nobody is getting hired. Is there anything left to change?</p>
+
+    <p>There is, and this section is the answer. First, the time words, because they get mixed up constantly.</p>
+    <ul>
+      <li><strong>Cycle time.</strong> How long one item takes from starting work on it to finishing it.</li>
+      <li><strong>Lead time.</strong> How long one item takes from arriving to finishing, waiting included. This is what the customer feels.</li>
+      <li><strong>Wait time.</strong> The gap between the two. Usually the biggest part, and usually the one nobody measures.</li>
+    </ul>
+    <p>People say cycle time loosely to mean either. In an interview, say which one you mean and you will sound like you have done the job.</p>
+
+    <p>Now the rule that connects everything. There is a formula in queueing theory called <strong>Little's Law</strong>, and it is one line:</p>
+
+    <pre><code>work in progress = arrival rate × time in system</code></pre>
+
+    <p>Work in progress is how many items are open right now, waiting or being worked on. Arrival rate is how many show up per day. Time in system is how long an average item takes end to end.</p>
+
+    <p>A worked example. Tickets arrive at 20 a day, and at any moment 60 tickets are sitting open. Rearrange the formula and time in system is 60 ÷ 20, which is <strong>3 days</strong>. You just measured your own resolution time without timing a single ticket.</p>
+
+    <p>And here is the answer to the prequestion. To cut that 3 days to 1.5, you change one of the two other numbers. Halve the open tickets to 30, and 30 ÷ 20 gives 1.5 days. Or double throughput so items leave faster. Nobody had to type faster. Limiting how much work is open at once is a real lever, and it is why teams cap their in-progress column.</p>
+
+    <p>Picture your own work now. How many things do you personally have open and unfinished at this moment, and what would happen to how fast each one finishes if you cut that number in half?</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Backlog, which is just arrivals minus completions</h2>
+
+    <p>Before the explanation: a team closes 90 tickets every single week without fail. Is that team keeping up?</p>
+
+    <p><strong>Backlog</strong> is the work that has arrived and is not finished. The number that matters is not the size of the backlog, it is which way it is moving.</p>
+
+    <p>The arithmetic is one subtraction. Arrivals minus completions, per period.</p>
+    <ul>
+      <li>100 arrive a week, 90 close a week. Backlog grows by 10 a week.</li>
+      <li>Ten weeks of that and the backlog is 100 items deeper than it started.</li>
+      <li>Nothing about the team's performance changed. They closed 90 every week.</li>
+    </ul>
+    <p>That is the answer to the prequestion. Whether 90 is keeping up is not a fact about the team, it is a fact about how much arrived. A closure number reported without an arrival number next to it cannot answer the question anyone is actually asking.</p>
+
+    <p>This is the finding that gets an operations analyst noticed, because it reframes a performance conversation as a capacity conversation. "Rep B is slower" is an accusation. "Rep B's queue receives 4 tickets an hour and one person can clear 2" is a staffing decision with a number attached.</p>
+
+    <p>One more term you will meet. <strong>Aging</strong> is how long the items in the backlog have been sitting. A backlog of 100 where the oldest is 2 days old is healthy. A backlog of 100 where the oldest is 8 months old contains work nobody is ever going to do, and saying so is usually more useful than another dashboard.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Utilization, and why 100 percent is the wrong target</h2>
+
+    <p>Before the explanation: your team is busy 95 percent of the time. Your manager wants to know why everything is late. What would you tell him?</p>
+
+    <p><strong>Utilization</strong> is the share of available time that is actually spent working. Four hours of work in an eight hour shift is 50 percent utilization. It feels like the number should be as high as possible. It should not, and the reason is the most counterintuitive idea in operations.</p>
+
+    <p>Waiting time does not rise steadily as a team gets busier. It rises gently, then explodes. The part of the maths that causes this is a single fraction: utilization divided by one minus utilization. Watch what it does.</p>
+    <ul>
+      <li>At 80 percent busy: 0.8 ÷ 0.2 = <strong>4</strong></li>
+      <li>At 90 percent busy: 0.9 ÷ 0.1 = <strong>9</strong></li>
+      <li>At 95 percent busy: 0.95 ÷ 0.05 = <strong>19</strong></li>
+    </ul>
+    <p>Going from 80 percent busy to 90 percent busy more than doubles the waiting. Going from 90 to 95 doubles it again. The team took on a little more work each time and the queue behind them grew far faster than the workload did.</p>
+
+    <p>That is the answer to the prequestion, and it is why the honest response to "everything is late" is often "because we are 95 percent busy, and the last 5 percent of capacity is what absorbs a bad day". A process with no slack has nowhere to put a surprise.</p>
+
+    <p>Two things make this worse, and both are worth naming because you can measure them. <strong>Variability in arrivals</strong>, meaning the work shows up in bursts rather than evenly. And <strong>variability in service</strong>, meaning some items take far longer than others. A process with steady arrivals and predictable work can run much closer to full than a process with spiky arrivals. That is why a factory can run at 90 percent and an emergency room cannot.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Quality: error rate, rework, and first pass yield</h2>
+
+    <p>Before the explanation: two teams both complete 1,000 items a week. One of them is doing noticeably more work than the other. How?</p>
+
+    <p>Because some of those completions were the same item twice. Work that comes back is <strong>rework</strong>, and it is invisible in a completion count.</p>
+
+    <p>Three numbers cover quality, and they are all shares of a total.</p>
+    <table>
+      <tr><th>Number</th><th>What it asks</th></tr>
+      <tr><td><strong>Error rate</strong></td><td>Of everything we did, what share was wrong? 30 wrong out of 1,000 is 3 percent.</td></tr>
+      <tr><td><strong>Rework rate</strong></td><td>What share had to be done again? This is the one that eats capacity.</td></tr>
+      <tr><td><strong>First pass yield</strong></td><td>What share went through correctly the first time, with no rework? 1,000 started, 940 clean, so 94 percent.</td></tr>
+    </table>
+
+    <p>First pass yield is the one worth learning by name, because it is the number that connects quality to speed. Every point of yield you lose comes back as extra volume through the same process. A team at 85 percent first pass yield is doing roughly 15 percent of its work twice, which means its real capacity is smaller than its headcount suggests.</p>
+
+    <p>That is the answer to the prequestion. Same 1,000 completions, different amounts of actual work delivered, because one team's number includes items it had already counted once.</p>
+
+    <p>One caution before you report any of these. An error rate is only as good as the definition of an error, and that definition is a decision somebody has to make on purpose. What counts as wrong, who decides, and when. Getting that written down before you measure is its own skill, and there is a walkthrough of it in <a href="../defining-metrics/">turning fuzzy questions into measurable definitions</a>.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. Service levels, and why the average hides your worst customers</h2>
+
+    <p>Before the explanation: your promise is to resolve every ticket within 8 hours. Your average resolution time is 5.8 hours. Are you keeping the promise?</p>
+
+    <p>An <strong>SLA</strong>, a service level agreement, is a promise about time. Resolve within 8 hours. Ship within 2 days. Answer within 30 seconds. <strong>SLA attainment</strong> is the share of items that met the promise.</p>
+
+    <p>Here is why the average cannot tell you. One hundred tickets:</p>
+    <ul>
+      <li>90 of them resolved in 2 hours.</li>
+      <li>10 of them took 40 hours.</li>
+    </ul>
+    <p>The mean is (90 × 2 + 10 × 40) ÷ 100, which is (180 + 400) ÷ 100, which is <strong>5.8 hours</strong>. Comfortably inside an 8 hour promise.</p>
+
+    <p>And yet 10 customers waited 40 hours, five times the promise. Those are the ones who complain, escalate, and leave. The average did not lie, it answered a question nobody asked.</p>
+
+    <p>The fix is a <strong>percentile</strong>. The 95th percentile is the value that 95 percent of your items came in under. In the example above the 95th percentile is 40 hours, which tells the true story in one number. Operations reporting runs on percentiles for exactly this reason, and you will see them written as p50, p90 and p95. The p50 is the median.</p>
+
+    <p>The rule to carry into a job: an average describes the typical case, and a percentile describes the bad case. A promise is about the bad case, so measure it with a percentile. This connects directly to <a href="../data-driven-thresholds/">picking cutoffs you can defend</a>, because somebody has to decide whether the promise is p90 or p95, and that decision is worth more than the dashboard.</p>
+  </div>
+
+  <div class="step">
+    <h2>9. Telling a real change from noise</h2>
+
+    <p>Before the explanation: throughput dropped 6 percent this week. Should you tell anyone?</p>
+
+    <p>Not yet. Every process varies week to week without anything having changed. Reporting normal variation as a finding is the fastest way for an analyst to lose credibility, because the number goes back up next week and the alarm looks silly.</p>
+
+    <p>The distinction has names, and they are worth using. <strong>Common cause variation</strong> is the ordinary wobble a stable process always has. <strong>Special cause variation</strong> is a real change with a real reason behind it. The job is telling them apart before you say anything.</p>
+
+    <p>The cheapest honest test does not need statistics. Take the last 20 periods, look at how much the number normally bounces around, and ask whether this week's move is bigger than the moves you already ignored. If the number has swung 5 percent every week for five months, a 6 percent drop is Tuesday.</p>
+
+    <p>Three questions that catch most false alarms:</p>
+    <ol>
+      <li><strong>How many items is this based on?</strong> A 6 percent drop on 2,000 orders is a signal. On 30 orders it is two people taking a day off.</li>
+      <li><strong>Is the denominator stable?</strong> A rate can move because the top changed or because the bottom did. A holiday week has fewer hours in it.</li>
+      <li><strong>Does anything else move with it?</strong> A real change usually shows up in two places. If throughput fell and backlog rose, something happened. If throughput fell and nothing else moved, look at your data before you look for a cause.</li>
+    </ol>
+
+    <p>Being able to say "that is inside our normal range" is a professional skill, not a dodge. It is also the section of this guide most likely to come up in an interview as a scenario question, because it separates people who report numbers from people who interpret them. The difference between those two jobs is covered in <a href="../report-vs-analysis/">the difference between a report and an analysis</a>.</p>
+  </div>
+
+  <h2>10. The same report, counts and rates side by side</h2>
+
+  <p>Same warehouse, same month, same underlying data. On the left, what most first drafts look like. On the right, the same facts with a denominator attached.</p>
+
+  <table>
+    <tr><th>Counts only</th><th>The same month, as rates</th></tr>
+    <tr>
+      <td>Night shift shipped 900 orders. Day shift shipped 500.</td>
+      <td>Night ran 5.6 orders per hour across 160 hours. Day ran 8.3 across 60.</td>
+    </tr>
+    <tr>
+      <td>We closed 90 tickets a week, every week.</td>
+      <td>100 arrived a week and 90 closed, so the backlog grew by 10 a week.</td>
+    </tr>
+    <tr>
+      <td>Average resolution time was 5.8 hours, inside our 8 hour promise.</td>
+      <td>Ninety percent resolved in 2 hours. The slowest 10 percent took 40, so p95 attainment failed.</td>
+    </tr>
+    <tr>
+      <td>The team completed 1,000 items.</td>
+      <td>940 went through clean, so first pass yield was 94 percent and 60 items were done twice.</td>
+    </tr>
+    <tr>
+      <td>The team is busy 95 percent of the time.</td>
+      <td>At 95 percent utilization the queue term is 19, against 4 at 80 percent, so lateness is expected.</td>
+    </tr>
+  </table>
+
+  <p>Nothing on the right required new data. Every one of those is the same figure with the question "compared to what" answered.</p>
+
+  <h2>11. Where these ideas come from</h2>
+
+  <p>Two of the rules in this guide are not conventions somebody agreed on. They are proved results, and knowing that is worth a sentence in an interview.</p>
+
+  <p>The formula in section 4 is <strong>Little's Law</strong>, proved by John Little in 1961 (Little, 1961, <em>Operations Research</em>, 9(3), 383–387). The striking part is how few assumptions it needs. It does not care what order the work is done in, how many people are working, or how the arrivals are distributed. If the process is stable over the period you measure, work in progress equals arrival rate times time in system. That is why you can apply it to a hospital and a helpdesk with the same confidence.</p>
+
+  <p>The explosion in section 6 comes from queueing theory, and the specific result is <strong>Kingman's formula</strong> (Kingman, 1961, <em>Mathematical Proceedings of the Cambridge Philosophical Society</em>, 57(4), 902–904). It shows that as a server approaches full utilization, waiting time grows in proportion to that utilization over one minus utilization fraction, scaled by how variable the arrivals and the service times are. The arithmetic in section 6 is that fraction on its own. It is also why reducing variability, rather than working faster, is often the cheapest way to make a process feel quicker.</p>
+
+  <p>The idea in section 9 is older still. Walter Shewhart separated ordinary process variation from genuine signals while working at Bell Labs in the 1920s, and published the method in 1931 (Shewhart, 1931, <em>Economic Control of Quality of Manufactured Product</em>, Van Nostrand). The control chart on a factory wall and the "is this inside our normal range" question in section 9 are the same idea, ninety years apart.</p>
+
+  <h2>12. How to study this so it sticks</h2>
+
+  <p>Reading this page again will feel like learning and mostly will not be. Three findings change what an hour of study is worth, and all three are cheap to act on.</p>
+
+  <p>The first is that retrieving something from memory stores it better than reviewing it does. Students who read a passage once and then took recall tests remembered far more a week later than students who read the same passage four times, even though the re-readers felt more confident (Roediger &amp; Karpicke, 2006, <em>Psychological Science</em>, 17(3), 249–255). Applied here: cover the right-hand column of the retrieval sheet below and say each answer before you look. The struggle is the mechanism, not a sign you are doing it badly.</p>
+
+  <p>The second is spacing. The same total study time, spread across days rather than packed into one sitting, produces substantially better retention, and the effect holds across hundreds of experiments (Cepeda, Pashler, Vul, Wixted, &amp; Rohrer, 2006, <em>Psychological Bulletin</em>, 132(3), 354–380). Three twenty-minute passes on three days beats one hour tonight.</p>
+
+  <p>The third is why this guide keeps asking you to say things out loud. Learners who explain a worked example to themselves as they go understand it substantially better, and transfer it to new problems better, than learners who read the same example without explaining it (Chi, Bassok, Lewis, Reimann, &amp; Glaser, 1989, <em>Cognitive Science</em>, 13(2), 145–182). Operations is where that pays off most, because the mistake is almost never in the arithmetic. It is in what you believe the number was divided by.</p>
+
+  <p>If you have paper nearby and a spare five minutes, there is one drawing worth doing, and it is optional. Draw the picture at the top from memory: arriving, waiting, working, done, then the two brackets over it. Label which bracket is work in progress and which is time in system. Getting the second bracket to start at the arrival rather than at the working box is the whole idea, and drawing it from memory is both a retrieval attempt and a check on whether you actually have it.</p>
+
+  <h2>13. The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Concept</th><th>What it does</th></tr>
+    <tr><td>Process</td><td>A repeated sequence turning arrivals into completions.</td></tr>
+    <tr><td>The four parts</td><td>Arrivals, queue, capacity, completions. Every number measures one.</td></tr>
+    <tr><td>Unit of work</td><td>The thing you are counting. Name it before you count anything.</td></tr>
+    <tr><td>Grain</td><td>What one row of your table means. Say it as "one row per something".</td></tr>
+    <tr><td>Count</td><td>How many happened. Volume delivered, and nothing else.</td></tr>
+    <tr><td>Rate</td><td>A count divided by the opportunity to produce it. Usually hours.</td></tr>
+    <tr><td>Throughput</td><td>Completed work per unit of time. The rate version of a count.</td></tr>
+    <tr><td>Cycle time</td><td>Start of work to finish, for one item.</td></tr>
+    <tr><td>Lead time</td><td>Arrival to finish, waiting included. What the customer feels.</td></tr>
+    <tr><td>Wait time</td><td>The gap between the two. Usually the biggest part.</td></tr>
+    <tr><td>Little's Law</td><td>Work in progress = arrival rate × time in system.</td></tr>
+    <tr><td>Using Little's Law</td><td>Cut time in system by cutting work in progress, without anyone working faster.</td></tr>
+    <tr><td>Backlog</td><td>Arrived and not finished. Direction matters more than size.</td></tr>
+    <tr><td>Backlog growth</td><td>Arrivals minus completions, per period.</td></tr>
+    <tr><td>Aging</td><td>How long backlog items have been sitting. Old backlog is usually dead work.</td></tr>
+    <tr><td>Utilization</td><td>Share of available time actually spent working.</td></tr>
+    <tr><td>Why 100 percent fails</td><td>Waiting scales with utilization over one minus utilization. 80% gives 4, 95% gives 19.</td></tr>
+    <tr><td>Variability</td><td>Bursty arrivals or unpredictable job lengths. Makes every queue longer.</td></tr>
+    <tr><td>Error rate</td><td>Share of output that was wrong.</td></tr>
+    <tr><td>Rework rate</td><td>Share that had to be done again. Eats capacity invisibly.</td></tr>
+    <tr><td>First pass yield</td><td>Share that went through clean the first time. Links quality to speed.</td></tr>
+    <tr><td>SLA</td><td>A promise about time. Resolve in 8 hours, ship in 2 days.</td></tr>
+    <tr><td>SLA attainment</td><td>Share of items that met the promise.</td></tr>
+    <tr><td>Percentile</td><td>The value a given share of items came in under. p95 is the bad case.</td></tr>
+    <tr><td>Average against percentile</td><td>An average describes the typical case. A promise is about the bad case.</td></tr>
+    <tr><td>Common cause variation</td><td>The ordinary wobble a stable process always has.</td></tr>
+    <tr><td>Special cause variation</td><td>A real change with a real reason. Prove it before you report it.</td></tr>
+    <tr><td>Cost per unit</td><td>Total cost divided by units produced. Where headcount enters the reporting.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Before you report any operations number, say out loud what it was divided by. "Nine hundred orders, divided by nothing" is a volume. "Nine hundred orders across 160 hours" is a finding. Nearly every wrong operations conclusion is a correct count compared against a different denominator than the one somebody assumed, and that one sentence catches it before the number leaves your desk.</div>
+
+  <p>One genuine question, and I would like other people's answers. The idea that took me longest was utilization, because "busier is better" is so obviously true right up until you see what it does to a queue. Which operations idea did you understand backwards for the longest, and what finally fixed it?</p>
+
+  <div class="book">
+    <strong>You can read a dashboard. The freeze comes when somebody says throughput is down and asks you why.</strong>
+    <p><em>SQL for Analysts</em> is 239 pages, every query read line by line in everyday words, and practice questions that print the answer and the reason it is right. Most operations reporting is a GROUP BY over a date and a denominator you had to think about.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/sql-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-operations-analytics-foundations'})">SQL for Analysts, $19 &rarr;</a>
+  </div>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Little, J. D. C. (1961). A proof for the queuing formula: L = λW. <em>Operations Research</em>, 9(3), 383–387.</li>
+    <li>Kingman, J. F. C. (1961). The single server queue in heavy traffic. <em>Mathematical Proceedings of the Cambridge Philosophical Society</em>, 57(4), 902–904.</li>
+    <li>Shewhart, W. A. (1931). <em>Economic Control of Quality of Manufactured Product</em>. New York: D. Van Nostrand Company.</li>
+    <li>Roediger, H. L., &amp; Karpicke, J. D. (2006). Test-enhanced learning: Taking memory tests improves long-term retention. <em>Psychological Science</em>, 17(3), 249–255.</li>
+    <li>Cepeda, N. J., Pashler, H., Vul, E., Wixted, J. T., &amp; Rohrer, D. (2006). Distributed practice in verbal recall tasks: A review and quantitative synthesis. <em>Psychological Bulletin</em>, 132(3), 354–380.</li>
+    <li>Chi, M. T. H., Bassok, M., Lewis, M. W., Reimann, P., &amp; Glaser, R. (1989). Self-explanations: How students study and use examples in learning to solve problems. <em>Cognitive Science</em>, 13(2), 145–182.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Want to practise these instead of only reading them?</strong>
+    <p style="margin:6px 0 0">The <a href="../../stats/">Statistics Kit</a> turns averages, percentiles and variation into worked examples, flash cards and a mock exam, which is the half of this page that has maths in it. Nothing to install and no account needed.</p>
+    <a class="btn" href="../../stats/">Open the Statistics Kit →</a>
+    <p style="margin:10px 0 0;font-size:15px">Or get straight into typing the queries these numbers come from: <a href="../../drill/">open SQL Drill</a>, one runnable query at a time, each adding one thing to the last.</p>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../report-vs-analysis/">Report vs Analysis</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../excel-dashboard-build-order/">Excel Dashboard Build Order</a> · <a href="../build-a-tableau-dashboard/">Build a Tableau Dashboard</a> · <a href="../tableau-concepts/">Tableau Concepts</a> · <a href="../choose-your-analyst-role/">Choose Your Analyst Role</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../">All Guides</a> · <a href="../../stats/">Statistics Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
