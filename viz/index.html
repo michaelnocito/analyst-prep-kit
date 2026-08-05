@@ -249,7 +249,7 @@
                 <button data-mark="text" aria-pressed="false">Text table</button>
               </span>
             </div>
-            <div class="shelfrow"><span class="shelflab">Colour</span><div class="shelf" id="sh-color" data-shelf="color"></div></div>
+            <div class="shelfrow"><span class="shelflab">Color</span><div class="shelf" id="sh-color" data-shelf="color"></div></div>
             <div class="shelfrow"><span class="shelflab">Size</span><div class="shelf" id="sh-size" data-shelf="size"></div></div>
             <div class="shelfrow"><span class="shelflab">Label</span><div class="shelf" id="sh-label" data-shelf="label"></div></div>
             <div class="shelfrow"><span class="shelflab">Detail</span><div class="shelf" id="sh-detail" data-shelf="detail"></div></div>
@@ -338,7 +338,7 @@ const FIELDS = {
   records:   {label: 'Number of Records', kind: 'meas'}
 };
 const AGGS = ['SUM', 'AVG', 'MIN', 'MAX'];
-const SHELF_NAMES = {cols: 'Columns', rows: 'Rows', color: 'Colour', size: 'Size',
+const SHELF_NAMES = {cols: 'Columns', rows: 'Rows', color: 'Color', size: 'Size',
                      label: 'Label', detail: 'Detail', filter: 'Filter'};
 
 const SHELVES = ['cols', 'rows', 'color', 'size', 'label', 'detail', 'filter'];
@@ -389,7 +389,7 @@ function fieldWells(){
 
 function place(shelf, field){
   if(!FIELDS[field]) return;
-  // Almost everything is allowed, on purpose. A measure on Colour is not a mistake, it is
+  // Almost everything is allowed, on purpose. A measure on Color is not a mistake, it is
   // a different encoding, and refusing the drop is what leaves people unable to predict
   // what any card will do. Detail is the one genuine restriction: it groups, so it needs
   // something to group by.
@@ -492,7 +492,7 @@ function measureOf(rows, field){
 }
 
 // The result set the shelves describe: one row per dimension value, or per pair when
-// Colour is in play. This is what the Underlying data tab shows, deliberately, because
+// Color is in play. This is what the Underlying data tab shows, deliberately, because
 // the table is the bridge back to the query they already wrote.
 function resultSet(){
   const axis = state.rows.concat(state.cols);
@@ -506,7 +506,7 @@ function resultSet(){
   // Every dimension in play makes more marks, wherever it sits. Nesting two dimensions on
   // one shelf is the same grouping as spreading them across two, which is exactly why the
   // engine groups by the whole list rather than by one field per shelf.
-  // Colour and Detail group too. A measure on Colour, Size or Label does not: it is just
+  // Color and Detail group too. A measure on Color, Size or Label does not: it is just
   // aggregated per mark. That difference is the lesson of the marks card.
   const splitters = [state.color, state.detail].filter(f => isDim(f) && !dimFields.includes(f));
   const groupBy = dimFields.concat(splitters);
@@ -536,7 +536,7 @@ function resultSet(){
         key: dimVals.length ? dimVals.join(' / ') : 'All',
         dimVals,
         measure: mf,
-        // With more than one measure and nothing on Colour, the measure names take Colour,
+        // With more than one measure and nothing on Color, the measure names take Color,
         // which is the default the real tools apply for the same reason: otherwise the
         // two sets of marks are indistinguishable.
         color: colorVal !== null ? colorVal : (marks.length > 1 ? FIELDS[mf].label : null),
@@ -570,7 +570,7 @@ const PALETTE = ['#0E7490', '#B45309', '#4338CA', '#15803D', '#9D174D', '#0F766E
 // one you are looking at is how the legend teaches what you just did.
 // Ranked, not linear. Audience data is heavily skewed, and a linear ramp put five of seven
 // bars within a few units of each other, so the encoding was invisible on exactly the step
-// that teaches it. Rank spreads the steps evenly, which is what a quantile colour scale
+// that teaches it. Rank spreads the steps evenly, which is what a quantile color scale
 // does in the real tools and for the same reason.
 function rampColor(v, all){
   const sorted = [...new Set(all)].sort((a, b) => a - b);
@@ -583,9 +583,9 @@ function drawLegend(rs){
   const el = $('legend');
   if(!rs){ el.innerHTML = ''; return; }
   if(!state.color){
-    // Two measures with nothing on Colour: the measure names are doing the colouring.
+    // Two measures with nothing on Color: the measure names are doing the coloring.
     if(rs.measFields && rs.measFields.length > 1){
-      el.innerHTML = '<b>Measure names</b> on Colour, added for you because two measures ' +
+      el.innerHTML = '<b>Measure names</b> on Color, added for you because two measures ' +
         'cannot share a set of marks without one:' +
         rs.measFields.map((m, n) => '<span class="sw" style="background:' +
           PALETTE[n % PALETTE.length] + '"></span>' + esc(FIELDS[m].label)).join('');
@@ -595,12 +595,12 @@ function drawLegend(rs){
   const f = FIELDS[state.color];
   if(isDim(state.color)){
     const keys = [...new Set(rs.rows.map(r => r.color))];
-    el.innerHTML = '<b>' + esc(f.label) + '</b> on Colour, a dimension, so one swatch per value:' +
+    el.innerHTML = '<b>' + esc(f.label) + '</b> on Color, a dimension, so one swatch per value:' +
       keys.map((k, n) => '<span class="sw" style="background:' + PALETTE[n % PALETTE.length] +
         '"></span>' + esc(String(k))).join('');
   } else {
     const vals = rs.rows.map(r => r.color);
-    el.innerHTML = '<b>' + state.agg + '(' + esc(f.label) + ')</b> on Colour, a measure, so a ramp:' +
+    el.innerHTML = '<b>' + state.agg + '(' + esc(f.label) + ')</b> on Color, a measure, so a ramp:' +
       Math.round(Math.min(...vals)).toLocaleString() + '<span class="ramp"></span>' +
       Math.round(Math.max(...vals)).toLocaleString();
   }
@@ -780,7 +780,7 @@ function drawChart(){
   $('caption').textContent = (state.agg) + ' of ' +
     rs.measFields.map(m => FIELDS[m].label).join(' and ') +
     (rs.dimFields.length ? ' by ' + rs.dimFields.map(f => FIELDS[f].label).join(', then ') : '') +
-    (state.color ? ', coloured by ' + FIELDS[state.color].label : '') +
+    (state.color ? ', colored by ' + FIELDS[state.color].label : '') +
     (state.size ? ', sized by ' + FIELDS[state.size].label : '') +
     (state.detail ? ', split by ' + FIELDS[state.detail].label : '') +
     ' · ' + shown + ' marks' +

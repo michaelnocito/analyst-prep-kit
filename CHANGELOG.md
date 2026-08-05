@@ -771,7 +771,7 @@ Verified: 3/3 inline scripts parse · all 49 answer keys in range and
 shape-correct, ids unique · live at localhost:4201 — `EXAM_MINUTES` 70,
 `PASS_PCT` 48, weights 23/37/25/15, all six hero chips correct, all new bullets
 render on expand-all, results screen exercised at 100% / 51% / 0% (verdict bands
-+ pass colouring correct, no undefined/NaN), console clean.
++ pass coloring correct, no undefined/NaN), console clean.
 
 ## [1.149.0] — 2026-07-16 — SQL kit: curriculum reorder + Unit 0 diet (playtest Batch 4)
 

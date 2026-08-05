@@ -50,7 +50,7 @@ Cover at minimum:
 
 - The headline numbers. Why those, why that many, why formatted that way.
 - Each chart. Why that chart type. What other chart was considered.
-- Colour. What is muted, what is emphasised, and why the emphasis is on the
+- Color. What is muted, what is emphasised, and why the emphasis is on the
   thing it is on.
 - Sorting. Sorting is an analytic act, so it needs a reason.
 - Anything excluded from a chart, like thin categories, and the threshold used.
@@ -68,7 +68,7 @@ principles, not decoration.
 - A number earns a spot only if it changes what you do next.
 - Never make a reader do the same job twice. An axis and data labels are two
   ways to read one number.
-- Colour is a pointer, not decoration. Mute the context, colour the subject.
+- Color is a pointer, not decoration. Mute the context, color the subject.
   The subject is not always the biggest shape.
 - Sorted hands the reader the ranking. Unsorted makes them work it out.
 - Rates compare groups of different sizes. Counts just show which group is big.

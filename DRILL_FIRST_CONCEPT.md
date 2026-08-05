@@ -149,7 +149,7 @@ round per lesson, and where the second checkpoint lands.
 
 Two passes, both aimed at the feel of the buttons. What they caught, and what shipped:
 
-- **The forward button sat above the result table.** Colour, motion and the directive all
+- **The forward button sat above the result table.** Color, motion and the directive all
   said "go forward" while the rows the query was run for sat below, silent. Moved below the
   table; Run stays beside the editor. Rows capped at 12, not 50.
 - **The lesson tab was a dead end.** `/sql/#lesson-1` is a 4,441px page carrying four
@@ -313,7 +313,7 @@ Rules the Before step obeys, and each of them is load-bearing:
 - **Nothing is marked and no answer is revealed.** This is the one that makes the comparison
   worth anything. Show the right answers at the start and the check at the end measures who
   remembered a reveal, not who learned the material.
-- **The only colour on that screen means "this is the one you picked."** Not right, not
+- **The only color on that screen means "this is the one you picked."** Not right, not
   wrong. A pick can be changed until the learner leaves the step.
 - **It says out loud that guessing is fine**, and why: not knowing yet is the reason the
   round exists. A learner who reads step 1 as a test they are failing will not reach step 2.

@@ -223,7 +223,7 @@ Rules the popup obeys:
   one row. The rows come to them now.
 
 **A wrong answer gets the same popup.** Same shape, same result table, same single button.
-What changes is the colour, the words, and where the button goes:
+What changes is the color, the words, and where the button goes:
 
 | | Right | Wrong |
 |---|---|---|

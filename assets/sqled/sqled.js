@@ -5,7 +5,7 @@
   here builds none of the habits a real editor rewards. The point of this file is that
   the editor helps the way a work editor helps, and the learner gets used to being
   helped: keywords and column names arrive half-typed, quotes and brackets close
-  themselves, and the shape of the query is visible in colour while it is being written.
+  themselves, and the shape of the query is visible in color while it is being written.
 
   It wraps CodeMirror 5, which is loaded from cdnjs alongside sql.js. CodeMirror 5 rather
   than 6 because 6 is ESM-only and would force a build step onto a repo that has none.

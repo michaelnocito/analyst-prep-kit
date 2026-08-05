@@ -107,7 +107,7 @@
 
   // ---- Styles --------------------------------------------------------------
   // Injected rather than shipped as a second file, so adding this to a page is
-  // one script tag and nothing else. Colours defer to whatever the host page
+  // one script tag and nothing else. Colors defer to whatever the host page
   // already defines and fall back to the Zinc & Sky values.
   var CSS = [
     '.listen-launch{display:inline-flex;align-items:center;gap:8px;margin:2px 0 18px;',
