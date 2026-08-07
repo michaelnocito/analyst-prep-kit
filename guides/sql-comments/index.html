@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Comment in SQL: -- and /* */, and the Two Traps That Break a Query — Analyst Prep Kit</title>
+<meta name="description" content="How to comment in SQL: the two comment syntaxes (-- for one line, /* */ for a block), where each one goes, the two ways commenting out a line breaks a query, and the comma habit that makes it safe. Every example run and checked.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comments/">
+<meta property="og:title" content="How to Comment in SQL: -- and /* */">
+<meta property="og:description" content="The two SQL comment syntaxes, where each one goes, and the two ways commenting out a line quietly breaks the query.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comments/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Comment in SQL: -- and /* */, and the Two Traps That Break a Query",
+  "description": "How to comment in SQL: the two comment syntaxes, where each one goes, the two ways commenting out a line breaks a query, and the comma habit that makes it safe.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comments/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comments/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-07",
+  "dateModified": "2026-08-07"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Analyst Prep Kit", "item": "https://michaelnocito.github.io/analyst-prep-kit/" },
+    { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/" },
+    { "@type": "ListItem", "position": 3, "name": "How to Comment in SQL", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comments/" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do you comment in SQL?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Two dashes and a space start a comment that runs to the end of the line. A slash-star opens a comment block that runs until a star-slash closes it, across as many lines as you like. Both are part of the SQL language itself, so they work the same in SQLite, PostgreSQL, MySQL, SQL Server, BigQuery and Snowflake."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do you comment out a line of SQL?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Put two dashes at the front of the line. The risk is that the line you hid was holding the query together. Commenting out the last column of a SELECT leaves a trailing comma, and commenting out the last condition of a WHERE leaves a dangling AND. Both are syntax errors."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can SQL block comments be nested?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The first star-slash closes the block, whatever came before it. Putting one block comment inside another leaves the tail of the outer comment exposed as code, which is a syntax error."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a></p>
+  <h1>How to Comment in SQL</h1>
+  <p class="meta">The two syntaxes, the two ways commenting out a line breaks the query, and the one-character habit that fixes both · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>SQL has two comment syntaxes and you will use both today. <code>--</code> hides the rest of one line. <code>/*</code> opens a block that stays hidden until <code>*/</code> closes it, however many lines that takes. Nothing inside a comment runs.</p>
+
+  <p>The part nobody warns you about is what happens when you comment out a line that was holding the query together. There are exactly two shapes that break, and one small habit prevents both. That habit is the reason to read past the first screen.</p>
+
+  <div class="note"><strong>The short version.</strong> <code>--</code> for one line, <code>/* */</code> for a block. Write your column lists with the comma at the front of each line, and any column becomes safe to comment out.</div>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>The two ways to write a comment</li>
+      <li>Where you can put one</li>
+      <li>The two shapes that break when you comment a line out</li>
+      <li>The comma habit that makes it safe</li>
+      <li>What looks like a comment and is not</li>
+      <li>Differences between databases</li>
+      <li>What a comment should actually say</li>
+      <li>Cheat sheet</li>
+    </ol>
+  </div>
+
+  <h2>The two ways to write a comment</h2>
+  <p>Before the answer: one of these two can hide half a query in a single keystroke, and the other cannot. Guess which, then read on.</p>
+
+  <p><strong>Two dashes hide the rest of the line.</strong> Everything after <code>--</code>, up to the line break, is ignored. The next line runs normally.</p>
+  <pre><code>SELECT name, score   -- the two columns the report needs
+FROM players;</code></pre>
+
+  <p><strong>Slash-star opens a block, star-slash closes it.</strong> Everything between them is ignored, including line breaks. This is the one that can hide half a query, because it does not stop at the end of a line. It stops only when it meets <code>*/</code>.</p>
+  <pre><code>/* Pulled for the Q3 review.
+   Numbers were signed off by Dana on the 14th. */
+SELECT name, score
+FROM players;</code></pre>
+
+  <p>Both forms are part of the SQL language rather than any one product, so the same two characters work in SQLite, PostgreSQL, MySQL, SQL Server, BigQuery and Snowflake. You do not have to relearn them when you change databases.</p>
+
+  <h2>Where you can put one</h2>
+  <p>A line comment can start anywhere on a line. At the front, hiding the whole line. Or after working code, hiding only the tail.</p>
+  <pre><code>-- the whole line is hidden
+SELECT name FROM players;   -- only this tail is hidden</code></pre>
+
+  <p>A block comment can sit in the middle of a line, because it has a closing mark and the database picks the code back up afterwards. This runs and returns 3:</p>
+  <pre><code>SELECT 1 + /* this is skipped */ 2;</code></pre>
+
+  <p>Say out loud why that works before reading the next sentence. The reason is the whole difference between the two forms: <code>--</code> has no closing mark, so it runs to the end of the line and everything after it on that line is gone. <code>/* */</code> has a closing mark, so it takes only what sits between the two.</p>
+
+  <h2>The two shapes that break when you comment a line out</h2>
+  <p>Commenting out a line is the most common thing anyone does with a SQL comment. You are testing whether a filter matters, so you hide it and rerun. Two shapes bite, and both leave a query that will not parse.</p>
+
+  <div class="step">
+    <h2>Trap 1: the trailing comma in a SELECT list</h2>
+    <p>Columns are separated by commas, and most people put the comma at the end of each line. Hide the last column and the comma above it is left pointing at nothing.</p>
+    <pre><code>SELECT id,
+-- name,
+FROM players;</code></pre>
+    <p>The database reads <code>SELECT id, FROM players</code> and stops. SQLite reports <code>near "FROM": syntax error</code>. Other engines word it differently and mean the same thing: a comma promised another column and none arrived.</p>
+  </div>
+
+  <div class="step">
+    <h2>Trap 2: the dangling AND in a WHERE</h2>
+    <p>Same mistake, different keyword. Conditions are joined by <code>AND</code>, the <code>AND</code> usually sits at the end of the line, and hiding the last condition leaves it stranded.</p>
+    <pre><code>SELECT id FROM players
+WHERE score > 5 AND
+-- status = 'active'
+;</code></pre>
+    <p>SQLite reports <code>incomplete input</code>. The query is not wrong, it is unfinished. <code>AND</code> was waiting for a second thing to test and the comment ate it.</p>
+  </div>
+
+  <p>Notice what these two have in common. In both cases the line you commented out was fine on its own. What broke was the punctuation on the line <em>above</em> it, which you never touched and did not look at.</p>
+
+  <h2>The comma habit that makes it safe</h2>
+  <p>Move the comma and the <code>AND</code> to the <em>front</em> of the line they belong to, instead of the end of the line before.</p>
+
+  <pre><code>SELECT id
+     , name
+     , status
+FROM players
+WHERE score > 5
+  AND status = 'active';</code></pre>
+
+  <p>Now every line owns its own punctuation. Comment out <code>, name</code> and the comma goes with it. Comment out <code>AND status = 'active'</code> and the <code>AND</code> goes with it. The query still parses, every time, and you can toggle any line without reading the one above it.</p>
+
+  <pre><code>SELECT id
+--   , name
+     , status
+FROM players
+WHERE score > 5
+--  AND status = 'active'
+;</code></pre>
+
+  <p>Both of those run. The only line you cannot hide this way is the first column, because it is the one with no punctuation in front of it.</p>
+
+  <p>Picture your last long query with the commas moved to the front. Which line would you have toggled on and off while you were writing it? That line is the reason for the habit.</p>
+
+  <h2>What looks like a comment and is not</h2>
+  <p>Comment marks lose their meaning inside quotes. A database reading a quoted string treats every character in it as text, including <code>--</code> and <code>/*</code>. This returns the literal text <code>a -- b</code>, not <code>a</code>:</p>
+  <pre><code>SELECT 'a -- b';</code></pre>
+  <p>That matters when you are searching text that contains dashes, or storing snippets of code in a table. Nothing you write inside quotes can accidentally comment out the rest of your query.</p>
+
+  <p>Block comments also do not nest. The first <code>*/</code> closes the block, whatever came before it:</p>
+  <pre><code>/* outer /* inner */ this part is now code */</code></pre>
+  <p>The block ends at the first <code>*/</code>, so <code>this part is now code */</code> is handed to the database as SQL and fails. If you need to hide a stretch that already contains a block comment, put <code>--</code> at the front of every line instead. Most editors do that for a whole selection with one shortcut.</p>
+
+  <h2>Differences between databases</h2>
+  <p>The two standard forms work everywhere. Two smaller things do not travel.</p>
+  <table>
+    <tr><th>Thing</th><th>Where it works</th><th>What to do</th></tr>
+    <tr><td><code>--</code> line comment</td><td>Every major database</td><td>Use it freely</td></tr>
+    <tr><td><code>/* */</code> block comment</td><td>Every major database</td><td>Use it freely</td></tr>
+    <tr><td><code>#</code> line comment</td><td>MySQL and MariaDB only</td><td>Use <code>--</code> instead, so the query survives a move</td></tr>
+    <tr><td>An unclosed <code>/*</code></td><td>Tolerated by some engines, rejected by others</td><td>Always close the block</td></tr>
+  </table>
+  <p>If you are writing SQL you might reuse somewhere else, stay on <code>--</code> and <code>/* */</code> and close every block. That is the portable set.</p>
+
+  <h2>What a comment should actually say</h2>
+  <p>Syntax is the easy half. The harder question is what belongs in the comment once you have one.</p>
+  <p>A comment earns its place only when it carries something the code does not already say. <code>-- filter to active customers</code> sitting next to <code>WHERE status = 'active'</code> carries nothing, because the code said it first, in fewer words, and the code cannot go stale.</p>
+  <p>The thing a reader genuinely cannot recover from the code is <em>why anyone asked this question</em>. Why 500 and not 50. Why rank on percentage instead of raw count. Those are the judgment calls, and they are usually the part left out. A full format for writing that down, used word for word in three published portfolio projects, is in <a href="../sql-teaching-comments/">how to comment SQL so it teaches</a>.</p>
+
+  <h2>Cheat sheet</h2>
+  <table>
+    <tr><th>You want to</th><th>Write</th><th>Watch for</th></tr>
+    <tr><td>Hide the rest of a line</td><td><code>-- your note</code></td><td>Nothing after it on that line survives</td></tr>
+    <tr><td>Hide several lines</td><td><code>/* your note */</code></td><td>Close it, and do not nest it</td></tr>
+    <tr><td>Add a note to the end of a line</td><td><code>SELECT id  -- note</code></td><td>Long lines get hard to read</td></tr>
+    <tr><td>Comment out one column</td><td>Front-load the comma, then <code>-- , name</code></td><td>Trailing commas leave a syntax error</td></tr>
+    <tr><td>Comment out one condition</td><td>Front-load the <code>AND</code>, then <code>-- AND status = 'x'</code></td><td>A dangling <code>AND</code> leaves the query unfinished</td></tr>
+    <tr><td>Hide a block that already has <code>/* */</code> in it</td><td><code>--</code> on every line</td><td>Blocks do not nest</td></tr>
+    <tr><td>Write a comment other databases will accept</td><td><code>--</code> or <code>/* */</code></td><td><code>#</code> is MySQL only</td></tr>
+  </table>
+
+  <h2>The one habit to keep</h2>
+  <p>Put the comma and the <code>AND</code> at the front of the line. It costs nothing, it looks strange for about a day, and it turns commenting a line out from something you have to check into something you can do without thinking.</p>
+
+  <p>If you have paper nearby, write out your most-used query with the punctuation moved to the front. Seeing your own query in the shape is worth more than reading about it.</p>
+
+  <p>Which line in your current query would you most like to be able to switch on and off?</p>
+
+  <div class="note"><strong>Every example here was run before it was published.</strong> The error messages quoted are the real ones SQLite returns, not a description of them. Other engines phrase the same two failures differently.</div>
+
+  <div class="cta">
+    <strong>Write the queries, do not just read them.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> covers SELECT, WHERE, JOIN and GROUP BY with worked examples, practice and a mock exam, all in the browser. If you have no database to practice on yet, start by <a href="../set-up-a-sql-database/">setting one up in fifteen minutes</a>.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+    <p style="margin:10px 0 0;font-size:15px">Or type them yourself one at a time: <a href="../../drill/">open SQL Drill</a>, thirteen queries that each add one thing to the last.</p>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="../sql-teaching-comments/">Commenting SQL So It Teaches</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-case-expression/">SQL CASE</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../sql-aliasing/">SQL Aliases</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../which-sql-database-to-install/">Which Database to Install</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../../drill/">SQL Drill</a> · <a href="../../sql/">SQL Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

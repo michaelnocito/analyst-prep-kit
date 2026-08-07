@@ -27,8 +27,8 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The SQL CASE Expression, Explained for Beginners (With a Real Messy-Data Example) — Analyst Prep Kit</title>
-<meta name="description" content="Beginner guide to the SQL CASE expression (CASE WHEN THEN ELSE END): how the ladder works, why rung order matters, and how analysts use it for cleaning, bucketing, flags, and conditional aggregation — shown on real messy Billboard chart data.">
+<title>SQL CASE WHEN, Explained for Beginners (Both Forms, and the NULL Trap) — Analyst Prep Kit</title>
+<meta name="description" content="Beginner guide to SQL CASE WHEN THEN ELSE END: both forms of CASE, why the order of the WHEN clauses changes the answer, why WHEN col = NULL never matches, where a CASE can go in a query, and how analysts use it for cleaning, bucketing, flags and conditional aggregation.">
 <link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-expression/">
 <meta property="og:title" content="The SQL CASE Expression, Explained for Beginners">
 <meta property="og:description" content="CASE WHEN, THEN, ELSE, END — how SQL's if/else really works, taught with a real data-cleaning problem from Billboard chart history.">
@@ -69,7 +69,7 @@
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "The SQL CASE Expression, Explained for Beginners",
-  "description": "Beginner guide to the SQL CASE expression (CASE WHEN THEN ELSE END): how the ladder works, why rung order matters, and how analysts use it for cleaning, bucketing, flags, and conditional aggregation — shown on real messy Billboard chart data.",
+  "description": "Beginner guide to SQL CASE WHEN THEN ELSE END: both forms of CASE, why the order of the WHEN clauses changes the answer, why WHEN col = NULL never matches, where a CASE can go in a query, and how analysts use it for cleaning, bucketing, flags and conditional aggregation.",
   "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-expression/",
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -86,7 +86,7 @@
   },
   "inLanguage": "en",
   "datePublished": "2026-07-14",
-  "dateModified": "2026-07-29",
+  "dateModified": "2026-08-07",
   "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-case-expression.png"
 }
 </script>
@@ -126,7 +126,7 @@
 
   <p>CASE is SQL's if/else. It is how you clean messy values, sort numbers into bands, build flags, and count several things in one query.</p>
 
-  <p>This guide covers three things. How CASE decides. The one ordering rule that breaks it without any error. And how a real cleaning rule gets built, on real data, mistakes included.</p>
+  <p>This guide covers the whole of it. How CASE decides. Both forms of the syntax. The two rules that break a CASE with no error message at all, one about order and one about NULL. Everywhere in a query a CASE is allowed to go. And how a real cleaning rule gets built, on real data, mistakes included.</p>
 
   <div class="toc">
     <strong>What's here</strong>
@@ -134,8 +134,12 @@
       <li>What CASE is and how it decides</li>
       <li>The rule that matters: order is logic</li>
       <li>A real example: cleaning Billboard artist credits</li>
+      <li>The second form: CASE with the column at the top</li>
+      <li>The NULL trap, which produces no error at all</li>
+      <li>Where a CASE is allowed to go</li>
       <li>The four jobs analysts use CASE for</li>
       <li>How to build a CASE rule that's actually correct</li>
+      <li>Cheat sheet</li>
     </ol>
   </div>
 
@@ -190,6 +194,43 @@ END AS primary_artist</code></pre>
     <p>Read it top to bottom. Each rung is more general than the one above it, so the specific cases get caught before a general rung can mangle them. On the full dataset this ladder merged 11,275 raw credit strings into 8,896 clean primary artists.</p>
   </div>
 
+  <h2>The second form: CASE with the column at the top</h2>
+  <p>Everything above uses the stacked form, where each WHEN carries its own full test. There is a second, shorter form for the common case where every test compares the <em>same</em> column against a different value. Lift the column out and put it directly after CASE:</p>
+  <pre><code>CASE status
+  WHEN 'active'  THEN 'yes'
+  WHEN 'churned' THEN 'no'
+  ELSE 'unknown'
+END</code></pre>
+  <p>That is the same as writing <code>WHEN status = 'active'</code> on every line, with less repetition. Officially it is a <strong>simple CASE expression</strong>. The stacked one used earlier is a <strong>searched CASE expression</strong>. Those two names come up in documentation constantly, and that is the only difference between them.</p>
+  <p>The short form only does equality. The moment you need <code>&gt;</code>, <code>&lt;</code>, <code>LIKE</code>, <code>IS NULL</code>, or two different columns in one test, you have to go back to the stacked form. Which is why most analyst SQL uses the stacked form for everything: it covers both jobs, and you never have to convert a CASE halfway through writing it.</p>
+
+  <h2>The NULL trap, which produces no error at all</h2>
+  <p>Before the answer: a column has some empty values in it. You write <code>WHEN score = NULL THEN 'missing'</code>. How many rows do you think come back marked missing?</p>
+  <p>None. Not one, ever, on any database. And nothing warns you.</p>
+  <p>NULL in SQL does not mean empty. It means <em>unknown</em>. So <code>score = NULL</code> is not asking "is this blank", it is asking "does this unknown value equal this other unknown value", and the honest answer to that is neither yes nor no. The test never comes back true, the rung never fires, and every row falls through to your ELSE. On a table where a third of the rows are blank, the output looks completely reasonable and is quietly wrong for all of them.</p>
+  <pre><code>-- Never marks anything. Every row falls to the ELSE.
+CASE WHEN score = NULL THEN 'missing' ELSE 'has a score' END
+
+-- Correct. IS NULL is the test that works on unknowns.
+CASE WHEN score IS NULL THEN 'missing' ELSE 'has a score' END</code></pre>
+  <p>The same applies to the short form. <code>CASE score WHEN NULL THEN …</code> is equality underneath, so it fails in exactly the same silent way. A NULL check always has to be written as its own <code>WHEN … IS NULL</code> rung in the stacked form.</p>
+  <p>There is a second, smaller NULL behaviour worth knowing, and it is the useful one. <strong>If no rung matches and you wrote no ELSE, the result is NULL.</strong> That is why conditional counting works without an ELSE at all: <code>COUNT(CASE WHEN status = 'active' THEN 1 END)</code> counts the matches, because COUNT skips NULLs and the non-matches all became NULL.</p>
+  <div class="note"><strong>Put the NULL rung first.</strong> If a column can be blank, make <code>WHEN &lt;column&gt; IS NULL</code> the top rung of the ladder. It is the most specific case there is, so by the ordering rule above it belongs at the top, and putting it there means you never have to wonder afterwards which bucket the blanks landed in.</div>
+
+  <h2>Where a CASE is allowed to go</h2>
+  <p>CASE produces a value, so it goes anywhere a column can go. That is more places than most people use it, and each one solves a different problem.</p>
+  <table>
+    <tr><th>Place</th><th>What it does there</th><th>Example</th></tr>
+    <tr><td><code>SELECT</code></td><td>Builds a new column</td><td><code>CASE WHEN score &gt; 50 THEN 'high' ELSE 'low' END AS band</code></td></tr>
+    <tr><td><code>WHERE</code></td><td>Filters on a computed value</td><td><code>WHERE CASE WHEN score IS NULL THEN 0 ELSE score END &gt; 50</code></td></tr>
+    <tr><td><code>ORDER BY</code></td><td>Sorts in an order that is not alphabetical or numeric</td><td><code>ORDER BY CASE status WHEN 'urgent' THEN 1 WHEN 'normal' THEN 2 ELSE 3 END</code></td></tr>
+    <tr><td><code>GROUP BY</code></td><td>Groups by a band you invented rather than a stored column</td><td><code>GROUP BY CASE WHEN score &gt;= 50 THEN 'high' ELSE 'low' END</code></td></tr>
+    <tr><td>Inside <code>SUM</code> or <code>COUNT</code></td><td>Counts several different things in one pass</td><td>See conditional aggregation below</td></tr>
+    <tr><td><code>UPDATE … SET</code></td><td>Writes a different value per row in one statement</td><td><code>SET band = CASE WHEN score &gt; 50 THEN 'high' ELSE 'low' END</code></td></tr>
+  </table>
+  <p>The custom sort in ORDER BY is the one people miss. Any time you want statuses to come out in a business order rather than alphabetical order, that is a CASE, and there is no other clean way to do it.</p>
+  <div class="note"><strong>One portability note.</strong> Whether you can reuse the CASE's alias later in the same query, as in <code>WHERE band = 'high'</code>, depends on the database. Some allow it and some reject it. The version that works everywhere is to repeat the whole expression, or to compute it once in a <a href="../sql-ctes/">CTE</a> and filter the CTE. The CTE is the readable option and it is what most analysts settle on.</div>
+
   <h2>The four jobs analysts use CASE for</h2>
   <h3>1. Cleaning and normalizing</h3>
   <p>Mapping messy source values onto clean ones, which is the Billboard ladder above. Any dataset where one real thing appears under several spellings needs a ladder like it.</p>
@@ -222,7 +263,25 @@ FROM songs;</code></pre>
     <tr><td>5. Iterate</td><td>Repeat until the exceptions stop appearing. That is genuinely how normalization rules get built in practice.</td></tr>
   </table>
 
-  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Tableau, data migration, and the working habits around them.</div>
+  <h2>Cheat sheet</h2>
+  <table>
+    <tr><th>You want to</th><th>Write</th><th>Watch for</th></tr>
+    <tr><td>Test different things per rung</td><td><code>CASE WHEN a &gt; 1 THEN … WHEN b = 'x' THEN … END</code></td><td>The first match wins, so order is logic</td></tr>
+    <tr><td>Compare one column to several values</td><td><code>CASE status WHEN 'a' THEN … WHEN 'b' THEN … END</code></td><td>Equality only, no <code>&gt;</code> or <code>LIKE</code></td></tr>
+    <tr><td>Catch blank values</td><td><code>WHEN col IS NULL THEN …</code></td><td><code>= NULL</code> never matches and never errors</td></tr>
+    <tr><td>Give everything else one value</td><td><code>ELSE 'other'</code></td><td>No ELSE means unmatched rows come out NULL</td></tr>
+    <tr><td>Sort by a business order</td><td><code>ORDER BY CASE status WHEN 'urgent' THEN 1 … END</code></td><td>The numbers are just sort keys, not output</td></tr>
+    <tr><td>Count two things in one query</td><td><code>SUM(CASE WHEN … THEN 1 ELSE 0 END)</code></td><td>Use <code>COUNT(CASE WHEN … THEN 1 END)</code> to skip the ELSE</td></tr>
+    <tr><td>Reuse the computed column later</td><td>Compute it in a <a href="../sql-ctes/">CTE</a>, then filter the CTE</td><td>Reusing the alias in WHERE is not portable</td></tr>
+    <tr><td>Put specific above general</td><td><code>' A Duet With '</code> above <code>' Duet With '</code> above <code>' With '</code></td><td>A general rung on top swallows the specific ones</td></tr>
+  </table>
+
+  <h2>The one habit to keep</h2>
+  <p>Never ship a CASE you have not previewed side by side with the original column. Every defect in this guide, including the artist who does not exist, was found by putting the input and the output next to each other and reading twenty rows. Nothing else catches a ladder that is wrong but not broken.</p>
+
+  <p>Which column in your own data would you least like to discover had been quietly bucketed wrong for a month?</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Tableau, data migration, and the working habits around them. If you are still choosing where to run your queries, start with <a href="../which-sql-database-to-install/">which SQL database to install</a>.</div>
 
   <div class="cta">
     <strong>Make SELECT, WHERE, JOIN, and GROUP BY second nature too.</strong>
@@ -233,7 +292,7 @@ FROM songs;</code></pre>
 
   <div data-apk-subscribe></div>
   <footer>
-    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../tableau-relationships/">Tableau Relationships</a> · <a href="../tableau-sets/">Tableau Sets</a> · <a href="../../drill/">SQL Drill</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../sql-teaching-comments/">Commenting SQL</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../sql-joins/">SQL JOINs</a> &middot; <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-aliasing/">SQL Aliases</a> &middot; <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../tableau-relationships/">Tableau Relationships</a> · <a href="../tableau-sets/">Tableau Sets</a> · <a href="../../drill/">SQL Drill</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../sql-comments/">How to Comment in SQL</a> · <a href="../sql-teaching-comments/">Commenting SQL</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../which-sql-database-to-install/">Which Database to Install</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../sql-joins/">SQL JOINs</a> &middot; <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-aliasing/">SQL Aliases</a> &middot; <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
     
   </footer>
 </main>
