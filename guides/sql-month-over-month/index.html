@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Month-over-Month Growth in SQL: LAG, the Growth Formula, and the Traps — Analyst Prep Kit</title>
+<meta name="description" content="The MoM growth formula, LAG() in everyday words, and the trap where one skipped month makes SQL report a fake 30.6% drop. Every query run on a real table.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-month-over-month/">
+<meta property="og:title" content="Month-over-Month Growth in SQL: LAG, the Growth Formula, and the Traps">
+<meta property="og:description" content="This month minus last month, divided by last month. Sounds simple until integer division returns zero, the first month goes NULL, and a gap makes May compare itself to March.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-month-over-month.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-month-over-month/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-month-over-month.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Month-over-Month Growth in SQL: LAG, the Growth Formula, and the Traps",
+  "description": "The MoM growth formula, LAG() in everyday words, and the trap where one skipped month makes SQL report a fake 30.6% drop. Every query run on a real table.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-month-over-month/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-month-over-month/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-07",
+  "dateModified": "2026-08-07",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-month-over-month.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Month-over-Month Growth in SQL: LAG, the Growth Formula, and the Traps",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-month-over-month/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>Month-over-Month Growth in SQL: LAG, the Growth Formula, and the Traps</h1>
+  <p class="meta">This month against last month, and the three ways SQL quietly gets it wrong · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can write a month-over-month growth query and trust its answer. You will know the growth formula and how to say it in a sentence, what <code>LAG()</code> actually does, and the three traps that produce wrong percentages without producing an error: integer division, the empty first month, and the missing month. It is about twenty minutes.</p>
+
+  <p>Here is what to actually do today. Before you trust any growth query you have already written, run one check: count the distinct months in your data and compare that count to the calendar. If any month is missing, at least one of your growth numbers is comparing the wrong pair of months.</p>
+
+  <p>The short version: growth is this month minus last month, divided by last month. <code>LAG()</code> fetches last month's value onto this month's row. But <code>LAG()</code> fetches the previous row, not the previous month, and those are only the same thing when no month is missing.</p>
+
+  <p>That last distinction is the one that bites, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 300" role="img" aria-labelledby="momTitle momDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="momTitle">LAG reads the previous row, not the previous month</title>
+      <desc id="momDesc">Two side-by-side panels, each a vertical column of month rows. In the left panel the rows are January, February, March, and then May, because April is missing from the data. Curved arrows run from each row up to the row above it: February points to January, March points to February, and May points to March. The May-to-March arrow is drawn in a warning color with a cross beside it, because May is being compared to March, skipping the missing April. In the right panel the same months appear but a dashed April row has been inserted between March and May. Now the arrow from May points to April, and every arrow connects true calendar neighbors. A check mark sits beside the May-to-April arrow. The picture shows that LAG connects adjacent rows, so growth is only month-over-month when every calendar month has a row.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <!-- left panel: gap in the data -->
+        <rect x="40" y="40" width="150" height="34" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="60" y="62" font-size="14" fill="#09090B">Jan</text>
+        <rect x="40" y="92" width="150" height="34" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="60" y="114" font-size="14" fill="#09090B">Feb</text>
+        <rect x="40" y="144" width="150" height="34" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="60" y="166" font-size="14" fill="#09090B">Mar</text>
+        <rect x="40" y="196" width="150" height="34" rx="8" fill="#FFFFFF" stroke="#B45309" stroke-width="2"/>
+        <text x="60" y="218" font-size="14" fill="#09090B">May</text>
+
+        <path d="M210 109 C 236 96, 236 70, 210 57" stroke="#A1A1AA" stroke-width="1.6" fill="none" marker-end="url(#arrGray)"/>
+        <path d="M210 161 C 236 148, 236 122, 210 109" stroke="#A1A1AA" stroke-width="1.6" fill="none" marker-end="url(#arrGray)"/>
+        <path d="M210 213 C 244 196, 244 178, 210 161" stroke="#B45309" stroke-width="2.4" fill="none" marker-end="url(#arrWarn)"/>
+        <text x="248" y="192" font-size="18" font-weight="700" fill="#B45309">✕</text>
+
+        <!-- divider -->
+        <path d="M380 30 L380 270" stroke="#E4E7EA" stroke-width="2" fill="none"/>
+
+        <!-- right panel: calendar filled in -->
+        <rect x="430" y="28" width="150" height="30" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="450" y="48" font-size="14" fill="#09090B">Jan</text>
+        <rect x="430" y="74" width="150" height="30" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="450" y="94" font-size="14" fill="#09090B">Feb</text>
+        <rect x="430" y="120" width="150" height="30" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="450" y="140" font-size="14" fill="#09090B">Mar</text>
+        <rect x="430" y="166" width="150" height="30" rx="8" fill="#FFFFFF" stroke="#0E7490" stroke-width="2" stroke-dasharray="5 4"/>
+        <text x="450" y="186" font-size="14" fill="#0E7490">Apr · 0</text>
+        <rect x="430" y="212" width="150" height="30" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="450" y="232" font-size="14" fill="#09090B">May</text>
+
+        <path d="M600 89 C 624 78, 624 54, 600 43" stroke="#A1A1AA" stroke-width="1.6" fill="none" marker-end="url(#arrGray)"/>
+        <path d="M600 135 C 624 124, 624 100, 600 89" stroke="#A1A1AA" stroke-width="1.6" fill="none" marker-end="url(#arrGray)"/>
+        <path d="M600 181 C 624 170, 624 146, 600 135" stroke="#A1A1AA" stroke-width="1.6" fill="none" marker-end="url(#arrGray)"/>
+        <path d="M600 227 C 626 216, 626 192, 600 181" stroke="#0E7490" stroke-width="2.4" fill="none" marker-end="url(#arrAccent)"/>
+        <text x="632" y="212" font-size="18" font-weight="700" fill="#0E7490">✓</text>
+
+        <defs>
+          <marker id="arrGray" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L7 4 L0 8 Z" fill="#A1A1AA"/></marker>
+          <marker id="arrWarn" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L7 4 L0 8 Z" fill="#B45309"/></marker>
+          <marker id="arrAccent" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L7 4 L0 8 Z" fill="#0E7490"/></marker>
+        </defs>
+      </g>
+    </svg>
+    <figcaption>LAG connects each row to the row above it. On the left, April is missing, so May quietly compares itself to March. On the right, a calendar row for April makes every arrow a true neighbor.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>The growth formula, and how to say it in a sentence</li>
+      <li>One row per month first, then compare</li>
+      <li>LAG in everyday words</li>
+      <li>Two quiet traps: integer division and the NULL first month</li>
+      <li>The missing-month trap, shown actually happening</li>
+      <li>The full before and after</li>
+      <li>Edge cases: reading negatives, formatting, MoM against YoY</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>The worked example is real.</strong> Every query on this page ran in SQLite against the twelve-row orders table shown below, and every output is pasted from the run. SQLite has had window functions since version 3.25, so you can reproduce all of it on your own machine today. If grouping itself is new, read <a href="../sql-group-by-having/">GROUP BY and HAVING</a> first and come back.</div>
+
+  <p>Here is the whole dataset. Twelve orders, five months, and no orders at all in April. That empty April is on purpose, because it is the star of trap number three.</p>
+
+  <table>
+    <tr><th>order_id</th><th>order_date</th><th>amount</th></tr>
+    <tr><td>1</td><td>2025-01-04</td><td>120</td></tr>
+    <tr><td>2</td><td>2025-01-18</td><td>80</td></tr>
+    <tr><td>3</td><td>2025-01-27</td><td>50</td></tr>
+    <tr><td>4</td><td>2025-02-03</td><td>90</td></tr>
+    <tr><td>5</td><td>2025-02-14</td><td>130</td></tr>
+    <tr><td>6</td><td>2025-02-25</td><td>80</td></tr>
+    <tr><td>7</td><td>2025-03-08</td><td>200</td></tr>
+    <tr><td>8</td><td>2025-03-19</td><td>60</td></tr>
+    <tr><td>9</td><td>2025-03-30</td><td>100</td></tr>
+    <tr><td>10</td><td>2025-05-06</td><td>110</td></tr>
+    <tr><td>11</td><td>2025-05-21</td><td>140</td></tr>
+    <tr><td>12</td><td>2025-06-11</td><td>250</td></tr>
+  </table>
+
+  <div class="step">
+    <h2>1. The growth formula, and how to say it in a sentence</h2>
+
+    <p>Before the explanation: revenue was 250 in January and 300 in February. Say the February growth rate out loud before you read the formula.</p>
+
+    <p>Month-over-month growth is this month minus last month, divided by last month. In numbers: 300 minus 250 is 50, and 50 divided by 250 is 0.2, which is 20%. The division is the part people skip when talking, and it is the part that makes the number comparable. A jump of 50 is huge for a coffee cart and a rounding error for an airline. Dividing by last month turns the raw change into a share of where you started.</p>
+
+    <p>The sentence version matters because you will be asked for it in interviews and in hallways. Practice this exact shape: "Revenue grew 20% month over month, from 250 in January to 300 in February." Rate first, then the two raw numbers. Giving both protects you, because a percentage with no base hides small numbers, and a raw change with no base hides scale.</p>
+
+    <p>One vocabulary note. "Month over month" always means this month compared to the month immediately before it. Comparing June to last June is "year over year," and the two answer different questions. Section seven comes back to that.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. One row per month first, then compare</h2>
+
+    <p>Before the explanation: the orders table has twelve rows covering five months. How many rows should the table you compare neighbors on have?</p>
+
+    <p>Five. Growth is a comparison between months, so before any comparing can happen, the data has to become one row per month. This is a grain move. Grain is what one row means: right now one row is one order, and the question needs one row to be one month. <code>GROUP BY</code> makes that move, and <a href="../sql-group-by-having/">GROUP BY and HAVING</a> covers it in full if the collapse feels magic.</p>
+
+    <pre><code>SELECT strftime('%Y-%m', order_date) AS month,
+       SUM(amount) AS revenue
+FROM orders
+GROUP BY strftime('%Y-%m', order_date)
+ORDER BY month;</code></pre>
+
+    <p>The <code>strftime('%Y-%m', ...)</code> part chops a full date like 2025-01-04 down to its month, 2025-01. Other databases spell this differently: <code>DATE_TRUNC('month', order_date)</code> in PostgreSQL, <code>FORMAT(order_date, 'yyyy-MM')</code> in SQL Server. Same idea everywhere. Here is the real output.</p>
+
+    <table>
+      <tr><th>month</th><th>revenue</th></tr>
+      <tr><td>2025-01</td><td>250</td></tr>
+      <tr><td>2025-02</td><td>300</td></tr>
+      <tr><td>2025-03</td><td>360</td></tr>
+      <tr><td>2025-05</td><td>250</td></tr>
+      <tr><td>2025-06</td><td>250</td></tr>
+    </table>
+
+    <p>Check it by hand once, because trust in the rest of the page flows from this table. January is 120 plus 80 plus 50, which is 250. March is 200 plus 60 plus 100, which is 360. And notice what the table does not have: an April row. Zero orders means zero rows to group, so April is not zero here. It is absent. Keep that in mind.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. LAG in everyday words</h2>
+
+    <p>Before the explanation: you have five monthly rows and you need each row to also know the previous row's revenue. Where would that number physically go?</p>
+
+    <p>Onto the same row, in a new column. That is the whole job of <code>LAG()</code>. In everyday words: sort the rows, then for each row, reach up to the row above and copy a value down. <code>LAG(revenue) OVER (ORDER BY month)</code> says "sort by month, then hand every row the revenue from the row before it." It is a window function, which means it can see neighboring rows without collapsing them, and <a href="../sql-window-functions/">window functions</a> covers that family properly.</p>
+
+    <pre><code>WITH monthly AS (
+  SELECT strftime('%Y-%m', order_date) AS month,
+         SUM(amount) AS revenue
+  FROM orders
+  GROUP BY strftime('%Y-%m', order_date)
+)
+SELECT month,
+       revenue,
+       LAG(revenue) OVER (ORDER BY month) AS prev_revenue
+FROM monthly
+ORDER BY month;</code></pre>
+
+    <table>
+      <tr><th>month</th><th>revenue</th><th>prev_revenue</th></tr>
+      <tr><td>2025-01</td><td>250</td><td>NULL</td></tr>
+      <tr><td>2025-02</td><td>300</td><td>250</td></tr>
+      <tr><td>2025-03</td><td>360</td><td>300</td></tr>
+      <tr><td>2025-05</td><td>250</td><td>360</td></tr>
+      <tr><td>2025-06</td><td>250</td><td>250</td></tr>
+    </table>
+
+    <p>Once last month sits beside this month, growth is plain arithmetic on one row: revenue minus prev_revenue, divided by prev_revenue. But look closely at that output first. Two of the five rows already contain this page's remaining traps. January's prev_revenue is NULL. And May's prev_revenue is 360, which is March's number. Both get their own section.</p>
+
+    <p>The <code>ORDER BY month</code> inside the parentheses is not decoration. LAG has no idea what a month is. It only knows "the row before this one in the order I was given." Sort by the wrong column and LAG will cheerfully hand you the revenue of some unrelated row.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Two quiet traps: integer division and the NULL first month</h2>
+
+    <p>Before the explanation: 50 divided by 250 is 0.2. What will a database answer if both numbers are stored as whole numbers?</p>
+
+    <p>Zero. In most databases, dividing one integer by another throws away the remainder, because an integer column promises whole numbers. So <code>(revenue - prev_revenue) / prev_revenue</code> is 50 / 250, which integer division rounds down to 0. Every growth rate between minus 99% and plus 99% becomes zero, the query runs without complaint, and the report says growth is flat. I ran exactly that against this table and every single month came back 0.</p>
+
+    <p>The fix is to force decimal math before the division happens. Multiplying by <code>100.0</code> first does it, because one decimal number in the expression makes the whole expression decimal:</p>
+
+    <pre><code>ROUND(100.0 * (revenue - prev_revenue) / prev_revenue, 1) AS growth_pct</code></pre>
+
+    <p>That returns 20.0 for February instead of 0. <code>CAST(revenue AS REAL)</code> does the same job if you prefer it spelled out.</p>
+
+    <p>The second quiet trap is January. Its prev_revenue is NULL, because LAG reached up from the first row and found nothing there. NULL is SQL's marker for unknown, a hole where a value would go, and <a href="../sql-null/">NULL in SQL</a> is a whole guide on how those holes behave. Here the behavior is actually merciful: arithmetic with NULL yields NULL, so January's growth prints as NULL rather than as a fake number. Leave it that way. A NULL first month is the honest answer, because growth from before your data started is genuinely unknown. The only mistake is "fixing" it to zero, which claims flat growth you have no evidence for.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. The missing-month trap, shown actually happening</h2>
+
+    <p>Here is the full naive growth query. It looks finished. Say what May's growth_pct will be, and against which month, before you look at the output.</p>
+
+    <pre><code>WITH monthly AS (
+  SELECT strftime('%Y-%m', order_date) AS month,
+         SUM(amount) AS revenue
+  FROM orders
+  GROUP BY strftime('%Y-%m', order_date)
+)
+SELECT month,
+       revenue,
+       LAG(revenue) OVER (ORDER BY month) AS prev_revenue,
+       ROUND(100.0 * (revenue - LAG(revenue) OVER (ORDER BY month))
+             / LAG(revenue) OVER (ORDER BY month), 1) AS growth_pct
+FROM monthly
+ORDER BY month;</code></pre>
+
+    <table>
+      <tr><th>month</th><th>revenue</th><th>prev_revenue</th><th>growth_pct</th></tr>
+      <tr><td>2025-01</td><td>250</td><td>NULL</td><td>NULL</td></tr>
+      <tr><td>2025-02</td><td>300</td><td>250</td><td>20.0</td></tr>
+      <tr><td>2025-03</td><td>360</td><td>300</td><td>20.0</td></tr>
+      <tr><td>2025-05</td><td>250</td><td>360</td><td>-30.6</td></tr>
+      <tr><td>2025-06</td><td>250</td><td>250</td><td>0.0</td></tr>
+    </table>
+
+    <p>The May row reports a 30.6% drop. That number is labeled month over month, and it is not month over month. April had no orders, so April has no row, so the row above May is March. LAG did its job perfectly: it fetched the previous row. The previous row was two calendar months ago. Nothing errors, nothing warns, and the report now says one month's decline when the truth is a two-month slide with a dead month in the middle.</p>
+
+    <p>Say out loud why May compared itself to March before reading the fix. If you can state it, you can spot it in any query for the rest of your career.</p>
+
+    <p>The fix is to build the calendar yourself and attach the data to it, so every month has a row whether or not it had orders. In SQLite a recursive CTE generates the months. PostgreSQL has <code>generate_series</code> for the same job, and in a warehouse you usually join to a date dimension table that already exists.</p>
+
+    <pre><code>WITH RECURSIVE calendar(month) AS (
+  SELECT '2025-01'
+  UNION ALL
+  SELECT strftime('%Y-%m', date(month || '-01', '+1 month'))
+  FROM calendar
+  WHERE month &lt; '2025-06'
+),
+monthly AS (
+  SELECT strftime('%Y-%m', order_date) AS month,
+         SUM(amount) AS revenue
+  FROM orders
+  GROUP BY strftime('%Y-%m', order_date)
+)
+SELECT c.month,
+       COALESCE(m.revenue, 0) AS revenue,
+       LAG(COALESCE(m.revenue, 0)) OVER (ORDER BY c.month) AS prev_revenue,
+       ROUND(
+         100.0 * (COALESCE(m.revenue, 0)
+                  - LAG(COALESCE(m.revenue, 0)) OVER (ORDER BY c.month))
+         / NULLIF(LAG(COALESCE(m.revenue, 0)) OVER (ORDER BY c.month), 0),
+       1) AS growth_pct
+FROM calendar c
+LEFT JOIN monthly m ON m.month = c.month
+ORDER BY c.month;</code></pre>
+
+    <p>Three small parts carry the weight. The <code>LEFT JOIN</code> keeps every calendar month even when no orders match it. <code>COALESCE(m.revenue, 0)</code> turns the empty April into an actual zero, which is correct here because zero orders really did mean zero revenue. And <code>NULLIF(..., 0)</code> guards the division: growth from a zero month would divide by zero, so it returns NULL instead. Here is the real output.</p>
+
+    <table>
+      <tr><th>month</th><th>revenue</th><th>prev_revenue</th><th>growth_pct</th></tr>
+      <tr><td>2025-01</td><td>250</td><td>NULL</td><td>NULL</td></tr>
+      <tr><td>2025-02</td><td>300</td><td>250</td><td>20.0</td></tr>
+      <tr><td>2025-03</td><td>360</td><td>300</td><td>20.0</td></tr>
+      <tr><td>2025-04</td><td>0</td><td>360</td><td>-100.0</td></tr>
+      <tr><td>2025-05</td><td>250</td><td>0</td><td>NULL</td></tr>
+      <tr><td>2025-06</td><td>250</td><td>250</td><td>0.0</td></tr>
+    </table>
+
+    <p>Now the story is true. April fell 100%, to nothing. May's growth is NULL because a percentage climb from zero is undefined, and NULL is the honest way to print undefined. The fake single-month 30.6% drop is gone, replaced by what actually happened: a collapse and a restart.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. The full before and after</h2>
+
+    <p>Same table, same question: how is revenue growing month over month?</p>
+
+    <h3>Before</h3>
+    <pre><code>WITH monthly AS (
+  SELECT strftime('%Y-%m', order_date) AS month,
+         SUM(amount) AS revenue
+  FROM orders
+  GROUP BY strftime('%Y-%m', order_date)
+)
+SELECT month, revenue,
+       (revenue - LAG(revenue) OVER (ORDER BY month))
+         / LAG(revenue) OVER (ORDER BY month) AS growth
+FROM monthly;</code></pre>
+
+    <p>Three defects, zero error messages. Integer division makes every growth rate print as 0. The missing April makes May compare against March. And nothing on the screen tells the reader either thing happened.</p>
+
+    <h3>After</h3>
+    <pre><code>-- ============================================================
+-- Month-over-month revenue growth.
+-- WHY the calendar CTE: LAG compares adjacent ROWS. April has
+--      no orders, so without a calendar row May would compare
+--      against March and report a fake one-month drop.
+-- WHY 100.0: integer division would round every rate to 0.
+-- WHY NULLIF: growth from a zero month is undefined, and NULL
+--      is the honest way to report undefined.
+-- ============================================================
+WITH RECURSIVE calendar(month) AS (
+  SELECT '2025-01'
+  UNION ALL
+  SELECT strftime('%Y-%m', date(month || '-01', '+1 month'))
+  FROM calendar
+  WHERE month &lt; '2025-06'
+),
+monthly AS (
+  SELECT strftime('%Y-%m', order_date) AS month,
+         SUM(amount) AS revenue
+  FROM orders
+  GROUP BY strftime('%Y-%m', order_date)
+)
+SELECT c.month,
+       COALESCE(m.revenue, 0) AS revenue,
+       ROUND(
+         100.0 * (COALESCE(m.revenue, 0)
+                  - LAG(COALESCE(m.revenue, 0)) OVER (ORDER BY c.month))
+         / NULLIF(LAG(COALESCE(m.revenue, 0)) OVER (ORDER BY c.month), 0),
+       1) AS growth_pct
+FROM calendar c
+LEFT JOIN monthly m ON m.month = c.month
+ORDER BY c.month;</code></pre>
+
+    <p>Every guard is present and every guard states its reason in a comment, in the style from <a href="../sql-teaching-comments/">how to comment SQL so it teaches</a>. A reviewer can now disagree with a choice instead of discovering it.</p>
+
+    <p>Picture running the after version on your own revenue or signups table right now. Which month would come back with a gap row you did not know about? If you cannot answer, that is precisely the reason to run it. And the pattern only becomes yours once your fingers have produced it, so <a href="../../drill/">type the query yourself</a> rather than pasting it.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Edge cases: reading negatives, formatting, MoM against YoY</h2>
+
+    <p>Before the explanation: revenue fell 30% one month, then rose 30% the next. Is it back where it started?</p>
+
+    <p><strong>No, and that is the negative-growth reading trap.</strong> Down 30% from 100 is 70. Up 30% from 70 is 91. Percent changes compound from wherever they land, so a drop needs a larger rise to undo it. When you present a fall, say the level too: "down 30.6%, from 360 to 250." The level pair keeps readers from mentally reversing the percentage.</p>
+
+    <p><strong>Format at the last moment.</strong> Keep growth as a plain number, like -30.6, all the way through the SQL, and let the report layer add the percent sign. Strings like '-30.6%' cannot be sorted, averaged, or charted, and someone always tries. <code>ROUND(x, 1)</code> is enough precision for a business audience; 20.03847% communicates nothing that 20.0% does not.</p>
+
+    <p><strong>A tiny base makes a silly percentage.</strong> Growth from 2 to 10 is 400%. True, and useless. When last month is near zero, report the raw change alongside the rate or suppress the rate below a floor you write down.</p>
+
+    <p><strong>MoM is noisy where the calendar is seasonal.</strong> Ice cream sales fall every September, and no one should get an alarmed email about it. Month over month asks "what just changed," so it amplifies seasonality and one-off spikes. Year over year compares June to last June, so the season cancels out and the trend shows through. Use MoM to detect turns quickly, YoY to state the trend calmly, and both lines on the same chart when the audience can take it. The <a href="../../forecasting/">Forecasting Kit</a> works through seasonality properly, including when a "drop" is just the calendar breathing.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The grain move in section two is not a style choice. In the relational model a query result is a relation, and each row of a relation states one fact at one grain (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). "Growth" is a fact about a pair of months, so the query must first manufacture rows whose grain is the month, then relate neighbors. LAG's entire contract, the previous row in a stated order, is only meaningful because the rows beneath it were made to mean one month each. Every trap on this page is a place where the row order or the row grain silently stopped matching the calendar.</p>
+
+  <p>This page also kept asking you to answer before it told you. That is deliberate. Attempting an answer before seeing the solution measurably improves memory for the material, even when the attempt is wrong (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725). And practicing retrieval beats rereading for retention over any interval that matters for a job (Roediger &amp; Karpicke, 2006, <em>Psychological Science</em>, 17(3), 249–255). The cheat sheet at the bottom is built for retrieval, not for rereading.</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Retrofitting every growth query you have ever shipped is miserable, and you will not finish it. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Run the month-count check</strong> on your most-read report first. <code>SELECT COUNT(DISTINCT strftime('%Y-%m', order_date)) FROM orders</code>, then compare against the number of calendar months your data should span. A mismatch means at least one LAG comparison is wrong right now.</li>
+    <li><strong>Add <code>prev_revenue</code> as a visible column</strong> in that report, not just the percentage. A reader who can see 250 and 360 side by side will catch a wrong pairing that a lone -30.6 hides.</li>
+    <li><strong>Put <code>100.0</code> or a <code>CAST</code> in every division</strong>, even where today's column types are decimal. Column types change; the guard is free.</li>
+    <li><strong>Build or borrow one calendar table</strong> and join every time series to it from now on. One CTE, written once, pasted forever.</li>
+    <li><strong>Write the guards' reasons as comments</strong> in the same pass, while you still remember why.</li>
+  </ol>
+
+  <p>If you have paper nearby, one drawing is worth five minutes and it is optional. Draw your own last six months as boxes in a column, arrows from each box to the one above, then cross out any month you suspect might be empty in the data and see which arrow just became a lie. Redrawing the figure from memory is a retrieval rep and a self-check in one.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Excel, Tableau, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Concept</th><th>What it is</th></tr>
+    <tr><td>MoM growth formula</td><td>This month minus last month, divided by last month.</td></tr>
+    <tr><td>The sentence version</td><td>"Grew 20% month over month, from 250 to 300." Rate, then both levels.</td></tr>
+    <tr><td>Step one, always</td><td>GROUP BY to one row per month. Growth needs month grain first.</td></tr>
+    <tr><td><code>LAG(x) OVER (ORDER BY m)</code></td><td>Sort the rows, then copy the previous row's value onto this row.</td></tr>
+    <tr><td>What LAG does not know</td><td>Anything about calendars. It fetches the previous ROW.</td></tr>
+    <tr><td>Integer division trap</td><td>50 / 250 is 0 when both are integers. Multiply by 100.0 first.</td></tr>
+    <tr><td>First month's growth</td><td>NULL, and leave it NULL. Growth from before the data is unknown.</td></tr>
+    <tr><td>Missing-month trap</td><td>A gap makes LAG pair non-adjacent months. May vs March, silently.</td></tr>
+    <tr><td>The fix</td><td>Generate a calendar, LEFT JOIN the data to it, COALESCE to 0.</td></tr>
+    <tr><td>Calendar tools</td><td>Recursive CTE in SQLite, generate_series in PostgreSQL, date dimension in a warehouse.</td></tr>
+    <tr><td>Growth from zero</td><td>Undefined. NULLIF(prev, 0) makes it print as NULL, not an error.</td></tr>
+    <tr><td>Reading a fall</td><td>Down 30% then up 30% is not flat. Always give the levels with the rate.</td></tr>
+    <tr><td>Formatting</td><td>Keep it numeric in SQL, ROUND to one decimal, add % in the report layer.</td></tr>
+    <tr><td>MoM vs YoY</td><td>MoM detects turns fast but amplifies seasonality. YoY cancels the season.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> If you take nothing else from this page, never trust a LAG over dates until you have confirmed every calendar period has a row. The wrong growth number never looks wrong. It looks like a result, with a minus sign and one decimal place. If a growth query breaks in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. My fake -30.6% was easy to catch because I built the gap on purpose. In real data the gap is usually a loading failure nobody noticed, which means the growth number was wrong for months before anyone looked. What is the longest a wrong trend number has survived in a report you inherited, and what finally exposed it?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+    <li>Roediger, H. L., &amp; Karpicke, J. D. (2006). Test-enhanced learning: Taking memory tests improves long-term retention. <em>Psychological Science</em>, 17(3), 249–255.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice LAG with a table in front of you.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> runs SQLite in the browser, so you can build the monthly rollup, watch LAG shift the column down, and break it with a gap month on purpose. Worked examples, flash cards, and a mock exam sit alongside it. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-null/">NULL in SQL</a> · <a href="../sql-find-duplicates/">Find Duplicates in SQL</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-case-expression/">The CASE Expression</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-aliasing/">SQL Aliases</a> · <a href="../sql-teaching-comments/">Comment SQL So It Teaches</a> · <a href="../../drill/">SQL Drill</a> · <a href="../pandas-groupby/">pandas groupby</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../budget-vs-actual-variance/">Budget vs Actual Variance</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../report-vs-analysis/">Report vs Analysis</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../forecasting/">Forecasting Kit</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

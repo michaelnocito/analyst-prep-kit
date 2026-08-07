@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NULL in SQL: Why = NULL Finds Nothing and What to Write Instead — Analyst Prep Kit</title>
+<meta name="description" content="WHERE assignee = NULL returns 0 of 10 rows, every time. What NULL actually means, IS NULL, the NOT IN trap, COALESCE, and how NULLs quietly move your averages.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/">
+<meta property="og:title" content="NULL in SQL: Why = NULL Finds Nothing and What to Write Instead">
+<meta property="og:description" content="NULL means unknown, not zero and not blank. That one definition explains why = NULL matches nothing, why a single NULL empties a NOT IN, and why your average just moved.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-null.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-null.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "NULL in SQL: Why = NULL Finds Nothing and What to Write Instead",
+  "description": "WHERE assignee = NULL returns 0 of 10 rows, every time. What NULL actually means, IS NULL, the NOT IN trap, COALESCE, and how NULLs quietly move your averages.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-07",
+  "dateModified": "2026-08-07",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-null.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "NULL in SQL: Why = NULL Finds Nothing and What to Write Instead",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>NULL in SQL: Why = NULL Finds Nothing and What to Write Instead</h1>
+  <p class="meta">NULL means unknown, and unknown breaks every yes-or-no question · Written to be listened to · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can predict what any query does when it meets a missing value, which is the skill that separates "my query returned nothing and I don't know why" from a two-second fix. You will know why <code>= NULL</code> matches zero rows, why one NULL can empty an entire <code>NOT IN</code>, and how NULLs quietly move averages, counts, groups, and sort orders. It is about twenty minutes.</p>
+
+  <p>Here is what to actually do with it. Next time a filter returns fewer rows than you expected, ask one question first: does the column I am comparing have NULLs in it? Run <code>WHERE the_column IS NULL</code> and look. That one check explains most mystery row counts before any real debugging starts.</p>
+
+  <p>The short version: NULL means unknown, not zero and not empty text. A comparison with unknown answers "unknown", and <code>WHERE</code> only keeps rows that answer "yes". So every NULL comparison silently drops rows.</p>
+
+  <p>That yes-only gate is the one idea under everything on this page, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 300" role="img" aria-labelledby="nullTitle nullDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="nullTitle">WHERE keeps only yes</title>
+      <desc id="nullDesc">A left-to-right picture of six rows approaching a gate labelled WHERE. Each row carries the answer its comparison produced: two rows answer yes, two rows answer no, and two rows carry a question mark meaning unknown, because their compared value was NULL. Beyond the gate there are three paths. The yes path continues through to the result, holding two rows. The no path is stopped at the gate. The unknown path is drawn separately in a warning color, and it is also stopped at the gate, landing in the same discard area as the no rows. The picture shows that a comparison in SQL can answer yes, no, or unknown, and that the WHERE gate lets only yes rows pass, so unknown rows disappear from the result exactly as if they had answered no.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <text x="24" y="22" font-size="13" font-weight="700" fill="#09090B">rows</text>
+        <text x="330" y="22" font-size="13" font-weight="700" fill="#0E7490">WHERE</text>
+        <text x="600" y="22" font-size="13" font-weight="700" fill="#09090B">result</text>
+
+        <rect x="24" y="44" width="150" height="26" rx="7" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <circle cx="44" cy="57" r="9" fill="#0E7490"/>
+        <text x="40" y="61" font-size="11" font-weight="700" fill="#FFFFFF">✓</text>
+        <rect x="24" y="80" width="150" height="26" rx="7" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <circle cx="44" cy="93" r="9" fill="#0E7490"/>
+        <text x="40" y="97" font-size="11" font-weight="700" fill="#FFFFFF">✓</text>
+
+        <rect x="24" y="124" width="150" height="26" rx="7" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <circle cx="44" cy="137" r="9" fill="#52525B"/>
+        <text x="40" y="141" font-size="11" font-weight="700" fill="#FFFFFF">✕</text>
+        <rect x="24" y="160" width="150" height="26" rx="7" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <circle cx="44" cy="173" r="9" fill="#52525B"/>
+        <text x="40" y="177" font-size="11" font-weight="700" fill="#FFFFFF">✕</text>
+
+        <rect x="24" y="204" width="150" height="26" rx="7" fill="#FFFFFF" stroke="#B45309" stroke-dasharray="5 4"/>
+        <circle cx="44" cy="217" r="9" fill="#B45309"/>
+        <text x="41" y="221" font-size="11" font-weight="700" fill="#FFFFFF">?</text>
+        <rect x="24" y="240" width="150" height="26" rx="7" fill="#FFFFFF" stroke="#B45309" stroke-dasharray="5 4"/>
+        <circle cx="44" cy="253" r="9" fill="#B45309"/>
+        <text x="41" y="257" font-size="11" font-weight="700" fill="#FFFFFF">?</text>
+
+        <path d="M368 36 L368 270" stroke="#0E7490" stroke-width="2" fill="none"/>
+
+        <path d="M174 57 L560 90 M174 93 L560 118" stroke="#A1A1AA" stroke-width="1.4" fill="none"/>
+        <path d="M174 137 L352 150 M174 173 L352 172" stroke="#A1A1AA" stroke-width="1.4" fill="none"/>
+        <text x="346" y="155" font-size="14" font-weight="700" fill="#52525B">✕</text>
+        <text x="346" y="177" font-size="14" font-weight="700" fill="#52525B">✕</text>
+        <path d="M174 217 L352 217 M174 253 L352 245" stroke="#B45309" stroke-width="1.4" stroke-dasharray="5 4" fill="none"/>
+        <text x="346" y="222" font-size="14" font-weight="700" fill="#B45309">✕</text>
+        <text x="346" y="250" font-size="14" font-weight="700" fill="#B45309">✕</text>
+
+        <rect x="560" y="76" width="176" height="26" rx="7" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <rect x="560" y="110" width="176" height="26" rx="7" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+
+        <rect x="404" y="196" width="220" height="76" rx="10" fill="#F1F3F5" stroke="#E4E7EA"/>
+        <text x="420" y="226" font-size="13" fill="#52525B">no</text>
+        <text x="420" y="252" font-size="13" font-weight="700" fill="#B45309">unknown</text>
+      </g>
+    </svg>
+    <figcaption>A comparison can answer yes, no, or unknown. WHERE keeps only the yes rows, so a row whose comparison met a NULL is dropped exactly as if it had answered no.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What NULL actually means, and why = NULL finds nothing</li>
+      <li>Three-valued logic in everyday words</li>
+      <li>The NOT IN trap: one NULL, zero rows</li>
+      <li>COALESCE for defaults, and when not to use it</li>
+      <li>How NULLs move your counts and averages</li>
+      <li>The full before and after</li>
+      <li>Edge cases: groups, joins, and sort order</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>The worked example is real.</strong> Every number on this page comes from a 10-row support-tickets table with NULLs seeded on purpose, and every query was run against it in SQLite before its output was pasted here. The table is small enough to check by eye. If <code>SELECT</code> and <code>WHERE</code> are new, start with <a href="../sql-foundations/">SQL foundations</a> and come back.</div>
+
+  <p>Here is the table. Ten tickets. Three are missing their close time, two are missing their region, and two have no assignee.</p>
+
+  <table>
+    <tr><th>ticket_id</th><th>region</th><th>minutes_to_close</th><th>assignee</th></tr>
+    <tr><td>1</td><td>East</td><td>45</td><td>Priya</td></tr>
+    <tr><td>2</td><td>East</td><td>NULL</td><td>Priya</td></tr>
+    <tr><td>3</td><td>West</td><td>30</td><td>Marcus</td></tr>
+    <tr><td>4</td><td>West</td><td>90</td><td>NULL</td></tr>
+    <tr><td>5</td><td>NULL</td><td>60</td><td>Marcus</td></tr>
+    <tr><td>6</td><td>East</td><td>15</td><td>Dana</td></tr>
+    <tr><td>7</td><td>West</td><td>NULL</td><td>NULL</td></tr>
+    <tr><td>8</td><td>NULL</td><td>120</td><td>Dana</td></tr>
+    <tr><td>9</td><td>East</td><td>75</td><td>Priya</td></tr>
+    <tr><td>10</td><td>West</td><td>NULL</td><td>Marcus</td></tr>
+  </table>
+
+  <div class="step">
+    <h2>1. What NULL actually means, and why = NULL finds nothing</h2>
+
+    <p>Before the explanation: two tickets in that table have no assignee. What do you expect this query to return?</p>
+
+    <pre><code>SELECT * FROM tickets WHERE assignee = NULL;</code></pre>
+
+    <p>Zero rows. Not the two unassigned tickets. Zero, out of ten, every time, on every database. I ran it and got an empty result, and the reason is the definition of NULL itself.</p>
+
+    <p>NULL does not mean zero, and it does not mean empty text. NULL means unknown: this row has an assignee slot, and nobody has said what goes in it. So <code>assignee = NULL</code> asks "does this ticket's assignee equal an unknown value?", and the only honest answer is "I don't know". Even for ticket 4, where the assignee is itself NULL, the question is "does one unknown equal another unknown?", and the answer is still unknown. I ran <code>SELECT NULL = NULL</code> and the database returns NULL, not true.</p>
+
+    <p>SQL therefore gives you a separate verb for the question you actually meant. <code>IS NULL</code> asks "is this value missing?", which is a question about the slot, not the value, so it has a real yes-or-no answer.</p>
+
+    <pre><code>SELECT * FROM tickets WHERE assignee IS NULL;</code></pre>
+
+    <table>
+      <tr><th>ticket_id</th><th>region</th><th>minutes_to_close</th><th>assignee</th></tr>
+      <tr><td>4</td><td>West</td><td>90</td><td>NULL</td></tr>
+      <tr><td>7</td><td>West</td><td>NULL</td><td>NULL</td></tr>
+    </table>
+
+    <p>There are the two unassigned tickets. <code>IS NOT NULL</code> is the mirror, and it returns the other 8 rows. The rule to keep: <code>=</code> and <code>&lt;&gt;</code> compare values, <code>IS NULL</code> and <code>IS NOT NULL</code> check for missing ones, and they are not interchangeable.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. Three-valued logic in everyday words</h2>
+
+    <p>Before the explanation: the table has 10 tickets and 3 of them are assigned to Priya. How many rows does <code>WHERE assignee &lt;&gt; 'Priya'</code> return?</p>
+
+    <p>Most people say seven. The database says five. I ran it: 5 rows.</p>
+
+    <p>Here is the machinery, in everyday words. In most of life a question has two answers, yes or no. In SQL a comparison has three: yes, no, and unknown, where unknown is what you get whenever a NULL is involved. This is called three-valued logic, and the name matters less than the consequence: <code>WHERE</code> keeps only the rows that answer "yes". Rows that answer "no" are dropped, and rows that answer "unknown" are dropped too, silently, with no error and no warning.</p>
+
+    <p>So for <code>assignee &lt;&gt; 'Priya'</code>: five tickets answer yes (Marcus and Dana's), three answer no (Priya's), and tickets 4 and 7 answer unknown, because comparing NULL to 'Priya' has no honest answer. The unknowns vanish. Ten in, five out, and the two unassigned tickets are in neither the Priya pile nor the not-Priya pile.</p>
+
+    <p>Say out loud where tickets 4 and 7 went before reading on, because that sentence is the whole trick. They were not excluded for being Priya's. They were excluded for being unanswerable. When you truly mean "everyone except Priya, including unassigned", you have to say so.</p>
+
+    <pre><code>SELECT COUNT(*) AS n
+FROM tickets
+WHERE assignee &lt;&gt; 'Priya' OR assignee IS NULL;
+-- n = 7</code></pre>
+  </div>
+
+  <div class="step">
+    <h2>3. The NOT IN trap: one NULL, zero rows</h2>
+
+    <p>Before the explanation: you have a list of staff who close tickets, and you want tickets handled by anyone not on the list. The list has three entries: Priya, Marcus, and one NULL from a bad import. How many rows do you think come back?</p>
+
+    <pre><code>SELECT * FROM tickets
+WHERE assignee NOT IN (SELECT name FROM closers);</code></pre>
+
+    <p>Zero rows. Not "the Dana tickets", not "everything but Priya and Marcus". Zero, and I ran it to confirm. This is the single nastiest NULL surprise in SQL, because the query looks completely reasonable and returns an empty set with no error.</p>
+
+    <p>The reason follows from step two. <code>NOT IN</code> unrolls into a chain of comparisons: <code>assignee &lt;&gt; 'Priya' AND assignee &lt;&gt; 'Marcus' AND assignee &lt;&gt; NULL</code>. That last comparison answers unknown for every row in the table. And a chain of ANDs can only answer yes if every link answers yes, so the best any row can do is unknown. No row answers yes, <code>WHERE</code> keeps only yes, and the result is empty. One NULL in the list poisons all ten rows.</p>
+
+    <p>Two fixes, both of which I ran. Screen the NULL out of the subquery, which returns the 2 Dana tickets:</p>
+
+    <pre><code>SELECT ticket_id, assignee
+FROM tickets
+WHERE assignee NOT IN (
+    SELECT name FROM closers WHERE name IS NOT NULL
+);
+-- tickets 6 and 8, both Dana</code></pre>
+
+    <p>Or use <code>NOT EXISTS</code>, which checks "no matching row exists" one row at a time and is immune to the trap. It returned 4 rows on the same data: Dana's two tickets plus the two unassigned ones, because an unassigned ticket genuinely has no match in the list. The two fixes disagree about tickets 4 and 7, and neither is wrong. They answer different questions, so the fork is: should unassigned tickets count as "not on the list"? If yes, <code>NOT EXISTS</code> says what you mean. If no, the screened <code>NOT IN</code> does. What decides is the sentence you would say to a stakeholder, and it is worth writing that sentence into the query as a comment.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. COALESCE for defaults, and when not to use it</h2>
+
+    <p>Before the explanation: your ticket report goes to a manager who keeps asking what the blank assignee cells mean. What would you like those cells to say instead?</p>
+
+    <p><code>COALESCE</code> is the tool. It takes a list of values and returns the first one that is not NULL, which makes it a fill-in-the-blank function: <code>COALESCE(assignee, 'Unassigned')</code> means "the assignee, or the word Unassigned when there is none".</p>
+
+    <pre><code>SELECT ticket_id,
+       COALESCE(assignee, 'Unassigned') AS assignee_display
+FROM tickets
+ORDER BY ticket_id;</code></pre>
+
+    <p>I ran it: tickets 4 and 7 now read "Unassigned" and the other eight show their names unchanged. That is the honest use of <code>COALESCE</code>: labeling missingness so a reader can see it.</p>
+
+    <p>The dishonest use is papering over it. <code>COALESCE(minutes_to_close, 0)</code> makes the NULLs disappear into zeros, and a zero-minute close time is a claim, not a label: it says the ticket closed instantly, when the truth is nobody recorded it. Three of the ten tickets here have no close time. That is a 30% hole in the column, and a hole that size is a finding your reader deserves to hear about, not a formatting problem to smooth away. When you fill a value for display, say so in the report, and when the missingness is large, report it as its own line. <a href="../documenting-data-limitations/">Documenting data limitations</a> covers how to write that up without burying the analysis.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. How NULLs move your counts and averages</h2>
+
+    <p>Before the explanation: <code>minutes_to_close</code> has seven real values and three NULLs. When you take <code>AVG(minutes_to_close)</code>, what number does the database divide by, ten or seven?</p>
+
+    <p>Seven. Aggregate functions skip NULLs entirely: <code>SUM</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code>, and <code>COUNT(column)</code> all act only on the rows where the value exists. I ran the numbers on the worked table.</p>
+
+    <pre><code>SELECT COUNT(*)                    AS all_rows,
+       COUNT(minutes_to_close)     AS with_minutes,
+       AVG(minutes_to_close)       AS avg_minutes
+FROM tickets;</code></pre>
+
+    <table>
+      <tr><th>all_rows</th><th>with_minutes</th><th>avg_minutes</th></tr>
+      <tr><td>10</td><td>7</td><td>62.1</td></tr>
+    </table>
+
+    <p>The average is 435 divided by 7, which is 62.1 minutes. Force the NULLs to zero with <code>COALESCE</code> and the same column averages 43.5, because now it is 435 divided by 10. That is a 30% swing in a headline number from one decision about missing data, and neither number is automatically right. 62.1 is the average of the tickets whose close time was recorded. 43.5 pretends unrecorded means instant. The honest report states the first number and the hole: "62.1 minutes average, across the 7 of 10 tickets with a recorded close time".</p>
+
+    <p><code>COUNT(*)</code> against <code>COUNT(column)</code> is the same skip in count form. <code>COUNT(*)</code> counts rows, 10 here. <code>COUNT(minutes_to_close)</code> counts non-NULL values, 7 here, and <code>COUNT(assignee)</code> gives 8. The gap between the two counts is your missing-data count, which makes this pair the fastest completeness check in SQL. The whole COUNT family, including <code>DISTINCT</code>, is in <a href="../sql-count-function/">COUNT in SQL</a>.</p>
+
+    <p>Now picture running <code>COUNT(*)</code> next to <code>COUNT(the_column)</code> on the most important numeric column in your own data. Do you know, right now, what the gap would be? Most people find out later than they wanted to.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. The full before and after</h2>
+
+    <p>Same table, same question: how fast does each region close tickets?</p>
+
+    <h3>Before</h3>
+    <pre><code>SELECT region, AVG(minutes_to_close) AS avg_minutes
+FROM tickets
+GROUP BY region;</code></pre>
+
+    <p>Three quiet problems, no errors. The average silently skips the three unrecorded close times, so nobody can see how much data is behind each number. The two tickets with no region form their own blank-looking group with no explanation. And the reader has no way to tell any of this from the output.</p>
+
+    <h3>After</h3>
+    <pre><code>-- ============================================================
+-- STEP 4: How fast does each region close tickets?
+-- WHY: minutes_to_close is missing on 3 of 10 tickets, and
+--      region is missing on 2. Averages skip the NULLs, so
+--      each average is shown WITH how many tickets back it.
+-- NOTE: 'No region' is real missing data, reported as its
+--      own line rather than dropped or blank.
+-- ============================================================
+--SELECT the region (labelled when missing), tickets in the
+--   group, how many have a recorded close time, and their avg
+SELECT COALESCE(region, 'No region')  AS region_display,
+       COUNT(*)                        AS tickets,
+       COUNT(minutes_to_close)         AS with_close_time,
+       ROUND(AVG(minutes_to_close), 1) AS avg_minutes
+FROM tickets
+GROUP BY region;</code></pre>
+
+    <p>The blank group now has a name, every average sits beside the count of values that produced it, and the missingness is visible instead of ambient. The comment format is the one from <a href="../sql-teaching-comments/">how to comment SQL so it teaches</a>. To get this shape into your fingers, <a href="../../drill/">type the query yourself</a> in the SQL Drill rather than pasting it.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Edge cases: groups, joins, and sort order</h2>
+
+    <p>Before the explanation: NULL never equals NULL, yet the two no-region tickets just landed in one group together. How can both of those be true?</p>
+
+    <p>Because different parts of SQL treat NULL differently, on purpose, and the seams are where surprises live. Four to know.</p>
+
+    <p><strong>GROUP BY puts all NULLs in one group.</strong> Grouping asks "which rows belong together?", and the standard answers that all missing values belong together, even though no two of them are equal. On the worked table, grouping by region returns West 4, East 4, and a NULL group of 2, which I ran to confirm. That blank-looking row is not a glitch. It is your missing-region count, and it is worth reading every time.</p>
+
+    <p><strong>LEFT JOIN manufactures NULLs.</strong> A LEFT JOIN keeps every row from the left table, and when a row finds no match on the right, the right-hand columns arrive as NULL. Joining tickets to a two-row regions lookup that only lists East, I ran it: the four East tickets get their manager, and the other six rows show NULL, covering both real West tickets with no lookup entry and tickets whose region was already missing. So a NULL after a join means "no match or missing key", and telling those apart takes an <code>IS NULL</code> check on the join key. <a href="../sql-joins/">SQL joins</a> walks the whole family.</p>
+
+    <p><strong>ORDER BY has to put NULLs somewhere, and databases disagree.</strong> Sorting the worked table by <code>minutes_to_close</code> ascending in SQLite puts the three NULL rows first, before 15; descending puts them last. SQLite and SQL Server treat NULLs as smallest, PostgreSQL and Oracle treat them as largest, and PostgreSQL and Oracle accept an explicit <code>NULLS FIRST</code> or <code>NULLS LAST</code> to say what you mean. The portable habit: when a sorted report matters, state the placement, either with that clause or by sorting on <code>the_column IS NULL</code> first.</p>
+
+    <p><strong>Empty text is not NULL, except where it is.</strong> An empty string is a known value: someone said "nothing", rather than nobody saying anything. Filters and counts treat the two differently on most databases, so a column can look blank while <code>IS NULL</code> finds nothing. Oracle is the famous exception, storing empty strings as NULL. When blanks behave strangely, check both: <code>WHERE col IS NULL OR col = ''</code>.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>None of this is trivia to memorize item by item. It all falls out of one design decision: a relational database must represent "value not known" without inventing a fake value, and every operator must then answer honestly when it meets one. Codd's relational model introduced exactly that idea, missing information as a first-class state rather than a magic number like 0 or 999 (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). Once "unknown" exists, three-valued logic is forced: a comparison with an unknown cannot honestly answer yes or no, so a third answer must exist, and every behavior on this page follows. <code>= NULL</code> is unknown, a chain of ANDs with one unknown link is at best unknown, and an aggregate over unknowns can only use the values it actually has.</p>
+
+  <p>The page also keeps asking you to commit to a row count before showing one, and that is deliberate. Generating an answer before seeing the correct one reliably improves retention, even when the guess is wrong (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725), and retrieving beats rereading for keeping it (Roediger &amp; Karpicke, 2006, <em>Psychological Science</em>, 17(3), 249–255). Guessing seven and getting five is why <code>&lt;&gt;</code> dropping the unknowns will still be with you next month.</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Auditing every query you own for NULL handling in one pass is miserable, and nobody finishes it. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Profile one table: run <code>COUNT(*)</code> next to <code>COUNT(col)</code> for each column that matters.</strong> The gaps are your missing-data map, and most tables only have two or three columns worth worrying about.</li>
+    <li><strong>Search your saved queries for <code>NOT IN</code> with a subquery.</strong> Each one is either already screened with <code>IS NOT NULL</code> or is a zero-rows surprise waiting for the first NULL to arrive. Fix or convert to <code>NOT EXISTS</code>.</li>
+    <li><strong>Find every <code>&lt;&gt;</code> in a WHERE clause and ask whether the NULL rows belong in the answer.</strong> If they do, add <code>OR col IS NULL</code>. If they do not, leave it and move on.</li>
+    <li><strong>Put the count of values next to every average you publish.</strong> "62.1 across 7 of 10" is a different claim from "62.1", and the reader deserves to know which one you are making.</li>
+    <li><strong>Label displayed NULLs with <code>COALESCE</code>, and log filled ones.</strong> A default that changes arithmetic belongs in the limitations note, not just the query.</li>
+  </ol>
+
+  <p>If you have paper nearby and five minutes, one optional drawing earns its space. Draw six rows heading toward a gate, mark two yes, two no, and two with question marks, and draw only the yes rows coming out the far side. Redrawing that from memory next week is a fair test of whether the yes-only gate is yours now.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Tableau, data migration, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Concept</th><th>What it does</th></tr>
+    <tr><td>NULL</td><td>Unknown. Not zero, not empty text. A slot nobody has filled.</td></tr>
+    <tr><td><code>= NULL</code></td><td>Answers unknown for every row, so it matches nothing. Ever.</td></tr>
+    <tr><td><code>IS NULL</code> / <code>IS NOT NULL</code></td><td>The real test for missing values. Asks about the slot, not the value.</td></tr>
+    <tr><td>Three-valued logic</td><td>Comparisons answer yes, no, or unknown. NULL always produces unknown.</td></tr>
+    <tr><td><code>WHERE</code></td><td>Keeps only yes rows. Unknown rows drop silently, same as no.</td></tr>
+    <tr><td><code>&lt;&gt; 'x'</code></td><td>Drops the NULL rows too. Add <code>OR col IS NULL</code> if they belong.</td></tr>
+    <tr><td><code>NOT IN</code> with a NULL in the list</td><td>Returns zero rows, no error. Screen the subquery or use <code>NOT EXISTS</code>.</td></tr>
+    <tr><td><code>NOT EXISTS</code></td><td>Immune to the trap, and counts NULL rows as non-matches. Decide if that is what you mean.</td></tr>
+    <tr><td><code>COALESCE(col, default)</code></td><td>First non-NULL value. Label missingness with it; do not silently rewrite numbers.</td></tr>
+    <tr><td><code>COUNT(*)</code> vs <code>COUNT(col)</code></td><td>Rows vs non-NULL values. The gap is your missing-data count.</td></tr>
+    <tr><td>Aggregates</td><td><code>SUM</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code> skip NULLs. <code>AVG</code> divides by the values it kept.</td></tr>
+    <tr><td><code>NULL = NULL</code></td><td>Unknown, not true. No NULL ever equals another.</td></tr>
+    <tr><td><code>GROUP BY</code></td><td>Still puts all NULLs in one group. That group is your missing count.</td></tr>
+    <tr><td>LEFT JOIN</td><td>Unmatched rows arrive with NULLs in the right-hand columns.</td></tr>
+    <tr><td><code>ORDER BY</code></td><td>NULLs sort first or last depending on the database. Say <code>NULLS FIRST</code>/<code>LAST</code> where supported.</td></tr>
+    <tr><td>Empty string</td><td>A known value, distinct from NULL almost everywhere. Oracle stores it as NULL.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> If you take nothing else from this page, run <code>COUNT(*)</code> next to <code>COUNT(the_column)</code> before you trust any filter, join, or average on that column. The NULL failures on this page share one trait: no error message, just a wrong row count that looks like a result. If a query misbehaves in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. My worst NULL bug was a NOT IN that returned zero rows for a week, and the report it fed just said "no exceptions found", which everyone was happy to believe. What is the longest a NULL has quietly lied to you, and what finally gave it away?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+    <li>Roediger, H. L., &amp; Karpicke, J. D. (2006). Test-enhanced learning: Taking memory tests improves long-term retention. <em>Psychological Science</em>, 17(3), 249–255.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice NULL handling with live queries in front of you.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> runs SQLite in the browser, so you can seed a table with NULLs, run the trap queries, and watch the row counts change as you fix them. Worked examples, flash cards, and a mock exam sit alongside it. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-find-duplicates/">Find Duplicate Rows</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-case-expression/">The CASE Expression</a> · <a href="../sql-month-over-month/">Month-over-Month in SQL</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../sql-aliasing/">SQL Aliases</a> · <a href="../sql-teaching-comments/">Comment SQL So It Teaches</a> · <a href="../../drill/">SQL Drill</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../migration-profiling/">Migration Profiling</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

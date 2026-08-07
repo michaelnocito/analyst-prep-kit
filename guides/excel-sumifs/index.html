@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SUMIFS and COUNTIFS: Add Up Only the Rows That Match — Analyst Prep Kit</title>
+<meta name="description" content="How to sum only the rows that match your conditions, why SUMIF and SUMIFS put the sum range in opposite places, and the check that catches a wrong total before anyone else does. Every number verified on a 16-row table.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sumifs/">
+<meta property="og:title" content="SUMIFS and COUNTIFS: Add Up Only the Rows That Match">
+<meta property="og:description" content="One formula that filters and sums in a single move, criteria pairs that stack as far as you need, and the argument-order trap that makes SUMIF and SUMIFS read backwards from each other.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-sumifs.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sumifs/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-sumifs.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "SUMIFS and COUNTIFS: Add Up Only the Rows That Match",
+  "description": "How to sum only the rows that match your conditions, why SUMIF and SUMIFS put the sum range in opposite places, and the check that catches a wrong total before anyone else does. Every number verified on a 16-row table.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sumifs/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sumifs/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-07",
+  "dateModified": "2026-08-07",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-sumifs.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "SUMIFS and COUNTIFS: Add Up Only the Rows That Match",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sumifs/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../excel/">Excel Kit</a> · <a href="../">All guides</a></p>
+  <h1>SUMIFS and COUNTIFS: Add Up Only the Rows That Match</h1>
+  <p class="meta">Filter and sum in one formula, with as many conditions as you need · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can total, count, or average exactly the rows that match your conditions, stack as many conditions as you need, and check the answer against the raw data before anyone else sees it. It is about twenty minutes, and every number here is computed on the 16-row table shown below.</p>
+
+  <p>Here is what to actually do with it. The next time you filter a sheet, note a total from the status bar, and then undo the filter, write a SUMIFS instead. It is that whole loop, filter, read, undo, in one formula that stays on the sheet and updates itself.</p>
+
+  <p>The short version: <code>SUMIFS</code> is a filter and a sum in one move. It takes the column to add first, then pairs of "look in this column, keep rows matching this". And use SUMIFS even for one condition, because SUMIF puts its arguments in a different order and the mix-up produces real wrong numbers.</p>
+
+  <p>One picture carries the idea. Rows pass through one gate per condition, and only the survivors get added.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 330" role="img" aria-labelledby="sfTitle sfDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="sfTitle">Rows passing through condition gates into a sum</title>
+      <desc id="sfDesc">A left-to-right pipeline. On the left is a column of eight individual row boxes representing sales rows. They flow toward a first vertical gate labelled East. Five rows pass through and three are crossed out and stopped at the gate. The five survivors flow to a second vertical gate labelled Feb. Two rows pass through and three are crossed out and stopped. The two surviving rows flow into a single box on the right marked with a summation sign, and the two merge into one output value. The picture shows that each criteria pair in SUMIFS is a gate that every row must pass, that gates stack left to right with AND logic, and that only rows surviving every gate reach the sum.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <text x="24" y="24" font-size="13" font-weight="700" fill="#09090B">rows</text>
+        <text x="236" y="24" font-size="13" font-weight="700" fill="#0E7490">East?</text>
+        <text x="466" y="24" font-size="13" font-weight="700" fill="#0E7490">Feb?</text>
+
+        <rect x="24" y="40" width="120" height="24" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="24" y="70" width="120" height="24" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="24" y="100" width="120" height="24" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="24" y="130" width="120" height="24" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="24" y="160" width="120" height="24" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="24" y="190" width="120" height="24" rx="6" fill="#FFFFFF" stroke="#B45309" stroke-dasharray="5 4"/>
+        <rect x="24" y="220" width="120" height="24" rx="6" fill="#FFFFFF" stroke="#B45309" stroke-dasharray="5 4"/>
+        <rect x="24" y="250" width="120" height="24" rx="6" fill="#FFFFFF" stroke="#B45309" stroke-dasharray="5 4"/>
+
+        <path d="M254 32 L254 282" stroke="#0E7490" stroke-width="2" fill="none"/>
+
+        <path d="M144 52 L340 62 M144 82 L340 92 M144 112 L340 122 M144 142 L340 152 M144 172 L340 182" stroke="#A1A1AA" stroke-width="1.3" fill="none"/>
+        <path d="M144 202 L246 202 M144 232 L246 232 M144 262 L246 262" stroke="#B45309" stroke-width="1.3" stroke-dasharray="5 4" fill="none"/>
+        <text x="250" y="207" font-size="14" font-weight="700" fill="#B45309">✕</text>
+        <text x="250" y="237" font-size="14" font-weight="700" fill="#B45309">✕</text>
+        <text x="250" y="267" font-size="14" font-weight="700" fill="#B45309">✕</text>
+
+        <rect x="340" y="52" width="120" height="24" rx="6" fill="#E0F2F7" stroke="#E4E7EA"/>
+        <rect x="340" y="82" width="120" height="24" rx="6" fill="#E0F2F7" stroke="#E4E7EA"/>
+        <rect x="340" y="112" width="120" height="24" rx="6" fill="#E0F2F7" stroke="#E4E7EA"/>
+        <rect x="340" y="142" width="120" height="24" rx="6" fill="#E0F2F7" stroke="#B45309" stroke-dasharray="5 4"/>
+        <rect x="340" y="172" width="120" height="24" rx="6" fill="#E0F2F7" stroke="#B45309" stroke-dasharray="5 4"/>
+
+        <path d="M484 32 L484 222" stroke="#0E7490" stroke-width="2" fill="none"/>
+
+        <path d="M460 64 L560 84 M460 94 L560 104" stroke="#A1A1AA" stroke-width="1.3" fill="none"/>
+        <path d="M460 124 L476 124 M460 154 L476 154 M460 184 L476 184" stroke="#B45309" stroke-width="1.3" stroke-dasharray="5 4" fill="none"/>
+        <text x="480" y="129" font-size="14" font-weight="700" fill="#B45309">✕</text>
+        <text x="480" y="159" font-size="14" font-weight="700" fill="#B45309">✕</text>
+        <text x="480" y="189" font-size="14" font-weight="700" fill="#B45309">✕</text>
+
+        <rect x="560" y="72" width="120" height="24" rx="6" fill="#E0F2F7" stroke="#E4E7EA"/>
+        <rect x="560" y="100" width="120" height="24" rx="6" fill="#E0F2F7" stroke="#E4E7EA"/>
+        <path d="M620 124 L620 148" stroke="#A1A1AA" stroke-width="1.3" fill="none"/>
+        <rect x="576" y="152" width="90" height="52" rx="10" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <text x="608" y="188" font-size="26" font-weight="700" fill="#0E7490">Σ</text>
+
+        <rect x="24" y="286" width="712" height="36" rx="10" fill="#E0F2F7" stroke="#E4E7EA"/>
+        <text x="40" y="309" font-size="13.5" fill="#09090B">Every condition is a gate. A row must pass all of them to be counted in the total.</text>
+      </g>
+    </svg>
+    <figcaption>Each criteria pair is a gate. Rows that pass every gate reach the sum, and nothing else does.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>Filtering and summing in one formula</li>
+      <li>SUMIF against SUMIFS, and the argument-order trap</li>
+      <li>Writing criteria: text, numbers, comparisons, and cell references</li>
+      <li>COUNTIFS and AVERAGEIFS, same grammar</li>
+      <li>The full before and after</li>
+      <li>Edge cases: blanks, dates, and mismatched ranges</li>
+      <li>Why this works</li>
+      <li>Using this on your own workbook</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>The worked example is small on purpose.</strong> Sixteen sales rows, four columns, sitting in A1 to D17: Region in column A, Month in B, Rep in C, Amount in D. Every result on this page was computed against this exact table, twice, by different methods. Row 17 has a blank region, and that blank is deliberate: it is the trap in section 6.</div>
+
+  <table>
+    <tr><th>Region</th><th>Month</th><th>Rep</th><th>Amount</th></tr>
+    <tr><td>East</td><td>Jan</td><td>Ana</td><td>1,200</td></tr>
+    <tr><td>East</td><td>Jan</td><td>Ben</td><td>950</td></tr>
+    <tr><td>East</td><td>Feb</td><td>Ana</td><td>1,480</td></tr>
+    <tr><td>East</td><td>Feb</td><td>Ben</td><td>720</td></tr>
+    <tr><td>East</td><td>Mar</td><td>Ana</td><td>1,130</td></tr>
+    <tr><td>West</td><td>Jan</td><td>Cal</td><td>860</td></tr>
+    <tr><td>West</td><td>Jan</td><td>Dee</td><td>1,340</td></tr>
+    <tr><td>West</td><td>Feb</td><td>Cal</td><td>990</td></tr>
+    <tr><td>West</td><td>Feb</td><td>Dee</td><td>1,610</td></tr>
+    <tr><td>West</td><td>Mar</td><td>Cal</td><td>1,275</td></tr>
+    <tr><td>North</td><td>Jan</td><td>Eve</td><td>430</td></tr>
+    <tr><td>North</td><td>Feb</td><td>Eve</td><td>880</td></tr>
+    <tr><td>North</td><td>Mar</td><td>Eve</td><td>1,520</td></tr>
+    <tr><td>South</td><td>Jan</td><td>Fox</td><td>640</td></tr>
+    <tr><td>South</td><td>Mar</td><td>Fox</td><td>1,055</td></tr>
+    <tr><td></td><td>Feb</td><td>Gil</td><td>500</td></tr>
+  </table>
+
+  <div class="step">
+    <h2>1. Filtering and summing in one formula</h2>
+
+    <p>Before the explanation: how would you get February's East total from that table with no formula at all, just menus, and how many steps would it take?</p>
+
+    <p>You would filter Region to East, filter Month to Feb, read the sum off the status bar, and undo both filters. Four steps, a number that lives nowhere, and a sheet you have temporarily broken for anyone else looking at it. Conditional aggregation is that same job as one formula: filter the rows and sum them in a single move, with the answer stored in a cell.</p>
+
+    <pre><code>=SUMIFS(D2:D17, A2:A17, "East", B2:B17, "Feb")   → 2,200</code></pre>
+
+    <p>Read it left to right. <strong>D2:D17</strong> is the column to add, and in SUMIFS it always comes first. Then come <strong>criteria pairs</strong>. A criteria pair is two arguments that travel together: a range to look in, and the condition rows must meet there. <code>A2:A17, "East"</code> is one pair, keep rows whose region is East. <code>B2:B17, "Feb"</code> is another, and rows must pass both. Two rows do, Ana's 1,480 and Ben's 720, and 1,480 + 720 = 2,200.</p>
+
+    <p>Pairs stack as far as you need, up to 127 of them. Add <code>C2:C17, "Ana"</code> and the answer narrows to 1,480, just her February East sale. Every pair is another gate from the picture above, and the gates always combine as AND: all conditions, not any.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. SUMIF against SUMIFS, and the argument-order trap</h2>
+
+    <p>Before the explanation: SUMIF is the older, single-condition version. If you had designed it first, and later needed a multi-condition version, why might the sum column end up in a different position?</p>
+
+    <p>Here is the trap in one pair of lines. Both of these return East's total, 5,480.</p>
+
+    <pre><code>=SUMIF(A2:A17, "East", D2:D17)          → 5,480  (sum range LAST)
+=SUMIFS(D2:D17, A2:A17, "East")         → 5,480  (sum range FIRST)</code></pre>
+
+    <p>SUMIF puts the sum range at the end, as its third argument. SUMIFS puts it at the beginning. The reason is the design history you just guessed at: SUMIF's shape was range, condition, then an optional "actually sum this other column". When Microsoft built SUMIFS, the sum range could no longer be optional or last, because the criteria pairs need open-ended room to stack behind it. So the two functions read backwards from each other, forever.</p>
+
+    <p>Say out loud which argument comes first in each function before reading on. If you just hesitated, that hesitation is the trap: people switch between the two functions and feed ranges in the wrong slots, and Excel often cannot tell, because a region column and an amount column are both just ranges to it.</p>
+
+    <p>My advice is to end the problem instead of managing it. Always write SUMIFS, even for one condition. It costs one extra letter, it handles every case SUMIF handles, and your workbooks end up with exactly one argument order in them. Same for COUNTIFS over COUNTIF and AVERAGEIFS over AVERAGEIF.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Writing criteria: text, numbers, comparisons, and cell references</h2>
+
+    <p>Before the explanation: "East" needs quotes, and comparing against 1000 involves quotes too, but in a stranger place. Where do you think the quotes go in "amount is at least 1000"?</p>
+
+    <p>Criteria come in three flavours, and the quoting rules are the whole difficulty.</p>
+
+    <p><strong>Text criteria</strong> go in quotes: <code>"East"</code>, <code>"Feb"</code>, <code>"Ana"</code>. Matching ignores upper and lower case, so "east" works too.</p>
+
+    <p><strong>Plain number criteria</strong> need no quotes. <code>=SUMIFS(D2:D17, D2:D17, 500)</code> would sum only rows whose amount is exactly 500, and here that is just Gil's row: 500.</p>
+
+    <p><strong>Comparison criteria</strong> put the operator and the number together inside quotes, as one piece of text: <code>"&gt;=1000"</code>. That reads strangely the first time, but the whole comparison is handed over as a small instruction string.</p>
+
+    <pre><code>=SUMIFS(D2:D17, D2:D17, "&gt;=1000")   → 10,610</code></pre>
+
+    <p>Eight of the sixteen rows are 1,000 or more, and 1200 + 1480 + 1130 + 1340 + 1610 + 1275 + 1520 + 1055 = 10,610. Criteria pairs also mix freely, so East rows of at least 1,000 is <code>=SUMIFS(D2:D17, A2:A17, "East", D2:D17, "&gt;=1000")</code>, which is 1200 + 1480 + 1130 = 3,810.</p>
+
+    <p><strong>Referencing a cell inside a comparison</strong> is the one worth memorizing, because it is what makes a report adjustable. If the threshold 1000 sits in cell F1, you cannot write "&gt;=F1", because that would compare against the literal text F1. You glue the operator text to the cell's value with <code>&amp;</code>, the join symbol:</p>
+
+    <pre><code>=SUMIFS(D2:D17, D2:D17, "&gt;="&amp;F1)   → 10,610 when F1 holds 1000</code></pre>
+
+    <p>Now the reader changes F1 and every total on the sheet follows. Where that threshold number should come from is its own question, and <a href="../data-driven-thresholds/">choosing thresholds from the data</a> is the honest way to answer it.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. COUNTIFS and AVERAGEIFS, same grammar</h2>
+
+    <p>Before the explanation: knowing SUMIFS, what do you expect COUNTIFS to take as its first argument, given that a count has no column to add?</p>
+
+    <p>Nothing, is the answer. Counting needs no sum column, so COUNTIFS is criteria pairs only:</p>
+
+    <pre><code>=COUNTIFS(A2:A17, "East", B2:B17, "Feb")   → 2
+=COUNTIFS(B2:B17, "Feb")                   → 6</code></pre>
+
+    <p>Two East rows in February, six February rows overall, and you can confirm both by eye in the table above. COUNTIFS is also the audit tool for the rest of the family: before trusting any SUMIFS, ask COUNTIFS how many rows it stood on. A total of 2,200 means something different resting on 2 rows than on 200, which is the same small-sample honesty that <a href="../sql-group-by-having/">GROUP BY and HAVING</a> teaches on the SQL side.</p>
+
+    <p>AVERAGEIFS is one paragraph because it is SUMIFS's grammar exactly: average column first, then criteria pairs. <code>=AVERAGEIFS(D2:D17, A2:A17, "West")</code> returns 1,215, which is West's five sales, 860 + 1340 + 990 + 1610 + 1275 = 6,075, divided by 5. The only extra thing to know: if no rows match, AVERAGEIFS shows a divide-by-zero error rather than a zero, and that error is it telling you the truth.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. The full before and after</h2>
+
+    <p>Same table, same question: what did each region sell in February?</p>
+
+    <h3>Before</h3>
+
+    <p>The manual loop. Filter Region to East, filter Month to Feb, read 2,200 off the status bar, write it in another sheet by hand, undo, repeat for West, North, South. Four totals, sixteen menu actions, and the pasted numbers go stale the moment a row is added. The worst part is not the effort. It is that nothing connects the typed 2,200 back to the data, so nobody can check it later, including you.</p>
+
+    <h3>After</h3>
+
+    <p>A small summary block. Put the region names in F2 to F5, then one formula in G2, written once with dollar signs so it fills down:</p>
+
+    <pre><code>=SUMIFS($D$2:$D$17, $A$2:$A$17, F2, $B$2:$B$17, "Feb")</code></pre>
+
+    <table>
+      <tr><th>Region</th><th>Feb total</th></tr>
+      <tr><td>East</td><td>2,200</td></tr>
+      <tr><td>West</td><td>2,600</td></tr>
+      <tr><td>North</td><td>880</td></tr>
+      <tr><td>South</td><td>0</td></tr>
+    </table>
+
+    <p>Every number is live, every number is checkable, and the block updates itself when March lands. Two of these rows are also warnings, and that is the next section, because South's 0 and the missing 500 from Gil's blank-region row are both trying to tell you something. Picture building this exact block on your own sales data before you read on: which column is your region, which is your amount, and what would sit in F2?</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Edge cases: blanks, dates, and mismatched ranges</h2>
+
+    <p>Before the explanation: add the four February totals above. You get 5,680. But summing every February row in the table gives 6,180. Where did 500 go?</p>
+
+    <p><strong>Blanks fall out of every named group.</strong> That missing 500 is Gil's row, whose region cell is empty. It matches "East" no, "West" no, and so on, so it appears in no region's total, and no error says so. A region summary that silently omits rows is how a report disagrees with the ledger. The check is one formula: <code>=SUMIFS(D2:D17, A2:A17, "")</code> returns 500, the total sitting on blank regions. If that is not zero, you have unassigned rows to fix or to report as their own line.</p>
+
+    <p><strong>A zero result has two meanings.</strong> South's February total is 0 because South has no February rows at all. A zero can mean "matched rows adding to zero" or "matched nothing". <code>=COUNTIFS(A2:A17, "South", B2:B17, "Feb")</code> returning 0 settles which one you have.</p>
+
+    <p><strong>Dates in criteria work best as brackets.</strong> Our Month column holds text, so "Feb" matches it directly. Real tables usually hold actual dates like 14-Feb-2026, and no single criterion matches "the whole month". The pattern is two criteria on the same column, a floor and a ceiling:</p>
+
+    <pre><code>=SUMIFS(D2:D17, B2:B17, "&gt;="&amp;DATE(2026,2,1), B2:B17, "&lt;"&amp;DATE(2026,3,1))</code></pre>
+
+    <p>That reads: on or after February 1st, and before March 1st. Using <code>DATE(2026,2,1)</code> instead of typing "2/1/2026" sidesteps every regional date-format ambiguity. On our table, with the Month column as dates, that bracket would return February's full 6,180.</p>
+
+    <p><strong>All ranges must be the same size.</strong> If the sum range is D2:D17 and a criteria range is A2:A16, Excel shows #VALUE!. Annoying, but honest, and the fix is making every range cover the same rows. The quiet version of this mistake is a criteria range shifted by one row, D2:D17 against A3:A18, which is the same height and errors nowhere. Whole-column references, D:D against A:A, remove both risks on a simple sheet.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>SUMIFS earns its keep because it makes a stated claim instead of a performed action. A filtered status-bar total is an action: it happened, you saw it, and no trace remains. A SUMIFS cell is a claim written down: these rows, these conditions, this total, checkable by anyone later. That is the same reason analysts keep SQL queries and <a href="../documenting-data-limitations/">documented limitations</a> rather than memories of what they clicked. The formula is the audit trail.</p>
+
+  <p>The verify-it-twice habit this page keeps modelling has a statistical backbone too. Cleveland and McGill showed that people misjudge quantities read from visual displays in systematic, measurable ways (Cleveland &amp; McGill, 1984, <em>Journal of the American Statistical Association</em>, 79(387), 531–554). Eyeballing a filtered column is a perceptual judgement, and a formula is not, which is why the two disagreeing is so informative: when they differ, believe neither until you know why.</p>
+
+  <p>And this page kept asking you to predict before it explained. Prompting a learner to generate an explanation before receiving one reliably improves understanding compared to reading alone, across more than sixty studies (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725). Guessing where the quotes go in "&gt;=1000" is why the answer will still be there next week.</p>
+
+  <h2>Using this on your own workbook</h2>
+
+  <p>Rebuilding every hand-typed summary in an old workbook is miserable, and you will stop halfway. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Pick one summary you already report</strong>, a single number someone actually reads, and rebuild just that one as a SUMIFS.</li>
+    <li><strong>Verify it against a filter or a pivot table before you trust it.</strong> Filter the raw data to the same conditions and compare totals, or drop the data in a pivot and read the same cell. This is the answer-checks habit: a SUMIFS is a claim, and a claim gets checked once against an independent method before it ships. If the two disagree, the usual culprits are blanks, a shifted range, or a criterion matching text against numbers.</li>
+    <li><strong>Add the two audit formulas next to it.</strong> A COUNTIFS with the same criteria, so readers see how many rows the total stands on, and a blank-criteria SUMIFS, so unassigned rows cannot hide.</li>
+    <li><strong>Move thresholds and month choices into cells</strong>, referenced with the <code>"&gt;="&amp;F1</code> pattern, so the report adjusts without editing formulas.</li>
+    <li><strong>Convert the rest only as you touch them.</strong> A hand-typed number nobody reads is not the priority. The one in Friday's meeting is.</li>
+  </ol>
+
+  <p>If you have paper and five minutes, one optional drawing makes the grammar stick. Draw eight rows flowing through two gates into a sum box, and label the gates with a condition from your own data, your region, your month. Then write the SUMIFS that matches your drawing, sum column first. If the drawing and the formula agree, you own this.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: Excel, SQL, Tableau, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Concept</th><th>The answer</th></tr>
+    <tr><td>What SUMIFS does</td><td>Filters rows by every condition, sums the survivors, in one formula.</td></tr>
+    <tr><td>SUMIFS shape</td><td><code>=SUMIFS(sum_range, range1, criterion1, range2, criterion2, ...)</code></td></tr>
+    <tr><td>The trap</td><td>SUMIF puts the sum range last. SUMIFS puts it first. They read backwards from each other.</td></tr>
+    <tr><td>The fix</td><td>Always write SUMIFS, even for one condition. One argument order everywhere.</td></tr>
+    <tr><td>Criteria pair</td><td>A range to look in plus the condition rows must meet there. Pairs stack, up to 127.</td></tr>
+    <tr><td>How pairs combine</td><td>Always AND. Every condition must pass for a row to count.</td></tr>
+    <tr><td>Text criterion</td><td><code>"East"</code>, in quotes, case does not matter.</td></tr>
+    <tr><td>Number criterion</td><td><code>500</code>, no quotes, matches exactly.</td></tr>
+    <tr><td>Comparison criterion</td><td><code>"&gt;=1000"</code>, operator and number together inside quotes.</td></tr>
+    <tr><td>Cell in a criterion</td><td><code>"&gt;="&amp;F1</code>, operator text joined to the cell with &amp;.</td></tr>
+    <tr><td>COUNTIFS</td><td>Criteria pairs only, no sum column. The audit tool for every SUMIFS.</td></tr>
+    <tr><td>AVERAGEIFS</td><td>Same shape as SUMIFS. No matches gives a divide-by-zero error, on purpose.</td></tr>
+    <tr><td>The blank trap</td><td>Rows with a blank criteria cell fall out of every named group silently. Check with criterion <code>""</code>.</td></tr>
+    <tr><td>A zero result</td><td>Either rows summing to zero or no rows at all. COUNTIFS tells you which.</td></tr>
+    <tr><td>Dates</td><td>Bracket with two criteria on one column: <code>"&gt;="&amp;DATE(...)</code> and <code>"&lt;"&amp;DATE(...)</code>.</td></tr>
+    <tr><td>Range sizes</td><td>All ranges the same rows. Same-height-but-shifted is the silent version.</td></tr>
+    <tr><td>The habit</td><td>Verify one SUMIFS against a filter or pivot before it ships.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> If you take nothing else from this page, check every SUMIFS you ship against a filter or a pivot once, and keep a COUNTIFS beside it so readers see how many rows the number stands on. A wrong conditional total never looks wrong. It looks like 5,680 when the truth is 6,180. If a formula breaks in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. My blank-region row was worth 500 and hid for one reporting cycle before a totals check caught it. What is the biggest gap you have found between a summary sheet and the raw data underneath it, and which check finally surfaced it?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Cleveland, W. S., &amp; McGill, R. (1984). Graphical perception: Theory, experimentation, and application to the development of graphical methods. <em>Journal of the American Statistical Association</em>, 79(387), 531–554.</li>
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice conditional totals with a table in front of you.</strong>
+    <p style="margin:6px 0 0">SUMIFS, COUNTIFS, and the audit habits around them are lessons in the <a href="../../excel/">Excel Kit</a>: you write the formulas against real tables, verify your own answers, and drill until the argument order is automatic. Flash cards and a mock exam sit alongside. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../excel/">Open the Excel Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../vlookup-vs-xlookup/">VLOOKUP vs XLOOKUP</a> · <a href="../budget-vs-actual-variance/">Budget vs Actual Variance</a> · <a href="../excel-dashboard-build-order/">Excel Dashboard Build Order</a> · <a href="../excel-label-rows-before-charting/">Label Rows Before Charting</a> · <a href="../../excel/">Excel Kit</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../report-vs-analysis/">Report vs Analysis</a> · <a href="../choose-your-analyst-role/">Choose Your Analyst Role</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-find-duplicates/">Find Duplicates in SQL</a> · <a href="../sql-null/">NULL in SQL</a> · <a href="../pandas-groupby/">pandas groupby</a> · <a href="../choose-the-right-chart/">Choose the Right Chart</a> · <a href="../correlation-vs-causation/">Correlation vs Causation</a> · <a href="../powerbi-measures-vs-columns/">Power BI Measures vs Columns</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

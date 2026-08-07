@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Correlation vs Causation: The Three Explanations for Any Pattern — Analyst Prep Kit</title>
+<meta name="description" content="Ice cream sales and drownings correlate at r = 0.86, until you hold temperature still and it drops to 0.10. The three explanations to say before acting.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/correlation-vs-causation/">
+<meta property="og:title" content="Correlation vs Causation: The Three Explanations for Any Pattern">
+<meta property="og:description" content="Two columns move together at r = 0.86. Split the data by the thing you suspect is really driving both, and the correlation collapses to 0.10. Here is the habit, the worked example, and the cheap test.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/correlation-vs-causation.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/correlation-vs-causation/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/correlation-vs-causation.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Correlation vs Causation: The Three Explanations for Any Pattern",
+  "description": "Ice cream sales and drownings correlate at r = 0.86, until you hold temperature still and it drops to 0.10. The three explanations to say before acting.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/correlation-vs-causation/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/correlation-vs-causation/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-07",
+  "dateModified": "2026-08-07",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/correlation-vs-causation.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Correlation vs Causation: The Three Explanations for Any Pattern",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/correlation-vs-causation/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../stats/">Stats Kit</a> · <a href="../">All guides</a></p>
+  <h1>Correlation vs Causation: The Three Explanations for Any Pattern</h1>
+  <p class="meta">Say all three out loud before you act on any pattern · Written to be listened to · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you will have one habit: every time two things move together, you say the three candidate explanations out loud before acting. X causes Y. Y causes X. A third thing drives both. You will also know the quiet fourth, coincidence in a small sample, and one cheap test that separates the explanations without running an experiment. It is about twenty minutes.</p>
+
+  <p>Here is what to actually do with it today. Take the last chart you saw where two lines moved together, and say the three explanations for it, in order, in one breath each. If any of them survives out loud, the finding is not ready to ship as a cause.</p>
+
+  <p>The short version: a correlation is one fact with four possible stories behind it. Only one of those stories is "X causes Y", and the correlation itself cannot tell you which story is true.</p>
+
+  <p>One picture carries the whole idea, so it comes first. The same observed link between X and Y, and the four stories that could each have produced it.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 300" role="img" aria-labelledby="ccTitle ccDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="ccTitle">Four stories behind one correlation</title>
+      <desc id="ccDesc">Four panels side by side, each showing the same two boxes labelled X and Y. In the first panel a solid arrow points from X to Y, meaning X causes Y. In the second panel the solid arrow points the other way, from Y to X, meaning Y causes X. In the third panel a third box labelled Z sits above the pair in a warning colour, with two solid arrows running down from Z to X and from Z to Y, while the direct line between X and Y is dashed and crossed out, meaning a third thing drives both and the link between X and Y is not a real causal link. In the fourth panel there is no arrow at all between X and Y, only a small scatter of dots between them, meaning the pattern is chance in a small sample. All four panels would produce the same observed correlation, which is why the correlation alone cannot pick between them.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <rect x="12" y="16" width="172" height="268" rx="12" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="200" y="16" width="172" height="268" rx="12" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="388" y="16" width="172" height="268" rx="12" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <rect x="576" y="16" width="172" height="268" rx="12" fill="#FFFFFF" stroke="#E4E7EA"/>
+
+        <!-- Panel 1: X causes Y -->
+        <rect x="40" y="70" width="52" height="40" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="66" y="96" font-size="17" font-weight="700" fill="#09090B" text-anchor="middle">X</text>
+        <rect x="104" y="190" width="52" height="40" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="130" y="216" font-size="17" font-weight="700" fill="#09090B" text-anchor="middle">Y</text>
+        <path d="M78 116 L118 184" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+        <path d="M118 184 L106 174 M118 184 L120 168" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+
+        <!-- Panel 2: Y causes X -->
+        <rect x="228" y="70" width="52" height="40" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="254" y="96" font-size="17" font-weight="700" fill="#09090B" text-anchor="middle">X</text>
+        <rect x="292" y="190" width="52" height="40" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="318" y="216" font-size="17" font-weight="700" fill="#09090B" text-anchor="middle">Y</text>
+        <path d="M306 184 L266 116 " stroke="#0E7490" stroke-width="2.5" fill="none"/>
+        <path d="M266 116 L278 126 M266 116 L264 132" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+
+        <!-- Panel 3: Z drives both -->
+        <rect x="448" y="34" width="52" height="40" rx="8" fill="#FDF3E3" stroke="#B45309" stroke-width="2.5"/>
+        <text x="474" y="60" font-size="17" font-weight="700" fill="#B45309" text-anchor="middle">Z</text>
+        <rect x="404" y="150" width="52" height="40" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="430" y="176" font-size="17" font-weight="700" fill="#09090B" text-anchor="middle">X</text>
+        <rect x="492" y="150" width="52" height="40" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="518" y="176" font-size="17" font-weight="700" fill="#09090B" text-anchor="middle">Y</text>
+        <path d="M458 78 L436 144" stroke="#B45309" stroke-width="2.5" fill="none"/>
+        <path d="M436 144 L434 128 M436 144 L448 134" stroke="#B45309" stroke-width="2.5" fill="none"/>
+        <path d="M490 78 L512 144" stroke="#B45309" stroke-width="2.5" fill="none"/>
+        <path d="M512 144 L500 134 M512 144 L514 128" stroke="#B45309" stroke-width="2.5" fill="none"/>
+        <path d="M456 212 L492 212" stroke="#A1A1AA" stroke-width="2" stroke-dasharray="5 4" fill="none"/>
+        <text x="474" y="240" font-size="15" font-weight="700" fill="#B45309" text-anchor="middle">✕</text>
+
+        <!-- Panel 4: chance -->
+        <rect x="592" y="70" width="52" height="40" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="618" y="96" font-size="17" font-weight="700" fill="#09090B" text-anchor="middle">X</text>
+        <rect x="656" y="190" width="52" height="40" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="682" y="216" font-size="17" font-weight="700" fill="#09090B" text-anchor="middle">Y</text>
+        <circle cx="632" cy="140" r="4" fill="#A1A1AA"/>
+        <circle cx="652" cy="128" r="4" fill="#A1A1AA"/>
+        <circle cx="664" cy="152" r="4" fill="#A1A1AA"/>
+        <circle cx="640" cy="166" r="4" fill="#A1A1AA"/>
+        <circle cx="674" cy="134" r="4" fill="#A1A1AA"/>
+      </g>
+    </svg>
+    <figcaption>Four stories, one observed correlation: X causes Y, Y causes X, a third thing Z drives both, or the pattern is chance in a small sample. The data you already have looks identical in all four.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>The three explanations, and the quiet fourth</li>
+      <li>The worked example: a real correlation you can compute</li>
+      <li>What a correlation coefficient actually measures</li>
+      <li>The cheap test: hold the third thing still</li>
+      <li>Reverse causation, and why timing settles it</li>
+      <li>The full before and after</li>
+      <li>Edge cases that make correlations lie</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every number on this page is computed.</strong> The worked example is a 12-row table you can see in full, and every correlation on the page was produced by running the shown code on that table. If reading data with pandas is new, <a href="../sql-and-python/">SQL and Python for analysts</a> covers the setup and comes back here in ten minutes.</div>
+
+  <div class="step">
+    <h2>1. The three explanations, and the quiet fourth</h2>
+
+    <p>Before the explanation: a dashboard shows that customers who open your emails spend more. Marketing wants to double the email volume. What are the other ways that pattern could have happened, without email causing anything?</p>
+
+    <p>A correlation means two things move together. When X is high, Y tends to be high, or tends to be low. That is the whole fact. The question that matters is why, and there are exactly four candidate stories.</p>
+
+    <ul>
+      <li><strong>X causes Y.</strong> Opening emails makes people spend more. This is the story everyone wants.</li>
+      <li><strong>Y causes X.</strong> People who already spend a lot are more interested, so they open more emails. Same data, arrow reversed, completely different action.</li>
+      <li><strong>A third thing drives both.</strong> Loyal customers both open emails and spend. Loyalty is the engine, and email opening is just along for the ride. The third thing has a name: a <strong>confounder</strong>, which in everyday words is the hidden common cause that makes two innocent things look connected.</li>
+      <li><strong>Coincidence.</strong> In a small sample, unrelated things line up by luck alone. This one is quiet because nobody proposes it in a meeting, and it is the most common story of all when the sample is small. Section 7 puts a number on it.</li>
+    </ul>
+
+    <p>The habit this page is selling costs about ten seconds. Before acting on any pattern, say all four stories out loud, in order, and notice which ones you cannot rule out. Most patterns die at story three, and the ones that survive all four are the ones worth an experiment.</p>
+
+    <div class="note"><strong>Why out loud?</strong> Because in your head, the story you want wins by default. Spoken, "or maybe big spenders just open more email" is hard to unhear.</div>
+  </div>
+
+  <div class="step">
+    <h2>2. The worked example: a real correlation you can compute</h2>
+
+    <p>Before the explanation: ice cream sales and drownings rise and fall together, month by month, in almost every summary of this classic. Nobody believes ice cream drowns people. So what is the third thing?</p>
+
+    <p>Here is a full year for one lake town. Twelve rows, three columns: average temperature, ice cream sales in thousands of dollars, and drownings.</p>
+
+    <table>
+      <tr><th>Month</th><th>Avg temp (°F)</th><th>Ice cream sales ($k)</th><th>Drownings</th></tr>
+      <tr><td>Jan</td><td>36</td><td>8</td><td>1</td></tr>
+      <tr><td>Feb</td><td>38</td><td>9</td><td>0</td></tr>
+      <tr><td>Mar</td><td>46</td><td>14</td><td>0</td></tr>
+      <tr><td>Apr</td><td>55</td><td>19</td><td>1</td></tr>
+      <tr><td>May</td><td>65</td><td>27</td><td>4</td></tr>
+      <tr><td>Jun</td><td>74</td><td>35</td><td>3</td></tr>
+      <tr><td>Jul</td><td>81</td><td>42</td><td>5</td></tr>
+      <tr><td>Aug</td><td>79</td><td>40</td><td>4</td></tr>
+      <tr><td>Sep</td><td>70</td><td>30</td><td>5</td></tr>
+      <tr><td>Oct</td><td>58</td><td>21</td><td>0</td></tr>
+      <tr><td>Nov</td><td>47</td><td>14</td><td>1</td></tr>
+      <tr><td>Dec</td><td>39</td><td>10</td><td>0</td></tr>
+    </table>
+
+    <p>Read the sales column and the drownings column together. July: highest sales, most drownings. January and December: lowest sales, almost none. The two columns clearly move together, and the correlation between them computes to <strong>0.86</strong>. Here is the code that produces every correlation on this page, so you can rerun it yourself.</p>
+
+    <pre><code>import pandas as pd
+
+df = pd.DataFrame({
+    "month": ["Jan","Feb","Mar","Apr","May","Jun",
+              "Jul","Aug","Sep","Oct","Nov","Dec"],
+    "avg_temp_f":  [36,38,46,55,65,74,81,79,70,58,47,39],
+    "ice_cream_k": [8,9,14,19,27,35,42,40,30,21,14,10],
+    "drownings":   [1,0,0,1,4,3,5,4,5,0,1,0],
+})
+
+print(df[["avg_temp_f","ice_cream_k","drownings"]].corr().round(2))</code></pre>
+
+    <pre><code>             avg_temp_f  ice_cream_k  drownings
+avg_temp_f         1.00         0.99       0.86
+ice_cream_k        0.99         1.00       0.86
+drownings          0.86         0.86       1.00</code></pre>
+
+    <p>Now read the whole grid, not just the one cell. Ice cream and drownings sit at 0.86. But temperature correlates with ice cream at <strong>0.99</strong> and with drownings at <strong>0.86</strong>. The third thing did not need hunting. It is right there in the output, correlated with both suspects more strongly than they need to be correlated with each other. Heat sends people to the ice cream stand and heat sends people into the lake, and the two crowds never have to meet.</p>
+
+    <p>Picture running that three-column grid on your own data: your metric, the thing it moves with, and the one variable you quietly suspect is behind both. The confounder usually announces itself in exactly this way, as the row with the biggest numbers in it.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. What a correlation coefficient actually measures</h2>
+
+    <p>Before the explanation: the number 0.86 came out of the machine. What is it a measurement of, and what would 1.0, 0, and negative 0.86 each look like?</p>
+
+    <p>The correlation coefficient, written <strong>r</strong>, measures linear co-movement: how tightly two columns track a straight line together. It runs from −1 to 1. At 1, knowing one value tells you the other exactly, and both rise together. At −1, the same, but one falls as the other rises. At 0, knowing one tells you nothing linear about the other. Our 0.86 means the monthly pairs sit close to a rising line, with some scatter.</p>
+
+    <p>Three limits on what r says, each of which matters in real work.</p>
+
+    <ul>
+      <li><strong>It is direction-blind.</strong> r(sales, drownings) and r(drownings, sales) are the same number. The statistic has no idea which column you think is the cause. Any arrow you see in it, you drew yourself.</li>
+      <li><strong>It only sees straight lines.</strong> A perfect U-shaped relationship, where Y is high at both extremes of X, can produce an r near zero. A near-zero r means "no linear pattern", not "no pattern". This is one reason to plot the points before trusting the number.</li>
+      <li><strong>It says nothing about size.</strong> An r of 0.9 can describe an effect too small to matter, because r measures tightness of tracking, not steepness. A tight pattern of tiny changes still scores high.</li>
+    </ul>
+
+    <p>The word for a variable's r with a business outcome is often spoken as if it were a strength-of-cause score. It is a tightness-of-tracking score, computed with no knowledge of cause at all. Keeping those two ideas separate is most of this page.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. The cheap test: hold the third thing still</h2>
+
+    <p>Before the explanation: if temperature really is the engine behind both columns, what should happen to the ice cream and drownings correlation among months that all have roughly the same temperature?</p>
+
+    <p>It should shrink toward zero. If heat is doing all the driving, then among equally hot months there is no driver left, and sales and drownings should wander independently. That prediction is testable on the data you already have, and this is the cheapest causal check an analyst owns: <strong>segment by the suspected confounder and see whether the pattern survives</strong>.</p>
+
+    <pre><code>warm = df[df.avg_temp_f &gt;= 65]   # May through Sep, 5 months
+cool = df[df.avg_temp_f &lt; 65]    # the other 7 months
+
+print(round(warm.ice_cream_k.corr(warm.drownings), 2))
+print(round(cool.ice_cream_k.corr(cool.drownings), 2))</code></pre>
+
+    <pre><code>0.1
+0.02</code></pre>
+
+    <p>The correlation was 0.86 across the whole year. Inside the warm months it is <strong>0.10</strong>. Inside the cool months it is <strong>0.02</strong>. Once temperature is held roughly still, the relationship between ice cream and drownings is gone. The pattern did not survive the split, which is exactly what "a third thing drives both" predicts and what "X causes Y" does not.</p>
+
+    <p>Say in your own words why the correlation vanishing inside each band clears ice cream, before reading on. If you can say it, you own the method.</p>
+
+    <p>Here is the version I would say. The yearly correlation was built out of one contrast: warm months have high sales and high drownings, cool months have low sales and low drownings. Warm months average 4.2 drownings against 0.43 in cool months. Remove that contrast by comparing only like with like, and there is nothing left, so the contrast, meaning temperature, was the whole relationship.</p>
+
+    <div class="note"><strong>What survival would have meant.</strong> If the within-band correlations had stayed near 0.86, temperature would be cleared instead, and the causal stories would still be live. Segmenting cannot prove cause. It can only eliminate a named suspect, one suspect per split. That is still a bargain, because it runs in one line on data you already have.</div>
+  </div>
+
+  <div class="step">
+    <h2>5. Reverse causation, and why timing settles it</h2>
+
+    <p>Before the explanation: story two was "Y causes X". What is the one thing a cause must always do that its effect cannot?</p>
+
+    <p>Come first. An effect cannot happen before its cause. So the standard check on reverse causation is timing: line the two series up in time and ask which one moves first.</p>
+
+    <p>Take the email example from section 1. If opening emails causes spending, the open should come before the purchase, and this month's opens should predict next month's spending better than the reverse. If the data shows spending rising before open rates rise, the arrow you wanted is dead on arrival. In practice this means computing the correlation at a lag: shift one column by a month and recompute. It is the same <code>corr()</code> call on a shifted column, so it costs nothing.</p>
+
+    <p>Two honest cautions. First, timing can eliminate an arrow but cannot confirm one, because a confounder can also move both series in sequence. Cold snaps end, then ice cream recovers, then swimming recovers. Second, some pairs feed each other in both directions, like practice and confidence, and a lagged correlation will show both arrows at once. When that happens, write down both, because that is the true shape.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. The full before and after</h2>
+
+    <p>Same data, same finding, written up twice. The difference is what a reader is licensed to do after reading it.</p>
+
+    <h3>Before</h3>
+    <pre><code>Ice cream sales are strongly correlated with drownings
+(r = 0.86). Reducing summer ice cream promotions should
+be considered as a drowning-prevention measure.</code></pre>
+
+    <p>Every word before the parenthesis is defensible, and the sentence after it is fiction. The number is real. The leap from "correlated" to "reducing X will change Y" is the entire mistake, and nothing in the data supports it.</p>
+
+    <h3>After</h3>
+    <pre><code>Monthly ice cream sales are associated with drownings
+(r = 0.86, n = 12 months).
+
+Checked: temperature is a confounder. It correlates with
+both series (0.99 with sales, 0.86 with drownings), and
+within temperature bands the association disappears
+(r = 0.10 warm months, r = 0.02 cool months).
+
+Read: both rise in hot months because heat drives both.
+No causal claim. If prevention budget depends on this,
+the variable to act on is warm-month lake supervision,
+not sales.</code></pre>
+
+    <p>Three habits are visible in the after version. It says <strong>"associated with"</strong>, which claims co-movement and nothing more. It names the confounder it checked and shows the check, which is what makes the write-up trustworthy rather than merely cautious. And it states the sample size, so the reader can weigh the coincidence story for themselves. Naming what you checked and what you could not check is the same discipline as <a href="../documenting-data-limitations/">documenting data limitations</a>, applied to one sentence.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Edge cases that make correlations lie</h2>
+
+    <p>Before the explanation: with only 12 rows, how often would two completely unrelated columns show a correlation as strong as 0.5, just by luck?</p>
+
+    <p>More often than feels possible. I generated 1,000 pairs of random 12-value columns, pure noise with no relationship at all, and counted: <strong>106 of the 1,000 pairs</strong> hit an r of 0.5 or stronger, and 10 of them hit 0.7 or stronger. Roughly one random pair in ten looks moderately correlated at this sample size. That is the coincidence story with a number on it, and it is why an exciting correlation in a 12-row summary deserves suspicion before celebration.</p>
+
+    <pre><code>import random
+random.seed(11)
+hits = 0
+for _ in range(1000):
+    x = pd.Series(random.random() for _ in range(12))
+    y = pd.Series(random.random() for _ in range(12))
+    if abs(x.corr(y)) &gt;= 0.5:
+        hits += 1
+print(hits)   # 106</code></pre>
+
+    <p>Four more ways a real correlation misleads, each named.</p>
+
+    <p><strong>Both series just trend.</strong> Anything that grows over time correlates with anything else that grows over time: revenue, headcount, and the number of guides on this site would all inter-correlate beautifully. A correlation between two trending series is mostly a correlation with the calendar. Compare month-to-month changes instead of levels before believing it.</p>
+
+    <p><strong>The pattern flips when you split it.</strong> A relationship can point one way in every subgroup and the opposite way overall, because group sizes differ. This is Simpson's paradox, and it is the same segmenting move from section 4 delivering a nastier surprise: the aggregate answer and every subgroup answer can genuinely disagree. It is why segmenting by the variables you know matter is not optional.</p>
+
+    <p><strong>You only kept the survivors.</strong> Correlations computed on a filtered group, like top customers or games with many reviews, can be created or destroyed by the filter itself. If both variables helped a row pass the filter, the survivors will show a link the full population does not have.</p>
+
+    <p><strong>One outlier is holding the whole number up.</strong> With few rows, a single extreme pair can manufacture a strong r on its own. Plot the points once before quoting the number. If the story collapses when one dot is covered with your thumb, it was never a story. Plotting before computing is the core move of <a href="../exploratory-data-analysis/">exploratory data analysis</a>.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The segmenting test in section 4 is the working analyst's version of a very old result. Simpson showed formally that the association between two variables can change size, vanish, or reverse when a third variable is brought into the table, and that the aggregate table alone cannot tell you which reading is right (Simpson, 1951, <em>Journal of the Royal Statistical Society, Series B</em>, 13(2), 238–241). The practical consequence is the habit this page teaches: no association is safe to interpret until the candidate third variables have been held still and the pattern re-checked.</p>
+
+  <p>The coincidence story is also not a vague worry. Small samples produce extreme statistics as a matter of arithmetic, because estimates computed on few values swing widely, and any process that surfaces the strongest patterns, like a dashboard sorted by correlation, will surface the small-sample flukes first (Gelman &amp; Price, 1999, <em>Statistics in Medicine</em>, 18(23), 3221–3234). The 106-in-1,000 simulation above is that effect made visible at n = 12.</p>
+
+  <p>And the reason this page keeps asking you to answer before it explains: being prompted to generate an explanation yourself, before receiving one, reliably improves understanding and retention of that material, across a large body of controlled studies (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725). Guessing the third thing before the correlation grid showed it is why temperature will come to mind the next time two of your own columns move together.</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Think of one claim in a report you have shipped that quietly leans on "X drives Y". Auditing every such claim at once is miserable and you will not finish it. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Say the four stories out loud</strong> for that one claim: X causes Y, Y causes X, a third thing drives both, coincidence. Ten seconds. Note which ones you cannot rule out.</li>
+    <li><strong>Run the three-column correlation grid</strong>: X, Y, and your best confounder candidate. If the candidate correlates strongly with both, it is promoted to prime suspect.</li>
+    <li><strong>Segment by the suspect</strong> and recompute the X and Y correlation inside each band. Vanished: the suspect owns the pattern. Survived: the suspect is cleared, and the causal stories are still live.</li>
+    <li><strong>Check timing</strong> if reverse causation is plausible: shift one series and see which direction predicts better.</li>
+    <li><strong>Rewrite the sentence</strong> as "associated with", name the confounders you checked, state n. If the claim still needs a causal verb after all that, the honest next step is an experiment: split subjects randomly, change X for one group only, and compare. Randomizing is the only move that silences all confounders at once, known and unknown, and it is exactly what an A/B test is. The <a href="../../stats/">Stats Kit</a> has a lesson on running one properly.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional drawing is worth five minutes. Draw the four panels from the figure yourself, from memory: X to Y, Y to X, Z down to both, and the dots of chance. Then write your own X, Y, and Z from a live project on the third panel. Redrawing it is a retrieval attempt, and filling in your own variables is the transfer step.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, statistics, charts, data migration, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Concept</th><th>What it means</th></tr>
+    <tr><td>Correlation</td><td>Two things move together. One fact, four possible stories.</td></tr>
+    <tr><td>The four stories</td><td>X causes Y. Y causes X. A third thing drives both. Coincidence.</td></tr>
+    <tr><td>Confounder</td><td>A hidden common cause that makes two innocent things look connected.</td></tr>
+    <tr><td>r</td><td>Linear co-movement, −1 to 1. Tightness of tracking, not strength of cause.</td></tr>
+    <tr><td>What r cannot see</td><td>Direction, curves, and the size of the effect.</td></tr>
+    <tr><td>Finding the confounder</td><td>Correlation grid with the candidate: it should correlate with both.</td></tr>
+    <tr><td>The cheap test</td><td>Segment by the suspect. Pattern vanishes: suspect owns it. Survives: suspect cleared.</td></tr>
+    <tr><td>What segmenting proves</td><td>Eliminates one named suspect per split. Never proves cause.</td></tr>
+    <tr><td>Reverse causation check</td><td>Timing. The cause has to move first. Recompute r at a lag.</td></tr>
+    <tr><td>Coincidence at n = 12</td><td>About 1 in 10 random pairs shows |r| ≥ 0.5. State n in every write-up.</td></tr>
+    <tr><td>Trending series</td><td>Everything that grows correlates with everything that grows. Compare changes, not levels.</td></tr>
+    <tr><td>Simpson's paradox</td><td>Subgroups and the total can genuinely disagree. Segment before interpreting.</td></tr>
+    <tr><td>What settles it</td><td>An experiment. Random assignment silences known and unknown confounders at once.</td></tr>
+    <tr><td>The reporting habit</td><td>"Associated with", name the confounders you checked, state n.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> If you take nothing else from this page, say the four stories out loud before acting on any pattern: X causes Y, Y causes X, a third thing drives both, chance. It costs ten seconds, and the expensive mistakes in analysis are almost never in the arithmetic. They are in the arrow.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. My temperature column confessed the moment I printed the full correlation grid instead of the one cell I was asked about. What is a correlation your team currently treats as a cause, and which of the four stories has nobody said out loud yet?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Simpson, E. H. (1951). The interpretation of interaction in contingency tables. <em>Journal of the Royal Statistical Society, Series B</em>, 13(2), 238–241.</li>
+    <li>Gelman, A., &amp; Price, P. N. (1999). All maps of parameter estimates are misleading. <em>Statistics in Medicine</em>, 18(23), 3221–3234.</li>
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice the reasoning until it is reflex.</strong>
+    <p style="margin:6px 0 0">You now own the four stories and the segmenting test. The <a href="../../stats/">Stats Kit</a> is where you run the reps: correlation, confounders, distributions, and A/B testing, with worked examples, flash cards, and a mock exam. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../stats/">Open the Stats Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../choose-the-right-chart/">Choose the Right Chart</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../report-vs-analysis/">Report vs Analysis</a> · <a href="../build-a-risk-index/">Build a Risk Index</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../pandas-groupby/">pandas groupby</a> · <a href="../sql-month-over-month/">SQL Month-over-Month</a> · <a href="../budget-vs-actual-variance/">Budget vs Actual Variance</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../sql-find-duplicates/">Find Duplicates in SQL</a> · <a href="../migration-profiling/">Migration Profiling</a> · <a href="../excel-label-rows-before-charting/">Label Rows Before Charting</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../tableau-concepts/">Tableau Concepts</a> · <a href="../../stats/">Stats Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

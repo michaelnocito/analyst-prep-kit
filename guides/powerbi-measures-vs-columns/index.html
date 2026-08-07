@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculated Column vs Measure in Power BI: The Rule That Decides — Analyst Prep Kit</title>
+<meta name="description" content="A margin column summed over four rows reports 120% where the real margin is 21.4%. One question decides column or measure, with arithmetic you can check by hand.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-measures-vs-columns/">
+<meta property="og:title" content="Calculated Column vs Measure in Power BI: The Rule That Decides">
+<meta property="og:description" content="A calculated column is computed once when the data loads. A measure is computed every time a viewer clicks. Sum a margin column and you get 120% where the truth is 21.4%. Here is the question that decides.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/powerbi-measures-vs-columns.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-measures-vs-columns/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/powerbi-measures-vs-columns.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Calculated Column vs Measure in Power BI: The Rule That Decides",
+  "description": "A margin column summed over four rows reports 120% where the real margin is 21.4%. One question decides column or measure, with arithmetic you can check by hand.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-measures-vs-columns/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-measures-vs-columns/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-07",
+  "dateModified": "2026-08-07",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/powerbi-measures-vs-columns.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Calculated Column vs Measure in Power BI: The Rule That Decides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-measures-vs-columns/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../powerbi/">Power BI Kit</a> · <a href="../">All guides</a></p>
+  <h1>Calculated Column vs Measure in Power BI: The Rule That Decides</h1>
+  <p class="meta">One question sorts every calculation into the right home · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can look at any calculation you are about to add to a Power BI model and know, before you write a character of DAX, whether it should be a calculated column or a measure. You will also be able to explain the choice to someone else, which is what an interviewer is really testing when they ask. It is about twenty minutes, and every number on the page is small enough to check with the arithmetic shown beside it.</p>
+
+  <p>Here is what to actually do today. Open your current model, find any percentage or ratio that lives in a calculated column, and ask one question about it: does the answer depend on what the viewer has filtered? If yes, rebuild it as a measure. That single move fixes the most common wrong number in Power BI reports.</p>
+
+  <p>The short version: a calculated column is computed once per row when the data loads, and stored. A measure is computed at query time, inside whatever filters the visual has at that moment. Anything whose answer changes with the filters must be a measure.</p>
+
+  <p>The whole fork is a question of when the arithmetic runs, so that is the one idea the picture carries.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 330" role="img" aria-labelledby="pbTitle pbDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="pbTitle">When each calculation runs</title>
+      <desc id="pbDesc">Two panels side by side. The left panel is labelled "load, once" and shows a refresh arrow feeding a data table of four rows; the table has an extra shaded column bolted onto its right edge, drawn with a lock on it, meaning the values were computed during the single load step and are now frozen in storage. The right panel is labelled "click, every time" and shows a slicer with one of two buttons pressed, an arrow from the slicer to a formula card, and an arrow from the formula card to a result card, drawn as a repeating loop. The contrast is the timing: the calculated column on the left ran once before anyone opened the report and cannot react to the slicer, while the measure on the right reruns inside the current filters on every click.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <text x="24" y="26" font-size="13" font-weight="700" fill="#09090B">column: load, once</text>
+        <text x="416" y="26" font-size="13" font-weight="700" fill="#0E7490">measure: click, every time</text>
+
+        <!-- left panel -->
+        <rect x="24" y="40" width="330" height="250" rx="12" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <!-- refresh arrow into table -->
+        <path d="M52 96 C52 66 96 66 118 84" stroke="#B45309" stroke-width="2.5" fill="none"/>
+        <path d="M118 84 L106 80 M118 84 L112 94" stroke="#B45309" stroke-width="2.5" fill="none"/>
+        <!-- table base columns -->
+        <g stroke="#E4E7EA" fill="#FFFFFF">
+          <rect x="56" y="100" width="70" height="30"/>
+          <rect x="126" y="100" width="70" height="30"/>
+          <rect x="56" y="130" width="70" height="30"/>
+          <rect x="126" y="130" width="70" height="30"/>
+          <rect x="56" y="160" width="70" height="30"/>
+          <rect x="126" y="160" width="70" height="30"/>
+          <rect x="56" y="190" width="70" height="30"/>
+          <rect x="126" y="190" width="70" height="30"/>
+        </g>
+        <!-- stored extra column -->
+        <g stroke="#B45309" fill="#FDF3E3">
+          <rect x="196" y="100" width="70" height="30"/>
+          <rect x="196" y="130" width="70" height="30"/>
+          <rect x="196" y="160" width="70" height="30"/>
+          <rect x="196" y="190" width="70" height="30"/>
+        </g>
+        <!-- lock on stored column -->
+        <rect x="286" y="140" width="26" height="20" rx="4" fill="#FFFFFF" stroke="#B45309" stroke-width="2"/>
+        <path d="M291 140 v-6 a8 8 0 0 1 16 0 v6" stroke="#B45309" stroke-width="2" fill="none"/>
+        <path d="M266 150 L284 150" stroke="#B45309" stroke-width="1.5" fill="none"/>
+        <text x="60" y="250" font-size="12.5" fill="#52525B">stored per row</text>
+
+        <!-- right panel -->
+        <rect x="406" y="40" width="330" height="250" rx="12" fill="#FFFFFF" stroke="#0E7490" stroke-width="1.5"/>
+        <!-- slicer -->
+        <rect x="430" y="76" width="90" height="26" rx="7" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <rect x="430" y="110" width="90" height="26" rx="7" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <circle cx="444" cy="89" r="5" fill="#0E7490"/>
+        <circle cx="444" cy="123" r="5" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <!-- arrow slicer to formula -->
+        <path d="M520 96 L560 130" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+        <path d="M560 130 L548 126 M560 130 L554 118" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+        <!-- formula card -->
+        <rect x="560" y="130" width="120" height="44" rx="9" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="578" y="157" font-size="15" font-weight="700" fill="#0E7490">Σ ÷ Σ</text>
+        <!-- loop arrow around formula -->
+        <path d="M690 138 C716 138 716 168 690 168" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M690 168 L700 160 M690 168 L700 174" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <!-- arrow formula to result -->
+        <path d="M618 174 L618 208" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+        <path d="M618 208 L612 197 M618 208 L624 197" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+        <!-- result card -->
+        <rect x="560" y="210" width="120" height="42" rx="9" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <rect x="576" y="224" width="88" height="12" rx="4" fill="#E0F2F7"/>
+        <text x="430" y="250" font-size="12.5" fill="#52525B">recomputed in the filters</text>
+      </g>
+    </svg>
+    <figcaption>A calculated column runs during refresh and its values are frozen into the table. A measure reruns on every click, inside whatever the slicer currently allows through.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>The fork, and the one question that decides it</li>
+      <li>Row context and filter context in everyday words</li>
+      <li>The classic failure: a margin column, summed</li>
+      <li>The measure that gets it right, checked by hand</li>
+      <li>What columns cost in storage</li>
+      <li>When a column is the right answer</li>
+      <li>Implicit and explicit measures</li>
+      <li>The full before and after</li>
+      <li>Edge cases that produce confident wrong numbers</li>
+      <li>Why this works</li>
+      <li>Using this on your own model</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every number here is hand-checkable.</strong> DAX only runs inside Power BI, so this page uses a four-row table and shows the arithmetic beside every claim, in the style 100 ÷ 600 = 16.7%. If a number on this page does not match the arithmetic printed next to it, I got it wrong and you caught it.</div>
+
+  <div class="step">
+    <h2>1. The fork, and the one question that decides it</h2>
+
+    <p>Here is the fork laid out fully, because the choice is not obvious the first time. The question is: where should this calculation live? There are two possible answers. A <strong>calculated column</strong> is a new column added to a table. Power BI computes its value once per row, at the moment the data loads, and then stores every one of those values in the model. The values never change again until the next refresh. A <strong>measure</strong> is a stored formula with no stored values at all. Power BI computes it fresh at query time, which means the instant a visual needs it, and it computes it inside whatever filters that visual has right then: the slicer selections, the page filters, the row of the chart it is filling in.</p>
+
+    <p>What decides between them is one question. <strong>Does the answer depend on what the viewer has filtered?</strong> If the answer changes when someone clicks a slicer, it must be a measure, because a column's values were frozen before the viewer ever arrived. If the answer is a fixed fact about one row, a fact that stays true no matter who is filtering what, a column is allowed and sometimes right.</p>
+
+    <p>Why the question matters: getting it wrong does not produce an error. It produces a clean, formatted, plausible number that is wrong, and nothing on the screen warns anyone. The rest of this page is one worked example of exactly that.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. Row context and filter context in everyday words</h2>
+
+    <p>Before the explanation: a slicer click changes a card from 21.4% to 16.7%. One of the two tools could have reacted to that click and one could not. Which is which?</p>
+
+    <p>These two phrases sound like jargon and they are actually just the two moments from section one, named. <strong>Row context</strong> means the formula is standing on one row and can see that row's values. A calculated column has row context: while computing row 1 it sees row 1's Sales and row 1's Profit, and nothing else. <strong>Filter context</strong> means the formula is standing inside a set of filters and can see every row that survives them. A measure has filter context: when a card is filtered to East, the measure sees all the East rows at once and none of the others.</p>
+
+    <p>Here is the table the rest of the page uses. Four rows, two products, two regions.</p>
+
+    <table>
+      <tr><th>Product</th><th>Region</th><th>Sales</th><th>Profit</th></tr>
+      <tr><td>A</td><td>East</td><td>100</td><td>50</td></tr>
+      <tr><td>A</td><td>West</td><td>200</td><td>90</td></tr>
+      <tr><td>B</td><td>East</td><td>500</td><td>50</td></tr>
+      <tr><td>B</td><td>West</td><td>300</td><td>45</td></tr>
+    </table>
+
+    <p>A calculated column walks this table one row at a time, at load, and writes one stored value per row. A measure never walks rows on its own. It waits for a visual to hand it a filtered slice, East only, or product B only, or everything, and then computes over that slice. Same table, two completely different moments of arithmetic. That is the entire distinction, and the answer to the prequestion is that only the measure could have moved when the slicer did.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. The classic failure: a margin column, summed</h2>
+
+    <p>Margin percent is profit divided by sales. It looks like a fact about each row, so the natural first instinct is a calculated column.</p>
+
+    <pre><code>Margin = Sales[Profit] / Sales[Sales]   -- calculated column, one value per row</code></pre>
+
+    <p>At load, Power BI computes and stores four values, and each one is genuinely correct for its row.</p>
+
+    <table>
+      <tr><th>Product</th><th>Region</th><th>Sales</th><th>Profit</th><th>Margin (stored)</th></tr>
+      <tr><td>A</td><td>East</td><td>100</td><td>50</td><td>50 ÷ 100 = 50%</td></tr>
+      <tr><td>A</td><td>West</td><td>200</td><td>90</td><td>90 ÷ 200 = 45%</td></tr>
+      <tr><td>B</td><td>East</td><td>500</td><td>50</td><td>50 ÷ 500 = 10%</td></tr>
+      <tr><td>B</td><td>West</td><td>300</td><td>45</td><td>45 ÷ 300 = 15%</td></tr>
+    </table>
+
+    <p>Now drag that Margin column into a card. Power BI has to collapse four stored values into one, and its default for a numeric column is to sum them: 50% + 45% + 10% + 15% = 120%. The card says total margin is 120%, which is not just wrong but impossible. Switch the aggregation to average instead and you get (50% + 45% + 10% + 15%) ÷ 4 = 30%, which looks respectable and is still wrong, because it lets product A's tiny 100 in sales count exactly as much as product B's 500.</p>
+
+    <p>The true overall margin is total profit over total sales: profit is 50 + 90 + 50 + 45 = 235, sales is 100 + 200 + 500 + 300 = 1,100, and 235 ÷ 1,100 = 21.4%. Neither 120% nor 30% is anywhere near it.</p>
+
+    <p>Say why the 120% appeared, in your own words, before reading on. The reason is that percentages of different-sized bases cannot be added. Adding 50-out-of-100 to 10-out-of-500 as if both were out of the same base makes the small product speak five times louder than its sales justify. The column froze each ratio at row level, so every aggregation of it afterwards is an aggregation of ratios, and ratios do not aggregate.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. The measure that gets it right, checked by hand</h2>
+
+    <p>The fix is to keep the division waiting until after the filters have done their work. That is a measure.</p>
+
+    <pre><code>Margin % = DIVIDE ( SUM ( Sales[Profit] ), SUM ( Sales[Sales] ) )</code></pre>
+
+    <p><code>DIVIDE</code> is division that returns a blank instead of an error when the bottom is zero, which matters the day a filter combination leaves no sales rows. The shape of the formula is the whole lesson: sum first, divide last.</p>
+
+    <p>Now every filter the viewer applies produces the honest number, because the sums happen inside the filter context. Check each one by hand:</p>
+
+    <table>
+      <tr><th>Filter</th><th>Measure computes</th><th>Result</th><th>Column summed would say</th></tr>
+      <tr><td>No filter</td><td>(50+90+50+45) ÷ (100+200+500+300) = 235 ÷ 1,100</td><td>21.4%</td><td>120%</td></tr>
+      <tr><td>East only</td><td>(50+50) ÷ (100+500) = 100 ÷ 600</td><td>16.7%</td><td>50% + 10% = 60%</td></tr>
+      <tr><td>West only</td><td>(90+45) ÷ (200+300) = 135 ÷ 500</td><td>27.0%</td><td>45% + 15% = 60%</td></tr>
+      <tr><td>Product A only</td><td>(50+90) ÷ (100+200) = 140 ÷ 300</td><td>46.7%</td><td>50% + 45% = 95%</td></tr>
+    </table>
+
+    <p>One formula, four filters, four correct answers, and the measure was never told which filter was coming. That is what "computed at query time inside the filter context" buys you. Notice too that the column's wrong answers are not even consistently wrong: East and West both say 60% while the truth is 16.7% against 27.0%, so the column version erases a real regional difference entirely.</p>
+
+    <p>Picture running this on your own model for a moment. Take one ratio you report, margin, conversion rate, cost per unit, and imagine a slicer cutting it to one region. If that number is a calculated column today, the sliced version on your screen is some flavour of the 60% row above.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. What columns cost in storage</h2>
+
+    <p>Correctness is the main reason to prefer measures, but there is a second, quieter cost. A calculated column stores one value for every row of its table. On the four-row table here that is four numbers and nobody cares. On a ten-million-row fact table, one calculated column is ten million stored values, held in memory, refreshed on every load, and compressed worse than the columns that came from the source, because calculated columns are computed after the engine has already chosen its compression. A measure stores exactly one thing regardless of table size: the formula text. Ten characters or ten million rows of difference, per calculation, is a real gap once a model has twenty of them.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. When a column is the right answer</h2>
+
+    <p>Before the explanation: you want a slicer with the options Budget, Mid-range, and Premium. Could a measure power that slicer?</p>
+
+    <p>It could not, and that is the clean rule for when a column is right. <strong>A slicer, an axis, and a legend can only hold real columns.</strong> They need a stored value on every row to group by. So when you want to slice or group <em>by</em> a category that does not exist in the source data, you build it, and a calculated column is the honest home for it. A price band is the classic case: it is a fixed fact about one row, it does not change when the viewer filters, and its whole job is to be filtered by.</p>
+
+    <pre><code>Price Band =
+SWITCH ( TRUE (),
+    Sales[Sales] &lt; 150, "Budget",
+    Sales[Sales] &lt; 350, "Mid-range",
+    "Premium"
+)</code></pre>
+
+    <p>One paragraph on <code>SWITCH(TRUE())</code>, because it looks odd the first time. <code>SWITCH</code> normally matches one value against a list of exact cases. Handing it <code>TRUE()</code> turns it into a ladder of conditions checked top to bottom, and the first condition that comes up true wins. It is DAX's version of a tidy IF-ELSE chain, and it is the standard way to write banding columns without nesting five IFs inside each other. On our table it stores Budget for the 100 row, Mid-range for the 200 and 300 rows, and Premium for the 500 row, and those labels pass the deciding question: no slicer click can change which band a 500-dollar row belongs in.</p>
+
+    <p>The band thresholds themselves, 150 and 350 here, deserve a sentence of justification in your model notes rather than a shrug. <a href="../data-driven-thresholds/">Choosing thresholds from the data</a> is its own guide.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Implicit and explicit measures</h2>
+
+    <p>Drag a bare numeric column into a visual and Power BI quietly wraps it in an aggregation for you, usually SUM. That auto-created wrapper is called an <strong>implicit measure</strong>. An <strong>explicit measure</strong> is one you wrote yourself with a name and a formula, like the Margin % above.</p>
+
+    <p>Analysts write explicit measures, for three reasons that all showed up earlier on this page. First, the implicit default is exactly the machine that turned the margin column into 120%: it sums whatever it is handed, whether or not summing means anything. Second, an explicit measure carries its definition with it, so Margin % means profit over sales in every visual, every page, and every colleague's report, instead of whatever aggregation someone happened to leave selected. A shared, written definition is most of what makes a metric trustworthy, and <a href="../defining-metrics/">defining metrics</a> goes deeper on that. Third, only explicit measures can hold real logic: DIVIDE, filters, time comparisons. The habit is simple and cheap: even for a plain total, write <code>Total Sales = SUM ( Sales[Sales] )</code> once and reuse it everywhere.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same four-row table, same question: what is our margin, overall and by region?</p>
+
+  <h3>Before</h3>
+  <pre><code>Margin = Sales[Profit] / Sales[Sales]        -- calculated column
+-- then dragged into a card, aggregation left on the default</code></pre>
+  <p>The card reads 120% (50% + 45% + 10% + 15%). Filtered to East it reads 60% (50% + 10%). Filtered to West it also reads 60% (45% + 15%), so the two regions look identical. Ten million rows would also be carrying a stored decimal each. No error appears at any point.</p>
+
+  <h3>After</h3>
+  <pre><code>Total Sales  = SUM ( Sales[Sales] )
+Total Profit = SUM ( Sales[Profit] )
+Margin %     = DIVIDE ( [Total Profit], [Total Sales] )</code></pre>
+  <p>The card reads 21.4% (235 ÷ 1,100). East reads 16.7% (100 ÷ 600), West reads 27.0% (135 ÷ 500), and the regional gap is visible for the first time. Three named formulas are stored, zero values per row, and every future visual reuses the same definitions.</p>
+
+  <div class="step">
+    <h2>Edge cases that produce confident wrong numbers</h2>
+
+    <p>Before the explanation: a colleague averages the margin column instead of summing it and says the problem is fixed. Is it?</p>
+
+    <p><strong>Averaging the ratio column is the same mistake in a milder coat.</strong> This is the prequestion's answer. (50% + 45% + 10% + 15%) ÷ 4 = 30%, against a truth of 21.4%. An unweighted average lets a row with 100 in sales count as much as a row with 500. It is closer than 120%, which is exactly why it survives review.</p>
+
+    <p><strong>A ratio at a subtotal is not the sum of the ratios below it.</strong> Even with a correct measure, people expect the total row of a matrix to be the sum of the rows above. For a ratio it never is: East 16.7% and West 27.0% sit above a total of 21.4%, not 43.7%. That is correct behaviour, and it is worth one sentence in the report notes so nobody "fixes" it.</p>
+
+    <p><strong>A ratio built on unrelated totals ignores the visual.</strong> Wrap the sums in functions that remove filters, or build them on the wrong table, and the measure shows 21.4% in every row of a regional breakdown. The symptom is a measure repeating one value everywhere; the cause is the filter context being thrown away.</p>
+
+    <p><strong>A calculated column does not update until refresh.</strong> Columns are computed at load, so a banding column built on yesterday's prices stays stale until the next refresh, while a measure would have moved with the data underneath. Anything that must track the data live has to be a measure.</p>
+
+    <p><strong>Blank divisions.</strong> Filter to a combination with rows but zero sales and a raw <code>/</code> errors or shows infinity. <code>DIVIDE</code> returns blank, and a blank card is the honest display for "no base to divide by".</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The margin failure is not a Power BI quirk. It is the oldest trap in aggregation: a ratio of sums and a sum (or average) of ratios are different quantities, and only the first one answers "what is our margin". The same structure is behind Simpson's paradox, where relationships that hold in every subgroup reverse in the combined table because group sizes act as hidden weights (Simpson, 1951, <em>Journal of the Royal Statistical Society, Series B</em>, 13(2), 238–241). Our East and West both showing 60% while truly differing by ten points is that machinery running in miniature. A measure works because it keeps the weights: summing profit and sales separately before dividing is precisely the size-weighted calculation the column threw away when it froze each ratio at row grain. If you know SQL, this is the same grain discipline as <a href="../sql-group-by-having/">GROUP BY</a>: a value computed at one grain cannot be casually re-aggregated at another.</p>
+
+  <p>There is also a reason this page kept asking you to answer before it explained. Being prompted to generate an answer before seeing the correct one measurably improves how well the material sticks, even when the first answer is wrong (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725). Committing to "could a measure power a slicer?" before the answer is why the slicer rule will still be there next month.</p>
+
+  <h2>Using this on your own model</h2>
+
+  <p>Auditing a whole model in one sitting is miserable and you will abandon it around column nine. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>List your calculated columns</strong>, just the names, in the model view. Five minutes.</li>
+    <li><strong>Ask the one question of each</strong>: does its answer depend on what the viewer filters? Every percentage, ratio, and running total fails the test on sight.</li>
+    <li><strong>Rebuild the failures as explicit measures</strong>, sums inside, DIVIDE outside, starting with the one that appears on the most-viewed page.</li>
+    <li><strong>Check one number by hand per rebuild</strong>, the way this page did: pick a small filter, add the raw values yourself, compare. One verified 100 ÷ 600 = 16.7% is worth more than an hour of eyeballing.</li>
+    <li><strong>Keep the columns that pass</strong>, the bands and flags and categories you slice by, and delete the ones nothing references. Each deletion is a row-count worth of storage back.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional drawing is worth the two minutes: redraw the picture at the top of this page from memory, a table with a locked extra column on the left, a slicer feeding a formula on the right. If you can place the lock and the loop correctly without looking, you own the fork.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Excel, Power BI, Tableau, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Question</th><th>Answer</th></tr>
+    <tr><td>Calculated column</td><td>Computed once per row at data load, values stored in the model.</td></tr>
+    <tr><td>Measure</td><td>Formula computed at query time, inside the visual's current filters. Nothing stored per row.</td></tr>
+    <tr><td>The deciding question</td><td>Does the answer depend on what the viewer has filtered? Yes means measure.</td></tr>
+    <tr><td>Row context</td><td>Standing on one row, seeing that row's values. What a column has.</td></tr>
+    <tr><td>Filter context</td><td>Standing inside the current filters, seeing all surviving rows. What a measure has.</td></tr>
+    <tr><td>Why summing a ratio column fails</td><td>Ratios of different-sized bases cannot be added. 50% + 45% + 10% + 15% = 120%.</td></tr>
+    <tr><td>Why averaging it also fails</td><td>Unweighted: small rows count as much as big ones. 30% against a truth of 21.4%.</td></tr>
+    <tr><td>The right shape</td><td>Sum first, divide last: <code>DIVIDE(SUM(Profit), SUM(Sales))</code>.</td></tr>
+    <tr><td>DIVIDE vs /</td><td>DIVIDE returns blank on a zero base instead of an error.</td></tr>
+    <tr><td>When a column is right</td><td>A stored fact about one row you want to slice, group, or filter by. Bands, flags, categories.</td></tr>
+    <tr><td>SWITCH(TRUE())</td><td>A ladder of conditions, first true one wins. The standard banding pattern.</td></tr>
+    <tr><td>Storage cost</td><td>Column: one stored value per row, poorly compressed. Measure: the formula text only.</td></tr>
+    <tr><td>Implicit measure</td><td>The auto-aggregation Power BI applies to a bare column. Defaults to SUM, meaningful or not.</td></tr>
+    <tr><td>Explicit measure</td><td>Named, written by you, one definition reused everywhere. What analysts ship.</td></tr>
+    <tr><td>Ratio subtotals</td><td>Never the sum of the rows above. 16.7% and 27.0% correctly total 21.4%.</td></tr>
+    <tr><td>Stale column</td><td>Columns update at refresh only. Live-tracking logic must be a measure.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Before writing any calculation, say out loud whether its answer moves when a slicer clicks. Moves means measure, sums inside and the division last. The wrong version never errors. It formats itself nicely and ships.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. My first margin column survived three report reviews, because 30% looked plausible for the business and nobody, including me, added the numbers by hand. What is the longest a wrong ratio has lived in one of your reports, and what finally exposed it?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Simpson, E. H. (1951). The interpretation of interaction in contingency tables. <em>Journal of the Royal Statistical Society, Series B</em>, 13(2), 238–241.</li>
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice the fork until it is reflex.</strong>
+    <p style="margin:6px 0 0">The <a href="../../powerbi/">Power BI Kit</a> drills exactly this kind of decision: worked DAX examples, flash cards on row and filter context, and a mock exam that asks you to place calculations the way an interviewer would. You now own the rule; the kit is the repetitions. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../powerbi/">Open the Power BI Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../budget-vs-actual-variance/">Budget vs Actual Variance</a> · <a href="../choose-the-right-chart/">Choose the Right Chart</a> · <a href="../excel-sumifs/">SUMIFS in Excel</a> · <a href="../vlookup-vs-xlookup/">VLOOKUP vs XLOOKUP</a> · <a href="../correlation-vs-causation/">Correlation vs Causation</a> · <a href="../pandas-groupby/">pandas GroupBy</a> · <a href="../excel-dashboard-build-order/">Excel Dashboard Build Order</a> · <a href="../excel-label-rows-before-charting/">Label Rows Before Charting</a> · <a href="../build-a-tableau-dashboard/">Build a Tableau Dashboard</a> · <a href="../tableau-concepts/">Tableau Concepts</a> · <a href="../tableau-relationships/">Tableau Relationships</a> · <a href="../build-a-risk-index/">Build a Risk Index</a> · <a href="../report-vs-analysis/">Report vs Analysis</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../powerbi/">Power BI Kit</a> · <a href="../../excel/">Excel Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

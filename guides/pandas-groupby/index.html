@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pandas GroupBy: How to Summarize a DataFrame Without Losing Track of Your Rows — Analyst Prep Kit</title>
+<meta name="description" content="groupby, agg, size vs count, transform, and dropna, worked on one 14-row table. Two rows vanish from the default result, and one line brings them back.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-groupby/">
+<meta property="og:title" content="pandas GroupBy: How to Summarize a DataFrame Without Losing Track of Your Rows">
+<meta property="og:description" content="Split, apply, combine on one 14-row table: groupby basics, named aggregation, size vs count, transform, and the two rows the default settings silently drop.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/pandas-groupby.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-groupby/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/pandas-groupby.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "pandas GroupBy: How to Summarize a DataFrame Without Losing Track of Your Rows",
+  "description": "groupby, agg, size vs count, transform, and dropna, worked on one 14-row table. Two rows vanish from the default result, and one line brings them back.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-groupby/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-groupby/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-07",
+  "dateModified": "2026-08-07",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/pandas-groupby.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "pandas GroupBy: How to Summarize a DataFrame Without Losing Track of Your Rows",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-groupby/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../python/">Python Kit</a> · <a href="../">All guides</a></p>
+  <h1>pandas GroupBy: How to Summarize a DataFrame Without Losing Track of Your Rows</h1>
+  <p class="meta">Split, apply, combine, and the rows that quietly go missing · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can take a DataFrame, summarize it by any column or combination of columns, get several statistics at once with sensible names, and account for every row that went in, including the ones pandas would otherwise drop without telling you. It is about twenty-five minutes, and every output shown was produced by actually running the code on the table printed below.</p>
+
+  <p>Here is what to actually do today. In your next <code>groupby</code>, add a row count beside whatever statistic you are computing, using <code>size</code>, and run it once with <code>dropna=False</code>. Those two additions surface the two most common silent problems in grouped results: averages built on almost nothing, and rows that vanished because their key was missing.</p>
+
+  <p>The short version: <code>groupby</code> splits the table into one mini-table per key value, applies your function to each, and combines the answers into a new table with one row per group. <code>count</code> skips missing values, <code>size</code> does not, and rows with a missing key are dropped entirely unless you ask otherwise.</p>
+
+  <p>The split-apply-combine shape is the one idea everything else on this page hangs from, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 320" role="img" aria-labelledby="pgTitle pgDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="pgTitle">Split, apply, combine</title>
+      <desc id="pgDesc">A left-to-right pipeline in three stages. On the left, one table of seven stacked rows, where three rows share one shading, two rows share a second shading, one row has a third shading, and one row at the bottom is drawn hollow with a dashed border, meaning its key is missing. Arrows split the table into three separate mini-tables in the middle, one per shading: a three-row table, a two-row table, and a one-row table. The hollow dashed row's arrow stops at a dashed cross, showing it was dropped rather than assigned to any group. From each mini-table an arrow passes through a small function box and collapses it into a single summary row. On the right the three summary rows stack into one small result table with one row per group. The dropped dashed row never reaches the result.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <text x="30" y="24" font-size="13" font-weight="700" fill="#09090B">split</text>
+        <text x="330" y="24" font-size="13" font-weight="700" fill="#0E7490">apply</text>
+        <text x="622" y="24" font-size="13" font-weight="700" fill="#09090B">combine</text>
+
+        <!-- source table -->
+        <g stroke="#E4E7EA">
+          <rect x="30" y="44" width="110" height="26" fill="#E0F2F7"/>
+          <rect x="30" y="70" width="110" height="26" fill="#E0F2F7"/>
+          <rect x="30" y="96" width="110" height="26" fill="#E0F2F7"/>
+          <rect x="30" y="122" width="110" height="26" fill="#D6E8D8"/>
+          <rect x="30" y="148" width="110" height="26" fill="#D6E8D8"/>
+          <rect x="30" y="174" width="110" height="26" fill="#FDF3E3"/>
+        </g>
+        <rect x="30" y="200" width="110" height="26" fill="#FFFFFF" stroke="#B45309" stroke-dasharray="5 4"/>
+
+        <!-- split arrows -->
+        <path d="M140 83 C210 83 230 76 292 76" stroke="#A1A1AA" stroke-width="1.5" fill="none"/>
+        <path d="M140 135 C210 135 230 150 292 150" stroke="#A1A1AA" stroke-width="1.5" fill="none"/>
+        <path d="M140 187 C210 187 230 216 292 216" stroke="#A1A1AA" stroke-width="1.5" fill="none"/>
+        <path d="M140 213 C180 213 200 262 236 262" stroke="#B45309" stroke-width="1.5" stroke-dasharray="5 4" fill="none"/>
+        <text x="242" y="268" font-size="15" font-weight="700" fill="#B45309">✕</text>
+
+        <!-- mini-tables -->
+        <g stroke="#E4E7EA">
+          <rect x="292" y="44" width="100" height="22" fill="#E0F2F7"/>
+          <rect x="292" y="66" width="100" height="22" fill="#E0F2F7"/>
+          <rect x="292" y="88" width="100" height="22" fill="#E0F2F7"/>
+          <rect x="292" y="140" width="100" height="22" fill="#D6E8D8"/>
+          <rect x="292" y="162" width="100" height="22" fill="#D6E8D8"/>
+          <rect x="292" y="206" width="100" height="22" fill="#FDF3E3"/>
+        </g>
+
+        <!-- function boxes and collapse arrows -->
+        <path d="M392 77 L432 77" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <rect x="432" y="63" width="46" height="28" rx="7" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <text x="446" y="83" font-size="14" font-weight="700" fill="#0E7490">ƒ</text>
+        <path d="M478 77 L516 77 L516 96" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M516 96 L510 86 M516 96 L522 86" stroke="#0E7490" stroke-width="2" fill="none"/>
+
+        <path d="M392 151 L432 151" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <rect x="432" y="137" width="46" height="28" rx="7" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <text x="446" y="157" font-size="14" font-weight="700" fill="#0E7490">ƒ</text>
+        <path d="M478 151 L534 151 L534 132" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M534 132 L528 142 M534 132 L540 142" stroke="#0E7490" stroke-width="2" fill="none"/>
+
+        <path d="M392 217 L432 217" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <rect x="432" y="203" width="46" height="28" rx="7" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <text x="446" y="223" font-size="14" font-weight="700" fill="#0E7490">ƒ</text>
+        <path d="M478 217 L552 217 L552 172" stroke="#0E7490" stroke-width="2" fill="none"/>
+        <path d="M552 172 L546 182 M552 172 L558 182" stroke="#0E7490" stroke-width="2" fill="none"/>
+
+        <!-- result table -->
+        <g stroke="#09090B" stroke-width="1.2">
+          <rect x="600" y="100" width="130" height="30" fill="#E0F2F7"/>
+          <rect x="600" y="130" width="130" height="30" fill="#D6E8D8"/>
+          <rect x="600" y="160" width="130" height="30" fill="#FDF3E3"/>
+        </g>
+        <text x="600" y="216" font-size="12.5" fill="#52525B">one row per group</text>
+      </g>
+    </svg>
+    <figcaption>Split the rows by key, apply one function per mini-table, combine the answers into one row per group. The dashed row had no key, and by default it is dropped before the split, not carried as its own group.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What groupby actually does: split, apply, combine</li>
+      <li>The basic move: one column, one statistic</li>
+      <li>Several statistics at once: agg and named aggregation</li>
+      <li>size against count, and which one answers your question</li>
+      <li>Two grouping columns, the MultiIndex, and getting a flat table back</li>
+      <li>The small-group problem, carried over from SQL</li>
+      <li>transform: a group statistic on every row</li>
+      <li>The rows that vanish: dropna</li>
+      <li>The full before and after</li>
+      <li>Edge cases that break grouped results in real data</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every output on this page is real.</strong> One 14-row sales table, printed in full below, and every result was produced by running the code with pandas. If you already group in SQL, this page is the pandas half of a pair: <a href="../sql-group-by-having/">GROUP BY and HAVING</a> is the same idea in its original home, and I will point at the twin moves as they come up.</div>
+
+  <p>Here is the whole dataset. Fourteen orders, a region, a category, and an amount. Two things are deliberately imperfect, because real data always is: order 1008 has a missing amount, and orders 1013 and 1014 have a missing region.</p>
+
+  <pre><code>import pandas as pd
+import numpy as np
+
+df = pd.DataFrame({
+    'order_id': [1001,1002,1003,1004,1005,1006,1007,1008,1009,1010,1011,1012,1013,1014],
+    'region':   ['East','East','East','East','East','West','West','West','West',
+                 'South','South','South',np.nan,np.nan],
+    'category': ['Chairs','Chairs','Desks','Desks','Lamps','Chairs','Desks','Desks','Lamps',
+                 'Chairs','Chairs','Lamps','Desks','Lamps'],
+    'amount':   [120.0, 80.0, 300.0, 250.0, 40.0, 100.0, 400.0, np.nan, 60.0,
+                 90.0, 110.0, 50.0, 260.0, 45.0],
+})</code></pre>
+
+  <table>
+    <tr><th>order_id</th><th>region</th><th>category</th><th>amount</th></tr>
+    <tr><td>1001</td><td>East</td><td>Chairs</td><td>120</td></tr>
+    <tr><td>1002</td><td>East</td><td>Chairs</td><td>80</td></tr>
+    <tr><td>1003</td><td>East</td><td>Desks</td><td>300</td></tr>
+    <tr><td>1004</td><td>East</td><td>Desks</td><td>250</td></tr>
+    <tr><td>1005</td><td>East</td><td>Lamps</td><td>40</td></tr>
+    <tr><td>1006</td><td>West</td><td>Chairs</td><td>100</td></tr>
+    <tr><td>1007</td><td>West</td><td>Desks</td><td>400</td></tr>
+    <tr><td>1008</td><td>West</td><td>Desks</td><td>NaN</td></tr>
+    <tr><td>1009</td><td>West</td><td>Lamps</td><td>60</td></tr>
+    <tr><td>1010</td><td>South</td><td>Chairs</td><td>90</td></tr>
+    <tr><td>1011</td><td>South</td><td>Chairs</td><td>110</td></tr>
+    <tr><td>1012</td><td>South</td><td>Lamps</td><td>50</td></tr>
+    <tr><td>1013</td><td>NaN</td><td>Desks</td><td>260</td></tr>
+    <tr><td>1014</td><td>NaN</td><td>Lamps</td><td>45</td></tr>
+  </table>
+
+  <div class="step">
+    <h2>1. What groupby actually does: split, apply, combine</h2>
+
+    <p>Before the explanation: the table has 14 rows. You group by region and get 3 rows back. In your own head, where are the other 11 rows, and what does one row of the result now mean?</p>
+
+    <p>The name for the mechanism is <strong>split-apply-combine</strong>. <em>Split</em>: pandas sorts the rows into one mini-table per distinct key value, every East row together, every West row together, every South row together. <em>Apply</em>: it runs your function, say a mean, on each mini-table separately. <em>Combine</em>: it stacks the answers into a new table with one row per group. Nothing is averaged across groups by accident, because each function call only ever saw one group's rows.</p>
+
+    <p>The part worth saying out loud is what one row means afterwards. Before grouping, one row was one order. After grouping by region, one row is one region. That change of meaning is called the <strong>grain</strong> of the table, and it is exactly the discipline SQL forces with <code>GROUP BY</code>: once the grain is one-row-per-region, an individual order's amount no longer exists in the result, and any column you want to see must be a group key or a summary. pandas will not error the way SQL does if you confuse grains; it will just hand you something you did not mean. Naming the new grain before you type is the cheap defence.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. The basic move: one column, one statistic</h2>
+
+    <p>The workhorse line reads almost like the sentence you would say: group by region, take the amount column, take the mean.</p>
+
+    <pre><code>df.groupby('region')['amount'].mean()</code></pre>
+
+    <pre><code>region
+East     158.000000
+South     83.333333
+West     186.666667
+Name: amount, dtype: float64</code></pre>
+
+    <p>Check East by hand: (120 + 80 + 300 + 250 + 40) ÷ 5 = 790 ÷ 5 = 158. South: (90 + 110 + 50) ÷ 3 = 250 ÷ 3 = 83.33. West has four rows but one amount is missing, and <code>mean</code> skips missing values: (100 + 400 + 60) ÷ 3 = 560 ÷ 3 = 186.67. Divided by three, not four. Keep that skip in mind; it becomes a whole section shortly.</p>
+
+    <p>Two smaller things before moving on. Swap <code>mean</code> for <code>sum</code>, <code>median</code>, <code>min</code>, <code>max</code>, or <code>std</code> and the shape is identical. And the result here is a Series whose index is the group key, which is fine for a quick look and awkward for anything downstream; section five shows the flat-table version.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Several statistics at once: agg and named aggregation</h2>
+
+    <p>A single mean is rarely the deliverable. <code>agg</code> takes a list of functions and computes them per group in one pass.</p>
+
+    <pre><code>df.groupby('region')['amount'].agg(['mean', 'sum', 'size', 'count'])</code></pre>
+
+    <pre><code>              mean    sum  size  count
+region
+East    158.000000  790.0     5      5
+South    83.333333  250.0     3      3
+West    186.666667  560.0     4      3</code></pre>
+
+    <p>The version I actually ship is <strong>named aggregation</strong>, where you name each output column yourself and say which input column and which function feed it. The pattern is <code>new_name=('column', 'function')</code>.</p>
+
+    <pre><code>df.groupby('region').agg(
+    avg_amount=('amount', 'mean'),
+    orders=('amount', 'size'),
+)</code></pre>
+
+    <pre><code>        avg_amount  orders
+region
+East    158.000000       5
+South    83.333333       3
+West    186.666667       4</code></pre>
+
+    <p>The named form costs a few more characters and pays twice. The output columns are called <code>avg_amount</code> and <code>orders</code> instead of <code>mean</code> and <code>size</code>, so the result is readable without the code beside it. And each statistic states its input column explicitly, so adding a second value column to the table later cannot silently change what gets aggregated.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. size against count, and which one answers your question</h2>
+
+    <p>Before the explanation: in the table two sections back, West shows size 4 and count 3. Both claim to be counting. Decide what each one counted before reading the answer.</p>
+
+    <p><code>size</code> counts rows in the group, missing or not. West has four order rows, so size says 4. <code>count</code> counts non-missing values in the chosen column. West's four rows include order 1008 with a missing amount, so count says 3. One missing value is the entire gap between the two answers.</p>
+
+    <p>This is exactly SQL's split between <code>COUNT(*)</code> and <code>COUNT(col)</code>: <code>size</code> is <code>COUNT(*)</code>, rows in the bucket, and <code>count</code> is <code>COUNT(col)</code>, values present in one column. Neither is the correct one in general; they answer different questions. "How many orders did West place?" is a size question: 4. "How many West orders have an amount I can add up?" is a count question: 3. The mistake is not picking the wrong function so much as not noticing they can differ, because on clean columns they agree and the habit forms that they always will.</p>
+
+    <p>Say in one sentence why West's mean divided by 3 and not 4, before reading on. It is the same fact wearing a different hat: aggregations skip missing values, so the mean's denominator is count, not size. A mean over a column that is one-quarter missing is a statement about the three-quarters that answered.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Two grouping columns, the MultiIndex, and getting a flat table back</h2>
+
+    <p>Pass a list of columns and the grain gets finer: one row per region per category.</p>
+
+    <pre><code>df.groupby(['region', 'category'])['amount'].mean()</code></pre>
+
+    <pre><code>region  category
+East    Chairs      100.0
+        Desks       275.0
+        Lamps        40.0
+South   Chairs      100.0
+        Lamps        50.0
+West    Chairs      100.0
+        Desks       400.0
+        Lamps        60.0
+Name: amount, dtype: float64</code></pre>
+
+    <p>East Chairs by hand: (120 + 80) ÷ 2 = 100. East Desks: (300 + 250) ÷ 2 = 275. The staircase layout on the left is a <strong>MultiIndex</strong>: the group keys have become a two-level row index rather than ordinary columns. It prints nicely and then fights you the moment you try to merge, filter, plot, or export, because <code>region</code> is no longer a column you can just refer to.</p>
+
+    <p>Two ways to get a plain flat table, and they end in the same place. Ask for it up front with <code>as_index=False</code>, which keeps the keys as regular columns, or repair it afterwards with <code>.reset_index()</code>, which moves index levels back into columns.</p>
+
+    <pre><code>df.groupby(['region', 'category'], as_index=False)['amount'].mean()</code></pre>
+
+    <pre><code>region category  amount
+  East   Chairs   100.0
+  East    Desks   275.0
+  East    Lamps    40.0
+ South   Chairs   100.0
+ South    Lamps    50.0
+  West   Chairs   100.0
+  West    Desks   400.0
+  West    Lamps    60.0</code></pre>
+
+    <p>Also worth noticing: South has no Desks row at all, not a zero. Combinations with no rows simply never form a group, the same way a filtered-out group goes missing in SQL. If a category you know exists is absent from a grouped result, the rows behind it never made it into the split.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. The small-group problem, carried over from SQL</h2>
+
+    <p>Rankings of group averages have a structural bias: the smallest groups float to the extremes, because a mean over three values swings much more freely than a mean over three thousand. The SQL guide's fix carries straight over: always compute the group size beside the statistic, and set a floor before you read the ranking.</p>
+
+    <pre><code>summary = df.groupby('region').agg(
+    avg_amount=('amount', 'mean'),
+    orders=('order_id', 'size'),
+)
+summary[summary['orders'] &gt;= 4]</code></pre>
+
+    <pre><code>        avg_amount  orders
+region
+East    158.000000       5
+West    186.666667       4</code></pre>
+
+    <p>South, with its 3 orders averaging 83.33, is excluded from the comparison rather than allowed to look like a stable finding. The boolean filter line is pandas's <code>HAVING</code>: it runs on the combined result, after the groups exist, which is the only time a per-group condition can be checked. On fourteen rows the floor of 4 is obviously a demonstration; on real data the floor is a judgement you should pick from the data and write down, and <a href="../data-driven-thresholds/">choosing thresholds from the data</a> covers how.</p>
+
+    <p>Now picture running the named-aggregation line on your own table, whatever it is: tickets by assignee, revenue by client, scores by school. Which group do you already suspect has single-digit rows behind a confident-looking average? That suspicion is the reason <code>orders=</code> goes in every grouped result I ship.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. transform: a group statistic on every row</h2>
+
+    <p>Everything so far collapsed the table. Sometimes you want the opposite: keep all the original rows and attach a group-level number to each, so you can compute each row's share of its group. <code>transform</code> applies the function per group and then broadcasts the answer back to every row of that group, so the result is the same length as the input.</p>
+
+    <pre><code>d2 = df.dropna(subset=['region', 'amount']).copy()
+d2['region_total'] = d2.groupby('region')['amount'].transform('sum')
+d2['share'] = d2['amount'] / d2['region_total']</code></pre>
+
+    <pre><code> order_id region category  amount  region_total  share
+     1001   East   Chairs   120.0         790.0  0.152
+     1002   East   Chairs    80.0         790.0  0.101
+     1003   East    Desks   300.0         790.0  0.380
+     1004   East    Desks   250.0         790.0  0.316
+     1005   East    Lamps    40.0         790.0  0.051
+     1006   West   Chairs   100.0         560.0  0.179
+     1007   West    Desks   400.0         560.0  0.714
+     1009   West    Lamps    60.0         560.0  0.107
+     1010  South   Chairs    90.0         250.0  0.360
+     1011  South   Chairs   110.0         250.0  0.440
+     1012  South    Lamps    50.0         250.0  0.200</code></pre>
+
+    <p>Every East row carries East's total of 790, every West row 560, every South row 250. Order 1007's share checks by hand: 400 ÷ 560 = 0.714, so one desk order is 71% of West's spend. The rule of thumb: <code>agg</code> when the deliverable is one row per group, <code>transform</code> when the deliverable is the original rows with a group fact attached. In SQL this same keep-the-rows move is a window function.</p>
+
+    <p>The first line dropped the rows with a missing region or amount on purpose, and out loud, before dividing. Which is the perfect segue.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. The rows that vanish: dropna</h2>
+
+    <p>Before the explanation: our table has 14 rows, and the region sizes in section three were 5 + 3 + 4 = 12. Two rows have been missing from every grouped result on this page so far. Which two?</p>
+
+    <p>Orders 1013 and 1014, the ones with a missing region. By default <code>groupby</code> runs with <code>dropna=True</code>, which means rows whose group key is missing are excluded before the split even happens. They are not a group that shows up blank; they are simply not there, and no warning is printed. On this page that is 2 rows of 14, holding 260 + 45 = 305 in sales. On a real table it can be a fifth of your revenue, absent from every regional report, with every printed number still individually correct.</p>
+
+    <p>One argument surfaces them as their own group.</p>
+
+    <pre><code>df.groupby('region', dropna=False)['amount'].mean()</code></pre>
+
+    <pre><code>region
+East     158.000000
+South     83.333333
+West     186.666667
+NaN      152.500000
+Name: amount, dtype: float64</code></pre>
+
+    <p>The NaN group's mean checks by hand: (260 + 45) ÷ 2 = 305 ÷ 2 = 152.5. That row is not an error to hide. It is a measurement of your missing data, and the honest move is to report it: "two orders, 305 in sales, have no region recorded." Silent exclusions are exactly the kind of thing that belongs in writing next to a result, and <a href="../documenting-data-limitations/">documenting data limitations</a> is the guide for how to say it. My habit is to run the <code>dropna=False</code> version once for every key I group by, read the NaN row, then decide what to do about it, rather than letting the default decide for me.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same 14-row table, same question: how do the regions compare on order value?</p>
+
+  <h3>Before</h3>
+  <pre><code>df.groupby('region')['amount'].mean()</code></pre>
+  <p>Three problems, none of which raise an error. There is no group size, so South's 83.33 on three orders reads as confidently as East's 158 on five. Two whole rows are missing because their region is blank, and nothing says so. And the result is an index-keyed Series that the next step will trip over.</p>
+
+  <h3>After</h3>
+  <pre><code># One row per region, sizes shown, missing keys surfaced, flat table, sorted.
+result = (
+    df.groupby('region', dropna=False, as_index=False)
+      .agg(avg_amount=('amount', 'mean'),
+           orders=('amount', 'size'))
+      .sort_values('avg_amount', ascending=False)
+)</code></pre>
+  <pre><code>region  avg_amount  orders
+  West  186.666667       4
+  East  158.000000       5
+ South   83.333333       3
+   NaN  152.500000       2</code></pre>
+  <p>(The NaN row appears because of <code>dropna=False</code>; pandas keeps it at the end of the sort.) Every one of the 14 input rows is now accounted for: 4 + 5 + 3 + 2 = 14. The reader can see that South's average stands on 3 orders, and that 2 orders have no region at all. <code>sort_values('avg_amount', ascending=False)</code> orders the result by the statistic, highest first, because a comparison table should be sorted by the thing being compared, not by alphabet.</p>
+
+  <div class="step">
+    <h2>Edge cases that break grouped results in real data</h2>
+
+    <p>Five that each cost someone an afternoon.</p>
+
+    <p><strong>The key column has near-duplicate values.</strong> <code>'East'</code> and <code>'East '</code> with a trailing space are two different groups, and your regional report quietly grows a fourth region. Normalize keys before grouping, <code>df['region'].str.strip()</code> at minimum. When the duplicates are messier than whitespace, that is <a href="../entity-resolution/">entity resolution</a>.</p>
+
+    <p><strong>A group whose values are all missing returns NaN, not zero.</strong> If every amount in a group is missing, <code>sum</code> returns 0 but <code>mean</code> returns NaN, and a NaN in a report column tends to get "fixed" to zero by whoever formats it. A group with no measurable values and a group averaging zero are different findings.</p>
+
+    <p><strong>Grouping after a merge counts duplicates.</strong> If an upstream join multiplied rows, <code>size</code> now counts pairs, not orders. The check is the one this page keeps using: do the group sizes still add to the row count you expected?</p>
+
+    <p><strong>The MultiIndex survives into your export.</strong> Write a two-key grouped result straight to CSV and the staircase index becomes blank cells under <code>region</code>, which Excel users will read as missing data. Flatten with <code>as_index=False</code> or <code>reset_index()</code> before anything leaves Python.</p>
+
+    <p><strong>Sorting by the index when you meant the values.</strong> <code>sort_index()</code> orders by group name, alphabetically. <code>sort_values('avg_amount')</code> orders by the number. A ranking sorted alphabetically still looks sorted, which is what makes it easy to miss.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>Split-apply-combine is not just how pandas happens to be built; it is a named, general strategy for data analysis. Wickham's account of it, written for the R world, argues that an enormous share of practical analysis is exactly this pattern, break a problem into pieces along a key, operate on each piece independently, put the pieces back together, and that naming the pattern is what lets you recognize it across tools (Wickham, 2011, <em>Journal of Statistical Software</em>, 40(1), 1–29). That is why this page kept pointing at SQL: <code>groupby</code>, <code>GROUP BY</code>, Excel pivot tables, and window functions are one strategy wearing four syntaxes, and the grain discipline transfers with it. The theory underneath is older still: grouping is a partition of rows into disjoint sets, and an aggregate is a function from a set to a single value, which is the relational footing SQL formalized from the start (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). Once you see a grouped result as a partition, the page's oddities stop being quirks: a dropped NaN key is a row assigned to no set, and size against count is the size of the set against the values present in one attribute of it.</p>
+
+  <p>And there is a reason this page kept asking you to commit to an answer, where are the missing rows, what did size count, before giving it. Attempting an answer before seeing the correct one reliably improves how well the correct one is retained, even when the attempt is wrong (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725). The 5 + 3 + 4 = 12 arithmetic sticks because you were asked to find the gap before it was named.</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Retrofitting every grouped line in an old notebook is miserable and you will stop at the third cell. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Say the new grain out loud</strong> before you type: "one row per region per month." It decides the key list and warns you what stops existing.</li>
+    <li><strong>Use named aggregation by default</strong>, even for one statistic. Future-you gets column names that explain themselves.</li>
+    <li><strong>Put a <code>size</code> beside every statistic</strong>, and check the sizes add up to the row count you started with. The 5 + 3 + 4 = 12 check on this page is the whole method.</li>
+    <li><strong>Run each key once with <code>dropna=False</code></strong> and read the NaN row before deciding whether to exclude it, fill it, or report it.</li>
+    <li><strong>Flatten before anything leaves Python</strong>: <code>as_index=False</code> or <code>reset_index()</code>, then <code>sort_values</code> by the statistic.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional drawing is worth five minutes: redraw the split-apply-combine picture from memory for your own table, seven rows, three shadings, one dashed row with a missing key, and mark where that dashed row goes. Placing the dropped row correctly, before the split rather than after, is the whole dropna lesson in one pen stroke.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Python, Excel, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Concept</th><th>What it does</th></tr>
+    <tr><td>Split-apply-combine</td><td>One mini-table per key, one function call per mini-table, answers stacked into one row per group.</td></tr>
+    <tr><td>Grain after grouping</td><td>One row per group, not one row per record. Say it before typing.</td></tr>
+    <tr><td><code>df.groupby('k')['v'].mean()</code></td><td>The basic move: key, value column, statistic.</td></tr>
+    <tr><td><code>agg(['mean','sum'])</code></td><td>Several statistics per group in one pass.</td></tr>
+    <tr><td>Named aggregation</td><td><code>agg(avg=('v','mean'), n=('v','size'))</code>. Your names, explicit inputs.</td></tr>
+    <tr><td><code>size</code></td><td>Rows in the group, missing included. SQL's <code>COUNT(*)</code>.</td></tr>
+    <tr><td><code>count</code></td><td>Non-missing values in one column. SQL's <code>COUNT(col)</code>. Can be smaller.</td></tr>
+    <tr><td>Aggregations and NaN</td><td>mean, sum and friends skip missing values. The denominator is count, not size.</td></tr>
+    <tr><td>Several keys</td><td><code>groupby(['a','b'])</code>: finer grain, result carries a MultiIndex.</td></tr>
+    <tr><td>Flat table back</td><td><code>as_index=False</code> up front, or <code>.reset_index()</code> after.</td></tr>
+    <tr><td>Small groups</td><td>Ship a size column, filter <code>summary[summary['n'] &gt;= floor]</code>. pandas's HAVING.</td></tr>
+    <tr><td><code>transform</code></td><td>Group statistic broadcast back onto every original row. For shares and comparisons to the group.</td></tr>
+    <tr><td><code>agg</code> vs <code>transform</code></td><td>agg collapses to one row per group; transform keeps every row.</td></tr>
+    <tr><td>Missing keys</td><td>Dropped before the split by default. <code>dropna=False</code> keeps them as a NaN group.</td></tr>
+    <tr><td>Missing combination</td><td>No rows means no group at all, not a zero row.</td></tr>
+    <tr><td>The reconciliation check</td><td>Group sizes must add back to the input row count. Here: 5 + 3 + 4 + 2 = 14.</td></tr>
+    <tr><td><code>sort_values</code></td><td>Order the result by the statistic, not the alphabet.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Every grouped result ships with a size column, and the sizes must add back to the rows you started with. That single reconciliation catches missing keys, join blowups, and hollow averages in one move. If a grouped result breaks in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The first time I ran a regional report, the rows with no region were simply not in it, and I only found them weeks later reconciling against a finance total that would not match. What have you found living in your NaN group, and how long had it been there?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Wickham, H. (2011). The split-apply-combine strategy for data analysis. <em>Journal of Statistical Software</em>, 40(1), 1–29.</li>
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice grouping with real data in front of you.</strong>
+    <p style="margin:6px 0 0">The <a href="../../python/">Python Kit</a> gives you the repetitions: worked pandas examples, flash cards on exactly the size-count-dropna distinctions from this page, and a mock exam that asks you to predict outputs before running them. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../python/">Open the Python Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-null/">NULL in SQL</a> · <a href="../sql-find-duplicates/">Find Duplicates in SQL</a> · <a href="../sql-month-over-month/">Month-over-Month in SQL</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../correlation-vs-causation/">Correlation vs Causation</a> · <a href="../choose-the-right-chart/">Choose the Right Chart</a> · <a href="../powerbi-measures-vs-columns/">Columns vs Measures in Power BI</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../python/">Python Kit</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

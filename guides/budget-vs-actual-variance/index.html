@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Budget vs Actual Variance Analysis: The Sign Trap and the Percent Trap — Analyst Prep Kit</title>
+<meta name="description" content="Variance is actual minus budget, but +$11,800 on a cost line is unfavorable. The F/U convention, the two percent traps, and a worked Excel build with SUMIFS.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/budget-vs-actual-variance/">
+<meta property="og:title" content="Budget vs Actual Variance Analysis: The Sign Trap and the Percent Trap">
+<meta property="og:description" content="The same plus sign means good news on a revenue line and bad news on a cost line. Why analysts label F and U instead of trusting the sign, and why a 43.8% variance can matter less than a 2.5% one.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/budget-vs-actual-variance.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/budget-vs-actual-variance/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/budget-vs-actual-variance.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Budget vs Actual Variance Analysis: The Sign Trap and the Percent Trap",
+  "description": "Variance is actual minus budget, but +$11,800 on a cost line is unfavorable. The F/U convention, the two percent traps, and a worked Excel build with SUMIFS.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/budget-vs-actual-variance/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/budget-vs-actual-variance/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-07",
+  "dateModified": "2026-08-07",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/budget-vs-actual-variance.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Budget vs Actual Variance Analysis: The Sign Trap and the Percent Trap",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/budget-vs-actual-variance/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../excel/">Excel Kit</a> · <a href="../">All guides</a></p>
+  <h1>Budget vs Actual Variance Analysis: The Sign Trap and the Percent Trap</h1>
+  <p class="meta">Actual minus budget, and why the sign means opposite things two rows apart · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can read a budget vs actual table without being fooled by it, and build one in Excel that does not fool anyone else. You will know the variance formula, why analysts write F and U instead of trusting plus and minus, the two ways percent variance lies, and how to say the whole table in one sentence. It is about twenty minutes.</p>
+
+  <p>Here is what to actually do today. Open the last variance table you were sent and find its biggest percentage. Then find its biggest dollar amount. If they are different rows, and they usually are, you now know which row deserved the attention, and it is probably not the one that got it.</p>
+
+  <p>The short version: variance is actual minus budget. On a revenue line, positive is good. On a cost line, positive is bad. So analysts label every line F for favorable or U for unfavorable, rank by dollars, and flag by percent.</p>
+
+  <p>The sign flip is the trap people fall into first, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 300" role="img" aria-labelledby="bvaTitle bvaDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="bvaTitle">The same overshoot, opposite verdicts</title>
+      <desc id="bvaDesc">Two panels, each showing a pair of vertical bars rising from a shared baseline. In the left panel, labeled revenue, a shorter bar marked budget stands next to a taller bar marked actual. The extra height of the actual bar above the budget level is shaded in the accent color and marked with the letter F and a check mark, because collecting more revenue than budgeted is favorable. In the right panel, labeled cost, the bars have the same shapes: a shorter budget bar next to a taller actual bar. But here the extra height above budget is shaded in the warning color and marked with the letter U and a cross, because spending more than budgeted is unfavorable. A dashed horizontal line runs across each panel at the budget height. The two panels are geometrically identical, and only the meaning of the line decides whether the overshoot is good or bad. That is why the sign of a variance cannot be read without knowing the line type.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <!-- left panel: revenue -->
+        <text x="120" y="34" font-size="14" font-weight="700" fill="#09090B">revenue</text>
+        <path d="M60 250 L330 250" stroke="#09090B" stroke-width="2" fill="none"/>
+        <rect x="100" y="140" width="70" height="110" rx="4" fill="#E4E7EA"/>
+        <text x="112" y="272" font-size="13" fill="#52525B">budget</text>
+        <rect x="210" y="140" width="70" height="110" rx="4" fill="#E4E7EA"/>
+        <rect x="210" y="88" width="70" height="52" rx="4" fill="#0E7490"/>
+        <text x="222" y="272" font-size="13" fill="#52525B">actual</text>
+        <path d="M84 140 L306 140" stroke="#52525B" stroke-width="1.5" stroke-dasharray="6 5" fill="none"/>
+        <text x="292" y="118" font-size="20" font-weight="700" fill="#0E7490">F ✓</text>
+
+        <!-- divider -->
+        <path d="M380 30 L380 280" stroke="#E4E7EA" stroke-width="2" fill="none"/>
+
+        <!-- right panel: cost -->
+        <text x="500" y="34" font-size="14" font-weight="700" fill="#09090B">cost</text>
+        <path d="M430 250 L700 250" stroke="#09090B" stroke-width="2" fill="none"/>
+        <rect x="470" y="140" width="70" height="110" rx="4" fill="#E4E7EA"/>
+        <text x="482" y="272" font-size="13" fill="#52525B">budget</text>
+        <rect x="580" y="140" width="70" height="110" rx="4" fill="#E4E7EA"/>
+        <rect x="580" y="88" width="70" height="52" rx="4" fill="#B45309"/>
+        <text x="592" y="272" font-size="13" fill="#52525B">actual</text>
+        <path d="M454 140 L676 140" stroke="#52525B" stroke-width="1.5" stroke-dasharray="6 5" fill="none"/>
+        <text x="662" y="118" font-size="20" font-weight="700" fill="#B45309">U ✕</text>
+      </g>
+    </svg>
+    <figcaption>Two identical overshoots above the dashed budget line. On revenue the extra is favorable; on cost the same shape is unfavorable. The sign alone cannot tell you which one you are looking at.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>The variance formula, and the sign trap</li>
+      <li>The worked table, labeled F and U</li>
+      <li>Percent variance, and its two traps</li>
+      <li>Set a materiality floor before you read</li>
+      <li>Build it in Excel with SUMIFS</li>
+      <li>The full before and after</li>
+      <li>Present it: the variance walk and the one-sentence claim</li>
+      <li>Edge cases that flip meanings in real reports</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every number on this page is verified.</strong> The worked example is a small department's month, eight lines, shown in full below. Every variance, percentage, subtotal, and walk step was computed in a script before it went on the page, so you can check any cell by hand and it will agree.</div>
+
+  <div class="step">
+    <h2>1. The variance formula, and the sign trap</h2>
+
+    <p>Before the explanation: two lines both came in over budget, revenue by $12,400 and contractor spend by $11,800. One of those is good news. Say which, and say what told you.</p>
+
+    <p>Variance is actual minus budget. Budget is the number you planned, actual is the number that happened, and the variance is the gap between them, with a direction. Revenue budgeted at $250,000 that came in at $262,400 has a variance of positive $12,400. Contractor spend budgeted at $20,000 that came in at $31,800 has a variance of positive $11,800.</p>
+
+    <p>Same formula, same plus sign, opposite meanings. More revenue than planned is good. More spending than planned is bad. The sign only tells you the direction of the miss; the line type tells you whether that direction helped. This is why finance teams do not trust the sign. They add a column that states the verdict directly: F for favorable, meaning the miss helped profit, and U for unfavorable, meaning it hurt profit. The rule in one breath: on revenue lines, over budget is F. On cost lines, over budget is U.</p>
+
+    <p>Some shops flip the formula to budget minus actual so that positive always means favorable on cost lines. That works until someone merges two workbooks with opposite conventions. The F/U label survives both conventions, which is exactly why it exists. Write the formula you used in a cell comment or a header note, and label F/U regardless.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. The worked table, labeled F and U</h2>
+
+    <p>Here is the department. Two revenue lines, six cost lines. Variance is actual minus budget throughout, percent is variance divided by budget, and the F/U column applies the rule from section one.</p>
+
+    <table>
+      <tr><th>Line</th><th>Type</th><th>Budget</th><th>Actual</th><th>Variance</th><th>Variance %</th><th>F/U</th></tr>
+      <tr><td>Product revenue</td><td>Revenue</td><td>250,000</td><td>262,400</td><td>+12,400</td><td>+5.0%</td><td>F</td></tr>
+      <tr><td>Services revenue</td><td>Revenue</td><td>60,000</td><td>54,200</td><td>-5,800</td><td>-9.7%</td><td>U</td></tr>
+      <tr><td>Salaries</td><td>Cost</td><td>140,000</td><td>143,500</td><td>+3,500</td><td>+2.5%</td><td>U</td></tr>
+      <tr><td>Contractors</td><td>Cost</td><td>20,000</td><td>31,800</td><td>+11,800</td><td>+59.0%</td><td>U</td></tr>
+      <tr><td>Software</td><td>Cost</td><td>12,000</td><td>11,400</td><td>-600</td><td>-5.0%</td><td>F</td></tr>
+      <tr><td>Travel</td><td>Cost</td><td>3,000</td><td>5,900</td><td>+2,900</td><td>+96.7%</td><td>U</td></tr>
+      <tr><td>Office supplies</td><td>Cost</td><td>800</td><td>1,150</td><td>+350</td><td>+43.8%</td><td>U</td></tr>
+      <tr><td>Marketing</td><td>Cost</td><td>25,000</td><td>24,100</td><td>-900</td><td>-3.6%</td><td>F</td></tr>
+    </table>
+
+    <p>Check one row by hand to trust the rest. Contractors: 31,800 minus 20,000 is 11,800 over, and 11,800 divided by 20,000 is 0.59, which is 59.0%. It is a cost line, over budget, so U.</p>
+
+    <p>The totals: revenue came in at $316,600 against a $310,000 budget, favorable by $6,600. Costs came in at $217,850 against $200,800, unfavorable by $17,050. Net, the department planned to contribute $109,200 and actually contributed $98,750, which is $10,450 short of plan.</p>
+
+    <p>Say why the same plus sign produced an F on the first row and a U on the third row, in your own words, before moving on. If you can say it, the rest of this page is bookkeeping.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Percent variance, and its two traps</h2>
+
+    <p>Before the explanation: in the table above, Travel is off by 96.7% and Salaries by 2.5%. Which one costs the company more money?</p>
+
+    <p>Percent variance is the variance divided by the budget. It answers "how far off the plan was this line, relative to its own size," and it makes lines of different sizes comparable. It also has two reliable failure modes.</p>
+
+    <p><strong>Trap one: a zero or tiny budget makes the percent meaningless.</strong> Divide by a budget of zero and the formula errors, or worse, someone hardcodes it to show a number. Divide by a tiny budget and you get a giant percent from pocket change: Office supplies here is 43.8% over, and the entire miss is $350. A percent with a small denominator is a loud noise about a small thing.</p>
+
+    <p><strong>Trap two: percent and dollars rank the lines in different orders, and the percent order is the wrong one to act on.</strong> Salaries is off by just 2.5%, the second-smallest percent among the misses, yet that 2.5% is $3,500, which is ten times the office supplies miss. Money is spent in dollars, not in percents. So the working habit is: rank by dollars, flag by percent. Dollar order tells you where the money went. The percent flag tells you which lines drifted furthest from their own plan, which is a control question rather than a money question. Both are worth knowing. Only one decides what you investigate first.</p>
+
+    <p>Ranked by absolute dollars, this table reads: Product revenue +12,400 F, Contractors +11,800 U, Services revenue -5,800 U, Salaries +3,500 U, Travel +2,900 U, then everything under a thousand. Contractors is the story. It is second in dollars and second in percent, the only line that is loud on both measures.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Set a materiality floor before you read</h2>
+
+    <p>Before the explanation: how big does a variance have to be before you say its name in the review meeting? If you do not have a number, the table decides for you.</p>
+
+    <p>A materiality floor is a threshold you set before reading the table: below this many dollars, or below this percent, a variance is noise and gets no airtime. The habit that matters is the word "before." Decide the floor first, then read. If you read first, the interesting-looking rows will pull your floor down to wherever they happen to sit, and every month's floor will be different.</p>
+
+    <p>A common shape is a two-part test: flag a line only if it is off by more than a dollar floor AND more than a percent floor. For this department, $2,000 and 5% would flag Contractors, Services revenue, and Travel, while letting Salaries pass as within tolerance and silencing Office supplies entirely. Whether those are the right floors is a judgement about this department, not arithmetic, and the floor itself should come from the data rather than from taste. <a href="../data-driven-thresholds/">Choosing thresholds from the data</a> is the full method: pick it, write down why, and check the read survives a nearby choice.</p>
+
+    <p>Write the floor into the workbook where readers can see it. "Lines within $2,000 and 5% of plan are not discussed" is one sentence, and it converts your silence about small rows from an omission into a policy.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Build it in Excel with SUMIFS</h2>
+
+    <p>Before the explanation: your actuals arrive as hundreds of individual transactions, and your budget is eight tidy lines. What has to happen to the transactions before the two can sit in one table?</p>
+
+    <p>They have to be summed per line. That is the whole build: the budget table supplies the rows, and <code>SUMIFS</code> pulls each line's actual total out of the transaction pile. <code>SUMIFS</code> adds up one column wherever another column matches a condition, and the <a href="../excel-sumifs/">SUMIFS guide</a> covers the function itself in depth.</p>
+
+    <p>Set up two Excel tables. One named <code>Actuals</code> with the raw transactions, columns Line, Month, Amount. One named <code>Report</code> with columns Line, Type, Budget, and the formulas. Then, in the Report table:</p>
+
+    <pre><code>Actual      =SUMIFS(Actuals[Amount], Actuals[Line], [@Line])
+Variance    =[@Actual]-[@Budget]
+Variance %  =IF([@Budget]=0, "", [@Variance]/[@Budget])
+F/U         =IF([@Type]="Revenue",
+               IF([@Variance]&gt;=0, "F", "U"),
+               IF([@Variance]&gt;0, "U", "F"))</code></pre>
+
+    <p>The <code>IF([@Budget]=0, "")</code> wrapper is trap one from section three, handled at build time: a line with no budget shows a blank percent instead of an error or a fake number. The F/U formula is the sign rule made mechanical, so the verdict column can never disagree with the convention.</p>
+
+    <p>Verify the machinery once with a line you can add in your head. The Contractors actuals in this example are three monthly invoices: 9,800 plus 10,400 plus 11,600, which is 31,800, exactly what the SUMIFS returns and what the worked table shows. Salaries is 47,800 plus 47,800 plus 47,900, which is 143,500. One hand-check per build catches a mis-pointed range, and a mis-pointed range is the most common way a variance report is wrong.</p>
+
+    <p>Picture running this build on your own cost center's transactions. Which line would you hand-check, and do you already know a month where SUMIFS would surprise you? That suspicion is worth chasing; it is usually a naming mismatch between the transaction labels and the budget lines.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. The full before and after</h2>
+
+    <p>Same eight lines, same numbers, two tables.</p>
+
+    <h3>Before</h3>
+    <p>Budget, actual, variance. Sorted by percent, no F/U, no floor. Travel tops the table at 96.7%, Office supplies sits second at 43.8%, and the reader's eye spends its first ten seconds on $3,250 of combined misses. Salaries, off by more than both of those together, sits sixth of eight. And a director skimming the variance column sees +12,400 and +11,800 as the same kind of number, when one grew the business and the other blew a plan by half.</p>
+
+    <h3>After</h3>
+    <table>
+      <tr><th>Line</th><th>Type</th><th>Budget</th><th>Actual</th><th>Variance</th><th>Variance %</th><th>F/U</th><th>Flag</th></tr>
+      <tr><td>Product revenue</td><td>Revenue</td><td>250,000</td><td>262,400</td><td>+12,400</td><td>+5.0%</td><td>F</td><td>flag</td></tr>
+      <tr><td>Contractors</td><td>Cost</td><td>20,000</td><td>31,800</td><td>+11,800</td><td>+59.0%</td><td>U</td><td>flag</td></tr>
+      <tr><td>Services revenue</td><td>Revenue</td><td>60,000</td><td>54,200</td><td>-5,800</td><td>-9.7%</td><td>U</td><td>flag</td></tr>
+      <tr><td>Salaries</td><td>Cost</td><td>140,000</td><td>143,500</td><td>+3,500</td><td>+2.5%</td><td>U</td><td></td></tr>
+      <tr><td>Travel</td><td>Cost</td><td>3,000</td><td>5,900</td><td>+2,900</td><td>+96.7%</td><td>U</td><td>flag</td></tr>
+      <tr><td>Marketing</td><td>Cost</td><td>25,000</td><td>24,100</td><td>-900</td><td>-3.6%</td><td>F</td><td></td></tr>
+      <tr><td>Software</td><td>Cost</td><td>12,000</td><td>11,400</td><td>-600</td><td>-5.0%</td><td>F</td><td></td></tr>
+      <tr><td>Office supplies</td><td>Cost</td><td>800</td><td>1,150</td><td>+350</td><td>+43.8%</td><td>U</td><td></td></tr>
+    </table>
+
+    <p>Sorted by absolute dollars, verdict labeled on every line, and a flag column applying the stated floor: off by more than $2,000 and more than 5%. The same information now reads in the order the money moved. Contractors surfaces immediately as the problem, Product revenue as the offsetting good news, and Office supplies drops to the bottom where its $350 belongs, still visible, no longer shouting.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Present it: the variance walk and the one-sentence claim</h2>
+
+    <p>Before the explanation: your director has thirty seconds. What is the one sentence this table earns?</p>
+
+    <p>The walk first, because it is how finance audiences expect to travel from plan to result. A variance walk starts at the budgeted total, adds or subtracts the largest variances in order of size, and lands exactly on the actual. In one paragraph, this department's walk: we planned to contribute $109,200; product revenue added 12,400; contractor overruns took back 11,800; the services shortfall took 5,800 more; salaries, travel, and small items netted out another 5,250 against us; and we landed at $98,750. Every step is a labeled cause, the steps sum exactly, and drawn as a chart this paragraph is a waterfall: floating bars stepping from the budget column down or up to the actual column.</p>
+
+    <p>Then the claim. A variance report is not eight rows; it is one sentence with a number, backed by eight rows: "We missed plan by $10,450, and contractor spend at 159% of budget is the driver." That is a claim someone can act on, question, or own. Sending the table alone makes the reader do the analysis you were asked to do, and the difference between shipping rows and shipping a claim is the whole subject of <a href="../report-vs-analysis/">report vs analysis</a>.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. Edge cases that flip meanings in real reports</h2>
+
+    <p>Before the explanation: a cost line comes in 40% under budget. The F/U formula stamps it favorable. Name a reason it might be the worst news in the table.</p>
+
+    <p><strong>Underspend is not automatically good.</strong> The hiring you budgeted and did not do, the maintenance that got deferred, the campaign that never launched: each prints as F and each may be a plan failing to happen. F and U describe the effect on this period's profit, nothing more. Read big favorable cost variances with the same suspicion as big unfavorable ones.</p>
+
+    <p><strong>Timing masquerades as performance.</strong> An invoice that slipped from June into July makes June favorable and July unfavorable, and both are illusions. Before escalating any single-month variance, check the year-to-date column; timing noise cancels there while real drift accumulates.</p>
+
+    <p><strong>The convention flips between shops.</strong> Actual minus budget here; budget minus actual elsewhere, so that positive means favorable everywhere. Neither is wrong. A workbook that does not state which one it uses is wrong. One header note fixes it forever.</p>
+
+    <p><strong>Mixed signs hide inside totals.</strong> The two revenue lines net to +6,600 F, which quietly contains a $5,800 services shortfall. Every subtotal you present should be openable back into its lines, because someone in the meeting will ask, and because the netted number genuinely conceals a U.</p>
+
+    <p><strong>Zero-budget lines need words, not percents.</strong> Spending that had no budget line at all is a different conversation from an overrun, and it deserves a sentence ("$4,000 of unbudgeted legal fees") rather than a blank or an error in the percent column.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>Ranking by dollars and drawing the walk as a waterfall are both bets on how human perception actually performs, and the bet has evidence behind it. Cleveland and McGill measured which visual comparisons people judge accurately, and position along a common scale beat nearly everything else (Cleveland &amp; McGill, 1984, <em>Journal of the American Statistical Association</em>, 79(387), 531–554). A dollar-sorted table puts the decision-relevant quantity in a common column where those accurate judgements can happen, instead of asking readers to mentally rescale eight percentages with eight different denominators.</p>
+
+  <p>The prequestions under each heading are not a quirk. Attempting an answer before receiving one improves learning of exactly that material, an effect that holds across dozens of studies of self-explanation prompts (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725). Guessing whether Travel or Salaries costs more before section three answered it is why the dollars-over-percents rule will still be with you next quarter. The same logic says the cheat sheet below works best covered, as retrieval practice rather than rereading (Roediger &amp; Karpicke, 2006, <em>Psychological Science</em>, 17(3), 249–255).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Rebuilding every variance report you have inherited is miserable, and the older ones have defenders. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Add the F/U column to the report you own</strong>, using the formula from section five. It is one column and it ends every sign argument in the room.</li>
+    <li><strong>State the convention in a header note</strong>: "Variance = actual minus budget." One line, permanent.</li>
+    <li><strong>Re-sort by absolute dollar variance.</strong> If the current sort is alphabetical or by percent, this single change re-aims the meeting.</li>
+    <li><strong>Write the materiality floor above the table</strong> and add the flag column that applies it. Agree the floor with the report's owner before the next cycle, not during it.</li>
+    <li><strong>Hand-check one SUMIFS line per month</strong> against its raw transactions. Rotate which line. This is five minutes and it is your audit trail.</li>
+    <li><strong>End every cycle with the one-sentence claim</strong> at the top of the email, above the table, with the driver named.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional drawing locks the core idea in. Draw the two-panel figure from this page from memory: two bar pairs, one labeled revenue, one labeled cost, the same overshoot shaded on each, and mark which overshoot is F and which is U. If your labels come out reversed, the page is still open.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: Excel, SQL, Tableau, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Concept</th><th>What it is</th></tr>
+    <tr><td>Variance</td><td>Actual minus budget. Direction and size of the miss.</td></tr>
+    <tr><td>The sign trap</td><td>Positive is good on revenue lines and bad on cost lines.</td></tr>
+    <tr><td>F / U</td><td>Favorable or unfavorable to profit. The verdict, stated instead of inferred.</td></tr>
+    <tr><td>The F/U rule</td><td>Revenue over budget is F. Cost over budget is U. Under budget flips each.</td></tr>
+    <tr><td>Percent variance</td><td>Variance divided by budget. The miss relative to the line's own size.</td></tr>
+    <tr><td>Percent trap one</td><td>Zero or tiny budgets make giant, meaningless percents. Guard the division.</td></tr>
+    <tr><td>Percent trap two</td><td>Percent order and dollar order disagree. 2.5% of Salaries beat 43.8% of supplies.</td></tr>
+    <tr><td>The working habit</td><td>Rank by dollars, flag by percent.</td></tr>
+    <tr><td>Materiality floor</td><td>The dollar-and-percent threshold set BEFORE reading, and written on the report.</td></tr>
+    <tr><td>The Excel core</td><td>SUMIFS pulls each line's actual from transactions into the budget table.</td></tr>
+    <tr><td>The build check</td><td>Hand-add one line's transactions and match the SUMIFS. Every build, once.</td></tr>
+    <tr><td>Variance walk</td><td>Budget, then the biggest drivers in order, landing exactly on actual. A waterfall.</td></tr>
+    <tr><td>The deliverable</td><td>One claim sentence with a number and a named driver, above the table.</td></tr>
+    <tr><td>Favorable underspend</td><td>Sometimes a plan that failed to happen. Read big F costs with suspicion.</td></tr>
+    <tr><td>Timing vs performance</td><td>Slipped invoices fake one bad month and one good one. Check year to date.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> If you take nothing else from this page, rank every variance table by dollars and label every line F or U before anyone else reads it. The most expensive miss in the table is routinely hiding behind the smallest percent. If a workbook fights back in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The first variance table I ever presented was sorted by percent, and the meeting spent eight of its ten minutes on a line worth a few hundred dollars. What is the smallest line item that has ever eaten a whole meeting you were in, and did anyone ever say the dollar amount out loud?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Cleveland, W. S., &amp; McGill, R. (1984). Graphical perception: Theory, experimentation, and application to the development of graphical methods. <em>Journal of the American Statistical Association</em>, 79(387), 531–554.</li>
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+    <li>Roediger, H. L., &amp; Karpicke, J. D. (2006). Test-enhanced learning: Taking memory tests improves long-term retention. <em>Psychological Science</em>, 17(3), 249–255.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice the build with a workbook in front of you.</strong>
+    <p style="margin:6px 0 0">The <a href="../../excel/">Excel Kit</a> has a Financial Analysis unit that works through budget vs actual hands-on: the SUMIFS pull, the variance columns, and reading the result like an analyst. Worked examples, flash cards, and a mock exam sit alongside it. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../excel/">Open the Excel Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../excel-sumifs/">Excel SUMIFS</a> · <a href="../vlookup-vs-xlookup/">VLOOKUP vs XLOOKUP</a> · <a href="../excel-dashboard-build-order/">Excel Dashboard Build Order</a> · <a href="../excel-label-rows-before-charting/">Label Rows Before Charting</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../report-vs-analysis/">Report vs Analysis</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../build-a-risk-index/">Build a Risk Index</a> · <a href="../sql-month-over-month/">Month-over-Month Growth in SQL</a> · <a href="../choose-the-right-chart/">Choose the Right Chart</a> · <a href="../correlation-vs-causation/">Correlation vs Causation</a> · <a href="../powerbi-measures-vs-columns/">Power BI Measures vs Columns</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../operations-analytics-foundations/">Operations Analytics</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../choose-your-analyst-role/">Choose Your Analyst Role</a> · <a href="../../excel/">Excel Kit</a> · <a href="../../forecasting/">Forecasting Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
