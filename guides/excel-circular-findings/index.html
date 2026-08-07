@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Circular Analysis: The Finding That Was Just Your Own Definition — Analyst Prep Kit</title>
+<meta name="description" content="The self-audit that catches circular results: could this finding have come out any other way, given how I defined things? A real near-miss from a live dashboard build, why circular results look cleaner than real ones, and the four places circularity hides.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-circular-findings/">
+<meta property="og:title" content="The Finding That Was Just Your Own Definition">
+<meta property="og:description" content="0% hidden in the $20+ band looked like a discovery. Hidden was defined as under $20. The chart was the definition, reflected back.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-circular-findings/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  .series{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:34px 0;font-size:15px}
+  .series ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  footer a.coffee{display:block;margin-top:10px}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "The Finding That Was Just Your Own Definition",
+  "description": "The self-audit that catches circular results: could this finding have come out any other way, given how I defined things?",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-circular-findings/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-circular-findings/"
+  },
+  "author": { "@type": "Person", "name": "Michael Nocito", "url": "https://michaelnocito.github.io" },
+  "publisher": { "@type": "Person", "name": "Michael Nocito" },
+  "inLanguage": "en",
+  "datePublished": "2026-08-07",
+  "dateModified": "2026-08-07"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Analyst Prep Kit", "item": "https://michaelnocito.github.io/analyst-prep-kit/" },
+    { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/" },
+    { "@type": "ListItem", "position": 3, "name": "The Finding That Was Just Your Own Definition", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-circular-findings/" }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../excel/">Excel Kit</a> · <a href="../excel-dashboard-build-order/">Article 0: the build order</a></p>
+  <h1>The Finding That Was Just Your Own Definition</h1>
+  <p class="meta">Article 14 of Excel for Business Analysts · The reasoning check no formula can run for you · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>This article gives you the self-audit that catches the most embarrassing class of mistake in analysis, the one where every number is computed correctly and the finding is still worthless. The test is one question: <strong>could this result have come out any other way, given how I defined things?</strong> If the answer is no, it is not a finding. It is your own filter, wearing a chart.</p>
+
+  <p>It nearly happened in <a href="../excel-dashboard-build-order/">the build behind this series</a>, and the near-miss is the best teacher this topic has, because nothing on screen was wrong. The arithmetic was perfect. The reasoning had eaten its own tail.</p>
+
+  <div class="note"><strong>The short version.</strong> Before presenting any striking result, ask whether your own definitions guaranteed it. And treat suspiciously clean results, 0% and 100%, as the tell: circular findings come out cleaner than real ones, because nothing in reality is fighting them.</div>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>The near-miss, exactly as it happened</li>
+      <li>Why circular results look better than real ones</li>
+      <li>The test, applied in one sentence</li>
+      <li>The four places circularity hides</li>
+      <li>What to do when you catch one</li>
+      <li>Why this works</li>
+      <li>Run it on your own findings</li>
+      <li>A cheat sheet</li>
+    </ol>
+  </div>
+
+  <h2>The near-miss, exactly as it happened</h2>
+  <p>The build cut the loved games by price band, per <a href="../excel-pivot-table-question/">article 5's</a> pivot, asking what share of each band stayed hidden. The $20-and-up band came back <strong>0% hidden</strong>. Clean, striking, chartable: expensive games always get found.</p>
+  <p>Stop and run the test yourself before reading on: the build's hidden-gem flag was defined, back at the data stage, as 2,000+ reviews, 95%+ positive, under roughly 200k owners, <strong>and price at or under $20</strong>. Now say what share of $20+ games could ever have been flagged hidden.</p>
+  <p>Zero. Not because expensive games get discovered. Because the definition of hidden had a price ceiling in it, so the $20+ band was excluded from hiddenness by construction. The chart would have been the definition, reflected back at its author, dressed as a discovery. It was caught before shipping and dropped. The chart cost nothing. Presenting it would have cost the credibility of every honest chart on the page.</p>
+
+  <h2>Why circular results look better than real ones</h2>
+  <p>Here is what makes this class of error dangerous rather than merely silly: circular results are prettier than real ones. Real findings come out messy, 32% against 17%, with exceptions and noise, because reality pushes back. Circular results come out clean, 0% against 21%, because nothing is fighting them. The only force in play is your own definition, and it never disagrees with itself.</p>
+  <p>So the instinct that says "what a clean result!" is pointing exactly the wrong way. Cleanliness is not a sign of a strong finding. At 0% or 100%, it is the single strongest hint that the result deserves the test, not a chart. A number that perfect has usually been guaranteed by something, and the something is usually you.</p>
+
+  <h2>The test, applied in one sentence</h2>
+  <p>The audit costs one sentence per finding. Say the finding, then say your definitions next to it, and listen for overlap:</p>
+  <pre><code>Finding:     "$20+ games are 0% hidden."
+Definition:  "Hidden means loved, small audience, AND under $20."
+Overlap:     the finding's cut (price) appears inside the definition. Circular.</code></pre>
+  <p>Against an honest finding, the same audit passes visibly: "found games reach 21.2x the audience of hidden ones" cuts on <em>audience</em>, and audience... appears in the definition too, doesn't it? Under 200k owners is part of hidden. That is why the build's headline compares averages across the whole loved population rather than celebrating that hidden games have small audiences, which would be the definition again. The line between the two is exactly this audit, run sentence by sentence.</p>
+  <p>Notice no formula ran. <a href="../excel-check-your-work/">Article 2's checks</a> catch wrong arithmetic. This test catches wrong reasoning, and nothing on the screen will ever flag wrong reasoning, because the screen only knows what you defined.</p>
+
+  <h2>The four places circularity hides</h2>
+  <table>
+    <tr><th>Shape</th><th>What it looks like</th><th>The giveaway question</th></tr>
+    <tr><td>Cutting on a column inside your own filter</td><td>The price-band cut above</td><td>Does the group-by column appear in the definition of the thing measured?</td></tr>
+    <tr><td>Filtering on the outcome, then measuring the outcome</td><td>"Among churned customers, retention is low"</td><td>Did the filter already decide the measurement?</td></tr>
+    <tr><td>Survivorship</td><td>Studying only the games that got reviews, then concluding reviewed games do well</td><td>Who never made it into the data at all?</td></tr>
+    <tr><td>A threshold you set, then discovered</td><td>Flagging 2,000+ reviews as proven, then finding proven games have many reviews</td><td>Is the finding just the threshold read back aloud?</td></tr>
+  </table>
+  <p>All four are one mistake with different entrances: some part of the answer was smuggled into the question. Say which of the four your current project is most exposed to. If it has any defined flag, any threshold, or any filtered population, at least one entrance is open.</p>
+
+  <h2>What to do when you catch one</h2>
+  <p><strong>Drop the chart. Keep the note.</strong> The build's working notes record the price cut, the clean result, the audit, and the drop. That paper trail is worth more than the chart ever was, and not just privately: "I ran the price cut, got a suspiciously clean result, worked out it was circular, and dropped it" is a stronger thing to say in an interview than any chart on the page. It demonstrates the rarest skill in the field, auditing your own reasoning, which is the difference between <a href="../report-vs-analysis/">producing numbers and producing analysis</a>.</p>
+  <p>Then, if the question underneath was real, re-ask it without the circularity. "Does price affect discovery?" survives, asked of the loved games with the price ceiling removed from the flag, or asked of audience directly. The circular version dies. The curiosity behind it usually deserves to live.</p>
+
+  <h2>Why this works</h2>
+  <p>The general failure this guards against is old and well documented: people test ideas in ways that cannot disconfirm them. Wason's selection experiments showed that even in tiny logical tasks, most people check the cases that could confirm their rule and skip the ones that could break it (Wason, 1968, <em>Quarterly Journal of Experimental Psychology</em>, 20(3), 273-281). A circular cut is that bias built into a spreadsheet: the analysis is constructed so no data could ever come back disagreeing.</p>
+  <p>The audit works because it forces the disconfirming question the bias skips: what would it have taken for this result to come out differently? When the honest answer is "nothing, my definitions forbade it," the analysis was never a test. It was an echo.</p>
+
+  <h2>Run it on your own findings</h2>
+  <ol>
+    <li><strong>List your current page's findings as sentences</strong>, each with its number, per <a href="../excel-kpi-row/">article 12</a>.</li>
+    <li><strong>Under each, write the definitions it stands on.</strong> Every flag, threshold and filter in play.</li>
+    <li><strong>Look for the overlap.</strong> A column that appears in both the finding's cut and a definition is the alarm.</li>
+    <li><strong>Give extra suspicion to 0%, 100%, and anything you caught yourself calling clean.</strong></li>
+    <li><strong>Drop what fails, note what you dropped</strong>, and re-ask the honest version of the question if there is one.</li>
+  </ol>
+
+  <div class="cta">
+    <strong>The formulas are the easy half. This is the other half.</strong>
+    <p style="margin:6px 0 0">The <a href="../../excel/">Excel Kit</a> drills the mechanics, and <a href="../defining-metrics/">Defining Metrics</a> covers how definitions get written so they can be audited later. Both feed the habit this page teaches.</p>
+    <a class="btn" href="../../excel/" onclick="if(window.gtag)gtag('event','prompt_pack_click',{kit:'guide-excel-circular'})">Open the Excel Kit →</a>
+  </div>
+
+  <h2>A cheat sheet</h2>
+  <table>
+    <tr><th>Signal</th><th>Read it as</th></tr>
+    <tr><td>A result of exactly 0% or 100%</td><td>Run the test before any chart</td></tr>
+    <tr><td>The group-by column appears in a definition</td><td>Circular. Drop the cut or change the definition</td></tr>
+    <tr><td>"Could this have come out differently?" answers no</td><td>Not a finding. An echo</td></tr>
+    <tr><td>Filtered on the outcome being measured</td><td>The filter already answered the question</td></tr>
+    <tr><td>Only survivors in the data</td><td>Name who is missing before concluding anything</td></tr>
+    <tr><td>A caught circular result</td><td>Drop the chart, keep the note, re-ask honestly</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Before presenting any striking result, say your definitions out loud next to it. The cleaner the number, the more the sentence matters.</div>
+
+  <div class="series">
+    <strong>The series: Excel for Business Analysts.</strong>
+    <p style="margin:6px 0 8px">Every article comes out of one step of <a href="../excel-dashboard-build-order/">the same real build</a>, in build order. Links go live as each one publishes.</p>
+    <ol start="0">
+      <li value="0"><a href="../excel-dashboard-build-order/">Build a dashboard in this order: correct, then clear, then compelling</a></li>
+      <li><a href="../excel-label-rows-before-charting/">Label your rows before you chart them</a></li>
+      <li><a href="../excel-check-your-work/">Check your work before anyone else does</a></li>
+      <li><a href="../excel-name-your-data/">Name your data so your formulas stop breaking</a></li>
+      <li><a href="../excel-csv-import-leading-zeros/">The dialog that quietly deletes your zip codes</a></li>
+      <li><a href="../excel-pivot-table-question/">A pivot table is a question, not a report</a></li>
+      <li><a href="../excel-sum-of-id-trap/">Excel just summed your ID numbers and said nothing</a></li>
+      <li><a href="../excel-pivot-percentages/">Percentages are the whole story and Excel hides them</a></li>
+      <li><a href="../excel-custom-number-formats/">Show the unit without breaking the number</a></li>
+      <li><a href="../excel-pick-the-chart/">Pick the chart your number already decided</a></li>
+      <li><a href="../excel-chart-design-basics/">Chart design basics: take things away, then point</a></li>
+      <li><a href="../excel-if-family/">One row at a time, or all rows at once</a></li>
+      <li><a href="../excel-kpi-row/">Four numbers across the top do more than four charts</a></li>
+      <li><a href="../excel-sort-your-bars/">Sort your bar chart or it means nothing</a></li>
+      <li>The finding that was just your own definition (this article)</li>
+      <li>The names came in as gibberish and Excel said nothing</li>
+      <li>Make one control drive every chart on the page</li>
+      <li>Write the sentence your dashboard is arguing</li>
+    </ol>
+  </div>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Wason, P. C. (1968). Reasoning about a rule. <em>Quarterly Journal of Experimental Psychology</em>, 20(3), 273-281.</li>
+  </ul>
+
+  <p>Your answer from the near-miss section, the share of $20+ games that could ever be flagged hidden: how long did it take you to see the zero was guaranteed? That delay, felt from inside, is why this audit has to be a habit and not an instinct.</p>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../excel-dashboard-build-order/">The Build Order (Article 0)</a> · <a href="../excel-check-your-work/">Check Your Work (Article 2)</a> · <a href="../excel-pivot-percentages/">Pivot Percentages (Article 7)</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../report-vs-analysis/">Report vs Analysis</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../../excel/">Excel Kit</a> · <a href="../../viz/">Viz Drill</a> · <a href="../../projects/">Portfolio Projects</a>
+    <a class="coffee" href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
