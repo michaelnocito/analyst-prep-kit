@@ -82,12 +82,23 @@ tells ad buyers that no one may sell your inventory, which is worse than having
 no file at all. That is why I did not pre-create it.
 
 ### 7. Turn on the consent message
-AdSense → **Privacy & messaging** → **European regulations** → create and
-publish the message.
 
-Google requires a certified consent platform for EEA, UK and Swiss traffic, and
-their own built-in one is certified and costs nothing. Skipping this does not
-break the site; it means those visitors only ever see non-personalized ads.
+**This one needs your hands.** The "Create a European regulations message"
+button sits in an embedded frame that ignores browser automation. Verified
+2026-08-07: the coordinates were right and a double-click on the same spot
+selected page text, so the events land, but the button never fires. The GA4
+internal-traffic expander fails the same way.
+
+It may also just be gated until the account is activated, since the page still
+shows the "Activate your account" banner. Worth retrying after step 1 clears.
+
+Path: **Privacy & messaging** → **European regulations** → the blue
+**Create a European regulations message** button → accept the defaults →
+**Publish**.
+
+Not urgent. Google's certified consent platform is required for EEA, UK and
+Swiss traffic, but skipping it does not break anything: those visitors just get
+non-personalized ads instead. Traffic today is effectively all US.
 
 ---
 
