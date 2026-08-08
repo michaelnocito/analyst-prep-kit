@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Month-over-Month Growth in Excel, and the Month That Is Not There — Analyst Prep Kit</title>
+<meta name="description" content="Aggregate to one row per month, then divide. The calendar table that turns a gap into a zero, what to show instead of #DIV/0!, and why percent and percentage points are different words.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-month-over-month/">
+<meta property="og:title" content="Month-over-Month Growth in Excel, and the Month That Is Not There">
+<meta property="og:description" content="A month with no sales never becomes a row, so the formula compares May with March and reports a tidy -6.0%. The calendar table that fixes it, and the divide by zero it exposes.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-month-over-month.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-month-over-month/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-month-over-month.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Month-over-Month Growth in Excel, and the Month That Is Not There",
+  "description": "Aggregate to one row per month, then divide. The calendar table that turns a gap into a zero, what to show instead of #DIV/0!, and why percent and percentage points are different words.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-month-over-month/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-month-over-month/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-month-over-month.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Month-over-Month Growth in Excel, and the Month That Is Not There",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-month-over-month/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../excel/">Excel Kit</a> · <a href="../">All guides</a></p>
+  <h1>Month-over-Month Growth in Excel, and the Month That Is Not There</h1>
+  <p class="meta">Aggregate first, divide second, and check the calendar · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can turn a list of transactions into a monthly series, compute growth between consecutive months, make a month with no activity appear as a zero rather than vanish, decide what to show when last month was zero, and use the right word for the change you are reporting. It is about twenty-five minutes, and every number below was run in Excel.</p>
+
+  <p>Here is what to do today, on the monthly table you already have. Count its rows and compare that with the number of months in the period. If your data covers January to May, there should be five rows. Four rows means one month produced nothing, and every growth figure below the gap is comparing the wrong pair of months.</p>
+
+  <p>The short version: growth is <code>this month ÷ last month − 1</code>, and the only hard part is being sure that the row above really is last month.</p>
+
+  <p>That gap is the idea, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 288" role="img" aria-labelledby="mmTitle mmDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="mmTitle">The comparison hops over a month that is not there</title>
+      <desc id="mmDesc">A bar chart with five slots along a baseline, labelled Jan, Feb, Mar, Apr and May. Four of the slots hold solid bars of different heights. The fourth slot, Apr, holds no bar at all; in its place is an empty dashed outline sitting on the baseline, showing a month with nothing in it. A curved arrow springs from the top of the March bar, arcs over the empty April outline without touching it, and lands on the top of the May bar, with the figure minus six point zero percent printed on the arc. Because the April slot never became a row in the table, the formula reached back one row rather than one month, so the arrow connects two bars that are two months apart while the label claims a month-over-month change.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <line x1="60" y1="230" x2="712" y2="230" stroke="#09090B" stroke-width="2"/>
+        <rect x="82" y="88" width="94" height="142" fill="#E0F2F7" stroke="#0E7490" stroke-width="1.6"/>
+        <rect x="212" y="109" width="94" height="121" fill="#E0F2F7" stroke="#0E7490" stroke-width="1.6"/>
+        <rect x="342" y="91" width="94" height="139" fill="#E0F2F7" stroke="#0E7490" stroke-width="1.6"/>
+        <rect x="472" y="200" width="94" height="30" fill="#FFFFFF" stroke="#B45309" stroke-width="2" stroke-dasharray="6 5"/>
+        <rect x="602" y="99" width="94" height="131" fill="#E0F2F7" stroke="#0E7490" stroke-width="1.6"/>
+        <g font-size="15" fill="#52525B" text-anchor="middle">
+          <text x="129" y="254">Jan</text><text x="259" y="254">Feb</text><text x="389" y="254">Mar</text>
+        </g>
+        <text x="519" y="254" font-size="15" fill="#B45309" text-anchor="middle">Apr</text>
+        <text x="649" y="254" font-size="15" fill="#52525B" text-anchor="middle">May</text>
+
+        <path d="M389 82 C420 24 600 24 649 90" stroke="#B45309" stroke-width="2.6" fill="none"/>
+        <path d="M649 98 L640 84 M649 98 L658 85" stroke="#B45309" stroke-width="2.6" fill="none"/>
+        <text x="519" y="34" font-size="17" font-weight="700" fill="#B45309" text-anchor="middle">&#8722;6.0%</text>
+      </g>
+    </svg>
+    <figcaption>April produced nothing, so it never became a row. The formula looked one row back, which was March, and returned a calm looking figure for a comparison nobody asked for.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>Get to one row per month first</li>
+      <li>The growth formula</li>
+      <li>The month that is not there</li>
+      <li>A calendar table, so a gap becomes a zero</li>
+      <li>Dividing by zero, and what to show instead</li>
+      <li>Percent against percentage points</li>
+      <li>Small bases, and the moving average</li>
+      <li>Against last year instead</li>
+      <li>The full before and after</li>
+      <li>Edge cases that break a growth column</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every result on this page is real.</strong> Run in Excel on the sixteen-row orders table used across this set of guides. It runs from 5 January to 25 May 2026, and it contains no April orders at all, which is not a trick set up for this page; it is the same table every other guide in the set uses. If you want the same job in SQL, <a href="../sql-month-over-month/">month-over-month with LAG</a> is the companion piece.</div>
+
+  <div class="step">
+    <h2>1. Get to one row per month first</h2>
+
+    <p>Growth compares two numbers, so before anything else you need one number per month. Two routes.</p>
+
+    <p><strong>A pivot table.</strong> Put the date field in Rows, right-click a date, Group, tick Months and Years, and put revenue in Values. Fast, and covered step by step in <a href="../excel-pivot-tables/">the pivot guide</a>, including the part that matters here: a month with no rows never appears.</p>
+
+    <p><strong>SUMIFS against a list of month starts</strong>, which is more typing and more control. Build the boundaries with <code>DATE</code> and <code>EOMONTH</code> rather than typing them, so the sheet behaves the same on every machine:</p>
+
+    <pre><code>=SUMIFS(Orders[Revenue],
+        Orders[OrderDate], "&gt;="&amp;A2,
+        Orders[OrderDate], "&lt;="&amp;EOMONTH(A2,0))</code></pre>
+
+    <p>With A2 holding 1 January 2026 that returns 2,630. The same formula pointed at 1 April returns 0, which is the whole reason to prefer this route, and section four is about why.</p>
+
+    <p>Either way, check the aggregate before going further: the months must add back to the total. Here 2,630 + 2,245 + 2,585 + 2,430 = 9,890, which is the table's full revenue, so nothing was lost in the grouping.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. The growth formula</h2>
+
+    <p>One row per month, sorted oldest first, and growth is the row above.</p>
+
+    <pre><code>=B3/B2 - 1</code></pre>
+
+    <p>Format the result as a percentage rather than multiplying by 100, because a cell formatted as a percentage still holds the underlying number and can be averaged, charted and compared. Multiplying by 100 turns it into a number that only looks like a percentage.</p>
+
+    <p>On the four months present in the data:</p>
+
+    <pre><code>Month   Revenue    Growth
+Jan       2630         -
+Feb       2245    -14.6%
+Mar       2585    +15.1%
+May       2430     -6.0%</code></pre>
+
+    <p>Check one by hand: 2,245 ÷ 2,630 = 0.8536, minus 1 is −0.1464, which is −14.6%. The equivalent form <code>=(B3-B2)/B2</code> gives the same answer and reads more like the definition; use whichever you will recognise in six months.</p>
+
+    <p>The first row has nothing above it, so leave it blank rather than showing a zero. A zero there claims flat growth in a month where growth is not defined, and somebody will average the column.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. The month that is not there</h2>
+
+    <p>Before the explanation: the table above has four rows for a period running January to May. Say which month is missing and what that does to the last figure.</p>
+
+    <p>April. There are no April orders, so April never became a row, and the formula on the May row divided by the row above it, which is March.</p>
+
+    <pre><code>What the sheet says      May, -6.0%
+What it computed         2430 / 2585 - 1
+What that measures       May against March
+What April was           0, in a month nobody looked at</code></pre>
+
+    <p>Every part of that is arithmetically correct. The −6.0% is a real number about two real months. It is simply not the number the column heading promises, and there is nothing on the sheet to indicate the substitution, because the evidence for April was never a row.</p>
+
+    <p>It also quietly changes anything computed from the column. Average monthly revenue over the four rows present is 2,472.50. Over the five months that actually elapsed, with April counted as the zero it was, it is 1,978.00. That is a difference of 494.50 a month, from a row that does not exist.</p>
+
+    <pre><code>=AVERAGE over the four rows present        2472.50
+=AVERAGE over five months, April as 0      1978.00</code></pre>
+
+    <p>Say out loud which of those two numbers you would want on a slide titled "average monthly revenue". Both are defensible and they mean different things, and the sheet as built does not let you choose, because it only offers one of them.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. A calendar table, so a gap becomes a zero</h2>
+
+    <p>The fix is not a cleverer formula. It is a list of every month in the period, written down independently of the data, with the totals looked up against it.</p>
+
+    <p>Build the list once. Put the first month start in a cell and fill the rest with <code>EDATE</code>, which steps by whole months and handles year ends without help:</p>
+
+    <pre><code>A2:  =DATE(2026,1,1)
+A3:  =EDATE(A2,1)        and fill down</code></pre>
+
+    <p>Then total against it with SUMIFS, exactly as in section one. Now every month exists as a row whether or not anything happened in it:</p>
+
+    <pre><code>Month   Revenue    Growth
+Jan       2630         -
+Feb       2245    -14.6%
+Mar       2585    +15.1%
+Apr          0   -100.0%
+May       2430    #DIV/0!</code></pre>
+
+    <p>That looks worse and it is much better. The 0 is visible, the −100.0% is a true statement about April, and the error on the May row is Excel refusing to divide by zero, which is the correct response to a question that has no answer. The version without the calendar hid all three behind a tidy −6.0%.</p>
+
+    <p>Two details worth having. Base the calendar on the reporting period rather than on the data, so it covers months at the start and end where nothing happened either. And keep it as a proper column of dates, formatted to display as months, rather than as text, so it can still be filtered and compared; that is the same discipline as <a href="../excel-dates/">everything else involving dates</a>.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Dividing by zero, and what to show instead</h2>
+
+    <p>Before the explanation: last month was zero and this month was 2,430. Say what the growth percentage is.</p>
+
+    <p>There is not one. Growth is a ratio to a base, and there is no meaningful ratio to nothing: any increase from zero is infinite in percentage terms, which is why Excel returns <code>#DIV/0!</code> rather than a large number.</p>
+
+    <p>So do not hide it behind a zero. Three honest options, in order of how much I like them.</p>
+
+    <pre><code>=IF(B2=0, "n/a", B3/B2-1)         says growth is undefined
+=IF(B2=0, "new", B3/B2-1)         says the series restarted
+=IF(B2=0, "", B3/B2-1)            blank, which at least is not a claim</code></pre>
+
+    <p>What all three avoid is <code>=IFERROR(B3/B2-1, 0)</code>, which reports 0% growth for a month that went from nothing to 2,430. That is not a rounding compromise, it is the opposite of what happened, and it is exactly the trade <a href="../excel-iferror/">wrapping an error</a> always offers.</p>
+
+    <p>And whichever you choose, report the absolute change beside the percentage. February's −14.6% is also −385, and 2,430 up from 0 has no percentage at all but is plainly 2,430. A number of things and a percentage of things are read differently by people, and the pair together is much harder to misread than either alone.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Percent against percentage points</h2>
+
+    <p>Two different words for two different quantities, and mixing them is the most common wording error in a monthly pack.</p>
+
+    <p>If a conversion rate goes from 5.12% to 6.85%, the change is <strong>1.73 percentage points</strong>. It is also a <strong>33.8% increase</strong>, because 6.85 ÷ 5.12 − 1 is about 0.338. Both are true; they are answers to different questions, and the numbers are not close.</p>
+
+    <pre><code>6.85% - 5.12%          1.73 percentage points
+6.85% / 5.12% - 1      33.8%</code></pre>
+
+    <p>The rule is simple once said: <strong>subtracting two percentages gives percentage points, dividing them gives a percentage.</strong> Say "points" out loud when you mean the subtraction, and put the word in the column heading, because a column headed "change" containing 1.73 will be read as 1.73% by somebody in a hurry.</p>
+
+    <p>This only comes up when the thing you are tracking is itself a percentage: conversion rates, margins, utilisation, market share. Revenue in pounds has no such ambiguity, which is why the confusion tends to arrive later, when somebody adds a margin row to a revenue report.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Small bases, and the moving average</h2>
+
+    <p>Month-over-month growth divides by last month, so the smaller last month was, the wilder the percentage. A region that did 40 last month and 120 this month is up 200%, and a region that did 4,000 and went to 4,400 is up 10%, and the second one moved twenty times more money.</p>
+
+    <p>Two habits keep that under control.</p>
+
+    <p><strong>Show the base beside the percentage</strong>, always. A growth column with no denominator column next to it invites the reader to rank by percentage, which ranks by smallness.</p>
+
+    <p><strong>Smooth before you compare</strong>, when the series is noisy. A three-month average of the same data flattens the single-month swings and makes the direction readable:</p>
+
+    <pre><code>=AVERAGE(B2:B4)      three months ending March, calendar included:  1610.00
+=AVERAGE(B3:B5)      three months ending May, calendar included:    1671.67</code></pre>
+
+    <p>Note that both of those include April's zero, because they are built on the calendar version. Smoothing over a series with hidden gaps smooths the wrong numbers, which is why the calendar comes first and the moving average second.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. Against last year instead</h2>
+
+    <p>Month-over-month answers "is this month better than last month", which for anything seasonal is a question about the season rather than the business. December against November tells you it is Christmas.</p>
+
+    <p>Year-over-year, comparing each month with the same month a year earlier, removes that. It is the same formula with a different partner:</p>
+
+    <pre><code>=B14/B2 - 1              twelve rows back, on a monthly series with no gaps</code></pre>
+
+    <p>Which is another reason the calendar matters: "twelve rows back" is only "twelve months back" if every month is a row. On a table built from the data alone, twelve rows back can be thirteen or fourteen months, and nothing says so.</p>
+
+    <p>The usual answer in a real pack is to show both, with the absolute figures beside them, and to say in the heading which comparison each column is making. Two columns and a clear heading beats one number and an argument in the meeting.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same sixteen orders, same question: how is revenue trending?</p>
+
+  <h3>Before</h3>
+  <pre><code>Pivot: dates grouped by month, revenue in Values, growth column beside it
+
+Jan   2630        -
+Feb   2245   -14.6%
+Mar   2585   +15.1%
+May   2430    -6.0%
+
+average monthly revenue   2472.50</code></pre>
+  <p>Four clean rows, no errors, and two claims that are not true: that May fell 6% against the month before it, and that the business averages 2,472.50 a month. April is nowhere on the page.</p>
+
+  <h3>After</h3>
+  <pre><code># a calendar column, independent of the data
+A2 =DATE(2026,1,1)     A3 =EDATE(A2,1)  filled down
+
+# totals looked up against it
+=SUMIFS(Orders[Revenue], Orders[OrderDate],"&gt;="&amp;A2,
+                          Orders[OrderDate],"&lt;="&amp;EOMONTH(A2,0))
+
+# growth, honest about a zero base
+=IF(B2=0, "n/a", B3/B2-1)
+
+Month  Revenue   Change    Growth
+Jan       2630        -         -
+Feb       2245     -385    -14.6%
+Mar       2585     +340    +15.1%
+Apr          0    -2585   -100.0%
+May       2430    +2430       n/a
+
+average monthly revenue, five months   1978.00</code></pre>
+
+  <p>The claim, and it is why the calendar comes before the formula: <strong>one month with no sales removed itself from the table, turned a total stoppage into a tidy −6.0%, and moved average monthly revenue by 494.50, without producing a single error or an incorrect arithmetic step anywhere.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases that break a growth column</h2>
+
+    <p>Six that get through.</p>
+
+    <p><strong>A partial current month.</strong> Comparing three weeks of this month with a full last month always shows a fall. Either exclude the current month or scale it and label it clearly as a projection.</p>
+
+    <p><strong>Text dates.</strong> If the date column is text, the pivot will not group and the SUMIFS boundaries will not match, and both fail in ways that look like a formula problem. Run the <code>=N(A2)</code> check first.</p>
+
+    <p><strong>Timestamps at the month boundary.</strong> An order at 23:40 on 31 January is a serial number slightly above the end of January, so <code>&lt;=EOMONTH(...)</code> excludes it. Use <code>&lt;</code> the first of the next month instead, which is safe either way.</p>
+
+    <p><strong>Sorting the months as text.</strong> A column of month names sorts April, August, December. Keep real dates underneath and format them as months, and the sort stays chronological.</p>
+
+    <p><strong>A negative base.</strong> If last month was −200 and this month is 100, the formula returns −150%, which is arithmetically right and communicates the opposite of what happened. Where values can go negative, report the absolute change and skip the percentage.</p>
+
+    <p><strong>Restated history.</strong> If last month's figure changes after the fact, this month's growth changes too, and last month's published growth is now wrong. Keep a note of when each figure was taken, or the pack disagrees with itself across two months.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The whole page turns on one distinction: absent is not the same as zero, and a table built only from the rows that exist cannot tell you which one you have. Statistical work on missing data makes the same point formally, that the pattern of what is missing is itself information and that analysing only the observed cases is a decision with consequences rather than a neutral default (Rubin, 1976, <em>Biometrika</em>, 63(3), 581–592). April is the mild, visible version: a month that generated no rows and therefore no evidence of itself. The calendar table is the repair, and it works precisely because it is built independently of the data, so it can assert that April existed even when the data cannot.</p>
+
+  <p>The second half of the page is about how the result gets read. People are markedly better at reasoning about counts than about the ratios computed from them, and presenting the underlying frequencies alongside a rate reliably improves how accurately the rate is understood (Gigerenzer &amp; Hoffrage, 1995, <em>Psychological Review</em>, 102(4), 684–704). That is the argument for the absolute change column beside the growth column, and for showing the base next to any percentage: −14.6% and −385 together are much harder to misread than −14.6% alone, and a 200% rise sitting next to a base of 40 explains itself.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than reread, and to be worth returning to a few days later rather than in one sitting, because spacing repetitions out produces substantially better long-term retention than massing them together (Cepeda, Pashler, Vul, Wixted, &amp; Rohrer, 2006, <em>Psychological Bulletin</em>, 132(3), 354–380).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Rebuilding every trend report at once is miserable and you will stop at the second one. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Count the rows against the months.</strong> Twelve months of data and eleven rows is the whole problem, visible in one glance.</li>
+    <li><strong>Build a calendar column</strong> with <code>EDATE</code>, covering the reporting period rather than the data.</li>
+    <li><strong>Total against it with SUMIFS</strong>, using <code>DATE</code> and <code>EOMONTH</code> for the boundaries rather than typed dates.</li>
+    <li><strong>Guard the divide</strong> with <code>=IF(last=0,"n/a", ...)</code>, and never with an error wrapper that returns zero.</li>
+    <li><strong>Put the absolute change next to the percentage</strong>, and the base next to both.</li>
+    <li><strong>Say "percentage points" when you mean subtraction</strong>, in the column heading, not only in the meeting.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Draw a row of boxes, one per month of your reporting period, and write your figures into them from memory. The boxes you cannot fill are the ones your table is probably missing, and the exercise takes about a minute per year of data.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: Excel, SQL, Python, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>Step one</td><td>One row per month. Growth needs two numbers.</td></tr>
+    <tr><td>The formula</td><td><code>=B3/B2-1</code>, formatted as a percentage, not multiplied by 100.</td></tr>
+    <tr><td>Equivalent form</td><td><code>=(B3-B2)/B2</code>. Same answer, reads like the definition.</td></tr>
+    <tr><td>The first row</td><td>Blank. Not zero.</td></tr>
+    <tr><td>A month with no data</td><td>Never becomes a row. The formula then reaches two months back.</td></tr>
+    <tr><td>The fix</td><td>A calendar column built with <code>EDATE</code>, independent of the data.</td></tr>
+    <tr><td>Totalling against it</td><td><code>=SUMIFS(values, dates,"&gt;="&amp;A2, dates,"&lt;="&amp;EOMONTH(A2,0))</code></td></tr>
+    <tr><td>A zero base</td><td><code>#DIV/0!</code>, correctly. Growth from nothing is undefined.</td></tr>
+    <tr><td>What to show</td><td><code>=IF(B2=0,"n/a", B3/B2-1)</code>. Never zero.</td></tr>
+    <tr><td>Subtracting two percentages</td><td>Percentage points. Say the word.</td></tr>
+    <tr><td>Dividing two percentages</td><td>A percentage change.</td></tr>
+    <tr><td>Small bases</td><td>Huge percentages. Always show the base.</td></tr>
+    <tr><td>Noisy series</td><td>A three-month average, built on the calendar version.</td></tr>
+    <tr><td>Seasonal series</td><td>Compare with the same month last year, twelve rows back.</td></tr>
+    <tr><td>Partial current month</td><td>Always looks like a fall. Exclude it or label it.</td></tr>
+    <tr><td>Month boundary</td><td>Use <code>&lt;</code> the first of next month, to survive timestamps.</td></tr>
+    <tr><td>The check</td><td>Months must add back to the overall total.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Count the rows in the monthly table and compare that count with the number of months in the period, before you write a single growth formula. Every other problem on this page is visible from that one comparison, and none of them announces itself any other way. If a trend column misbehaves in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The one that got me was a client who had paused for a month during a systems migration, so the month simply was not in the extract, and the recovery afterwards was reported as a modest decline for two quarters before anyone counted the rows. What has a missing period done to a trend you published?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Rubin, D. B. (1976). Inference and missing data. <em>Biometrika</em>, 63(3), 581–592.</li>
+    <li>Gigerenzer, G., &amp; Hoffrage, U. (1995). How to improve Bayesian reasoning without instruction: Frequency formats. <em>Psychological Review</em>, 102(4), 684–704.</li>
+    <li>Cepeda, N. J., Pashler, H., Vul, E., Wixted, J. T., &amp; Rohrer, D. (2006). Distributed practice in verbal recall tasks: A review and quantitative synthesis. <em>Psychological Bulletin</em>, 132(3), 354–380.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice trends on a series with a hole in it.</strong>
+    <p style="margin:6px 0 0">The <a href="../../excel/">Excel Kit</a> gives you the repetitions: monthly series with deliberate gaps, calendar tables to build, zero bases to handle, and flash cards on percent against percentage points. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../excel/">Open the Excel Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-month-over-month/">Month-over-Month in SQL</a> · <a href="../excel-pivot-tables/">Make a Pivot Table</a> · <a href="../excel-dates/">Excel Dates</a> · <a href="../budget-vs-actual-variance/">Budget vs Actual Variance</a> · <a href="../excel-iferror/">How to Use IFERROR</a> · <a href="../excel-sumifs/">SUMIFS and COUNTIFS</a> · <a href="../excel-sumproduct/">SUMPRODUCT Explained</a> · <a href="../excel-tables/">Excel Tables vs Ranges</a> · <a href="../../excel/">Excel Kit</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../excel-kpi-row/">The KPI Row</a> · <a href="../choose-the-right-chart/">Choose the Right Chart</a> · <a href="../correlation-vs-causation/">Correlation vs Causation</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
