@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL Date Functions: How to Group by Month Without Losing One — Analyst Prep Kit</title>
+<meta name="description" content="DATE_TRUNC, EXTRACT, INTERVAL and the half-open range, worked on sixteen real orders. Includes the month that never becomes a row, and two engines that disagree about 31 January plus one month.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-dates/">
+<meta property="og:title" content="SQL Date Functions: How to Group by Month Without Losing One">
+<meta property="og:description" content="DATE_TRUNC snaps every date to the first of its month, which is what makes GROUP BY work. Plus half-open ranges, the missing month, and why SQLite says 3 March.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-dates.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-dates/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-dates.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "SQL Date Functions: How to Group by Month Without Losing One",
+  "description": "DATE_TRUNC, EXTRACT, INTERVAL and the half-open range, worked on sixteen real orders. Includes the month that never becomes a row, and two engines that disagree about 31 January plus one month.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-dates/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-dates/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-dates.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "SQL Date Functions: How to Group by Month Without Losing One",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-dates/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>SQL Date Functions: How to Group by Month Without Losing One</h1>
+  <p class="meta">One function does most of it, and one habit stops it lying · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can summarise any table by month in one line, pull the year, month or weekday out of a date, filter a period without accidentally excluding the last day of it, do date arithmetic that survives month ends, and make a month with no activity appear in your results instead of silently vanishing. It is about twenty-five minutes, and every query and result below was run.</p>
+
+  <p>Here is what to do today. Take your monthly report and count its rows against the number of months in the period. Four rows for a five-month period means one month produced nothing, never became a row, and every comparison after the gap is reaching further back than it claims.</p>
+
+  <p>The short version: <code>DATE_TRUNC('month', d)</code> snaps every date to the first of its month, so all the dates in one month become the same value and <code>GROUP BY</code> can do the rest.</p>
+
+  <p>That snapping is the mechanism, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 250" role="img" aria-labelledby="sdTitle sdDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="sdTitle">Every date snaps to the first of its month</title>
+      <desc id="sdDesc">A horizontal timeline runs across the picture with three tall tick marks on it, labelled 1 Jan, 1 Feb and 1 Mar. Above the line, scattered at irregular positions, sit twelve small circles standing for individual order dates, four falling between each pair of ticks. From every circle a curved arrow runs down and to the left, ending on the tick that begins its own month, so the four January circles all arrive at the 1 Jan tick, the four February circles all arrive at 1 Feb, and the four March circles all arrive at 1 Mar. At each tick the arrivals are drawn as a small solid stack, showing four separate dates having become one shared value. Nothing is lost and nothing moves to a different month; the only change is that twelve distinct values have become three.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <line x1="40" y1="176" x2="726" y2="176" stroke="#09090B" stroke-width="2"/>
+        <g stroke="#0E7490" stroke-width="3">
+          <line x1="80" y1="156" x2="80" y2="196"/>
+          <line x1="308" y1="156" x2="308" y2="196"/>
+          <line x1="536" y1="156" x2="536" y2="196"/>
+        </g>
+        <g font-size="14" fill="#0E7490" text-anchor="middle" font-weight="700">
+          <text x="80" y="220">1 Jan</text><text x="308" y="220">1 Feb</text><text x="536" y="220">1 Mar</text>
+        </g>
+        <g fill="#0E7490">
+          <rect x="66" y="140" width="28" height="6" rx="3"/>
+          <rect x="66" y="130" width="28" height="6" rx="3"/>
+          <rect x="66" y="120" width="28" height="6" rx="3"/>
+          <rect x="66" y="110" width="28" height="6" rx="3"/>
+          <rect x="294" y="140" width="28" height="6" rx="3"/>
+          <rect x="294" y="130" width="28" height="6" rx="3"/>
+          <rect x="294" y="120" width="28" height="6" rx="3"/>
+          <rect x="294" y="110" width="28" height="6" rx="3"/>
+          <rect x="522" y="140" width="28" height="6" rx="3"/>
+          <rect x="522" y="130" width="28" height="6" rx="3"/>
+          <rect x="522" y="120" width="28" height="6" rx="3"/>
+          <rect x="522" y="110" width="28" height="6" rx="3"/>
+        </g>
+        <g fill="none" stroke="#B45309" stroke-width="1.8">
+          <path d="M132 60 C112 60 96 82 90 104"/>
+          <path d="M188 44 C140 44 100 74 92 104"/>
+          <path d="M240 62 C168 62 104 78 94 104"/>
+          <path d="M288 48 C196 48 108 70 96 104"/>
+          <path d="M360 60 C340 60 324 82 318 104"/>
+          <path d="M416 44 C368 44 328 74 320 104"/>
+          <path d="M468 62 C396 62 332 78 322 104"/>
+          <path d="M516 48 C424 48 336 70 324 104"/>
+          <path d="M588 60 C568 60 552 82 546 104"/>
+          <path d="M644 44 C596 44 556 74 548 104"/>
+          <path d="M696 62 C624 62 560 78 550 104"/>
+          <path d="M726 40 C640 40 562 66 552 104"/>
+        </g>
+        <g fill="#B45309">
+          <circle cx="132" cy="60" r="5"/><circle cx="188" cy="44" r="5"/>
+          <circle cx="240" cy="62" r="5"/><circle cx="288" cy="48" r="5"/>
+          <circle cx="360" cy="60" r="5"/><circle cx="416" cy="44" r="5"/>
+          <circle cx="468" cy="62" r="5"/><circle cx="516" cy="48" r="5"/>
+          <circle cx="588" cy="60" r="5"/><circle cx="644" cy="44" r="5"/>
+          <circle cx="696" cy="62" r="5"/><circle cx="726" cy="40" r="5"/>
+        </g>
+      </g>
+    </svg>
+    <figcaption>Twelve different dates become three values. That is all DATE_TRUNC does, and it is exactly what GROUP BY needs, because grouping can only put rows together when they share a value.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>A date in SQL is a real type</li>
+      <li>DATE_TRUNC, and grouping by month</li>
+      <li>Getting the pieces out</li>
+      <li>Filtering a period, the half-open way</li>
+      <li>Date arithmetic, and where two engines disagree</li>
+      <li>The month that never becomes a row</li>
+      <li>SQLite has no date type</li>
+      <li>Sorting, and the month-name trap</li>
+      <li>The full before and after</li>
+      <li>Edge cases that break a date query</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every result on this page is real.</strong> The same sixteen orders used across the Excel side of this set of guides, loaded into DuckDB and into SQLite, with every query run and its output pasted back. DuckDB's dialect is close to PostgreSQL, so the main examples transfer to Postgres, Redshift and Snowflake with little or no change. If you have met <a href="../excel-dates/">the Excel version of dates</a>, this is the same problem in a system that takes it more seriously.</div>
+
+  <div class="step">
+    <h2>1. A date in SQL is a real type</h2>
+
+    <p>Before the explanation: in Excel a date is a number wearing a format. Say what you think it is in a database.</p>
+
+    <p>Its own type, with its own rules.</p>
+
+    <pre><code>SELECT column_name, data_type
+FROM information_schema.columns
+WHERE table_name = 'orders' AND column_name = 'order_date';
+
+order_date | DATE</code></pre>
+
+    <p>That matters more than it sounds. Because the engine knows the column is a date, it can sort it chronologically without being told, compare it to another date, subtract one from another and give you days, and refuse a value that is not a valid date instead of storing it as text. None of that is available on a column of strings that happen to look like dates.</p>
+
+    <p>Three types come up, and it is worth being able to name them. <code>DATE</code> is a calendar day with no time. <code>TIMESTAMP</code> is a day and a time. <code>TIMESTAMP WITH TIME ZONE</code> is a day, a time and a position on the globe, and it is the one that turns a Monday report into a Sunday report for somebody in another office. If your source column is a timestamp and your question is about days, cast it early and say so.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. DATE_TRUNC, and grouping by month</h2>
+
+    <p><code>DATE_TRUNC</code> takes a unit and a date and throws away everything smaller than that unit. Month truncation turns 19 January into 1 January, which makes every January date identical, which is what lets them be grouped.</p>
+
+    <pre><code>SELECT DATE_TRUNC('month', order_date) AS month,
+       SUM(units * unit_price)          AS revenue,
+       COUNT(*)                         AS orders
+FROM orders
+GROUP BY 1
+ORDER BY 1;
+
+2026-01-01 | 2630 | 4
+2026-02-01 | 2245 | 4
+2026-03-01 | 2585 | 4
+2026-05-01 | 2430 | 4</code></pre>
+
+    <p>Four rows, and the revenue adds to 9,890, which is the table's total, so no rows escaped the grouping. Two things about the output are worth noticing before anything else.</p>
+
+    <p>The month is a <em>date</em>, not a label. That is the whole reason to prefer <code>DATE_TRUNC</code> to a string: the result still sorts chronologically, can still be compared, and can still be joined to a calendar. Some engines, DuckDB among them, return a timestamp from <code>DATE_TRUNC</code> and display it with a zero time on the end; cast it back with <code>::DATE</code> if the trailing zeros bother you.</p>
+
+    <p>And there are four rows for a period that runs from January to May. Hold that thought until section six.</p>
+
+    <p>The string alternative works and gives up the type:</p>
+
+    <pre><code>SELECT strftime(order_date, '%Y-%m') AS month, SUM(units * unit_price)
+FROM orders GROUP BY 1 ORDER BY 1;
+
+2026-01 | 2630
+2026-02 | 2245
+2026-03 | 2585
+2026-05 | 2430</code></pre>
+
+    <p>Same numbers, and <code>'2026-01'</code> is now text. It happens to sort correctly because the format puts the year first, which is luck rather than design, and it can no longer be used in date arithmetic. Use it for display at the very end, not for grouping.</p>
+
+    <p>Everything about grain from <a href="../sql-group-by-having/">GROUP BY and HAVING</a> applies here unchanged: after this query one row is one month, and an individual order no longer exists in the result.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Getting the pieces out</h2>
+
+    <p><code>EXTRACT</code> pulls a component out as a number, and most engines add friendlier helpers alongside it.</p>
+
+    <pre><code>SELECT order_date,
+       EXTRACT(YEAR  FROM order_date) AS y,
+       EXTRACT(MONTH FROM order_date) AS m,
+       EXTRACT(DAY   FROM order_date) AS d,
+       DAYNAME(order_date)            AS dow
+FROM orders LIMIT 1;
+
+2026-01-05 | 2026 | 1 | 5 | Monday</code></pre>
+
+    <p>One warning that costs people a whole report. <code>EXTRACT(MONTH FROM ...)</code> returns 1 to 12 with no year attached, so grouping by it merges January 2025 with January 2026 into a single row labelled 1. That is fine for a seasonality question and wrong for a trend, and the two look identical on the page. If you group by month number, group by year as well, or use <code>DATE_TRUNC</code> and avoid the choice.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Filtering a period, the half-open way</h2>
+
+    <p>Before the explanation: you want March. Say which of these you would write, and whether they differ.</p>
+
+    <pre><code>WHERE order_date BETWEEN '2026-03-01' AND '2026-03-31'
+WHERE order_date &gt;= DATE '2026-03-01' AND order_date &lt; DATE '2026-04-01'</code></pre>
+
+    <p>On a pure <code>DATE</code> column they agree, and the second returned 2,585 for March in the run. On a <code>TIMESTAMP</code> column they do not agree at all, because an order at 09:14 on 31 March is later than 31 March at midnight, so <code>BETWEEN</code> excludes it. A whole day of activity disappears, and only on months whose last day happens to be busy.</p>
+
+    <p>So adopt the second form as a habit even where the first would work. <strong>Greater than or equal to the start, strictly less than the start of the next period.</strong> It is correct for dates and for timestamps, it needs no knowledge of how many days the month has, and it never needs a <code>23:59:59</code> in it, which is the other common patch and is wrong by a second.</p>
+
+    <p>Build the boundary as a real date literal, <code>DATE '2026-03-01'</code>, rather than a bare string, so the engine compares dates to dates instead of guessing.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Date arithmetic, and where two engines disagree</h2>
+
+    <p>Subtracting two dates gives days, as a number:</p>
+
+    <pre><code>SELECT DATE '2026-05-25' - DATE '2026-01-05';    140</code></pre>
+
+    <p>Adding a period uses <code>INTERVAL</code>, and this is where it gets interesting. Ask two different engines for one month after 31 January:</p>
+
+    <pre><code>DuckDB   SELECT DATE '2026-01-31' + INTERVAL 1 MONTH;      2026-02-28
+SQLite   SELECT date('2026-01-31', '+1 month');            2026-03-03</code></pre>
+
+    <p>Both are defensible and they are not the same answer. DuckDB clamps to the last valid day of the target month. SQLite adds one to the month number and then normalises 31 February forward into March. February 2026 has 28 days, so 31 February becomes 3 March.</p>
+
+    <p>Say out loud what that does to a report that adds one month to every contract start to get a renewal date. On thirty of the days in a month nothing happens. On the thirty-first, one engine renews at the end of February and the other renews in March, and if the same logic is implemented in two systems they will disagree for exactly those contracts.</p>
+
+    <p>The lesson is not that one engine is wrong. It is that month arithmetic at month ends is a genuine ambiguity, so if it matters in your data, test it on a 31st on the engine you are actually using, rather than assuming. That takes one query.</p>
+
+    <p>Two more that come up constantly:</p>
+
+    <pre><code>SELECT DATE_TRUNC('month', DATE '2026-01-19');    2026-01-01    first of the month
+SELECT LAST_DAY(DATE '2026-01-19');               2026-01-31    last of the month</code></pre>
+  </div>
+
+  <div class="step">
+    <h2>6. The month that never becomes a row</h2>
+
+    <p>Before the explanation: the data runs from 5 January to 25 May and the monthly query returned four rows. Say which month is missing and why.</p>
+
+    <p>April, because there are no April orders. <code>GROUP BY</code> can only produce a row for a value that exists in the data, so a month with nothing in it produces nothing. Asking for it directly confirms there is genuinely nothing there:</p>
+
+    <pre><code>SELECT COUNT(*) AS rows_in_april, SUM(units * unit_price) AS april
+FROM orders
+WHERE order_date &gt;= DATE '2026-04-01' AND order_date &lt; DATE '2026-05-01';
+
+0 | NULL</code></pre>
+
+    <p>Note the <code>NULL</code>. <code>SUM</code> over no rows is not zero, it is unknown, which is the correct answer and is another thing to handle rather than to be annoyed by.</p>
+
+    <p>Now watch what the gap does to a growth calculation. Here is month over month with <code>LAG</code>, run on the four rows the data produced:</p>
+
+    <pre><code>2026-01-01 | 2630 |   NULL
+2026-02-01 | 2245 |  -14.6
+2026-03-01 | 2585 |   15.1
+2026-05-01 | 2430 |   -6.0</code></pre>
+
+    <p><code>LAG</code> means "the previous row", and the previous row for May is March. The −6.0 is a real comparison between two real months, two months apart, presented in a column headed month over month.</p>
+
+    <p>The fix is a calendar: generate every month in the period, then left join the data onto it, so a month with no orders arrives as a row with a zero.</p>
+
+    <pre><code>WITH months AS (
+  SELECT UNNEST(generate_series(DATE '2026-01-01', DATE '2026-05-01',
+                                INTERVAL 1 MONTH)) AS month
+),
+by_month AS (
+  SELECT DATE_TRUNC('month', order_date) AS month,
+         SUM(units * unit_price)          AS revenue
+  FROM orders GROUP BY 1
+),
+filled AS (
+  SELECT m.month, COALESCE(b.revenue, 0) AS revenue
+  FROM months m
+  LEFT JOIN by_month b ON b.month = m.month
+)
+SELECT month, revenue,
+       LAG(revenue) OVER (ORDER BY month) AS prev,
+       ROUND(100.0 * revenue
+             / NULLIF(LAG(revenue) OVER (ORDER BY month), 0) - 100, 1) AS pct
+FROM filled
+ORDER BY month;
+
+2026-01-01 | 2630 | NULL |   NULL
+2026-02-01 | 2245 | 2630 |  -14.6
+2026-03-01 | 2585 | 2245 |   15.1
+2026-04-01 |    0 | 2585 | -100.0
+2026-05-01 | 2430 |    0 |   NULL</code></pre>
+
+    <p>Five rows now, and three of the numbers changed meaning. April is a visible zero and a true −100.0. May's percentage is <code>NULL</code> rather than −6.0, because <code>NULLIF</code> turned the zero denominator into a null and the division declined to answer, which is exactly right: growth from nothing has no percentage.</p>
+
+    <p>Three parts of that query are worth naming, because they are the pattern rather than the specifics. <code>generate_series</code> makes the calendar; the equivalent in Postgres is the same function without the <code>UNNEST</code>, and in engines without it you keep a small dates table. <code>LEFT JOIN</code> from the calendar to the data, never the other way round, so the calendar decides which rows exist. And <code>COALESCE(..., 0)</code> turns the resulting null into the zero you actually mean, deliberately, in one place.</p>
+
+    <p>The same arithmetic and the same trap in a spreadsheet is <a href="../excel-month-over-month/">the Excel version of this page</a>, and the <code>LAG</code> mechanics on their own are in <a href="../sql-month-over-month/">month-over-month with LAG</a>.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. SQLite has no date type</h2>
+
+    <p>This surprises people who learned SQL on SQLite, which is most beginners, so it is worth stating plainly. SQLite accepts <code>DATE</code> in a column definition and then stores whatever you give it. Asking what it actually holds:</p>
+
+    <pre><code>SELECT typeof(order_date), order_date FROM orders LIMIT 1;
+
+text | 2026-01-05</code></pre>
+
+    <p>Text. The column was declared as <code>DATE</code> and the value is a string. Everything still works, as long as the strings are written <code>YYYY-MM-DD</code>, because that format sorts and compares correctly as text. Step outside it and the functions do not complain, they return nothing:</p>
+
+    <pre><code>SELECT strftime('%Y-%m', '05/01/2026');    NULL</code></pre>
+
+    <p>A null rather than an error, which will flow into a <code>GROUP BY</code> as a null group and sit there looking like a data problem rather than a format problem.</p>
+
+    <p>The rest of SQLite's date handling follows from having no type. Grouping needs <code>strftime</code>, differences need <code>julianday</code>, and both worked correctly on the same data:</p>
+
+    <pre><code>SELECT strftime('%Y-%m', order_date), SUM(units*unit_price)
+FROM orders GROUP BY 1 ORDER BY 1;
+2026-01 | 2630   ...   2026-05 | 2430
+
+SELECT julianday('2026-05-25') - julianday('2026-01-05');    140.0</code></pre>
+
+    <p>So: on SQLite, store dates as <code>YYYY-MM-DD</code> strings and nothing else, and check the format on import rather than trusting it. On a typed engine, let the column be a date and let the engine enforce it. And when a query behaves oddly on one engine and correctly on another, the type system is the first place to look, not the last.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. Sorting, and the month-name trap</h2>
+
+    <p>Before the explanation: you format the month as a short name for the report, then order by it. Predict the order.</p>
+
+    <pre><code>SELECT strftime(order_date, '%b') AS month, SUM(units*unit_price)
+FROM orders GROUP BY 1 ORDER BY 1;
+
+Feb | 2245
+Jan | 2630
+Mar | 2585
+May | 2430</code></pre>
+
+    <p>February first. The column is text, so the sort is alphabetical, and February beats January in the alphabet. Anyone reading the chart built on that will see a trend that never happened.</p>
+
+    <p>The fix is to keep the real date for ordering and use the label only for display:</p>
+
+    <pre><code>SELECT strftime(m.month, '%b')  AS label,
+       m.revenue
+FROM ( SELECT DATE_TRUNC('month', order_date) AS month,
+              SUM(units*unit_price)            AS revenue
+       FROM orders GROUP BY 1 ) m
+ORDER BY m.month;</code></pre>
+
+    <p>Group and order by the date, format at the last possible moment. That single rule covers the month-name sort, the year-number merge from section three, and most of what goes wrong between a query and a chart.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same sixteen orders, same question: monthly revenue and how it is moving.</p>
+
+  <h3>Before</h3>
+  <pre><code>SELECT strftime(order_date, '%b') AS month,
+       SUM(units*unit_price)      AS revenue
+FROM orders
+WHERE order_date BETWEEN '2026-01-01' AND '2026-05-31'
+GROUP BY 1
+ORDER BY 1;
+
+Feb | 2245
+Jan | 2630
+Mar | 2585
+May | 2430</code></pre>
+  <p>Four problems and no errors. The rows are in alphabetical order. April is absent with nothing to say so. <code>BETWEEN</code> would drop the last day of the period if the column ever became a timestamp. And the month column is text, so nothing downstream can do arithmetic with it.</p>
+
+  <h3>After</h3>
+  <pre><code>WITH months AS (
+  SELECT UNNEST(generate_series(DATE '2026-01-01', DATE '2026-05-01',
+                                INTERVAL 1 MONTH)) AS month
+),
+by_month AS (
+  SELECT DATE_TRUNC('month', order_date) AS month,
+         SUM(units * unit_price)          AS revenue
+  FROM orders
+  WHERE order_date &gt;= DATE '2026-01-01' AND order_date &lt; DATE '2026-06-01'
+  GROUP BY 1
+)
+SELECT m.month,
+       COALESCE(b.revenue, 0) AS revenue
+FROM months m
+LEFT JOIN by_month b ON b.month = m.month
+ORDER BY m.month;
+
+2026-01-01 | 2630
+2026-02-01 | 2245
+2026-03-01 | 2585
+2026-04-01 |    0
+2026-05-01 | 2430</code></pre>
+
+  <p>Five rows, in date order, with the empty month present as a zero and the period boundary written half-open so it cannot lose a day. The revenue still adds to 9,890.</p>
+
+  <p>The claim, and it is the reason the calendar goes in before anyone asks for it: <strong>a month with no rows cannot appear in a GROUP BY, so the gap is invisible, and the growth figure printed next to May was really May against March.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases that break a date query</h2>
+
+    <p>Six that get through.</p>
+
+    <p><strong>Timestamps compared to dates.</strong> A timestamp column compared to <code>DATE '2026-03-31'</code> means midnight, so everything later that day is excluded. Half-open ranges make this impossible.</p>
+
+    <p><strong>Time zones.</strong> A timestamp stored in UTC and read by somebody in another zone can move rows between days, which moves them between months at month boundaries. Decide which zone the report is in and convert once, explicitly.</p>
+
+    <p><strong>A function on the filtered column.</strong> <code>WHERE EXTRACT(YEAR FROM order_date) = 2026</code> stops most engines using an index on that column, and on a large table it turns a fast query into a slow one. Compare the raw column to a range instead.</p>
+
+    <p><strong>Month number without year.</strong> Covered in section three, and worth repeating because it produces twelve tidy-looking rows out of three years of data.</p>
+
+    <p><strong>Nulls in the date column.</strong> They form their own group and land at one end of the sort, so a report can carry a row with a blank month that nobody notices. Count them on purpose.</p>
+
+    <p><strong>Weeks.</strong> <code>DATE_TRUNC('week', ...)</code> has to decide whether a week starts on Sunday or Monday, and engines differ. Check it once against a known date rather than assuming.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>Grouping by month works because grouping is a partition: rows go into the same group when they share a value, and an aggregate is a function from each group to a single number (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). Dates in one month do not share a value, so nothing can group them until you make them share one, which is precisely what <code>DATE_TRUNC</code> is for. Seeing it that way also explains the missing April without any special rule: a group exists only if a row falls into it, so a month with no rows is not an empty group, it is not a group at all. The calendar table does not fix a bug; it supplies the values that the data could not.</p>
+
+  <p>The wider point is that time is genuinely harder than the other column types, and that is a known result rather than a complaint. Work on temporal databases has spent decades on questions that look trivial from outside, what an interval means, whether a period includes its endpoint, how to compare a moment to a span, and it exists because ordinary query languages handle time by convention rather than by construction (Snodgrass, 1987, <em>ACM Transactions on Database Systems</em>, 12(2), 247–298). The half-open range in section four is one of those conventions, settled by practice rather than by the language, which is why every engine lets you write the wrong one and none of them warns you.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than reread, because people consistently misjudge which study methods are working, rating the fluent-feeling ones highest while learning more from the ones that feel effortful (Bjork, Dunlosky, &amp; Kornell, 2013, <em>Annual Review of Psychology</em>, 64, 417–444).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Auditing every date query at once is miserable and you will stop at the third. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Count the rows against the months.</strong> One query, and it finds the whole class of missing-period bug.</li>
+    <li><strong>Replace every BETWEEN on a date or timestamp</strong> with greater-or-equal and strictly-less-than. Mechanical, and it can only make things more correct.</li>
+    <li><strong>Group with <code>DATE_TRUNC</code>, not with a string</strong>, and format the label at the very end.</li>
+    <li><strong>Add a calendar</strong> to any report where a period could be empty, and <code>LEFT JOIN</code> from the calendar to the data.</li>
+    <li><strong>Guard the growth divide</strong> with <code>NULLIF(prev, 0)</code>, so a zero base gives no answer rather than a wrong one.</li>
+    <li><strong>Test month arithmetic on a 31st</strong>, on your own engine, once. It takes one query and it settles a question you would otherwise assume.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Draw a timeline for your reporting period and mark every month boundary on it. Then mark, from memory, the periods where you know activity paused: a shutdown, a migration, a seasonal closure. Every one of those is a row your <code>GROUP BY</code> will not produce, and seeing them on a line is faster than discovering them in a chart.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Excel, Python, and the working habits around them. If you would rather type queries than read about them, the <a href="../../drill/">SQL Drill</a> hands you one runnable query at a time against a real database.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>The three types</td><td><code>DATE</code>, <code>TIMESTAMP</code>, <code>TIMESTAMP WITH TIME ZONE</code>.</td></tr>
+    <tr><td><code>DATE_TRUNC('month', d)</code></td><td>Snaps to the first of the month. Result is still a date.</td></tr>
+    <tr><td>Why that groups</td><td>Rows can only group when they share a value.</td></tr>
+    <tr><td>String months</td><td>Work, sort by luck, and cannot do arithmetic. Display only.</td></tr>
+    <tr><td><code>EXTRACT(MONTH FROM d)</code></td><td>1 to 12, no year. Merges the same month across years.</td></tr>
+    <tr><td>Filtering a period</td><td><code>&gt;= start AND &lt; next start</code>. Never BETWEEN on a timestamp.</td></tr>
+    <tr><td>Why not BETWEEN</td><td>The end date means midnight, so the last day is lost.</td></tr>
+    <tr><td>Date minus date</td><td>A number of days. 25 May minus 5 January is 140.</td></tr>
+    <tr><td>Adding a month</td><td><code>+ INTERVAL 1 MONTH</code>. Engines differ at month ends.</td></tr>
+    <tr><td>31 January plus a month</td><td>DuckDB says 28 February. SQLite says 3 March.</td></tr>
+    <tr><td>First and last of the month</td><td><code>DATE_TRUNC('month', d)</code> and <code>LAST_DAY(d)</code>.</td></tr>
+    <tr><td>A month with no rows</td><td>Produces no group at all. Not a zero.</td></tr>
+    <tr><td>SUM over no rows</td><td><code>NULL</code>, not 0.</td></tr>
+    <tr><td>The calendar</td><td><code>generate_series</code>, then LEFT JOIN from calendar to data.</td></tr>
+    <tr><td>Zero base in growth</td><td><code>NULLIF(prev, 0)</code>. No answer beats a wrong one.</td></tr>
+    <tr><td>SQLite</td><td>No date type. <code>typeof</code> says text. Use <code>YYYY-MM-DD</code> only.</td></tr>
+    <tr><td>SQLite functions</td><td><code>strftime</code> to group, <code>julianday</code> to subtract.</td></tr>
+    <tr><td>Month names</td><td>Sort alphabetically. Order by the date, label at the end.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Count the rows your monthly query returns and compare that with the number of months in the period. Everything else on this page is either a consequence of that check or a way of fixing what it finds, and no other symptom announces a missing month. If a date query misbehaves in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The version that caught me was a warehouse where a public holiday shutdown produced a week with no rows, and a weekly report that had been quietly comparing each week with the week before the gap for a month. What period has gone missing from something you queried, and what finally showed it?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+    <li>Snodgrass, R. (1987). The temporal query language TQuel. <em>ACM Transactions on Database Systems</em>, 12(2), 247–298.</li>
+    <li>Bjork, R. A., Dunlosky, J., &amp; Kornell, N. (2013). Self-regulated learning: Beliefs, techniques, and illusions. <em>Annual Review of Psychology</em>, 64, 417–444.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice date queries against a real database.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> gives you the repetitions: grouping by month, half-open period filters, calendars joined to sparse data, and flash cards on exactly the DATE_TRUNC and EXTRACT distinctions from this page. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../excel-dates/">Excel Dates</a> · <a href="../sql-month-over-month/">Month-over-Month in SQL</a> · <a href="../excel-month-over-month/">Month-over-Month in Excel</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../sql-null/">NULL in SQL</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../../sql/">SQL Kit</a> · <a href="../set-up-duckdb/">Set Up DuckDB</a> · <a href="../which-sql-database-to-install/">Which SQL Database to Install</a> · <a href="../sql-find-duplicates/">Find Duplicates in SQL</a> · <a href="../pandas-groupby/">pandas groupby</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
