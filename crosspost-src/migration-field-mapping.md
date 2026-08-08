@@ -27,7 +27,7 @@ Every migration has them. The old system tracked something the new one does not,
 
 **It goes into a notes or custom field.** The pressure valve. Use it sparingly, because a value in a notes field cannot be reported on, and the client will eventually want to report on it.
 
-**It does not travel.** A real answer, and the one that needs the clearest written record. Name the field, say why, and get it confirmed alongside the exclusions agreed at [kickoff](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-field-mapping/../migration-kickoff-scope/).
+**It does not travel.** A real answer, and the one that needs the clearest written record. Name the field, say why, and get it confirmed alongside the exclusions agreed at [kickoff](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-kickoff-scope/).
 
 Say which of those four you would push a client towards for a field nobody has used since 2018. Then read the next line. It is the fourth one, and the profiling row count is your evidence.
 
@@ -37,7 +37,7 @@ Pick a single identifier per real thing, usually the client, and carry it throug
 
 This is what stops orphans. A document loaded with the client's name on it and nothing else is a document that will end up attached to the wrong person or to nobody. A document loaded with the client ID lands where it belongs.
 
-The old system's key is usually the right thing to carry, even when the new system generates its own. Keep a crosswalk table of old ID to new ID. You will need it during the [dry run](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-field-mapping/../migration-dry-run/), and you will need it again if anything has to be reloaded.
+The old system's key is usually the right thing to carry, even when the new system generates its own. Keep a crosswalk table of old ID to new ID. You will need it during the [dry run](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-dry-run/), and you will need it again if anything has to be reloaded.
 
 ## Documents are data too
 

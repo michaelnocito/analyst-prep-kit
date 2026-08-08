@@ -78,7 +78,7 @@ Before the explanation: `COUNT(*)` and `COUNT(customer_id)` on the same table ca
 
 An **aggregate function** takes many rows and returns one value. There are five you will use constantly: `COUNT`, `SUM`, `AVG`, `MIN`, `MAX`.
 
-`GROUP BY` decides what "many rows" means. Without it, an aggregate collapses the entire table to a single row. With `GROUP BY region`, it collapses to one row per region, and the aggregate is recalculated inside each one. This is the same idea as the level of detail of a view in Tableau, and if you have met that, it is exactly the same mechanic wearing different clothes. There is a walkthrough of it in the [Tableau concepts guide](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-foundations/../tableau-concepts/).
+`GROUP BY` decides what "many rows" means. Without it, an aggregate collapses the entire table to a single row. With `GROUP BY region`, it collapses to one row per region, and the aggregate is recalculated inside each one. This is the same idea as the level of detail of a view in Tableau, and if you have met that, it is exactly the same mechanic wearing different clothes. There is a walkthrough of it in the [Tableau concepts guide](https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-concepts/).
 
 The rule that follows: every column in your `SELECT` must either be in the `GROUP BY` or be wrapped in an aggregate. There is no third option, because there is no sensible answer to "give me the customer name for this group of 400 customers."
 
@@ -108,7 +108,7 @@ The same sentence explains the opposite failure. A customer with no orders produ
 
 The types, briefly. `INNER JOIN` keeps only matched pairs. `LEFT JOIN` keeps every row from the left table, filling the right side with `NULL` where nothing matched. `RIGHT JOIN` does the same the other way round. `FULL OUTER JOIN` keeps unmatched rows from both sides. `CROSS JOIN` pairs everything with everything and is almost never what you want by accident.
 
-Joins are where the largest share of real analyst errors live, and both failure modes are invisible in the query text and obvious in the row count. That is a whole guide on its own: [how to join two tables without losing or doubling rows](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-foundations/../sql-joins/) works through both on 41 million real rows, with the two counts that catch each one.
+Joins are where the largest share of real analyst errors live, and both failure modes are invisible in the query text and obvious in the row count. That is a whole guide on its own: [how to join two tables without losing or doubling rows](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/) works through both on 41 million real rows, with the two counts that catch each one.
 
 ## 6. Shaping the output: DISTINCT, ORDER BY, CASE, aliases
 
@@ -118,7 +118,7 @@ Before the explanation: your result has the same customer listed nine times. Is 
 
 `ORDER BY` sorts. Ascending by default, `DESC` for descending, and you can sort by several columns in priority order. `LIMIT` takes the first n rows and is your best friend on a table you have never opened before, because `SELECT * FROM big_table LIMIT 10` shows you what you are dealing with in a second.
 
-**Aliases** rename things. `AS avg_hours` names an output column, and `FROM customers AS c` nicknames a table so you can write `c.name`. Two joined tables almost always need those nicknames, because both can carry a column of the same name. The whole habit is covered in [SQL aliases, and reading a query out loud](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-foundations/../sql-aliasing/).
+**Aliases** rename things. `AS avg_hours` names an output column, and `FROM customers AS c` nicknames a table so you can write `c.name`. Two joined tables almost always need those nicknames, because both can carry a column of the same name. The whole habit is covered in [SQL aliases, and reading a query out loud](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-aliasing/).
 
 `CASE` is the if-then of SQL, and it turns a column into categories.
     
@@ -171,7 +171,7 @@ A **primary key** is the column that uniquely identifies a row. One customer id,
 
 That pair is the whole answer to the prequestion. The address lives in one place, so changing it changes it everywhere, and there is no way for two copies to disagree. Splitting data into tables that reference each other by key is called normalisation, and it is what relational means in practice.
 
-An **index** is a lookup structure the database keeps on a column so it does not have to read every row to find a value. The cost is a little space and slightly slower writes. The benefit on a large table is dramatic: matching 125,855 rows against 41 million goes from a full scan to a lookup. Index the columns you join and filter on. The [guide to handling large datasets](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-foundations/../handle-large-datasets/) covers the rest of working at that size.
+An **index** is a lookup structure the database keeps on a column so it does not have to read every row to find a value. The cost is a little space and slightly slower writes. The benefit on a large table is dramatic: matching 125,855 rows against 41 million goes from a full scan to a lookup. Index the columns you join and filter on. The [guide to handling large datasets](https://michaelnocito.github.io/analyst-prep-kit/guides/handle-large-datasets/) covers the rest of working at that size.
 
 One last thing worth knowing before you meet it. SQL is a standard, but every database extends it. Date functions, string functions, and how you limit rows all differ between PostgreSQL, MySQL, SQLite, SQL Server and BigQuery. The core in this guide is the same everywhere. When a function does not exist, you are usually in a different dialect rather than wrong.
 
@@ -223,7 +223,7 @@ This is the retrieval sheet. Cover the right column, work down the left, and say
 | Foreign key                   | That id appearing in another table to point back at it.                                        |
 | Index                         | A lookup structure so the database does not read every row. Index what you join and filter on. |
 
-**The one habit to keep.** Before you write an aggregate, say the grain of what you are aggregating out loud. "One row per order" or "one row per review". Nearly every wrong number in SQL is a correct calculation performed at a grain you did not intend, and that one sentence catches it before the query runs. If it does not catch yours, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-foundations/../technical-tenacity/).
+**The one habit to keep.** Before you write an aggregate, say the grain of what you are aggregating out loud. "One row per order" or "one row per review". Nearly every wrong number in SQL is a correct calculation performed at a grain you did not intend, and that one sentence catches it before the query runs. If it does not catch yours, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/technical-tenacity/).
 
 One genuine question, and I would like other people's answers. The concept that took me longest was `NULL`, because I kept treating it as a value rather than as an absence of one, and it kept nearly working. Which SQL idea did you understand wrongly for the longest, and what finally fixed it?
 

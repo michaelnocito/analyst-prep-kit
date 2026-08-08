@@ -78,7 +78,7 @@ Eight of the sixteen rows are 1,000 or more, and 1200 + 1480 + 1130 + 1340 + 161
     
     =SUMIFS(D2:D17, D2:D17, ">="&F1)   → 10,610 when F1 holds 1000
 
-Now the reader changes F1 and every total on the sheet follows. Where that threshold number should come from is its own question, and [choosing thresholds from the data](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sumifs/../data-driven-thresholds/) is the honest way to answer it.
+Now the reader changes F1 and every total on the sheet follows. Where that threshold number should come from is its own question, and [choosing thresholds from the data](https://michaelnocito.github.io/analyst-prep-kit/guides/data-driven-thresholds/) is the honest way to answer it.
 
 ## 4. COUNTIFS and AVERAGEIFS, same grammar
 
@@ -90,7 +90,7 @@ Nothing, is the answer. Counting needs no sum column, so COUNTIFS is criteria pa
     =COUNTIFS(A2:A17, "East", B2:B17, "Feb")   → 2
     =COUNTIFS(B2:B17, "Feb")                   → 6
 
-Two East rows in February, six February rows overall, and you can confirm both by eye in the table above. COUNTIFS is also the audit tool for the rest of the family: before trusting any SUMIFS, ask COUNTIFS how many rows it stood on. A total of 2,200 means something different resting on 2 rows than on 200, which is the same small-sample honesty that [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sumifs/../sql-group-by-having/) teaches on the SQL side.
+Two East rows in February, six February rows overall, and you can confirm both by eye in the table above. COUNTIFS is also the audit tool for the rest of the family: before trusting any SUMIFS, ask COUNTIFS how many rows it stood on. A total of 2,200 means something different resting on 2 rows than on 200, which is the same small-sample honesty that [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/) teaches on the SQL side.
 
 AVERAGEIFS is one paragraph because it is SUMIFS's grammar exactly: average column first, then criteria pairs. `=AVERAGEIFS(D2:D17, A2:A17, "West")` returns 1,215, which is West's five sales, 860 + 1340 + 990 + 1610 + 1275 = 6,075, divided by 5. The only extra thing to know: if no rows match, AVERAGEIFS shows a divide-by-zero error rather than a zero, and that error is it telling you the truth.
 
@@ -137,7 +137,7 @@ That reads: on or after February 1st, and before March 1st. Using `DATE(2026,2,1
 
 ## Why this works
 
-SUMIFS earns its keep because it makes a stated claim instead of a performed action. A filtered status-bar total is an action: it happened, you saw it, and no trace remains. A SUMIFS cell is a claim written down: these rows, these conditions, this total, checkable by anyone later. That is the same reason analysts keep SQL queries and [documented limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sumifs/../documenting-data-limitations/) rather than memories of what they clicked. The formula is the audit trail.
+SUMIFS earns its keep because it makes a stated claim instead of a performed action. A filtered status-bar total is an action: it happened, you saw it, and no trace remains. A SUMIFS cell is a claim written down: these rows, these conditions, this total, checkable by anyone later. That is the same reason analysts keep SQL queries and [documented limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/) rather than memories of what they clicked. The formula is the audit trail.
 
 The verify-it-twice habit this page keeps modelling has a statistical backbone too. Cleveland and McGill showed that people misjudge quantities read from visual displays in systematic, measurable ways (Cleveland & McGill, 1984, _Journal of the American Statistical Association_ , 79(387), 531–554). Eyeballing a filtered column is a perceptual judgement, and a formula is not, which is why the two disagreeing is so informative: when they differ, believe neither until you know why.
 
@@ -155,7 +155,7 @@ Rebuilding every hand-typed summary in an old workbook is miserable, and you wil
 
 If you have paper and five minutes, one optional drawing makes the grammar stick. Draw eight rows flowing through two gates into a sum box, and label the gates with a condition from your own data, your region, your month. Then write the SUMIFS that matches your drawing, sum column first. If the drawing and the formula agree, you own this.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sumifs/../): Excel, SQL, Tableau, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): Excel, SQL, Tableau, and the working habits around them.
 
 ## The whole thing on one screen
 
@@ -181,7 +181,7 @@ This is the retrieval sheet. Cover the right column, work down the left, and say
 | Range sizes          | All ranges the same rows. Same-height-but-shifted is the silent version.                           |
 | The habit            | Verify one SUMIFS against a filter or pivot before it ships.                                       |
 
-**The one habit to keep.** If you take nothing else from this page, check every SUMIFS you ship against a filter or a pivot once, and keep a COUNTIFS beside it so readers see how many rows the number stands on. A wrong conditional total never looks wrong. It looks like 5,680 when the truth is 6,180. If a formula breaks in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sumifs/../technical-tenacity/).
+**The one habit to keep.** If you take nothing else from this page, check every SUMIFS you ship against a filter or a pivot once, and keep a COUNTIFS beside it so readers see how many rows the number stands on. A wrong conditional total never looks wrong. It looks like 5,680 when the truth is 6,180. If a formula breaks in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/technical-tenacity/).
 
 One last thought, and I would genuinely like other people's answers. My blank-region row was worth 500 and hid for one reporting cycle before a totals check caught it. What is the biggest gap you have found between a summary sheet and the raw data underneath it, and which check finally surfaced it?
 

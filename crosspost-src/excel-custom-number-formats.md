@@ -4,7 +4,7 @@ The principle is one line, and it is the whole article: **format changes appeara
 
 **The short version.** Never type 21.2x. Format 21.1919 to display as 21.2x. The cell still divides, charts, sums and feeds formulas, because it never stopped being a number.
 
-The example is real, from [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-custom-number-formats/../excel-dashboard-build-order/). The KPI row's audience gap came out of AVERAGEIF as 21.1919: found games average 2,458,263 owners against 116,000 for the hidden ones. The dashboard shows 21.2x. The cell holds the full number. Both figures were re-run against the file before publishing.
+The example is real, from [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/). The KPI row's audience gap came out of AVERAGEIF as 21.1919: found games average 2,458,263 owners against 116,000 for the hidden ones. The dashboard shows 21.2x. The cell holds the full number. Both figures were re-run against the file before publishing.
 
 ## What typing the unit destroys
 
@@ -20,7 +20,7 @@ The moment the x lands, the cell holds text. Everything that treated it as a num
 | Sorting                       | Text sorts apart from numbers: 21.2x files after 100 |
 | The next person's edit        | They inherit a dashboard where one KPI is decoration |
 
-SUM skipping text is the dangerous one, because a total that quietly excludes a member is exactly the shape of error [article 2's checks](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-custom-number-formats/../excel-check-your-work/) exist for: confident, formatted, wrong.
+SUM skipping text is the dangerous one, because a total that quietly excludes a member is exactly the shape of error [article 2's checks](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/) exist for: confident, formatted, wrong.
 
 ## Where the setting lives
 
@@ -46,13 +46,13 @@ Say what `0.0"x"` does out loud, in order: one decimal place, then a literal x. 
 
 These five cover nearly everything a dashboard needs, and no more. All are from real use, and the first two are in the build's KPI row.
 
-| Code         | Shows              | Job                                                                                                                                                   |
-|--------------|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `0.0"x"`     | 21.1919 → 21.2x    | A multiple or ratio with its unit                                                                                                                     |
-| `#,##0,"k"`  | 2,458,263 → 2,458k | Big counts, compressed by a thousand                                                                                                                  |
-| `#,##0,,"M"` | 2,458,263 → 2M     | Very big counts, compressed by a million                                                                                                              |
-| `$#,##0.00`  | 1234.5 → $1,234.50 | Money, without the Currency preset's extra baggage                                                                                                    |
-| `0.0%`       | 0.229 → 22.9%      | Shares, one decimal, per [article 7](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-custom-number-formats/../excel-pivot-percentages/) |
+| Code         | Shows              | Job                                                                                                                    |
+|--------------|--------------------|------------------------------------------------------------------------------------------------------------------------|
+| `0.0"x"`     | 21.1919 → 21.2x    | A multiple or ratio with its unit                                                                                      |
+| `#,##0,"k"`  | 2,458,263 → 2,458k | Big counts, compressed by a thousand                                                                                   |
+| `#,##0,,"M"` | 2,458,263 → 2M     | Very big counts, compressed by a million                                                                               |
+| `$#,##0.00`  | 1234.5 → $1,234.50 | Money, without the Currency preset's extra baggage                                                                     |
+| `0.0%`       | 0.229 → 22.9%      | Shares, one decimal, per [article 7](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-percentages/) |
 
 Anything in quotes prints literally, so `0.0" hrs"`, `#,##0" games"` and `0" pts"` are the same idea wearing different units. You now know how to write formats nobody taught you.
 
@@ -60,7 +60,7 @@ Anything in quotes prints literally, so `0.0" hrs"`, `#,##0" games"` and `0" pts
 
 The trailing comma is the one piece of this that looks like a typo and is not. A comma at the end of the code divides the _displayed_ value by 1,000. Two commas divide by a million. The stored value never moves.
 
-That is how the build's owner counts fit in a KPI tile: 2,458,263 displays as 2,458k, and the cell still holds every digit, so the 21.2x ratio computed from it stays exact. Round the display, never the data. The moment you round the data itself, every downstream calculation inherits the rounding, and [your checks](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-custom-number-formats/../excel-check-your-work/) start disagreeing with your display.
+That is how the build's owner counts fit in a KPI tile: 2,458,263 displays as 2,458k, and the cell still holds every digit, so the 21.2x ratio computed from it stays exact. Round the display, never the data. The moment you round the data itself, every downstream calculation inherits the rounding, and [your checks](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/) start disagreeing with your display.
 
 ## Four sections: negatives, zeros, text
 
@@ -77,7 +77,7 @@ Use it when you need it and not before. One section is the normal case, and a wa
 
 The boundary, so this tool does not get overused: a format changes how a true number is displayed. It cannot fix a number that is not true, and it cannot turn text back into numbers.
 
-If 08053 lost its zero at import, that is [article 4's problem](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-custom-number-formats/../excel-csv-import-leading-zeros/), and a `00000` format only papers over it: the display shows 08053 while the cell holds 8053, and any join against real zips still fails. Display and substance disagreeing on purpose is worse than either being wrong alone. Fix the substance first, then format it.
+If 08053 lost its zero at import, that is [article 4's problem](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-csv-import-leading-zeros/), and a `00000` format only papers over it: the display shows 08053 while the cell holds 8053, and any join against real zips still fails. Display and substance disagreeing on purpose is worse than either being wrong alone. Fix the substance first, then format it.
 
 ## Run it on your own file
 

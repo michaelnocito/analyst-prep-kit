@@ -4,7 +4,7 @@ The reason both moves work is the same fact: a reader gives a chart a few second
 
 **The short version.** Delete the legend, gridlines, axis or labels, whichever half is redundant, and the field buttons always. Grey every bar that is context. Spend the one accent color on the subject, even when the subject is the small bar.
 
-The worked example is the hero chart from [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-chart-design-basics/../excel-dashboard-build-order/): hidden games against found games, the chart the whole dashboard argues from. What follows is what came off it, what went on it, and why.
+The worked example is the hero chart from [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/): hidden games against found games, the chart the whole dashboard argues from. What follows is what came off it, what went on it, and why.
 
 ## Move one: take things away
 

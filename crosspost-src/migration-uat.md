@@ -16,7 +16,7 @@ The second one gets a reply, because it names the action, the records, and the d
 
 Not the project sponsor and not IT. The people who use the records every day. A scheduler will spot in four seconds that a visit type looks wrong, and nobody senior to them will.
 
-Ask for two or three of them by name at [kickoff](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-uat/../migration-kickoff-scope/), and warn the client then that these people will need real time set aside. Testing squeezed into the gaps of a working day is testing that does not happen.
+Ask for two or three of them by name at [kickoff](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-kickoff-scope/), and warn the client then that these people will need real time set aside. Testing squeezed into the gaps of a working day is testing that does not happen.
 
 ## What to give them
 
@@ -33,9 +33,9 @@ Include the de-duplicated records on purpose. Those are the ones where a wrong d
 
 Agree this before testing starts, or you will be negotiating it while people are annoyed.
 
-A pass is that the records match what was agreed in the [field map](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-uat/../migration-field-mapping/). It is not that the new system works exactly like the old one, and it is not that data the client never had has appeared. That distinction is why the signed map matters, and it is worth restating in the email that opens UAT.
+A pass is that the records match what was agreed in the [field map](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-field-mapping/). It is not that the new system works exactly like the old one, and it is not that data the client never had has appeared. That distinction is why the signed map matters, and it is worth restating in the email that opens UAT.
 
-Findings sort into three buckets: a genuine migration defect that you fix, a difference that was agreed in the map and needs explaining, and a new request that is [out of scope](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-uat/../migration-scope-creep/). Name the bucket for each item when you reply, politely and every time.
+Findings sort into three buckets: a genuine migration defect that you fix, a difference that was agreed in the map and needs explaining, and a new request that is [out of scope](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-scope-creep/). Name the bucket for each item when you reply, politely and every time.
 
 ## The gate
 

@@ -195,9 +195,9 @@ Every role above ends with five things in order. Here is why the order barely ch
 
 Excel comes first in most of them because every job assumes it and no job teaches it. SQL comes second because it is how you get the data without asking someone. A chart tool comes third because work nobody understands does not count as work. Statistics comes fourth because it stops you being confidently wrong. Python comes last because it is the one you can do the job without.
 
-The kits follow that order already. Start with [Excel](https://michaelnocito.github.io/analyst-prep-kit/guides/choose-your-analyst-role/../../excel/), then [SQL](https://michaelnocito.github.io/analyst-prep-kit/guides/choose-your-analyst-role/../../sql/), then the chart tool your target adverts name. Type the queries rather than reading them, which is what [SQL Drill](https://michaelnocito.github.io/analyst-prep-kit/guides/choose-your-analyst-role/../../drill/) is for, and build the chart yourself in [Viz Drill](https://michaelnocito.github.io/analyst-prep-kit/guides/choose-your-analyst-role/../../viz/).
+The kits follow that order already. Start with [Excel](https://michaelnocito.github.io/analyst-prep-kit/excel/), then [SQL](https://michaelnocito.github.io/analyst-prep-kit/sql/), then the chart tool your target adverts name. Type the queries rather than reading them, which is what [SQL Drill](https://michaelnocito.github.io/analyst-prep-kit/drill/) is for, and build the chart yourself in [Viz Drill](https://michaelnocito.github.io/analyst-prep-kit/viz/).
 
-Alongside the kits there are more than forty short guides. Read them when their subject is a problem you actually have, not in order. The [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/choose-your-analyst-role/../) lists all of them, including the sixteen on data migration if that is the road you picked.
+Alongside the kits there are more than forty short guides. Read them when their subject is a problem you actually have, not in order. The [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/) lists all of them, including the sixteen on data migration if that is the road you picked.
 
 ## The one habit
 

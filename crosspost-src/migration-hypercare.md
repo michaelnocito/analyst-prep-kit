@@ -16,7 +16,7 @@ Three things, in order of how often they appear.
 
 **"I cannot find X."** Usually it is there and the person is looking in a different place than the old system put it. This is a training question wearing a data costume, and answering it as a data question wastes everyone's time. Show them where it lives.
 
-**"This record looks wrong."** Check it against the [field map](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-hypercare/../migration-field-mapping/) first. Most of the time it matches what was agreed, and the answer is an explanation. Sometimes it is a real defect, and then you fix it and check whether it affected a class of records or just that one.
+**"This record looks wrong."** Check it against the [field map](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-field-mapping/) first. Most of the time it matches what was agreed, and the answer is an explanation. Sometimes it is a real defect, and then you fix it and check whether it affected a class of records or just that one.
 
 **"Where is the thing we agreed not to migrate?"** This is the exclusion list arriving in person. Answer it kindly and point at where the archive lives. If it comes up more than twice, tell the client's contact, because it means the exclusion was not communicated internally.
 
@@ -33,7 +33,7 @@ One document, and it is the artifact that outlives the project.
   * Known limitations, written to be useful rather than defensive.
   * Where the archive of non migrated data lives, and who holds it.
 
-Write the limitations section properly. A year from now, somebody at that client will ask why a number does not match, and this document is the answer. [Documenting limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-hypercare/../documenting-data-limitations/) covers how to write them so they hold up.
+Write the limitations section properly. A year from now, somebody at that client will ask why a number does not match, and this document is the answer. [Documenting limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/) covers how to write them so they hold up.
 
 ## The internal readout
 

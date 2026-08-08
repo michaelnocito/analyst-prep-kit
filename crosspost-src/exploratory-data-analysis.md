@@ -69,7 +69,7 @@ Exploration means treating oddities as leads rather than annoyances. In the Bill
 
 A detective does not shrug at that. The follow-up queries found the culprit: thousands of rows carrying the letters `'NA'`. They also turned up something else. "Debut week" was marked two different ways in different eras of the archive, so every later query had to speak both dialects. Miss that during exploration and every debut-related count afterwards is quietly wrong.
 
-That investigation pattern is hypothesis, targeted query, verdict, next hypothesis. It is walked through step by step in the [SQL CASE expression guide](https://michaelnocito.github.io/analyst-prep-kit/guides/exploratory-data-analysis/../sql-case-expression/), where exploring a messy artist-credit column ends up dictating the cleaning rule.
+That investigation pattern is hypothesis, targeted query, verdict, next hypothesis. It is walked through step by step in the [SQL CASE expression guide](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-expression/), where exploring a messy artist-credit column ends up dictating the cleaning rule.
 
 ## Let distributions choose your thresholds
 
@@ -109,7 +109,7 @@ One warning keeps EDA honest. When you explore freely you _will_ find patterns, 
 
 The detective and courtroom split exists for exactly this. A pattern found during exploration is a **suspect** , not a conviction. It earns a hypothesis, and that hypothesis needs testing on evidence that did not generate it: fresh data, a held-out sample, or a formal test specified in advance.
 
-Treating an exploratory find as a proven fact is the analytical version of convicting the first person the detective interviewed. Explore boldly, conclude carefully. And whatever exploration turns up, the analysis has to account for it, which is covered in [How Analysts Document Limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/exploratory-data-analysis/../documenting-data-limitations/).
+Treating an exploratory find as a proven fact is the analytical version of convicting the first person the detective interviewed. Explore boldly, conclude carefully. And whatever exploration turns up, the analysis has to account for it, which is covered in [How Analysts Document Limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/).
 
 ## References
 

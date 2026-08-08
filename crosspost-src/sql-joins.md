@@ -6,7 +6,7 @@ The short version: a join can drop rows that found no match, and duplicate rows 
 
 One idea decides everything else here, so it gets the picture. A join does not add columns to your table. It builds a new table, and you have to work out its row count yourself.
 
-**The worked example is real.** Every number on this page comes from a published portfolio project: a list of 175 games joined to a table of 41,154,794 player reviews. The queries run against the full datasets at [Steam Hidden Gems on GitHub](https://github.com/michaelnocito/steam-hidden-gems). If joins are the only thing here that is new, and clauses like `GROUP BY` and `HAVING` are too, start with [SQL foundations](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/../sql-foundations/) and come back.
+**The worked example is real.** Every number on this page comes from a published portfolio project: a list of 175 games joined to a table of 41,154,794 player reviews. The queries run against the full datasets at [Steam Hidden Gems on GitHub](https://github.com/michaelnocito/steam-hidden-gems). If joins are the only thing here that is new, and clauses like `GROUP BY` and `HAVING` are too, start with [SQL foundations](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-foundations/) and come back.
 
 ## 1. What a join actually does to your rows
 
@@ -32,7 +32,7 @@ Joining those two gives you a table whose grain is one row per review, not one r
 
 **Name the grain of the result before you write the aggregate.** Almost every wrong number that comes out of a join comes from aggregating a column at the wrong grain. If you can say "one row per review" out loud, you already know that `SUM(price)` is now price times review count.
 
-Every query on this page nicknames its tables. `FROM hidden_gems AS g` means "for the rest of this query, call that table `g`", so `g.Name` is the Name column of `hidden_gems`. Two joined tables almost always need those nicknames, because both can carry a column of the same name. [SQL aliases, and reading a query out loud](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/../sql-aliasing/) covers the whole habit if it is new.
+Every query on this page nicknames its tables. `FROM hidden_gems AS g` means "for the rest of this query, call that table `g`", so `g.Name` is the Name column of `hidden_gems`. Two joined tables almost always need those nicknames, because both can carry a column of the same name. [SQL aliases, and reading a query out loud](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-aliasing/) covers the whole habit if it is new.
 
 ## 2. The six join types, and what each one keeps
 
@@ -100,7 +100,7 @@ Read the `WHERE` clause carefully, because it is the part that surprises people.
 
 When I ran it, the 57 missing games were not noise. They fell into three groups, and every group told me something. Several were mainstream blockbusters that an earlier data-quality pass had already flagged for impossible price and ownership values, and a completely separate method fingering the same rows is strong confirmation those rows are broken. Others were released after the reviews were collected in August 2024, so they could not possibly match, which turned a vague limitation into a nameable list. The rest were genuinely uncovered titles the review dataset never sampled.
 
-None of that would have existed in an inner join. An empty column is not a hole in your work. It is often the most interesting result you have, and it belongs in your write-up: [documenting data limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/../documenting-data-limitations/) covers how.
+None of that would have existed in an inner join. An empty column is not a hole in your work. It is often the most interesting result you have, and it belongs in your write-up: [documenting data limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/) covers how.
 
 ## 4. Failure two: the silent multiply
 
@@ -147,7 +147,7 @@ The other half of the fix is `HAVING`. Once you group, a filter on an aggregate 
     HAVING COUNT(r.review_id) >= 50
     ORDER BY avg_hours DESC;
 
-That floor of 50 matters more than it looks. Without it, a game with three reviews and one obsessive player outranks everything else. With it, the top of my list became games with hundreds or thousands of reviews behind their averages, which is the difference between a finding and an artifact. There is more on choosing that number honestly in [data-driven thresholds](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/../data-driven-thresholds/).
+That floor of 50 matters more than it looks. Without it, a game with three reviews and one obsessive player outranks everything else. With it, the top of my list became games with hundreds or thousands of reviews behind their averages, which is the difference between a finding and an artifact. There is more on choosing that number honestly in [data-driven thresholds](https://michaelnocito.github.io/analyst-prep-kit/guides/data-driven-thresholds/).
 
 ## 5. The full before and after
 
@@ -197,7 +197,7 @@ Three problems, none of which produce an error. `SUM(g.Price)` is multiplied by 
     HAVING COUNT(r.review_id) >= 50
     ORDER BY avg_hours DESC;
 
-The price column is grouped rather than summed, so it stays $3.49. The coverage line names what the join removed, so a reader knows the scope. The floor stops the ranking from being decided by a sample of two. The comment format is the one from [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/../sql-teaching-comments/).
+The price column is grouped rather than summed, so it stays $3.49. The coverage line names what the join removed, so a reader knows the scope. The floor stops the ranking from being decided by a sample of two. The comment format is the one from [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-teaching-comments/).
 
 Now picture the last join you wrote against your own data. Which of those three problems is most likely already sitting in it, and what would the row count have told you?
 
@@ -217,7 +217,7 @@ Seven things that have each stopped someone for an afternoon.
 
 **Joining many to many.** If both sides hold several rows per key, the output multiplies both ways: three rows on the left and four on the right produce twelve. This is almost never what anyone wants and it is the classic cause of an inflated total. Aggregate one side down to one row per key first, then join.
 
-**The join is slow because one side is huge.** Matching 125,855 rows against 41 million takes real work. An index on the key column of the large table turns a full scan into a lookup: `CREATE INDEX idx_rec_appid ON recommendations(app_id);`. Build it once and every join afterward is quick. [Handling large datasets](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/../handle-large-datasets/) covers the rest of working at this size.
+**The join is slow because one side is huge.** Matching 125,855 rows against 41 million takes real work. An index on the key column of the large table turns a full scan into a lookup: `CREATE INDEX idx_rec_appid ON recommendations(app_id);`. Build it once and every join afterward is quick. [Handling large datasets](https://michaelnocito.github.io/analyst-prep-kit/guides/handle-large-datasets/) covers the rest of working at this size.
 
 **The two tables describe different moments.** My game list and my review list were collected at different times, so some unmatched rows are not data errors, they are calendar. A join makes it trivially easy to combine sources that were never meant to be combined, which is exactly why the write-up has to say where each source came from.
 
@@ -245,7 +245,7 @@ If you are starting fresh rather than auditing, do step one and step two before 
 
 If you have paper nearby and a spare five minutes, there is one drawing worth doing, and it is optional. Draw three rows on the left, four on the right, connect them the way the picture at the top does, and count the output rows yourself. It is the concept everything else here rests on, and drawing it from memory is both a retrieval attempt and a check on whether you actually have it.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/../): SQL, Tableau, data migration, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, Tableau, data migration, and the working habits around them.
 
 ## The whole thing on one screen
 
@@ -275,7 +275,7 @@ This is the retrieval sheet. Cover the right column, work down the left, and say
 | Slow join                | The large side is being scanned in full. Index the key column.                                                   |
 | Match rate               | The share of your population that survived the join. Write it into the file, every time.                         |
 
-**The one habit to keep.** If you take nothing else from this page, count your rows before and after every join and write the match rate down. Both failures here are invisible in the query text and obvious in the row count. If a join goes wrong in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/../technical-tenacity/).
+**The one habit to keep.** If you take nothing else from this page, count your rows before and after every join and write the match rate down. Both failures here are invisible in the query text and obvious in the row count. If a join goes wrong in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/technical-tenacity/).
 
 One last thought, and I would genuinely like other people's answers. The 57 games my join dropped turned out to be the most useful thing in the whole analysis, because the reason they were missing was itself the story. What has an anti-join surfaced in your data that you would not have found any other way?
 

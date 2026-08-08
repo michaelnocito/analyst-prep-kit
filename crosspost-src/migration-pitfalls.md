@@ -8,7 +8,7 @@ One client becomes two in the new system. Their history splits between the two r
 
 This is the failure users notice first and forgive last, because it makes the new system look worse than the old one on day one.
 
-**The cheap check.** Group by the identifying field and count anything appearing more than once, during [profiling](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-pitfalls/../migration-profiling/). **The expensive version.** Finding out from a user in month two, when both records have new activity on them and merging is no longer clean.
+**The cheap check.** Group by the identifying field and count anything appearing more than once, during [profiling](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-profiling/). **The expensive version.** Finding out from a user in month two, when both records have new activity on them and merging is no longer clean.
 
 ## 2. A move nobody can prove
 
@@ -42,15 +42,15 @@ Picture a care visit dated three weeks off. Who notices, and when? Usually nobod
 
 The migration takes three weeks and the business keeps running. Nobody decided where new work goes, so it goes into four places, and the client's first week on the new system is spent re-keying.
 
-**The cheap check.** A bridge sheet, shaped like the import file, handed over before the freeze. [The cutover article](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-pitfalls/../migration-cutover/) covers it. **The expensive version.** A go-live that feels like an outage to every member of staff.
+**The cheap check.** A bridge sheet, shaped like the import file, handed over before the freeze. [The cutover article](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cutover/) covers it. **The expensive version.** A go-live that feels like an outage to every member of staff.
 
 ## The pitfalls that are not about data
 
-**Silence treated as approval.** No reply to a sign off request is not a yes. It is the thing that becomes a dispute later, and [chasing it properly](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-pitfalls/../migration-quiet-client/) is a skill of its own.
+**Silence treated as approval.** No reply to a sign off request is not a yes. It is the thing that becomes a dispute later, and [chasing it properly](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-quiet-client/) is a skill of its own.
 
-**Scope that grew without the plan changing.** Each addition was small and reasonable. The date did not move, because nobody showed what the additions cost. [Handling that](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-pitfalls/../migration-scope-creep/) is mostly a matter of having a plan to point at.
+**Scope that grew without the plan changing.** Each addition was small and reasonable. The date did not move, because nobody showed what the additions cost. [Handling that](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-scope-creep/) is mostly a matter of having a plan to point at.
 
-**Working files nobody can find.** Including your own, three weeks later. [Keeping your files straight](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-pitfalls/../migration-file-hygiene/) is unglamorous and it is time you get back every day.
+**Working files nobody can find.** Including your own, three weeks later. [Keeping your files straight](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-file-hygiene/) is unglamorous and it is time you get back every day.
 
 ## The cheat sheet
 

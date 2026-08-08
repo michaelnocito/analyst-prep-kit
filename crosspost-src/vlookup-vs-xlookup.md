@@ -31,7 +31,7 @@ It has to find the row, then bring a value back. That is the whole job. A lookup
 
 This matters because the two moves fail differently. Finding the wrong row gives you a real-looking value from the wrong person. Bringing back the wrong column gives you a real-looking value of the wrong kind. Both look fine on the screen, which is why lookups are where quiet spreadsheet errors live.
 
-If you know SQL, a lookup is a join with one hand. The Excel Kit's [lookup lessons](https://michaelnocito.github.io/analyst-prep-kit/guides/vlookup-vs-xlookup/../../excel/) and the [SQL joins guide](https://michaelnocito.github.io/analyst-prep-kit/guides/vlookup-vs-xlookup/../sql-joins/) are the same idea in two dialects.
+If you know SQL, a lookup is a join with one hand. The Excel Kit's [lookup lessons](https://michaelnocito.github.io/analyst-prep-kit/excel/) and the [SQL joins guide](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/) are the same idea in two dialects.
 
 ## 2. VLOOKUP, argument by argument
 
@@ -130,7 +130,7 @@ Four cases that each cost someone an afternoon.
 
 **The number is stored as text.** This is the answer to the prequestion, and it is the most common one. A cell showing 1008 might hold the text "1008", often flagged by a small green corner mark. The number 1008 and the text "1008" do not match each other, in either function. Fix the column once, with Data, Text to Columns, or multiply the IDs by 1, rather than patching every formula.
 
-**Duplicate IDs return the first match only.** Both functions stop at the first hit, top down. If 1008 appears twice, you get the upper row's value and no warning that a second row exists. When duplicates are even possible, count them first. The [COUNTIFS guide](https://michaelnocito.github.io/analyst-prep-kit/guides/vlookup-vs-xlookup/../excel-sumifs/) shows the one-line check, and [finding duplicates in SQL](https://michaelnocito.github.io/analyst-prep-kit/guides/vlookup-vs-xlookup/../sql-find-duplicates/) is the same audit in a database.
+**Duplicate IDs return the first match only.** Both functions stop at the first hit, top down. If 1008 appears twice, you get the upper row's value and no warning that a second row exists. When duplicates are even possible, count them first. The [COUNTIFS guide](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sumifs/) shows the one-line check, and [finding duplicates in SQL](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-find-duplicates/) is the same audit in a database.
 
 **Invisible spaces break the match.** "Gia Tran " with a trailing space is a different value from "Gia Tran". Data pasted from other systems carries these constantly. `TRIM` on the way in beats a mystery #N/A later.
 
@@ -150,7 +150,7 @@ And regardless of what you write, you read both. Older workbooks are VLOOKUP all
 
 ## Why this works
 
-The deep difference is reference by position against reference by name. A typed column number is a fact about the table's current shape, and the table's shape is the thing spreadsheets change most. A range reference like C2:C11 is a fact about identity, and Excel's own machinery keeps identity up to date when columns move. XLOOKUP is safer not because it is newer, but because every fragile positional fact in VLOOKUP became a named reference or an explicit choice. The same principle is why SQL analysts avoid `SELECT *` and why [defined metrics](https://michaelnocito.github.io/analyst-prep-kit/guides/vlookup-vs-xlookup/../defining-metrics/) beat remembered ones: things named explicitly survive change, things counted implicitly do not.
+The deep difference is reference by position against reference by name. A typed column number is a fact about the table's current shape, and the table's shape is the thing spreadsheets change most. A range reference like C2:C11 is a fact about identity, and Excel's own machinery keeps identity up to date when columns move. XLOOKUP is safer not because it is newer, but because every fragile positional fact in VLOOKUP became a named reference or an explicit choice. The same principle is why SQL analysts avoid `SELECT *` and why [defined metrics](https://michaelnocito.github.io/analyst-prep-kit/guides/defining-metrics/) beat remembered ones: things named explicitly survive change, things counted implicitly do not.
 
 This page also kept asking you questions before giving answers, and that is deliberate. Prompting a learner to explain a thing to themselves, before or while the explanation arrives, reliably improves understanding compared to just reading, across more than sixty studies (Bisra, Liu, Nesbit, Salimi, & Winne, 2018, _Educational Psychology Review_ , 30(3), 703–725). And practising retrieval, closing the page and producing the syntax yourself, builds retention that rereading does not (Roediger & Karpicke, 2006, _Psychological Science_ , 17(3), 249–255). The cheat sheet at the bottom is built for exactly that use.
 
@@ -166,7 +166,7 @@ Converting every VLOOKUP in a big workbook in one sitting is miserable, and half
 
 If you have paper and five minutes, one optional drawing locks the idea in. Draw a four-column table twice. On the first, draw VLOOKUP's counting hops, one, two, three, then insert a column and watch where the count lands. On the second, draw XLOOKUP's two arrows to named columns, insert the same column, and see that the arrows still hold. If your drawing shows why one breaks and one does not, you own this.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/vlookup-vs-xlookup/../): Excel, SQL, Tableau, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): Excel, SQL, Tableau, and the working habits around them.
 
 ## The whole thing on one screen
 

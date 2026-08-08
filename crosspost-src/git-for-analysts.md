@@ -77,7 +77,7 @@ Git is for your code and small files, not giant datasets. GitHub rejects files o
 
 The rule of thumb: commit the things needed to _rebuild_ the project (code, a small sample file, a README), not the heavy data itself. Anyone can re-download or regenerate the big files.
 
-**Working with big data?** The companion guide [How to Handle Large Datasets](https://michaelnocito.github.io/analyst-prep-kit/guides/git-for-analysts/../handle-large-datasets/) covers why those files stay out of Git and how to handle them instead.
+**Working with big data?** The companion guide [How to Handle Large Datasets](https://michaelnocito.github.io/analyst-prep-kit/guides/handle-large-datasets/) covers why those files stay out of Git and how to handle them instead.
 
 ## The five errors everyone hits once
 

@@ -42,7 +42,7 @@ That includes Python. SQLite ships in Python's standard library, so if you have 
 
 On the machine this guide was written on, that prints `3.38.4`. Yours will differ, and any version will do.
 
-For a window you can click around in rather than a script, DB Browser for SQLite is an open-source desktop app that opens the file, shows the tables, imports a CSV and runs queries. That combination, DB Browser plus one `.db` file, is the fastest route from nothing to a real query, and it is the one walked step by step in [how to set up a SQL database](https://michaelnocito.github.io/analyst-prep-kit/guides/which-sql-database-to-install/../set-up-a-sql-database/).
+For a window you can click around in rather than a script, DB Browser for SQLite is an open-source desktop app that opens the file, shows the tables, imports a CSV and runs queries. That combination, DB Browser plus one `.db` file, is the fastest route from nothing to a real query, and it is the one walked step by step in [how to set up a SQL database](https://michaelnocito.github.io/analyst-prep-kit/guides/set-up-a-sql-database/).
 
 ## DuckDB, if your data is CSV files
 
@@ -71,7 +71,7 @@ When one of those is true, PostgreSQL is the usual choice for analysis work and 
 
 Mostly, yes, and this is the part worth being precise about because it decides whether starting small costs you anything.
 
-**What transfers unchanged:** `SELECT`, `WHERE`, `JOIN`, `GROUP BY`, `HAVING`, `ORDER BY`, subqueries, [CTEs](https://michaelnocito.github.io/analyst-prep-kit/guides/which-sql-database-to-install/../sql-ctes/), [window functions](https://michaelnocito.github.io/analyst-prep-kit/guides/which-sql-database-to-install/../sql-window-functions/), [CASE](https://michaelnocito.github.io/analyst-prep-kit/guides/which-sql-database-to-install/../sql-case-expression/), and [both comment syntaxes](https://michaelnocito.github.io/analyst-prep-kit/guides/which-sql-database-to-install/../sql-comments/). That is the whole of analyst SQL and effectively all of what an interview will ask you.
+**What transfers unchanged:** `SELECT`, `WHERE`, `JOIN`, `GROUP BY`, `HAVING`, `ORDER BY`, subqueries, [CTEs](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-ctes/), [window functions](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-window-functions/), [CASE](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-expression/), and [both comment syntaxes](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comments/). That is the whole of analyst SQL and effectively all of what an interview will ask you.
 
 **What does not transfer:** function names around the edges. String handling, date maths and type conversion are named differently in each product. SQLite uses `INSTR` and `SUBSTR` where SQL Server uses `CHARINDEX` and `SUBSTRING`. You look those up when you meet them, and looking them up is what practitioners do anyway.
 

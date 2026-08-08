@@ -6,7 +6,7 @@ The short version: a set does not remove rows. It labels every row IN or OUT, an
 
 One idea decides everything else here, so it gets the picture. It is the difference between removing rows and labelling them.
 
-**This is on the certification.** Sets sit in Domain 2, Exploring and Analyzing Data, which is 37% of the exam and the largest domain on it. The [Tableau Desktop Foundations kit](https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-sets/../../tableau-cert/) has practice questions on sets, and the ones people get wrong are almost always about reuse and about fixed against dynamic, both covered below.
+**This is on the certification.** Sets sit in Domain 2, Exploring and Analyzing Data, which is 37% of the exam and the largest domain on it. The [Tableau Desktop Foundations kit](https://michaelnocito.github.io/analyst-prep-kit/tableau-cert/) has practice questions on sets, and the ones people get wrong are almost always about reuse and about fixed against dynamic, both covered below.
 
 ## 1. What a set actually is
 

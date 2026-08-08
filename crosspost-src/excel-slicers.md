@@ -8,7 +8,7 @@ That is the honest definition of a dashboard, and it is worth stating because th
 
 A slicer is a filter with its state worn on the outside: a panel of buttons, one per value of a field, where the pressed button is visible from across the room. Functionally it filters pivots, the same as the dropdown in the pivot itself. The difference is entirely about the reader.
 
-A pivot's own filter dropdown is invisible when closed. A reader cannot tell whether they are looking at all games or a filtered slice, and per [article 1](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-slicers/../excel-label-rows-before-charting/), an invisible filter under a presented number is how honest pages mislead. A slicer makes the current question unmissable. The page says, in buttons, "you are looking at Adventure."
+A pivot's own filter dropdown is invisible when closed. A reader cannot tell whether they are looking at all games or a filtered slice, and per [article 1](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-label-rows-before-charting/), an invisible filter under a presented number is how honest pages mislead. A slicer makes the current question unmissable. The page says, in buttons, "you are looking at Adventure."
 
 Say the difference in one line before moving on. One version: a filter changes the numbers; a slicer changes the numbers _and announces it_.
 
@@ -17,7 +17,7 @@ Say the difference in one line before moving on. One version: a filter changes t
   1. **Click any pivot on the dashboard, then PivotTable Analyze > Insert Slicer.**
   2. **Pick the field a reader would ask about.** In the build's data that is PrimaryGenre or PriceBand: the columns someone would say "what about just..." with. Tick, OK.
 
-The slicer appears as a floating panel. Drag it to the top of the page near [the KPI row](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-slicers/../excel-kpi-row/), because it is now part of the page's controls, and controls the reader cannot find are controls that do not exist.
+The slicer appears as a floating panel. Drag it to the top of the page near [the KPI row](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-kpi-row/), because it is now part of the page's controls, and controls the reader cannot find are controls that do not exist.
 
 At this moment the slicer drives exactly one pivot: the one you started from. Click a genre and watch: one chart moves, the others sit still. That half-working state is where most people stop, conclude slicers are flaky, and move on. The fix is the next section.
 
@@ -26,13 +26,13 @@ At this moment the slicer drives exactly one pivot: the one you started from. Cl
   1. **Right-click the slicer > Report Connections.**
   2. **Tick every pivot on the page.** The list shows all pivots built on the same data. OK.
 
-Now click a genre and watch the whole page move together: every chart, every count, every [percentage](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-slicers/../excel-pivot-percentages/) re-answering the same question at once. That synchronized move is the dashboard moment, and it costs two clicks per slicer.
+Now click a genre and watch the whole page move together: every chart, every count, every [percentage](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-percentages/) re-answering the same question at once. That synchronized move is the dashboard moment, and it costs two clicks per slicer.
 
-One condition makes the list work: the pivots must share a source. If every pivot was built from [the same named Table](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-slicers/../excel-name-your-data/), they share what Excel calls a cache, and they all appear in Report Connections. Pivots built from different ranges live in different worlds and cannot be driven by one slicer. This is yet another payoff of step 1 of [the build order](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-slicers/../excel-dashboard-build-order/): one table, one name, and every later pivot lives in the same world by construction.
+One condition makes the list work: the pivots must share a source. If every pivot was built from [the same named Table](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-name-your-data/), they share what Excel calls a cache, and they all appear in Report Connections. Pivots built from different ranges live in different worlds and cannot be driven by one slicer. This is yet another payoff of step 1 of [the build order](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/): one table, one name, and every later pivot lives in the same world by construction.
 
 ## The boundary: what a slicer cannot reach
 
-State the limit plainly, because discovering it mid-meeting is the bad version: **slicers drive pivots. They do not drive formulas.** The KPI row from [article 12](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-slicers/../excel-kpi-row/) is COUNTIFS and AVERAGEIFS reading the table directly, so it ignores the slicer completely. Click Adventure and the charts change while the big numbers do not.
+State the limit plainly, because discovering it mid-meeting is the bad version: **slicers drive pivots. They do not drive formulas.** The KPI row from [article 12](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-kpi-row/) is COUNTIFS and AVERAGEIFS reading the table directly, so it ignores the slicer completely. Click Adventure and the charts change while the big numbers do not.
 
 That mismatch is dangerous exactly because everything looks live. Three honest ways to handle it, in order of preference:
 
@@ -46,9 +46,9 @@ Whichever you pick, pick it on purpose. A page where some numbers respond and ot
 
 ## How many slicers, and which fields
 
-One or two. A slicer is a question you are inviting, and a wall of six slicers invites question-combinations you have never once looked at yourself, some of which will land on [bases too small to mean anything](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-slicers/../excel-pivot-percentages/): three games in a genre-band intersection, wearing a confident percentage.
+One or two. A slicer is a question you are inviting, and a wall of six slicers invites question-combinations you have never once looked at yourself, some of which will land on [bases too small to mean anything](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-percentages/): three games in a genre-band intersection, wearing a confident percentage.
 
-Which fields earn a slicer follows from the page's claim, the same load-bearing test as [the KPI row](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-slicers/../excel-kpi-row/): invite the follow-up questions the claim naturally raises. The build's claim is about hidden games across the whole field, and the natural follow-ups are "is it like this in my genre?" and "does price change it?" Genre and price band earn panels. Release year does not, however easy it would be to add.
+Which fields earn a slicer follows from the page's claim, the same load-bearing test as [the KPI row](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-kpi-row/): invite the follow-up questions the claim naturally raises. The build's claim is about hidden games across the whole field, and the natural follow-ups are "is it like this in my genre?" and "does price change it?" Genre and price band earn panels. Release year does not, however easy it would be to add.
 
 ## The states a reader must be able to see
 

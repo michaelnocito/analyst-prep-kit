@@ -4,7 +4,7 @@ Here is the same fact both ways. "175 games stayed hidden." Nobody can feel that
 
 **The short version.** A count answers "how many." A percentage answers "compared to what," and compared-to-what is where every finding lives. The setting is Show Values As, and the usual right choice is % of Column Total.
 
-The numbers are from [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-percentages/../excel-dashboard-build-order/): 82,956 Steam games, four groups from [article 1](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-percentages/../excel-label-rows-before-charting/), counted by [article 5's pivot](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-percentages/../excel-pivot-table-question/). All were re-run against the real file before publishing.
+The numbers are from [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/): 82,956 Steam games, four groups from [article 1](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-label-rows-before-charting/), counted by [article 5's pivot](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-table-question/). All were re-run against the real file before publishing.
 
 ## Why counts don't land
 
@@ -41,7 +41,7 @@ Two honest routes, both used in real work:
 
 **Filter the pivot to the two loved segments** , then % of Column Total splits 765 into 22.9% hidden and 77.1% found. Quick, and fine for looking.
 
-**Or compute it in check cells** , which is what the build shipped: `=COUNTIF(Games[Segment],"Loved, hidden")/(COUNTIF(Games[Segment],"Loved, hidden")+COUNTIF(Games[Segment],"Loved, found"))`. It reads worse and survives better, because it does not depend on a filter someone can quietly change. Formatted as a percent, it says 22.9%, and it sits beside [the checks from article 2](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-percentages/../excel-check-your-work/) where the next person can see how it was made.
+**Or compute it in check cells** , which is what the build shipped: `=COUNTIF(Games[Segment],"Loved, hidden")/(COUNTIF(Games[Segment],"Loved, hidden")+COUNTIF(Games[Segment],"Loved, found"))`. It reads worse and survives better, because it does not depend on a filter someone can quietly change. Formatted as a percent, it says 22.9%, and it sits beside [the checks from article 2](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/) where the next person can see how it was made.
 
 The general lesson: the denominator is an analytical choice, not a formatting one. Two people can both show percentages from the same pivot and be answering different questions. The number is only right when the denominator matches the sentence.
 
@@ -62,7 +62,7 @@ This is why the build put a floor under its data before any shares were computed
   1. **Take the pivot from article 5** , or any counts pivot you have.
   2. **Say the share question as a sentence** , including the denominator: "hidden as a share of loved," not just "as a percent."
   3. **Add the field to Values a second time** and set Show Values As to match your sentence.
-  4. **Check one cell by hand.** One division in a spare cell, predicted before you look, per [article 2](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-percentages/../excel-check-your-work/). If your hand says 22.9% and the pivot says something else, the denominator does not match your sentence.
+  4. **Check one cell by hand.** One division in a spare cell, predicted before you look, per [article 2](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/). If your hand says 22.9% and the pivot says something else, the denominator does not match your sentence.
   5. **Read the smallest count in the table.** If a percent stands on fewer than a couple dozen rows, say the count instead of the percent.
 
 ## A cheat sheet

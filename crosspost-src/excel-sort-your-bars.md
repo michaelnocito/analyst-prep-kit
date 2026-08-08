@@ -8,9 +8,9 @@ The reframe worth keeping: **sort order is an analytic decision, not tidying.** 
 
 Picture a bar chart of ten genres in alphabetical order, and give yourself the reader's actual task: find the third-biggest. Watch what your eye has to do. It bounces across all ten bars, holds a running top-three in memory, and rechecks itself. That is sorting, performed by eye, one reader at a time, every time the chart is viewed.
 
-The sorted version of the same chart does that work once, for everyone, forever. Third-biggest is the third bar. Biggest is the first. The bottom of the ranking is the bottom. Every question of the form "which?" is answered by position, which is the thing [bars are best at encoding](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sort-your-bars/../excel-pick-the-chart/) in the first place.
+The sorted version of the same chart does that work once, for everyone, forever. Third-biggest is the third bar. Biggest is the first. The bottom of the ranking is the bottom. Every question of the form "which?" is answered by position, which is the thing [bars are best at encoding](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pick-the-chart/) in the first place.
 
-This is the same trade as [article 7's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sort-your-bars/../excel-pivot-percentages/) percentages: the analyst does the division so the reader does not. Here the analyst does the ranking. Work the reader must do is work most readers skip, and a skipped ranking is a comparison that never happened.
+This is the same trade as [article 7's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-percentages/) percentages: the analyst does the division so the reader does not. Here the analyst does the ranking. Work the reader must do is work most readers skip, and a skipped ranking is a comparison that never happened.
 
 ## Where the default order comes from
 
@@ -30,7 +30,7 @@ Sort the source, not the picture, and the sort survives refresh:
 
   1. **In the pivot, right-click any value in the column you want to rank by.**
   2. **Sort > Sort Largest to Smallest.** The pivot reorders, and the chart follows it instantly, because the chart reads the pivot's order.
-  3. **Refresh-proof by construction.** New data arrives, the pivot re-sorts itself, the chart stays ranked. A hand-dragged order on the sheet would have quietly gone stale, which is the same failure mode as [a typed KPI](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sort-your-bars/../excel-kpi-row/).
+  3. **Refresh-proof by construction.** New data arrives, the pivot re-sorts itself, the chart stays ranked. A hand-dragged order on the sheet would have quietly gone stale, which is the same failure mode as [a typed KPI](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-kpi-row/).
 
 One Excel quirk to know rather than fight: on a _horizontal_ bar chart, the plot draws categories bottom-up, so Largest-to-Smallest in the pivot can appear with the biggest bar at the bottom. The fix is the axis: Format Axis, tick Categories in reverse order, and tick the value axis to cross at the maximum category. Two ticks, once, per chart.
 
@@ -38,7 +38,7 @@ One Excel quirk to know rather than fight: on a _horizontal_ bar chart, the plot
 
 Descending is the default because most claims are about the top: the biggest segments, the leaders. But if the page's claim is about the laggards, the underperforming regions, the genres nobody plays, ascending puts the subject first where the eye lands.
 
-This is [article 10's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sort-your-bars/../excel-chart-design-basics/) pointing principle applied to position: emphasis follows the subject. Sort so the subject of your sentence is where reading begins, then let the accent color agree with it. Order and color pointing at the same bar is a chart that cannot be misread.
+This is [article 10's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-chart-design-basics/) pointing principle applied to position: emphasis follows the subject. Sort so the subject of your sentence is where reading begins, then let the accent color agree with it. Order and color pointing at the same bar is a chart that cannot be misread.
 
 ## Why this works
 
@@ -50,7 +50,7 @@ The perceptual case is the same one that runs through this series' chart article
   2. **Just names: sort the pivot descending** by the value the chart shows.
   3. **Check the horizontal-bar quirk.** Biggest bar should sit where reading starts.
   4. **If the claim is about the bottom, flip to ascending** , and move the accent color with it.
-  5. **Reread the title.** A ranked chart usually sharpens the sentence: "Adventure leads" becomes checkable at a glance, per [article 10's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sort-your-bars/../excel-chart-design-basics/) title rule.
+  5. **Reread the title.** A ranked chart usually sharpens the sentence: "Adventure leads" becomes checkable at a glance, per [article 10's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-chart-design-basics/) title rule.
 
 ## A cheat sheet
 

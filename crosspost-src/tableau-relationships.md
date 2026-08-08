@@ -6,7 +6,7 @@ The short version: a join flattens two tables into one before you start. A relat
 
 One idea decides everything else here, so it gets the picture. It is the difference between combining the data once, up front, and combining it per question.
 
-**This is on the certification.** Relationships arrived in Tableau 2020.2 and are the default today. The Salesforce Certified Tableau Desktop Foundations exam currently tests on Tableau 2022.3, so the relationship model is in scope, not optional history. The [Tableau Desktop Foundations kit](https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-relationships/../../tableau-cert/) has practice questions on it.
+**This is on the certification.** Relationships arrived in Tableau 2020.2 and are the default today. The Salesforce Certified Tableau Desktop Foundations exam currently tests on Tableau 2022.3, so the relationship model is in scope, not optional history. The [Tableau Desktop Foundations kit](https://michaelnocito.github.io/analyst-prep-kit/tableau-cert/) has practice questions on it.
 
 ## 1. What the noodle is
 
@@ -28,7 +28,7 @@ Before the explanation: your region has a sales target of $50,000 for January. Y
 
 From the join repeating it. The targets table has one row per region per month. The orders table has thousands of rows per region per month. Joining them writes the January target onto every single order line, and there were 83 of them. Then `SUM` adds up all 83 copies.
 
-Nothing errored. The chart drew. The number is off by a factor of 83, and only someone who knows the real target will spot it. This is the same duplication covered in [SQL joins](https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-relationships/../sql-joins/), and it is the single most common wrong number in business intelligence work.
+Nothing errored. The chart drew. The number is off by a factor of 83, and only someone who knows the real target will spot it. This is the same duplication covered in [SQL joins](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/), and it is the single most common wrong number in business intelligence work.
 
 A relationship removes it, and the mechanism is worth understanding rather than trusting. Because the tables were never merged, Tableau aggregates each one at its own level of detail first, then brings the results together. It totals the targets among the targets, where each month appears once. It totals the sales among the orders. Then it lines the two answers up.
 

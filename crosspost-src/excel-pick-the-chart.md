@@ -4,11 +4,11 @@ The move is to say the question out loud and listen for its verb. "Which group i
 
 **The short version.** Compare: bar. Trend: line. Relate: scatter. Everything else in the gallery is a special case or a mistake waiting for a meeting.
 
-The example is from [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pick-the-chart/../excel-dashboard-build-order/). Its hero chart asks "how do the 175 hidden games compare to the 590 found ones?" Compare is the verb, so the finding lives in a bar chart, two bars per measure, per [article 1's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pick-the-chart/../excel-label-rows-before-charting/) groups.
+The example is from [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/). Its hero chart asks "how do the 175 hidden games compare to the 590 found ones?" Compare is the verb, so the finding lives in a bar chart, two bars per measure, per [article 1's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-label-rows-before-charting/) groups.
 
 ## The verb test
 
-Before the sections: write down the question your current chart is supposed to answer, as one sentence. If you cannot write the sentence, the problem is not chart choice, and no gallery will fix it. That sentence is the same one [the pivot was built from](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pick-the-chart/../excel-pivot-table-question/), which is why the chart step comes after the pivot step in the build order.
+Before the sections: write down the question your current chart is supposed to answer, as one sentence. If you cannot write the sentence, the problem is not chart choice, and no gallery will fix it. That sentence is the same one [the pivot was built from](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-table-question/), which is why the chart step comes after the pivot step in the build order.
 
 With the sentence written, underline the verb:
 
@@ -40,9 +40,9 @@ A scatter puts one number on each axis and one dot per row. It answers the quest
 
 From the same dataset as the build: do games with more reviews have more owners? Reviews on x, owners on y, one dot per game. A cloud sloping up says yes. A shapeless cloud says no, and no is a finding too: it kills a story someone was about to tell in a meeting.
 
-Say out loud why a bar chart cannot answer that question. A bar needs the rows squashed into a handful of groups first, and the relationship lives in the un-squashed rows. The scatter is the only one of the three that shows every row as itself, which is why it is the chart of [exploration](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pick-the-chart/../exploratory-data-analysis/) as much as presentation.
+Say out loud why a bar chart cannot answer that question. A bar needs the rows squashed into a handful of groups first, and the relationship lives in the un-squashed rows. The scatter is the only one of the three that shows every row as itself, which is why it is the chart of [exploration](https://michaelnocito.github.io/analyst-prep-kit/guides/exploratory-data-analysis/) as much as presentation.
 
-One warning inherited from [article 7](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pick-the-chart/../excel-pivot-percentages/): a scatter of three dots is two rows short of an anecdote. Relationships need rows.
+One warning inherited from [article 7](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-percentages/): a scatter of three dots is two rows short of an anecdote. Relationships need rows.
 
 ## The pie, and its one honest job
 

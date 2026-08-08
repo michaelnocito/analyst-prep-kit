@@ -30,7 +30,7 @@ That last line is the most valuable sentence in the whole email. It gives you a 
 
 ## Email 2: the stage sign off
 
-Every [gate](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-emails/../data-migration-stages/) closes with one of these. A formal signature is rare in practice. This gets you the same thing.
+Every [gate](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/) closes with one of these. A formal signature is rare in practice. This gets you the same thing.
 
 We have completed the field mapping and are now moving on to cleaning.
 
@@ -42,7 +42,7 @@ Three things are doing work there. It states what closed and what opens. It asks
 
 ## Email 3: the chase
 
-Same shape as everything else, with the ask made smaller and one external date attached. Full ladder in [when the client goes quiet](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-emails/../migration-quiet-client/).
+Same shape as everything else, with the ask made smaller and one external date attached. Full ladder in [when the client goes quiet](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-quiet-client/).
 
 Sarah, the mapping sheet needs decisions on the 14 rows highlighted in yellow. Everything else is agreed.
 

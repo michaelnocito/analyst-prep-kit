@@ -16,7 +16,7 @@ Here is a real one. "Churn was 4.1% in Q3." Who acts, and how? Nobody can act on
 
 Now the same underlying data, worked further. "Monthly-plan accounts that never opened the import tool churn at 9.2%. Ones that did churn at 1.8%. The email introducing that tool goes out on day 14, and most cancellations happen on day 11." Who acts? The lifecycle marketing owner. What do they do? Move the email to day 3. That is analysis, and the only difference is that it ended somewhere a person can stand.
 
-The word "analysis" is doing a lot of quiet work in job descriptions, so it is worth being concrete about what it is. If you want the wider picture of the role first, the guide on [what data analysis actually is](https://michaelnocito.github.io/analyst-prep-kit/guides/report-vs-analysis/../what-is-data-analysis/) covers the four steps end to end.
+The word "analysis" is doing a lot of quiet work in job descriptions, so it is worth being concrete about what it is. If you want the wider picture of the role first, the guide on [what data analysis actually is](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-analysis/) covers the four steps end to end.
 
 ## Move one: give the number something to sit next to
 
@@ -45,7 +45,7 @@ Say why a number with no comparison cannot be acted on, before you read the next
 
 Two rows instead of one, and the number has somewhere to sit. Picture running that on a table you actually work with. What are your two rows, and which direction do they point?
 
-Choosing which reference point is fair, rather than which one flatters, is its own skill. The guide on [defining metrics](https://michaelnocito.github.io/analyst-prep-kit/guides/report-vs-analysis/../defining-metrics/) covers how to pin a measure down so it means the same thing every time you run it.
+Choosing which reference point is fair, rather than which one flatters, is its own skill. The guide on [defining metrics](https://michaelnocito.github.io/analyst-prep-kit/guides/defining-metrics/) covers how to pin a measure down so it means the same thing every time you run it.
 
 ## Move two: split it until the split stops mattering
 
@@ -71,7 +71,7 @@ Start with columns a person could act on. Plan type, signup month, acquisition c
 
 Two things about that query are worth keeping. The `HAVING COUNT(*) >= 50` throws away slices with too few accounts to mean anything, which is where most false findings come from. And it groups by two columns rather than ten, because a split you cannot explain in one sentence is not a finding, it is a coincidence you have not caught yet.
 
-You stop splitting when the next split stops changing the picture. If breaking the 9.2% group down further gives you 9.1% and 9.3%, that column is not the story, and you go back and try another one. Working out which columns are worth trying at all is the job covered in [exploratory data analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/report-vs-analysis/../exploratory-data-analysis/).
+You stop splitting when the next split stops changing the picture. If breaking the 9.2% group down further gives you 9.1% and 9.3%, that column is not the story, and you go back and try another one. Working out which columns are worth trying at all is the job covered in [exploratory data analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/exploratory-data-analysis/).
 
 ## Move three: land it on a decision someone already owns
 
@@ -85,7 +85,7 @@ In this case: the email that introduces the import tool goes out on day 14. Canc
 
 Notice the shape of the finished thing. A number with a comparison, a split that explains it, and one action. Not five recommendations ranked by effort. One, because a list of options hands the decision back to the reader, which is the work you were supposed to do.
 
-Where the action is a cutoff rather than a schedule, picking the number is its own problem, and [setting data-driven thresholds](https://michaelnocito.github.io/analyst-prep-kit/guides/report-vs-analysis/../data-driven-thresholds/) covers how to choose one you can defend.
+Where the action is a cutoff rather than a schedule, picking the number is its own problem, and [setting data-driven thresholds](https://michaelnocito.github.io/analyst-prep-kit/guides/data-driven-thresholds/) covers how to choose one you can defend.
 
 ## Move four: say what would prove you wrong
 
@@ -97,7 +97,7 @@ You cannot rule that out with the same data that produced the finding, and you s
 
 If moving the email works, day-11 cancellations among monthly accounts fall, and import tool usage in the first week rises. If the enthusiasm explanation is the true one, usage rises and cancellations do not move. Those two outcomes look different, which is the whole point. A prediction that survives every result is not a prediction.
 
-Putting this in writing costs you two sentences and is the difference between a finding and a claim. The guide on [documenting data limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/report-vs-analysis/../documenting-data-limitations/) covers the fuller version of this habit.
+Putting this in writing costs you two sentences and is the difference between a finding and a claim. The guide on [documenting data limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/) covers the fuller version of this habit.
 
 ## Before and after, same input
 

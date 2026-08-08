@@ -6,7 +6,7 @@ The short version: `WHERE` filters rows before grouping. `HAVING` filters groups
 
 One idea decides everything else here, so it gets the picture. Grouping happens in the middle of the query, and the two filters sit on opposite sides of it.
 
-**The worked example is real.** Every number on this page comes from a published portfolio project: 82,956 games from the Steam catalogue, with review counts, ratings and genres. The queries run against the full dataset at [Steam Hidden Gems on GitHub](https://github.com/michaelnocito/steam-hidden-gems). If `SELECT` and `WHERE` are also new, start with [SQL foundations](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/../sql-foundations/) and come back.
+**The worked example is real.** Every number on this page comes from a published portfolio project: 82,956 games from the Steam catalogue, with review counts, ratings and genres. The queries run against the full dataset at [Steam Hidden Gems on GitHub](https://github.com/michaelnocito/steam-hidden-gems). If `SELECT` and `WHERE` are also new, start with [SQL foundations](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-foundations/) and come back.
 
 ## 1. What GROUP BY actually does to your rows
 
@@ -48,7 +48,7 @@ Anything else is a column with 35,149 different values and one slot to put them 
 
 Say why that query has no correct answer, in your own words, before reading on. If you can state the reason, the error message will never confuse you again.
 
-The reason is that `Name` is at the wrong grain. It describes one game, and the row now describes a genre. When you genuinely want the top name per group, that is a different tool, and it is the subject of [window functions](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/../sql-window-functions/).
+The reason is that `Name` is at the wrong grain. It describes one game, and the row now describes a genre. When you genuinely want the top name per group, that is a different tool, and it is the subject of [window functions](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-window-functions/).
 
 Grouping by more than one column works the same way, with a finer bucket. `GROUP BY PrimaryGenre, ReleaseYear` makes one row per genre per year, and both of those columns are then safe to select.
 
@@ -133,7 +133,7 @@ One line fixes it.
 
 That floor removed 20 of the 28 genres and produced the first ranking anyone could act on. The spread also collapsed, from a top of 79.5 down to 77.7, which is the honest picture: genres are much more alike than the first table suggested.
 
-The number 500 is a judgement, not a fact, and it has to be defensible. Pick it from the data rather than from taste, write down why, and check whether the ranking survives a different choice. [Choosing thresholds from the data](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/../data-driven-thresholds/) covers how to do that honestly.
+The number 500 is a judgement, not a fact, and it has to be defensible. Pick it from the data rather than from taste, write down why, and check whether the ranking survives a different choice. [Choosing thresholds from the data](https://michaelnocito.github.io/analyst-prep-kit/guides/data-driven-thresholds/) covers how to do that honestly.
 
 Now picture the last summary query you shipped. If you added `HAVING COUNT(*) >= 30` to it, would the top of the result change? That is the hinge of this guide, and for most real reports the answer is yes.
 
@@ -181,7 +181,7 @@ Three problems, none of which produce an error. Games with three reviews count t
     HAVING COUNT(*) >= 500
     ORDER BY avg_rating DESC;
 
-The group size is now a visible column, so a reader can judge the average for themselves. Both floors are stated with a reason. The coverage line names what was excluded. The comment format is the one from [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/../sql-teaching-comments/).
+The group size is now a visible column, so a reader can judge the average for themselves. Both floors are stated with a reason. The coverage line names what was excluded. The comment format is the one from [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-teaching-comments/).
 
 ## 6. Edge cases that break summary queries in real data
 
@@ -191,7 +191,7 @@ Six things that each cost someone an afternoon.
 
 **A`WHERE` filter emptied the group.** This is the answer to the prequestion. Grouping can only produce a bucket for rows that survived `WHERE`. If every game in a genre had fewer than 500 reviews, that genre has no rows to collapse and no output row at all. A group that should read zero is instead invisible, which is a different and more misleading thing.
 
-**`COUNT(*)` and `COUNT(column)` are not the same.** `COUNT(*)` counts rows. `COUNT(column)` counts rows where that column is not `NULL`. On a column with missing values they return different numbers, and only one of them answers your question. [COUNT in SQL](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/../sql-count-function/) goes through the whole family.
+**`COUNT(*)` and `COUNT(column)` are not the same.** `COUNT(*)` counts rows. `COUNT(column)` counts rows where that column is not `NULL`. On a column with missing values they return different numbers, and only one of them answers your question. [COUNT in SQL](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-function/) goes through the whole family.
 
 **`NULL` becomes its own group.** Rows with a missing genre collapse into a single bucket that usually prints as blank. It looks like a formatting glitch and it is really a count of your missing data, which is worth reading rather than hiding.
 
@@ -199,7 +199,7 @@ Six things that each cost someone an afternoon.
 
 **You cannot use a`SELECT` alias in `HAVING` everywhere.** `HAVING avg_rating > 80` works in MySQL and SQLite and fails in PostgreSQL and SQL Server, because `SELECT` runs after `HAVING`. Repeating the full `AVG(PctPositive) > 80` works everywhere.
 
-**Grouping after a join counts duplicates.** If a join multiplied your rows, `COUNT(*)` now counts pairs rather than things. `COUNT(DISTINCT id)` is usually what you meant. This is the most common wrong number in real reporting, and [SQL joins](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/../sql-joins/) covers why it happens.
+**Grouping after a join counts duplicates.** If a join multiplied your rows, `COUNT(*)` now counts pairs rather than things. `COUNT(DISTINCT id)` is usually what you meant. This is the most common wrong number in real reporting, and [SQL joins](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/) covers why it happens.
 
 ## Why this works
 
@@ -223,7 +223,7 @@ Auditing every grouped query at once is miserable work and you will stop halfway
 
 If you have paper nearby and five spare minutes, there is one drawing worth doing, and it is optional. Draw eight rows, cross two out, collapse the remaining six into three buckets, then cross out the bucket holding one row. Label the two crossings-out yourself. Redrawing that from memory is both a retrieval attempt and a check on whether you have it.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/../): SQL, Tableau, data migration, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, Tableau, data migration, and the working habits around them.
 
 ## The whole thing on one screen
 
@@ -249,7 +249,7 @@ This is the retrieval sheet. Cover the right column, work down the left, and say
 | `NULL` group               | Collapses into one blank-looking bucket. It is a count of your missing data.          |
 | Grouping after a join      | `COUNT(*)` counts pairs, not things. Use `COUNT(DISTINCT id)`.                        |
 
-**The one habit to keep.** If you take nothing else from this page, put `COUNT(*)` in every grouped query and set a floor before you read the ranking. The wrong answer here never looks wrong. It looks like a result. If a summary query breaks in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/../technical-tenacity/).
+**The one habit to keep.** If you take nothing else from this page, put `COUNT(*)` in every grouped query and set a floor before you read the ranking. The wrong answer here never looks wrong. It looks like a result. If a summary query breaks in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/technical-tenacity/).
 
 One last thought, and I would genuinely like other people's answers. My eleven accounting games were obviously silly once I saw the count, but I only saw the count because I had put it in the query. What is the smallest group that has ever topped one of your charts, and how long did it take you to notice?
 

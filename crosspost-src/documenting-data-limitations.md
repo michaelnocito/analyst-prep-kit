@@ -77,7 +77,7 @@ This is also worth having in an interview. "Walk me through your project" answer
 
 Try one entry now, on something you have already built. Pick a piece of work you have shown someone, and finish this sentence: this analysis cannot tell you anything about ___. Whatever fills that blank is your first limitation, and it was true whether or not you wrote it down.
 
-Write it as you work, not at the end. Each entry takes a minute while the issue is fresh, and an afternoon of archaeology once it is not. The habit pairs with [exploratory data analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/../exploratory-data-analysis/). Exploration is how you _find_ the issues. The limitations ledger is how you _account_ for them. Finding without accounting wastes the find.
+Write it as you work, not at the end. Each entry takes a minute while the issue is fresh, and an afternoon of archaeology once it is not. The habit pairs with [exploratory data analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/exploratory-data-analysis/). Exploration is how you _find_ the issues. The limitations ledger is how you _account_ for them. Finding without accounting wastes the find.
 
 ## References
 

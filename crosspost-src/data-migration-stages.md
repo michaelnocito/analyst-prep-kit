@@ -4,16 +4,16 @@ The stage list below is the industry pattern. It is what the research describes 
 
 **The short version.** Eight stages, eight gates. A gate is a checkpoint with an owner and a written answer, and skipping one does not save time, it moves the cost later.
 
-| #   | Stage                                                                                                                          | The gate that closes it                                                        |
-|-----|--------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| 1   | [Kickoff and scope](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/../migration-kickoff-scope/) | Success criteria, stakeholders and what does not migrate, confirmed in writing |
-| 2   | [Profile the source](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/../migration-profiling/)    | Row counts, blanks, duplicates and bad values documented                       |
-| 3   | [Map the fields](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/../migration-field-mapping/)    | Signed off data map. Nothing moves before this                                 |
-| 4   | [Clean and de-dupe](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/../migration-cleaning/)      | Exception list returned with a client decision on every row                    |
-| 5   | [Dry run in a sandbox](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/../migration-dry-run/)    | Clean reconciliation, issues logged, zero orphans                              |
-| 6   | [User acceptance testing](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/../migration-uat/)     | Client validates a real sample and confirms in writing                         |
-| 7   | [Freeze, cutover, bridge](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/../migration-cutover/) | Counts tie old to new, bridge data loaded, live together                       |
-| 8   | [Hypercare and close](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/../migration-hypercare/)   | Final reconciliation report, readout, handoff to support                       |
+| #   | Stage                                                                                                 | The gate that closes it                                                        |
+|-----|-------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| 1   | [Kickoff and scope](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-kickoff-scope/) | Success criteria, stakeholders and what does not migrate, confirmed in writing |
+| 2   | [Profile the source](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-profiling/)    | Row counts, blanks, duplicates and bad values documented                       |
+| 3   | [Map the fields](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-field-mapping/)    | Signed off data map. Nothing moves before this                                 |
+| 4   | [Clean and de-dupe](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cleaning/)      | Exception list returned with a client decision on every row                    |
+| 5   | [Dry run in a sandbox](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-dry-run/)    | Clean reconciliation, issues logged, zero orphans                              |
+| 6   | [User acceptance testing](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-uat/)     | Client validates a real sample and confirms in writing                         |
+| 7   | [Freeze, cutover, bridge](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cutover/) | Counts tie old to new, bridge data loaded, live together                       |
+| 8   | [Hypercare and close](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-hypercare/)   | Final reconciliation report, readout, handoff to support                       |
 
 ## Stage 1: Kickoff and scope
 
@@ -57,7 +57,7 @@ The client's own people open real records in the new system and say whether it i
 
 The source goes read only. The whole sequence is rehearsed once with the clock running, to prove it fits the window. Then the final export runs, somebody named says go, the load runs, counts are compared, and everyone goes live together.
 
-**My commentary.** This is where the standard write-ups skip the part clients actually feel. A migration takes weeks, and business does not stop for it. The bridge is the plan for the records created during those weeks, and having one is the difference between a calm go-live and a scramble. [The cutover article](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/../migration-cutover/) covers how to run it, including the rehearsal and the go/no-go, and why the honest fallback is almost always "do not start" rather than "roll back".
+**My commentary.** This is where the standard write-ups skip the part clients actually feel. A migration takes weeks, and business does not stop for it. The bridge is the plan for the records created during those weeks, and having one is the difference between a calm go-live and a scramble. [The cutover article](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cutover/) covers how to run it, including the rehearsal and the go/no-go, and why the honest fallback is almost always "do not start" rather than "roll back".
 
 ## Stage 8: Hypercare and close
 
@@ -69,7 +69,7 @@ A defined window of close support after go-live, then a final reconciliation rep
 
 Say what makes a gate different from a status update before you read the answer.
 
-A gate has three parts. Something happened, a named person confirmed it in writing, and the confirmation is somewhere both sides can find. A status update has none of those. In real projects the confirmation is almost never a formal signature. It is an email that says what was completed, what is starting, and asks the client to confirm the first part meets expectations. [The emails article](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/../migration-emails/) has the wording.
+A gate has three parts. Something happened, a named person confirmed it in writing, and the confirmation is somewhere both sides can find. A status update has none of those. In real projects the confirmation is almost never a formal signature. It is an email that says what was completed, what is starting, and asks the client to confirm the first part meets expectations. [The emails article](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-emails/) has the wording.
 
 ## Where this comes from
 
@@ -83,7 +83,7 @@ Never start a stage whose previous gate has not closed in writing. If you cannot
 
 Which of the eight do you think gets skipped most often on the jobs you have seen?
 
-**Want to see all eight run on one job?** [One Migration, Start to Finish](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/../migration-walkthrough/) walks a single engagement day by day, with the email that closed each gate, the four change requests, and what it cost to say no.
+**Want to see all eight run on one job?** [One Migration, Start to Finish](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/) walks a single engagement day by day, with the email that closed each gate, the four change requests, and what it cost to say no.
 
 ## References
 

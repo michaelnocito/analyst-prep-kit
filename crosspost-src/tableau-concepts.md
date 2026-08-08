@@ -6,7 +6,7 @@ The short version: Tableau has about eight ideas in it, and every screen in the 
 
 One idea decides more of your Tableau experience than any other, so it gets the picture. Every field you drag is either blue or green. Blue cuts the view into separate buckets. Green draws a continuous axis. Same data, same shelf, two completely different charts.
 
-**What this page is, and what it is not.** This is the concept layer: what each thing is and what it does. It is not a click-by-click build. If you want the hands-on version, the companion guide walks you through [building a Tableau dashboard and story on a real dataset](https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-concepts/../build-a-tableau-dashboard/), step by step, and publishing it. Working through that once alongside this once is the fastest route through both.
+**What this page is, and what it is not.** This is the concept layer: what each thing is and what it does. It is not a click-by-click build. If you want the hands-on version, the companion guide walks you through [building a Tableau dashboard and story on a real dataset](https://michaelnocito.github.io/analyst-prep-kit/guides/build-a-tableau-dashboard/), step by step, and publishing it. Working through that once alongside this once is the fastest route through both.
 
 ## 1. The four ideas everything else sits on
 
@@ -56,11 +56,11 @@ A **live** connection queries the source every time the view changes. The number
 
 An **extract** is a compressed local copy, a `.hyper` file, built by Tableau's own engine. It is usually much faster, it works with the source disconnected, and it can hold a filtered or sampled subset. The cost is that it is a snapshot, so it is only as current as the last refresh. Extracts can refresh fully or incrementally, which means adding only rows newer than a chosen column.
 
-Pick live for data that changes minute to minute and matters that way. Pick an extract for slow sources, for working on a plane, and for anything published to Tableau Public, which accepts extracts only. There is more on the performance side in the guide to [handling datasets too big to open](https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-concepts/../handle-large-datasets/).
+Pick live for data that changes minute to minute and matters that way. Pick an extract for slow sources, for working on a plane, and for anything published to Tableau Public, which accepts extracts only. There is more on the performance side in the guide to [handling datasets too big to open](https://michaelnocito.github.io/analyst-prep-kit/guides/handle-large-datasets/).
 
 ### Joins
 
-A join matches rows from two tables on a shared key and returns one wider row. Inner keeps only matches. Left keeps everything from the left table. Right keeps everything from the right. Full outer keeps everything from both. This is ordinary SQL joining, and if the shapes are not solid yet, the [SQL JOINs guide](https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-concepts/../sql-joins/) covers them with diagrams.
+A join matches rows from two tables on a shared key and returns one wider row. Inner keeps only matches. Left keeps everything from the left table. Right keeps everything from the right. Full outer keeps everything from both. This is ordinary SQL joining, and if the shapes are not solid yet, the [SQL JOINs guide](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/) covers them with diagrams.
 
 The Tableau-specific thing worth knowing: joining tables at different grain duplicates rows. Join one customer to their five orders and that customer's details now appear five times. Sum anything from the customer table and it is five times too big. This is the classic inflated-numbers bug.
 
@@ -146,7 +146,7 @@ A **group** combines several values of a dimension into one named bucket. Ten sm
 
 A **set** is a custom subset of a dimension's members, and it is always in or out, two states. A fixed set is a list you tick by hand. A dynamic set is a condition, such as "customers with sales over 5,000", and its membership changes as the data changes. Sets can be combined with each other: union, intersection, and difference. That is what makes them the tool for questions like "which customers bought in both years".
 
-A **bin** chops a continuous measure into equal-width buckets. Ages into ten-year bands, prices into fifty-dollar bands. You give it a bin size and it does the rest. Choosing where the edges go is a real decision, not a default, and there is a whole method for it in the guide on [picking a cutoff you can defend](https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-concepts/../data-driven-thresholds/).
+A **bin** chops a continuous measure into equal-width buckets. Ages into ten-year bands, prices into fifty-dollar bands. You give it a bin size and it does the rest. Choosing where the edges go is a real decision, not a default, and there is a whole method for it in the guide on [picking a cutoff you can defend](https://michaelnocito.github.io/analyst-prep-kit/guides/data-driven-thresholds/).
 
 A **hierarchy** nests dimensions so a view can be drilled: country, then state, then city. A plus sign appears on the pill and clicking it goes a level deeper. Tableau builds date hierarchies for you automatically, which is where year, quarter, month and day come from.
 
@@ -265,7 +265,7 @@ This is the retrieval sheet. Cover the right column, work down the left, and say
 | Tableau Reader            | Opens packaged workbooks. Cannot author.                                               |
 | Tableau Prep Builder      | Cleans and reshapes data before the workbook.                                          |
 
-**The one habit to keep.** When a Tableau number looks wrong, ask what the level of detail of the view is before you touch the calculation. Which dimensions are on the screen, and therefore what groups is this number being computed inside? That question resolves more problems than every other piece of troubleshooting combined, and it is the same question the hardest exam items are asking in disguise. If it does not resolve yours, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-concepts/../technical-tenacity/).
+**The one habit to keep.** When a Tableau number looks wrong, ask what the level of detail of the view is before you touch the calculation. Which dimensions are on the screen, and therefore what groups is this number being computed inside? That question resolves more problems than every other piece of troubleshooting combined, and it is the same question the hardest exam items are asking in disguise. If it does not resolve yours, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/technical-tenacity/).
 
 One genuine question, and I would like other people's answers. The concept that took me longest was discrete versus continuous, because I kept mapping it onto dimension versus measure and it kept nearly working. Which Tableau idea did you understand wrongly for the longest, and what finally fixed it?
 

@@ -16,7 +16,7 @@ The date one is the trap. 03/04/24 is ambiguous, and a rule that picks a side si
 
 Never run a transformation you have not looked at on real rows. Show the original and the result side by side, twenty rows, and read them.
 
-This catches the thing that no error message will. A rule that strips a suffix and accidentally invents a value that does not exist will run without complaint on a hundred thousand rows. The only defence is looking at the output. The [entity resolution guide](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cleaning/../entity-resolution/) walks a real example where two rounds of preview caught two separate defects in one rule.
+This catches the thing that no error message will. A rule that strips a suffix and accidentally invents a value that does not exist will run without complaint on a hundred thousand rows. The only defence is looking at the output. The [entity resolution guide](https://michaelnocito.github.io/analyst-prep-kit/guides/entity-resolution/) walks a real example where two rounds of preview caught two separate defects in one rule.
 
 ## De-duplication without damage
 
@@ -38,13 +38,13 @@ Format it so a non-technical person can work through it. One row per problem, th
 
 Send it in batches with a date attached. A four hundred row list arriving in one email gets nothing back. Fifty rows with a Friday deadline gets answers.
 
-The stage closes when every row has a decision. "Leave it for now" is not a decision, it is a deferred problem that resurfaces during [user testing](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cleaning/../migration-uat/) when there is no time left. Write down who decided and when, next to each row.
+The stage closes when every row has a decision. "Leave it for now" is not a decision, it is a deferred problem that resurfaces during [user testing](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-uat/) when there is no time left. Write down who decided and when, next to each row.
 
 ## What you do not clean
 
 Resist fixing things that are merely untidy. A client's data does not have to be good, it has to be acceptable to the target system and true to what they had.
 
-Cleaning past that point costs time, introduces risk, and changes records the client never asked you to change. When you find genuine quality problems that are out of scope, write them up as a limitation and hand them over at close. That is a gift to the client, not a failure. [Documenting limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cleaning/../documenting-data-limitations/) covers how to write them so they are useful.
+Cleaning past that point costs time, introduces risk, and changes records the client never asked you to change. When you find genuine quality problems that are out of scope, write them up as a limitation and hand them over at close. That is a gift to the client, not a failure. [Documenting limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/) covers how to write them so they are useful.
 
 ## Cheat sheet
 

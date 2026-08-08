@@ -40,7 +40,7 @@ Every serious framework describes roughly the same shape. Kickoff and scope. Pro
 
 Each one ends at a **gate**. A gate is a checkpoint with an owner and an answer, and you do not start the next stage until it closes. Mapping does not begin until scope is agreed in writing. Nothing loads until the map is signed off. You do not go live until a client has looked at real records and said yes.
 
-Gates feel like paperwork on a small job. They are the only reason a large job finishes. [The stages article](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-migration/../data-migration-stages/) walks all eight, with the gate that closes each one.
+Gates feel like paperwork on a small job. They are the only reason a large job finishes. [The stages article](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/) walks all eight, with the gate that closes each one.
 
 ## The tools
 
@@ -48,17 +48,17 @@ Most migrations run on four kinds of tool, and you will use all four in a week.
 
 **Spreadsheets** hold the map, the exception list, and the working files. Excel is not glamorous and it is where most of this actually happens.
 
-**SQL** does the profiling and the reconciliation. Counting rows, finding duplicates, and checking that nothing lost its parent are each a few lines. If you can write a [COUNT with GROUP BY](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-migration/../sql-count-function/), you can do most of the checking work.
+**SQL** does the profiling and the reconciliation. Counting rows, finding duplicates, and checking that nothing lost its parent are each a few lines. If you can write a [COUNT with GROUP BY](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-function/), you can do most of the checking work.
 
 **A bulk loader.** Every target system has one, and it is the tool you will fight. Loaders are strict about formats, quiet about failures, and slow to tell you which row broke.
 
-**A scripting language** once the volume passes what a spreadsheet handles comfortably. Python with pandas is the usual choice, and [handling large files](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-migration/../handle-large-datasets/) is its own skill.
+**A scripting language** once the volume passes what a spreadsheet handles comfortably. Python with pandas is the usual choice, and [handling large files](https://michaelnocito.github.io/analyst-prep-kit/guides/handle-large-datasets/) is its own skill.
 
 Picture the last messy spreadsheet you saw. Now picture a loader rejecting it one row at a time with no message about why. That is the middle of a migration.
 
 ## The two failures that cost the most
 
-**Duplicates that survive.** One client becomes two in the new system. Their history splits. Staff pick the wrong record. This is why de-duplication happens before the move and not after, and why [matching records that describe the same thing](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-migration/../entity-resolution/) is worth learning properly.
+**Duplicates that survive.** One client becomes two in the new system. Their history splits. Staff pick the wrong record. This is why de-duplication happens before the move and not after, and why [matching records that describe the same thing](https://michaelnocito.github.io/analyst-prep-kit/guides/entity-resolution/) is worth learning properly.
 
 **A move nobody can prove.** The data went across and the numbers were never checked. Weeks later someone notices a year of visits is missing. By then the old system may be gone.
 
@@ -70,7 +70,7 @@ Haller, Matthes and Schulz built a detailed process model for large migration pr
 
 The vendor frameworks agree on the shape. They assess, prove the approach at small scale, migrate at full scale, then run a defined hypercare window after cutover.
 
-My own experience adds one stage most write-ups skip, and it is the one clients feel. A migration takes weeks, and the client keeps working during those weeks. What happens to the records they create in that gap is a real question with a real answer, and it gets [its own article](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-migration/../migration-cutover/).
+My own experience adds one stage most write-ups skip, and it is the one clients feel. A migration takes weeks, and the client keeps working during those weeks. What happens to the records they create in that gap is a real question with a real answer, and it gets [its own article](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cutover/).
 
 ## How to start on a real job
 

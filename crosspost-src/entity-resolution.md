@@ -36,7 +36,7 @@ The extraction rule was simple to state: the primary artist is the text before t
   2. The fix added a " Duet With " rung above " With ". In a CASE ladder, specific patterns must sit above the general patterns they contain. Re-checking the exact rows the fix targeted caught another one: **"Patti Austin A Duet With James Ingram" became "Patti Austin A"**. So it needed one more rung, " A Duet With ".
   3. Re-check again: clean. The ladder was frozen and used to build the artist table: 11,275 raw credits collapsed to 8,896 artists.
 
-Nobody writes the complete rule first time. And the data will not raise an error when your rule invents "2Pac Duet". So the loop is: preview on real rows, catch the defect, add a rung, re-check the exact rows you targeted. Repeat until the exceptions stop. The full ladder, with every defect it caught, is walked through in the [CASE expression guide](https://michaelnocito.github.io/analyst-prep-kit/guides/entity-resolution/../sql-case-expression/).
+Nobody writes the complete rule first time. And the data will not raise an error when your rule invents "2Pac Duet". So the loop is: preview on real rows, catch the defect, add a rung, re-check the exact rows you targeted. Repeat until the exceptions stop. The full ladder, with every defect it caught, is walked through in the [CASE expression guide](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-expression/).
 
 ## Step 3: know when NOT to merge (the false-positive check)
 
@@ -76,17 +76,17 @@ It takes about ten minutes. It is the difference between "the join ran" and "the
 
 ## The principles, distilled
 
-| Principle                      | One-line version                                                                                                                                                                                               |
-|--------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Measure first                  | Size the fragmentation (depth on one entity, breadth across the table) before writing any rule.                                                                                                                |
-| Preview every rule             | Show original and transformed side by side on real rows; read them.                                                                                                                                            |
-| Specific above general         | In any rule ladder, the narrow pattern outranks the broad pattern it contains.                                                                                                                                 |
-| Check false positives          | Before merging or splitting, read the rows where a wrong rule does the most damage.                                                                                                                            |
-| Sometimes: don't merge         | Over-merging destroys real entities. A documented refusal is a valid output.                                                                                                                                   |
-| Match keys, stored and indexed | Compute normalized keys once into real columns; join on those, not on function-wrapped originals.                                                                                                              |
-| Match rate per rule            | Measure before and after each rule; stop when the rate stops moving for honest reasons.                                                                                                                        |
-| Clerical review                | Read the leftovers before declaring victory.                                                                                                                                                                   |
-| Log everything                 | Every decision (including refusals) goes in the data-quality record and the [limitations section](https://michaelnocito.github.io/analyst-prep-kit/guides/entity-resolution/../documenting-data-limitations/). |
+| Principle                      | One-line version                                                                                                                                                                          |
+|--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Measure first                  | Size the fragmentation (depth on one entity, breadth across the table) before writing any rule.                                                                                           |
+| Preview every rule             | Show original and transformed side by side on real rows; read them.                                                                                                                       |
+| Specific above general         | In any rule ladder, the narrow pattern outranks the broad pattern it contains.                                                                                                            |
+| Check false positives          | Before merging or splitting, read the rows where a wrong rule does the most damage.                                                                                                       |
+| Sometimes: don't merge         | Over-merging destroys real entities. A documented refusal is a valid output.                                                                                                              |
+| Match keys, stored and indexed | Compute normalized keys once into real columns; join on those, not on function-wrapped originals.                                                                                         |
+| Match rate per rule            | Measure before and after each rule; stop when the rate stops moving for honest reasons.                                                                                                   |
+| Clerical review                | Read the leftovers before declaring victory.                                                                                                                                              |
+| Log everything                 | Every decision (including refusals) goes in the data-quality record and the [limitations section](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/). |
 
 ## References
 

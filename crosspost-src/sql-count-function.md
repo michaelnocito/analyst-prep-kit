@@ -148,7 +148,7 @@ Picture a dataset you already have, and picture the three numbers this would giv
       COUNT(release_date)  AS has_date
     FROM games;
 
-Leading a project write-up with "the dataset has 83,201 games across 41 genres, and 6% are missing a release date" reads like an analyst, not a beginner. It also protects you: knowing where the NULLs are stops you from quietly under-counting later. This "count first, then analyze" habit is exactly what the [Exploratory Data Analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-function/../exploratory-data-analysis/) guide leans on, and what the [Documenting Data Limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-function/../documenting-data-limitations/) guide turns into a written record.
+Leading a project write-up with "the dataset has 83,201 games across 41 genres, and 6% are missing a release date" reads like an analyst, not a beginner. It also protects you: knowing where the NULLs are stops you from quietly under-counting later. This "count first, then analyze" habit is exactly what the [Exploratory Data Analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/exploratory-data-analysis/) guide leans on, and what the [Documenting Data Limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/) guide turns into a written record.
 
 ## A COUNT cheat sheet
 
@@ -164,7 +164,7 @@ Leading a project write-up with "the dataset has 83,201 games across 41 genres, 
 
 **Say it out loud.** Before you run a COUNT, finish this sentence: "This will count the number of ___." If you can fill the blank with _rows_ , _non-NULL values of X_ , or _different values of X_ , you have picked the right form. That sentence is the whole skill.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-function/../): SQL, Tableau, data migration, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, Tableau, data migration, and the working habits around them.
 
 ---
 

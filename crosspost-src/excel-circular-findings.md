@@ -1,12 +1,12 @@
 This article gives you the self-audit that catches the most embarrassing class of mistake in analysis, the one where every number is computed correctly and the finding is still worthless. The test is one question: **could this result have come out any other way, given how I defined things?** If the answer is no, it is not a finding. It is your own filter, wearing a chart.
 
-It nearly happened in [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-circular-findings/../excel-dashboard-build-order/), and the near-miss is the best teacher this topic has, because nothing on screen was wrong. The arithmetic was perfect. The reasoning had eaten its own tail.
+It nearly happened in [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/), and the near-miss is the best teacher this topic has, because nothing on screen was wrong. The arithmetic was perfect. The reasoning had eaten its own tail.
 
 **The short version.** Before presenting any striking result, ask whether your own definitions guaranteed it. And treat suspiciously clean results, 0% and 100%, as the tell: circular findings come out cleaner than real ones, because nothing in reality is fighting them.
 
 ## The near-miss, exactly as it happened
 
-The build cut the loved games by price band, per [article 5's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-circular-findings/../excel-pivot-table-question/) pivot, asking what share of each band stayed hidden. The $20-and-up band came back **0% hidden**. Clean, striking, chartable: expensive games always get found.
+The build cut the loved games by price band, per [article 5's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-table-question/) pivot, asking what share of each band stayed hidden. The $20-and-up band came back **0% hidden**. Clean, striking, chartable: expensive games always get found.
 
 Stop and run the test yourself before reading on: the build's hidden-gem flag was defined, back at the data stage, as 2,000+ reviews, 95%+ positive, under roughly 200k owners, **and price at or under $20**. Now say what share of $20+ games could ever have been flagged hidden.
 
@@ -29,7 +29,7 @@ The audit costs one sentence per finding. Say the finding, then say your definit
 
 Against an honest finding, the same audit passes visibly: "found games reach 21.2x the audience of hidden ones" cuts on _audience_ , and audience... appears in the definition too, doesn't it? Under 200k owners is part of hidden. That is why the build's headline compares averages across the whole loved population rather than celebrating that hidden games have small audiences, which would be the definition again. The line between the two is exactly this audit, run sentence by sentence.
 
-Notice no formula ran. [Article 2's checks](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-circular-findings/../excel-check-your-work/) catch wrong arithmetic. This test catches wrong reasoning, and nothing on the screen will ever flag wrong reasoning, because the screen only knows what you defined.
+Notice no formula ran. [Article 2's checks](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/) catch wrong arithmetic. This test catches wrong reasoning, and nothing on the screen will ever flag wrong reasoning, because the screen only knows what you defined.
 
 ## The four places circularity hides
 
@@ -44,7 +44,7 @@ All four are one mistake with different entrances: some part of the answer was s
 
 ## What to do when you catch one
 
-**Drop the chart. Keep the note.** The build's working notes record the price cut, the clean result, the audit, and the drop. That paper trail is worth more than the chart ever was, and not just privately: "I ran the price cut, got a suspiciously clean result, worked out it was circular, and dropped it" is a stronger thing to say in an interview than any chart on the page. It demonstrates the rarest skill in the field, auditing your own reasoning, which is the difference between [producing numbers and producing analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-circular-findings/../report-vs-analysis/).
+**Drop the chart. Keep the note.** The build's working notes record the price cut, the clean result, the audit, and the drop. That paper trail is worth more than the chart ever was, and not just privately: "I ran the price cut, got a suspiciously clean result, worked out it was circular, and dropped it" is a stronger thing to say in an interview than any chart on the page. It demonstrates the rarest skill in the field, auditing your own reasoning, which is the difference between [producing numbers and producing analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/report-vs-analysis/).
 
 Then, if the question underneath was real, re-ask it without the circularity. "Does price affect discovery?" survives, asked of the loved games with the price ceiling removed from the flag, or asked of audience directly. The circular version dies. The curiosity behind it usually deserves to live.
 
@@ -56,7 +56,7 @@ The audit works because it forces the disconfirming question the bias skips: wha
 
 ## Run it on your own findings
 
-  1. **List your current page's findings as sentences** , each with its number, per [article 12](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-circular-findings/../excel-kpi-row/).
+  1. **List your current page's findings as sentences** , each with its number, per [article 12](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-kpi-row/).
   2. **Under each, write the definitions it stands on.** Every flag, threshold and filter in play.
   3. **Look for the overlap.** A column that appears in both the finding's cut and a definition is the alarm.
   4. **Give extra suspicion to 0%, 100%, and anything you caught yourself calling clean.**

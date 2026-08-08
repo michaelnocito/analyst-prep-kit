@@ -122,7 +122,7 @@ CASE produces a value, so it goes anywhere a column can go. That is more places 
 
 The custom sort in ORDER BY is the one people miss. Any time you want statuses to come out in a business order rather than alphabetical order, that is a CASE, and there is no other clean way to do it.
 
-**One portability note.** Whether you can reuse the CASE's alias later in the same query, as in `WHERE band = 'high'`, depends on the database. Some allow it and some reject it. The version that works everywhere is to repeat the whole expression, or to compute it once in a [CTE](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-expression/../sql-ctes/) and filter the CTE. The CTE is the readable option and it is what most analysts settle on.
+**One portability note.** Whether you can reuse the CASE's alias later in the same query, as in `WHERE band = 'high'`, depends on the database. Some allow it and some reject it. The version that works everywhere is to repeat the whole expression, or to compute it once in a [CTE](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-ctes/) and filter the CTE. The CTE is the readable option and it is what most analysts settle on.
 
 ## The four jobs analysts use CASE for
 
@@ -173,16 +173,16 @@ Now take a messy column from your own work and picture the ladder for it. What i
 
 ## Cheat sheet
 
-| You want to                          | Write                                                                                                                                | Watch for                                            |
-|--------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------|
-| Test different things per rung       | `CASE WHEN a > 1 THEN … WHEN b = 'x' THEN … END`                                                                                     | The first match wins, so order is logic              |
-| Compare one column to several values | `CASE status WHEN 'a' THEN … WHEN 'b' THEN … END`                                                                                    | Equality only, no `>` or `LIKE`                      |
-| Catch blank values                   | `WHEN col IS NULL THEN …`                                                                                                            | `= NULL` never matches and never errors              |
-| Give everything else one value       | `ELSE 'other'`                                                                                                                       | No ELSE means unmatched rows come out NULL           |
-| Sort by a business order             | `ORDER BY CASE status WHEN 'urgent' THEN 1 … END`                                                                                    | The numbers are just sort keys, not output           |
-| Count two things in one query        | `SUM(CASE WHEN … THEN 1 ELSE 0 END)`                                                                                                 | Use `COUNT(CASE WHEN … THEN 1 END)` to skip the ELSE |
-| Reuse the computed column later      | Compute it in a [CTE](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-expression/../sql-ctes/), then filter the CTE | Reusing the alias in WHERE is not portable           |
-| Put specific above general           | `' A Duet With '` above `' Duet With '` above `' With '`                                                                             | A general rung on top swallows the specific ones     |
+| You want to                          | Write                                                                                                         | Watch for                                            |
+|--------------------------------------|---------------------------------------------------------------------------------------------------------------|------------------------------------------------------|
+| Test different things per rung       | `CASE WHEN a > 1 THEN … WHEN b = 'x' THEN … END`                                                              | The first match wins, so order is logic              |
+| Compare one column to several values | `CASE status WHEN 'a' THEN … WHEN 'b' THEN … END`                                                             | Equality only, no `>` or `LIKE`                      |
+| Catch blank values                   | `WHEN col IS NULL THEN …`                                                                                     | `= NULL` never matches and never errors              |
+| Give everything else one value       | `ELSE 'other'`                                                                                                | No ELSE means unmatched rows come out NULL           |
+| Sort by a business order             | `ORDER BY CASE status WHEN 'urgent' THEN 1 … END`                                                             | The numbers are just sort keys, not output           |
+| Count two things in one query        | `SUM(CASE WHEN … THEN 1 ELSE 0 END)`                                                                          | Use `COUNT(CASE WHEN … THEN 1 END)` to skip the ELSE |
+| Reuse the computed column later      | Compute it in a [CTE](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-ctes/), then filter the CTE | Reusing the alias in WHERE is not portable           |
+| Put specific above general           | `' A Duet With '` above `' Duet With '` above `' With '`                                                      | A general rung on top swallows the specific ones     |
 
 ## The one habit to keep
 
@@ -190,7 +190,7 @@ Never ship a CASE you have not previewed side by side with the original column. 
 
 Which column in your own data would you least like to discover had been quietly bucketed wrong for a month?
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-expression/../): SQL, Tableau, data migration, and the working habits around them. If you are still choosing where to run your queries, start with [which SQL database to install](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-expression/../which-sql-database-to-install/).
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, Tableau, data migration, and the working habits around them. If you are still choosing where to run your queries, start with [which SQL database to install](https://michaelnocito.github.io/analyst-prep-kit/guides/which-sql-database-to-install/).
 
 ---
 

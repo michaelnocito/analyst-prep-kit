@@ -6,7 +6,7 @@ The short version: growth is this month minus last month, divided by last month.
 
 That last distinction is the one that bites, so it gets the picture.
 
-**The worked example is real.** Every query on this page ran in SQLite against the twelve-row orders table shown below, and every output is pasted from the run. SQLite has had window functions since version 3.25, so you can reproduce all of it on your own machine today. If grouping itself is new, read [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-month-over-month/../sql-group-by-having/) first and come back.
+**The worked example is real.** Every query on this page ran in SQLite against the twelve-row orders table shown below, and every output is pasted from the run. SQLite has had window functions since version 3.25, so you can reproduce all of it on your own machine today. If grouping itself is new, read [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/) first and come back.
 
 Here is the whole dataset. Twelve orders, five months, and no orders at all in April. That empty April is on purpose, because it is the star of trap number three.
 
@@ -39,7 +39,7 @@ One vocabulary note. "Month over month" always means this month compared to the 
 
 Before the explanation: the orders table has twelve rows covering five months. How many rows should the table you compare neighbors on have?
 
-Five. Growth is a comparison between months, so before any comparing can happen, the data has to become one row per month. This is a grain move. Grain is what one row means: right now one row is one order, and the question needs one row to be one month. `GROUP BY` makes that move, and [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-month-over-month/../sql-group-by-having/) covers it in full if the collapse feels magic.
+Five. Growth is a comparison between months, so before any comparing can happen, the data has to become one row per month. This is a grain move. Grain is what one row means: right now one row is one order, and the question needs one row to be one month. `GROUP BY` makes that move, and [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/) covers it in full if the collapse feels magic.
     
     
     SELECT strftime('%Y-%m', order_date) AS month,
@@ -64,7 +64,7 @@ Check it by hand once, because trust in the rest of the page flows from this tab
 
 Before the explanation: you have five monthly rows and you need each row to also know the previous row's revenue. Where would that number physically go?
 
-Onto the same row, in a new column. That is the whole job of `LAG()`. In everyday words: sort the rows, then for each row, reach up to the row above and copy a value down. `LAG(revenue) OVER (ORDER BY month)` says "sort by month, then hand every row the revenue from the row before it." It is a window function, which means it can see neighboring rows without collapsing them, and [window functions](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-month-over-month/../sql-window-functions/) covers that family properly.
+Onto the same row, in a new column. That is the whole job of `LAG()`. In everyday words: sort the rows, then for each row, reach up to the row above and copy a value down. `LAG(revenue) OVER (ORDER BY month)` says "sort by month, then hand every row the revenue from the row before it." It is a window function, which means it can see neighboring rows without collapsing them, and [window functions](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-window-functions/) covers that family properly.
     
     
     WITH monthly AS (
@@ -104,7 +104,7 @@ The fix is to force decimal math before the division happens. Multiplying by `10
 
 That returns 20.0 for February instead of 0. `CAST(revenue AS REAL)` does the same job if you prefer it spelled out.
 
-The second quiet trap is January. Its prev_revenue is NULL, because LAG reached up from the first row and found nothing there. NULL is SQL's marker for unknown, a hole where a value would go, and [NULL in SQL](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-month-over-month/../sql-null/) is a whole guide on how those holes behave. Here the behavior is actually merciful: arithmetic with NULL yields NULL, so January's growth prints as NULL rather than as a fake number. Leave it that way. A NULL first month is the honest answer, because growth from before your data started is genuinely unknown. The only mistake is "fixing" it to zero, which claims flat growth you have no evidence for.
+The second quiet trap is January. Its prev_revenue is NULL, because LAG reached up from the first row and found nothing there. NULL is SQL's marker for unknown, a hole where a value would go, and [NULL in SQL](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/) is a whole guide on how those holes behave. Here the behavior is actually merciful: arithmetic with NULL yields NULL, so January's growth prints as NULL rather than as a fake number. Leave it that way. A NULL first month is the honest answer, because growth from before your data started is genuinely unknown. The only mistake is "fixing" it to zero, which claims flat growth you have no evidence for.
 
 ## 5. The missing-month trap, shown actually happening
 
@@ -234,9 +234,9 @@ Three defects, zero error messages. Integer division makes every growth rate pri
     LEFT JOIN monthly m ON m.month = c.month
     ORDER BY c.month;
 
-Every guard is present and every guard states its reason in a comment, in the style from [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-month-over-month/../sql-teaching-comments/). A reviewer can now disagree with a choice instead of discovering it.
+Every guard is present and every guard states its reason in a comment, in the style from [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-teaching-comments/). A reviewer can now disagree with a choice instead of discovering it.
 
-Picture running the after version on your own revenue or signups table right now. Which month would come back with a gap row you did not know about? If you cannot answer, that is precisely the reason to run it. And the pattern only becomes yours once your fingers have produced it, so [type the query yourself](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-month-over-month/../../drill/) rather than pasting it.
+Picture running the after version on your own revenue or signups table right now. Which month would come back with a gap row you did not know about? If you cannot answer, that is precisely the reason to run it. And the pattern only becomes yours once your fingers have produced it, so [type the query yourself](https://michaelnocito.github.io/analyst-prep-kit/drill/) rather than pasting it.
 
 ## 7. Edge cases: reading negatives, formatting, MoM against YoY
 
@@ -248,7 +248,7 @@ Before the explanation: revenue fell 30% one month, then rose 30% the next. Is i
 
 **A tiny base makes a silly percentage.** Growth from 2 to 10 is 400%. True, and useless. When last month is near zero, report the raw change alongside the rate or suppress the rate below a floor you write down.
 
-**MoM is noisy where the calendar is seasonal.** Ice cream sales fall every September, and no one should get an alarmed email about it. Month over month asks "what just changed," so it amplifies seasonality and one-off spikes. Year over year compares June to last June, so the season cancels out and the trend shows through. Use MoM to detect turns quickly, YoY to state the trend calmly, and both lines on the same chart when the audience can take it. The [Forecasting Kit](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-month-over-month/../../forecasting/) works through seasonality properly, including when a "drop" is just the calendar breathing.
+**MoM is noisy where the calendar is seasonal.** Ice cream sales fall every September, and no one should get an alarmed email about it. Month over month asks "what just changed," so it amplifies seasonality and one-off spikes. Year over year compares June to last June, so the season cancels out and the trend shows through. Use MoM to detect turns quickly, YoY to state the trend calmly, and both lines on the same chart when the audience can take it. The [Forecasting Kit](https://michaelnocito.github.io/analyst-prep-kit/forecasting/) works through seasonality properly, including when a "drop" is just the calendar breathing.
 
 ## Why this works
 
@@ -268,7 +268,7 @@ Retrofitting every growth query you have ever shipped is miserable, and you will
 
 If you have paper nearby, one drawing is worth five minutes and it is optional. Draw your own last six months as boxes in a column, arrows from each box to the one above, then cross out any month you suspect might be empty in the data and see which arrow just became a lie. Redrawing the figure from memory is a retrieval rep and a self-check in one.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-month-over-month/../): SQL, Excel, Tableau, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, Excel, Tableau, and the working habits around them.
 
 ## The whole thing on one screen
 
@@ -291,7 +291,7 @@ This is the retrieval sheet. Cover the right column, work down the left, and say
 | Formatting                 | Keep it numeric in SQL, ROUND to one decimal, add % in the report layer.               |
 | MoM vs YoY                 | MoM detects turns fast but amplifies seasonality. YoY cancels the season.              |
 
-**The one habit to keep.** If you take nothing else from this page, never trust a LAG over dates until you have confirmed every calendar period has a row. The wrong growth number never looks wrong. It looks like a result, with a minus sign and one decimal place. If a growth query breaks in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-month-over-month/../technical-tenacity/).
+**The one habit to keep.** If you take nothing else from this page, never trust a LAG over dates until you have confirmed every calendar period has a row. The wrong growth number never looks wrong. It looks like a result, with a minus sign and one decimal place. If a growth query breaks in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/technical-tenacity/).
 
 One last thought, and I would genuinely like other people's answers. My fake -30.6% was easy to catch because I built the gap on purpose. In real data the gap is usually a loading failure nobody noticed, which means the growth number was wrong for months before anyone looked. What is the longest a wrong trend number has survived in a report you inherited, and what finally exposed it?
 

@@ -4,7 +4,7 @@ It is worse than it looks because it is not a font problem. Those names are now 
 
 **The short version.** A text file has to say which alphabet it is written in. The file was written in the modern universal one, UTF-8. Excel opened it assuming the old Western European one. Every character outside plain English got read as the wrong symbols.
 
-This is the third door of the family from [article 4](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-character-encoding/../excel-csv-import-leading-zeros/) and [article 6](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-character-encoding/../excel-sum-of-id-trap/): Excel deciding what your data is and never mentioning it. In [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-character-encoding/../excel-dashboard-build-order/) it was found late, in a finished dashboard: two of the top fifteen games displayed as garbage, and a count against the file put the damage at 4,685 of 82,956 names. Nothing had errored at any point.
+This is the third door of the family from [article 4](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-csv-import-leading-zeros/) and [article 6](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sum-of-id-trap/): Excel deciding what your data is and never mentioning it. In [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/) it was found late, in a finished dashboard: two of the top fifteen games displayed as garbage, and a count against the file put the damage at 4,685 of 82,956 names. Nothing had errored at any point.
 
 ## What happened, in plain terms
 
@@ -33,15 +33,15 @@ A font problem would mean the stored value is right and the pixels are wrong. Th
 
 **Search fails.** The user searches the real title. The cell holds the mangled one. No match, and no hint why.
 
-**Joins fail.** A lookup against a clean source list matches on the name. 4,685 rows no longer match anything, and per [article 2's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-character-encoding/../excel-check-your-work/) theme, a failed match does not error. The rows just drop or blank.
+**Joins fail.** A lookup against a clean source list matches on the name. 4,685 rows no longer match anything, and per [article 2's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/) theme, a failed match does not error. The rows just drop or blank.
 
-**Grouping splits.** The same publisher spelled cleanly in one file and mangled in another becomes two publishers, which is [the entity-resolution problem](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-character-encoding/../entity-resolution/) manufactured out of nothing.
+**Grouping splits.** The same publisher spelled cleanly in one file and mangled in another becomes two publishers, which is [the entity-resolution problem](https://michaelnocito.github.io/analyst-prep-kit/guides/entity-resolution/) manufactured out of nothing.
 
 The one mercy: the corruption is mechanical, so it is reversible if you still have the original file, and often even from the mangled text, because the wrong reading was consistent. Which leads to the two fixes.
 
 ## The fix at import
 
-  1. **Data > From Text/CSV**, the same door as [article 4](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-character-encoding/../excel-csv-import-leading-zeros/), and never a double-click.
+  1. **Data > From Text/CSV**, the same door as [article 4](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-csv-import-leading-zeros/), and never a double-click.
   2. **In the preview, top-left: File Origin.** Set it to **65001: Unicode (UTF-8)**.
   3. **Look at a row you know has accents** before loading. The preview is the test: names read as names, done.
 

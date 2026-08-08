@@ -4,7 +4,7 @@ Here are the eight, and you can start using them on your next file. Load the dat
 
 **The short version.** Checking is step four, not step nine. At step nine you can't tell which of eight steps broke it.
 
-![Three stacked bands, widest at the bottom. The bottom band is labelled Correct and holds numbered circles 1 to 5, with circle 4 filled in amber. The middle band is labelled Clear and holds circles 6 and 7. The top band is labelled Compelling and holds circle 8. An upward arrow runs alongside the stack from bottom to top, showing the order of travel.](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/../../assets/social/diagram-build-order.png) Eight steps, three passes, one direction of travel.
+![Three stacked bands, widest at the bottom. The bottom band is labelled Correct and holds numbered circles 1 to 5, with circle 4 filled in amber. The middle band is labelled Clear and holds circles 6 and 7. The top band is labelled Compelling and holds circle 8. An upward arrow runs alongside the stack from bottom to top, showing the order of travel.](https://michaelnocito.github.io/analyst-prep-kit/assets/social/diagram-build-order.png) Eight steps, three passes, one direction of travel.
 
 Everything below comes from one build: an Excel dashboard over 82,956 Steam games, built in an afternoon on 2026-08-04. You can open [the finished dashboard and the data behind it](https://github.com/michaelnocito/steam-hidden-gems/tree/main/excel) and follow along in your own copy.
 
@@ -25,7 +25,7 @@ Each step ends with something decided. That's what makes it a step rather than a
 | 7    | Fix the number formats                             | How fast a reader can read a number without misreading it           |
 | 8    | Make it land: layout, sorting, emphasis, the claim | The one thing the page is arguing                                   |
 
-Step 1 is worth a note, because it's the step people skip fastest. Naming the data means turning the range into an Excel Table with a name, so a formula reads `[@TotalReviews]` instead of `H2`. That's article 3 of this series. Before any of it, look at what you loaded: [how to explore a dataset before you trust it](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/../exploratory-data-analysis/) covers the first pass over an unfamiliar file.
+Step 1 is worth a note, because it's the step people skip fastest. Naming the data means turning the range into an Excel Table with a name, so a formula reads `[@TotalReviews]` instead of `H2`. That's article 3 of this series. Before any of it, look at what you loaded: [how to explore a dataset before you trust it](https://michaelnocito.github.io/analyst-prep-kit/guides/exploratory-data-analysis/) covers the first pass over an unfamiliar file.
 
 ## Why checking sits at step four
 
@@ -83,7 +83,7 @@ That's why the order has to be written down instead of felt. A rule you follow w
 
 There's a second reason, and it's mechanical. A number on screen is an anchor. Once you've seen 0.45%, you start reasoning from it, and the question quietly changes from "is this right?" to "could this be right?" Almost anything could be right. So the check goes the other way around: work out what the number should be, write it down, and only then look at what the pivot says. Predict, then check. A check you read after the fact confirms whatever is already on the screen.
 
-Keep the checks in the file when you send it. Two cells labelled `CHECK` beside the data cost nothing and tell the next person that somebody looked. That habit belongs with [writing down what your data can't tell you](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/../documenting-data-limitations/), which is the same move applied to the things a check can't catch.
+Keep the checks in the file when you send it. Two cells labelled `CHECK` beside the data cost nothing and tell the next person that somebody looked. That habit belongs with [writing down what your data can't tell you](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/), which is the same move applied to the things a check can't catch.
 
 ## The same eight steps in Tableau and Power BI
 

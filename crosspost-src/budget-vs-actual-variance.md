@@ -57,7 +57,7 @@ Before the explanation: how big does a variance have to be before you say its na
 
 A materiality floor is a threshold you set before reading the table: below this many dollars, or below this percent, a variance is noise and gets no airtime. The habit that matters is the word "before." Decide the floor first, then read. If you read first, the interesting-looking rows will pull your floor down to wherever they happen to sit, and every month's floor will be different.
 
-A common shape is a two-part test: flag a line only if it is off by more than a dollar floor AND more than a percent floor. For this department, $2,000 and 5% would flag Contractors, Services revenue, and Travel, while letting Salaries pass as within tolerance and silencing Office supplies entirely. Whether those are the right floors is a judgement about this department, not arithmetic, and the floor itself should come from the data rather than from taste. [Choosing thresholds from the data](https://michaelnocito.github.io/analyst-prep-kit/guides/budget-vs-actual-variance/../data-driven-thresholds/) is the full method: pick it, write down why, and check the read survives a nearby choice.
+A common shape is a two-part test: flag a line only if it is off by more than a dollar floor AND more than a percent floor. For this department, $2,000 and 5% would flag Contractors, Services revenue, and Travel, while letting Salaries pass as within tolerance and silencing Office supplies entirely. Whether those are the right floors is a judgement about this department, not arithmetic, and the floor itself should come from the data rather than from taste. [Choosing thresholds from the data](https://michaelnocito.github.io/analyst-prep-kit/guides/data-driven-thresholds/) is the full method: pick it, write down why, and check the read survives a nearby choice.
 
 Write the floor into the workbook where readers can see it. "Lines within $2,000 and 5% of plan are not discussed" is one sentence, and it converts your silence about small rows from an omission into a policy.
 
@@ -65,7 +65,7 @@ Write the floor into the workbook where readers can see it. "Lines within $2,000
 
 Before the explanation: your actuals arrive as hundreds of individual transactions, and your budget is eight tidy lines. What has to happen to the transactions before the two can sit in one table?
 
-They have to be summed per line. That is the whole build: the budget table supplies the rows, and `SUMIFS` pulls each line's actual total out of the transaction pile. `SUMIFS` adds up one column wherever another column matches a condition, and the [SUMIFS guide](https://michaelnocito.github.io/analyst-prep-kit/guides/budget-vs-actual-variance/../excel-sumifs/) covers the function itself in depth.
+They have to be summed per line. That is the whole build: the budget table supplies the rows, and `SUMIFS` pulls each line's actual total out of the transaction pile. `SUMIFS` adds up one column wherever another column matches a condition, and the [SUMIFS guide](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sumifs/) covers the function itself in depth.
 
 Set up two Excel tables. One named `Actuals` with the raw transactions, columns Line, Month, Amount. One named `Report` with columns Line, Type, Budget, and the formulas. Then, in the Report table:
     
@@ -112,7 +112,7 @@ Before the explanation: your director has thirty seconds. What is the one senten
 
 The walk first, because it is how finance audiences expect to travel from plan to result. A variance walk starts at the budgeted total, adds or subtracts the largest variances in order of size, and lands exactly on the actual. In one paragraph, this department's walk: we planned to contribute $109,200; product revenue added 12,400; contractor overruns took back 11,800; the services shortfall took 5,800 more; salaries, travel, and small items netted out another 5,250 against us; and we landed at $98,750. Every step is a labeled cause, the steps sum exactly, and drawn as a chart this paragraph is a waterfall: floating bars stepping from the budget column down or up to the actual column.
 
-Then the claim. A variance report is not eight rows; it is one sentence with a number, backed by eight rows: "We missed plan by $10,450, and contractor spend at 159% of budget is the driver." That is a claim someone can act on, question, or own. Sending the table alone makes the reader do the analysis you were asked to do, and the difference between shipping rows and shipping a claim is the whole subject of [report vs analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/budget-vs-actual-variance/../report-vs-analysis/).
+Then the claim. A variance report is not eight rows; it is one sentence with a number, backed by eight rows: "We missed plan by $10,450, and contractor spend at 159% of budget is the driver." That is a claim someone can act on, question, or own. Sending the table alone makes the reader do the analysis you were asked to do, and the difference between shipping rows and shipping a claim is the whole subject of [report vs analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/report-vs-analysis/).
 
 ## 8. Edge cases that flip meanings in real reports
 
@@ -147,7 +147,7 @@ Rebuilding every variance report you have inherited is miserable, and the older 
 
 If you have paper nearby, one optional drawing locks the core idea in. Draw the two-panel figure from this page from memory: two bar pairs, one labeled revenue, one labeled cost, the same overshoot shaded on each, and mark which overshoot is F and which is U. If your labels come out reversed, the page is still open.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/budget-vs-actual-variance/../): Excel, SQL, Tableau, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): Excel, SQL, Tableau, and the working habits around them.
 
 ## The whole thing on one screen
 
@@ -171,7 +171,7 @@ This is the retrieval sheet. Cover the right column, work down the left, and say
 | Favorable underspend  | Sometimes a plan that failed to happen. Read big F costs with suspicion.           |
 | Timing vs performance | Slipped invoices fake one bad month and one good one. Check year to date.          |
 
-**The one habit to keep.** If you take nothing else from this page, rank every variance table by dollars and label every line F or U before anyone else reads it. The most expensive miss in the table is routinely hiding behind the smallest percent. If a workbook fights back in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/budget-vs-actual-variance/../technical-tenacity/).
+**The one habit to keep.** If you take nothing else from this page, rank every variance table by dollars and label every line F or U before anyone else reads it. The most expensive miss in the table is routinely hiding behind the smallest percent. If a workbook fights back in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/technical-tenacity/).
 
 One last thought, and I would genuinely like other people's answers. The first variance table I ever presented was sorted by percent, and the meeting spent eight of its ten minutes on a line worth a few hundred dollars. What is the smallest line item that has ever eaten a whole meeting you were in, and did anyone ever say the dollar amount out loud?
 

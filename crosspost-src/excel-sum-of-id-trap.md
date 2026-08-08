@@ -4,15 +4,15 @@ The mistake happens without you doing anything wrong. You drag a column into a p
 
 **The short version.** Some columns are labels wearing a number's clothes: IDs, zips, years, phone numbers, invoice numbers. Count them or group by them, never sum them. The fix is Value Field Settings, Sum to Count.
 
-This is not hypothetical. In [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sum-of-id-trap/../excel-dashboard-build-order/), over 82,956 Steam games, this exact trap fired in step 3, survived a first glance, and was caught by a check cell. Then it turned up in three more fields on the same page.
+This is not hypothetical. In [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/), over 82,956 Steam games, this exact trap fired in step 3, survived a first glance, and was caught by a check cell. Then it turned up in three more fields on the same page.
 
 ## What happened in the build
 
-The pivot from [article 5](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sum-of-id-trap/../excel-pivot-table-question/) was meant to answer: how many games in each segment, as a share of the total? AppID went into Values, because a count needs any always-filled column, and AppID is filled on every row.
+The pivot from [article 5](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-table-question/) was meant to answer: how many games in each segment, as a share of the total? AppID went into Values, because a count needs any always-filled column, and AppID is filled on every row.
 
 Excel made it _Sum of AppID_. The pivot summed the ID codes of each group's games and reported each group's share of the total ID sum. The loved-and-found group came out as 0.45% of the total.
 
-Stop on that number for a second. It is small, it has decimals, it is not round. It looks exactly like an answer. The correct figure, a count, was 0.71%: 590 games of 82,956. Both numbers are plausible. Nothing on the screen distinguished them. The [check cell from article 2](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sum-of-id-trap/../excel-check-your-work/) did.
+Stop on that number for a second. It is small, it has decimals, it is not round. It looks exactly like an answer. The correct figure, a count, was 0.71%: 590 games of 82,956. Both numbers are plausible. Nothing on the screen distinguished them. The [check cell from article 2](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/) did.
 
 Before the next section, say out loud what Sum of AppID actually computed. Forcing the sentence is the point: "it added up the catalog numbers of 590 video games." Said aloud, the absurdity is audible. On screen, it never is.
 
@@ -32,14 +32,14 @@ Worse, the failure compounds quietly. A share computed from a nonsense total, li
 
 Run the one-line test on any column before it goes into Values: would adding two of these together mean anything?
 
-| Column                                  | Two added together               | Verdict                                                                                                                                     |
-|-----------------------------------------|----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
-| Price                                   | Two games' prices: real money    | Quantity. Sum away                                                                                                                          |
-| Median playtime                         | Meaningful in context            | Quantity. Sum or average                                                                                                                    |
-| AppID                                   | Two catalog numbers: nonsense    | Label. Count or group by                                                                                                                    |
-| Zip code                                | 08053 plus 02134: nonsense       | Label. And see [article 4](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sum-of-id-trap/../excel-csv-import-leading-zeros/) |
-| Year                                    | 2015 plus 2019 is 4034: nonsense | Label. Group by it, never sum it                                                                                                            |
-| Invoice number, phone, SKU, employee ID | Nonsense, every time             | Labels, all of them                                                                                                                         |
+| Column                                  | Two added together               | Verdict                                                                                                             |
+|-----------------------------------------|----------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| Price                                   | Two games' prices: real money    | Quantity. Sum away                                                                                                  |
+| Median playtime                         | Meaningful in context            | Quantity. Sum or average                                                                                            |
+| AppID                                   | Two catalog numbers: nonsense    | Label. Count or group by                                                                                            |
+| Zip code                                | 08053 plus 02134: nonsense       | Label. And see [article 4](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-csv-import-leading-zeros/) |
+| Year                                    | 2015 plus 2019 is 4034: nonsense | Label. Group by it, never sum it                                                                                    |
+| Invoice number, phone, SKU, employee ID | Nonsense, every time             | Labels, all of them                                                                                                 |
 
 Year deserves its own sentence, because it is the one that fools experienced people. It is genuinely numeric, ordering matters, subtraction even means something. Addition still does not. Any pivot showing Sum of Year has this bug.
 
@@ -47,7 +47,7 @@ Year deserves its own sentence, because it is the one that fools experienced peo
 
   1. **Read the corner.** The Values box and the pivot's header name the operation: Sum of AppID, Count of AppID. Read it before reading any figure. This is the whole habit.
   2. **Click the field in Values > Value Field Settings.**
-  3. **Choose Count. OK.** The header now says Count of AppID, and the sentence from [article 5](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sum-of-id-trap/../excel-pivot-table-question/) is back to the one you meant to ask.
+  3. **Choose Count. OK.** The header now says Count of AppID, and the sentence from [article 5](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-table-question/) is back to the one you meant to ask.
 
 Then do what the build had to do: check the other fields on the page. This mistake travels in groups, because the same drag built every pivot on the sheet. One found means others likely.
 
@@ -55,7 +55,7 @@ Then do what the build had to do: check the other fields on the page. This mista
 
 This is the second of three articles about the same underlying thing: Excel deciding what your data is, and never mentioning it.
 
-[Article 4](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sum-of-id-trap/../excel-csv-import-leading-zeros/) is the decision at import: 08053 becomes the number 8053. This article is the decision at analysis: an ID column becomes a quantity. Article 15, later in the series, is the ugliest of the three: a file's alphabet guessed wrong, and 6% of a column's names corrupted.
+[Article 4](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-csv-import-leading-zeros/) is the decision at import: 08053 becomes the number 8053. This article is the decision at analysis: an ID column becomes a quantity. Article 15, later in the series, is the ugliest of the three: a file's alphabet guessed wrong, and 6% of a column's names corrupted.
 
 The common defense across all three is the same: know which of your columns are labels, declare them where the tool lets you, and read what the tool decided where it does not ask. Labels are counted and grouped. Quantities are summed and averaged. That one distinction, applied at three doors, closes the family.
 
@@ -65,7 +65,7 @@ The common defense across all three is the same: know which of your columns are 
   2. **Read every Values entry.** Just the corners: Sum of what, Count of what, Average of what.
   3. **Run the test on each summed column.** Would adding two together mean anything?
   4. **Fix any label that is being summed.** Value Field Settings, Count. Note what the number was before and after, because someone may have already quoted the before.
-  5. **Add the check.** One COUNTIF beside the data for one group, per [article 2](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sum-of-id-trap/../excel-check-your-work/), so the next silent default gets caught by arithmetic instead of luck.
+  5. **Add the check.** One COUNTIF beside the data for one group, per [article 2](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/), so the next silent default gets caught by arithmetic instead of luck.
 
 ## A cheat sheet
 

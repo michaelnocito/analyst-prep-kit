@@ -1,6 +1,6 @@
 You double-click a data file and Excel spins, freezes, or tells you it cannot open it. Real-world datasets are often far bigger than a spreadsheet can hold, and every beginner hits this wall the first time they grab a serious dataset. This guide is what to do next. It covers how to recognize a "large" dataset, and why you move it into a database. It then lists the handful of real-world quirks that trip everyone up on the way.
 
-**New to databases?** This guide assumes you can create a SQLite database and import a CSV. If you have not done that yet, start with [How to Set Up a SQL Database](https://michaelnocito.github.io/analyst-prep-kit/guides/handle-large-datasets/../set-up-a-sql-database/) (about 15 minutes), then come back here.
+**New to databases?** This guide assumes you can create a SQLite database and import a CSV. If you have not done that yet, start with [How to Set Up a SQL Database](https://michaelnocito.github.io/analyst-prep-kit/guides/set-up-a-sql-database/) (about 15 minutes), then come back here.
 
 ## First: what counts as "large"?
 
@@ -18,7 +18,7 @@ The running example in this guide is a real one: a public dataset of Steam game 
 
 The single most important move: stop trying to open large data in a spreadsheet. Put it in a database instead. **SQLite** (via the free DB Browser app) has no practical row limit. The same file that crashed Excel becomes a table you can query in seconds.
 
-This is exactly the _create, import, verify_ workflow from the [SQL database guide](https://michaelnocito.github.io/analyst-prep-kit/guides/handle-large-datasets/../set-up-a-sql-database/). The steps are identical for a big file. It just takes longer, which is what the rest of this guide prepares you for.
+This is exactly the _create, import, verify_ workflow from the [SQL database guide](https://michaelnocito.github.io/analyst-prep-kit/guides/set-up-a-sql-database/). The steps are identical for a big file. It just takes longer, which is what the rest of this guide prepares you for.
 
 ## Step 2 — Expect the download to be zipped (with extras you don't need)
 

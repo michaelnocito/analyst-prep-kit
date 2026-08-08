@@ -59,7 +59,7 @@ Five bands, five rows, with a lower bound and an upper bound written down. The b
 
 An overlap is the fault that produced the 65 problem earlier. If High starts at 65 and Elevated ends at 65, the band depends on which rule got evaluated first, which is not a policy anyone wrote down.
 
-Where these five numbers come from is its own question, and a bigger one than the spreadsheet. If you picked them because they were round, read [how to choose cut-offs from the data](https://michaelnocito.github.io/analyst-prep-kit/guides/build-a-risk-index/../data-driven-thresholds/) before you defend them to anyone.
+Where these five numbers come from is its own question, and a bigger one than the spreadsheet. If you picked them because they were round, read [how to choose cut-offs from the data](https://michaelnocito.github.io/analyst-prep-kit/guides/data-driven-thresholds/) before you defend them to anyone.
 
 ## Step 3: look the band up, never type it
 
@@ -109,7 +109,7 @@ One tab, three columns: what I found, what I changed, why. Every correction gets
 
 This is the tab that turns a rebuild into something a client can approve. Without it, you hand back a file that looks different and they have to take your word for it. With it, they can disagree with any single decision without reopening all of them.
 
-One entry type matters more than the others. When two source files disagree, the change log is where you say so rather than quietly picking a winner. "This site appears on two maps with two scores, flagged for your decision" is a better line than any silent fix, because [which source wins is a policy call, not a spreadsheet one](https://michaelnocito.github.io/analyst-prep-kit/guides/build-a-risk-index/../documenting-data-limitations/).
+One entry type matters more than the others. When two source files disagree, the change log is where you say so rather than quietly picking a winner. "This site appears on two maps with two scores, flagged for your decision" is a better line than any silent fix, because [which source wins is a policy call, not a spreadsheet one](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/).
 
 ## Choosing the five colors
 

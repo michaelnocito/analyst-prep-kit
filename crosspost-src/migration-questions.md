@@ -6,7 +6,7 @@ Most migration trouble traces back to a question nobody asked in week one. This 
 
 Before reading on, try answering it for a project you are on now. Harder than it sounds, isn't it.
 
-Push until it is countable. "All active clients available on day one, visit history back to 2019, documents attached to the right client, no client appearing twice." Every one of those is checkable, which means every one becomes a line in [reconciliation](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-questions/../migration-dry-run/).
+Push until it is countable. "All active clients available on day one, visit history back to 2019, documents attached to the right client, no client appearing twice." Every one of those is checkable, which means every one becomes a line in [reconciliation](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-dry-run/).
 
 Then ask the other half: what does failure look like? People answer that one faster and more honestly, and the answer tells you what they are actually protecting.
 
@@ -38,7 +38,7 @@ Ask it plainly: if this goes wrong, what do we do? The answer needs three parts.
 
 The question almost nobody asks up front, and the one the client's staff feel every day of the project.
 
-A migration takes weeks. The business keeps running. Settle the freeze date, what read only means, and where new work goes instead. [The cutover article](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-questions/../migration-cutover/) covers the bridge sheet that answers it.
+A migration takes weeks. The business keeps running. Settle the freeze date, what read only means, and where new work goes instead. [The cutover article](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cutover/) covers the bridge sheet that answers it.
 
 ## The rest of the list
 

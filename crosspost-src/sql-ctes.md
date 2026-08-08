@@ -6,7 +6,7 @@ The short version: a CTE is a named temporary result you define before the main 
 
 One idea decides everything else here, so it gets the picture. Each named step takes the previous step's rows and narrows them, and every arrow has a row count you can read.
 
-**The worked example is real.** Every number on this page comes from a published portfolio project: finding the genuinely overlooked games in a catalogue of 82,956, at [Steam Hidden Gems on GitHub](https://github.com/michaelnocito/steam-hidden-gems). The steps below are the actual definition that produced the 175-game list. If `GROUP BY` is new, read [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-ctes/../sql-group-by-having/) first, because step three here depends on it.
+**The worked example is real.** Every number on this page comes from a published portfolio project: finding the genuinely overlooked games in a catalogue of 82,956, at [Steam Hidden Gems on GitHub](https://github.com/michaelnocito/steam-hidden-gems). The steps below are the actual definition that produced the 175-game list. If `GROUP BY` is new, read [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/) first, because step three here depends on it.
 
 ## 1. What a CTE is, in one query
 
@@ -185,7 +185,7 @@ It runs and returns 663 rows. Three problems, none of which produce an error. Th
     JOIN genre_avg AS g ON o.PrimaryGenre = g.PrimaryGenre
     ORDER BY o.PctPositive DESC;
 
-Every threshold now sits next to the reason for it. Every step can be counted. The genre comparison the question actually asked for is present. The comment format is the one from [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-ctes/../sql-teaching-comments/).
+Every threshold now sits next to the reason for it. Every step can be counted. The genre comparison the question actually asked for is present. The comment format is the one from [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-teaching-comments/).
 
 ## 6. Edge cases and the honest limits
 
@@ -195,7 +195,7 @@ Six things worth knowing.
 
 **Some databases treat a CTE as a fence.** This is the answer to the prequestion. PostgreSQL before version 12 materialised every CTE, meaning it calculated each one fully instead of folding it into the wider plan, so a filter in the final query could not push down into the step above. Modern PostgreSQL inlines them by default, and you can force either behaviour with `AS MATERIALIZED` or `AS NOT MATERIALIZED`. If a rewrite got slower, that is the first thing to look at.
 
-**A CTE referenced twice may be computed twice.** Where CTEs are inlined, using the same step in two places can run it twice. Usually irrelevant. On a step that scans forty million rows, not irrelevant. [Handling large datasets](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-ctes/../handle-large-datasets/) covers working at that size.
+**A CTE referenced twice may be computed twice.** Where CTEs are inlined, using the same step in two places can run it twice. Usually irrelevant. On a step that scans forty million rows, not irrelevant. [Handling large datasets](https://michaelnocito.github.io/analyst-prep-kit/guides/handle-large-datasets/) covers working at that size.
 
 **Only one`WITH`, and commas between steps.** Writing `WITH` again before the second step is the most common syntax error here, and the message rarely points at the real line.
 
@@ -227,7 +227,7 @@ Converting a whole project of queries at once is grim and you will stop halfway.
 
 If you have paper nearby and five spare minutes, there is one drawing worth doing, and it is optional. Draw four boxes shrinking left to right, write your own project's step names under them, and put the row count you expect inside each. Then run the counts and compare. Where your guess was furthest off is where your data is not what you think it is.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-ctes/../): SQL, Tableau, data migration, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, Tableau, data migration, and the working habits around them.
 
 ## The whole thing on one screen
 
@@ -250,7 +250,7 @@ This is the retrieval sheet. Cover the right column, work down the left, and say
 | Naming                | Say the step in English, then use those words. Not `cte1`.                     |
 | The habit             | Count every step as you add it, before writing the next one.                   |
 
-**The one habit to keep.** If you take nothing else from this page, run `SELECT COUNT(*)` on each step as you write it. The chain is only worth building because you can check it halfway, and the check takes seconds. If a query breaks in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-ctes/../technical-tenacity/).
+**The one habit to keep.** If you take nothing else from this page, run `SELECT COUNT(*)` on each step as you write it. The chain is only worth building because you can check it halfway, and the check takes seconds. If a query breaks in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/technical-tenacity/).
 
 One last thought, and I would genuinely like other people's answers. Splitting my query into named steps changed the analysis, not just the formatting: once `rated` had a name, it was obvious that the genre average should be built from it rather than from the whole catalogue, and that one choice moved the results. Has naming a step ever changed what you decided to calculate?
 

@@ -4,13 +4,13 @@ The reason it matters is blunt. Wrong Excel does not crash. It returns a confide
 
 **The short version.** After any step that changes what the numbers mean, work out what one number should be, write it down, then look. Predict, then check. Never the other way around.
 
-Everything here comes from the same build as the rest of this series: an Excel dashboard over 82,956 Steam games, walked in [the eight-step build order](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/../excel-dashboard-build-order/). Checking is step 4 of those eight, and this article is that step grown into a habit. The counts quoted were re-run against the real file before publishing.
+Everything here comes from the same build as the rest of this series: an Excel dashboard over 82,956 Steam games, walked in [the eight-step build order](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/). Checking is step 4 of those eight, and this article is that step grown into a habit. The counts quoted were re-run against the real file before publishing.
 
 ## Why wrong spreadsheets look right
 
 Before anything else, answer this from your own experience: when a formula of yours was wrong, how did you find out? Hold the answer. Most people's honest answer is "someone else noticed," and this article exists to change that.
 
-A program with a bug usually fails loudly. A spreadsheet with a bug usually succeeds quietly. Type a wrong range into SUM and you get a number. Point COUNTIF at the wrong column and you get a number. Let a pivot decide to sum your ID codes, which is [what happened in this build](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/../excel-dashboard-build-order/), and you get a number. Every one of those numbers is formatted, plausible, and wrong.
+A program with a bug usually fails loudly. A spreadsheet with a bug usually succeeds quietly. Type a wrong range into SUM and you get a number. Point COUNTIF at the wrong column and you get a number. Let a pivot decide to sum your ID codes, which is [what happened in this build](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/), and you get a number. Every one of those numbers is formatted, plausible, and wrong.
 
 In the build, the wrong figure was 0.45% and the right figure was 0.71%. Put those side by side. Neither is round enough to look fake. Neither is big enough to feel absurd. No amount of staring tells them apart. The only thing that told them apart was a second number, computed a different way.
 
@@ -62,7 +62,7 @@ Picture the last number you sent to somebody. Name the second route you could ha
 
 Here is the habit doing its work on real data, at the moment it mattered.
 
-Step 2 of the build added a label column sorting 82,956 games into four groups, built in [article 1](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/../excel-label-rows-before-charting/). The source analysis said there should be 765 loved games: 175 still hidden, 590 found. Those three numbers were written into check cells before the pivot was built.
+Step 2 of the build added a label column sorting 82,956 games into four groups, built in [article 1](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-label-rows-before-charting/). The source analysis said there should be 765 loved games: 175 still hidden, 590 found. Those three numbers were written into check cells before the pivot was built.
 
 Then the pivot said the loved-and-found group was 0.45% of all games. The check cell said 590, and 590 of 82,956 is 0.71%. Disagreement. The hunt was short because the check was fresh: the fault had to be in the pivot, not the label column, because the label column's own checks still passed. The pivot's corner read _Sum of AppID_. Ten seconds in Value Field Settings fixed it, and the same fault turned up in three more fields, each caught by the same comparison.
 
@@ -74,7 +74,7 @@ The habit people get wrong at the last step: they delete the checks before sendi
 
 Two labelled CHECK cells in a shipped file do two jobs. They tell the next person that somebody verified this, which is rarer than it should be and gets noticed. And they keep working after you are gone: when someone adds rows next quarter and a check goes red, the file catches its own regression.
 
-This is the same move as [writing down what your data can't tell you](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/../documenting-data-limitations/). Both put your verification where the reader can see it, instead of asking to be trusted.
+This is the same move as [writing down what your data can't tell you](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/). Both put your verification where the reader can see it, instead of asking to be trusted.
 
 ## Why this works
 

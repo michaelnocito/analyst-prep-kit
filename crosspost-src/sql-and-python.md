@@ -92,7 +92,7 @@ Answer for yourself before reading, and notice your reason rather than your pick
 
 **SQL first.** Three reasons. It's the smaller language, and a dozen keywords cover most analyst work. It appears in more analyst job postings than any other skill. And day one of a data job usually starts with "here's our database", not "please build us a data pipeline". Get comfortable with SELECT, WHERE, JOIN, and GROUP BY. Then add Python when you hit a wall SQL can't cross, usually "the data I need isn't in a database yet". That wall is the best Python motivation there is, because you'll know exactly why you're learning it.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-and-python/../): SQL, Tableau, data migration, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, Tableau, data migration, and the working habits around them.
 
 ---
 

@@ -179,7 +179,7 @@ Leaving `AS` out makes one mistake invisible. Drop a comma in a `SELECT` list an
     SELECT title, artist year
     FROM gem_page;
 
-You meant three columns. You get two: `title`, and the `artist` column labelled `year`. No error, and a header that reads `year` above text values. With `AS` in your habits, the missing comma reads wrong on sight. This is the same class of failure as the joins that [drop or duplicate rows](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-aliasing/../sql-joins/) without erroring, and it gets caught the same way, by making the intent explicit.
+You meant three columns. You get two: `title`, and the `artist` column labelled `year`. No error, and a header that reads `year` above text values. With `AS` in your habits, the missing comma reads wrong on sight. This is the same class of failure as the joins that [drop or duplicate rows](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/) without erroring, and it gets caught the same way, by making the intent explicit.
 
 One place `AS` is not optional: naming a table in PostgreSQL sometimes needs it, and a name that would otherwise be read as a keyword always does. Typing it every time removes the question.
 
@@ -212,7 +212,7 @@ Two of the three columns come back with headers nobody can use, so the `ORDER BY
     HAVING COUNT(v.id) >= 10
     ORDER BY avg_score DESC;
 
-Three named columns, two nicknamed tables, and a sort line that refers to a name instead of repeating a calculation. Note that `HAVING` still spells out `COUNT(v.id)`, because `HAVING` runs before `SELECT` and the name does not exist yet. The comment block that belongs above a query like this is in [How to Comment SQL So It Teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-aliasing/../sql-teaching-comments/).
+Three named columns, two nicknamed tables, and a sort line that refers to a name instead of repeating a calculation. Note that `HAVING` still spells out `COUNT(v.id)`, because `HAVING` runs before `SELECT` and the name does not exist yet. The comment block that belongs above a query like this is in [How to Comment SQL So It Teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-teaching-comments/).
 
 ## Where this came from and why it works
 
@@ -238,7 +238,7 @@ Going through a whole project in one sitting is miserable and you will stop half
 
 If you have paper nearby, this one is worth drawing once. Write out a query, then draw an arrow from every alias to the thing it names. The arrows that are hard to draw are the names that are not pulling their weight.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-aliasing/../): SQL, Tableau, data migration, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, Tableau, data migration, and the working habits around them.
 
 ## A cheat sheet
 

@@ -1,10 +1,10 @@
-**New to this?** Read [the eight stages](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../data-migration-stages/) first. That page tells you which stage you are in and what to do about it. This page shows all eight happening on one real-shaped job, so it makes more sense second.
+**New to this?** Read [the eight stages](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/) first. That page tells you which stage you are in and what to do about it. This page shows all eight happening on one real-shaped job, so it makes more sense second.
 
 By the end of this page you will have seen a whole migration run, start to finish. You will know what was sent on the day each stage closed, who signed it, what it cost when the client asked for more, and what the paper trail looked like at the end.
 
 **The short version.** A migration is eight stages, and each one ends at a **gate**. A gate is a checkpoint with an owner and a written answer: one named person agrees, in writing, that the stage is finished and the next one can start. Getting that agreement is the job. The rest is checking.
 
-Two of the eight closing emails are reproduced here in full, at gate 1 and gate 6. All four email types, including the chase and the handoff, are in [the emails guide](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../migration-emails/).
+Two of the eight closing emails are reproduced here in full, at gate 1 and gate 6. All four email types, including the chase and the handoff, are in [the emails guide](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-emails/).
 
 ## The engagement
 
@@ -27,7 +27,7 @@ Before you read on, guess: of everything agreed in a kickoff, which single item 
 
 It is not the scope. It is the name of the one person who answers data questions. Here that was action A003, raised on 27 February, answered by 2 March. The client named their Data Owner, J. Okafor. Every ambiguous field for the next five months went to one inbox instead of a committee.
 
-The other thing that happened in week one was the [exclusion list](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../migration-kickoff-scope/). Records before 2019 were confirmed as archive only and did not move. That one decision cut the volume by about a third.
+The other thing that happened in week one was the [exclusion list](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-kickoff-scope/). Records before 2019 were confirmed as archive only and did not move. That one decision cut the volume by about a third.
 
 Gate 1
 
@@ -55,7 +55,7 @@ The plan is here [link]. Please confirm you have received this and forward it to
 
 The highlighted parts are the ones you swap for your own. Everything else is the shape, and the shape is what makes it work.
 
-Four parts, every time: your actions with dates, our actions with dates, the impact of delay in their terms, and the link to the plan. The [emails guide](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../migration-emails/) takes those apart.
+Four parts, every time: your actions with dates, our actions with dates, the impact of delay in their terms, and the link to the plan. The [emails guide](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-emails/) takes those apart.
 
 ## Stage 2: profile the source, 16 March to 1 April
 
@@ -63,13 +63,13 @@ Profiling is where the estimate meets the data. Two findings changed the plan.
 
 1,204 client records had no date of birth. That is a required field in the target, so it would have failed the load. The client accepted moving them blank and cleaning up afterward, logged as exception E008 and action A004.
 
-The second was the picklist. Service type was free text in the old system, so `home aide`, `HHA` and `H.H.A.` were all the same thing typed three ways. That is normal, and it is the sort of thing you only find by looking. It is the reason the [look before you trust](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../exploratory-data-analysis/) habit exists.
+The second was the picklist. Service type was free text in the old system, so `home aide`, `HHA` and `H.H.A.` were all the same thing typed three ways. That is normal, and it is the sort of thing you only find by looking. It is the reason the [look before you trust](https://michaelnocito.github.io/analyst-prep-kit/guides/exploratory-data-analysis/) habit exists.
 
 Gate 2
 
 **The profiling report, and the decisions taken from it.** Signed by A. Reyes on 1 April. Evidence held: report v1.2, countersigned.
 
-The wording of that gate matters. Not "the report", the report _and the decisions_. A finding with no decision attached is just a fact you will rediscover in June. See [the seven checks](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../migration-profiling/).
+The wording of that gate matters. Not "the report", the report _and the decisions_. A finding with no decision attached is just a fact you will rediscover in June. See [the seven checks](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-profiling/).
 
 ## Stage 3: map the fields, and the first real pressure, 2 April to 1 May
 
@@ -84,7 +84,7 @@ Then two doors, both of them real:
   * **Door one.** We do it, and go-live moves from early August to late August.
   * **Door two.** We hold the date, and scheduling history becomes phase two.
 
-The client took door two, on 13 April. That is the usual outcome, and the reason is worth understanding. The request was never unreasonable. It just had a price nobody had seen yet, and the person asking did not own the date. Once the cost was in front of somebody who did own the date, it answered itself. This is the whole of [scope creep](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../migration-scope-creep/) in one move.
+The client took door two, on 13 April. That is the usual outcome, and the reason is worth understanding. The request was never unreasonable. It just had a price nobody had seen yet, and the person asking did not own the date. Once the cost was in front of somebody who did own the date, it answered itself. This is the whole of [scope creep](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-scope-creep/) in one move.
 
 CR-03 followed on 23 April: keep the legacy note formatting exactly as it looks today. Declined on 27 April, because the target cannot hold it. What made that decline land was explaining what the target can and cannot do, then agreeing plain text, rather than just saying no.
 
@@ -92,7 +92,7 @@ Gate 3
 
 **The field map, version frozen.** Signed by J. Okafor, Client Data Owner, on 1 May. Evidence held: map v3.0, signed. The working copy is kept separately.
 
-Two details in that gate line. The Data Owner signs, not the PM, because the Data Owner is the person who can actually be wrong about a field. And the signed copy lives apart from the working copy, so that in September nobody has to argue about which version was agreed. More in [field mapping](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../migration-field-mapping/) and [file hygiene](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../migration-file-hygiene/).
+Two details in that gate line. The Data Owner signs, not the PM, because the Data Owner is the person who can actually be wrong about a field. And the signed copy lives apart from the working copy, so that in September nobody has to argue about which version was agreed. More in [field mapping](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-field-mapping/) and [file hygiene](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-file-hygiene/).
 
 ## Stage 4: clean, de-dupe, and eight things a rule could not fix, 4 May to 1 June
 
@@ -108,7 +108,7 @@ Gate 4
 
 **Exception list closed or formally accepted.** Signed by J. Okafor on 1 June. Evidence held: the exception sheet, eight items, all answered.
 
-Read "or formally accepted" carefully. E008, the 1,204 blank dates of birth, was never fixed. It was accepted, in writing, with a named owner for the cleanup. An open exception is a decision nobody made yet, and it will surface after go-live wearing a different hat. See [cleaning](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../migration-cleaning/).
+Read "or formally accepted" carefully. E008, the 1,204 blank dates of birth, was never fixed. It was accepted, in writing, with a named owner for the cleanup. An open exception is a decision nobody made yet, and it will surface after go-live wearing a different hat. See [cleaning](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cleaning/).
 
 ## Stage 5: the dry run, 2 to 24 June
 
@@ -126,7 +126,7 @@ Gate 5
 
 **A clean reconciliation in the sandbox.** Signed by the migration lead on 24 June. Evidence held: the reconciliation tab, every row Pass.
 
-This is the one gate the client does not sign, and that is deliberate. It is an internal bar. You do not put a broken load in front of testers and ask them to be understanding about it. See [the dry run](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../migration-dry-run/).
+This is the one gate the client does not sign, and that is deliberate. It is an internal bar. You do not put a broken load in front of testers and ask them to be understanding about it. See [the dry run](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-dry-run/).
 
 ## Stage 6: user acceptance testing, 25 June to 14 July
 
@@ -165,7 +165,7 @@ The two that changed the load were the blank service type on older records, now 
 
 Plan is here [link]. Please confirm receipt.
 
-Note what the delay costs, in their words. Not "this will delay the project". The schedulers doing double entry. See [UAT](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../migration-uat/).
+Note what the delay costs, in their words. Not "this will delay the project". The schedulers doing double entry. See [UAT](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-uat/).
 
 ## The one that was declined
 
@@ -209,11 +209,11 @@ Post-load reconciliation is running now.
 | Control total, balances      | 284,655 | 284,655 | Pass   |
 | Documents with a client link | 6,310   | 6,310   | Pass   |
 
-**This table is a tab in the workbook.** Open the [worked example](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../data-migration-stages/toolkit/Data-Migration-Toolkit-WORKED-EXAMPLE.xlsx) and you can see the formulas behind the Pass column, plus every other row on this page.
+**This table is a tab in the workbook.** Open the [worked example](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/toolkit/Data-Migration-Toolkit-WORKED-EXAMPLE.xlsx) and you can see the formulas behind the Pass column, plus every other row on this page.
 
 Five of those are counts. One is not. The control total sums the balances rather than counting the rows, and it is there because counts can match while values are wrong. If a decimal moved during a transform, the row count would not notice.
 
-Every row above answers the same question: did the data arrive. Two more checks answer a different one, and they are not in this table because they do not produce a number. Can the target system actually _use_ the data, and does everything downstream still work. Both were run again here, as they were in the dry run. See [cutover](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../migration-cutover/).
+Every row above answers the same question: did the data arrive. Two more checks answer a different one, and they are not in this table because they do not produce a number. Can the target system actually _use_ the data, and does everything downstream still work. Both were run again here, as they were in the dry run. See [cutover](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cutover/).
 
 Gate 7, not yet signed
 
@@ -227,13 +227,13 @@ Hypercare is the support period straight after go-live, when people hit the new 
 
 One item is already open. A010: the client wants a count of documents loaded per year for their auditor. That is not a defect, it is the long tail, and it is what hypercare is actually for. Requests like it arrive for weeks and each one needs logging rather than answering off the side of a desk.
 
-The stage ends with the final reconciliation report, an internal readout on what to change next time, and a handoff to Support that includes context rather than just a ticket. See [hypercare](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../migration-hypercare/).
+The stage ends with the final reconciliation report, an internal readout on what to change next time, and a handoff to Support that includes context rather than just a ticket. See [hypercare](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-hypercare/).
 
 ## When the client goes quiet
 
 It has not happened on this engagement, which is itself the point. The single point of contact named on 2 March is why.
 
-When it does happen, the ladder has three rungs and you climb them on a schedule you decided in advance. Restate the one action and the date it was agreed. Then attach the consequence to their goal, not yours. Then raise it to whoever owns the outcome, having told your contact you are about to. The wording for each rung is in [when the client goes quiet](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../migration-quiet-client/).
+When it does happen, the ladder has three rungs and you climb them on a schedule you decided in advance. Restate the one action and the date it was agreed. Then attach the consequence to their goal, not yours. Then raise it to whoever owns the outcome, having told your contact you are about to. The wording for each rung is in [when the client goes quiet](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-quiet-client/).
 
 Write the plan down at kickoff and follow it without deciding again each time. Deciding each time is how a chase becomes personal, and how three weeks pass with nothing on the record.
 
@@ -245,7 +245,7 @@ None of that is bureaucracy. It is the answer to one question, asked months late
 
 Every one of those rows answers it. The blank dates of birth are blank because the client accepted it on 27 March. Scheduling history is missing because it was deferred on 13 April to hold the date. Go-live was not pulled forward because UAT would have been skipped. You will not remember any of that in November, and you should not have to.
 
-**The tools on this page are free and open.** The [blank template](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../data-migration-stages/toolkit/Data-Migration-Toolkit-TEMPLATE.xlsx) and the [worked example](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-walkthrough/../data-migration-stages/toolkit/Data-Migration-Toolkit-WORKED-EXAMPLE.xlsx) are the workbook this walkthrough describes. The [Python that generates them is on GitHub](https://github.com/michaelnocito/migration-toolkit), where every date is read off the plan rather than typed twice, so the gate sheet and the schedule cannot disagree.
+**The tools on this page are free and open.** The [blank template](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/toolkit/Data-Migration-Toolkit-TEMPLATE.xlsx) and the [worked example](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/toolkit/Data-Migration-Toolkit-WORKED-EXAMPLE.xlsx) are the workbook this walkthrough describes. The [Python that generates them is on GitHub](https://github.com/michaelnocito/migration-toolkit), where every date is read off the plan rather than typed twice, so the gate sheet and the schedule cannot disagree.
 
 ## The one habit
 

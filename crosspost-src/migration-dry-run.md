@@ -16,7 +16,7 @@ The full load also tells you how long the real one takes. That number goes on th
 
 **2. Totals.** Sum the numbers that matter. Visit hours, invoice amounts, balances. Counts can match while values are wrong, and a total catches a transformation that shifted a decimal.
 
-**3. Orphans.** Zero. Every document attached to a client, every visit attached to a staff member. This is a [left join where the right side is null](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-dry-run/../sql-joins/), and the answer has to be an empty result.
+**3. Orphans.** Zero. Every document attached to a client, every visit attached to a staff member. This is a [left join where the right side is null](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/), and the answer has to be an empty result.
 
 **4. Spot checks on real records.** Pick ten clients, including the two most complicated, and compare them field by field against the old system. This is the check that finds what the aggregates hide.
 

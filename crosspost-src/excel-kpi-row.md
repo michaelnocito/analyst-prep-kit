@@ -22,7 +22,7 @@ The test: **is this number load-bearing for the page's claim?** Take the claim f
 | 21.2x audience gap                                                                                                                                       | The stakes: the cost of staying hidden, in one ratio              |
 | _Rejected: average price, median playtime, count of genres. All true, all computable, none load-bearing for this claim. They live in charts or nowhere._ |
 
-That rejected line is the discipline. Every dashboard has a dozen numbers that could sit up top, and a row of twelve is a row of none. Three to five spots, each earning its place against the claim, per the one-claim rule that [separates an analysis from a report](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-kpi-row/../report-vs-analysis/).
+That rejected line is the discipline. Every dashboard has a dozen numbers that could sit up top, and a row of twelve is a row of none. Three to five spots, each earning its place against the claim, per the one-claim rule that [separates an analysis from a report](https://michaelnocito.github.io/analyst-prep-kit/guides/report-vs-analysis/).
 
 ## The row is a sentence: order matters
 
@@ -32,7 +32,7 @@ Say your own dashboard's claim out loud, then say which number a stranger needs 
 
 ## Formulas, never typed values
 
-Every KPI cell is a live formula against [the named table](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-kpi-row/../excel-name-your-data/). The build's four:
+Every KPI cell is a live formula against [the named table](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-name-your-data/). The build's four:
     
     
     =COUNT(Games[AppID])
@@ -40,26 +40,26 @@ Every KPI cell is a live formula against [the named table](https://michaelnocito
     =COUNTIFS(Games[PctPositive],">=95", Games[TotalReviews],">=2000", Games[IsHiddenGem],1)
     =AVERAGEIFS(Games[EstOwnersMid], ..., Games[IsHiddenGem],0) / AVERAGEIFS(..., Games[IsHiddenGem],1)
 
-The fourth is [article 11's formula](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-kpi-row/../excel-if-family/) in its home. Two reasons the typed-value shortcut is a trap, and the second one is the one that bites:
+The fourth is [article 11's formula](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-if-family/) in its home. Two reasons the typed-value shortcut is a trap, and the second one is the one that bites:
 
 **Typed values freeze.** New rows arrive, every chart updates, and the big number at the top quietly keeps saying what was true in March. The most-read number on the page is now the stalest.
 
-**Typed values cannot disagree with anything.** A formula recomputes from the data, which means it can catch a break: if the label column changes and 175 becomes 174, the row shows it, and [a check](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-kpi-row/../excel-check-your-work/) can flag it. A typed 175 agrees with everything forever, which is not loyalty. It is deafness.
+**Typed values cannot disagree with anything.** A formula recomputes from the data, which means it can catch a break: if the label column changes and 175 becomes 174, the row shows it, and [a check](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/) can flag it. A typed 175 agrees with everything forever, which is not loyalty. It is deafness.
 
-Click any KPI on the finished dashboard and the formula bar should show a formula. That is the audit, and it takes four clicks. If the bar shows a number, per [article 8's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-kpi-row/../excel-custom-number-formats/) same rule for units, someone typed what should have been computed.
+Click any KPI on the finished dashboard and the formula bar should show a formula. That is the audit, and it takes four clicks. If the bar shows a number, per [article 8's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-custom-number-formats/) same rule for units, someone typed what should have been computed.
 
 ## Making it look like a KPI row
 
 The look is three settings, not a design project. Big number, small label, quiet background:
 
   1. **The number is large.** Two to three times body size. It is the thing being read.
-  2. **The label sits under it, small and grey.** "Stayed hidden," not "COUNTIFS of segment where." The label says what the number means to the reader, in the reader's words, per the same rule as [chart titles](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-kpi-row/../excel-chart-design-basics/).
-  3. **Formats carry the units.** 21.2x is `0.0"x"`, big counts get thousands separators, all from [article 8](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-kpi-row/../excel-custom-number-formats/), so every cell stays arithmetic underneath.
+  2. **The label sits under it, small and grey.** "Stayed hidden," not "COUNTIFS of segment where." The label says what the number means to the reader, in the reader's words, per the same rule as [chart titles](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-chart-design-basics/).
+  3. **Formats carry the units.** 21.2x is `0.0"x"`, big counts get thousands separators, all from [article 8](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-custom-number-formats/), so every cell stays arithmetic underneath.
   4. **Turn off gridlines on the dashboard sheet.** View, untick Gridlines. One tick box, and the sheet reads as a page instead of a grid.
 
 ## The row doubles as your check row
 
-A quiet bonus of formula-built KPIs: the row is [article 2's check cells](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-kpi-row/../excel-check-your-work/), promoted to the top of the page. 765 in the row and 175 in the row are the same two numbers the checks predicted before the pivot was built. If a refresh ever moves one unexpectedly, the most visible cells on the dashboard are the ones that changed. The dashboard watches itself, in public.
+A quiet bonus of formula-built KPIs: the row is [article 2's check cells](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/), promoted to the top of the page. 765 in the row and 175 in the row are the same two numbers the checks predicted before the pivot was built. If a refresh ever moves one unexpectedly, the most visible cells on the dashboard are the ones that changed. The dashboard watches itself, in public.
 
 The addition check belongs here too, off to the side or on the data sheet: groups summing to the row count. When the KPI row and the checks are the same cells, keeping the dashboard honest stops being a separate chore.
 

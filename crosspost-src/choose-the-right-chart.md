@@ -63,7 +63,7 @@ Before the explanation: ten stores, two measures each: staff on shift and weekly
 
 The question is whether the two measures move together, and the scatter plot is the only chart in the set built for it. One dot per store, staff on one axis, sales on the other. No baseline, no time, just position. The eye reads the cloud's shape: drifting up and to the right means the measures rise together, and how tightly the dots hug a line is the strength of the relationship. For these ten stores the pattern is very tight: the correlation computes to 0.99, nearly a straight line.
 
-The scatter is also the chart most likely to be over-read, because a clean rising cloud whispers "staff cause sales". A scatter shows association only. Busy stores may get more staff precisely because they sell more, or a third thing, like location, may drive both. The chart cannot pick between those stories, and [correlation vs causation](https://michaelnocito.github.io/analyst-prep-kit/guides/choose-the-right-chart/../correlation-vs-causation/) is the page for telling them apart before anyone acts on the cloud.
+The scatter is also the chart most likely to be over-read, because a clean rising cloud whispers "staff cause sales". A scatter shows association only. Busy stores may get more staff precisely because they sell more, or a third thing, like location, may drive both. The chart cannot pick between those stories, and [correlation vs causation](https://michaelnocito.github.io/analyst-prep-kit/guides/correlation-vs-causation/) is the page for telling them apart before anyone acts on the cloud.
 
 Picture your own data for a second: two numeric columns you have quietly wondered about, one dot per row. That mental image, and whether a shape appears in it, is the fastest analysis step you own.
 
@@ -130,7 +130,7 @@ The reader's task: match nine colours between legend and wedges, then rank nine 
     Templates     10
     Other          9
 
-Same nine numbers. The ranking is now instant because it is a length comparison from a shared baseline, the legend is gone because the labels sit on the bars, and the title states the finding: the top three lines, 14 plus 13 plus 12, hold 39% of revenue. Titling the claim instead of the column names is its own habit with its own page, [label the claim, not the data](https://michaelnocito.github.io/analyst-prep-kit/guides/choose-the-right-chart/../excel-label-rows-before-charting/). A chart titled with its finding gets that finding remembered. A chart titled with its column names gets skimmed.
+Same nine numbers. The ranking is now instant because it is a length comparison from a shared baseline, the legend is gone because the labels sit on the bars, and the title states the finding: the top three lines, 14 plus 13 plus 12, hold 39% of revenue. Titling the claim instead of the column names is its own habit with its own page, [label the claim, not the data](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-label-rows-before-charting/). A chart titled with its finding gets that finding remembered. A chart titled with its column names gets skimmed.
 
 ## 9. Edge cases: the miscasts, named
 
@@ -164,9 +164,9 @@ Reworking every chart in an old dashboard in one sitting is miserable, and you w
   4. **Retitle it with the claim** , a sentence with a number in it, and sort bars by value while you are there.
   5. **Only then move to the next chart.** One chart per day fixes a dashboard in two weeks without the misery.
 
-If you have paper nearby, one optional drawing is worth five minutes. Draw the fork from the figure yourself, from memory: the question in the middle, four branches, a tiny chart sketched at the end of each. The point is not the drawing. Reproducing the fork without looking is the test of whether you own it, and the version in your handwriting is the one you will actually recall in a meeting. Reading charts fast is its own trainable skill, and [Viz Drill](https://michaelnocito.github.io/analyst-prep-kit/guides/choose-the-right-chart/../../viz/) is built for exactly those reps.
+If you have paper nearby, one optional drawing is worth five minutes. Draw the fork from the figure yourself, from memory: the question in the middle, four branches, a tiny chart sketched at the end of each. The point is not the drawing. Reproducing the fork without looking is the test of whether you own it, and the version in your handwriting is the one you will actually recall in a meeting. Reading charts fast is its own trainable skill, and [Viz Drill](https://michaelnocito.github.io/analyst-prep-kit/viz/) is built for exactly those reps.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/choose-the-right-chart/../): SQL, charts, statistics, Tableau, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, charts, statistics, Tableau, and the working habits around them.
 
 ## The whole thing on one screen
 

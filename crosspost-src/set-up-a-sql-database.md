@@ -2,7 +2,7 @@ Every SQL tutorial assumes your data is already "in a database." Nobody explains
 
 You do not need to bring your own data. Step 1 gives you a file to download, and every query in this guide runs against it.
 
-If you are still weighing up which engine to put on your machine, the one-question version of that decision is in [which SQL database should you install](https://michaelnocito.github.io/analyst-prep-kit/guides/set-up-a-sql-database/../which-sql-database-to-install/). Everyone else can start at step 1.
+If you are still weighing up which engine to put on your machine, the one-question version of that decision is in [which SQL database should you install](https://michaelnocito.github.io/analyst-prep-kit/guides/which-sql-database-to-install/). Everyone else can start at step 1.
 
 ## First: what are you actually building?
 
@@ -52,7 +52,7 @@ That's a real database. It's empty, but it exists — one file, no server.
      * **Tick "Column names in first line"** — otherwise your header row gets imported as a data row.
   4. Click OK, then press **Ctrl+S** (Cmd+S on Mac) to save the database. DB Browser doesn't write changes to the file until you save.
 
-**Working with a large dataset?** If your file is hundreds of MB, has millions of rows, or won't open in Excel, the import takes longer and needs a couple of extra tricks (unzipping, indexing, sampling). See [How to Handle Large Datasets](https://michaelnocito.github.io/analyst-prep-kit/guides/set-up-a-sql-database/../handle-large-datasets/).
+**Working with a large dataset?** If your file is hundreds of MB, has millions of rows, or won't open in Excel, the import takes longer and needs a couple of extra tricks (unzipping, indexing, sampling). See [How to Handle Large Datasets](https://michaelnocito.github.io/analyst-prep-kit/guides/handle-large-datasets/).
 
 ## Step 5 — Verify it with your first query
 
@@ -98,9 +98,9 @@ Off by exactly one? You probably forgot "column names in first line." Off by mor
 
 On the job you'll meet MySQL (`LOAD DATA INFILE`) and Postgres (`COPY`). The tools change; the workflow you just learned doesn't: **create → import → verify** , and keep an untouched `_raw` copy.
 
-And if the file itself is huge (millions of rows, gigabytes on disk), the same database still works, you just add a few habits: see [How to Handle Large Datasets](https://michaelnocito.github.io/analyst-prep-kit/guides/set-up-a-sql-database/../handle-large-datasets/).
+And if the file itself is huge (millions of rows, gigabytes on disk), the same database still works, you just add a few habits: see [How to Handle Large Datasets](https://michaelnocito.github.io/analyst-prep-kit/guides/handle-large-datasets/).
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/set-up-a-sql-database/../): SQL, Tableau, data migration, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, Tableau, data migration, and the working habits around them.
 
 ---
 

@@ -6,7 +6,7 @@ The short version: `groupby` splits the table into one mini-table per key value,
 
 The split-apply-combine shape is the one idea everything else on this page hangs from, so it gets the picture.
 
-**Every output on this page is real.** One 14-row sales table, printed in full below, and every result was produced by running the code with pandas. If you already group in SQL, this page is the pandas half of a pair: [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-groupby/../sql-group-by-having/) is the same idea in its original home, and I will point at the twin moves as they come up.
+**Every output on this page is real.** One 14-row sales table, printed in full below, and every result was produced by running the code with pandas. If you already group in SQL, this page is the pandas half of a pair: [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/) is the same idea in its original home, and I will point at the twin moves as they come up.
 
 Here is the whole dataset. Fourteen orders, a region, a category, and an amount. Two things are deliberately imperfect, because real data always is: order 1008 has a missing amount, and orders 1013 and 1014 have a missing region.
     
@@ -164,7 +164,7 @@ Rankings of group averages have a structural bias: the smallest groups float to 
     East    158.000000       5
     West    186.666667       4
 
-South, with its 3 orders averaging 83.33, is excluded from the comparison rather than allowed to look like a stable finding. The boolean filter line is pandas's `HAVING`: it runs on the combined result, after the groups exist, which is the only time a per-group condition can be checked. On fourteen rows the floor of 4 is obviously a demonstration; on real data the floor is a judgement you should pick from the data and write down, and [choosing thresholds from the data](https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-groupby/../data-driven-thresholds/) covers how.
+South, with its 3 orders averaging 83.33, is excluded from the comparison rather than allowed to look like a stable finding. The boolean filter line is pandas's `HAVING`: it runs on the combined result, after the groups exist, which is the only time a per-group condition can be checked. On fourteen rows the floor of 4 is obviously a demonstration; on real data the floor is a judgement you should pick from the data and write down, and [choosing thresholds from the data](https://michaelnocito.github.io/analyst-prep-kit/guides/data-driven-thresholds/) covers how.
 
 Now picture running the named-aggregation line on your own table, whatever it is: tickets by assignee, revenue by client, scores by school. Which group do you already suspect has single-digit rows behind a confident-looking average? That suspicion is the reason `orders=` goes in every grouped result I ship.
 
@@ -214,7 +214,7 @@ One argument surfaces them as their own group.
     NaN      152.500000
     Name: amount, dtype: float64
 
-The NaN group's mean checks by hand: (260 + 45) ÷ 2 = 305 ÷ 2 = 152.5. That row is not an error to hide. It is a measurement of your missing data, and the honest move is to report it: "two orders, 305 in sales, have no region recorded." Silent exclusions are exactly the kind of thing that belongs in writing next to a result, and [documenting data limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-groupby/../documenting-data-limitations/) is the guide for how to say it. My habit is to run the `dropna=False` version once for every key I group by, read the NaN row, then decide what to do about it, rather than letting the default decide for me.
+The NaN group's mean checks by hand: (260 + 45) ÷ 2 = 305 ÷ 2 = 152.5. That row is not an error to hide. It is a measurement of your missing data, and the honest move is to report it: "two orders, 305 in sales, have no region recorded." Silent exclusions are exactly the kind of thing that belongs in writing next to a result, and [documenting data limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/) is the guide for how to say it. My habit is to run the `dropna=False` version once for every key I group by, read the NaN row, then decide what to do about it, rather than letting the default decide for me.
 
 ## The full before and after
 
@@ -251,7 +251,7 @@ Three problems, none of which raise an error. There is no group size, so South's
 
 Five that each cost someone an afternoon.
 
-**The key column has near-duplicate values.** `'East'` and `'East '` with a trailing space are two different groups, and your regional report quietly grows a fourth region. Normalize keys before grouping, `df['region'].str.strip()` at minimum. When the duplicates are messier than whitespace, that is [entity resolution](https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-groupby/../entity-resolution/).
+**The key column has near-duplicate values.** `'East'` and `'East '` with a trailing space are two different groups, and your regional report quietly grows a fourth region. Normalize keys before grouping, `df['region'].str.strip()` at minimum. When the duplicates are messier than whitespace, that is [entity resolution](https://michaelnocito.github.io/analyst-prep-kit/guides/entity-resolution/).
 
 **A group whose values are all missing returns NaN, not zero.** If every amount in a group is missing, `sum` returns 0 but `mean` returns NaN, and a NaN in a report column tends to get "fixed" to zero by whoever formats it. A group with no measurable values and a group averaging zero are different findings.
 
@@ -279,7 +279,7 @@ Retrofitting every grouped line in an old notebook is miserable and you will sto
 
 If you have paper nearby, one optional drawing is worth five minutes: redraw the split-apply-combine picture from memory for your own table, seven rows, three shadings, one dashed row with a missing key, and mark where that dashed row goes. Placing the dropped row correctly, before the split rather than after, is the whole dropna lesson in one pen stroke.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-groupby/../): SQL, Python, Excel, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, Python, Excel, and the working habits around them.
 
 ## The whole thing on one screen
 
@@ -305,7 +305,7 @@ This is the retrieval sheet. Cover the right column, work down the left, and say
 | The reconciliation check      | Group sizes must add back to the input row count. Here: 5 + 3 + 4 + 2 = 14.                       |
 | `sort_values`                 | Order the result by the statistic, not the alphabet.                                              |
 
-**The one habit to keep.** Every grouped result ships with a size column, and the sizes must add back to the rows you started with. That single reconciliation catches missing keys, join blowups, and hollow averages in one move. If a grouped result breaks in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-groupby/../technical-tenacity/).
+**The one habit to keep.** Every grouped result ships with a size column, and the sizes must add back to the rows you started with. That single reconciliation catches missing keys, join blowups, and hollow averages in one move. If a grouped result breaks in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/technical-tenacity/).
 
 One last thought, and I would genuinely like other people's answers. The first time I ran a regional report, the rows with no region were simply not in it, and I only found them weeks later reconciling against a finance total that would not match. What have you found living in your NaN group, and how long had it been there?
 

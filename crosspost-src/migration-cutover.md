@@ -24,7 +24,7 @@ New work during the gap goes onto a structured sheet, built by you, shaped exact
 
 That last part is the whole trick. If the sheet has the same columns, the same value lists and the same date format as your load file, then the moment the new system is live you import it in minutes. If the sheet is a free form list somebody invented, you spend a day cleaning it while the client waits.
 
-Build it with the same rules as the [field map](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cutover/../migration-field-mapping/): required fields marked, dropdowns where the target has dropdowns, one row per record, and the client ID column present. Give it to the client before the freeze starts and walk one person through filling a row.
+Build it with the same rules as the [field map](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-field-mapping/): required fields marked, dropdowns where the target has dropdowns, one row per record, and the client ID column present. Give it to the client before the freeze starts and walk one person through filling a row.
 
 Picture a scheduler at 4pm on a Friday during the freeze, signing up a new client. What has to be true about your sheet for that to take them two minutes? That is the design brief.
 
@@ -63,7 +63,7 @@ That means the decision point is genuinely before the load, not during it. After
   1. Confirm the freeze held. Ask, do not assume.
   2. Take the final export.
   3. Go/no-go. The named person says yes, on the evidence agreed in advance.
-  4. Run the load, exactly as rehearsed in the [dry run](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cutover/../migration-dry-run/).
+  4. Run the load, exactly as rehearsed in the [dry run](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-dry-run/).
   5. Reconcile: counts, totals, orphans, spot checks, processability, integration. The same six as the dry run.
   6. Load the bridge sheet.
   7. Reconcile again, including the bridge rows.

@@ -6,7 +6,7 @@ The short version: a correlation is one fact with four possible stories behind i
 
 One picture carries the whole idea, so it comes first. The same observed link between X and Y, and the four stories that could each have produced it.
 
-**Every number on this page is computed.** The worked example is a 12-row table you can see in full, and every correlation on the page was produced by running the shown code on that table. If reading data with pandas is new, [SQL and Python for analysts](https://michaelnocito.github.io/analyst-prep-kit/guides/correlation-vs-causation/../sql-and-python/) covers the setup and comes back here in ten minutes.
+**Every number on this page is computed.** The worked example is a 12-row table you can see in full, and every correlation on the page was produced by running the shown code on that table. If reading data with pandas is new, [SQL and Python for analysts](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-and-python/) covers the setup and comes back here in ten minutes.
 
 ## 1. The three explanations, and the quiet fourth
 
@@ -147,7 +147,7 @@ Every word before the parenthesis is defensible, and the sentence after it is fi
     the variable to act on is warm-month lake supervision,
     not sales.
 
-Three habits are visible in the after version. It says **"associated with"** , which claims co-movement and nothing more. It names the confounder it checked and shows the check, which is what makes the write-up trustworthy rather than merely cautious. And it states the sample size, so the reader can weigh the coincidence story for themselves. Naming what you checked and what you could not check is the same discipline as [documenting data limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/correlation-vs-causation/../documenting-data-limitations/), applied to one sentence.
+Three habits are visible in the after version. It says **"associated with"** , which claims co-movement and nothing more. It names the confounder it checked and shows the check, which is what makes the write-up trustworthy rather than merely cautious. And it states the sample size, so the reader can weigh the coincidence story for themselves. Naming what you checked and what you could not check is the same discipline as [documenting data limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/), applied to one sentence.
 
 ## 7. Edge cases that make correlations lie
 
@@ -174,7 +174,7 @@ Four more ways a real correlation misleads, each named.
 
 **You only kept the survivors.** Correlations computed on a filtered group, like top customers or games with many reviews, can be created or destroyed by the filter itself. If both variables helped a row pass the filter, the survivors will show a link the full population does not have.
 
-**One outlier is holding the whole number up.** With few rows, a single extreme pair can manufacture a strong r on its own. Plot the points once before quoting the number. If the story collapses when one dot is covered with your thumb, it was never a story. Plotting before computing is the core move of [exploratory data analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/correlation-vs-causation/../exploratory-data-analysis/).
+**One outlier is holding the whole number up.** With few rows, a single extreme pair can manufacture a strong r on its own. Plot the points once before quoting the number. If the story collapses when one dot is covered with your thumb, it was never a story. Plotting before computing is the core move of [exploratory data analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/exploratory-data-analysis/).
 
 ## Why this works
 
@@ -192,11 +192,11 @@ Think of one claim in a report you have shipped that quietly leans on "X drives 
   2. **Run the three-column correlation grid** : X, Y, and your best confounder candidate. If the candidate correlates strongly with both, it is promoted to prime suspect.
   3. **Segment by the suspect** and recompute the X and Y correlation inside each band. Vanished: the suspect owns the pattern. Survived: the suspect is cleared, and the causal stories are still live.
   4. **Check timing** if reverse causation is plausible: shift one series and see which direction predicts better.
-  5. **Rewrite the sentence** as "associated with", name the confounders you checked, state n. If the claim still needs a causal verb after all that, the honest next step is an experiment: split subjects randomly, change X for one group only, and compare. Randomizing is the only move that silences all confounders at once, known and unknown, and it is exactly what an A/B test is. The [Stats Kit](https://michaelnocito.github.io/analyst-prep-kit/guides/correlation-vs-causation/../../stats/) has a lesson on running one properly.
+  5. **Rewrite the sentence** as "associated with", name the confounders you checked, state n. If the claim still needs a causal verb after all that, the honest next step is an experiment: split subjects randomly, change X for one group only, and compare. Randomizing is the only move that silences all confounders at once, known and unknown, and it is exactly what an A/B test is. The [Stats Kit](https://michaelnocito.github.io/analyst-prep-kit/stats/) has a lesson on running one properly.
 
 If you have paper nearby, one optional drawing is worth five minutes. Draw the four panels from the figure yourself, from memory: X to Y, Y to X, Z down to both, and the dots of chance. Then write your own X, Y, and Z from a live project on the third panel. Redrawing it is a retrieval attempt, and filling in your own variables is the transfer step.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/correlation-vs-causation/../): SQL, statistics, charts, data migration, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, statistics, charts, data migration, and the working habits around them.
 
 ## The whole thing on one screen
 

@@ -37,7 +37,7 @@ The **unit of work** is the thing you are counting. Pick it first, name it out l
 
 The related idea in the data itself is **grain** , which means what one row of your table represents. Say it as a sentence starting with "one row per". One row per order. One row per order line. One row per shipment. Those three tables can all have 4,000 rows and describe completely different amounts of work.
 
-This is the single most common way an operations number comes out wrong. Somebody counts rows in a table whose grain is order lines and reports it as orders. The calculation is correct and the answer is wrong. Grain is covered in more depth in the [SQL foundations guide](https://michaelnocito.github.io/analyst-prep-kit/guides/operations-analytics-foundations/../sql-foundations/), because it is the same idea wearing different clothes.
+This is the single most common way an operations number comes out wrong. Somebody counts rows in a table whose grain is order lines and reports it as orders. The calculation is correct and the answer is wrong. Grain is covered in more depth in the [SQL foundations guide](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-foundations/), because it is the same idea wearing different clothes.
 
 Say this one out loud before you read on: in a hospital, what is the difference between counting patients and counting visits?
 
@@ -141,7 +141,7 @@ First pass yield is the one worth learning by name, because it is the number tha
 
 That is the answer to the prequestion. Same 1,000 completions, different amounts of actual work delivered, because one team's number includes items it had already counted once.
 
-One caution before you report any of these. An error rate is only as good as the definition of an error, and that definition is a decision somebody has to make on purpose. What counts as wrong, who decides, and when. Getting that written down before you measure is its own skill, and there is a walkthrough of it in [turning fuzzy questions into measurable definitions](https://michaelnocito.github.io/analyst-prep-kit/guides/operations-analytics-foundations/../defining-metrics/).
+One caution before you report any of these. An error rate is only as good as the definition of an error, and that definition is a decision somebody has to make on purpose. What counts as wrong, who decides, and when. Getting that written down before you measure is its own skill, and there is a walkthrough of it in [turning fuzzy questions into measurable definitions](https://michaelnocito.github.io/analyst-prep-kit/guides/defining-metrics/).
 
 ## 8. Service levels, and why the average hides your worst customers
 
@@ -160,7 +160,7 @@ And yet 10 customers waited 40 hours, five times the promise. Those are the ones
 
 The fix is a **percentile**. The 95th percentile is the value that 95 percent of your items came in under. In the example above the 95th percentile is 40 hours, which tells the true story in one number. Operations reporting runs on percentiles for exactly this reason, and you will see them written as p50, p90 and p95. The p50 is the median.
 
-The rule to carry into a job: an average describes the typical case, and a percentile describes the bad case. A promise is about the bad case, so measure it with a percentile. This connects directly to [picking cutoffs you can defend](https://michaelnocito.github.io/analyst-prep-kit/guides/operations-analytics-foundations/../data-driven-thresholds/), because somebody has to decide whether the promise is p90 or p95, and that decision is worth more than the dashboard.
+The rule to carry into a job: an average describes the typical case, and a percentile describes the bad case. A promise is about the bad case, so measure it with a percentile. This connects directly to [picking cutoffs you can defend](https://michaelnocito.github.io/analyst-prep-kit/guides/data-driven-thresholds/), because somebody has to decide whether the promise is p90 or p95, and that decision is worth more than the dashboard.
 
 ## 9. Telling a real change from noise
 
@@ -178,7 +178,7 @@ Three questions that catch most false alarms:
   2. **Is the denominator stable?** A rate can move because the top changed or because the bottom did. A holiday week has fewer hours in it.
   3. **Does anything else move with it?** A real change usually shows up in two places. If throughput fell and backlog rose, something happened. If throughput fell and nothing else moved, look at your data before you look for a cause.
 
-Being able to say "that is inside our normal range" is a professional skill, not a dodge. It is also the section of this guide most likely to come up in an interview as a scenario question, because it separates people who report numbers from people who interpret them. The difference between those two jobs is covered in [the difference between a report and an analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/operations-analytics-foundations/../report-vs-analysis/).
+Being able to say "that is inside our normal range" is a professional skill, not a dodge. It is also the section of this guide most likely to come up in an interview as a scenario question, because it separates people who report numbers from people who interpret them. The difference between those two jobs is covered in [the difference between a report and an analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/report-vs-analysis/).
 
 ## 10. The same report, counts and rates side by side
 

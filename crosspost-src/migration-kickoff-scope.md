@@ -34,7 +34,7 @@ Separately, find out who signed the contract. That person is rarely your daily c
 
 Spend two minutes, not ten. Who you are, that you have done this before, and how you are going to get them from here to live. Then put the plan on the screen and let it do the talking.
 
-A visible project plan at kickoff is worth more than any credential. It is also the thing you will point at every time someone asks for a change, which is why [scope creep](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-kickoff-scope/../migration-scope-creep/) is a solved problem when the plan exists and an argument when it does not.
+A visible project plan at kickoff is worth more than any credential. It is also the thing you will point at every time someone asks for a change, which is why [scope creep](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-scope-creep/) is a solved problem when the plan exists and an argument when it does not.
 
 ## The agenda, in order
 

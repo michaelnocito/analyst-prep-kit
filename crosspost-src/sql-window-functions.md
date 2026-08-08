@@ -6,7 +6,7 @@ The short version: a window function adds a calculated column to each row while 
 
 One idea decides everything else on this page, so it gets the picture. Both halves do the same arithmetic over the same four rows, and only one of them still has four rows at the end.
 
-**The worked example is real.** Every number on this page comes from a published portfolio project: finding the genuinely overlooked games in a Steam catalogue of 125,855, at [Steam Hidden Gems on GitHub](https://github.com/michaelnocito/steam-hidden-gems). The filters leave 175 games. This page starts from that list and asks questions of it that `GROUP BY` cannot answer. If grouping is still new, read [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-window-functions/../sql-group-by-having/) first, because this page is the sequel to it. 
+**The worked example is real.** Every number on this page comes from a published portfolio project: finding the genuinely overlooked games in a Steam catalogue of 125,855, at [Steam Hidden Gems on GitHub](https://github.com/michaelnocito/steam-hidden-gems). The filters leave 175 games. This page starts from that list and asks questions of it that `GROUP BY` cannot answer. If grouping is still new, read [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/) first, because this page is the sequel to it. 
 
 Every query below reads from `gems`, which is that filtered list: at least 2,000 reviews, 95% positive or better, priced at 20 or under, and in one of the four lowest owner tiers. It holds 175 rows.
 
@@ -76,7 +76,7 @@ Here is the actual result.
 | RPG        | Path of Achra         | 98.4%    | 2,578   |
 | Simulation | Aviassembly           | 97.1%    | 4,112   |
 
-The `WHERE rn = 1` has to sit outside, in a second step, and the reason is worth knowing because it is the most common error people hit here. Window functions run after `WHERE`, so the column `rn` does not exist yet when `WHERE` is evaluated. Writing `WHERE ROW_NUMBER() OVER (...) = 1` is an error in every engine. Wrap the query in a CTE, then filter the CTE. [Named steps](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-window-functions/../sql-ctes/) are how you get a second place to filter from.
+The `WHERE rn = 1` has to sit outside, in a second step, and the reason is worth knowing because it is the most common error people hit here. Window functions run after `WHERE`, so the column `rn` does not exist yet when `WHERE` is evaluated. Writing `WHERE ROW_NUMBER() OVER (...) = 1` is an error in every engine. Wrap the query in a CTE, then filter the CTE. [Named steps](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-ctes/) are how you get a second place to filter from.
 
 Say out loud why `ORDER BY PctPositive DESC LIMIT 1` could not have produced that table, before you read on. The answer is that `LIMIT` cuts the whole result, so it gives you one game overall, not one game per genre. `PARTITION BY` is a `LIMIT` that restarts for every value, and that is the thing plain SQL has no other way to express.
 
@@ -156,7 +156,7 @@ The running total reaching exactly 175 on the last row is a free check on your o
 
 That query also shows something people find odd the first time, and it is legal on purpose. `SUM(COUNT(*))` is an aggregate inside a window function. It works because the two run at different times. `COUNT(*)` collapses the rows into one per year first, and the window function then runs across those yearly rows. You are windowing over the summary, not the raw table.
 
-The 2025 drop of 14 is the kind of number to be careful with, and it is not a trend. The dataset is a snapshot taken partway through 2025, so a partial year is being compared against full ones. A number that has an explanation this ordinary is exactly the number a reader will quote back at you, so write the reason next to it. [Documenting a limitation like that](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-window-functions/../documenting-data-limitations/) is a habit worth more than the query.
+The 2025 drop of 14 is the kind of number to be careful with, and it is not a trend. The dataset is a snapshot taken partway through 2025, so a partial year is being compared against full ones. A number that has an explanation this ordinary is exactly the number a reader will quote back at you, so write the reason next to it. [Documenting a limitation like that](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/) is a habit worth more than the query.
 
 ## 5. The full before and after
 
@@ -213,7 +213,7 @@ It runs and returns nine rows. It cannot say which game earned any of those rati
     WHERE rn = 1
     ORDER BY PctPositive DESC;
 
-Three window functions share one partition, and none of them cost an extra pass over the table or an extra join. The name survives, the game's own rating survives, and the comparison to its genre arrives on the same row. Adventure holds 75 of the 175 games and Simulation holds 2, which changes how much any of those genre winners is worth. The comment format is the one from [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-window-functions/../sql-teaching-comments/).
+Three window functions share one partition, and none of them cost an extra pass over the table or an extra join. The name survives, the game's own rating survives, and the comparison to its genre arrives on the same row. Adventure holds 75 of the 175 games and Simulation holds 2, which changes how much any of those genre winners is worth. The comment format is the one from [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-teaching-comments/).
 
 ## 6. Edge cases and the honest limits
 
@@ -256,7 +256,7 @@ Do it in this order.
 
 If you have paper nearby and five spare minutes, there is one drawing worth doing, and it is optional. Write out eight rows of your own data, draw a bracket around each partition, and hand number them the way you expect the query to. Then run it and compare. The rows where your number and the query's number disagree are the rows that teach you what the `ORDER BY` is really doing.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-window-functions/../): SQL, Tableau, data migration, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, Tableau, data migration, and the working habits around them.
 
 ## The whole thing on one screen
 
@@ -282,7 +282,7 @@ This is the retrieval sheet. Cover the right column, work down the left, and say
 | Stability                | Always add a tiebreaker to the `ORDER BY`, or two runs can disagree.                        |
 | Cost                     | Reusing one `OVER` clause is nearly free. A different `PARTITION BY` can mean another sort. |
 
-**The one habit to keep.** If you take nothing else from this page, count the result of a top-per-group query against the number of groups before you believe it. Nine genres, nine rows. A missing `PARTITION BY` and a tie that returned two winners both show up in that one number, and neither one raises an error. If a query breaks in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-window-functions/../technical-tenacity/).
+**The one habit to keep.** If you take nothing else from this page, count the result of a top-per-group query against the number of groups before you believe it. Nine genres, nine rows. A missing `PARTITION BY` and a tie that returned two winners both show up in that one number, and neither one raises an error. If a query breaks in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/technical-tenacity/).
 
 One last thought, and I would genuinely like other people's answers. The tiebreaker is the part of this I got wrong for a long time. My top-per-genre query looked finished and gave a slightly different winner on a rerun, and I blamed the data before I understood that `ROW_NUMBER` had simply been free to choose. Has an unstable query ever shipped on you, and what tipped you off?
 

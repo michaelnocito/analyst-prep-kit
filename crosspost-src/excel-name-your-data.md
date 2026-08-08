@@ -4,7 +4,7 @@ Here's the difference in one line. Without a name, a formula says `=IF(H2>=2000,
 
 **The short version.** Ctrl+T makes a range into a Table. Name it in Table Design. From then on, refer to columns by name, and the formula documents itself.
 
-Everything here comes from the same build as the rest of this series: an Excel dashboard over 82,956 Steam games, walked in [the eight-step build order](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-name-your-data/../excel-dashboard-build-order/). Naming the data is step 1 of those eight, and it is the step people skip fastest, because nothing visibly breaks when you skip it. The breakage arrives later, addressed to whoever inherits the file.
+Everything here comes from the same build as the rest of this series: an Excel dashboard over 82,956 Steam games, walked in [the eight-step build order](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/). Naming the data is step 1 of those eight, and it is the step people skip fastest, because nothing visibly breaks when you skip it. The breakage arrives later, addressed to whoever inherits the file.
 
 ## What a Table is, and what the name buys you
 
@@ -32,7 +32,7 @@ Formulas over a Table use column names in brackets. Two shapes cover nearly ever
     Games[TotalReviews]      the whole column, all 82,956 values
     [@TotalReviews]          this row's value, in the row the formula sits in
 
-The `@` means "this row." A whole-column reference feeds the formulas that measure, like `COUNTIF(Games[Segment], "Loved, hidden")` from [article 1](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-name-your-data/../excel-label-rows-before-charting/). An `@` reference feeds the formulas that label one row at a time, like the Segment column itself.
+The `@` means "this row." A whole-column reference feeds the formulas that measure, like `COUNTIF(Games[Segment], "Loved, hidden")` from [article 1](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-label-rows-before-charting/). An `@` reference feeds the formulas that label one row at a time, like the Segment column itself.
 
 You rarely type the brackets by hand. Click a cell while writing a formula and Excel writes the structured reference for you. Reading them is the skill, and now you can.
 
@@ -66,7 +66,7 @@ Picture the workbook you use most. Read one of its formulas as a stranger would.
 
 **Merged cells and Tables do not mix.** Excel refuses to make a Table over merged cells. This is the Table doing you a favor: merged cells break sorting, filtering and pivots too, and analysis data should not contain them.
 
-**The total row is a trap dressed as a convenience.** Table Design offers a total row at the bottom. It moves every time the data grows, which is exactly where a KPI cell must not live. Keep your headline numbers outside the table, in check cells, per [article 2](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-name-your-data/../excel-check-your-work/).
+**The total row is a trap dressed as a convenience.** Table Design offers a total row at the bottom. It moves every time the data grows, which is exactly where a KPI cell must not live. Keep your headline numbers outside the table, in check cells, per [article 2](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/).
 
 **Tables reach across sheets by name.** A formula on the dashboard sheet can say `COUNTIF(Games[Segment], "Loved, hidden")` with no `data!$D$2:$D$83000` anywhere in it. The name travels; the coordinates never had to exist.
 

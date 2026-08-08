@@ -6,7 +6,7 @@ The short version: NULL means unknown, not zero and not empty text. A comparison
 
 That yes-only gate is the one idea under everything on this page, so it gets the picture.
 
-**The worked example is real.** Every number on this page comes from a 10-row support-tickets table with NULLs seeded on purpose, and every query was run against it in SQLite before its output was pasted here. The table is small enough to check by eye. If `SELECT` and `WHERE` are new, start with [SQL foundations](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/../sql-foundations/) and come back.
+**The worked example is real.** Every number on this page comes from a 10-row support-tickets table with NULLs seeded on purpose, and every query was run against it in SQLite before its output was pasted here. The table is small enough to check by eye. If `SELECT` and `WHERE` are new, start with [SQL foundations](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-foundations/) and come back.
 
 Here is the table. Ten tickets. Three are missing their close time, two are missing their region, and two have no assignee.
 
@@ -102,7 +102,7 @@ Before the explanation: your ticket report goes to a manager who keeps asking wh
 
 I ran it: tickets 4 and 7 now read "Unassigned" and the other eight show their names unchanged. That is the honest use of `COALESCE`: labeling missingness so a reader can see it.
 
-The dishonest use is papering over it. `COALESCE(minutes_to_close, 0)` makes the NULLs disappear into zeros, and a zero-minute close time is a claim, not a label: it says the ticket closed instantly, when the truth is nobody recorded it. Three of the ten tickets here have no close time. That is a 30% hole in the column, and a hole that size is a finding your reader deserves to hear about, not a formatting problem to smooth away. When you fill a value for display, say so in the report, and when the missingness is large, report it as its own line. [Documenting data limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/../documenting-data-limitations/) covers how to write that up without burying the analysis.
+The dishonest use is papering over it. `COALESCE(minutes_to_close, 0)` makes the NULLs disappear into zeros, and a zero-minute close time is a claim, not a label: it says the ticket closed instantly, when the truth is nobody recorded it. Three of the ten tickets here have no close time. That is a 30% hole in the column, and a hole that size is a finding your reader deserves to hear about, not a formatting problem to smooth away. When you fill a value for display, say so in the report, and when the missingness is large, report it as its own line. [Documenting data limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/) covers how to write that up without burying the analysis.
 
 ## 5. How NULLs move your counts and averages
 
@@ -122,7 +122,7 @@ Seven. Aggregate functions skip NULLs entirely: `SUM`, `AVG`, `MIN`, `MAX`, and 
 
 The average is 435 divided by 7, which is 62.1 minutes. Force the NULLs to zero with `COALESCE` and the same column averages 43.5, because now it is 435 divided by 10. That is a 30% swing in a headline number from one decision about missing data, and neither number is automatically right. 62.1 is the average of the tickets whose close time was recorded. 43.5 pretends unrecorded means instant. The honest report states the first number and the hole: "62.1 minutes average, across the 7 of 10 tickets with a recorded close time".
 
-`COUNT(*)` against `COUNT(column)` is the same skip in count form. `COUNT(*)` counts rows, 10 here. `COUNT(minutes_to_close)` counts non-NULL values, 7 here, and `COUNT(assignee)` gives 8. The gap between the two counts is your missing-data count, which makes this pair the fastest completeness check in SQL. The whole COUNT family, including `DISTINCT`, is in [COUNT in SQL](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/../sql-count-function/).
+`COUNT(*)` against `COUNT(column)` is the same skip in count form. `COUNT(*)` counts rows, 10 here. `COUNT(minutes_to_close)` counts non-NULL values, 7 here, and `COUNT(assignee)` gives 8. The gap between the two counts is your missing-data count, which makes this pair the fastest completeness check in SQL. The whole COUNT family, including `DISTINCT`, is in [COUNT in SQL](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-function/).
 
 Now picture running `COUNT(*)` next to `COUNT(the_column)` on the most important numeric column in your own data. Do you know, right now, what the gap would be? Most people find out later than they wanted to.
 
@@ -159,7 +159,7 @@ Three quiet problems, no errors. The average silently skips the three unrecorded
     FROM tickets
     GROUP BY region;
 
-The blank group now has a name, every average sits beside the count of values that produced it, and the missingness is visible instead of ambient. The comment format is the one from [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/../sql-teaching-comments/). To get this shape into your fingers, [type the query yourself](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/../../drill/) in the SQL Drill rather than pasting it.
+The blank group now has a name, every average sits beside the count of values that produced it, and the missingness is visible instead of ambient. The comment format is the one from [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-teaching-comments/). To get this shape into your fingers, [type the query yourself](https://michaelnocito.github.io/analyst-prep-kit/drill/) in the SQL Drill rather than pasting it.
 
 ## 7. Edge cases: groups, joins, and sort order
 
@@ -169,7 +169,7 @@ Because different parts of SQL treat NULL differently, on purpose, and the seams
 
 **GROUP BY puts all NULLs in one group.** Grouping asks "which rows belong together?", and the standard answers that all missing values belong together, even though no two of them are equal. On the worked table, grouping by region returns West 4, East 4, and a NULL group of 2, which I ran to confirm. That blank-looking row is not a glitch. It is your missing-region count, and it is worth reading every time.
 
-**LEFT JOIN manufactures NULLs.** A LEFT JOIN keeps every row from the left table, and when a row finds no match on the right, the right-hand columns arrive as NULL. Joining tickets to a two-row regions lookup that only lists East, I ran it: the four East tickets get their manager, and the other six rows show NULL, covering both real West tickets with no lookup entry and tickets whose region was already missing. So a NULL after a join means "no match or missing key", and telling those apart takes an `IS NULL` check on the join key. [SQL joins](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/../sql-joins/) walks the whole family.
+**LEFT JOIN manufactures NULLs.** A LEFT JOIN keeps every row from the left table, and when a row finds no match on the right, the right-hand columns arrive as NULL. Joining tickets to a two-row regions lookup that only lists East, I ran it: the four East tickets get their manager, and the other six rows show NULL, covering both real West tickets with no lookup entry and tickets whose region was already missing. So a NULL after a join means "no match or missing key", and telling those apart takes an `IS NULL` check on the join key. [SQL joins](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/) walks the whole family.
 
 **ORDER BY has to put NULLs somewhere, and databases disagree.** Sorting the worked table by `minutes_to_close` ascending in SQLite puts the three NULL rows first, before 15; descending puts them last. SQLite and SQL Server treat NULLs as smallest, PostgreSQL and Oracle treat them as largest, and PostgreSQL and Oracle accept an explicit `NULLS FIRST` or `NULLS LAST` to say what you mean. The portable habit: when a sorted report matters, state the placement, either with that clause or by sorting on `the_column IS NULL` first.
 
@@ -193,7 +193,7 @@ Auditing every query you own for NULL handling in one pass is miserable, and nob
 
 If you have paper nearby and five minutes, one optional drawing earns its space. Draw six rows heading toward a gate, mark two yes, two no, and two with question marks, and draw only the yes rows coming out the far side. Redrawing that from memory next week is a fair test of whether the yes-only gate is yours now.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/../): SQL, Tableau, data migration, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, Tableau, data migration, and the working habits around them.
 
 ## The whole thing on one screen
 
@@ -218,7 +218,7 @@ This is the retrieval sheet. Cover the right column, work down the left, and say
 | `ORDER BY`                       | NULLs sort first or last depending on the database. Say `NULLS FIRST`/`LAST` where supported. |
 | Empty string                     | A known value, distinct from NULL almost everywhere. Oracle stores it as NULL.                |
 
-**The one habit to keep.** If you take nothing else from this page, run `COUNT(*)` next to `COUNT(the_column)` before you trust any filter, join, or average on that column. The NULL failures on this page share one trait: no error message, just a wrong row count that looks like a result. If a query misbehaves in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/../technical-tenacity/).
+**The one habit to keep.** If you take nothing else from this page, run `COUNT(*)` next to `COUNT(the_column)` before you trust any filter, join, or average on that column. The NULL failures on this page share one trait: no error message, just a wrong row count that looks like a result. If a query misbehaves in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/technical-tenacity/).
 
 One last thought, and I would genuinely like other people's answers. My worst NULL bug was a NOT IN that returned zero rows for a week, and the report it fed just said "no exceptions found", which everyone was happy to believe. What is the longest a NULL has quietly lied to you, and what finally gave it away?
 

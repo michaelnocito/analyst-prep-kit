@@ -6,7 +6,7 @@ The short version: group by the columns that define a duplicate, keep the groups
 
 One picture carries the whole method. Rows that share a key collapse into buckets, and the buckets holding more than one row are your duplicates.
 
-**The worked example is real.** Every number on this page comes from a 14-row customers table I built with three duplicates seeded on purpose, and every query was run against it in SQLite before its output was pasted here. The table is small enough to check by eye, which is the point: you can confirm every result yourself. If `GROUP BY` itself is new, read [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-find-duplicates/../sql-group-by-having/) first and come back.
+**The worked example is real.** Every number on this page comes from a 14-row customers table I built with three duplicates seeded on purpose, and every query was run against it in SQLite before its output was pasted here. The table is small enough to check by eye, which is the point: you can confirm every result yourself. If `GROUP BY` itself is new, read [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/) first and come back.
 
 Here is the table. Fourteen rows, and the signup system has misbehaved in three different ways.
 
@@ -35,7 +35,7 @@ That question has no single answer, and that is the real first step of any dupli
 
   * **Whole row identical.** Every column matches, like customer 103. This is almost always a loading accident: the same file imported twice, a retried insert, a copy-paste. The extra copies carry no information and are safe to remove once marked.
   * **Same natural key, rest differs.** A natural key is the column that identifies the thing in the real world, like `customer_id`. Customer 105 has one id and two cities, so one row is stale and one is current. Removing the wrong one destroys real information, so here the decision is which copy to keep, not just how many to remove.
-  * **Same person, different spelling.** Ben Ortiz and Benjamin Ortiz share an email but nothing a `GROUP BY` can match exactly. No query on this page will catch that pair as a name match. That problem is called entity resolution, deciding when two differently-written records are the same real thing, and it gets [its own guide](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-find-duplicates/../entity-resolution/).
+  * **Same person, different spelling.** Ben Ortiz and Benjamin Ortiz share an email but nothing a `GROUP BY` can match exactly. No query on this page will catch that pair as a name match. That problem is called entity resolution, deciding when two differently-written records are the same real thing, and it gets [its own guide](https://michaelnocito.github.io/analyst-prep-kit/guides/entity-resolution/).
 
 So the fork is: which columns define "the same"? All of them means you are hunting loading accidents. The natural key means you are hunting conflicting versions. Neither means you may be hunting people, and that is a different tool. Everything below works for the first two, and the queries only differ in what you put after `GROUP BY`.
 
@@ -118,7 +118,7 @@ Use the summary as a shopping list. First find the ids with duplicates, then pul
 | 105         | ella.r@mail.com  | Ella Reyes | Dallas     | 2026-02-02  |
 | 105         | ella.r@mail.com  | Ella Reyes | Fort Worth | 2026-03-01  |
 
-Five rows, and now the two problems look as different as they are. Customer 103 is three identical rows: a loading accident, nothing to decide. Customer 105 is two versions of one person: Dallas in February, Fort Worth in March, and someone has to say which city is true. A join back to the same summary gives the identical result, and I ran both to confirm: the same five rows either way. Use whichever reads better to you; [SQL joins](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-find-duplicates/../sql-joins/) covers the join form.
+Five rows, and now the two problems look as different as they are. Customer 103 is three identical rows: a loading accident, nothing to decide. Customer 105 is two versions of one person: Dallas in February, Fort Worth in March, and someone has to say which city is true. A join back to the same summary gives the identical result, and I ran both to confirm: the same five rows either way. Use whichever reads better to you; [SQL joins](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/) covers the join form.
 
 ## 5. Mark keepers and extras with ROW_NUMBER
 
@@ -149,7 +149,7 @@ Every other customer simply gets copy number 1. Wrap it in a subquery and keep `
 
 Here is the fork on keep-versus-delete, because it is a real decision. Deleting extras makes the table clean but destroys the evidence, and if your keeper rule was wrong, the right row is gone. Marking extras keeps every row and adds a column that says which one the reports should use. Marking costs one column. Deleting costs the ability to change your mind. That is why working analysts mark first and delete rarely: filter reports to `copy_number = 1` and you get every benefit of the delete with none of the risk. Notice the marking rule is visible in the query: for 105, `ORDER BY signup_date` made the newer Fort Worth row the extra. If the business says newest wins, flip the order to `signup_date DESC` and the keeper flips too. The rule is code, so it can be reviewed and argued with.
 
-The window function family goes much further than this one trick, and [window functions](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-find-duplicates/../sql-window-functions/) walks through it properly. If you want the pattern in your fingers rather than your bookmarks, [type the query yourself](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-find-duplicates/../../drill/) a few times in the SQL Drill.
+The window function family goes much further than this one trick, and [window functions](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-window-functions/) walks through it properly. If you want the pattern in your fingers rather than your bookmarks, [type the query yourself](https://michaelnocito.github.io/analyst-prep-kit/drill/) a few times in the SQL Drill.
 
 ## 6. The delete pattern, stated once, with the guard rails
 
@@ -204,7 +204,7 @@ Correct, and not enough to act on. It names 103 and 105 but shows none of their 
     FROM customers
     ORDER BY customer_id, copy_number;
 
-Every row is present, the keeper rule is written where a reviewer can disagree with it, the known conflict is named, and downstream queries just filter to `copy_number = 1`. The comment format is the one from [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-find-duplicates/../sql-teaching-comments/).
+Every row is present, the keeper rule is written where a reviewer can disagree with it, the known conflict is named, and downstream queries just filter to `copy_number = 1`. The comment format is the one from [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-teaching-comments/).
 
 Now picture running the marking query on your own biggest table, partitioned by whatever its natural key is. Which column would you put in the `ORDER BY` to decide the keeper, and could you defend that choice to the person who owns the data?
 
@@ -218,11 +218,11 @@ Five that each cost someone real time.
 
 **The duplicates are not in this table.** A join can multiply rows even when both tables pass the ten-second test on their own keys, if you join on a column that is not unique in either table. When a report double-counts, test the join key on each side, not just the id.
 
-**Near-matches slip every exact grouping.** Trailing spaces, capital letters, and spelling variants are all different values to `GROUP BY`. My table holds one of these on purpose: Ben Ortiz and Benjamin Ortiz. Grouping by email catches that pair, and I ran it: `ben.ortiz@mail.com` shows 2 copies under 2 different ids. But grouping by name never will, and true fuzzy matching is [entity resolution](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-find-duplicates/../entity-resolution/), not a bigger GROUP BY.
+**Near-matches slip every exact grouping.** Trailing spaces, capital letters, and spelling variants are all different values to `GROUP BY`. My table holds one of these on purpose: Ben Ortiz and Benjamin Ortiz. Grouping by email catches that pair, and I ran it: `ben.ortiz@mail.com` shows 2 copies under 2 different ids. But grouping by name never will, and true fuzzy matching is [entity resolution](https://michaelnocito.github.io/analyst-prep-kit/guides/entity-resolution/), not a bigger GROUP BY.
 
 **NULLs group together.** Two rows with a missing email land in the same bucket, because grouping treats all NULLs as one value. A bucket of blanks with a count of 40 is not 40 duplicates. It is 40 rows missing their key, which is a different finding worth reporting on its own.
 
-**Duplicates found during a migration are a symptom, not a chore.** When profiling a source system before a migration turns up duplicates, the count is evidence about how the old system behaved: retried saves, merged offices, users working around a bug. Log where they came from before anyone cleans them, because the pattern predicts what else is wrong. [Profiling data before a migration](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-find-duplicates/../migration-profiling/) covers that workflow.
+**Duplicates found during a migration are a symptom, not a chore.** When profiling a source system before a migration turns up duplicates, the count is evidence about how the old system behaved: retried saves, merged offices, users working around a bug. Log where they came from before anyone cleans them, because the pattern predicts what else is wrong. [Profiling data before a migration](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-profiling/) covers that workflow.
 
 ## Why this works
 
@@ -244,7 +244,7 @@ Auditing every table you own for duplicates in one sitting is miserable, and you
 
 If you have paper nearby and five minutes, one optional drawing locks the method in. Draw eight rows, give three of them a shared mark, collapse the rows into buckets, and write each bucket's count beside it. Circle the buckets above one. Redrawing that from memory is a fair test of whether you own the idea.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-find-duplicates/../): SQL, Tableau, data migration, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, Tableau, data migration, and the working habits around them.
 
 ## The whole thing on one screen
 
@@ -267,7 +267,7 @@ This is the retrieval sheet. Cover the right column, work down the left, and say
 | NULL keys                       | All NULLs share one bucket. That count is missing data, not duplicates.               |
 | During a migration              | Duplicates are evidence about the source system. Log them before cleaning them.       |
 
-**The one habit to keep.** If you take nothing else from this page, run `COUNT(*)` against `COUNT(DISTINCT key)` on every table before you trust a number from it. Ten seconds, and it is the difference between finding the duplicates and having your stakeholder find them. If a duplicate hunt breaks in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-find-duplicates/../technical-tenacity/).
+**The one habit to keep.** If you take nothing else from this page, run `COUNT(*)` against `COUNT(DISTINCT key)` on every table before you trust a number from it. Ten seconds, and it is the difference between finding the duplicates and having your stakeholder find them. If a duplicate hunt breaks in a way this page does not cover, there is a general [diagnosis loop for being stuck](https://michaelnocito.github.io/analyst-prep-kit/guides/technical-tenacity/).
 
 One last thought, and I would genuinely like other people's answers. My favorite duplicate ever found was a customer who existed twice because two offices both swore they had onboarded her first. What is the strangest reason a duplicate has turned up in your data, and did the query find it or did a person?
 

@@ -4,7 +4,7 @@ This article gives you the one distinction that sorts out Excel's whole IF famil
 
 **The short version.** Ask one question before typing: am I writing something into every row, or producing one number? Labelling, use IF. Measuring, use the IF family. The names are cousins. The jobs are opposites.
 
-Both examples are the real ones from [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-if-family/../excel-dashboard-build-order/): the Segment column that labelled 82,956 games, and the KPI row that measured them. Every number was re-run against the file before publishing.
+Both examples are the real ones from [the build behind this series](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/): the Segment column that labelled 82,956 games, and the KPI row that measured them. Every number was re-run against the file before publishing.
 
 ## The confusion, named
 
@@ -21,7 +21,7 @@ IF asks one yes-or-no question of the row it sits in and writes one of two answe
     
     =IF([@TotalReviews]>=2000, "Proven", "Unproven")
 
-In [a named Table](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-if-family/../excel-name-your-data/) this fills the whole column in one keystroke: 82,956 rows, each labelled by its own values. Chain IFs into the else seat and you get several groups instead of two, which is exactly the Segment ladder [article 1](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-if-family/../excel-label-rows-before-charting/) built.
+In [a named Table](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-name-your-data/) this fills the whole column in one keystroke: 82,956 rows, each labelled by its own values. Chain IFs into the else seat and you get several groups instead of two, which is exactly the Segment ladder [article 1](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-label-rows-before-charting/) built.
 
 Notice what IF cannot see: any row except its own. There is no total, no comparison to neighbors, no aggregate anywhere in its world. That blindness is not a limitation. It is the job description. A labeller that peeked at other rows would not be labelling.
 
@@ -46,7 +46,7 @@ COUNTIFS, SUMIFS and AVERAGEIFS are the same tools accepting several conditions,
     
     =COUNTIFS(Games[PctPositive],">=95", Games[TotalReviews],">=2000")   → 765
 
-That is the build's loved-games check cell from [article 2](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-if-family/../excel-check-your-work/): two conditions, one count. One habit worth stealing: reach for the S versions by default, since a second condition always arrives eventually, and COUNTIFS with one condition works fine.
+That is the build's loved-games check cell from [article 2](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/): two conditions, one count. One habit worth stealing: reach for the S versions by default, since a second condition always arrives eventually, and COUNTIFS with one condition works fine.
 
 ## The most useful formula in this series, walked through
 
@@ -63,25 +63,25 @@ The build's headline finding, found games reach 21.2x the audience of hidden one
          Games[TotalReviews],">=2000",
          Games[IsHiddenGem],1)
 
-| Piece                            | What it says                                                                                                                                                        |
-|----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `Games[EstOwnersMid]`            | The number being averaged: each game's estimated owners                                                                                                             |
-| `Games[PctPositive],">=95"`      | Only loved games count                                                                                                                                              |
-| `Games[TotalReviews],">=2000"`   | Only proven games count, the small-base floor from [article 7](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-if-family/../excel-pivot-percentages/) |
-| `Games[IsHiddenGem],0` then `,1` | Top average: the found games. Bottom average: the hidden ones                                                                                                       |
-| The division                     | 2,458,263 over 116,000, which is 21.1919                                                                                                                            |
+| Piece                            | What it says                                                                                                                                     |
+|----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Games[EstOwnersMid]`            | The number being averaged: each game's estimated owners                                                                                          |
+| `Games[PctPositive],">=95"`      | Only loved games count                                                                                                                           |
+| `Games[TotalReviews],">=2000"`   | Only proven games count, the small-base floor from [article 7](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-percentages/) |
+| `Games[IsHiddenGem],0` then `,1` | Top average: the found games. Bottom average: the hidden ones                                                                                    |
+| The division                     | 2,458,263 over 116,000, which is 21.1919                                                                                                         |
 
-Formatted with `0.0"x"` per [article 8](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-if-family/../excel-custom-number-formats/), the cell reads 21.2x. One cell, no helper tables, no pivot, and it recalculates the moment data changes. That is what measuring tools are for.
+Formatted with `0.0"x"` per [article 8](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-custom-number-formats/), the cell reads 21.2x. One cell, no helper tables, no pivot, and it recalculates the moment data changes. That is what measuring tools are for.
 
 ## Why labelling first makes measuring easy
 
-Here is [article 1's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-if-family/../excel-label-rows-before-charting/) payoff arriving ten articles later. Compare the condition sets:
+Here is [article 1's](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-label-rows-before-charting/) payoff arriving ten articles later. Compare the condition sets:
     
     
     Without the label:  three conditions, repeated in every measuring formula
     With the label:     =COUNTIF(Games[Segment], "Loved, hidden")
 
-The Segment column did the three-condition work once, per row, in the labelling pass. Every measuring formula after it asks one short question of one clean column. Label first and the measuring formulas get simple, short, and consistent, because they all read the same definition instead of each restating it. When a definition changes, it changes in one place, and [the checks](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-if-family/../excel-check-your-work/) catch anything that disagrees.
+The Segment column did the three-condition work once, per row, in the labelling pass. Every measuring formula after it asks one short question of one clean column. Label first and the measuring formulas get simple, short, and consistent, because they all read the same definition instead of each restating it. When a definition changes, it changes in one place, and [the checks](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/) catch anything that disagrees.
 
 ## Run it on your own file
 

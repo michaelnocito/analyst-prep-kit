@@ -14,7 +14,7 @@ Analysis is what you do to a pile of those records to answer a question. Usually
 
 Here is the part that makes it a job rather than a hobby. A single record tells you nothing useful. One customer cancelled, so what. Ten thousand records have a shape to them, and the shape is only visible once you group them. Grouping is the whole trick. You take rows that are alike, put them in a bucket, and count the buckets.
 
-One word you will see everywhere: **a metric**. A metric is a number you decided to track, with a definition attached. "Sales" is not a metric until someone says whether it includes refunds. Half of all analysis arguments are really arguments about a definition, and the [guide on defining metrics](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-analysis/../defining-metrics/) is entirely about that.
+One word you will see everywhere: **a metric**. A metric is a number you decided to track, with a definition attached. "Sales" is not a metric until someone says whether it includes refunds. Half of all analysis arguments are really arguments about a definition, and the [guide on defining metrics](https://michaelnocito.github.io/analyst-prep-kit/guides/defining-metrics/) is entirely about that.
 
 ## A worked example you can follow on paper
 
@@ -74,7 +74,7 @@ This is also where you settle definitions. Does a refunded sale count? Does a $0
 
 Find the records. They will be in a spreadsheet, or a database, or an export from some system nobody has logged into since 2021. Then, before you trust any of it, look at it. Count the rows. Check the date range is what you expected. Find the blanks. Find the duplicates.
 
-This step is called exploratory data analysis, and it is where problems get caught while they are still cheap. The [guide on exploratory data analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-analysis/../exploratory-data-analysis/) covers what to look for.
+This step is called exploratory data analysis, and it is where problems get caught while they are still cheap. The [guide on exploratory data analysis](https://michaelnocito.github.io/analyst-prep-kit/guides/exploratory-data-analysis/) covers what to look for.
 
 ## 3. Group and compare
 
@@ -86,7 +86,7 @@ Then split the groups further. Not just morning versus evening, but morning vers
 
 A chart is not an answer. The answer is a sentence: "open at 7am, it earns about $21 a day more than the evening hour, and that holds on every weekday." Then state what would make you wrong. "This is three months of spring data, and it does not cover December."
 
-Saying what would make you wrong is not weakness, it is the main thing that separates an analyst from someone who ran a query. The [guide on documenting limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-analysis/../documenting-data-limitations/) goes into it properly.
+Saying what would make you wrong is not weakness, it is the main thing that separates an analyst from someone who ran a query. The [guide on documenting limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/) goes into it properly.
 
 ## The tools, and the order to learn them
 
@@ -178,7 +178,7 @@ The barrier is not intelligence and it is usually not a degree. It is that hirin
   2. **Learn SQL next, and go further than the basics.** `SELECT`, `WHERE`, `GROUP BY`, and then joins. Joins are where beginners quietly lose or duplicate rows, and they are the single most tested topic in analyst interviews. Budget a month of real practice.
   3. **Do one project on data you actually care about.** Not the Titanic dataset. Something you have an opinion about: your city's open data, a game you play, your own spending. Caring is what gets you through the boring cleaning part.
   4. **Write the project up so a stranger can follow it.** State the question, show the data's problems, show the comparison, state the recommendation, and state what would make you wrong. This document is your qualification. It is what actually gets read.
-  5. **Publish it on GitHub.** A link beats a bullet point on a résumé. The [Git guide](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-analysis/../git-for-analysts/) covers this from zero.
+  5. **Publish it on GitHub.** A link beats a bullet point on a résumé. The [Git guide](https://michaelnocito.github.io/analyst-prep-kit/guides/git-for-analysts/) covers this from zero.
   6. **Add a dashboard tool only if the postings you want ask for it.** Read ten real job ads in your city first. Let them tell you whether to learn Power BI or Tableau, instead of guessing.
   7. **Practice explaining out loud.** Interviews are mostly "walk me through a time you found something surprising." Say your project's story to a person who does not work in data, and cut anything they glaze over at.
 
@@ -204,11 +204,11 @@ Two things to skip early on: a second certificate before you have a first projec
 
 Each of the four steps has a guide that goes deeper. In order:
 
-  * Step one, pinning down the question: [Turning fuzzy questions into measurable definitions](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-analysis/../defining-metrics/) and [picking cutoffs you can defend](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-analysis/../data-driven-thresholds/).
-  * Step two, looking at the data: [Why exploratory data analysis matters](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-analysis/../exploratory-data-analysis/), and [how to set up a SQL database](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-analysis/../set-up-a-sql-database/) when the file gets too big.
-  * Step three, grouping and comparing: [COUNT in SQL](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-analysis/../sql-count-function/), [the CASE expression](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-analysis/../sql-case-expression/), and [joins without losing or doubling rows](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-analysis/../sql-joins/).
-  * Step four, saying what it means: [documenting limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-analysis/../documenting-data-limitations/) and [building a dashboard and story](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-analysis/../build-a-tableau-dashboard/).
-  * When the tools fight back, which they will: [Technical tenacity](https://michaelnocito.github.io/analyst-prep-kit/guides/what-is-data-analysis/../technical-tenacity/).
+  * Step one, pinning down the question: [Turning fuzzy questions into measurable definitions](https://michaelnocito.github.io/analyst-prep-kit/guides/defining-metrics/) and [picking cutoffs you can defend](https://michaelnocito.github.io/analyst-prep-kit/guides/data-driven-thresholds/).
+  * Step two, looking at the data: [Why exploratory data analysis matters](https://michaelnocito.github.io/analyst-prep-kit/guides/exploratory-data-analysis/), and [how to set up a SQL database](https://michaelnocito.github.io/analyst-prep-kit/guides/set-up-a-sql-database/) when the file gets too big.
+  * Step three, grouping and comparing: [COUNT in SQL](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-function/), [the CASE expression](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-expression/), and [joins without losing or doubling rows](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-joins/).
+  * Step four, saying what it means: [documenting limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/) and [building a dashboard and story](https://michaelnocito.github.io/analyst-prep-kit/guides/build-a-tableau-dashboard/).
+  * When the tools fight back, which they will: [Technical tenacity](https://michaelnocito.github.io/analyst-prep-kit/guides/technical-tenacity/).
 
 **A question, if you have a minute.** What is the first question you would want to answer with data, from your own life or your own job? Not a practice dataset. The real one you already wonder about. That question is a better starting project than anything I could assign you, and I read every reply.
 

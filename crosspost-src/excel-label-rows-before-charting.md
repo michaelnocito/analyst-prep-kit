@@ -4,7 +4,7 @@ The distinction is this. A filter hides rows. A label keeps them. If your questi
 
 **The short version.** Filtering answers "show me these rows." Labelling answers "which group is each row in?" Charts are built on the second one.
 
-Everything here comes from one build: an Excel dashboard over 82,956 Steam games, the same build behind [the eight-step build order](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-label-rows-before-charting/../excel-dashboard-build-order/). This is step 2 of those eight. The counts in this article were run against the real file before publishing, and you can [download the same data](https://github.com/michaelnocito/steam-hidden-gems/tree/main/excel) and follow along.
+Everything here comes from one build: an Excel dashboard over 82,956 Steam games, the same build behind [the eight-step build order](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/). This is step 2 of those eight. The counts in this article were run against the real file before publishing, and you can [download the same data](https://github.com/michaelnocito/steam-hidden-gems/tree/main/excel) and follow along.
 
 ## The trap: a filter feels like an answer
 
@@ -62,7 +62,7 @@ Read it as a corridor of doors. Every row walks in at the top.
 
 Say out loud why the last group needs no test of its own. A row standing at the third door has already answered two questions with no. If it answers the third with no as well, there's only one label left it could carry. The final value is the everything-else bucket, and every nested IF ends with one.
 
-The order of the questions matters. Each test only sees the rows the earlier tests let through, so put the cheapest disqualifying test first. Here, "under 2,000 reviews" clears out 78,064 rows at door one, and the later tests never have to think about them. If you know SQL, this is the same move as [a CASE expression](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-label-rows-before-charting/../sql-case-expression/), where first match wins and order is logic. Same idea, different spelling.
+The order of the questions matters. Each test only sees the rows the earlier tests let through, so put the cheapest disqualifying test first. Here, "under 2,000 reviews" clears out 78,064 rows at door one, and the later tests never have to think about them. If you know SQL, this is the same move as [a CASE expression](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-expression/), where first match wins and order is logic. Same idea, different spelling.
 
 ## Check that the labels landed
 
@@ -124,14 +124,14 @@ Retrofitting labels onto a workbook full of old filters is miserable, so don't. 
 
 ## A cheat sheet
 
-| You want to                    | Do                                                                                                                                  | Watch for                                                                 |
-|--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| Put every row in a named group | New column, nested IF, labels as text                                                                                               | The last value is the everything-else bucket. Every nested IF needs one   |
-| Compare two groups on a chart  | Pivot on the label column                                                                                                           | If a group is missing, a filter is still on somewhere                     |
-| Check the labels landed        | COUNTIF per group, predicted first                                                                                                  | Label strings must match the formula exactly, including commas and spaces |
-| Prove no row was missed        | Group counts must sum to the row count                                                                                              | A miss means a typo in a label or an overlapping test                     |
-| Eyeball a group for a minute   | Filter, freely                                                                                                                      | Undo it before you build anything                                         |
-| Same move in SQL               | [CASE expression](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-label-rows-before-charting/../sql-case-expression/) | Same rule: first match wins, order is logic                               |
+| You want to                    | Do                                                                                              | Watch for                                                                 |
+|--------------------------------|-------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| Put every row in a named group | New column, nested IF, labels as text                                                           | The last value is the everything-else bucket. Every nested IF needs one   |
+| Compare two groups on a chart  | Pivot on the label column                                                                       | If a group is missing, a filter is still on somewhere                     |
+| Check the labels landed        | COUNTIF per group, predicted first                                                              | Label strings must match the formula exactly, including commas and spaces |
+| Prove no row was missed        | Group counts must sum to the row count                                                          | A miss means a typo in a label or an overlapping test                     |
+| Eyeball a group for a minute   | Filter, freely                                                                                  | Undo it before you build anything                                         |
+| Same move in SQL               | [CASE expression](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-expression/) | Same rule: first match wins, order is logic                               |
 
 **The one habit to keep.** When a question compares groups, your first formula is a label column, not a filter. The chart you want at the end needs every row present, with its group written on it.
 

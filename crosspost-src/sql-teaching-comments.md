@@ -10,7 +10,7 @@ If what you actually came for is the syntax, it is two marks and it takes ten se
     /* this hides
        everything until the closing mark */
 
-That is all of the syntax. The traps around it, including the two ways commenting out a line quietly breaks a query, are in [how to comment in SQL](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-teaching-comments/../sql-comments/). This page is about the harder question underneath it: what to put in the comment once you have one.
+That is all of the syntax. The traps around it, including the two ways commenting out a line quietly breaks a query, are in [how to comment in SQL](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comments/). This page is about the harder question underneath it: what to put in the comment once you have one.
 
 The format exists because of a specific limit. A comment can only be worth reading if it carries something the code does not already say. `-- filter to active customers` next to `WHERE status = 'active'` carries nothing. The one thing a reader cannot recover from the code is _why anyone asked this question in the first place_ , and that is usually the part left out.
 
@@ -170,7 +170,7 @@ Same box width as the query headers. Use it for the things that are not queries:
 
 ## Document the data's defects openly
 
-If a column is 6% NULL, if a join match rate is 82%, if the snapshot is a year old, write it into a box rather than leaving it out. Stating limitations is not an admission of weakness. It is most of what separates an analyst from someone who ran a query. The [Documenting Data Limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-teaching-comments/../documenting-data-limitations/) guide goes deeper on this.
+If a column is 6% NULL, if a join match rate is 82%, if the snapshot is a year old, write it into a box rather than leaving it out. Stating limitations is not an admission of weakness. It is most of what separates an analyst from someone who ran a query. The [Documenting Data Limitations](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/) guide goes deeper on this.
 
 ## Keep the voice calm and beginner-facing
 
@@ -223,7 +223,7 @@ Retrofitting a whole project at once is miserable and you will abandon it. Do th
 
 If you are starting a project rather than fixing one, write the WHY header _before_ you write the query. Committing to why you are asking the question tends to change the question, usually for the better.
 
-**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-teaching-comments/../): SQL, Tableau, data migration, and the working habits around them.
+**More detail on this, and more like it.** Every how-to sits in one place on the [guides index](https://michaelnocito.github.io/analyst-prep-kit/guides/): SQL, Tableau, data migration, and the working habits around them.
 
 ## A cheat sheet
 

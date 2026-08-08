@@ -50,7 +50,7 @@ Two reasons this is worth the minute it takes. It makes you faster on the next c
 
 ## Version the map, keep the signed copy separate
 
-The [field map](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-file-hygiene/../migration-field-mapping/) changes through the project and one version of it is the one the client agreed to.
+The [field map](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-field-mapping/) changes through the project and one version of it is the one the client agreed to.
 
 Keep that copy in its own file, named with the date it was signed off, and never edit it. Later versions live alongside it. When somebody says the data is wrong, you open the signed copy, and the question becomes whether the load matches the agreement, which you can answer in seconds.
 

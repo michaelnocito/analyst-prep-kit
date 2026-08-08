@@ -12,9 +12,9 @@ Profiling also gives you something to say when a client asks how long this will 
 
 ## The seven checks
 
-Run these per table. All of them are a few lines of SQL, and most are a [COUNT with GROUP BY](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-profiling/../sql-count-function/).
+Run these per table. All of them are a few lines of SQL, and most are a [COUNT with GROUP BY](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-function/).
 
-**1. Row counts.** How many rows in each table. Write them down. Everything you do later gets compared to this number, and it is the baseline for [reconciliation](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-profiling/../migration-dry-run/).
+**1. Row counts.** How many rows in each table. Write them down. Everything you do later gets compared to this number, and it is the baseline for [reconciliation](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-dry-run/).
 
 **2. Blanks in required fields.** For every field the target system requires, count how many source rows have nothing in it. This single check produces most of the surprises.
 

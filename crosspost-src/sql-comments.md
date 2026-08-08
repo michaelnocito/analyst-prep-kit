@@ -130,7 +130,7 @@ Syntax is the easy half. The harder question is what belongs in the comment once
 
 A comment earns its place only when it carries something the code does not already say. `-- filter to active customers` sitting next to `WHERE status = 'active'` carries nothing, because the code said it first, in fewer words, and the code cannot go stale.
 
-The thing a reader genuinely cannot recover from the code is _why anyone asked this question_. Why 500 and not 50. Why rank on percentage instead of raw count. Those are the judgment calls, and they are usually the part left out. A full format for writing that down, used word for word in three published portfolio projects, is in [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comments/../sql-teaching-comments/).
+The thing a reader genuinely cannot recover from the code is _why anyone asked this question_. Why 500 and not 50. Why rank on percentage instead of raw count. Those are the judgment calls, and they are usually the part left out. A full format for writing that down, used word for word in three published portfolio projects, is in [how to comment SQL so it teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-teaching-comments/).
 
 ## Cheat sheet
 

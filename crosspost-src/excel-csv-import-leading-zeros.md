@@ -41,7 +41,7 @@ Excel cannot run that test, because meaning is not in the file. It sees digits a
   2. **Ribbon: Data > From Text/CSV.** Pick the file. A preview appears, with Excel's guessed type at the top of each column.
   3. **Click Transform Data.** This opens Power Query, which is just the room where the import decisions get made visibly.
   4. **Right-click the identifier column's header > Change Type > Text.** If a Change Column Type prompt appears, choose Replace current. Do this for every number-shaped label: zip, ID, phone, SKU.
-  5. **Close & Load.** The data lands in the sheet as a Table, which is [step 1 of the build order](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-csv-import-leading-zeros/../excel-name-your-data/) done for you. Name it and carry on.
+  5. **Close & Load.** The data lands in the sheet as a Table, which is [step 1 of the build order](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-name-your-data/) done for you. Name it and carry on.
 
 While you are in the preview there is one more setting worth glancing at: File Origin. If the file came from another system and names or accents look wrong, set it to 65001: Unicode (UTF-8). That is a different failure with the same shape, and it gets its own article later in this series.
 
@@ -51,7 +51,7 @@ The whole detour costs under a minute, and it is the only moment the choice exis
 
 You received an xlsx where the zips are already 8053. The zeros are not hiding behind the display. The stored value is the number. Two honest options:
 
-**Re-import from the source CSV if you still have it.** This is the clean fix, and it is why you never overwrite the original file: keep the raw CSV, import into a copy. That habit belongs to the same family as [keeping your checks in the file](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-csv-import-leading-zeros/../excel-check-your-work/).
+**Re-import from the source CSV if you still have it.** This is the clean fix, and it is why you never overwrite the original file: keep the raw CSV, import into a copy. That habit belongs to the same family as [keeping your checks in the file](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/).
 
 **Rebuild the zeros if the width is known.** US zips are five digits, so `=TEXT([@Zip],"00000")` produces a text value padded back to five characters. This works only because zip codes have a fixed width. A trimmed account number of unknown length cannot be rebuilt, and a card number that went through scientific notation is gone for good. Rebuilding is a patch. The import habit is the fix.
 
@@ -69,7 +69,7 @@ That is why the countermeasure is positional, not attentional. You cannot spot-c
   2. **Import it twice.** Once by double-click, once through Data > From Text/CSV with identifier columns set to Text.
   3. **Compare the vulnerable column.** If the two disagree, you have been shipping converted data and today is a good day to have found out.
   4. **Keep the raw CSV read-only.** Imports go into copies. The original is evidence.
-  5. **Add the check.** One cell: `=MIN(LEN([@Zip]))` on a zip column should say 5. The moment it says 4, a zero has gone missing somewhere upstream. That is [article 2's habit](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-csv-import-leading-zeros/../excel-check-your-work/) pointed at this article's trap.
+  5. **Add the check.** One cell: `=MIN(LEN([@Zip]))` on a zip column should say 5. The moment it says 4, a zero has gone missing somewhere upstream. That is [article 2's habit](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/) pointed at this article's trap.
 
 ## A cheat sheet
 
