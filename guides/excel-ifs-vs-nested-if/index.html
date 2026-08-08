@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nested IF vs IFS in Excel: The Order That Silently Relabels Your Data — Analyst Prep Kit</title>
+<meta name="description" content="IFS stops at the first condition that is true, so writing bands in the wrong order moved 3,710 of revenue into the wrong label with no error. Plus SWITCH and the band table that scales.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-ifs-vs-nested-if/">
+<meta property="og:title" content="Nested IF vs IFS in Excel: The Order That Silently Relabels Your Data">
+<meta property="og:description" content="IFS takes the first condition that is true, not the best one. Writing the bands in the wrong order turned four large orders into medium ones and moved 3,710 with no error.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-ifs-vs-nested-if.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-ifs-vs-nested-if/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-ifs-vs-nested-if.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Nested IF vs IFS in Excel: The Order That Silently Relabels Your Data",
+  "description": "IFS stops at the first condition that is true, so writing bands in the wrong order moved 3,710 of revenue into the wrong label with no error. Plus SWITCH and the band table that scales.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-ifs-vs-nested-if/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-ifs-vs-nested-if/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-ifs-vs-nested-if.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Nested IF vs IFS in Excel: The Order That Silently Relabels Your Data",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-ifs-vs-nested-if/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../excel/">Excel Kit</a> · <a href="../">All guides</a></p>
+  <h1>Nested IF vs IFS in Excel: The Order That Silently Relabels Your Data</h1>
+  <p class="meta">First true wins, not best match · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can write a multi-way label without a wall of brackets, put the conditions in an order that cannot mislabel anything, cover the case where nothing matches, get the boundaries right on purpose, and know when to stop writing conditions and use a small table instead. It is about twenty-five minutes, and every result below was run in Excel.</p>
+
+  <p>Here is what to do today, on the banding formula you already have. Check the order of its conditions. If it tests the smallest threshold first, every value above the largest threshold is currently getting the smallest label, and nothing anywhere will tell you.</p>
+
+  <p>The short version: <code>IFS</code> reads its conditions from left to right and stops at the first one that is true. It does not look for the best match, and it does not look at the rest.</p>
+
+  <p>That stopping rule is the whole page, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 296" role="img" aria-labelledby="ifTitle ifDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="ifTitle">First true wins</title>
+      <desc id="ifDesc">Two vertical chains stand side by side, and the same value, 880, enters the top of each. Each chain is three condition boxes stacked one under the other, and each chain has a result chip beside it. In the left chain the boxes read, from the top, greater than or equal to 800, then greater than or equal to 500, then a final catch-all. The arrow from 880 reaches the first box, that box is drawn in full strength with a heavy border, and an arrow leaves it sideways to a result chip reading Large. The two boxes below it are drawn pale and no arrow ever reaches them. In the right chain the first two boxes are in the opposite order, so the top box reads greater than or equal to 500. The same 880 enters, is caught by that first box, which is drawn in full strength, and exits sideways to a result chip reading Medium. Below it the box reading greater than or equal to 800 is pale and unreached, even though 880 satisfies it. The picture shows one value taking two different labels purely from the order the boxes were written in.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <!-- LEFT chain -->
+        <rect x="40" y="20" width="92" height="34" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="86" y="43" font-size="16" fill="#09090B" text-anchor="middle">880</text>
+        <path d="M86 54 L86 74" stroke="#0E7490" stroke-width="2.4" fill="none"/>
+        <path d="M86 82 L79 70 M86 82 L93 70" stroke="#0E7490" stroke-width="2.4" fill="none"/>
+
+        <rect x="30" y="86" width="150" height="44" rx="8" fill="#FFFFFF" stroke="#0E7490" stroke-width="3"/>
+        <text x="105" y="114" font-size="16" fill="#09090B" text-anchor="middle">&#8805; 800</text>
+        <rect x="30" y="146" width="150" height="44" rx="8" fill="#FFFFFF" stroke="#E4E7EA" stroke-width="2"/>
+        <text x="105" y="174" font-size="16" fill="#C7CBD1" text-anchor="middle">&#8805; 500</text>
+        <rect x="30" y="206" width="150" height="44" rx="8" fill="#FFFFFF" stroke="#E4E7EA" stroke-width="2"/>
+        <text x="105" y="234" font-size="16" fill="#C7CBD1" text-anchor="middle">&#8226; &#8226; &#8226;</text>
+
+        <path d="M180 108 L240 108" stroke="#0E7490" stroke-width="2.4" fill="none"/>
+        <path d="M248 108 L236 101 M248 108 L236 115" stroke="#0E7490" stroke-width="2.4" fill="none"/>
+        <rect x="256" y="88" width="112" height="40" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="312" y="114" font-size="16" fill="#09090B" text-anchor="middle">Large</text>
+
+        <!-- RIGHT chain -->
+        <rect x="430" y="20" width="92" height="34" rx="8" fill="#FDF3E3" stroke="#B45309" stroke-width="2"/>
+        <text x="476" y="43" font-size="16" fill="#09090B" text-anchor="middle">880</text>
+        <path d="M476 54 L476 74" stroke="#B45309" stroke-width="2.4" fill="none"/>
+        <path d="M476 82 L469 70 M476 82 L483 70" stroke="#B45309" stroke-width="2.4" fill="none"/>
+
+        <rect x="420" y="86" width="150" height="44" rx="8" fill="#FFFFFF" stroke="#B45309" stroke-width="3"/>
+        <text x="495" y="114" font-size="16" fill="#09090B" text-anchor="middle">&#8805; 500</text>
+        <rect x="420" y="146" width="150" height="44" rx="8" fill="#FFFFFF" stroke="#E4E7EA" stroke-width="2"/>
+        <text x="495" y="174" font-size="16" fill="#C7CBD1" text-anchor="middle">&#8805; 800</text>
+        <rect x="420" y="206" width="150" height="44" rx="8" fill="#FFFFFF" stroke="#E4E7EA" stroke-width="2"/>
+        <text x="495" y="234" font-size="16" fill="#C7CBD1" text-anchor="middle">&#8226; &#8226; &#8226;</text>
+
+        <path d="M570 108 L630 108" stroke="#B45309" stroke-width="2.4" fill="none"/>
+        <path d="M638 108 L626 101 M638 108 L626 115" stroke="#B45309" stroke-width="2.4" fill="none"/>
+        <rect x="646" y="88" width="112" height="40" rx="8" fill="#FDF3E3" stroke="#B45309" stroke-width="2"/>
+        <text x="702" y="114" font-size="16" fill="#09090B" text-anchor="middle">Medium</text>
+      </g>
+    </svg>
+    <figcaption>The same 880 goes into both chains and comes out with two different labels. Nothing is wrong with either formula; the pale boxes are simply never reached, because the value was already caught above them.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>IF, and what nesting actually costs</li>
+      <li>IFS: the same logic, flat</li>
+      <li>The order trap, with the number it moves</li>
+      <li>IFS has no ELSE</li>
+      <li>Boundaries, on purpose</li>
+      <li>SWITCH, for exact matches</li>
+      <li>The version that scales: a band table</li>
+      <li>Testing every branch</li>
+      <li>The full before and after</li>
+      <li>Edge cases that break a banding formula</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every result on this page is real.</strong> Run in Excel on the sixteen-row orders table used across this set of guides, banded by revenue into three groups.</div>
+
+  <p>The bands, and what is in them, checked first so there is something to be wrong about later.</p>
+
+  <table>
+    <tr><th>Band</th><th>Rule</th><th>Orders</th><th>Revenue</th></tr>
+    <tr><td>Small</td><td>under 500</td><td>6</td><td>2,305</td></tr>
+    <tr><td>Medium</td><td>500 to 799</td><td>6</td><td>3,875</td></tr>
+    <tr><td>Large</td><td>800 and over</td><td>4</td><td>3,710</td></tr>
+    <tr><td><strong>Total</strong></td><td></td><td><strong>16</strong></td><td><strong>9,890</strong></td></tr>
+  </table>
+
+  <div class="step">
+    <h2>1. IF, and what nesting actually costs</h2>
+
+    <p><code>IF(test, value_if_true, value_if_false)</code>. One test, two outcomes. Three outcomes need a second IF, placed inside the false slot of the first.</p>
+
+    <pre><code>=IF(A2&gt;=800, "Large", IF(A2&gt;=500, "Medium", "Small"))</code></pre>
+
+    <p>Run on 880 that returns <code>Large</code>, which is right. It reads badly and works well, and for three bands it is perfectly fine.</p>
+
+    <p>What it costs is legibility per band. Each extra outcome adds a whole IF, and the closing brackets pile up at the end where they cannot be matched to anything by eye. Five bands is a formula nobody will check. Excel allows up to 64 nested IFs, which is a limit that exists to be ignored: the practical limit is about three, and it is set by the reader rather than by the software.</p>
+
+    <p>There is a real distinction hiding here that people trip over separately: <code>IF</code> labels one row at a time and builds a column, while <code>COUNTIF</code> and its family sweep every row and return one number. <a href="../excel-if-family/">The IF family guide</a> is the page for that difference; this one is about what to do when one row needs more than two possible labels.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. IFS: the same logic, flat</h2>
+
+    <p><code>IFS</code> takes pairs: a condition, then the value to use if it is true, repeated as many times as you like.</p>
+
+    <pre><code>=IFS(A2&gt;=800, "Large",
+     A2&gt;=500, "Medium",
+     TRUE,     "Small")</code></pre>
+
+    <p>Run on 880 that returns <code>Large</code>, the same answer as the nested version. Every pair sits at the same level, so a fourth band is one more pair rather than one more layer, and the brackets do not accumulate.</p>
+
+    <p>Read it top to bottom as a set of rules and it says what it does: if it is at least 800 it is Large, otherwise if it is at least 500 it is Medium, otherwise it is Small. That readability is the entire reason to prefer it. The logic is identical.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. The order trap, with the number it moves</h2>
+
+    <p>Before the explanation: here are the same two conditions with the pairs swapped. The value is 880, which satisfies both. Say what comes out.</p>
+
+    <pre><code>=IFS(880&gt;=500, "Medium", 880&gt;=800, "Large")
+
+Medium</code></pre>
+
+    <p><code>Medium</code>. IFS stopped at the first condition that was true and never looked at the second. It is not choosing the closest band or the most specific rule; it is going down the list and taking the first hit.</p>
+
+    <p>On the sixteen-row table, that one swap does this:</p>
+
+    <pre><code>                        correct order        swapped
+Small                   6 orders   2,305     6 orders   2,305
+Medium                  6 orders   3,875    10 orders   7,585
+Large                   4 orders   3,710     0 orders       0</code></pre>
+
+    <p>Every large order became a medium one. Four orders and 3,710 of revenue changed category, the total still comes to 9,890, no cell shows an error, and the Large row simply does not appear in any summary because nothing is in it. An empty band is much easier to overlook than a wrong number.</p>
+
+    <p>The rule that prevents it is one sentence: <strong>write the conditions in the order you would check them by hand, most restrictive first.</strong> For numeric bands that means starting from the top threshold and working down, or starting from the bottom and using the opposite comparison, but never mixing the two.</p>
+
+    <p>Say out loud, before writing any chain of conditions, whether a value could satisfy two of them. If it can, the order is doing real work and it needs a comment beside it. If no value can ever satisfy two, order does not matter and you have a safer formula by construction.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. IFS has no ELSE</h2>
+
+    <p>Before the explanation: a value of 240 meets neither <code>&gt;=800</code> nor <code>&gt;=500</code>. Say what the cell shows.</p>
+
+    <pre><code>=IFS(240&gt;=800, "Large", 240&gt;=500, "Medium")
+
+#N/A</code></pre>
+
+    <p><code>#N/A</code>, because IFS ran out of conditions without finding a true one and has nothing to return. That is honest behaviour and it is not what you want in a report.</p>
+
+    <p>The catch-all is a final pair whose condition is literally <code>TRUE</code>:</p>
+
+    <pre><code>=IFS(240&gt;=800, "Large", 240&gt;=500, "Medium", TRUE, "Small")
+
+Small</code></pre>
+
+    <p><code>TRUE</code> is always true, so the last pair fires whenever nothing above it did. It is IFS's version of the final <code>else</code>, and leaving it off is the second most common mistake with this function after the ordering.</p>
+
+    <p>One judgement worth making deliberately: what the catch-all should say. <code>"Small"</code> claims every unmatched value belongs in the bottom band, which is right for revenue and wrong for a status code, where an unexpected value is news. <code>"check this"</code> as the catch-all turns the formula into its own alarm, and it is often the better default while you are still learning what is in the data.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Boundaries, on purpose</h2>
+
+    <p>Every band has two edges and someone has to decide which side each edge belongs to. The formula makes that decision whether or not you thought about it, so check it with actual values.</p>
+
+    <pre><code>=IF(499&gt;=800,"Large",IF(499&gt;=500,"Medium","Small"))     Small
+=IF(500&gt;=800,"Large",IF(500&gt;=500,"Medium","Small"))     Medium
+=IF(800&gt;=800,"Large",IF(800&gt;=500,"Medium","Small"))     Large</code></pre>
+
+    <p>499 is Small, 500 is Medium, 800 is Large. That is what <code>&gt;=</code> means, and it matches how people describe bands out loud: "500 and over is medium". Using <code>&gt;</code> instead would put 500 in the Small band and would look identical in the formula.</p>
+
+    <p>Two failures live at these edges. A <strong>gap</strong>, where a band ends at 499 and the next begins at 501, so exactly 500 matches nothing and falls to the catch-all. An <strong>overlap</strong>, where two bands both claim 500, which is invisible because the order silently resolves it, exactly as in section three.</p>
+
+    <p>Testing three values per boundary catches both: one below, one exactly on it, one above. That is six values for three bands, it takes two minutes, and it is the only part of this page most people skip.</p>
+
+    <p>Where the boundary should sit is a separate and harder question than how to write it. A threshold chosen because it is round is a decision wearing the costume of an observation, and <a href="../data-driven-thresholds/">picking a cut-off from the data</a> is the page for that.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. SWITCH, for exact matches</h2>
+
+    <p>When every branch is "does this equal that", <code>SWITCH</code> says it more directly. You give the expression once, then value and result pairs, and optionally a default at the end.</p>
+
+    <pre><code>=SWITCH("Desk", "Desk","Furniture", "Chair","Furniture", "Lamp","Lighting", "other")
+Furniture
+
+=SWITCH("Sofa", "Desk","Furniture", "Chair","Furniture", "Lamp","Lighting", "other")
+other
+
+=SWITCH("Sofa", "Desk","Furniture", "Chair","Furniture")
+#N/A</code></pre>
+
+    <p>The last argument is the default, and it is recognised as a default because it stands alone with no partner. Leave it off and an unmatched value gives <code>#N/A</code>, the same as IFS with no catch-all.</p>
+
+    <p>SWITCH cannot do ranges, only equality, which is precisely why it is safer where it applies: nothing can match two branches, so nothing depends on the order. Use SWITCH for codes and categories, and IFS for anything involving greater-than.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. The version that scales: a band table</h2>
+
+    <p>Past about three bands, the right answer is to stop writing conditions and put the bands in cells. Two columns, sorted ascending by the lower bound:</p>
+
+    <pre><code>Floor    Label
+    0    Small
+  500    Medium
+  800    Large</code></pre>
+
+    <p>Then one lookup, using approximate match, which finds the largest floor that is not above your value.</p>
+
+    <pre><code>=XLOOKUP(A2, Floors, Labels, "none", -1)</code></pre>
+
+    <p>Run against the same values it gives the same answers:</p>
+
+    <pre><code>499   Small
+500   Medium
+880   Large
+1100  Large</code></pre>
+
+    <p>The older equivalent, for a workbook that has to open anywhere, is <code>VLOOKUP</code> with its last argument left as TRUE against the same sorted table, which returned <code>Medium</code> for 680. Both rely on the table being sorted ascending, which is the one thing to protect.</p>
+
+    <p>Three things change when the bands live in cells. The thresholds become visible, so anyone can see what "large" means without opening a formula. They become editable by somebody who is not you. And adding a fourth band is a new row rather than a formula edit, which means the change cannot introduce an ordering bug, because the lookup handles the ordering.</p>
+
+    <p>Picture the banding formula in your own most-used workbook. Could the person who asked for those bands change one of the numbers without asking you? If not, the thresholds are in the wrong place.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. Testing every branch</h2>
+
+    <p>A three-band formula has four ways through it: three bands and the catch-all. A five-band formula has six. Every one of those paths is a separate thing that can be wrong, and none of them is exercised until a value goes down it.</p>
+
+    <p>So test them on purpose, with a small block of values off to the side:</p>
+
+    <pre><code>value      expected     formula
+  0        Small        =the formula on this value
+499        Small
+500        Medium
+799        Medium
+800        Large
+9999       Large
+""         catch-all</code></pre>
+
+    <p>Seven rows, thirty seconds, and it catches the ordering bug, both boundary bugs and the missing catch-all in one go. Keep the block in the workbook rather than deleting it, because the formula will be edited again and the test is what makes the next edit safe.</p>
+
+    <p>Then check the totals as well as the labels. Count by band and sum by band, and confirm that the counts add to your row count and the sums add to your column total:</p>
+
+    <pre><code>6 + 6 + 4 = 16 rows
+2,305 + 3,875 + 3,710 = 9,890</code></pre>
+
+    <p>That reconciliation is what would have caught the swapped order in section three, because the Large band would have come back with zero rows against a total that still balanced.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same job: label every order Small, Medium or Large.</p>
+
+  <h3>Before</h3>
+  <pre><code>=IF(A2&gt;=500,"Medium",IF(A2&gt;=800,"Large","Small"))
+
+Small    6 orders   2,305
+Medium  10 orders   7,585
+Large    0 orders       0</code></pre>
+  <p>No error, no warning, a total that still reconciles to 9,890, and a band that is empty because the condition above it caught everything first. The thresholds live inside a formula where nobody can see them, and there is no test anywhere that would have failed.</p>
+
+  <h3>After</h3>
+  <pre><code># the bands live in cells
+Floor  Label
+    0  Small
+  500  Medium
+  800  Large
+
+# one lookup instead of a chain
+=XLOOKUP([@Revenue], Bands[Floor], Bands[Label], "check this", -1)
+
+# the checks, kept on the sheet
+counts by band   6 + 6 + 4 = 16      equals the row count
+sums by band     2,305 + 3,875 + 3,710 = 9,890    equals the column total
+boundary tests   499 Small, 500 Medium, 800 Large</code></pre>
+
+  <p>The claim, and it is why the reconciliation belongs on the sheet: <strong>swapping two conditions moved four orders and 3,710 of revenue into the wrong band, produced no error, and left every total correct.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases that break a banding formula</h2>
+
+    <p>Six that get through.</p>
+
+    <p><strong>Blank cells.</strong> A blank is treated as 0, so it lands in the bottom band rather than being flagged. Test for it first: <code>IFS(A2="", "missing", ...)</code>.</p>
+
+    <p><strong>Text where a number should be.</strong> A comparison between text and a number does not error, it just comes out false, so those rows quietly reach the catch-all. Check the column type before trusting the bands.</p>
+
+    <p><strong>Negative values.</strong> A refund of −200 satisfies none of the greater-than conditions and lands in the catch-all labelled Small, which is arguably wrong. Decide what a negative means before the formula decides for you.</p>
+
+    <p><strong>An unsorted band table.</strong> Approximate-match lookups assume ascending order and return a confident wrong answer if the rows get sorted by label instead. Protect the sort, or note it beside the table.</p>
+
+    <p><strong>Thresholds copied into three different formulas.</strong> Somebody updates one of them. Now the report and the chart disagree and both look fine. One table, referenced everywhere, removes the possibility.</p>
+
+    <p><strong>Bands that changed last quarter.</strong> Old rows keep their old labels if the label was pasted as a value rather than left as a formula, so the same revenue is Medium in March and Large in June. Keep labels as formulas, or record which version of the bands a snapshot used.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>A chain of conditions is a program with branches, and branches are what makes code hard to verify. The classic measure counts the independent paths through a piece of logic and argues that this number, rather than its length, predicts how hard it is to test and to keep correct, because every branch is a route that has to be exercised separately before anyone can claim the thing works (McCabe, 1976, <em>IEEE Transactions on Software Engineering</em>, SE-2(4), 308–320). A three-band formula has four routes; a six-band one has seven. That is the honest reason for the test block in section eight, and it is also the argument for the band table, which replaces the branches with data and leaves exactly one route through the formula.</p>
+
+  <p>The readability half has a separate footing. A nested IF asks you to hold each unresolved condition in mind while you read the next one, and the number of separate items a person can hold at once is famously small (Miller, 1956, <em>Psychological Review</em>, 63(2), 81–97). Three nested IFs is at the edge of that; five is past it, which is why nobody checks a five-deep formula properly, however carefully it is written. IFS does not make the logic simpler, it makes it flat, so each rule can be read and dismissed rather than held.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than reread, because retrieving something from memory is one of the most reliable ways to keep it, and it works even though it feels harder at the time than reading (Karpicke &amp; Roediger, 2008, <em>Science</em>, 319(5865), 966–968).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Rewriting every conditional formula in an inherited workbook is miserable and you will stop at the third one. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Find the banding formulas</strong> and read only the order of their conditions. Most restrictive first, or it is wrong.</li>
+    <li><strong>Count by band and compare with the row count.</strong> A band with zero rows is the symptom of an ordering bug, and it takes one COUNTIF to see.</li>
+    <li><strong>Add the catch-all</strong> if there is not one, and consider making it say "check this" rather than naming a real band.</li>
+    <li><strong>Test the boundaries with three values each</strong>, below, on and above, and leave the test block in the workbook.</li>
+    <li><strong>Move the thresholds into a two-column table</strong> as soon as there are four bands, or as soon as anyone other than you needs to change them.</li>
+    <li><strong>Use SWITCH where the branches are equality</strong>, because nothing can match twice and the order stops mattering.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Draw a number line, mark your thresholds on it, and shade each band a different way. Then put a dot exactly on each threshold and write which band the dot belongs to. Most people discover while doing this that they have never actually decided, which is the entire boundary problem in one pen stroke.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: Excel, SQL, Python, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td><code>IF(test, yes, no)</code></td><td>One test, two outcomes. Nest in the third slot for more.</td></tr>
+    <tr><td>Nesting limit</td><td>64 allowed. About three readable.</td></tr>
+    <tr><td><code>IFS(c1,v1, c2,v2, ...)</code></td><td>Pairs of condition and value, all at one level.</td></tr>
+    <tr><td>How IFS chooses</td><td>First condition that is true. Not the best match.</td></tr>
+    <tr><td>Order rule</td><td>Most restrictive first. Highest threshold first for numeric bands.</td></tr>
+    <tr><td>Wrong order</td><td>No error. A band ends up empty and the totals still balance.</td></tr>
+    <tr><td>No match</td><td><code>#N/A</code>. IFS has no built-in else.</td></tr>
+    <tr><td>The catch-all</td><td>A final pair whose condition is <code>TRUE</code>.</td></tr>
+    <tr><td>Catch-all wording</td><td>"check this" beats naming a band, while you are still learning the data.</td></tr>
+    <tr><td>Boundaries</td><td><code>&gt;=500</code> puts 500 in the upper band. Test 499, 500 and 501.</td></tr>
+    <tr><td>Gap</td><td>A value between two bands falls to the catch-all.</td></tr>
+    <tr><td>Overlap</td><td>Two bands claim it. Order decides, silently.</td></tr>
+    <tr><td><code>SWITCH(expr, v1,r1, ..., default)</code></td><td>Equality only. Order cannot matter. The lone last argument is the default.</td></tr>
+    <tr><td>Band table</td><td>Floor and Label, sorted ascending, one row per band.</td></tr>
+    <tr><td>The lookup</td><td><code>=XLOOKUP(value, Floors, Labels, "none", -1)</code></td></tr>
+    <tr><td>The reconciliation</td><td>Counts by band add to the row count; sums add to the total.</td></tr>
+    <tr><td>Blanks and negatives</td><td>Treated as 0 and as very small. Decide before the formula does.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Count the rows in each band and check they add up to the rows you started with. A banding bug almost never produces an error; it produces one band with nothing in it and another with too much, and the count is the only place that shows. If a conditional formula misbehaves in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The one I found late was a customer-tier formula that tested the loyalty threshold before the enterprise threshold, so the biggest accounts had been sitting in the middle tier for two quarters and the tier report simply had no top row. What has a first-true-wins chain quietly done in something you own?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>McCabe, T. J. (1976). A complexity measure. <em>IEEE Transactions on Software Engineering</em>, SE-2(4), 308–320.</li>
+    <li>Miller, G. A. (1956). The magical number seven, plus or minus two: Some limits on our capacity for processing information. <em>Psychological Review</em>, 63(2), 81–97.</li>
+    <li>Karpicke, J. D., &amp; Roediger, H. L. (2008). The critical importance of retrieval for learning. <em>Science</em>, 319(5865), 966–968.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice banding on values that sit on the boundary.</strong>
+    <p style="margin:6px 0 0">The <a href="../../excel/">Excel Kit</a> gives you the repetitions: chains written in the wrong order to diagnose, boundary values to label, band tables to build, and flash cards on what IFS does when nothing matches. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../excel/">Open the Excel Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../excel-if-family/">The IF Family</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../excel-index-match/">INDEX MATCH vs VLOOKUP</a> · <a href="../excel-conditional-formatting/">Conditional Formatting</a> · <a href="../excel-dynamic-arrays/">Dynamic Arrays</a> · <a href="../excel-iferror/">How to Use IFERROR</a> · <a href="../excel-sumifs/">SUMIFS and COUNTIFS</a> · <a href="../excel-tables/">Excel Tables vs Ranges</a> · <a href="../excel-pivot-tables/">Make a Pivot Table</a> · <a href="../../excel/">Excel Kit</a> · <a href="../sql-case-expression/">The SQL CASE Expression</a> · <a href="../excel-label-rows-before-charting/">Label Rows Before Charting</a> · <a href="../build-a-risk-index/">Build a Risk Index</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
