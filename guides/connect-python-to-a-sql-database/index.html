@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Connect Python to a SQL Database (Straight Into a DataFrame) — Analyst Prep Kit</title>
+<meta name="description" content="Query a SQL database from Python and get a labelled DataFrame back, not bare tuples. sqlite3, pandas read_sql, parameters instead of f-strings, and how the same code reaches Postgres and MySQL.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/connect-python-to-a-sql-database/">
+<meta property="og:title" content="How to Connect Python to a SQL Database (Straight Into a DataFrame)">
+<meta property="og:description" content="Three lines get you from a database file to a labelled table in Python. Here they are, with real output, plus the one habit that keeps your queries safe.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/connect-python-to-a-sql-database.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/connect-python-to-a-sql-database/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/connect-python-to-a-sql-database.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Connect Python to a SQL Database (Straight Into a DataFrame)",
+  "description": "Query a SQL database from Python and get a labelled DataFrame back, not bare tuples. sqlite3, pandas read_sql, parameters instead of f-strings, and how the same code reaches Postgres and MySQL.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/connect-python-to-a-sql-database/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/connect-python-to-a-sql-database/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/connect-python-to-a-sql-database.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "How to Connect Python to a SQL Database",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/connect-python-to-a-sql-database/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../python/">Python Kit</a> · <a href="../">All guides</a></p>
+  <h1>How to Connect Python to a SQL Database</h1>
+  <p class="meta">Three lines to a labelled table, and the one habit that keeps the query safe · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you will run a SQL query from Python and get back a pandas DataFrame with real column names, ready to chart or export. It takes three lines, needs nothing installed beyond pandas, and works the same way against Postgres and MySQL once you swap the connection.</p>
+
+  <p>Here is what to actually do today. Use <code>pd.read_sql(query, connection)</code> rather than a cursor and <code>fetchall()</code>. Both work. Only one of them hands you column names, and the other hands you a list of anonymous tuples you then have to label by counting positions.</p>
+
+  <p>The short version: <code>sqlite3.connect()</code> for a database file, <code>pd.read_sql()</code> for the query, and pass values as parameters instead of building the SQL string yourself.</p>
+
+  <p>The difference between the two ways of fetching is the one idea worth the page, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 250" role="img" aria-labelledby="cpTitle cpDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="cpTitle">Tuples against a labelled table</title>
+      <desc id="cpDesc">One database drawn as a stack of cylinders on the left, with two arrows leaving it. The upper arrow ends at a small stack of bare bracketed rows containing only values, with an empty strip above them where headings would sit, left conspicuously blank. The lower arrow ends at a grid whose top row is shaded and filled with heading blocks, and whose body rows align beneath those headings in columns. Both results contain the same number of value blocks; only the labelled strip differs.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <g stroke="#0E7490" stroke-width="2" fill="#E0F2F7">
+          <ellipse cx="80" cy="102" rx="48" ry="14"/>
+          <path d="M32 102 v46 a48 14 0 0 0 96 0 v-46"/>
+          <ellipse cx="80" cy="148" rx="48" ry="14" fill="#FFFFFF"/>
+        </g>
+
+        <path d="M132 108 C230 108 240 62 330 62" stroke="#B45309" stroke-width="2.5" fill="none"/>
+        <path d="M330 62 L316 55 M330 62 L316 69" stroke="#B45309" stroke-width="2.5" fill="none"/>
+        <text x="146" y="46" font-size="13" font-weight="700" fill="#B45309">fetchall()</text>
+
+        <path d="M132 146 C230 146 240 190 330 190" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+        <path d="M330 190 L316 183 M330 190 L316 197" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+        <text x="146" y="222" font-size="13" font-weight="700" fill="#0E7490">read_sql()</text>
+
+        <!-- tuples, no headings -->
+        <rect x="344" y="22" width="330" height="22" fill="#FFFFFF" stroke="#E4E7EA" stroke-dasharray="5 4"/>
+        <g fill="#F5F7F8" stroke="#A1A1AA">
+          <rect x="344" y="48" width="330" height="22"/>
+          <rect x="344" y="70" width="330" height="22"/>
+          <rect x="344" y="92" width="330" height="22"/>
+        </g>
+        <g fill="#A1A1AA">
+          <rect x="358" y="55" width="52" height="8"/><rect x="440" y="55" width="34" height="8"/><rect x="510" y="55" width="44" height="8"/>
+          <rect x="358" y="77" width="46" height="8"/><rect x="440" y="77" width="34" height="8"/><rect x="510" y="77" width="40" height="8"/>
+          <rect x="358" y="99" width="56" height="8"/><rect x="440" y="99" width="34" height="8"/><rect x="510" y="99" width="48" height="8"/>
+        </g>
+
+        <!-- dataframe with headings -->
+        <rect x="344" y="150" width="330" height="24" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <g fill="#0E7490">
+          <rect x="358" y="158" width="58" height="9"/><rect x="440" y="158" width="46" height="9"/><rect x="510" y="158" width="52" height="9"/>
+        </g>
+        <g fill="#FFFFFF" stroke="#0E7490">
+          <rect x="344" y="174" width="330" height="22"/>
+          <rect x="344" y="196" width="330" height="22"/>
+          <rect x="344" y="218" width="330" height="22"/>
+        </g>
+        <g fill="#52525B">
+          <rect x="358" y="181" width="52" height="8"/><rect x="440" y="181" width="34" height="8"/><rect x="510" y="181" width="44" height="8"/>
+          <rect x="358" y="203" width="46" height="8"/><rect x="440" y="203" width="34" height="8"/><rect x="510" y="203" width="40" height="8"/>
+          <rect x="358" y="225" width="56" height="8"/><rect x="440" y="225" width="34" height="8"/><rect x="510" y="225" width="48" height="8"/>
+        </g>
+        <path d="M420 150 v90 M492 150 v90" stroke="#0E7490" stroke-width="1.2"/>
+      </g>
+    </svg>
+    <figcaption>Same rows, same values, both correct. The upper route drops the column names on the floor and leaves you counting positions to find out which number is revenue.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll do</strong>
+    <ol>
+      <li>The three lines</li>
+      <li>What each line is doing</li>
+      <li>The cursor, and when you actually want it</li>
+      <li>Passing values safely</li>
+      <li>Reaching Postgres, MySQL and the rest</li>
+      <li>Where to draw the line between SQL and pandas</li>
+      <li>The full before and after</li>
+      <li>What goes wrong, and the fix</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every output on this page is real.</strong> Each snippet was run on 8 August 2026 against the Chinook sample database with Python 3.11 and pandas 3.0.2. If you want the same file to follow along with, <a href="../sample-database-for-sql-practice/">getting a sample database</a> is a one-minute download.</div>
+
+  <div class="step">
+    <h2>1. The three lines</h2>
+
+    <p>Before the explanation: pandas can already read a CSV. What would connecting straight to a database give you that exporting a CSV first does not?</p>
+
+    <pre><code>import sqlite3
+import pandas as pd
+
+con = sqlite3.connect('Chinook_Sqlite.sqlite')
+
+df = pd.read_sql("""
+    SELECT c.Country,
+           COUNT(*)               AS invoices,
+           ROUND(SUM(i.Total), 2) AS revenue
+    FROM Invoice i
+    JOIN Customer c ON c.CustomerId = i.CustomerId
+    GROUP BY c.Country
+    ORDER BY revenue DESC
+    LIMIT 5
+""", con)
+
+print(df)</code></pre>
+
+    <pre><code>Country  invoices  revenue
+    USA        91   523.06
+ Canada        56   303.96
+ France        35   195.10
+ Brazil        35   190.10
+Germany        28   156.48</code></pre>
+
+    <p>That is the whole mechanism. The answer to the opening question is two things: there is no export step to repeat or forget, and the column types arrive with the data rather than being guessed from text. Nothing here has to be re-run by hand next month.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. What each line is doing</h2>
+
+    <p><code>import sqlite3</code> costs nothing and installs nothing, because it is part of Python itself. That is worth knowing on a locked-down machine where installing software needs permission.</p>
+
+    <p><code>sqlite3.connect('Chinook_Sqlite.sqlite')</code> opens the file and hands back a <strong>connection</strong>, which is your open line to the database. One warning: if that filename does not exist, SQLite creates a new empty database rather than complaining. So a typo in the path produces zero tables and no error, which is a confusing five minutes the first time.</p>
+
+    <p><code>pd.read_sql(query, con)</code> sends the SQL, reads the result, and builds a DataFrame with the column names from your query. Notice that the names came from the <code>AS</code> aliases: <code>invoices</code> and <code>revenue</code> are labels you chose, and naming things in SQL means not renaming them in Python later. <a href="../sql-aliasing/">SQL aliases</a> covers that habit.</p>
+
+    <p>The triple-quoted string is doing quiet work too. It lets the SQL sit on several lines, indented and readable, exactly as you would write it in a database tool. A long query squeezed onto one line is the main reason people stop formatting their SQL once it moves into Python.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. The cursor, and when you actually want it</h2>
+
+    <p>The other way to get data out looks like this.</p>
+
+    <pre><code>cur = con.cursor()
+cur.execute("SELECT COUNT(*) FROM Track")
+print(cur.fetchone())</code></pre>
+
+    <pre><code>(3503,)</code></pre>
+
+    <p>A <strong>cursor</strong> is a pointer into a result set that you step through yourself. <code>fetchone()</code> takes one row, <code>fetchall()</code> takes them all. Notice what came back: a tuple holding a single number, with no column name attached and a trailing comma that confuses everyone once.</p>
+
+    <p>Say when that would be preferable to a DataFrame, before reading on.</p>
+
+    <p>Two cases, and both are real. When you want <strong>one value</strong> rather than a table, as above, building a whole DataFrame to hold the number 3503 is silly. And when you are <strong>changing</strong> data rather than reading it, with INSERT, UPDATE, DELETE or CREATE TABLE, a cursor is the correct tool, and you must call <code>con.commit()</code> afterwards or your change quietly disappears when the program ends.</p>
+
+    <p>For everything else, which as an analyst is nearly everything, read into a DataFrame. The labels are not a convenience; they are what stops you from writing <code>row[3]</code> and being wrong about which column that is after somebody adds a field.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Passing values safely</h2>
+
+    <p>Sooner or later the query needs a value from a variable: a date, a customer, a threshold. There is an obvious way to do it and it is the wrong one.</p>
+
+    <pre><code># Do not do this.
+threshold = 600000
+df = pd.read_sql(f"SELECT Name FROM Track WHERE Milliseconds > {threshold}", con)</code></pre>
+
+    <p>Write it with a placeholder instead, and pass the value separately.</p>
+
+    <pre><code>df = pd.read_sql(
+    "SELECT Name, Milliseconds FROM Track WHERE Milliseconds > ? LIMIT 3",
+    con,
+    params=(600000,),
+)
+print(df)</code></pre>
+
+    <pre><code>               Name  Milliseconds
+   Sleeping Village        644571
+    You Shook Me(2)        619467
+How Many More Times        711836</code></pre>
+
+    <p>The <code>?</code> is a placeholder, and <code>params</code> supplies what goes there. The database receives the query and the value as two separate things, so the value can never be read as instructions. With an f-string they arrive as one string, and any text inside it that happens to look like SQL is executed as SQL. That is the whole of what people mean by SQL injection, and it is a real hazard the moment a value comes from anywhere you do not control.</p>
+
+    <p>Two smaller reasons to prefer placeholders even on data you trust. Quoting and date formats are handled for you, which removes a persistent source of "why does this work in the database tool and not here". And <code>params=(600000,)</code> needs that trailing comma, because without it the brackets are just brackets rather than a tuple of one item.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Reaching Postgres, MySQL and the rest</h2>
+
+    <p>Everything above changes by one line when the database is a server rather than a file. The query, the DataFrame and the placeholders stay the same.</p>
+
+    <p>The usual route is SQLAlchemy, which gives every engine one consistent way to describe a connection.</p>
+
+    <pre><code>python -m pip install sqlalchemy psycopg2-binary   # Postgres
+python -m pip install sqlalchemy pymysql            # MySQL</code></pre>
+
+    <pre><code>from sqlalchemy import create_engine
+import pandas as pd
+
+engine = create_engine('postgresql+psycopg2://user:password@host:5432/dbname')
+df = pd.read_sql("SELECT * FROM sales LIMIT 5", engine)</code></pre>
+
+    <p>That string is a connection URL and it reads left to right: which engine, which driver, who you are, which machine, which port, which database. Swap <code>postgresql+psycopg2</code> for <code>mysql+pymysql</code> and the same line reaches MySQL.</p>
+
+    <p>One thing not to do: never type a real password into a file you will commit. Read it from an environment variable with <code>os.environ['DB_PASSWORD']</code> instead, and keep the value out of your repository. <a href="../git-for-analysts/">Git for analysts</a> covers what else must never be committed.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Where to draw the line between SQL and pandas</h2>
+
+    <p>Once both tools are in one script, the same job can be done in either, and the choice affects how long you wait.</p>
+
+    <p>The rule that holds up: <strong>filter and aggregate in SQL, then reshape and chart in pandas.</strong> Databases are built to reduce millions of rows to hundreds, and doing that first means only the hundreds travel into memory. Pulling a whole table into pandas and grouping it there works on a small table and stops working on a real one, usually on the day it matters.</p>
+
+    <p>So <code>WHERE</code>, <code>JOIN</code>, <code>GROUP BY</code> and <code>HAVING</code> belong in the query. Plotting, reshaping, joining to something that is not in the database, and anything iterative belong in pandas. If the grouping half is unfamiliar, <a href="../sql-group-by-having/">GROUP BY and HAVING</a> and <a href="../pandas-groupby/">pandas GroupBy</a> are the same idea in both languages.</p>
+
+    <p>Now picture your own current script. Which line first turns a big thing into a small thing, and how many rows are sitting in memory before it? If the answer is all of them, that line probably belongs in the query.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same goal: revenue by country, in a chart.</p>
+
+  <h3>Before</h3>
+  <pre><code>1. Run the query in DB Browser
+2. Export results to CSV
+3. pd.read_csv('export.csv')
+4. Fix the revenue column, which arrived as text
+5. Chart it
+6. Next month, repeat all six</code></pre>
+  <p>It works, and every step is a chance to do something slightly differently than last time. Step 4 is the one that hurts, because a thousands separator in the export turns a number column into text and the fix has to be remembered rather than recorded.</p>
+
+  <h3>After</h3>
+  <pre><code>con = sqlite3.connect('Chinook_Sqlite.sqlite')
+df = pd.read_sql(QUERY, con)
+df.plot(x='Country', y='revenue', kind='bar')</code></pre>
+  <p>Three lines, and the whole thing re-runs by pressing play. The type problem cannot happen, because the numbers never became text: <code>invoices</code> arrives as an integer and <code>revenue</code> as a float, carried across from the database rather than parsed out of a file. Re-running it next month is not a procedure, it is the same three lines.</p>
+
+  <div class="step">
+    <h2>What goes wrong, and the fix</h2>
+
+    <p>Six that come up constantly.</p>
+
+    <p><strong>"no such table" on a database you know has tables.</strong> The path was wrong, so SQLite created a new empty file. Check the path, and list what is actually there with <code>pd.read_sql("SELECT name FROM sqlite_master WHERE type='table'", con)</code>.</p>
+
+    <p><strong>Your INSERT or UPDATE did nothing.</strong> You did not call <code>con.commit()</code>. Reads need no commit; writes do.</p>
+
+    <p><strong>The database is locked.</strong> Another program has it open with unsaved changes, very often DB Browser. Press Write Changes there, or close it.</p>
+
+    <p><strong>Numbers arrive as text.</strong> Rare from a database and common from CSV, which is the point. If it happens, the column is genuinely stored as text in the table, and <code>CAST(col AS REAL)</code> in the query is the honest fix.</p>
+
+    <p><strong>The script hangs on a big query.</strong> You asked for more rows than you need. Add a <code>LIMIT</code> while developing, then take it off once the query is right.</p>
+
+    <p><strong>The connection is never closed.</strong> Use <code>with sqlite3.connect(path) as con:</code> or call <code>con.close()</code>. Leaving connections open is what eventually produces the locked-database message above.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The reason one line reaches every database is a specification rather than a coincidence. Python defines a common database interface, so any driver that follows it offers the same <code>connect</code>, <code>cursor</code>, <code>execute</code> and <code>fetch</code> vocabulary, which is why swapping SQLite for Postgres changes the connection line and nothing else. <code>read_sql</code> sits on top of that shared vocabulary, which is why it works against all of them without knowing which one it is talking to.</p>
+
+  <p>Placeholders work for a structural reason worth understanding once. The database receives the query text and the values through separate channels, parses the query first, and only then fills the values into the parsed structure. A value therefore cannot change what the query means, because by the time it arrives the meaning is already fixed. String formatting removes that separation, which is why the advice is a rule rather than a preference.</p>
+
+  <p>One note on the way this page is written. It kept asking you to commit to an answer, what a connection buys over a CSV, when a cursor beats a DataFrame, before giving one. Attempting an answer before seeing the correct one reliably improves how well the correct one is retained, even when the attempt is wrong (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Five habits, in order.</p>
+
+  <ol>
+    <li><strong>Use <code>read_sql</code> by default</strong>, and a cursor only for single values and for changing data.</li>
+    <li><strong>Name every computed column with <code>AS</code></strong> in the query, so the DataFrame arrives labelled and nothing needs renaming.</li>
+    <li><strong>Never build SQL with an f-string.</strong> Placeholders and <code>params</code>, every time, even on data you trust.</li>
+    <li><strong>Filter and group in SQL</strong>, reshape and plot in pandas. Only the small result should travel.</li>
+    <li><strong>Keep credentials out of the file</strong>, in environment variables, and out of your repository.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional drawing is worth five minutes. Draw your script as a line from database to chart, and mark the point where the data stops being millions of rows and becomes hundreds. Everything to the left of that mark should be happening inside the query.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: getting set up, SQL, Excel, Python, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it is, or what it does</th></tr>
+    <tr><td><code>import sqlite3</code></td><td>Built into Python. Nothing to install.</td></tr>
+    <tr><td><code>sqlite3.connect(path)</code></td><td>Opens the file. A wrong path silently creates an empty database.</td></tr>
+    <tr><td><code>pd.read_sql(q, con)</code></td><td>Runs the query, returns a labelled DataFrame. The default choice.</td></tr>
+    <tr><td>Cursor and <code>fetchall()</code></td><td>Bare tuples, no column names. For single values and for writes.</td></tr>
+    <tr><td><code>con.commit()</code></td><td>Required after INSERT, UPDATE, DELETE. Reads need none.</td></tr>
+    <tr><td><code>AS</code> aliases</td><td>Become the DataFrame's column names. Name things in the query.</td></tr>
+    <tr><td><code>?</code> and <code>params=</code></td><td>Sends value and query separately. The safe way, always.</td></tr>
+    <tr><td>f-string SQL</td><td>Merges value into instructions. This is SQL injection.</td></tr>
+    <tr><td><code>params=(600000,)</code></td><td>The trailing comma is what makes it a tuple.</td></tr>
+    <tr><td><code>create_engine(url)</code></td><td>SQLAlchemy. One line changes to reach Postgres or MySQL.</td></tr>
+    <tr><td>Connection URL</td><td>engine+driver://user:password@host:port/database</td></tr>
+    <tr><td>Credentials</td><td><code>os.environ</code>, never typed into a committed file.</td></tr>
+    <tr><td>The dividing line</td><td>Filter and group in SQL. Reshape and plot in pandas.</td></tr>
+    <tr><td>"database is locked"</td><td>Another program holds it, usually DB Browser with unsaved changes.</td></tr>
+    <tr><td>Listing tables</td><td><code>SELECT name FROM sqlite_master WHERE type='table'</code></td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Placeholders instead of f-strings, without exception. It is one character of extra typing, it removes an entire category of security problem, and it fixes the quoting and date bugs that make a query behave differently in Python than it did in your database tool. If something breaks in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The first time I pointed a script at the wrong path, SQLite cheerfully made me an empty database and every query returned nothing at all, with no error to explain why. What silent success cost you the most time?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>The connection is one line. The query is the skill.</strong>
+    <p style="margin:6px 0 0">The <a href="../../python/">Python Kit</a> runs real CPython in the browser and covers reading, grouping, cleaning and charting in the order an analyst meets them. If it is the SQL half you want reps on, the <a href="../../drill/">SQL Drill</a> hands you one runnable query at a time.</p>
+    <a class="btn" href="../../python/">Open the Python Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../install-python-for-data-analysis/">Install Python</a> · <a href="../install-jupyter-notebook/">Set Up Jupyter</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../pandas-groupby/">pandas GroupBy</a> · <a href="../sample-database-for-sql-practice/">Get a Sample Database</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-aliasing/">SQL Aliases</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../python/">Python Kit</a> · <a href="../../sql/">SQL Kit</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
