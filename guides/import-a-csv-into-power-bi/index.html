@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Import a CSV into Power BI (And the Three Dropdowns Nobody Reads) — Analyst Prep Kit</title>
+<meta name="description" content="Import a CSV into Power BI Desktop properly: the File Origin, delimiter and type-detection dropdowns, why 200 rows decide your column types, and the columns=x step that silently ignores new columns forever.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/import-a-csv-into-power-bi/">
+<meta property="og:title" content="How to Import a CSV into Power BI (And the Three Dropdowns Nobody Reads)">
+<meta property="og:description" content="Power BI decides your column types from the first 200 rows and then applies them to millions. Here is that dialog, what each dropdown does, and the refresh trap nobody warns you about.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/import-a-csv-into-power-bi.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/import-a-csv-into-power-bi/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/import-a-csv-into-power-bi.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Import a CSV into Power BI (And the Three Dropdowns Nobody Reads)",
+  "description": "Import a CSV into Power BI Desktop properly: the File Origin, delimiter and type-detection dropdowns, why 200 rows decide your column types, and the columns=x step that silently ignores new columns forever.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/import-a-csv-into-power-bi/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/import-a-csv-into-power-bi/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/import-a-csv-into-power-bi.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "How to Import a CSV into Power BI",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/import-a-csv-into-power-bi/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../powerbi/">Power BI Kit</a> · <a href="../">All guides</a></p>
+  <h1>How to Import a CSV into Power BI</h1>
+  <p class="meta">The dialog everyone clicks past, and the three dropdowns in it that decide your whole report · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page your CSV will be in Power BI with the right column types, the right characters, and no silent surprises waiting for the first refresh. Importing is four clicks. The reason this page exists is that the dialog in the middle has three dropdowns that decide how every number, date and accented character in your file is read, and the default answers are guesses.</p>
+
+  <p>Here is what to actually do today. On the import dialog, set <strong>Data Type Detection</strong> to <em>Based on entire dataset</em> before you click anything else, and choose <strong>Transform Data</strong> rather than Load. Those two choices prevent most of what goes wrong below.</p>
+
+  <p>The short version: Home, Get data, Text/CSV, pick the file, read the three dropdowns, Transform Data, fix types, Close and Apply.</p>
+
+  <p>Why the type dropdown matters is the one idea worth the page, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 280" role="img" aria-labelledby="pcTitle pcDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="pcTitle">A sample decides the whole file</title>
+      <desc id="pcDesc">A very tall narrow column of stacked rows representing a long file. A small bracket encloses only the few rows at the very top of the stack. An arrow leads from that bracket to a short row of type labels drawn as small symbol tiles. From those tiles, a wide arrow sweeps back across the entire remaining height of the stack, showing the labels being applied to every row below. Near the bottom of the stack one row is drawn in a contrasting outline with a cross beside it, showing a single row further down that does not fit the label chosen from the top.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <!-- tall file -->
+        <g fill="#F5F7F8" stroke="#E4E7EA">
+          <rect x="40" y="30" width="150" height="14"/><rect x="40" y="44" width="150" height="14"/>
+          <rect x="40" y="58" width="150" height="14"/><rect x="40" y="72" width="150" height="14"/>
+          <rect x="40" y="86" width="150" height="14"/><rect x="40" y="100" width="150" height="14"/>
+          <rect x="40" y="114" width="150" height="14"/><rect x="40" y="128" width="150" height="14"/>
+          <rect x="40" y="142" width="150" height="14"/><rect x="40" y="156" width="150" height="14"/>
+          <rect x="40" y="170" width="150" height="14"/><rect x="40" y="184" width="150" height="14"/>
+          <rect x="40" y="198" width="150" height="14"/><rect x="40" y="212" width="150" height="14"/>
+          <rect x="40" y="226" width="150" height="14"/>
+        </g>
+        <!-- sampled top -->
+        <rect x="40" y="30" width="150" height="42" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <path d="M198 30 h10 v42 h-10" stroke="#0E7490" stroke-width="2" fill="none"/>
+
+        <!-- odd row near bottom -->
+        <rect x="40" y="226" width="150" height="14" fill="#FFFFFF" stroke="#B45309" stroke-width="2"/>
+        <text x="200" y="238" font-size="16" font-weight="700" fill="#B45309">✕</text>
+
+        <path d="M216 51 L318 51" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+        <path d="M318 51 L304 44 M318 51 L304 58" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+
+        <!-- type tiles -->
+        <g stroke="#0E7490" stroke-width="2" fill="#FFFFFF">
+          <rect x="330" y="30" width="52" height="42" rx="7"/>
+          <rect x="390" y="30" width="52" height="42" rx="7"/>
+          <rect x="450" y="30" width="52" height="42" rx="7"/>
+        </g>
+        <text x="342" y="57" font-size="15" font-weight="700" fill="#0E7490">Abc</text>
+        <text x="402" y="57" font-size="15" font-weight="700" fill="#0E7490">123</text>
+        <rect x="462" y="40" width="28" height="24" rx="3" fill="none" stroke="#0E7490" stroke-width="2"/>
+        <path d="M462 48 h28" stroke="#0E7490" stroke-width="2"/>
+
+        <!-- sweep back down over whole file -->
+        <path d="M416 76 C416 150 300 150 300 240 L232 240" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+        <path d="M232 240 L246 233 M232 240 L246 247" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+
+        <path d="M540 40 h180" stroke="#E4E7EA" stroke-width="1.5"/>
+        <path d="M540 60 h140" stroke="#E4E7EA" stroke-width="1.5"/>
+      </g>
+    </svg>
+    <figcaption>By default the types for every column are decided from a sample at the top of the file, then applied to all of it. One row further down that does not fit is where your refresh error comes from.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll do</strong>
+    <ol>
+      <li>Import it</li>
+      <li>The three dropdowns, one at a time</li>
+      <li>Transform Data, not Load</li>
+      <li>Fix the types once, properly</li>
+      <li>The columns=x trap</li>
+      <li>When the file is not really a CSV</li>
+      <li>The full before and after</li>
+      <li>What goes wrong, and the fix</li>
+      <li>Why it is built this way</li>
+      <li>Using this on your own reports</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every dialog option and limit here comes from Microsoft's own Text/CSV connector documentation</strong>, checked on 8 August 2026. The same connector and the same dropdowns appear in Excel's Power Query, so most of this page transfers straight across. If Power BI is not installed yet, <a href="../install-power-bi-desktop/">how to install Power BI Desktop</a> is the step before this one.</div>
+
+  <div class="step">
+    <h2>1. Import it</h2>
+
+    <p>Before the explanation: a CSV is a plain text file with no type information in it at all. So where do you think Power BI gets the idea that one column is a date and another is a number?</p>
+
+    <p>On the Home ribbon, choose <strong>Get data</strong>, then <strong>Text/CSV</strong>. Pick your file and press Open. A preview window appears showing the first rows and three dropdowns along the top.</p>
+
+    <p>That preview window is the answer to the question. Nothing in the file says "this column holds dates". Power BI reads a sample of the rows and guesses, then writes the guess down as a permanent step. The dropdowns are how you influence the guess, and they are much easier to set now than to unpick later.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. The three dropdowns, one at a time</h2>
+
+    <p><strong>File Origin</strong> is the character set. This one has a specific trap: the character set is not inferred, and UTF-8 is only detected automatically if the file starts with a special marker called a byte order mark. Plenty of files do not carry that marker. If your preview shows <code>Ã©</code> where an <code>é</code> should be, this dropdown is the fix, and setting it to a UTF-8 option will usually correct the whole file at once. <a href="../excel-character-encoding/">Character encoding for people who never heard the phrase</a> is the fuller explanation.</p>
+
+    <p><strong>Delimiter</strong> is what separates the values. Power BI offers colon, comma, equals sign, semicolon, space, tab, a custom delimiter of any text you like, and fixed width for files that use a set number of characters per field. It guesses, and it guesses well, but check the preview: if you see one column containing everything, the delimiter is wrong.</p>
+
+    <p><strong>Data Type Detection</strong> is the important one. Three choices: based on the first 200 rows, based on the entire dataset, or off, which loads every column as text. The default samples the top of the file, which is fast and is exactly the behaviour in the picture above.</p>
+
+    <p>Choose <em>Based on entire dataset</em> whenever you can. Microsoft's own warning is that this makes the initial load slower, which is true and is a fair trade: a slower import once beats a column typed wrongly forever. Their documentation says it plainly, that inference can be incorrect and you should double check before loading.</p>
+
+    <p>Choose <em>Do not detect data types</em> when the file is genuinely messy and you would rather set every type yourself than untangle a wrong guess. Everything arrives as text, and you convert deliberately.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Transform Data, not Load</h2>
+
+    <p>The preview window offers <strong>Load</strong> and <strong>Transform Data</strong>. Load drops the table straight into your model. Transform Data opens the Power Query editor first.</p>
+
+    <p>Choose Transform Data every time, even when the file looks perfect. The editor is where every action you take is recorded as a step in the Applied Steps list on the right, and that list replays on every future refresh. Work done there is permanent; work done later in the report is not.</p>
+
+    <p>Say what that means for a column you fix by hand after loading, before reading on. It means you will fix it by hand again after the next refresh, and so will whoever inherits the file. The editor is not an advanced option, it is where the durable version of the work lives.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Fix the types once, properly</h2>
+
+    <p>In the editor, each column header carries a small symbol saying what Power BI thinks it holds: <code>ABC</code> for text, <code>123</code> for whole numbers, <code>1.2</code> for decimals, a calendar for dates. Read that row of symbols before anything else. It is a two-second check that prevents most downstream confusion.</p>
+
+    <p>Three fixes worth making immediately when they apply.</p>
+
+    <p><strong>A number that arrived as text.</strong> Usually a thousands separator, a currency symbol, or a stray "N/A" in one row. Click the symbol and set the correct type, and if it errors, the offending value is now easy to find by filtering.</p>
+
+    <p><strong>A date that arrived as text, or is wrong by a month.</strong> Day and month have been swapped. Use Change Type, then <strong>Using Locale</strong>, and pick the locale the file was written in. That is the difference between telling Power BI what the column is and telling it what language the column was written in, and for dates you need the second one.</p>
+
+    <p><strong>A code that has lost its leading zeros.</strong> Postcodes, account numbers and product codes typed as numbers lose the zeros at the front. Set the type to Text, and if the zeros are already gone, they must be recovered in the source file rather than in Power BI. The <a href="../excel-csv-import-leading-zeros/">leading zeros fix</a> covers the source-side version.</p>
+
+    <p>Then press <strong>Close &amp; Apply</strong>. The steps are saved, and every refresh from now on replays them in order.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. The columns=x trap</h2>
+
+    <p>This one is documented, quiet, and expensive, and almost nobody knows about it until it bites.</p>
+
+    <p>When you import a CSV, Power BI writes a step recording the number of columns the file had at that moment, as <code>columns=x</code>. If somebody later adds a column to the source file and you refresh, <strong>the new column does not appear.</strong> The refresh succeeds, the numbers all update, and the extra field is silently ignored because the step says the file has x columns.</p>
+
+    <p>There is no error and no warning. A monthly report can run for a year without the field somebody added in March, and the person who eventually notices is usually the one asking why two systems disagree.</p>
+
+    <p>The fix is simple once you know: open the Applied Steps, edit the Source step, and let it pick up the new column count. The habit is better than the fix. Whenever the source file changes shape, check the import step rather than trusting a successful refresh, because success here means the steps ran, not that the data is complete.</p>
+
+    <p>Now picture a report you refresh regularly. If a column were added to its source tomorrow, how would you find out? For most reports the honest answer is that you would not, which is exactly why this trap is worth remembering.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. When the file is not really a CSV</h2>
+
+    <p>Power BI treats a <code>.csv</code> as structured with a comma delimiter, and for a plain text file it tries to work out whether there is a delimiter at all. Usually it is right. Two cases where it is not, both documented.</p>
+
+    <p><strong>Structured text that is not a CSV.</strong> A tab-separated file saved as <code>.txt</code> works fine, because Power BI detects the tab and treats it as a delimited file. The extension does not decide this; the content does.</p>
+
+    <p><strong>Unstructured text read as a table.</strong> Occasionally a document with similar numbers of commas across its paragraphs gets interpreted as a CSV. The fix is in the editor: edit the Source step and change <strong>Open File As</strong> from CSV to Text.</p>
+
+    <p>There is also a <strong>Line breaks</strong> setting on that same edited Source dialog, deciding whether line breaks inside quoted values are honoured or ignored. If a single record has split itself across two rows, or two records have merged into one, that setting is why.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same file, same report.</p>
+
+  <h3>Before</h3>
+  <pre><code>Get data → Text/CSV → Open → Load
+Chart looks wrong: revenue will not sum
+Fix the column in the report view
+Next month: refresh → same problem again
+Six months later: a column added in March is still missing</code></pre>
+  <p>Every step succeeded. The revenue column was typed as text because one row near the top had "N/A" in it, and the fix was applied in the report rather than in the query, so it does not survive a refresh. The missing column is the <code>columns=x</code> step doing exactly what it was told.</p>
+
+  <h3>After</h3>
+  <pre><code>Get data → Text/CSV → Open
+File Origin: UTF-8   Delimiter: comma   Type detection: entire dataset
+Transform Data
+Read the type symbols; set revenue to Decimal, order_date via Using Locale, postcode to Text
+Close &amp; Apply
+Whenever the source changes shape: check the Source step</code></pre>
+  <p>The same fixes, made in the place that replays them. Setting detection to the whole dataset means the "N/A" row is seen during import rather than discovered by a broken chart, and the locale step means dates are read in the language they were written in rather than the one your machine happens to use.</p>
+
+  <div class="step">
+    <h2>What goes wrong, and the fix</h2>
+
+    <p>Six that account for most of it.</p>
+
+    <p><strong>Accented characters look like <code>Ã©</code>.</strong> File Origin. The character set is not inferred unless the file carries a byte order mark. Set it to UTF-8.</p>
+
+    <p><strong>Everything landed in one column.</strong> Wrong delimiter. Change it in the dropdown and watch the preview split.</p>
+
+    <p><strong>A number column will not sum.</strong> It is typed as text, usually because of a separator, a symbol, or one non-numeric value. Set the type in the editor, then filter to find the offending row.</p>
+
+    <p><strong>Dates are out by a month.</strong> Day and month swapped. Change Type, Using Locale, and choose the locale the file was written in.</p>
+
+    <p><strong>A new source column never appears.</strong> The <code>columns=x</code> step. Edit the Source step.</p>
+
+    <p><strong>Refresh breaks on a row that was always fine.</strong> The type was inferred from the first 200 rows and a later row does not fit. Re-import with detection based on the entire dataset.</p>
+  </div>
+
+  <h2>Why it is built this way</h2>
+
+  <p>A CSV carries no type information whatsoever. It is text, commas and line breaks, so every idea about what a column contains has to be invented by the program reading it. Sampling the first rows is a reasonable compromise between speed and accuracy on a large file, and the reason it fails is structural rather than careless: the row that breaks your assumption is usually rare, and rare rows are exactly the ones a sample misses.</p>
+
+  <p>That also explains why the fix is a setting rather than a smarter guess. Scanning the whole file gives a correct answer at the cost of time, and Microsoft's documentation is direct about that trade. Once you see the dropdown as a speed-against-certainty dial rather than an obscure option, choosing it becomes easy: certainty when the file matters, speed while you are exploring.</p>
+
+  <p>The <code>columns=x</code> step follows the same logic. Power Query records what it found so the steps can replay identically, and identical replay is the entire value of the tool. The cost of that guarantee is that a change in the source's shape is not automatically welcomed in, which is a reasonable default and a genuine hazard when nobody has been told.</p>
+
+  <p>One note on the way this page is written. It kept asking you to commit to an answer, where the types come from, what a hand fix costs you later, before giving one. Attempting an answer before seeing the correct one reliably improves how well the correct one is retained, even when the attempt is wrong (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725).</p>
+
+  <h2>Using this on your own reports</h2>
+
+  <p>Five habits, in order.</p>
+
+  <ol>
+    <li><strong>Read all three dropdowns before clicking anything.</strong> Ten seconds, and they decide the rest.</li>
+    <li><strong>Set detection to the entire dataset</strong> for anything you will refresh. Speed matters less than a type that is right.</li>
+    <li><strong>Always Transform Data, never Load.</strong> Fixes made in the editor replay; fixes made afterwards do not.</li>
+    <li><strong>Use Change Type, Using Locale for dates</strong>, always, rather than plain Change Type.</li>
+    <li><strong>Check the Source step whenever the file's shape changes.</strong> A successful refresh is not evidence that a new column arrived.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional drawing is worth two minutes. Write your file's column names down the page and put the type symbol you expect beside each one, before you import. Any column where the editor disagrees with your list is a column worth looking at properly, and that comparison takes less time than discovering it through a broken chart.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: getting set up, SQL, Excel, Python, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it is, or what it does</th></tr>
+    <tr><td>The path</td><td>Home → Get data → Text/CSV → pick the file.</td></tr>
+    <tr><td>Why types are guessed</td><td>A CSV holds no type information. Everything is inferred.</td></tr>
+    <tr><td>File Origin</td><td>The character set. Not inferred unless the file has a byte order mark.</td></tr>
+    <tr><td><code>Ã©</code> instead of <code>é</code></td><td>Wrong File Origin. Set UTF-8.</td></tr>
+    <tr><td>Delimiter options</td><td>Colon, comma, equals, semicolon, space, tab, custom text, fixed width.</td></tr>
+    <tr><td>Everything in one column</td><td>Wrong delimiter.</td></tr>
+    <tr><td>Type detection choices</td><td>First 200 rows, entire dataset, or off (all text).</td></tr>
+    <tr><td>Entire dataset</td><td>Slower first load, correct types. Prefer it for anything you refresh.</td></tr>
+    <tr><td>Transform Data</td><td>Opens the editor. Steps recorded there replay on every refresh.</td></tr>
+    <tr><td>Load</td><td>Straight into the model, no recorded cleaning. Rarely the right choice.</td></tr>
+    <tr><td>Type symbols</td><td><code>ABC</code> text, <code>123</code> whole number, <code>1.2</code> decimal, calendar date.</td></tr>
+    <tr><td>Using Locale</td><td>For dates. Tells Power BI which language the column was written in.</td></tr>
+    <tr><td><code>columns=x</code></td><td>Records the column count at import. New source columns are silently ignored.</td></tr>
+    <tr><td>Open File As</td><td>CSV or Text. Fixes unstructured text misread as a table.</td></tr>
+    <tr><td>Line breaks</td><td>Apply all, or ignore quoted ones. Fixes split or merged records.</td></tr>
+    <tr><td>Close &amp; Apply</td><td>Saves the steps and loads the data into the model.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Read the type symbols across the top of the editor before you build anything, every single time. Every silent CSV problem shows up in that one row of symbols, and looking at it costs two seconds against an afternoon of a chart that will not add up. If something breaks in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The import problem I find most unsettling is the one with no error at all, where a column was added to a file months ago and every refresh since has quietly left it out. What has a successful-looking refresh hidden from you?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+    <li>Microsoft. Power Query Text/CSV connector. Retrieved 8 August 2026 from learn.microsoft.com/power-query/connectors/text-csv. Cited for dialog options, type-detection behaviour and the columns=x refresh limitation, which are product details rather than research findings.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>The file is in. Now build the model.</strong>
+    <p style="margin:6px 0 0">The <a href="../../powerbi/">Power BI Kit</a> covers relationships, the data model and DAX in the order an analyst meets them, starting with the distinction that trips up everyone: <a href="../powerbi-measures-vs-columns/">calculated columns against measures</a>.</p>
+    <a class="btn" href="../../powerbi/">Open the Power BI Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../install-power-bi-desktop/">Install Power BI Desktop</a> · <a href="../powerbi-measures-vs-columns/">Columns vs Measures</a> · <a href="../connect-excel-to-a-database/">Connect Excel to a Database</a> · <a href="../excel-character-encoding/">Character Encoding</a> · <a href="../excel-csv-import-leading-zeros/">CSV Leading Zeros</a> · <a href="../free-datasets-to-practice-with/">Free Datasets</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../excel-dashboard-build-order/">Dashboard Build Order</a> · <a href="../choose-the-right-chart/">Choose the Right Chart</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../powerbi/">Power BI Kit</a> · <a href="../../excel/">Excel Kit</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
