@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Clean Messy Data in Excel: TRIM, CLEAN and the Space You Cannot See — Analyst Prep Kit</title>
+<meta name="description" content="Find the problem before you fix it with LEN and CODE, then TRIM, SUBSTITUTE and PROPER. Includes the space TRIM will not remove and the 865 it took off a regional total.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-clean-messy-data/">
+<meta property="og:title" content="How to Clean Messy Data in Excel: TRIM, CLEAN and the Space You Cannot See">
+<meta property="og:description" content="Two cells both read North. One is five characters and one is six, and a regional total is 865 short. LEN, CODE, TRIM, SUBSTITUTE and the names PROPER gets wrong.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-clean-messy-data.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-clean-messy-data/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-clean-messy-data.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Clean Messy Data in Excel: TRIM, CLEAN and the Space You Cannot See",
+  "description": "Find the problem before you fix it with LEN and CODE, then TRIM, SUBSTITUTE and PROPER. Includes the space TRIM will not remove and the 865 it took off a regional total.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-clean-messy-data/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-clean-messy-data/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-clean-messy-data.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "How to Clean Messy Data in Excel: TRIM, CLEAN and the Space You Cannot See",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-clean-messy-data/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../excel/">Excel Kit</a> · <a href="../">All guides</a></p>
+  <h1>How to Clean Messy Data in Excel: TRIM, CLEAN and the Space You Cannot See</h1>
+  <p class="meta">Find it with LEN, name it with CODE, remove it with the right function · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can find the invisible characters that are quietly breaking your totals, name exactly which character each one is, remove it with the function that actually removes it, and prove afterwards that the column is clean. It is about twenty-five minutes, and every result below came out of Excel on a deliberately dirty copy of a real sixteen-row table.</p>
+
+  <p>Here is what to do right now, on the text column your formulas depend on. Put <code>=LEN(A2)</code> beside it and fill it down. Then look for values whose length is one more than the characters you can count. That single column finds trailing spaces, leading spaces, non-breaking spaces and embedded line breaks in about ten seconds, before you have decided to fix anything.</p>
+
+  <p>The short version: a cell that looks right can still be the wrong string, and every text function you are about to use targets a different kind of wrongness. Measure first, then choose the function.</p>
+
+  <p>Two cells reading the same word and not being equal is the idea everything else rests on, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 196" role="img" aria-labelledby="clTitle clDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="clTitle">Same word, different string</title>
+      <desc id="clDesc">Two spreadsheet cells sit side by side near the top of the picture. Both display the word North in identical type, and nothing distinguishes them. Below each cell the same value is shown again, magnified and broken into one small square box per character, the way a character viewer would show it. Under the left cell there are five boxes, holding N, o, r, t and h, and the label LEN 5 sits beneath them. Under the right cell there are six boxes: the same five letters, and then a sixth box which is empty and outlined in amber with a small centred dot to mark that something is there. The label LEN 6 sits beneath those. Between the two magnified strips is a large equals sign with a diagonal stroke through it, meaning the two values are not equal. The picture makes the point without words: the difference between the two cells exists only in the sixth box, and the sixth box is invisible at normal size.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <!-- the two cells as they appear -->
+        <rect x="86" y="24" width="180" height="42" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="104" y="52" font-size="17" fill="#09090B">North</text>
+        <rect x="494" y="24" width="180" height="42" fill="#FFFFFF" stroke="#E4E7EA"/>
+        <text x="512" y="52" font-size="17" fill="#09090B">North</text>
+
+        <path d="M176 66 L176 96" stroke="#A1A1AA" stroke-width="1.6" stroke-dasharray="4 4" fill="none"/>
+        <path d="M584 66 L584 96" stroke="#A1A1AA" stroke-width="1.6" stroke-dasharray="4 4" fill="none"/>
+
+        <!-- magnified: five boxes -->
+        <g stroke="#0E7490" stroke-width="1.8" fill="#E0F2F7">
+          <rect x="86" y="102" width="36" height="44"/>
+          <rect x="122" y="102" width="36" height="44"/>
+          <rect x="158" y="102" width="36" height="44"/>
+          <rect x="194" y="102" width="36" height="44"/>
+          <rect x="230" y="102" width="36" height="44"/>
+        </g>
+        <g font-size="18" fill="#09090B" text-anchor="middle">
+          <text x="104" y="132">N</text><text x="140" y="132">o</text><text x="176" y="132">r</text>
+          <text x="212" y="132">t</text><text x="248" y="132">h</text>
+        </g>
+        <text x="176" y="176" font-size="15" font-weight="700" fill="#0E7490" text-anchor="middle">LEN 5</text>
+
+        <!-- magnified: six boxes -->
+        <g stroke="#0E7490" stroke-width="1.8" fill="#E0F2F7">
+          <rect x="458" y="102" width="36" height="44"/>
+          <rect x="494" y="102" width="36" height="44"/>
+          <rect x="530" y="102" width="36" height="44"/>
+          <rect x="566" y="102" width="36" height="44"/>
+          <rect x="602" y="102" width="36" height="44"/>
+        </g>
+        <rect x="638" y="102" width="36" height="44" stroke="#B45309" stroke-width="2.6" fill="#FDF3E3"/>
+        <circle cx="656" cy="124" r="3.4" fill="#B45309"/>
+        <g font-size="18" fill="#09090B" text-anchor="middle">
+          <text x="476" y="132">N</text><text x="512" y="132">o</text><text x="548" y="132">r</text>
+          <text x="584" y="132">t</text><text x="620" y="132">h</text>
+        </g>
+        <text x="566" y="176" font-size="15" font-weight="700" fill="#B45309" text-anchor="middle">LEN 6</text>
+
+        <!-- not equal -->
+        <text x="366" y="138" font-size="40" fill="#09090B" text-anchor="middle">=</text>
+        <path d="M348 152 L384 108" stroke="#B45309" stroke-width="3.4" fill="none"/>
+      </g>
+    </svg>
+    <figcaption>Both cells display North. One of them has a sixth character in it. Nothing on the screen shows you which, so every comparison, lookup and SUMIFS in the workbook treats them as two different regions.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What it costs: 865 missing from a regional total</li>
+      <li>Find it before you fix it: LEN and CODE</li>
+      <li>TRIM: what it removes, and what it squashes</li>
+      <li>The space TRIM will not remove</li>
+      <li>CLEAN, and the two words it welds together</li>
+      <li>PROPER, UPPER and LOWER, and the names PROPER gets wrong</li>
+      <li>Numbers stored as text</li>
+      <li>Clean in a new column, then prove it worked</li>
+      <li>The full before and after</li>
+      <li>Edge cases that survive a cleaning pass</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every result on this page is real.</strong> The sixteen-row orders table used across this set of guides, copied and then damaged on purpose in six specific ways, with every formula run in Excel and its output copied back.</div>
+
+  <div class="step">
+    <h2>1. What it costs: 865 missing from a regional total</h2>
+
+    <p>Five of the sixteen orders belong to the North region and they add to 2,495. Two of those five rows arrived with a problem you cannot see: one has a trailing space after "North", and one ends in a non-breaking space, the character a web page or a Word document leaves behind when text is pasted through it.</p>
+
+    <p>Nothing on screen is different. Here is what the workbook says.</p>
+
+    <pre><code>North revenue, clean data                       2495
+North revenue, same data with two bad cells     1630
+Rows that are exactly "North" out of five          3
+Distinct regions, clean                            4
+Distinct regions, messy                            6</code></pre>
+
+    <p>865 has left the total, which is 425 plus 440, the two affected orders. And the region count went from four to six, because "North " and "North" plus a non-breaking space are each their own region as far as Excel is concerned.</p>
+
+    <p>Say out loud which of those two symptoms you would notice first in a real workbook. The missing 865 is invisible; nothing says a total should have been bigger. The region count is the tell, and it is the reason the first thing to do with any new text column is count its distinct values and ask whether that number is the number you expected.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. Find it before you fix it: LEN and CODE</h2>
+
+    <p>Two formulas do the whole diagnosis, and neither of them changes anything.</p>
+
+    <p><code>LEN</code> counts characters, so it turns an invisible problem into a number.</p>
+
+    <pre><code>=LEN(D8)      6      you can see five letters
+=LEN(D12)     6      you can see five letters</code></pre>
+
+    <p>Both are one too long. That is enough to know something is wrong, and not enough to know what to do, because the two cells have different problems and need different fixes. <code>CODE</code> gives the identity of a character as a number, so pointing it at the last character names the culprit.</p>
+
+    <pre><code>=CODE(RIGHT(D8,1))      32     an ordinary space
+=CODE(RIGHT(D12,1))    160     a non-breaking space</code></pre>
+
+    <p>32 is the space bar. 160 is the character produced by <code>&amp;nbsp;</code> on a web page, and by Word when it is keeping two words on the same line. They look identical in every font. Only one of them is removed by the function everybody reaches for first.</p>
+
+    <p>Keep those two formulas as a habit rather than a rescue. <code>=LEN(A2)</code> filled down a column, and <code>=CODE(RIGHT(A2,1))</code> on the one row that is too long, is a thirty-second diagnosis that turns "the lookup is not working" into "there is a character 160 on row 12".</p>
+  </div>
+
+  <div class="step">
+    <h2>3. TRIM: what it removes, and what it squashes</h2>
+
+    <p>Before the explanation: <code>TRIM</code> is described everywhere as removing spaces. Say what you think it does to <code>"Dana   Reyes"</code>, with three spaces in the middle.</p>
+
+    <pre><code>=TRIM("Dana   Reyes")       Dana Reyes
+=LEN(TRIM("Dana   Reyes"))          10</code></pre>
+
+    <p>It does two jobs, not one. It removes spaces from the start and end completely, and it squashes any run of spaces <em>inside</em> the text down to a single space. Ten characters: nine letters and one space. That second behaviour is usually what you want and is occasionally not, so it is worth knowing rather than discovering.</p>
+
+    <p>On the trailing-space cell it works exactly as advertised.</p>
+
+    <pre><code>=LEN(D8)            6
+=LEN(TRIM(D8))      5</code></pre>
+
+    <p>One character gone, and the value now matches every other "North" in the column. If your problem is ordinary spaces, this is the whole fix, and it is why <code>TRIM</code> around a lookup key is the standard first thing to try when <a href="../excel-index-match/">a lookup returns <code>#N/A</code> for a value you can see</a>.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. The space TRIM will not remove</h2>
+
+    <p>Before the explanation: the other bad cell ends in character 160. Predict what <code>TRIM</code> does to it.</p>
+
+    <pre><code>=LEN(D12)              6
+=LEN(TRIM(D12))        6
+=LEN(CLEAN(D12))       6</code></pre>
+
+    <p>Nothing. Neither function touches it. <code>TRIM</code> removes character 32 and only character 32, and <code>CLEAN</code> removes the control characters numbered 0 to 31, which does not include 160 either. This is the single most common reason somebody says "I already trimmed it and it still does not match".</p>
+
+    <p>The fix is to convert the character into an ordinary space first, and then trim.</p>
+
+    <pre><code>=TRIM(SUBSTITUTE(D12, CHAR(160), " "))
+
+=LEN(  that  )                          5
+=  that  = "North"                   TRUE</code></pre>
+
+    <p><code>SUBSTITUTE</code> takes the text, the thing to find and the thing to put in its place, and replaces every occurrence. Nesting it inside <code>TRIM</code> gives one formula that handles both kinds of space at once, which is the version worth keeping.</p>
+
+    <p>Make that your default cleaning formula for any text column arriving from outside your workbook:</p>
+
+    <pre><code>=TRIM(SUBSTITUTE(A2, CHAR(160), " "))</code></pre>
+
+    <p>It costs nothing on data that was already clean and saves the afternoon on data that was not.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. CLEAN, and the two words it welds together</h2>
+
+    <p><code>CLEAN</code> removes non-printing control characters, the commonest of which by far is the line break somebody pressed Alt+Enter to make, or that arrived inside a field exported from another system.</p>
+
+    <p>One of the rep names in the dirty copy has a line break inside it, so the cell shows the name across two lines. Here is what happens.</p>
+
+    <pre><code>=LEN(C10)                    9
+=LEN(CLEAN(C10))             8
+=CLEAN(C10) = "OwenPark"  TRUE</code></pre>
+
+    <p>Read that last line twice. <code>CLEAN</code> deleted the line break rather than replacing it, so "Owen" and "Park" are now welded into one word with no space. The cell no longer looks broken, which is worse than looking broken, because the name is now wrong in a way that survives every subsequent check.</p>
+
+    <p>A line break is a separator, so it should become a space, not nothing.</p>
+
+    <pre><code>=TRIM(SUBSTITUTE(C10, CHAR(10), " "))       Owen Park</code></pre>
+
+    <p>Character 10 is the line feed, and character 13 is the carriage return; text from older systems can carry either or both. If you are cleaning a column that might hold multi-line notes, substitute both, and only reach for <code>CLEAN</code> when you genuinely want the character gone rather than replaced.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. PROPER, UPPER and LOWER, and the names PROPER gets wrong</h2>
+
+    <p>Case is the other way two identical values become two different ones. <code>UPPER</code> and <code>LOWER</code> are exactly what they sound like and have no surprises in them. <code>PROPER</code> capitalises the first letter of every word, and it has several.</p>
+
+    <pre><code>=PROPER("owen park")      Owen Park       right
+=PROPER("o'brien")        O'Brien         right
+=PROPER("mcdonald")       Mcdonald        wrong
+=PROPER("IBM")            Ibm             wrong</code></pre>
+
+    <p>It gets the apostrophe case right, which is genuinely useful. It cannot know that McDonald has a capital in the middle, and it will happily destroy an acronym that was already correct, because it applies one rule to every word it meets.</p>
+
+    <p>So the rule for names and codes: never run <code>PROPER</code> over a column of real names and consider it cleaned. Use it on data you know is all one case and all ordinary words, check the output by eye, and keep the original column so the damage is reversible. For matching purposes you rarely need pretty capitals anyway; comparisons in Excel ignore case already, so <code>UPPER</code> on both sides is a safer way to force agreement than trying to make each value look nice.</p>
+
+    <p>Picture your own worst column for a second: customer names, supplier names, product codes typed by four different people. How many of those entries would <code>PROPER</code> quietly damage, and would anybody notice before the mailing went out?</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Numbers stored as text</h2>
+
+    <p>The same problem in the numeric columns, with a different symptom. One of the sixteen orders has its Units value entered as text rather than as a number. Nothing shows except a small green triangle in the corner, which most people have learned to ignore.</p>
+
+    <pre><code>=SUM(clean Units)      101
+=SUM(messy Units)       95
+=COUNT(messy Units)     15
+=ISTEXT(that cell)    TRUE</code></pre>
+
+    <p><code>SUM</code> skips text, so the total is short by exactly the value it skipped, and <code>COUNT</code> says 15 where there are 16 rows. That COUNT is the cheapest detector there is: put <code>=COUNT(range)</code> next to any numeric column and compare it with the row count. A mismatch is text pretending to be a number.</p>
+
+    <p>Three ways to fix it, in order of how much you should like them. Best, fix the import so it never arrives as text, which for a CSV means declaring the column types in the import dialog rather than double-clicking the file; <a href="../excel-csv-import-leading-zeros/">the import dialog that deletes your zip codes</a> covers the same dialog from the opposite direction. Next best, convert in a new column with <code>=VALUE(A2)</code>, which returns a real number, or multiply by 1, which also works. Last resort, select the column, click the warning triangle and choose Convert to Number, which edits the data in place and leaves no record that it happened.</p>
+
+    <p>One warning about <code>VALUE</code>: it fails with <code>#VALUE!</code> on anything that is not a clean number, including a value with a stray space or a currency symbol. That failure is useful, because it points at the rows that need a human. Wrapping it to hide the failure would put you back where <a href="../excel-iferror/">hiding an error</a> always puts you.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. Clean in a new column, then prove it worked</h2>
+
+    <p>Two working rules matter more than any of the functions.</p>
+
+    <p><strong>Never clean in place.</strong> Put the cleaning formula in a new column beside the original, called <code>Region_clean</code> or similar, and point your analysis at that. Overwriting the raw column destroys the only evidence of what arrived, so when the numbers disagree with the source system next month there is nothing to compare against. It also makes the cleaning repeatable: next month's file drops in and the column recalculates.</p>
+
+    <p><strong>Prove it, do not assume it.</strong> Cleaning is the one activity where the work and the check look identical, so people skip the check. Three formulas, run after every pass:</p>
+
+    <pre><code>=COUNTA(UNIQUE(Region_clean))     distinct values, is it the number you expect?
+=SUMPRODUCT(--(LEN(A2:A17)&lt;&gt;LEN(TRIM(A2:A17))))    rows still carrying stray spaces
+=COUNT(Units)  against  =COUNTA(Units)             numbers against everything</code></pre>
+
+    <p>On the dirty copy, the distinct-region count went from 6 to 4 after cleaning, and the North total came back to 2,495. Those two numbers are the proof. Without them you have a column that looks cleaner, which is not the same claim.</p>
+
+    <p>When the values differ in ways no function can reconcile, "Acme Ltd" against "ACME Limited" against "Acme Co", you have crossed out of cleaning and into <a href="../entity-resolution/">entity resolution</a>, which is a different job with a different method.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same sixteen orders, same question: what did North sell?</p>
+
+  <h3>Before</h3>
+  <pre><code>=SUMIFS(H2:H17, D2:D17, "North")        1630
+distinct regions                            6
+Units total                                95</code></pre>
+  <p>Three numbers, all wrong, none of them flagged. The regional report is 865 short, there are two regions on the pivot that do not exist, and six units of stock have vanished from a total that still looks entirely reasonable.</p>
+
+  <h3>After</h3>
+  <pre><code># one new column per dirty column, originals untouched
+Region_clean  =TRIM(SUBSTITUTE(D2, CHAR(160), " "))
+Rep_clean     =TRIM(SUBSTITUTE(C2, CHAR(10),  " "))
+Units_num     =VALUE(F2)
+
+# the three checks, on the sheet, not in your head
+distinct regions   =COUNTA(UNIQUE(Region_clean))       4
+North revenue      =SUMIFS(H2:H17, Region_clean, "North")   2495
+Units              =COUNT(Units_num) equals row count      16</code></pre>
+  <p>The claim, and it is the reason to do the LEN column before anything else: <strong>two characters nobody could see moved a regional total by 865 and invented two regions, and one text-formatted cell removed six units from stock, on a sheet where every visible value was correct.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases that survive a cleaning pass</h2>
+
+    <p>Six that get through the obvious fixes.</p>
+
+    <p><strong>A different invisible character.</strong> 160 is the common one, but zero-width spaces and directional marks also travel through copy and paste. If <code>LEN</code> is still too long after substituting 160, use <code>=CODE(MID(A2,n,1))</code> to walk along and name whatever is actually sitting there.</p>
+
+    <p><strong>Apostrophes and quotes that are not the ones you typed.</strong> A curly apostrophe and a straight one are different characters, so "O'Brien" from Word never matches "O'Brien" from your keyboard. Substitute one for the other before comparing.</p>
+
+    <p><strong>A leading apostrophe you cannot see.</strong> Typing <code>'1001</code> makes Excel store text and hide the apostrophe. <code>LEN</code> does not count it and <code>ISTEXT</code> does report it, which is why the numeric check in section seven exists.</p>
+
+    <p><strong>Cleaning that changed the meaning.</strong> <code>TRIM</code> collapsing internal runs is right for names and wrong for anything where the spacing carried information, like fixed-width codes. Check a sample against the source before applying it to a whole column.</p>
+
+    <p><strong>The formulas that are now pointing at the raw column.</strong> Adding a clean column does nothing until everything downstream reads it. Search the workbook for the old column reference; a half-repointed workbook is worse than an unrepointed one, because the two halves disagree.</p>
+
+    <p><strong>Text that looks numeric in one place and not another.</strong> A column can be half numbers and half text after a bad import, and the halves behave differently in every formula. Compare <code>COUNT</code> with <code>COUNTA</code> rather than reading the column, and never trust right-alignment as evidence, because a format can override it.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>None of this is Excel being badly behaved. A cell holds a string of characters, and two strings are equal only if every character matches, which is the only definition a computer can use. The mismatch is between that definition and the human one, where "North" and "North " are obviously the same word. Every technique on this page is a way of forcing the two definitions to agree, and the reason the diagnosis comes first is that you cannot pick the right function until you know which character is present.</p>
+
+  <p>It also is not a small side task. Studies of how analysts actually spend their time have repeatedly found that discovering and repairing data problems takes a large share of the total effort, and that the hardest part is not applying a transformation but working out which transformation is needed; the Wrangler work built an interactive tool specifically around that gap between spotting a problem and specifying its fix (Kandel, Paepcke, Hellerstein, &amp; Heer, 2011, <em>Proceedings of the SIGCHI Conference on Human Factors in Computing Systems</em>, 3363–3372). The LEN column in section two is the low-tech version of the same idea: make the invisible problem visible before deciding anything.</p>
+
+  <p>The wider warning is that spreadsheets alter data without being asked, and the alterations persist. Ziemann and colleagues found that a substantial share of published genomics supplementary files contained gene names that Excel had silently converted into dates or numbers, in papers that had been peer reviewed, because nothing about the converted value announces itself as converted (Ziemann, Eren, &amp; El-Osta, 2016, <em>Genome Biology</em>, 17, 177). A number stored as text and a name stored as a date are the same class of problem as a trailing space: the display is fine and the value is not.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than reread, because attempting to retrieve something produces markedly better retention than studying it again, even when the second option feels more productive while you are doing it (Karpicke &amp; Blunt, 2011, <em>Science</em>, 331(6018), 772–775).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Cleaning an entire inherited workbook is miserable and you will stop at the second column. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Count the distinct values in every text column you group or filter by.</strong> <code>=COUNTA(UNIQUE(range))</code>. Any count higher than you expected is where the work is.</li>
+    <li><strong>Add a LEN column beside the worst one</strong> and sort by it. The problems rise to the top in one click.</li>
+    <li><strong>Name the character with CODE</strong> before choosing a function. Thirty-two and one hundred and sixty need different fixes.</li>
+    <li><strong>Clean into a new column</strong>, always, with <code>=TRIM(SUBSTITUTE(A2,CHAR(160)," "))</code> as the default and additions only where you have evidence.</li>
+    <li><strong>Compare COUNT with the row count</strong> on every numeric column, to catch numbers stored as text.</li>
+    <li><strong>Re-run the distinct count and the affected total</strong>, and write both numbers down. That is the proof the pass worked, and it takes ten seconds.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Draw one of your problem values as a row of boxes, one box per character, and put a dot in every box that holds a space. Most people discover while drawing that they do not know how many boxes there should be, and that uncertainty is exactly the thing the LEN column removes.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: Excel, SQL, Python, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td><code>LEN(A2)</code></td><td>Counts characters. Turns an invisible problem into a number.</td></tr>
+    <tr><td><code>CODE(RIGHT(A2,1))</code></td><td>Names the last character. 32 is a space, 160 is a non-breaking space.</td></tr>
+    <tr><td><code>TRIM</code></td><td>Removes leading and trailing spaces, and squashes internal runs to one.</td></tr>
+    <tr><td>What TRIM misses</td><td>Character 160. Length does not change.</td></tr>
+    <tr><td><code>CLEAN</code></td><td>Removes control characters 0 to 31. Also misses 160.</td></tr>
+    <tr><td>CLEAN on a line break</td><td>Deletes it rather than replacing it. Owen Park becomes OwenPark.</td></tr>
+    <tr><td>The default fix</td><td><code>=TRIM(SUBSTITUTE(A2,CHAR(160)," "))</code></td></tr>
+    <tr><td>Line breaks</td><td><code>SUBSTITUTE(A2,CHAR(10)," ")</code>, and CHAR(13) if the file is older.</td></tr>
+    <tr><td><code>PROPER</code></td><td>Capitalises every word. Handles O'Brien, ruins McDonald and IBM.</td></tr>
+    <tr><td><code>UPPER</code> / <code>LOWER</code></td><td>Safe. Use for forcing two columns to agree.</td></tr>
+    <tr><td>Numbers as text</td><td><code>SUM</code> skips them silently. <code>COUNT</code> comes up short.</td></tr>
+    <tr><td>Fixing them</td><td><code>=VALUE(A2)</code> in a new column, or fix the import.</td></tr>
+    <tr><td>Distinct check</td><td><code>=COUNTA(UNIQUE(range))</code>. More than expected means near-duplicates.</td></tr>
+    <tr><td>Stray-space check</td><td><code>=SUMPRODUCT(--(LEN(r)&lt;&gt;LEN(TRIM(r))))</code></td></tr>
+    <tr><td>Where to clean</td><td>A new column. Never over the raw data.</td></tr>
+    <tr><td>Beyond cleaning</td><td>Values that need judgement to reconcile are entity resolution.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Count the distinct values of a text column before you use it, and compare that count with the number you expected. Four regions that come back as six is the cheapest, earliest signal you will ever get, and it costs one formula. If a column misbehaves in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The one that cost me most was a supplier column where a single value had been pasted out of an email, so one supplier appeared twice in every report for a quarter and both entries looked identical on screen. What was hiding in your data, and what finally made you count the characters?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Kandel, S., Paepcke, A., Hellerstein, J., &amp; Heer, J. (2011). Wrangler: Interactive visual specification of data transformation scripts. <em>Proceedings of the SIGCHI Conference on Human Factors in Computing Systems</em>, 3363–3372.</li>
+    <li>Ziemann, M., Eren, Y., &amp; El-Osta, A. (2016). Gene name errors are widespread in the scientific literature. <em>Genome Biology</em>, 17, 177.</li>
+    <li>Karpicke, J. D., &amp; Blunt, J. R. (2011). Retrieval practice produces more learning than elaborative studying with concept mapping. <em>Science</em>, 331(6018), 772–775.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice on data that is dirty on purpose.</strong>
+    <p style="margin:6px 0 0">The <a href="../../excel/">Excel Kit</a> gives you the repetitions: columns seeded with the exact problems on this page, flash cards on which function removes which character, and a mock exam that asks you to predict a total before you clean the column. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../excel/">Open the Excel Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../excel-character-encoding/">Names That Came In as Gibberish</a> · <a href="../excel-csv-import-leading-zeros/">Leading Zeros on Import</a> · <a href="../excel-index-match/">INDEX MATCH vs VLOOKUP</a> · <a href="../excel-iferror/">How to Use IFERROR</a> · <a href="../excel-tables/">Excel Tables vs Ranges</a> · <a href="../excel-pivot-tables/">Make a Pivot Table</a> · <a href="../excel-check-your-work/">Check Your Work</a> · <a href="../excel-sumifs/">SUMIFS and COUNTIFS</a> · <a href="../../excel/">Excel Kit</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../sql-find-duplicates/">Find Duplicates in SQL</a> · <a href="../sql-null/">NULL in SQL</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../pandas-groupby/">pandas groupby</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
