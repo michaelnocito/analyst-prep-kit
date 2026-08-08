@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Connect Excel to a SQL Database (And Stop Pasting) — Analyst Prep Kit</title>
+<meta name="description" content="Connect Excel to SQL Server, Postgres, MySQL or SQLite with Power Query, so the monthly report refreshes with one button instead of a paste. The menu path, the ODBC gap, and what to do when IT says no.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/connect-excel-to-a-database/">
+<meta property="og:title" content="How to Connect Excel to a SQL Database (And Stop Pasting)">
+<meta property="og:description" content="A pasted table is a photograph. A connection is a window. Same numbers today, and only one of them is still right next month.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/connect-excel-to-a-database.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/connect-excel-to-a-database/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/connect-excel-to-a-database.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Connect Excel to a SQL Database (And Stop Pasting)",
+  "description": "Connect Excel to SQL Server, Postgres, MySQL or SQLite with Power Query, so the monthly report refreshes with one button instead of a paste. The menu path, the ODBC gap, and what to do when IT says no.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/connect-excel-to-a-database/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/connect-excel-to-a-database/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/connect-excel-to-a-database.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "How to Connect Excel to a SQL Database",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/connect-excel-to-a-database/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../excel/">Excel Kit</a> · <a href="../">All guides</a></p>
+  <h1>How to Connect Excel to a SQL Database</h1>
+  <p class="meta">Four clicks to a table that refreshes itself, and the honest version of what to do when the connector is missing · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page your spreadsheet will pull its numbers straight from a database, so next month's report is one Refresh All instead of an export, a paste, and a silent prayer that you pasted into the right columns. The path is <strong>Data, then Get Data, then From Database</strong>, and the rest of this page is the parts that go wrong after that.</p>
+
+  <p>Here is what to actually do today. Connect to one table you currently copy by hand, load it to a worksheet, and press Refresh once to watch it update. Do not rebuild your whole report yet. One connected table teaches you the whole mechanism.</p>
+
+  <p>The short version: Excel has a built-in tool called Power Query that holds the connection and the cleaning steps, so both replay on demand. SQL Server, Postgres, MySQL and others are in the menu. SQLite is not, and section 5 is what to do about that.</p>
+
+  <p>The difference between a paste and a connection is the one idea worth the page, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 250" role="img" aria-labelledby="ceTitle ceDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="ceTitle">A snapshot against a connection</title>
+      <desc id="ceDesc">Two rows. Each row starts on the left with a database drawn as a stack of cylinders and ends on the right with a spreadsheet grid. In the upper row the two are joined by an unbroken pipe with a circular refresh arrow sitting on it, and the spreadsheet grid is drawn crisp and current. In the lower row the pipe between them has been severed, with a clean gap in the middle and a small pair of scissors marks at the break, and the spreadsheet on that row carries a frozen clock face in its corner, meaning its contents stopped changing at the moment of the cut.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <!-- row 1: connection -->
+        <g stroke="#0E7490" stroke-width="2" fill="#E0F2F7">
+          <ellipse cx="80" cy="42" rx="46" ry="13"/>
+          <path d="M34 42 v42 a46 13 0 0 0 92 0 v-42" />
+          <ellipse cx="80" cy="84" rx="46" ry="13" fill="#FFFFFF"/>
+        </g>
+        <rect x="200" y="52" width="330" height="16" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <circle cx="365" cy="60" r="21" fill="#FFFFFF" stroke="#0E7490" stroke-width="2.5"/>
+        <path d="M356 54 a11 11 0 1 1 -1 11" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+        <path d="M352 44 l5 10 l-11 1 z" fill="#0E7490"/>
+        <g stroke="#0E7490">
+          <rect x="586" y="22" width="140" height="76" fill="#FFFFFF" stroke-width="2"/>
+          <path d="M586 44 h140 M586 66 h140 M632 22 v76 M678 22 v76" stroke-width="1.4"/>
+          <rect x="586" y="22" width="140" height="22" fill="#E0F2F7" stroke-width="2"/>
+        </g>
+
+        <!-- row 2: snapshot -->
+        <g stroke="#A1A1AA" stroke-width="2" fill="#F5F7F8">
+          <ellipse cx="80" cy="160" rx="46" ry="13"/>
+          <path d="M34 160 v42 a46 13 0 0 0 92 0 v-42" />
+          <ellipse cx="80" cy="202" rx="46" ry="13" fill="#FFFFFF"/>
+        </g>
+        <rect x="200" y="170" width="122" height="16" rx="8" fill="#F5F7F8" stroke="#A1A1AA" stroke-width="2"/>
+        <rect x="408" y="170" width="122" height="16" rx="8" fill="#F5F7F8" stroke="#A1A1AA" stroke-width="2"/>
+        <path d="M340 152 l16 52 M390 152 l-16 52" stroke="#B45309" stroke-width="3" stroke-linecap="round"/>
+        <g stroke="#A1A1AA">
+          <rect x="586" y="140" width="140" height="76" fill="#FFFFFF" stroke-width="2"/>
+          <path d="M586 162 h140 M586 184 h140 M632 140 v76 M678 140 v76" stroke-width="1.4"/>
+          <rect x="586" y="140" width="140" height="22" fill="#F5F7F8" stroke-width="2"/>
+        </g>
+        <circle cx="712" cy="226" r="15" fill="#FFFFFF" stroke="#B45309" stroke-width="2.5"/>
+        <path d="M712 216 v10 l7 5" stroke="#B45309" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <figcaption>Both spreadsheets hold the same numbers on the day they are made. Only the connected one is still correct next month, because the pipe is still there and one button pulls through it.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll do</strong>
+    <ol>
+      <li>Why connecting beats pasting</li>
+      <li>Find Power Query, whatever your Excel looks like</li>
+      <li>Connect to SQL Server, Postgres or MySQL</li>
+      <li>Load it, and the choice in that dialog</li>
+      <li>SQLite, and the ODBC gap</li>
+      <li>Let the database do the heavy lifting</li>
+      <li>Refresh, and what breaks on other people's machines</li>
+      <li>The full before and after</li>
+      <li>What goes wrong, and the fix</li>
+      <li>Why this works</li>
+      <li>Using this on your own reports</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>The menu paths here match current Excel for Windows</strong> and were checked against Microsoft's own Power Query documentation on 8 August 2026. Excel for Mac has a smaller set of connectors and the Get Data menu is arranged differently, so treat the Windows paths as the reference and expect to hunt slightly on a Mac.</div>
+
+  <div class="step">
+    <h2>1. Why connecting beats pasting</h2>
+
+    <p>Before the explanation: think about the last report you rebuilt from an export. How many of those minutes were spent on judgement, and how many on moving data from one window to another?</p>
+
+    <p>Pasting is not slow because of the paste. It is slow because the paste is only step four of seven, and the other six get repeated every single time: run the query, export it, open the file, fix the columns that came in as text, paste into the right place, check the formulas still point at the right range, re-apply the formatting.</p>
+
+    <p>A connection replaces all seven with one button, because Power Query records the whole sequence as steps and replays them. And it removes an entire class of error rather than just saving time. A paste that lands one column to the left produces a report that is wrong and looks completely normal, which is the worst kind of wrong there is.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. Find Power Query, whatever your Excel looks like</h2>
+
+    <p>Power Query is built into Excel and has been for years, but it hides under different names depending on how old your version is. On the <strong>Data</strong> tab, look for one of these, in this order:</p>
+
+    <ul>
+      <li><strong>Get Data</strong>, on the left of the Data tab. This is the current name and what the rest of this page uses.</li>
+      <li><strong>New Query</strong>, in older versions. Same tool, same menu underneath.</li>
+      <li>A <strong>Get &amp; Transform</strong> group with buttons rather than one menu. Also the same tool.</li>
+    </ul>
+
+    <p>If you find none of these, you are probably on Excel for Mac or a very old version. Mac Excel has fewer connectors and a different arrangement; older versions may need the Power Query add-in installed separately. Section 5's advice about exporting a file is the route that works everywhere.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Connect to SQL Server, Postgres or MySQL</h2>
+
+    <p>The path is <strong>Data, Get Data, From Database</strong>, then your engine. Take SQL Server as the worked example, because it is the one most workplaces have.</p>
+
+    <p>A dialog asks for a <strong>Server</strong> and, optionally, a <strong>Database</strong>. Server is the machine name your colleagues use in their own connections, which is the fastest way to get it right: ask for a screenshot of someone's working connection rather than guessing. Leaving Database blank shows you everything on that server you are allowed to see, which is a useful way to look around the first time.</p>
+
+    <p>Then it asks how to sign in. <strong>Windows</strong> means your existing network account and needs no password typed anywhere, which is both easier and safer. <strong>Database</strong> means a separate username and password issued for that server. Use Windows unless you were specifically given credentials.</p>
+
+    <p>Excel then shows a Navigator listing the tables and views. Click one to preview it, tick it, and you are one dialog from finished. Prefer a <strong>view</strong> over a raw table when one exists with a sensible name, because a view is usually somebody's tidied, agreed version of that data, and using it means your numbers match theirs.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Load it, and the choice in that dialog</h2>
+
+    <p>The Navigator offers <strong>Load</strong> and <strong>Transform Data</strong>, and the difference matters more than it looks.</p>
+
+    <p><strong>Load</strong> drops the table onto a worksheet as it is. <strong>Transform Data</strong> opens the Power Query editor first, where you can remove columns, filter rows, rename headers, fix data types and split fields. Every action you take is recorded as a step in a list on the right, and that list replays on every future refresh.</p>
+
+    <p>That list is the real prize. Cleaning done in the editor happens again next month automatically; the same cleaning done by hand in cells has to be redone by hand next month, by whoever is holding the file. Choose Transform Data by default, even if the only thing you do is remove three columns you do not need.</p>
+
+    <p>When you press Close &amp; Load, you also get a choice of where it lands. A <strong>Table</strong> on a worksheet is right for anything you want to look at. <strong>Only Create Connection</strong> is right when the data is only feeding a PivotTable, and it keeps a million rows out of your worksheet while still being fully usable, which is the trick behind spreadsheets that stay small and quick.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. SQLite, and the ODBC gap</h2>
+
+    <p>Say why a database might be missing from a menu that lists a dozen others, before reading on.</p>
+
+    <p>The menu lists the connectors Microsoft chose to build and maintain. SQLite is not one of them, which surprises people who have just learned SQL on SQLite because a tutorial sensibly started there. Nothing is broken and you have not missed a setting.</p>
+
+    <p>There are two honest routes, and for most beginners the second is better.</p>
+
+    <p><strong>Install an ODBC driver.</strong> ODBC is a translation layer: install a small driver for your database, register it once, and it then appears in Excel under Get Data, From Other Sources, From ODBC. It works well and it needs permission to install software, which on a work machine often means a ticket.</p>
+
+    <p><strong>Export the answer and connect to the file.</strong> Run your query in your database tool, save the result as CSV, and use Get Data, From File, From Text/CSV. You keep the refresh mechanism, because re-running the query and overwriting the same file makes Refresh work exactly as before. What you give up is the automatic part.</p>
+
+    <p>The second route sounds like a defeat and usually is not, because you should be summarising in SQL anyway. Which is the next section.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Let the database do the heavy lifting</h2>
+
+    <p>The most common mistake here is connecting to a raw transaction table with millions of rows and then grouping it in Excel. It works until it does not, and the failure is a spreadsheet that takes two minutes to open and eventually refuses to.</p>
+
+    <p>Databases are built for exactly this and Excel is not. Summarise first, then connect. One row per day per product instead of one row per sale usually turns millions of rows into thousands, and every chart you were going to build works identically on the smaller table.</p>
+
+    <p>You can write that summary directly into the connection: the SQL Server dialog has a <strong>SQL statement</strong> box for exactly this purpose, and whatever you put there runs on the server before anything travels to your machine.</p>
+
+    <pre><code>SELECT order_date,
+       product_category,
+       COUNT(*)     AS orders,
+       SUM(amount)  AS revenue
+FROM sales
+WHERE order_date &gt;= '2026-01-01'
+GROUP BY order_date, product_category;</code></pre>
+
+    <p>If that query is unfamiliar, <a href="../sql-group-by-having/">GROUP BY and HAVING</a> is the guide for it. One caution worth knowing: a query typed into that box is fixed text, so Excel cannot be clever about folding your later filters back into it. That is a fair trade when the query is already doing the summarising, and a poor one if you paste in <code>SELECT *</code>.</p>
+
+    <p>Now picture the report you rebuild most often. At what grain is one row of its source data, and does anything in the finished report actually need that grain? If the answer is no, the summary belongs in the query.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Refresh, and what breaks on other people's machines</h2>
+
+    <p>Refreshing is <strong>Data, then Refresh All</strong>, or right-click the table and choose Refresh. To make it automatic, right-click the table, choose Table Properties or Connection Properties, and tick Refresh data when opening the file.</p>
+
+    <p>Then send that file to a colleague and watch it fail, which it will, for a reason worth understanding. The workbook stores the address of the database and the shape of the query. It does not store your permission to read it. Your colleague needs their own access to the same server, and if they are outside the office they may need the company network as well.</p>
+
+    <p>So a connected workbook is a tool for people who can reach the source. For everyone else, send them the numbers instead: paste the finished summary as values into a fresh sheet, or export a PDF. That is not a workaround, it is the correct answer to a different question.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same monthly report, same numbers.</p>
+
+  <h3>Before</h3>
+  <pre><code>1. Run the query in the database tool
+2. Export results to CSV
+3. Open the CSV, fix the dates that came in as text
+4. Copy, switch to the report, paste over last month's rows
+5. Check the formulas still cover the new range
+6. Re-apply the formatting
+7. Repeat next month</code></pre>
+  <p>Forty minutes if nothing goes wrong, and one silent risk that never goes away: if the export ever contains a different number of rows, step 4 either overwrites live formulas or leaves last month's rows below the new ones. Nothing errors. The total is simply wrong.</p>
+
+  <h3>After</h3>
+  <pre><code>1. Data → Get Data → From Database → From SQL Server Database
+2. Server name, Windows authentication, pick the view
+3. Transform Data: remove three columns, set the date type, filter to this year
+4. Close &amp; Load → Table
+5. Next month: Refresh All</code></pre>
+  <p>Steps 1 to 4 happen once. Step 5 is the monthly job and it takes seconds. The date fix and the column removals are stored as steps rather than as habits, so they survive you being on holiday, and the row-count risk disappears because the table resizes itself and any formulas written against it follow.</p>
+
+  <div class="step">
+    <h2>What goes wrong, and the fix</h2>
+
+    <p>Six that account for most of the pain.</p>
+
+    <p><strong>"Cannot connect" or a login failure.</strong> Ask a colleague for the exact server name from their working connection. Guessing at server names is how afternoons disappear, and the name often includes an instance or a port that nobody mentions out loud.</p>
+
+    <p><strong>Your database is not in the menu.</strong> Only built-in connectors appear. Use ODBC with a driver, or export to CSV and connect to that. Section 5.</p>
+
+    <p><strong>Refresh is very slow.</strong> You are pulling more rows than you need. Filter and group inside the query rather than after it, so the work happens on the server.</p>
+
+    <p><strong>Leading zeros disappeared from codes.</strong> A column of postcodes or account numbers arrived as numbers. Set the column type to Text in the Power Query editor, not afterwards in cells. The <a href="../excel-csv-import-leading-zeros/">CSV import fix</a> covers the same problem coming from files.</p>
+
+    <p><strong>Dates are wrong by a month, or refuse to sort.</strong> Day and month have been swapped, or the column is text that looks like a date. Set the type explicitly in the editor and pick the right locale when it asks.</p>
+
+    <p><strong>It works for you and not for anyone else.</strong> Permissions, not the file. Section 7.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>Power Query is worth understanding as one idea: it stores your work as a recipe rather than as a result. Every click in the editor is written down as a step, and refreshing means re-running the whole recipe against whatever the source holds now. That is why cleaning done in the editor is permanent and cleaning done in cells is not, and it is the entire difference between a report you maintain and a report you rebuild.</p>
+
+  <p>The second mechanism explains the performance advice. When it can, Power Query pushes your filters and groupings back into the source database and lets the server do them, so only the summarised rows travel. This is called query folding, and it is why filtering in the editor can be dramatically faster than filtering in the worksheet. It also explains why a hand-typed SQL statement can block that optimisation: fixed text cannot be rewritten, so nothing can be folded into it.</p>
+
+  <p>One note on the way this page is written. It kept asking you to commit to an answer, where your rebuild time actually goes, why a database might be missing from the menu, before giving one. Attempting an answer before seeing the correct one reliably improves how well the correct one is retained, even when the attempt is wrong (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725).</p>
+
+  <h2>Using this on your own reports</h2>
+
+  <p>Five steps, in order. The first one keeps the project small enough to finish.</p>
+
+  <ol>
+    <li><strong>Connect one table you currently paste.</strong> Not the whole report. One table, this week, so the mechanism is familiar before the stakes rise.</li>
+    <li><strong>Do all cleaning in the editor</strong>, never in cells. If you find yourself fixing something by hand twice, it belongs in a step.</li>
+    <li><strong>Summarise in the query</strong> when the source has more than a few hundred thousand rows. The database is built for it.</li>
+    <li><strong>Use Only Create Connection plus a PivotTable</strong> for anything large, so the rows never sit in a worksheet.</li>
+    <li><strong>Write down the server and view names</strong> in a notes tab in the workbook. In six months you will not remember, and neither will the person who inherits it.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional drawing is worth five minutes. Draw your report as a chain of boxes from source to finished number, and mark each box as either a step Excel can replay or something you do by hand. Every hand-marked box is a place the report can silently break while you are away.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: getting set up, SQL, Excel, Python, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it is, or what it does</th></tr>
+    <tr><td>Power Query</td><td>Built into Excel. Stores your connection and cleaning as replayable steps.</td></tr>
+    <tr><td>The path</td><td>Data → Get Data → From Database → your engine.</td></tr>
+    <tr><td>Older names</td><td>New Query, or a Get &amp; Transform group. Same tool.</td></tr>
+    <tr><td>Server and Database boxes</td><td>Get the exact server name from a colleague's working connection.</td></tr>
+    <tr><td>Windows authentication</td><td>Your network account. No password typed. Use it unless given credentials.</td></tr>
+    <tr><td>Navigator</td><td>Lists tables and views. Prefer a named view: somebody already agreed it.</td></tr>
+    <tr><td>Load vs Transform Data</td><td>Straight to the sheet, or via the editor. Choose the editor by default.</td></tr>
+    <tr><td>Steps list</td><td>The recorded recipe. Replays on every refresh. The whole point.</td></tr>
+    <tr><td>Only Create Connection</td><td>No worksheet rows, feeds a PivotTable. Keeps big files quick.</td></tr>
+    <tr><td>SQLite</td><td>Not a built-in connector. Use ODBC, or export CSV and connect to that.</td></tr>
+    <tr><td>SQL statement box</td><td>Runs on the server before anything travels. Best place to summarise.</td></tr>
+    <tr><td>Query folding</td><td>Filters pushed back to the database. Why editor filters can be much faster.</td></tr>
+    <tr><td>Refresh All</td><td>Data tab. Or refresh on open, via Connection Properties.</td></tr>
+    <tr><td>Fails for colleagues</td><td>The file stores the address, not your permission. They need their own access.</td></tr>
+    <tr><td>Type fixes</td><td>Set them in the editor, so they replay. In cells they do not.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Every fix goes in the editor, never in a cell. That single rule is what turns a spreadsheet you rebuild into a spreadsheet you refresh, and it is the difference between owning a report and being owned by one. If something breaks in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The paste that finally convinced me to connect was one where the export had two extra rows, so the paste pushed a formula range out of alignment and the total was wrong by a rounding-sized amount for a month before anyone noticed. What did a manual step cost you before you automated it?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+    <li>Microsoft. Import data from external data sources (Power Query), and Import data from a database using Native Database Query. Retrieved 8 August 2026 from support.microsoft.com. Cited for menu paths and dialog options, which are product details rather than research findings.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>The connection is the easy half. The other half is the query.</strong>
+    <p style="margin:6px 0 0">The <a href="../../excel/">Excel Kit</a> covers Power Query, PivotTables and the formula work that sits on top of a connected table, in the order an analyst meets them, with a drag-and-drop Pivot Lab to practise in. The <a href="../../sql/">SQL Kit</a> is the other end of the same pipe.</p>
+    <a class="btn" href="../../excel/">Open the Excel Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../sample-database-for-sql-practice/">Get a Sample Database</a> · <a href="../which-sql-database-to-install/">Which SQL Database to Install</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../excel-name-your-data/">Excel Tables and Structured References</a> · <a href="../excel-pivot-table-question/">How to Think About Pivot Tables</a> · <a href="../excel-csv-import-leading-zeros/">CSV Leading Zeros</a> · <a href="../excel-character-encoding/">Character Encoding</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../excel-check-your-work/">Check Your Work in Excel</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../excel/">Excel Kit</a> · <a href="../../sql/">SQL Kit</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
