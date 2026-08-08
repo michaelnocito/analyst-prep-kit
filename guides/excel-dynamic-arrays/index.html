@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Excel Dynamic Arrays: FILTER, UNIQUE and SORT in One Formula — Analyst Prep Kit</title>
+<meta name="description" content="One formula, many cells. FILTER, UNIQUE, SORT and SORTBY worked on a real table, the spill reference, what #SPILL! and #CALC! mean, and the one place a spill will not go.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dynamic-arrays/">
+<meta property="og:title" content="Excel Dynamic Arrays: FILTER, UNIQUE and SORT in One Formula">
+<meta property="og:description" content="One formula fills as many cells as the answer needs. FILTER, UNIQUE, SORT and SORTBY on a real table, the A1# reference, and what #SPILL! and #CALC! are telling you.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-dynamic-arrays.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dynamic-arrays/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-dynamic-arrays.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Excel Dynamic Arrays: FILTER, UNIQUE and SORT in One Formula",
+  "description": "One formula, many cells. FILTER, UNIQUE, SORT and SORTBY worked on a real table, the spill reference, what #SPILL! and #CALC! mean, and the one place a spill will not go.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dynamic-arrays/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dynamic-arrays/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-dynamic-arrays.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Excel Dynamic Arrays: FILTER, UNIQUE and SORT in One Formula",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dynamic-arrays/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../excel/">Excel Kit</a> · <a href="../">All guides</a></p>
+  <h1>Excel Dynamic Arrays: FILTER, UNIQUE and SORT in One Formula</h1>
+  <p class="meta">One formula, as many cells as the answer needs · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can pull a distinct list out of a column, extract every row matching a condition, sort a result without touching the source, chain all three into one line, and read the two error messages that only exist in this part of Excel. It is about twenty-five minutes, and every output below was produced by running the formula in Excel on a sixteen-row table.</p>
+
+  <p>Here is what to do right now, on a column you keep de-duplicating by hand. Click an empty cell to the right of your data and type <code>=SORT(UNIQUE(A2:A500))</code>. Press Enter once. A sorted list of every distinct value appears below the cell, it updates itself when the data changes, and you never touch it again.</p>
+
+  <p>The short version: a formula can return more than one value, and Excel puts the extra values in the cells underneath. That is called spilling, and it is the whole feature.</p>
+
+  <p>One formula filling many cells is the idea, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 270" role="img" aria-labelledby="daTitle daDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="daTitle">Five formulas, or one</title>
+      <desc id="daDesc">Two columns of five stacked cells stand side by side, each column headed by a short label. The left column is headed five formulas, and every one of its five cells carries a small dark marker in its top-left corner, meaning each cell holds its own formula; the five cells are separate, each with its own light border. The right column is headed one formula. Only its top cell carries the marker, and the four cells beneath it are unmarked. A single heavy border is drawn around the whole right-hand column, enclosing all five cells as one object rather than five. The two columns contain the same values in the same order, so nothing about the result differs; what differs is how many places the logic lives.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <text x="120" y="36" font-size="15" font-weight="700" fill="#52525B">five formulas</text>
+        <g stroke="#E4E7EA" fill="#FFFFFF">
+          <rect x="120" y="52" width="200" height="38"/>
+          <rect x="120" y="94" width="200" height="38"/>
+          <rect x="120" y="136" width="200" height="38"/>
+          <rect x="120" y="178" width="200" height="38"/>
+          <rect x="120" y="220" width="200" height="38"/>
+        </g>
+        <g fill="#18181B">
+          <rect x="126" y="58" width="9" height="9" rx="2"/>
+          <rect x="126" y="100" width="9" height="9" rx="2"/>
+          <rect x="126" y="142" width="9" height="9" rx="2"/>
+          <rect x="126" y="184" width="9" height="9" rx="2"/>
+          <rect x="126" y="226" width="9" height="9" rx="2"/>
+        </g>
+        <g font-size="15" fill="#09090B">
+          <text x="152" y="77">East</text><text x="152" y="119">North</text>
+          <text x="152" y="161">South</text><text x="152" y="203">West</text>
+          <text x="152" y="245">Central</text>
+        </g>
+
+        <text x="440" y="36" font-size="15" font-weight="700" fill="#0E7490">one formula</text>
+        <g stroke="#E4E7EA" fill="#FFFFFF">
+          <rect x="440" y="52" width="200" height="38"/>
+          <rect x="440" y="94" width="200" height="38"/>
+          <rect x="440" y="136" width="200" height="38"/>
+          <rect x="440" y="178" width="200" height="38"/>
+          <rect x="440" y="220" width="200" height="38"/>
+        </g>
+        <rect x="440" y="52" width="200" height="206" fill="none" stroke="#0E7490" stroke-width="3"/>
+        <rect x="446" y="58" width="9" height="9" rx="2" fill="#0E7490"/>
+        <g font-size="15" fill="#09090B">
+          <text x="472" y="77">East</text><text x="472" y="119">North</text>
+          <text x="472" y="161">South</text><text x="472" y="203">West</text>
+          <text x="472" y="245">Central</text>
+        </g>
+      </g>
+    </svg>
+    <figcaption>Same five answers. On the left the logic lives in five places and has to be maintained in five places. On the right it lives in one cell, and the block below it is that cell's output rather than four more formulas.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What spilling is</li>
+      <li>UNIQUE, SORT and FILTER</li>
+      <li>Two or more conditions in a FILTER</li>
+      <li>When nothing matches</li>
+      <li>The spill reference, A1#</li>
+      <li>#SPILL! and what causes it</li>
+      <li>Chaining them, and the rest of the family</li>
+      <li>The one place a spill will not go</li>
+      <li>The full before and after</li>
+      <li>Edge cases that catch people</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every result on this page is real.</strong> The sixteen-row orders table used across this set of guides, with every formula run in Excel and its spilled output copied back. These functions need a current version of Excel; if yours refuses them with <code>#NAME?</code>, the rest of this set of guides still applies to you and this page does not yet.</div>
+
+  <div class="step">
+    <h2>1. What spilling is</h2>
+
+    <p>Before the explanation: you type one formula into one cell and press Enter. Say how many cells you expect to change.</p>
+
+    <p>As many as the answer needs. Ask for the distinct regions and Excel returns four values, so it fills four cells:</p>
+
+    <pre><code>=UNIQUE(Orders[Region])
+
+North
+South
+East
+West</code></pre>
+
+    <p>Only the top cell holds a formula. The three below it hold the overflow, and they are not editable on their own; click one and the formula bar shows the formula greyed out, because it belongs to the cell above. Excel draws a thin blue border around the whole block to show it is one thing.</p>
+
+    <p>Two consequences are worth having straight away. The block resizes itself: add a fifth region to the data and a fifth row appears, with nothing to drag. And you cannot type into the cells it occupies, which is the source of the one new error message this feature has.</p>
+
+    <p>Notice the order it came back in: North, South, East, West. That is the order the values first appear in the data, not alphabetical. UNIQUE does not sort, which is why the next function exists.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. UNIQUE, SORT and FILTER</h2>
+
+    <p>Three functions cover most of what anyone needs.</p>
+
+    <p><strong>UNIQUE</strong> returns the distinct values.</p>
+
+    <pre><code>=SORT(UNIQUE(Orders[Region]))       East, North, South, West
+=SORT(UNIQUE(Orders[Product]))      Chair, Desk, Lamp
+=COUNTA(UNIQUE(Orders[Region]))     4</code></pre>
+
+    <p>That last line is worth adopting as a habit on its own. A distinct count that updates itself is the cheapest early warning there is: four regions that quietly become six means somebody's data has a spelling problem, which is the whole argument of <a href="../excel-clean-messy-data/">the cleaning guide</a> in one formula.</p>
+
+    <p><strong>SORT</strong> orders a range without touching it. <code>SORT(array, column, order)</code>, where order is 1 for ascending and −1 for descending.</p>
+
+    <pre><code>=SORT(Orders[Revenue], 1, -1)
+1100, 880, 880, 850, 765, 680, 660, 660, 600, 510, 480, 440, 440, 425, 280, 240
+
+=TAKE(SORT(Orders[Revenue], 1, -1), 3)
+1100, 880, 880</code></pre>
+
+    <p>Sorting with a formula rather than with the Sort button matters more than it sounds. The button rearranges your data permanently and takes any formula that referred to a row number with it. A SORT formula produces a sorted copy, leaves the source alone, and re-sorts itself when the numbers change.</p>
+
+    <p><strong>FILTER</strong> returns the rows that meet a condition.</p>
+
+    <pre><code>=FILTER(Orders[OrderID], Orders[Region]="North")
+1001, 1004, 1007, 1011, 1014
+
+=ROWS(FILTER(Orders[OrderID], Orders[Region]="North"))       5
+=SUM(FILTER(Orders[Revenue], Orders[Region]="North"))     2495</code></pre>
+
+    <p>Read the arguments as a sentence: give me <em>this</em>, where <em>that</em> is true. The first argument is what you want back and the second is a test, and the two can be different columns, which is what separates FILTER from the filter button.</p>
+
+    <p>And notice that a FILTER can be wrapped in anything. <code>SUM</code> of a filtered column is a conditional total, the same answer <code>SUMIFS</code> gives, and 2,495 is North's revenue either way. The difference is that the FILTER version can return the rows themselves when you want to look at them.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Two or more conditions in a FILTER</h2>
+
+    <p>Before the explanation: FILTER has no place to put AND or OR. Say how you would ask for East orders over 600.</p>
+
+    <p>With arithmetic. Multiply the conditions for AND, add them for OR, and wrap each one in brackets.</p>
+
+    <pre><code>=FILTER(Orders[OrderID], (Orders[Region]="East") * (Orders[Revenue]&gt;600))
+1003, 1006, 1010                                          3 rows
+
+=ROWS(FILTER(Orders[OrderID], (Orders[Region]="East") + (Orders[Region]="West")))
+7 rows</code></pre>
+
+    <p>The reason is that a condition produces TRUE and FALSE, which behave as 1 and 0 in arithmetic. Multiplying gives 1 only when both are 1, which is AND. Adding gives at least 1 when either is 1, which is OR. Once you have seen that, the syntax stops looking arbitrary.</p>
+
+    <p>Do not reach for the <code>AND</code> and <code>OR</code> functions here. They collapse a whole array down to one TRUE or FALSE, so the filter either keeps every row or none, which is a wrong answer rather than an error message.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. When nothing matches</h2>
+
+    <p>Before the explanation: you filter for a region that does not exist in the data. Predict what appears in the cell.</p>
+
+    <pre><code>=FILTER(Orders[OrderID], Orders[Region]="Central")
+
+#CALC!</code></pre>
+
+    <p><code>#CALC!</code> is a newer error and it means the formula produced an empty array, which is not something a cell can display. It is not a mistake in your formula; it is Excel telling you the answer is nothing.</p>
+
+    <p>FILTER has a third argument for exactly this, and using it is better than wrapping the whole thing in an error handler:</p>
+
+    <pre><code>=FILTER(Orders[OrderID], Orders[Region]="Central", "no orders")
+
+no orders</code></pre>
+
+    <p>The third argument fires only for the empty case, so a genuine problem in the formula still surfaces as its own error. Wrapping in <code>IFERROR</code> instead would hide both, which is the same trade <a href="../excel-iferror/">IFERROR always asks you to make</a>, and here there is no reason to accept it because a purpose-built argument exists.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. The spill reference, A1#</h2>
+
+    <p>A spilled block changes size, so referring to it by address is a problem waiting for next month. The hash suffix solves it: <code>C1#</code> means "whatever C1 spilled into, however big that is now".</p>
+
+    <pre><code>C1:  =UNIQUE(Orders[Region])        spills into C1:C4
+
+=COUNTA(C1#)                        4
+=TEXTJOIN("/", TRUE, C1#)           North/South/East/West</code></pre>
+
+    <p>This is what makes dynamic arrays compose into a small system rather than staying single clever formulas. Spill a distinct list of regions, then point a chart, a dropdown, or a column of SUMIFS at <code>C1#</code>, and all of them grow when a region is added. A cell reference like <code>C1:C4</code> would not.</p>
+
+    <p>It also gives you a much better data-validation list than a fixed range: put <code>=$C$1#</code> in the Source box of a dropdown and the options maintain themselves from the data, which pairs directly with <a href="../excel-data-validation/">the dropdown guide's</a> argument that a list should live somewhere it can grow.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. #SPILL! and what causes it</h2>
+
+    <p>Before the explanation: your UNIQUE formula worked yesterday and today shows <code>#SPILL!</code>. Say what changed.</p>
+
+    <p>Something is in the way. A spill needs every cell it wants to occupy to be empty, and if even one is not, the whole formula refuses rather than overwriting anything. Here is the run: the formula spilled into C1:C4 correctly, then a value was typed into C3.</p>
+
+    <pre><code>before               North, South, East, West     COUNTA(C1#) = 4
+after typing in C3   #SPILL!                      COUNTA(C1#) = 1</code></pre>
+
+    <p>Note the second effect. Anything referring to the spill reference now sees one cell instead of four, so a chart, a dropdown or a total built on <code>C1#</code> quietly shrinks to the error cell. The error is loud; the knock-on is not.</p>
+
+    <p>Excel is helpful about finding the blockage: click the warning triangle on the error cell and choose Select Obstructing Cells. Four causes cover nearly everything.</p>
+
+    <p><strong>Something is in the range</strong>, including a stray space typed years ago. That is the case above.</p>
+
+    <p><strong>The spill would run off the sheet.</strong> A formula in row 1048000 has nowhere to put twenty rows.</p>
+
+    <p><strong>The spill area is inside a merged cell.</strong> Merged cells cannot receive a spill.</p>
+
+    <p><strong>The formula is inside a table.</strong> Which gets its own section, because it is the one people meet by accident.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Chaining them, and the rest of the family</h2>
+
+    <p>The functions nest, and reading them inside out gives you a sentence. This one is the pattern I use most: take the rows that qualify, reduce them to distinct values, and sort the result.</p>
+
+    <pre><code>=SORT(UNIQUE(FILTER(Orders[Rep], Orders[Revenue]&gt;600)))</code></pre>
+
+    <p>UNIQUE can also work across more than one column, which is how you get every combination that actually occurs rather than every combination that could:</p>
+
+    <pre><code>=ROWS(UNIQUE(CHOOSE({1,2}, Orders[Region], Orders[Product])))     12</code></pre>
+
+    <p>Twelve region-and-product pairs out of sixteen orders, which happens to be all four regions times all three products, so every region sold every product. A pivot table would show you the same thing as a grid; this gives it to you as a list a formula can use.</p>
+
+    <p>Four more worth knowing by name.</p>
+
+    <pre><code>=SORTBY(Orders[OrderID], Orders[Region], 1, Orders[Revenue], -1)
+sorts by one column and returns another; here, by region then by revenue descending,
+so the first order out is 1010
+
+=SEQUENCE(3)         1, 2, 3            a column of numbers
+=SEQUENCE(1,4)       1, 2, 3, 4         a row of numbers
+=TAKE(array, 3)                          the first three rows
+=TEXTJOIN(", ", TRUE, SORT(UNIQUE(Orders[Region])))
+East, North, South, West                 a spill flattened into one cell</code></pre>
+
+    <p><code>SORTBY</code> is the one people miss. It sorts a result using columns that are not in the result, so you can list order numbers in revenue order without the revenue column being on screen.</p>
+
+    <p>Picture your own most-repeated sheet task for a moment: the tab where you copy a column, remove duplicates, sort it, and paste it somewhere. Which single line above replaces the whole of that?</p>
+  </div>
+
+  <div class="step">
+    <h2>8. The one place a spill will not go</h2>
+
+    <p>Before the explanation: <a href="../excel-tables/">tables</a> are the right home for data and dynamic arrays are the modern way to write formulas. Say what happens when you put one inside the other.</p>
+
+    <pre><code>a cell inside a table:  =UNIQUE(Orders[Region])
+
+#SPILL!</code></pre>
+
+    <p>A table cannot contain a spilled result. The reason is structural rather than arbitrary: a table's job is one row per record with every column the same length, and a formula that decides for itself how many rows it needs would break that promise. So the two features that are individually the best practice in Excel do not compose, and the workaround is simply to put spilling formulas on the sheet outside any table.</p>
+
+    <p>That is not the same as saying they cannot read a table. Every formula on this page reads <code>Orders[Region]</code>, a table column, and spills its answer onto the sheet beside it. Tables in, arrays out.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same job: a live list of the regions, and this month's large orders.</p>
+
+  <h3>Before</h3>
+  <pre><code>Copy column D to a spare sheet.
+Data, Remove Duplicates.
+Sort A to Z.
+Filter the main table to Revenue &gt; 600, copy the visible rows, paste them somewhere.
+Next month, do all of it again, and remember the pasted list is now out of date.</code></pre>
+  <p>Five manual steps, an unknown number of stale copies scattered through the workbook, and no way to tell by looking whether any of them still matches the data.</p>
+
+  <h3>After</h3>
+  <pre><code>=SORT(UNIQUE(Orders[Region]))                     East, North, South, West
+=COUNTA(UNIQUE(Orders[Region]))                   4
+=FILTER(Orders[OrderID], Orders[Revenue]&gt;600, "none")
+=SUM(FILTER(Orders[Revenue], Orders[Region]="North"))    2495</code></pre>
+  <p>Four formulas, no copies, and every one of them updates when a row is added. The distinct count sitting beside the list is the part worth keeping longest: it is a one-cell alarm for the data problems that would otherwise be found weeks later.</p>
+
+  <p>The claim, and it is the reason to learn the three function names: <strong>copy, de-duplicate, sort, paste is four manual steps producing a snapshot, and <code>=SORT(UNIQUE(...))</code> is one formula producing something that is still correct next month.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases that catch people</h2>
+
+    <p>Six worth knowing before they happen.</p>
+
+    <p><strong>Deleting the top cell deletes the whole block.</strong> The cells below hold no formula, so they vanish with it. Anything referring to the block by <code>#</code> goes with them.</p>
+
+    <p><strong>Inserting a row through a spill area.</strong> The block is one object and does not accept a row through the middle, so the insert either moves the whole block or triggers <code>#SPILL!</code>. Leave a clear column for spills rather than parking them among other content.</p>
+
+    <p><strong>A blank cell in the source column.</strong> UNIQUE treats a blank as a value and returns a zero for it, so a distinct list can come back one longer than expected with a stray 0 at the end. Filter it out: <code>=SORT(UNIQUE(FILTER(range, range&lt;&gt;"")))</code>.</p>
+
+    <p><strong>Sending the file to an older Excel.</strong> These functions do not exist there, and the formulas arrive as <code>_xlfn.UNIQUE</code> and show <code>#NAME?</code>. If a workbook has to travel, check the recipient's version before rebuilding it around spills.</p>
+
+    <p><strong>Whole-column references.</strong> <code>=UNIQUE(A:A)</code> asks Excel to consider a million rows and usually returns a million-row spill, most of it blank. Point at the table column instead.</p>
+
+    <p><strong>Volume.</strong> A spill of tens of thousands of rows is one formula and a lot of cells, and several of those on one sheet will slow a workbook noticeably. Summarise with a pivot when the answer is a summary; spill when the answer is a list.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The change here is not that Excel gained three functions. It is that a formula is now allowed to return a whole array rather than a single value, and that difference reaches back to some of the oldest thinking in computing about notation. Iverson's argument, made when he collected the Turing Award, was that a notation which lets you operate on whole collections at once does more than save keystrokes: it changes which thoughts are easy to have, because operations that would otherwise require an explicit loop become a single expression you can read and manipulate (Iverson, 1980, <em>Communications of the ACM</em>, 23(8), 444–465). <code>SORT(UNIQUE(FILTER(...)))</code> is exactly that. In the old notation each of those three ideas needed its own column of copied formulas, and the shape of the answer had to be decided in advance by how far you dragged.</p>
+
+  <p>The practical payoff is fewer places for a mistake to live. Spreadsheet audits consistently find errors in a large majority of the operational workbooks examined, and copied formulas are a well-known contributor: one wrong copy among four hundred looks exactly like the other three hundred and ninety-nine (Panko, 1998, <em>Journal of End User Computing</em>, 10(2), 15–21). A spilled result cannot have an inconsistent row, because there is only one formula. That property is worth more than the brevity.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than reread, because retrieval practice produces durable retention where rereading produces familiarity, and the two feel similar while you are doing them (Roediger &amp; Butler, 2011, <em>Trends in Cognitive Sciences</em>, 15(1), 20–27).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Rewriting a whole workbook in dynamic arrays is miserable and unnecessary. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Find the manual de-duplicate.</strong> Every workbook has one column somebody copies, de-duplicates and sorts. Replace it with <code>=SORT(UNIQUE(...))</code> and delete the stale copy.</li>
+    <li><strong>Put a distinct count beside it</strong>, <code>=COUNTA(UNIQUE(...))</code>, and treat any change in that number as news.</li>
+    <li><strong>Replace pasted filtered extracts with FILTER</strong>, and give every FILTER its third argument so an empty result says so in words.</li>
+    <li><strong>Point dropdowns and charts at the spill reference</strong>, <code>=$C$1#</code>, so they grow with the list.</li>
+    <li><strong>Keep spills outside tables</strong>, in their own column, with clear space beneath them.</li>
+    <li><strong>Check the version</strong> of anyone the file goes to before you build a whole workbook on it.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Draw the manual routine you are replacing as a chain of boxes: copy, paste, de-duplicate, sort, paste again. Then write one function name over each box. Most people find three of their five boxes collapse into one formula, and the two that do not are the ones worth thinking about.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: Excel, SQL, Python, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>Spilling</td><td>One formula returns many values and fills the cells below.</td></tr>
+    <tr><td>Where the formula lives</td><td>Only the top cell. The rest is output.</td></tr>
+    <tr><td><code>UNIQUE(range)</code></td><td>Distinct values, in the order they first appear. Does not sort.</td></tr>
+    <tr><td><code>SORT(array, col, order)</code></td><td>A sorted copy. −1 for descending. Source untouched.</td></tr>
+    <tr><td><code>SORTBY</code></td><td>Sort one thing by columns that are not in the result.</td></tr>
+    <tr><td><code>FILTER(what, test, if_empty)</code></td><td>The rows where the test is true.</td></tr>
+    <tr><td>AND in a FILTER</td><td>Multiply the conditions: <code>(a)*(b)</code>.</td></tr>
+    <tr><td>OR in a FILTER</td><td>Add them: <code>(a)+(b)</code>.</td></tr>
+    <tr><td>Do not use</td><td>The AND and OR functions. They collapse the array to one value.</td></tr>
+    <tr><td><code>#CALC!</code></td><td>The answer is an empty array. Use FILTER's third argument.</td></tr>
+    <tr><td><code>#SPILL!</code></td><td>Something is in the way. Select Obstructing Cells finds it.</td></tr>
+    <tr><td>Spill reference</td><td><code>C1#</code> means the whole block, whatever size it is now.</td></tr>
+    <tr><td>Blocked spill knock-on</td><td><code>COUNTA(C1#)</code> drops to 1. Charts and lists shrink silently.</td></tr>
+    <tr><td>Inside a table</td><td><code>#SPILL!</code>. Tables in, arrays out.</td></tr>
+    <tr><td>Distinct count</td><td><code>=COUNTA(UNIQUE(range))</code>. The cheapest data alarm there is.</td></tr>
+    <tr><td>Flatten to one cell</td><td><code>=TEXTJOIN(", ", TRUE, spill)</code>.</td></tr>
+    <tr><td>Older Excel</td><td>Arrives as <code>#NAME?</code>. Check the recipient's version.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Put <code>=COUNTA(UNIQUE(column))</code> beside every text column you group or filter by. It is one cell, it costs nothing, and it turns the most common data problem in any workbook, a category that has quietly split in two, into a number that visibly changed. If a spill misbehaves in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The first thing I replaced with a spill was a "reference lists" tab that four other sheets read from, which had last been refreshed by hand eight months earlier and was missing two whole categories. What is the stale pasted list still sitting in something you own?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Iverson, K. E. (1980). Notation as a tool of thought. <em>Communications of the ACM</em>, 23(8), 444–465.</li>
+    <li>Panko, R. R. (1998). What we know about spreadsheet errors. <em>Journal of End User Computing</em>, 10(2), 15–21.</li>
+    <li>Roediger, H. L., &amp; Butler, A. C. (2011). The critical role of retrieval practice in long-term retention. <em>Trends in Cognitive Sciences</em>, 15(1), 20–27.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice spills on a table that changes under you.</strong>
+    <p style="margin:6px 0 0">The <a href="../../excel/">Excel Kit</a> gives you the repetitions: FILTER conditions built from arithmetic, chained SORT and UNIQUE, deliberately blocked spills to diagnose, and flash cards on what <code>#CALC!</code> and <code>#SPILL!</code> each mean. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../excel/">Open the Excel Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../excel-tables/">Excel Tables vs Ranges</a> · <a href="../excel-iferror/">How to Use IFERROR</a> · <a href="../excel-data-validation/">Drop Down Lists</a> · <a href="../excel-remove-duplicates/">Remove Duplicates</a> · <a href="../excel-clean-messy-data/">Clean Messy Data</a> · <a href="../excel-pivot-tables/">Make a Pivot Table</a> · <a href="../excel-power-query/">Power Query for Beginners</a> · <a href="../excel-index-match/">INDEX MATCH vs VLOOKUP</a> · <a href="../excel-sumifs/">SUMIFS and COUNTIFS</a> · <a href="../../excel/">Excel Kit</a> · <a href="../excel-if-family/">The IF Family</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../pandas-groupby/">pandas groupby</a> · <a href="../sql-find-duplicates/">Find Duplicates in SQL</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
