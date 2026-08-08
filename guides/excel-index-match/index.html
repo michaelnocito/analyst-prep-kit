@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INDEX MATCH vs VLOOKUP: The Lookup That Survives a New Column — Analyst Prep Kit</title>
+<meta name="description" content="MATCH finds the position, INDEX fetches the value. Why that beats a hard-coded column number, with a real before and after: one inserted column turns 22 into Northlight.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-index-match/">
+<meta property="og:title" content="INDEX MATCH vs VLOOKUP: The Lookup That Survives a New Column">
+<meta property="og:description" content="MATCH finds the position, INDEX fetches the value. The column to the left, the hard-coded number that goes stale, and the fourth argument that returns 85 where the answer is 220.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-index-match.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-index-match/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-index-match.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "INDEX MATCH vs VLOOKUP: The Lookup That Survives a New Column",
+  "description": "MATCH finds the position, INDEX fetches the value. Why that beats a hard-coded column number, with a real before and after: one inserted column turns 22 into Northlight.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-index-match/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-index-match/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-index-match.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "INDEX MATCH vs VLOOKUP: The Lookup That Survives a New Column",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-index-match/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../excel/">Excel Kit</a> · <a href="../">All guides</a></p>
+  <h1>INDEX MATCH vs VLOOKUP: The Lookup That Survives a New Column</h1>
+  <p class="meta">Two small functions, one of which is just a row number · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can pull a value out of one table onto every row of another, matching on a shared key, in a way that keeps working when somebody inserts a column, keeps working when the answer sits to the left of the key, and tells you loudly when there is no match instead of quietly handing back the wrong row. It is about twenty-five minutes, and every result printed below was produced by running the formula in Excel.</p>
+
+  <p>Here is what to do today, in your own file. Find your most important VLOOKUP and look at its third argument, the number. Replace that number with <code>MATCH("HeadingName", $A$1:$Z$1, 0)</code>, so the formula finds its own column by name. That one change removes the entire class of failure where somebody inserts a column and every lookup in the workbook starts returning the neighbouring field.</p>
+
+  <p>The short version: <strong>MATCH</strong> turns a name into a position number, and <strong>INDEX</strong> turns a position number into a value. They are two separate jobs, which is exactly why you can point them at different columns.</p>
+
+  <p>That handover, name into number into value, is the whole idea, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 262" role="img" aria-labelledby="imTitle imDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="imTitle">MATCH finds the position, INDEX reads it</title>
+      <desc id="imDesc">A left to right chain in three moves. On the far left a blue chip holds the word Lamp, the value being looked up. An arrow carries it into the first of two tall column strips standing side by side in the middle. The first strip is headed Product and holds three stacked cells reading Desk, Chair and Lamp; the third cell, Lamp, is outlined in blue. Beside it the second strip is headed Category and holds three stacked cells reading Furniture, Furniture and Lighting; its third cell, Lighting, is outlined in amber. Between and below the two strips sits a circled numeral 3. A blue line leaves the highlighted Lamp cell, drops down and points into that circle. An amber line leaves the circle, runs right and turns up into the highlighted Lighting cell. The label MATCH sits under the first strip, on the blue side of the circle, and the label INDEX sits under the second strip, on the amber side. An arrow leaves the amber cell on the right and ends at an amber chip holding the word Lighting. The picture shows one position number doing all the work: the first strip converts a name into the number 3, and the second strip converts the number 3 back into a value.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <!-- input chip -->
+        <rect x="16" y="126" width="104" height="34" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="1.8"/>
+        <text x="68" y="149" font-size="15" fill="#09090B" text-anchor="middle">Lamp</text>
+        <path d="M120 143 L172 143" stroke="#0E7490" stroke-width="2.2" fill="none"/>
+        <path d="M180 143 L168 136 M180 143 L168 150" stroke="#0E7490" stroke-width="2.2" fill="none"/>
+
+        <!-- strip 1 -->
+        <text x="196" y="62" font-size="13" font-weight="700" fill="#52525B">Product</text>
+        <g stroke="#E4E7EA">
+          <rect x="190" y="72" width="150" height="36" fill="#FFFFFF"/>
+          <rect x="190" y="108" width="150" height="36" fill="#FFFFFF"/>
+        </g>
+        <rect x="190" y="144" width="150" height="36" fill="#E0F2F7" stroke="#0E7490" stroke-width="2.4"/>
+        <g font-size="14.5" fill="#09090B">
+          <text x="206" y="96">Desk</text>
+          <text x="206" y="132">Chair</text>
+          <text x="206" y="168">Lamp</text>
+        </g>
+
+        <!-- strip 2 -->
+        <text x="398" y="62" font-size="13" font-weight="700" fill="#52525B">Category</text>
+        <g stroke="#E4E7EA">
+          <rect x="392" y="72" width="150" height="36" fill="#FFFFFF"/>
+          <rect x="392" y="108" width="150" height="36" fill="#FFFFFF"/>
+        </g>
+        <rect x="392" y="144" width="150" height="36" fill="#FDF3E3" stroke="#B45309" stroke-width="2.4"/>
+        <g font-size="14.5" fill="#09090B">
+          <text x="408" y="96">Furniture</text>
+          <text x="408" y="132">Furniture</text>
+          <text x="408" y="168">Lighting</text>
+        </g>
+
+        <!-- the position number -->
+        <circle cx="366" cy="201" r="19" fill="#FFFFFF" stroke="#09090B" stroke-width="2"/>
+        <text x="366" y="207" font-size="18" font-weight="700" fill="#09090B" text-anchor="middle">3</text>
+        <path d="M265 162 L265 201 L340 201" stroke="#0E7490" stroke-width="2.2" fill="none"/>
+        <path d="M347 201 L335 194 M347 201 L335 208" stroke="#0E7490" stroke-width="2.2" fill="none"/>
+        <path d="M385 201 L467 201 L467 186" stroke="#B45309" stroke-width="2.2" fill="none"/>
+        <path d="M467 179 L460 191 M467 179 L474 191" stroke="#B45309" stroke-width="2.2" fill="none"/>
+        <text x="248" y="240" font-size="13" font-weight="700" fill="#0E7490" text-anchor="middle">MATCH</text>
+        <text x="490" y="240" font-size="13" font-weight="700" fill="#B45309" text-anchor="middle">INDEX</text>
+
+        <!-- output chip -->
+        <path d="M542 162 L602 162" stroke="#B45309" stroke-width="2.2" fill="none"/>
+        <path d="M610 162 L598 155 M610 162 L598 169" stroke="#B45309" stroke-width="2.2" fill="none"/>
+        <rect x="616" y="145" width="128" height="34" rx="8" fill="#FDF3E3" stroke="#B45309" stroke-width="1.8"/>
+        <text x="680" y="168" font-size="15" fill="#09090B" text-anchor="middle">Lighting</text>
+      </g>
+    </svg>
+    <figcaption>MATCH looks down the key column and reports a position, here 3. INDEX takes that position and reads it out of whichever column you point it at. Because the two halves are separate, the answer column can sit anywhere, including to the left.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>MATCH on its own: a name in, a number out</li>
+      <li>INDEX on its own: a number in, a value out</li>
+      <li>Putting them together, and the sentence to say while typing</li>
+      <li>The answer that sits to the left</li>
+      <li>The hard-coded number that goes stale</li>
+      <li>The fourth argument that returns a wrong answer with no error</li>
+      <li>Two-way lookup: a row and a column at once</li>
+      <li>What MATCH is fussy about, and what it forgives</li>
+      <li>XLOOKUP, and when INDEX MATCH still earns its place</li>
+      <li>The full before and after</li>
+      <li>Edge cases that break a lookup quietly</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every result on this page is real.</strong> Two small tables, printed in full below, and every formula was run in Excel and its output copied back. These are the same tables used across the whole Excel set of guides, so the habits carry from page to page. If you have not met the argument-by-argument comparison yet, <a href="../vlookup-vs-xlookup/">VLOOKUP vs XLOOKUP</a> is the companion piece.</div>
+
+  <p>Here are the two tables. The first is a list of orders. The second is the product reference, and notice its shape: the key column, Product, is not the first column. Category sits to its left. That is not a trick; reference tables in real workbooks are laid out by whoever made them, not by whoever has to look things up in them.</p>
+
+  <p><strong>Products</strong></p>
+  <table>
+    <tr><th>Category</th><th>Product</th><th>ListPrice</th><th>Cost</th></tr>
+    <tr><td>Furniture</td><td>Desk</td><td>220</td><td>140</td></tr>
+    <tr><td>Furniture</td><td>Chair</td><td>85</td><td>52</td></tr>
+    <tr><td>Lighting</td><td>Lamp</td><td>40</td><td>22</td></tr>
+  </table>
+
+  <p><strong>Orders</strong>, sixteen rows. Revenue is <code>Units × UnitPrice</code>.</p>
+  <table>
+    <tr><th>OrderID</th><th>OrderDate</th><th>Rep</th><th>Region</th><th>Product</th><th>Units</th><th>UnitPrice</th><th>Revenue</th></tr>
+    <tr><td>1001</td><td>2026-01-05</td><td>Dana Reyes</td><td>North</td><td>Desk</td><td>4</td><td>220</td><td>880</td></tr>
+    <tr><td>1002</td><td>2026-01-12</td><td>Owen Park</td><td>South</td><td>Chair</td><td>10</td><td>85</td><td>850</td></tr>
+    <tr><td>1003</td><td>2026-01-19</td><td>Priya Shah</td><td>East</td><td>Desk</td><td>3</td><td>220</td><td>660</td></tr>
+    <tr><td>1004</td><td>2026-01-26</td><td>Dana Reyes</td><td>North</td><td>Lamp</td><td>6</td><td>40</td><td>240</td></tr>
+    <tr><td>1005</td><td>2026-02-02</td><td>Owen Park</td><td>South</td><td>Desk</td><td>3</td><td>220</td><td>660</td></tr>
+    <tr><td>1006</td><td>2026-02-09</td><td>Priya Shah</td><td>East</td><td>Chair</td><td>8</td><td>85</td><td>680</td></tr>
+    <tr><td>1007</td><td>2026-02-16</td><td>Dana Reyes</td><td>North</td><td>Chair</td><td>5</td><td>85</td><td>425</td></tr>
+    <tr><td>1008</td><td>2026-02-23</td><td>Sam Okafor</td><td>West</td><td>Lamp</td><td>12</td><td>40</td><td>480</td></tr>
+    <tr><td>1009</td><td>2026-03-02</td><td>Owen Park</td><td>South</td><td>Lamp</td><td>7</td><td>40</td><td>280</td></tr>
+    <tr><td>1010</td><td>2026-03-09</td><td>Priya Shah</td><td>East</td><td>Desk</td><td>5</td><td>220</td><td>1100</td></tr>
+    <tr><td>1011</td><td>2026-03-16</td><td>Dana Reyes</td><td>North</td><td>Desk</td><td>2</td><td>220</td><td>440</td></tr>
+    <tr><td>1012</td><td>2026-03-23</td><td>Sam Okafor</td><td>West</td><td>Chair</td><td>9</td><td>85</td><td>765</td></tr>
+    <tr><td>1013</td><td>2026-05-04</td><td>Priya Shah</td><td>East</td><td>Lamp</td><td>15</td><td>40</td><td>600</td></tr>
+    <tr><td>1014</td><td>2026-05-11</td><td>Dana Reyes</td><td>North</td><td>Chair</td><td>6</td><td>85</td><td>510</td></tr>
+    <tr><td>1015</td><td>2026-05-18</td><td>Owen Park</td><td>South</td><td>Desk</td><td>4</td><td>220</td><td>880</td></tr>
+    <tr><td>1016</td><td>2026-05-25</td><td>Sam Okafor</td><td>West</td><td>Desk</td><td>2</td><td>220</td><td>440</td></tr>
+  </table>
+
+  <p>Both tables have been named with Ctrl+T, so formulas can say <code>Products[Product]</code> instead of <code>$B$2:$B$4</code>. If those square brackets are unfamiliar, <a href="../excel-name-your-data/">naming your data</a> covers them; everything here works with ordinary cell ranges too.</p>
+
+  <div class="step">
+    <h2>1. MATCH on its own: a name in, a number out</h2>
+
+    <p>Before the explanation: MATCH is going to look for "Lamp" in a three-row list where Lamp is last. Say what you think it hands back.</p>
+
+    <pre><code>=MATCH("Lamp", Products[Product], 0)</code></pre>
+    <pre><code>3</code></pre>
+
+    <p>Not "Lamp", not "Lighting", not 40. Just <strong>3</strong>. MATCH's entire job is to report <em>where</em> something is, counting from the top of the range you gave it. Lamp is the third entry, so the answer is 3.</p>
+
+    <p>Two of its three arguments are obvious: what to find, and where to look. The third one is the important one. <code>0</code> means <strong>exact match</strong>, and it is the only setting you should be typing until you have a specific reason not to. Section six is about what the other settings do to you.</p>
+
+    <p>A number on its own looks useless, and that impression is the reason people skip MATCH and reach for a lookup that does everything in one go. Hold on to the number. It is the thing that makes the rest flexible.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. INDEX on its own: a number in, a value out</h2>
+
+    <p>Before the explanation: given the Products table above, say what <code>INDEX(Products[Category], 3)</code> returns before you read the output.</p>
+
+    <pre><code>=INDEX(Products[Category], 3)</code></pre>
+    <pre><code>Lighting</code></pre>
+
+    <p>INDEX takes a range and a position and hands back what is sitting at that position. It does no searching at all. Give it 3 and it reads the third cell, whether or not the third cell is the one you wanted.</p>
+
+    <p>So INDEX is deliberately dumb and MATCH is deliberately narrow, and neither is much use alone. Each knows exactly one thing: MATCH knows where, INDEX knows what is there.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Putting them together, and the sentence to say while typing</h2>
+
+    <p>Feed MATCH's number straight into INDEX's second argument.</p>
+
+    <pre><code>=INDEX(Products[Category], MATCH("Lamp", Products[Product], 0))</code></pre>
+    <pre><code>Lighting</code></pre>
+
+    <p>Read it out loud in the order it runs, from the inside out, and it stops looking like a nest of brackets: <em>"find Lamp in the Product column, exactly, and give me whatever is in the same position of the Category column."</em> That sentence has two column names in it, and so does the formula. Every INDEX MATCH you ever write has that same shape.</p>
+
+    <p>The order on the page is the reverse of the order it runs, which is the one genuinely awkward thing about it. So type it inside out. Write the MATCH first, on its own, and confirm it returns a sensible number. Then wrap <code>INDEX(</code> around it. Debugging a lookup that was built in two steps takes seconds, because you can always delete the INDEX and see what position MATCH thinks it found.</p>
+
+    <p>The same pair works on a real column of the orders table. Order 1001 is a Desk, so pulling its category in:</p>
+
+    <pre><code>=INDEX(Products[Category], MATCH([@Product], Products[Product], 0))</code></pre>
+    <pre><code>Furniture</code></pre>
+  </div>
+
+  <div class="step">
+    <h2>4. The answer that sits to the left</h2>
+
+    <p>Before the explanation: try to write a VLOOKUP that starts at Product and returns Category, using the Products table exactly as it is printed above. Give it thirty seconds.</p>
+
+    <p>There is no way to write it. VLOOKUP takes a block of columns, searches the <strong>first</strong> column of that block, and counts rightward to the answer. Category is to the left of Product, so it is outside every block that starts at Product. Asking for a column number of 0 or −1 does not reverse the direction; both simply fail, and in my run both returned <code>#N/A</code>.</p>
+
+    <pre><code>=VLOOKUP("Lamp", Products, -1, FALSE)</code></pre>
+    <pre><code>#N/A</code></pre>
+
+    <p>INDEX MATCH has no direction, because the searching and the fetching happen in different arguments. <code>MATCH</code> gets pointed at Product and <code>INDEX</code> gets pointed at Category, and whether Category is to the left, to the right, or on another sheet entirely makes no difference to either of them.</p>
+
+    <p>The usual workaround is to rearrange the reference table so the key is first. Sometimes that is fine. Often the table is somebody else's, refreshed from a system, or used by three other workbooks that expect the current layout, and quietly moving its columns is how you break somebody else's Monday.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. The hard-coded number that goes stale</h2>
+
+    <p>This is the failure that actually costs money, so here it is as a run rather than a warning. Three formulas, all asking the same question, what does a Lamp cost us:</p>
+
+    <pre><code>=VLOOKUP("Lamp", Products[[Product]:[Cost]], 3, FALSE)      22
+=INDEX(Products[Cost], MATCH("Lamp", Products[Product], 0))   22
+=XLOOKUP("Lamp", Products[Product], Products[Cost])           22</code></pre>
+
+    <p>All three agree. Now somebody adds a Supplier column to the reference table, between ListPrice and Cost. Nothing else changes. Same three formulas, untouched:</p>
+
+    <pre><code>=VLOOKUP("Lamp", Products[[Product]:[Cost]], 3, FALSE)      Northlight
+=INDEX(Products[Cost], MATCH("Lamp", Products[Product], 0))   22
+=XLOOKUP("Lamp", Products[Product], Products[Cost])           22</code></pre>
+
+    <p>The VLOOKUP now returns a supplier name where a cost used to be. It did nothing wrong: it was told to count three columns across, it counted three columns across, and the third column is Supplier now. The number 3 was a fact about the layout on the day it was typed, frozen into the formula.</p>
+
+    <p>Say out loud what the damage looks like if the inserted column had been numeric instead of text. Text at least stands out; <code>Northlight</code> in a cost column is visible. A second price column in the same slot would have produced a wrong number that formats, sums and charts exactly like a right one, and the workbook would have looked perfectly healthy.</p>
+
+    <p>INDEX MATCH survives because nothing in it refers to a position that a human chose. <code>Products[Cost]</code> means the Cost column wherever the Cost column now is. If you would rather keep VLOOKUP, you can get most of the way there by replacing the number with a MATCH on the header row, <code>MATCH("Cost", Products[#Headers], 0)</code>, which is the single highest-value edit in this whole guide.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. The fourth argument that returns a wrong answer with no error</h2>
+
+    <p>Before the explanation: our Products table lists Desk, Chair, Lamp in that order, which is not alphabetical. Here is a VLOOKUP for the price of a Desk with the last argument set to TRUE. The right answer is 220. Predict what it returns.</p>
+
+    <pre><code>=VLOOKUP("Desk", Products[[Product]:[Cost]], 2, TRUE)</code></pre>
+    <pre><code>85</code></pre>
+
+    <p>85 is the price of a Chair. No error, no warning, no colour. That is what the last argument does when it is TRUE, which is also what it does when you leave it out entirely.</p>
+
+    <p>TRUE means <strong>approximate match</strong>, and approximate match makes one assumption: that your lookup column is sorted ascending. Under that assumption it can stop early and take the last value it passed that was not too big, which is genuinely useful for banding, where you want "whatever bracket this number falls into". Point it at an unsorted list and the assumption is false, so it stops in the wrong place and reports whatever was there with complete confidence.</p>
+
+    <p>The lesson is not that TRUE is bad. It is that a lookup has two different jobs, and they need different settings. Finding a specific known key is an exact-match job, and needs <code>FALSE</code> in VLOOKUP or <code>0</code> in MATCH, typed every single time. Finding which band a number falls into is an approximate-match job, and needs a sorted table you built on purpose.</p>
+
+    <p>MATCH has the same three-way setting, and the same trap: its third argument defaults to 1, which is approximate. Typing the <code>0</code> is not optional politeness. It is the difference between an answer and a guess.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Two-way lookup: a row and a column at once</h2>
+
+    <p>INDEX's second argument is a row position. It also takes a third argument, a column position, and both of them can be a MATCH. That turns any grid into something you can query by two labels.</p>
+
+    <pre><code>=INDEX(Products[[ListPrice]:[Cost]],
+       MATCH("Chair", Products[Product], 0),
+       MATCH("Cost",  Products[[#Headers],[ListPrice]:[Cost]], 0))</code></pre>
+    <pre><code>52</code></pre>
+
+    <p>Read it the same way: find the Chair row, find the Cost column, hand me the cell where they cross. Change either word and the formula follows. Put those two words in cells and let somebody type into them, and you have built a small lookup tool with no macros and nothing to maintain.</p>
+
+    <p>This is the case that still belongs to INDEX MATCH, because a two-way lookup is not something VLOOKUP can express at all, and XLOOKUP needs to be nested inside itself to manage it. One INDEX with two MATCHes is easier to read than any of the alternatives.</p>
+
+    <p>Picture your own reference tables for a second: a rate card, a shipping matrix, a tax table, a grade boundary sheet. Which one of them do you currently look things up in by scrolling and pointing at the screen? That is the one to convert first.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. What MATCH is fussy about, and what it forgives</h2>
+
+    <p>Two facts, both worth knowing exactly, both checked rather than assumed.</p>
+
+    <p><strong>Case does not matter.</strong> Searching for <code>"lamp"</code> in a list containing <code>Lamp</code> returns 3, the same as searching for <code>"Lamp"</code>. Excel's text comparison here ignores capitals, so a key that arrives in a different case still finds its row.</p>
+
+    <p><strong>Spaces matter completely.</strong> Searching for <code>"Lamp "</code>, with one trailing space, returns <code>#N/A</code>.</p>
+
+    <pre><code>=MATCH("lamp",  Products[Product], 0)      3
+=MATCH("Lamp ", Products[Product], 0)      #N/A</code></pre>
+
+    <p>That pair explains most mystery lookup failures. The value on screen looks identical to the value in the reference table, because a trailing space is invisible, and the formula is quite correct that they are different strings. Before rewriting a lookup that "should work", wrap the key in <code>TRIM()</code> and see whether the problem disappears.</p>
+
+    <p>A third mismatch is just as common and even harder to see: a key that is a number in one table and text in another. <code>1001</code> and <code>"1001"</code> never match. The tell is that the failing keys are always the numeric-looking ones, and the fix is to make one side agree with the other rather than to keep adjusting the formula. When the keys differ in messier ways than spaces and capitals, that is a bigger job with a name: <a href="../entity-resolution/">entity resolution</a>.</p>
+  </div>
+
+  <div class="step">
+    <h2>9. XLOOKUP, and when INDEX MATCH still earns its place</h2>
+
+    <p>XLOOKUP does this job in one function, defaults to exact match, and takes the lookup column and the return column as two separate arguments, which is the same separation that makes INDEX MATCH robust.</p>
+
+    <pre><code>=XLOOKUP("Lamp", Products[Product], Products[Category])</code></pre>
+    <pre><code>Lighting</code></pre>
+
+    <p>If XLOOKUP is available to you and to everyone who opens your file, use it for ordinary one-directional lookups. It is shorter and its defaults are the safe ones.</p>
+
+    <p>Three situations still go to INDEX MATCH. A workbook that has to open in an older Excel, or in another spreadsheet program, where XLOOKUP is not there and the formula arrives as <code>#NAME?</code>. A two-way lookup, from section seven. And reading somebody else's model, which is the honest reason to learn it even if you never type it: INDEX MATCH is in millions of live workbooks and you will be asked to change one.</p>
+
+    <p>None of the three lookups protects you from a key that genuinely is not there. All of them return <code>#N/A</code>, which is the correct behaviour, and hiding it is its own mistake. What to wrap around it, and when hiding an error is the wrong move, is a page of its own.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>The orders table can tell you what came in. On its own it cannot tell you what any of it was worth keeping, because cost lives in the other table.</p>
+
+  <h3>Before</h3>
+  <pre><code>Total revenue     9,890</code></pre>
+  <p>One number, and no way to act on it. Sixteen orders, three products, and no idea which of them is carrying the business.</p>
+
+  <h3>After</h3>
+  <p>One lookup column on the orders table, <code>=INDEX(Products[Cost], MATCH([@Product], Products[Product], 0))</code>, and every row can now be costed.</p>
+  <pre><code>Product   Units   Revenue    Cost    Gross profit   Margin
+Desk         23      5,060   3,220          1,840    36.4%
+Chair        38      3,230   1,976          1,254    38.8%
+Lamp         40      1,600     880            720    45.0%
+Total       101      9,890   6,076          3,814    38.6%</code></pre>
+  <p>Check one line by hand: desks sold 23 units at a cost of 140 each, so 23 × 140 = 3,220, and 5,060 − 3,220 = 1,840. The revenue column still adds to 9,890, so nothing went missing on the way through the lookup.</p>
+
+  <p>And now there is a claim instead of a list. <strong>Lamps are the smallest product line by revenue, 1,600 of 9,890, and the most profitable per pound sold, at 45.0% against the desk's 36.4%.</strong> A revenue ranking puts lamps last and a margin ranking puts them first, and the only thing standing between those two sentences is one lookup.</p>
+
+  <div class="step">
+    <h2>Edge cases that break a lookup quietly</h2>
+
+    <p>Six that each cost somebody an afternoon.</p>
+
+    <p><strong>The key appears twice in the reference table.</strong> MATCH, VLOOKUP and XLOOKUP all stop at the first hit and never mention the second. If your reference table can contain duplicates, count them before you trust the lookup: <code>COUNTIF</code> on the key column, and anything above 1 is a decision you have to make rather than one Excel should make for you.</p>
+
+    <p><strong>The ranges are different lengths.</strong> INDEX on a 4-row column with MATCH over a 5-row column will happily return the wrong row, or <code>#REF!</code> if the position runs off the end. Point both at whole named columns and they cannot drift apart.</p>
+
+    <p><strong>Half-locked references.</strong> Copying <code>MATCH(A2, B2:B4, 0)</code> down the sheet slides the lookup range to <code>B3:B5</code>, so the last rows search a range that is missing entries. Lock it with <code>$B$2:$B$4</code>, or use a named table, where the range cannot slide at all.</p>
+
+    <p><strong>An <code>#N/A</code> that got hidden too early.</strong> Wrapping the lookup in something that turns errors into a blank or a zero makes the sheet look clean and makes an unmatched key invisible. Count the misses first, decide what they mean, and only then decide what to display.</p>
+
+    <p><strong>Lookups against a whole column on a large table.</strong> <code>MATCH(A2, D:D, 0)</code> scans a million cells per row. On a few hundred rows nobody notices; on fifty thousand the file starts taking seconds to recalculate. Point at the table, not the column letter.</p>
+
+    <p><strong>A reference table that grew.</strong> A fixed range like <code>$B$2:$B$4</code> never sees a fourth product, so new items silently return <code>#N/A</code> forever. This is the same argument as Ctrl+T everywhere else in this set of guides: a named table grows, a typed range does not.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>What this formula is doing has a name older than Excel. Two tables share a key, and you are attaching a fact from one to the rows of the other, which is a join in the relational sense: the key identifies a row uniquely, and the attributes of that row can then be brought alongside any row that references it (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). Seeing it as a join explains the failures rather than just listing them. A duplicate key breaks the promise of unique identification, so the result depends on row order, which is why Excel returns the first hit and SQL returns two rows. A missing key has no match, so the only honest answer is nothing, which is what <code>#N/A</code> means. And a hard-coded column number is not part of the join at all; it is a fact about where the data happens to sit today, which is precisely why it decays.</p>
+
+  <p>The wider argument for preferring the version that cannot silently drift is that spreadsheet errors are normal rather than rare. Reviews of the audit literature find errors in a large majority of the operational workbooks examined, and the errors that survive review are the ones that produce plausible numbers rather than visible breakage (Powell, Baker, &amp; Lawson, 2008, <em>Decision Support Systems</em>, 46(1), 128–138). Both failures on this page are exactly that kind: <code>85</code> where the answer was <code>220</code>, and a supplier name where a cost should be. Neither turns anything red. Choosing a formula shape that cannot fail that way is cheaper than promising to check more carefully.</p>
+
+  <p>There is also a reason this page kept asking you to predict an output before showing it. Explaining a step to yourself before being given the explanation measurably improves what you retain from it, across a wide range of subjects and ages (Chi, Bassok, Lewis, Reimann, &amp; Glaser, 1989, <em>Cognitive Science</em>, 13(2), 145–182). The 85 sticks because you committed to 220 first.</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Converting every lookup in an inherited workbook is miserable and you will stop at the fourth one. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Find the hard-coded numbers first.</strong> Search your formulas for <code>VLOOKUP</code> and look only at the third argument. Those numbers are the whole risk.</li>
+    <li><strong>Replace the number with a MATCH on the header</strong>, <code>MATCH("Cost", Products[#Headers], 0)</code>. This is a five-second edit per formula and it removes the inserted-column failure without rewriting anything.</li>
+    <li><strong>Make sure every lookup ends in <code>0</code> or <code>FALSE</code></strong>, explicitly. An omitted last argument is an approximate match wearing a disguise.</li>
+    <li><strong>Ctrl+T both tables</strong> so the ranges cannot slide when copied and cannot go stale when rows are added.</li>
+    <li><strong>Count the misses on purpose</strong> before you hide them: <code>=COUNTIF(range,"#N/A")</code> on the results, or a quick filter. Unmatched keys are a finding about your data, not a formatting problem.</li>
+    <li><strong>Reach for INDEX MATCH when the answer is to the left, or when you need a row and a column</strong>, and use XLOOKUP for everything else if your readers' Excel supports it.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Draw two narrow columns side by side, write your own key values down the first and the values you want out down the second, and circle one row across both. Then write the position number in the margin. Everything on this page is that number, and drawing it once is what makes the nested formula stop looking nested.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: Excel, SQL, Python, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td><code>MATCH(what, where, 0)</code></td><td>Returns the position of a value in a list. A number, nothing else.</td></tr>
+    <tr><td>MATCH's third argument</td><td><code>0</code> exact. <code>1</code> largest not over, needs ascending. <code>-1</code> smallest not under, needs descending.</td></tr>
+    <tr><td>MATCH's default</td><td>1, approximate. Always type the <code>0</code>.</td></tr>
+    <tr><td><code>INDEX(range, n)</code></td><td>Returns the nth item of a range. No searching at all.</td></tr>
+    <tr><td>The pair</td><td><code>INDEX(answer_col, MATCH(key, key_col, 0))</code>.</td></tr>
+    <tr><td>How to read it</td><td>Inside out: find the key, then read the same position in the other column.</td></tr>
+    <tr><td>How to type it</td><td>MATCH first, on its own. Check the number. Then wrap INDEX around it.</td></tr>
+    <tr><td>Answer to the left</td><td>Works, because searching and fetching are separate arguments.</td></tr>
+    <tr><td>Inserted column</td><td>No effect. Nothing refers to a position a human chose.</td></tr>
+    <tr><td>VLOOKUP's third argument</td><td>A frozen count of columns. Replace with <code>MATCH(heading, headers, 0)</code>.</td></tr>
+    <tr><td>VLOOKUP's fourth argument</td><td>TRUE or omitted is approximate, and on unsorted data it returns a wrong value with no error.</td></tr>
+    <tr><td>Two-way lookup</td><td><code>INDEX(grid, MATCH(row), MATCH(col))</code>. The case INDEX MATCH still owns.</td></tr>
+    <tr><td>Case</td><td>Ignored. <code>lamp</code> finds <code>Lamp</code>.</td></tr>
+    <tr><td>Spaces</td><td>Not ignored. <code>"Lamp "</code> returns <code>#N/A</code>. Try TRIM first.</td></tr>
+    <tr><td>Number against text key</td><td>Never matches. Fix the data, not the formula.</td></tr>
+    <tr><td>Duplicate key</td><td>First hit wins, silently. COUNTIF the key column.</td></tr>
+    <tr><td><code>#N/A</code></td><td>The key is not there. A finding, not a formatting problem.</td></tr>
+    <tr><td>XLOOKUP</td><td>Same job in one function, exact by default. Use it when everyone's Excel has it.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> No lookup formula should contain a number that describes where a column currently sits. Either the formula names the column, or it finds the column with a MATCH on the heading. That single rule is what makes a workbook survive other people editing the data it reads. If a lookup breaks in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The worst one I have found in the wild was a VLOOKUP pulling column 7 out of a report that had gained a column three months earlier, so every figure in a monthly pack had been one field off since April and every total still balanced. What is the quiet lookup failure you found late, and what finally gave it away?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+    <li>Powell, S. G., Baker, K. R., &amp; Lawson, B. (2008). A critical review of the literature on spreadsheet errors. <em>Decision Support Systems</em>, 46(1), 128–138.</li>
+    <li>Chi, M. T. H., Bassok, M., Lewis, M. W., Reimann, P., &amp; Glaser, R. (1989). Self-explanations: How students study and use examples in learning to solve problems. <em>Cognitive Science</em>, 13(2), 145–182.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice lookups with two real tables in front of you.</strong>
+    <p style="margin:6px 0 0">The <a href="../../excel/">Excel Kit</a> gives you the repetitions: lookup exercises against tables that are deliberately laid out the awkward way, flash cards on exactly the exact-against-approximate and left-column decisions from this page, and a mock exam that asks you to predict the output before you press Enter. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../excel/">Open the Excel Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../vlookup-vs-xlookup/">VLOOKUP vs XLOOKUP</a> · <a href="../excel-pivot-tables/">Make a Pivot Table</a> · <a href="../excel-name-your-data/">Name Your Data</a> · <a href="../excel-sumifs/">SUMIFS and COUNTIFS</a> · <a href="../excel-if-family/">The IF Family</a> · <a href="../excel-check-your-work/">Check Your Work</a> · <a href="../excel-csv-import-leading-zeros/">Leading Zeros on Import</a> · <a href="../budget-vs-actual-variance/">Budget vs Actual Variance</a> · <a href="../../excel/">Excel Kit</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-null/">NULL in SQL</a> · <a href="../pandas-groupby/">pandas groupby</a> · <a href="../powerbi-measures-vs-columns/">Power BI Measures vs Columns</a> · <a href="../report-vs-analysis/">Report vs Analysis</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
