@@ -13,14 +13,14 @@ Edit CARD below, run it, and check the PNG before committing.
 from PIL import Image, ImageDraw, ImageFont
 import math
 
-OUT = "assets/social/build-a-risk-index.png"
+OUT = "assets/social/sample-database-for-sql-practice.png"
 
 CARD = {
     "kicker": "ANALYST PREP KIT",
-    "title": ["Build a Risk Index", "That Colors Itself"],
+    "title": ["Get a Sample Database", "to Practice SQL"],
     "subtitle": [
-        "The score decides the band. The band decides",
-        "the color. Nobody colors a cell by hand.",
+        "One CSV cannot teach you joins. Eleven linked",
+        "tables on your machine in five minutes.",
     ],
     "url": "michaelnocito.github.io",
 }
