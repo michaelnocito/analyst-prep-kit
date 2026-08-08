@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Set Up DuckDB (Run SQL on a CSV With No Import Step) — Analyst Prep Kit</title>
+<meta name="description" content="Install DuckDB in one command and run SQL straight against a CSV file, with no CREATE TABLE and no import. Real output, the folder glob trick, and when SQLite is still the better choice.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/set-up-duckdb/">
+<meta property="og:title" content="How to Set Up DuckDB (Run SQL on a CSV With No Import Step)">
+<meta property="og:description" content="One pip install, then put the filename where the table name goes. No import, no schema, types worked out for you. Here it is with real output.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/set-up-duckdb.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/set-up-duckdb/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/set-up-duckdb.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Set Up DuckDB (Run SQL on a CSV With No Import Step)",
+  "description": "Install DuckDB in one command and run SQL straight against a CSV file, with no CREATE TABLE and no import. Real output, the folder glob trick, and when SQLite is still the better choice.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/set-up-duckdb/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/set-up-duckdb/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/set-up-duckdb.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "How to Set Up DuckDB",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/set-up-duckdb/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>How to Set Up DuckDB</h1>
+  <p class="meta">One install command, then put the filename where the table name goes · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you will be running SQL directly against a CSV file on your machine, with no import step, no <code>CREATE TABLE</code>, and no schema written by hand. DuckDB reads the file where it lies, works out the column types itself, and gives you a normal SQL result. It takes one command to install and about a minute to prove.</p>
+
+  <p>Here is what to actually do today. Run <code>python -m pip install duckdb</code>, then write a query with your CSV's filename in quotes where the table name would normally go. That is the entire idea, and everything else on this page is a consequence of it.</p>
+
+  <p>The short version: a file is a table. It suits large files and folders of files, it does not replace SQLite for a shared database you keep, and section 6 says which to use when.</p>
+
+  <p>The missing import step is the one idea worth the page, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 240" role="img" aria-labelledby="ddTitle ddDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="ddTitle">The import step, removed</title>
+      <desc id="ddDesc">Two horizontal sequences. The upper sequence runs through four stages joined by arrows: a file icon, then a box representing a schema being written, then a database cylinder, then a result grid. The lower sequence has only two stages joined by a single long arrow: the same file icon on the left and the same result grid on the right, with the middle two stages absent and the empty space where they used to be left visibly blank.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <!-- upper -->
+        <rect x="34" y="34" width="42" height="52" rx="4" fill="#FFFFFF" stroke="#A1A1AA" stroke-width="2"/>
+        <path d="M44 48 h22 M44 60 h22 M44 72 h14" stroke="#A1A1AA" stroke-width="2"/>
+        <path d="M86 60 L146 60" stroke="#A1A1AA" stroke-width="2"/><path d="M146 60 L134 54 M146 60 L134 66" stroke="#A1A1AA" stroke-width="2"/>
+
+        <rect x="152" y="34" width="96" height="52" rx="8" fill="#F5F7F8" stroke="#A1A1AA" stroke-width="2"/>
+        <path d="M168 52 h64 M168 62 h48 M168 72 h56" stroke="#A1A1AA" stroke-width="2"/>
+        <path d="M258 60 L316 60" stroke="#A1A1AA" stroke-width="2"/><path d="M316 60 L304 54 M316 60 L304 66" stroke="#A1A1AA" stroke-width="2"/>
+
+        <g stroke="#A1A1AA" stroke-width="2" fill="#F5F7F8">
+          <ellipse cx="366" cy="42" rx="34" ry="10"/>
+          <path d="M332 42 v36 a34 10 0 0 0 68 0 v-36"/>
+          <ellipse cx="366" cy="78" rx="34" ry="10" fill="#FFFFFF"/>
+        </g>
+        <path d="M406 60 L466 60" stroke="#A1A1AA" stroke-width="2"/><path d="M466 60 L454 54 M466 60 L454 66" stroke="#A1A1AA" stroke-width="2"/>
+
+        <g stroke="#A1A1AA" fill="#FFFFFF">
+          <rect x="472" y="30" width="130" height="60" stroke-width="2"/>
+          <path d="M472 48 h130 M472 68 h130 M516 30 v60 M560 30 v60" stroke-width="1.2"/>
+          <rect x="472" y="30" width="130" height="18" fill="#F5F7F8" stroke-width="2"/>
+        </g>
+
+        <!-- lower -->
+        <rect x="34" y="150" width="42" height="52" rx="4" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <path d="M44 164 h22 M44 176 h22 M44 188 h14" stroke="#0E7490" stroke-width="2"/>
+
+        <path d="M86 176 L466 176" stroke="#0E7490" stroke-width="2.5"/>
+        <path d="M466 176 L452 169 M466 176 L452 183" stroke="#0E7490" stroke-width="2.5"/>
+
+        <g stroke="#0E7490" fill="#FFFFFF">
+          <rect x="472" y="146" width="130" height="60" stroke-width="2"/>
+          <path d="M472 164 h130 M472 184 h130 M516 146 v60 M560 146 v60" stroke-width="1.2"/>
+          <rect x="472" y="146" width="130" height="18" fill="#E0F2F7" stroke-width="2"/>
+        </g>
+      </g>
+    </svg>
+    <figcaption>Same file at the start, same answer at the end. DuckDB deletes the two stages in the middle, which are the two stages where a beginner usually gives up.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll do</strong>
+    <ol>
+      <li>Install it</li>
+      <li>Query a CSV with no import</li>
+      <li>What it worked out about your file</li>
+      <li>A whole folder as one table</li>
+      <li>Into pandas, and back out</li>
+      <li>DuckDB or SQLite: which, when</li>
+      <li>The full before and after</li>
+      <li>What goes wrong, and the fix</li>
+      <li>Why it can do this</li>
+      <li>Using this on your own work</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every output on this page is real.</strong> Run on 8 August 2026 with DuckDB 1.5.5 on Windows, against a 412-row CSV exported from the Chinook sample database. The numbers match the ones in <a href="../sample-database-for-sql-practice/">the sample-database guide</a> and <a href="../connect-python-to-a-sql-database/">the Python guide</a> on purpose, because it is the same data through three different tools.</div>
+
+  <div class="step">
+    <h2>1. Install it</h2>
+
+    <p>Before the explanation: every database you have met so far needed you to create a table before you could put anything in it. What would have to be true for that step to be unnecessary?</p>
+
+    <pre><code>python -m pip install duckdb</code></pre>
+
+    <p>That is the whole installation. No server, no service running in the background, no configuration file, and no administrator rights. Like SQLite, DuckDB is a library that runs inside your own program rather than a program you start and connect to.</p>
+
+    <p>Write it as <code>python -m pip</code> rather than bare <code>pip</code>, for the reason set out in <a href="../install-python-for-data-analysis/">installing Python for data analysis</a>: it guarantees the package lands in the Python you are about to run.</p>
+
+    <p>There is also a standalone command-line version if you would rather work in a terminal than in Python, and a browser version, but the Python package is the one that fits an analyst's day and it is what this page uses.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. Query a CSV with no import</h2>
+
+    <p>Here is the whole point of the tool, in six lines.</p>
+
+    <pre><code>import duckdb
+
+print(duckdb.sql("""
+    SELECT Country, COUNT(*) AS invoices, ROUND(SUM(Total), 2) AS revenue
+    FROM 'invoices.csv'
+    GROUP BY Country
+    ORDER BY revenue DESC
+    LIMIT 5
+"""))</code></pre>
+
+    <pre><code>┌─────────┬──────────┬─────────┐
+│ Country │ invoices │ revenue │
+│ varchar │  int64   │ double  │
+├─────────┼──────────┼─────────┤
+│ USA     │       91 │  523.06 │
+│ Canada  │       56 │  303.96 │
+│ France  │       35 │   195.1 │
+│ Brazil  │       35 │   190.1 │
+│ Germany │       28 │  156.48 │
+└─────────┴──────────┴─────────┘</code></pre>
+
+    <p>Read the <code>FROM</code> line again, because it is the answer to the opening question. <code>FROM 'invoices.csv'</code> is a filename in quotes sitting exactly where a table name goes. There was no <code>CREATE TABLE</code>, no import wizard, no column list, and no database file created anywhere. DuckDB opened the file, read what it needed, and answered.</p>
+
+    <p>Notice the second header row in the output. Under each column name is its type: <code>varchar</code>, <code>int64</code>, <code>double</code>. Those were worked out from the file, and printing them by default is a small design decision that saves a great deal of confusion.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. What it worked out about your file</h2>
+
+    <p>You can ask directly what types it decided on, which is the first thing to do with any new file.</p>
+
+    <pre><code>print(duckdb.sql("DESCRIBE SELECT * FROM 'invoices.csv'"))</code></pre>
+
+    <pre><code>┌─────────────┬─────────────┬─────────┬─────────┬─────────┬─────────┐
+│ column_name │ column_type │  null   │   key   │ default │  extra  │
+│   varchar   │   varchar   │ varchar │ varchar │ varchar │ varchar │
+├─────────────┼─────────────┼─────────┼─────────┼─────────┼─────────┤
+│ InvoiceId   │ BIGINT      │ YES     │ NULL    │ NULL    │ NULL    │
+│ Country     │ VARCHAR     │ YES     │ NULL    │ NULL    │ NULL    │
+│ InvoiceDate │ TIMESTAMP   │ YES     │ NULL    │ NULL    │ NULL    │
+│ Total       │ DOUBLE      │ YES     │ NULL    │ NULL    │ NULL    │
+└─────────────┴─────────────┴─────────┴─────────┴─────────┴─────────┘</code></pre>
+
+    <p>Four columns of plain text in a file, and it correctly identified a whole number, some text, a timestamp and a decimal. The date column matters most: dates arriving as text is one of the most common frustrations in every other tool on this site, and here it was handled without being asked.</p>
+
+    <p>Say why you should still read this output rather than trust it, before reading on. Because inference is a guess made from the file's contents, and a column that happens to look numeric in every row you sampled can still be a code with meaning. <code>DESCRIBE</code> takes two seconds and tells you what the tool decided, which is the only way to notice when it decided something you did not want.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. A whole folder as one table</h2>
+
+    <p>This is the feature that turns DuckDB from convenient into genuinely useful for analyst work. If your data arrives as one file per month, you can query all of them at once by putting a <code>*</code> in the filename.</p>
+
+    <pre><code>print(duckdb.sql("SELECT COUNT(*) AS rows_across_files FROM 'months/*.csv'"))</code></pre>
+
+    <pre><code>┌───────────────────┐
+│ rows_across_files │
+│       int64       │
+├───────────────────┤
+│               239 │
+└───────────────────┘</code></pre>
+
+    <p>Two files in that folder, 119 rows and 120 rows, and 239 came back. There was no loop, no concatenation step, and no list of filenames to maintain. Adding a new month means dropping a file into the folder, and the same query picks it up.</p>
+
+    <p>Think about the monthly reporting job you or a colleague runs. If the twelve files for last year sat in one folder, how much of that job is just the work of sticking them together? That part is what a single asterisk removes.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Into pandas, and back out</h2>
+
+    <p>DuckDB is built to sit beside pandas rather than replace it. Add <code>.df()</code> to get a DataFrame.</p>
+
+    <pre><code>df = duckdb.sql("""
+    SELECT Country, COUNT(*) AS n
+    FROM 'invoices.csv'
+    GROUP BY Country ORDER BY n DESC LIMIT 3
+""").df()
+print(df)</code></pre>
+
+    <pre><code>Country  n
+    USA 91
+ Canada 56
+ France 35</code></pre>
+
+    <p>That needs pandas installed, which DuckDB does not require on its own. It works the other way too: a DataFrame already in memory can be queried by name, so <code>SELECT * FROM my_dataframe</code> works with no conversion step at all.</p>
+
+    <p>That two-way street is the sensible division of labour. Use SQL for filtering, joining and grouping, which is what SQL is best at, then hand the small result to pandas for reshaping and charting. It is the same dividing line described in <a href="../connect-python-to-a-sql-database/">connecting Python to a SQL database</a>, with less ceremony in the middle.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. DuckDB or SQLite: which, when</h2>
+
+    <p>Both are file-based, both need no server, and they are built for different jobs. Neither is an upgrade of the other.</p>
+
+    <table>
+      <tr><th>Situation</th><th>Reach for</th><th>Because</th></tr>
+      <tr><td>A CSV or Parquet file you want to question right now</td><td>DuckDB</td><td>No import step. The file is the table.</td></tr>
+      <tr><td>A folder of files with the same shape</td><td>DuckDB</td><td>One asterisk reads all of them.</td></tr>
+      <tr><td>Summarising millions of rows</td><td>DuckDB</td><td>Built for aggregating over columns, which is what analysis is.</td></tr>
+      <tr><td>A database you keep, add to, and hand to someone</td><td>SQLite</td><td>A single stable file that everything can open.</td></tr>
+      <tr><td>Practising SQL for interviews</td><td>SQLite</td><td>Every tutorial and browser tool uses it, so examples match.</td></tr>
+      <tr><td>Lots of small writes and updates</td><td>SQLite</td><td>Designed for row-by-row work.</td></tr>
+    </table>
+
+    <p>In practice many analysts use both without thinking about it: DuckDB to explore whatever landed today, SQLite for the tidy database a project keeps. If you are choosing your first one and preparing for interviews, start with SQLite and the <a href="../set-up-a-sql-database/">fifteen-minute setup</a>, then add DuckDB the first time a file is too big or too plural to be comfortable.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same goal: revenue by country from a CSV somebody sent you.</p>
+
+  <h3>Before</h3>
+  <pre><code>1. Open DB Browser, create a new database file
+2. Import CSV, click through the wizard
+3. Fix the columns it guessed as text
+4. Write the query
+5. Next month, repeat all four for the new file
+6. To combine months, import each one and UNION them</code></pre>
+  <p>Every step works, and five of the six are handling rather than analysis. Step 6 is the one that scales badly, because the effort grows with the number of files rather than staying flat.</p>
+
+  <h3>After</h3>
+  <pre><code>import duckdb
+duckdb.sql("SELECT Country, SUM(Total) FROM 'months/*.csv' GROUP BY Country")</code></pre>
+  <p>The import step is gone, the type fixes are gone, and the number of files stopped mattering. What remains is the query, which was the only part that ever expressed what you wanted to know.</p>
+
+  <div class="step">
+    <h2>What goes wrong, and the fix</h2>
+
+    <p>Six worth knowing.</p>
+
+    <p><strong>The output prints as garbled symbols on Windows.</strong> DuckDB draws its result tables with box-drawing characters, and an older Windows console cannot encode them. Set <code>PYTHONIOENCODING=utf-8</code> before running, or use <code>.df()</code> and print that instead. Nothing is wrong with the query.</p>
+
+    <p><strong>"No files found that match the pattern".</strong> The path is relative to where you ran Python, not to where the script file sits. Print your working directory, or use a full path.</p>
+
+    <p><strong>A column came out as text when it should be a number.</strong> Something in it is not numeric, often a thousands separator or an "N/A". <code>DESCRIBE</code> shows you which column, and <code>CAST(col AS DOUBLE)</code> in the query is the deliberate fix.</p>
+
+    <p><strong>Files in a folder have different columns.</strong> The glob assumes one shape. Add <code>union_by_name=true</code> to the read function if the columns match by name but not by order.</p>
+
+    <p><strong><code>.df()</code> fails with a missing module.</strong> pandas is not installed in that environment. DuckDB does not install it for you.</p>
+
+    <p><strong>A query on a huge file uses all your memory.</strong> Select only the columns you need rather than <code>SELECT *</code>. Reading fewer columns is where most of the speed comes from, and asking for all of them gives that advantage away.</p>
+  </div>
+
+  <h2>Why it can do this</h2>
+
+  <p>Two design choices explain everything on this page.</p>
+
+  <p>The first is <strong>where the data is stored</strong>. Most databases you have met store a table row by row, which suits fetching one customer's whole record. DuckDB stores and processes data column by column, which suits the opposite job: reading one column across millions of rows to add it up. Analysis is almost entirely that second shape, so a query that touches three columns of a forty-column file only reads three columns' worth of work. That is also why <code>SELECT *</code> throws the advantage away.</p>
+
+  <p>The second is that the file <strong>is</strong> the table. Because DuckDB can read CSV and Parquet directly and infer their types, there is nothing to load in advance, and no copy of your data sitting in a second place going stale. The import step in every other tool exists to convert a file into the database's own storage format; remove the need for that conversion and the step disappears with it.</p>
+
+  <p>One note on the way this page is written. It kept asking you to commit to an answer, what would make an import unnecessary, why to read the types anyway, before giving one. Attempting an answer before seeing the correct one reliably improves how well the correct one is retained, even when the attempt is wrong (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725).</p>
+
+  <h2>Using this on your own work</h2>
+
+  <p>Five habits, in order.</p>
+
+  <ol>
+    <li><strong>Run <code>DESCRIBE</code> on any new file first.</strong> Two seconds, and it tells you what the tool decided before you build on it.</li>
+    <li><strong>Name the columns you want</strong> rather than <code>SELECT *</code>. That is where the speed lives.</li>
+    <li><strong>Put same-shaped files in one folder</strong> and query them with an asterisk, instead of writing code that stitches them together.</li>
+    <li><strong>Aggregate in the query, chart in pandas.</strong> Hand pandas the small result, never the whole file.</li>
+    <li><strong>Keep SQLite for the database you keep</strong>, and use DuckDB for the files that arrive. They are not competing.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional drawing is worth two minutes. Draw the four boxes from the top of this page for a job you actually run, then cross out any box that exists only to move data rather than to answer something. What is left is the work, and the crossed-out boxes are what this tool is for.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: getting set up, SQL, Excel, Python, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it is, or what it does</th></tr>
+    <tr><td>Install</td><td><code>python -m pip install duckdb</code>. No server, no admin rights.</td></tr>
+    <tr><td>The core idea</td><td>A filename in quotes goes where a table name goes.</td></tr>
+    <tr><td><code>FROM 'data.csv'</code></td><td>Queries the file in place. No import, no CREATE TABLE.</td></tr>
+    <tr><td>Types</td><td>Inferred from the file, including dates as TIMESTAMP.</td></tr>
+    <tr><td><code>DESCRIBE SELECT * FROM 'f.csv'</code></td><td>Shows what it decided each column is. Run it first, always.</td></tr>
+    <tr><td>Type row in the output</td><td>Printed under the column names by default.</td></tr>
+    <tr><td><code>FROM 'months/*.csv'</code></td><td>Every matching file as one table. No loop, no concatenation.</td></tr>
+    <tr><td><code>.df()</code></td><td>Returns a pandas DataFrame. Needs pandas installed.</td></tr>
+    <tr><td>Querying a DataFrame</td><td><code>SELECT * FROM my_df</code> works with no conversion.</td></tr>
+    <tr><td>Column storage</td><td>Reads only the columns you name. Why <code>SELECT *</code> is expensive.</td></tr>
+    <tr><td>Garbled Windows output</td><td>Box-drawing characters. Set <code>PYTHONIOENCODING=utf-8</code>.</td></tr>
+    <tr><td>"No files found"</td><td>Paths are relative to where you ran Python, not to the script.</td></tr>
+    <tr><td>Mismatched folder files</td><td><code>union_by_name=true</code> when columns match by name, not order.</td></tr>
+    <tr><td>Use DuckDB for</td><td>Files that arrive, folders of files, big summaries.</td></tr>
+    <tr><td>Use SQLite for</td><td>A database you keep and share, and interview practice.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> <code>DESCRIBE</code> before you analyse, every new file. It costs two seconds and it is the only moment where a wrong type is cheap to notice, rather than being discovered later through a total that will not add up. If something breaks in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The job that made this click for me was a folder of monthly exports I had been stitching together by hand, which turned out to be one asterisk. What repetitive step in your week is secretly one line?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>The tool is the easy part. The query is the skill.</strong>
+    <p style="margin:6px 0 0">Everything DuckDB runs here is ordinary SQL, so the reps transfer. The <a href="../../drill/">SQL Drill</a> hands you one runnable query at a time and asks you to type it, and the <a href="../../sql/">SQL Kit</a> covers joins, grouping and window functions with a live database in the browser.</p>
+    <a class="btn" href="../../drill/">Open the SQL Drill →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../which-sql-database-to-install/">Which SQL Database to Install</a> · <a href="../sample-database-for-sql-practice/">Get a Sample Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../connect-python-to-a-sql-database/">Connect Python to a Database</a> · <a href="../install-python-for-data-analysis/">Install Python</a> · <a href="../pandas-groupby/">pandas GroupBy</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../free-datasets-to-practice-with/">Free Datasets</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../python/">Python Kit</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
