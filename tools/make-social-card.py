@@ -12,6 +12,7 @@ Edit CARD below, run it, and check the PNG before committing.
 
 from PIL import Image, ImageDraw, ImageFont
 import math
+import sys
 
 OUT = "assets/social/sample-database-for-sql-practice.png"
 
@@ -97,4 +98,11 @@ def build():
 
 
 if __name__ == "__main__":
+    # Optional CLI: slug "Title line 1|Title line 2" "Sub line 1|Sub line 2"
+    # With no arguments it uses the CARD dict above, as it always has.
+    if len(sys.argv) == 4:
+        slug, title, subtitle = sys.argv[1], sys.argv[2], sys.argv[3]
+        OUT = f"assets/social/{slug}.png"
+        CARD["title"] = title.split("|")
+        CARD["subtitle"] = subtitle.split("|")
     build()
