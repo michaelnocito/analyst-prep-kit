@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moving Averages: Smoothing a Series Without Smoothing Away the Truth — Analyst Prep Kit</title>
+<meta name="description" content="A 3-week average cuts the wobble from 237 to 101 and a 5-week one to 62. How to pick the window, when to centre it, and the missing weeks that quietly corrupt it.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/moving-averages/">
+<meta property="og:title" content="Moving Averages: Smoothing a Series Without Smoothing Away the Truth">
+<meta property="og:description" content="A 3-week average cuts the wobble from 237 to 101 and a 5-week one to 62. How to pick the window, when to centre it, and the missing weeks that quietly corrupt it.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/moving-averages.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/moving-averages/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/moving-averages.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Moving Averages: Smoothing a Series Without Smoothing Away the Truth",
+  "description": "A 3-week average cuts the wobble from 237 to 101 and a 5-week one to 62. How to pick the window, when to centre it, and the missing weeks that quietly corrupt it.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/moving-averages/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/moving-averages/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-09",
+  "dateModified": "2026-08-09",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/moving-averages.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Moving Averages: Smoothing a Series Without Smoothing Away the Truth",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/moving-averages/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../forecasting/">Forecasting Kit</a> · <a href="../">All guides</a></p>
+  <h1>Moving Averages: Smoothing a Series Without Smoothing Away the Truth</h1>
+  <p class="meta">Picking the window, reading the lag, and the missing weeks · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can build a moving average by hand, choose a window length on purpose rather than by habit, explain the lag it introduces, and spot the one data problem that silently corrupts every moving average you will ever compute. On the sixteen weeks below, the raw series wobbles with a standard deviation of 237. A three-week average brings that to 101, and a five-week to 62.</p>
+
+  <p>Here is what to actually do today. Add a moving average to your busiest weekly or daily chart, using a window that matches your cycle: 7 for daily data with a weekday pattern, 4 or 13 for weekly, 12 for monthly. Then plot it on top of the raw series rather than instead of it, so the reader can see both the noise and the trend.</p>
+
+  <p>The short version: a moving average replaces each point with the average of it and the points around it. Wobble cancels out, trend survives, and the price is that the smoothed line reacts late.</p>
+
+  <p>The effect is easier to see than to describe, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 330" role="img" aria-labelledby="maTitle maDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="maTitle">A jagged series and its three-week average</title>
+      <desc id="maDesc">A line chart with two lines drawn on the same axes over sixteen evenly spaced points. The first line is thin and violently jagged, swinging from near the top of the chart down to near the bottom and back again several times, with one especially deep trough about a quarter of the way along and one especially tall spike just past the middle. The second line is thicker and starts two points later than the first. It stays in a narrow band through the middle of the chart, rising and falling only gently, and never comes close to either the peaks or the troughs of the jagged line. Where the jagged line spikes to its highest point, the thick line rises only slightly and does so one point later than the spike. The word actual labels the jagged line near its left end, and the phrase three-week average labels the thick line.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <line x1="52" y1="280" x2="716" y2="280" stroke="#A1A1AA" stroke-width="1.5"/>
+
+        <polyline points="70,111 112,117 154,154 196,234 238,154 280,150 322,199 364,188 406,226 448,69 490,196 532,133 574,165 616,182 658,111 700,196"
+                  fill="none" stroke="#A1A1AA" stroke-width="1.8"/>
+        <polyline points="154,127 196,168 238,180 280,179 322,167 364,179 406,204 448,161 490,164 532,133 574,165 616,160 658,153 700,163"
+                  fill="none" stroke="#0E7490" stroke-width="3.4"/>
+        <g fill="#0E7490">
+          <circle cx="154" cy="127" r="4"/><circle cx="196" cy="168" r="4"/>
+          <circle cx="238" cy="180" r="4"/><circle cx="280" cy="179" r="4"/>
+          <circle cx="322" cy="167" r="4"/><circle cx="364" cy="179" r="4"/>
+          <circle cx="406" cy="204" r="4"/><circle cx="448" cy="161" r="4"/>
+          <circle cx="490" cy="164" r="4"/><circle cx="532" cy="133" r="4"/>
+          <circle cx="574" cy="165" r="4"/><circle cx="616" cy="160" r="4"/>
+          <circle cx="658" cy="153" r="4"/><circle cx="700" cy="163" r="4"/>
+        </g>
+
+        <text x="52" y="96" font-size="13" font-weight="700" fill="#52525B">actual</text>
+        <text x="454" y="46" font-size="13" font-weight="700" fill="#0E7490">three-week average</text>
+        <path d="M496 54 L510 148" stroke="#0E7490" stroke-width="1.4" fill="none"/>
+      </g>
+    </svg>
+    <figcaption>Sixteen weeks of real order revenue, and the three-week average drawn over it. The thin line swings between 240 and 1,100. The thick one stays between 395 and 797. The spike at week ten barely lifts the smooth line, and what lift there is arrives a week late.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What a moving average is doing to your numbers</li>
+      <li>Building a three-week average by hand</li>
+      <li>Choosing the window, and what each length costs</li>
+      <li>Trailing against centred, and the lag</li>
+      <li>The missing weeks that corrupt it silently</li>
+      <li>Weighted and exponential versions</li>
+      <li>What a moving average must not be used for</li>
+      <li>The full before and after</li>
+      <li>Edge cases that catch people out</li>
+      <li>Why this works</li>
+      <li>Using this on your own work</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every number on this page is real.</strong> The same sixteen orders used across these guides, this time read as a weekly series because the orders fall one per week. There is a real five-week gap in the middle where no orders exist, and section five is about what that does. The companion page on judging a forecast once you have made one is <a href="../forecast-accuracy/">forecast accuracy</a>.</div>
+
+  <p>Here is the series. One order per week, from 5 January to 25 May 2026, with nothing at all between 23 March and 4 May.</p>
+
+  <table>
+    <tr><th>Week beginning</th><th>Revenue</th><th>Week beginning</th><th>Revenue</th></tr>
+    <tr><td>2026-01-05</td><td>880</td><td>2026-03-02</td><td>280</td></tr>
+    <tr><td>2026-01-12</td><td>850</td><td>2026-03-09</td><td>1,100</td></tr>
+    <tr><td>2026-01-19</td><td>660</td><td>2026-03-16</td><td>440</td></tr>
+    <tr><td>2026-01-26</td><td>240</td><td>2026-03-23</td><td>765</td></tr>
+    <tr><td>2026-02-02</td><td>660</td><td>2026-05-04</td><td>600</td></tr>
+    <tr><td>2026-02-09</td><td>680</td><td>2026-05-11</td><td>510</td></tr>
+    <tr><td>2026-02-16</td><td>425</td><td>2026-05-18</td><td>880</td></tr>
+    <tr><td>2026-02-23</td><td>480</td><td>2026-05-25</td><td>440</td></tr>
+  </table>
+
+  <div class="step">
+    <h2>1. What a moving average is doing to your numbers</h2>
+
+    <p>Before the explanation: look at weeks three, four and five in that table: 660, 240, 660. Decide whether the 240 tells you the business dropped, before reading on.</p>
+
+    <p>It does not, and that is the problem a moving average solves. Any single period contains two things mixed together: whatever is genuinely going on, and the accident of which orders happened to land in that week. Week four's 240 is one small lamp order. It is not a collapse in demand, it is a Tuesday.</p>
+
+    <p>A <strong>moving average</strong> separates them by averaging over a window of consecutive periods. Random ups and downs partly cancel, because the high accidents and the low accidents sit in the same window. Anything sustained does not cancel, because it is present in every period of the window. What comes out is the sustained part, with the accidents damped.</p>
+
+    <p>The damping is measurable. Our raw weekly numbers have a standard deviation of 236.81. The three-week average has 100.56, and the five-week average has 61.95. The wider the window, the more cancelling happens, and section three is about what that costs.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. Building a three-week average by hand</h2>
+
+    <p>Before the arithmetic: you want a three-week average for the week beginning 19 January. Say which three weeks go into it, before reading on. There are two defensible answers and the difference matters.</p>
+
+    <p>The common answer is a <strong>trailing</strong> window: this week and the two before it. That is 660, 850 and 880, which average to (660 + 850 + 880) ÷ 3 = <strong>796.67</strong>. Then you slide the window forward one week at a time, dropping the oldest and picking up the newest.</p>
+
+    <table>
+      <tr><th>Week</th><th>Revenue</th><th>The three weeks averaged</th><th>3-week average</th></tr>
+      <tr><td>2026-01-05</td><td>880</td><td>not enough history</td><td>–</td></tr>
+      <tr><td>2026-01-12</td><td>850</td><td>not enough history</td><td>–</td></tr>
+      <tr><td>2026-01-19</td><td>660</td><td>880, 850, 660</td><td>796.67</td></tr>
+      <tr><td>2026-01-26</td><td>240</td><td>850, 660, 240</td><td>583.33</td></tr>
+      <tr><td>2026-02-02</td><td>660</td><td>660, 240, 660</td><td>520.00</td></tr>
+      <tr><td>2026-02-09</td><td>680</td><td>240, 660, 680</td><td>526.67</td></tr>
+      <tr><td>2026-02-16</td><td>425</td><td>660, 680, 425</td><td>588.33</td></tr>
+      <tr><td>2026-02-23</td><td>480</td><td>680, 425, 480</td><td>528.33</td></tr>
+      <tr><td>2026-03-02</td><td>280</td><td>425, 480, 280</td><td>395.00</td></tr>
+      <tr><td>2026-03-09</td><td>1,100</td><td>480, 280, 1,100</td><td>620.00</td></tr>
+      <tr><td>2026-03-16</td><td>440</td><td>280, 1,100, 440</td><td>606.67</td></tr>
+      <tr><td>2026-03-23</td><td>765</td><td>1,100, 440, 765</td><td>768.33</td></tr>
+    </table>
+
+    <p>Two things to read off that table. The first two weeks have no value at all, because a three-week window needs three weeks, and every moving average starts late by window length minus one. And the 1,100 spike in the week of 9 March never appears in the smooth series; the closest it gets is lifting three consecutive averages to 620, 606.67 and 768.33.</p>
+
+    <pre><code># pandas
+s.rolling(3).mean()              # trailing, needs 3 values
+s.rolling(3, min_periods=1).mean()   # starts immediately, first values on fewer rows</code></pre>
+
+    <pre><code>-- SQL: a window frame is exactly a moving average
+SELECT OrderDate,
+       Revenue,
+       AVG(Revenue) OVER (ORDER BY OrderDate
+                          ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS ma3
+FROM Orders
+ORDER BY OrderDate;</code></pre>
+
+    <pre><code>' Excel, with revenue in B2:B17 and the formula from B4's row
+=IF(ROW()-ROW($B$2)&lt;2, "", AVERAGE(B2:B4))</code></pre>
+
+    <p>The SQL version is worth a second look, because <code>ROWS BETWEEN 2 PRECEDING AND CURRENT ROW</code> is the definition written out in words. If window frames are new, <a href="../sql-window-functions/">window functions</a> covers the whole family, and <a href="../sql-running-total/">running totals</a> is the same machinery with a different frame.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Choosing the window, and what each length costs</h2>
+
+    <p>Before the trade: a longer window smooths more. Name what you give up for that, before reading on.</p>
+
+    <p>You give up responsiveness and you give up data at the start. Here are the three numbers that make the trade concrete on our series.</p>
+
+    <table>
+      <tr><th>Series</th><th>Standard deviation</th><th>Range</th><th>Weeks lost at the start</th></tr>
+      <tr><td>Raw weekly</td><td>236.81</td><td>240 to 1,100</td><td>0</td></tr>
+      <tr><td>3-week average</td><td>100.56</td><td>395.00 to 796.67</td><td>2</td></tr>
+      <tr><td>5-week average</td><td>61.95</td><td>497.00 to 683.00</td><td>4</td></tr>
+    </table>
+
+    <p>The five-week version is beautifully smooth and it has thrown away four of your sixteen weeks and compressed a real 860-wide range into 186. If something genuinely changed in the last fortnight, a five-week average will show you about two fifths of it.</p>
+
+    <p>The rule that beats taste: <strong>match the window to the cycle you want removed</strong>.</p>
+
+    <ul>
+      <li><strong>Daily data with a weekday pattern:</strong> use 7. A seven-day average always contains exactly one of each weekday, so the weekday effect cancels completely rather than partly.</li>
+      <li><strong>Weekly data:</strong> 4 for a month-ish view, 13 for a quarter.</li>
+      <li><strong>Monthly data with a seasonal pattern:</strong> use 12, for the same reason as 7 on daily data.</li>
+      <li><strong>No cycle, just noise:</strong> pick the shortest window that makes the chart readable, and say what it is.</li>
+    </ul>
+
+    <p>Say out loud why a 6-day average on daily data is worse than a 7-day one, even though it is nearly as smooth. A six-day window contains two of one weekday and none of another, and which ones changes as the window slides. The averaged line then carries a wobble the raw data does not have, which is the worst possible outcome from a smoothing step.</p>
+
+    <p>Now picture your own busiest chart. What cycle is in it, and does the window you use, if you use one, actually match that cycle?</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Trailing against centred, and the lag</h2>
+
+    <p>Before the comparison: our trailing average puts the value 796.67 on the week of 19 January, but it was computed from 5, 12 and 19 January. Say where that number really belongs on the timeline.</p>
+
+    <p>In the middle, on 12 January. A trailing average is systematically late, by half the window, because it labels a window with its right-hand edge. That is the <strong>lag</strong>, and it is not an error, it is the direct cost of using only information you would actually have had at the time.</p>
+
+    <table>
+      <tr><th>Week</th><th>Revenue</th><th>Trailing 3-week</th><th>Centred 3-week</th></tr>
+      <tr><td>2026-01-05</td><td>880</td><td>–</td><td>–</td></tr>
+      <tr><td>2026-01-12</td><td>850</td><td>–</td><td>796.67</td></tr>
+      <tr><td>2026-01-19</td><td>660</td><td>796.67</td><td>583.33</td></tr>
+      <tr><td>2026-01-26</td><td>240</td><td>583.33</td><td>520.00</td></tr>
+      <tr><td>2026-02-02</td><td>660</td><td>520.00</td><td>526.67</td></tr>
+    </table>
+
+    <p>The centred column is the same numbers shifted one row up. Nothing was recomputed, only relabelled, and that relabelling is what removes the lag.</p>
+
+    <p>Which one to use comes down to one question: does the value need to be honest about what you knew at the time?</p>
+
+    <p><strong>Use trailing</strong> for anything operational or forward-looking. A dashboard, an alert, a forecast input. A centred average uses future data, so a centred line on a live dashboard is claiming knowledge you do not have, and it will change under you as new data arrives.</p>
+
+    <p><strong>Use centred</strong> for historical description, where all the data already exists and you want the trend line to sit correctly on the timeline. Seasonal decomposition uses centred averages for exactly this reason.</p>
+
+    <p>Centred windows also want an odd length, so there is a genuine middle period. With an even window you end up averaging two adjacent centred averages, which is a real technique and a fiddly one, and is the main practical reason to prefer 3, 5, 7 and 13 over 4, 6 and 12.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. The missing weeks that corrupt it silently</h2>
+
+    <p>Before the trap: our series jumps from 23 March straight to 4 May. Five weeks with no orders. Say what <code>rolling(3)</code> will do with that, before reading on.</p>
+
+    <p>It will average across the hole and tell you nothing happened. Look at what the trailing three-week average produces for the week of 4 May if the gap is not represented in the data.</p>
+
+    <pre><code>Week of 2026-05-04, 3-week trailing average = 601.67
+  built from: 2026-03-16   440
+              2026-03-23   765
+              2026-05-04   600</code></pre>
+
+    <p>Those three "consecutive" weeks span nine weeks of calendar. The number 601.67 looks entirely ordinary sitting in a column, and it is an average of March and May with five weeks of nothing quietly deleted. Nothing errors, nothing warns, and the smooth line glides straight through a two-month hole.</p>
+
+    <p>The reason is worth stating plainly: <code>rolling</code> in pandas and <code>ROWS BETWEEN</code> in SQL both count <strong>rows</strong>, not time. If a period has no rows, it has no row, so it is not in your table, so it cannot be counted. Grouping never invents the periods it did not see.</p>
+
+    <p>The fix is the same one every time-based calculation needs. Build the full set of periods, join your data onto it, and decide what the empty ones mean.</p>
+
+    <pre><code># reindex onto every Monday in the range
+full = s.asfreq('W-MON')          # missing weeks appear as NaN
+full.rolling(3).mean()            # now NaN through the gap: correct and visible
+full.fillna(0).rolling(3).mean()  # gap treated as zero sales</code></pre>
+
+    <table>
+      <tr><th>Week</th><th>Ignoring the gap</th><th>Real calendar, gap as no data</th><th>Real calendar, gap as zero</th></tr>
+      <tr><td>2026-03-23</td><td>768.33</td><td>768.33</td><td>768.33</td></tr>
+      <tr><td>2026-03-30</td><td>not drawn</td><td>–</td><td>401.67</td></tr>
+      <tr><td>2026-04-13</td><td>not drawn</td><td>–</td><td>0.00</td></tr>
+      <tr><td>2026-05-04</td><td>601.67</td><td>–</td><td>200.00</td></tr>
+      <tr><td>2026-05-11</td><td>625.00</td><td>–</td><td>370.00</td></tr>
+      <tr><td>2026-05-18</td><td>663.33</td><td>663.33</td><td>663.33</td></tr>
+    </table>
+
+    <p>Three defensible answers and one indefensible one. Treating the gap as zero says the business made no sales, which is right if the shop was shut and wrong if the data simply did not arrive. Leaving it as no data says you cannot compute an average there, which is right if you do not know. Ignoring the calendar entirely, the first column, says the five weeks never existed, and that is the one nobody chose on purpose.</p>
+
+    <p>Deciding which of the first two applies is a data question, not a statistics question, and it is the same decision as in <a href="../pandas-fillna-dropna/">handling missing values</a>. What matters is that you make it rather than let <code>rolling</code> make it for you.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Weighted and exponential versions</h2>
+
+    <p>Before the idea: a plain three-week average treats last week and the week before last as equally informative. Say whether you believe that, before reading on.</p>
+
+    <p>Usually not. Recent periods are normally more relevant, and there are two standard ways to say so.</p>
+
+    <p>A <strong>weighted moving average</strong> assigns explicit weights that add to one. Weights of 0.5, 0.3 and 0.2 on the most recent three weeks give, for the week of 23 March: 0.5 × 765 + 0.3 × 440 + 0.2 × 1,100 = 382.5 + 132 + 220 = <strong>734.50</strong>, against the plain average's 768.33. It is transparent, and it needs you to invent the weights.</p>
+
+    <p>An <strong>exponentially weighted average</strong> avoids inventing them. It uses one number, usually called alpha, and blends each new value into the running average by that fraction.</p>
+
+    <pre><code>new average = alpha × this week + (1 − alpha) × last week's average</code></pre>
+
+    <p>With alpha = 0.3 on our series, the first value is 880, then 0.3 × 850 + 0.7 × 880 = 871.00, then 0.3 × 660 + 0.7 × 871 = 807.70, and so on. Every past week still contributes, and its influence shrinks the further back it is. It never fully forgets and it never gives an old week much say.</p>
+
+    <pre><code>s.ewm(alpha=0.3, adjust=False).mean()
+# 880.00, 871.00, 807.70, 637.39, 644.17, 654.92, ...</code></pre>
+
+    <p>Two practical advantages over a plain window. There is no start-up gap, because the first value is simply the first observation. And there is no window length to defend, only alpha, where higher means more responsive and lower means smoother. Alpha around 0.2 to 0.3 is a reasonable starting point for weekly business data.</p>
+
+    <p>One caution that applies to all three. Exponential smoothing counts every past value, so a spike never leaves the series entirely, it only fades. On a plain three-week window the 1,100 spike is gone after three weeks, cleanly. Which behaviour you want is a real choice, not a detail.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. What a moving average must not be used for</h2>
+
+    <p>Before the warning: a smooth line is very persuasive. Name something a moving average cannot tell you, before reading on.</p>
+
+    <p><strong>It is not a forecast.</strong> A trailing average tells you where the recent past sat, and extending it flat into the future is a forecast method, but a weak one that assumes no trend and no seasonality. It is worth computing precisely because it is the baseline anything fancier has to beat, and <a href="../forecast-accuracy/">forecast accuracy</a> is how you check whether it did.</p>
+
+    <p><strong>It does not make a trend real.</strong> A moving average will produce a smooth, convincing rising line from data that is pure noise, because averaging adjacent random numbers creates apparent runs. Three rising points on a smoothed line is not evidence of anything.</p>
+
+    <p><strong>It cannot detect a change point in the last few periods.</strong> By construction the most recent value is diluted by older ones, so a genuine shift last week shows up as a small nudge. If detecting recent change is the job, look at the raw series with a control limit, not at the smooth line.</p>
+
+    <p><strong>It should not replace the raw data on a chart.</strong> Plot both. A reader shown only the smooth line has no way to judge how much was smoothed away, and the difference between a wobble of 237 and one of 62 is information they need.</p>
+
+    <p>Say in one sentence why the smooth line alone is the version most likely to mislead. It is because smoothness reads as certainty, and the smoothing step is exactly the step that removed the evidence of uncertainty. That is the same argument as in <a href="../how-charts-mislead/">how charts mislead</a>, applied to a technique rather than an axis.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same series, same question: how is revenue trending?</p>
+
+  <h3>Before</h3>
+  <pre><code>df['ma3'] = df['Revenue'].rolling(3).mean()
+# then chart ma3 alone</code></pre>
+  <p>Three problems, none of which errors. The five missing weeks are averaged straight across, so the week of 4 May shows 601.67 built partly from March. The raw series is not on the chart, so nobody can see how much wobble was removed. And the window of 3 was chosen because it is the number people type, not because anything in the business has a three-week cycle.</p>
+
+  <h3>After</h3>
+  <pre><code># 1. put every week on the calendar, including the empty ones
+full = s.asfreq('W-MON')
+
+# 2. decide what an empty week means, out loud, and record it
+#    no orders were placed, so an empty week is genuinely zero revenue
+full = full.fillna(0)
+
+# 3. window matched to the reporting cycle, not to habit
+full_ma = full.rolling(4).mean()
+
+# 4. chart both lines, and label the window
+</code></pre>
+  <p>The gap is now visible as a real trough instead of being deleted, the choice to call it zero is written where the next person will read it, the window is a stated decision, and the chart shows the raw series underneath so the reader can see what was smoothed. Same technique, four decisions made rather than defaulted.</p>
+
+  <div class="step">
+    <h2>Edge cases that catch people out</h2>
+
+    <p>Six that each cost somebody an afternoon.</p>
+
+    <p><strong><code>min_periods</code> quietly changes the meaning.</strong> <code>rolling(3, min_periods=1)</code> gives you a value from the very first row, but that value is a one-row average sitting in a column labelled three-week. Convenient for charts, misleading in a table.</p>
+
+    <p><strong>Duplicate rows in the same period.</strong> If two orders share a date and you have not aggregated first, a row-based window is averaging orders rather than days, and the window length no longer means what its name says. Aggregate to one row per period before smoothing, always.</p>
+
+    <p><strong>Sorting.</strong> A window function with no <code>ORDER BY</code>, or a DataFrame not sorted by date, produces a moving average of whatever order the rows happened to be in. It will not error and it will look plausible.</p>
+
+    <p><strong>Averaging a rate.</strong> A moving average of a conversion rate weights every period equally regardless of traffic. If you want a smoothed rate, smooth the numerator and denominator separately and divide at the end.</p>
+
+    <p><strong>The last point moves.</strong> Yesterday's three-day average changes when today's data arrives if the window is centred, and does not if it is trailing. A dashboard whose historical numbers change overnight is usually a centred average that should have been trailing.</p>
+
+    <p><strong>Comparing two series smoothed differently.</strong> A 7-day average and a 30-day average of the same data will cross each other constantly, and those crossings mean nothing about the business. If you are showing two windows, say what each one is for.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>Averaging adjacent periods works because an observation can be thought of as a signal plus an error, and errors from different periods are largely unrelated to each other while the signal is not. Averaging leaves the signal alone and shrinks the error, and the amount it shrinks by is the square root of the window length, which is the same relationship behind the <a href="../confidence-intervals/">standard error</a>. Our numbers bear that out approximately: 236.81 divided by the square root of 3 is 136.7 against an observed 100.56, and divided by the square root of 5 is 105.9 against an observed 61.95. The observed smoothing is stronger than the simple rule predicts, because the rule assumes the raw values are independent, and consecutive weeks in real business data are not.</p>
+
+  <p>The reason to bother with the plainest possible methods first is empirical rather than aesthetic. The M-competitions ran thousands of real series through dozens of forecasting methods and repeatedly found that simple methods, including moving averages and exponential smoothing, match or beat far more elaborate ones on out-of-sample accuracy, and that combining a few simple methods beats picking one (Makridakis, Spiliotis, &amp; Assimakopoulos, 2020, <em>International Journal of Forecasting</em>, 36(1), 54–74). Gardner's review of exponential smoothing covers why the single-parameter version in section six holds up so well across so many series, and where its extensions for trend and seasonality become worth the extra parameters (Gardner, 2006, <em>International Journal of Forecasting</em>, 22(4), 637–666).</p>
+
+  <p>One note on why this page kept asking you to answer before showing you the answer. Attempting an answer before seeing the correct one reliably improves how well the correct one is retained, even when the attempt is wrong (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725). The 601.67 across the gap sticks because you were asked to predict what <code>rolling</code> would do first.</p>
+
+  <h2>Using this on your own work</h2>
+
+  <p>Adding smoothing to every chart you own is miserable and unnecessary. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Check for missing periods first.</strong> Count the distinct periods in your data and compare with the number of periods in the date range. If they differ, fix that before smoothing anything.</li>
+    <li><strong>Pick the window from the cycle</strong>, not from habit. 7 for daily, 4 or 13 for weekly, 12 for monthly.</li>
+    <li><strong>Use trailing on anything live</strong>, and centred only for finished history.</li>
+    <li><strong>Plot both lines</strong>, raw and smoothed, and put the window in the axis label or the legend.</li>
+    <li><strong>Say what the smooth line is for</strong> in one sentence. If the answer is "so the chart looks tidier", the chart may not need it.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional drawing is worth five minutes. Write your own last twelve periods in a row, then slide a three-wide window along them with a finger, writing each average underneath. Doing it by hand once makes the start-up gap and the lag obvious in a way that no explanation of them does.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Python, Excel, statistics and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Idea</th><th>What it means</th></tr>
+    <tr><td>Moving average</td><td>Replace each period with the average of it and its neighbours.</td></tr>
+    <tr><td>What it removes</td><td>Wobble that does not repeat. sd 236.81 raw, 100.56 at 3 weeks, 61.95 at 5.</td></tr>
+    <tr><td>Trailing window</td><td>This period and the ones before it. Uses only what you knew at the time.</td></tr>
+    <tr><td>Centred window</td><td>Same numbers relabelled to the middle period. Uses future data.</td></tr>
+    <tr><td>Which to use</td><td>Trailing for anything live. Centred for finished history only.</td></tr>
+    <tr><td>The lag</td><td>A trailing average is late by about half the window. Not a bug, the price.</td></tr>
+    <tr><td>Start-up gap</td><td>You lose window minus one periods at the beginning.</td></tr>
+    <tr><td>Choosing the window</td><td>Match the cycle: 7 daily, 4 or 13 weekly, 12 monthly. Odd lengths for centred.</td></tr>
+    <tr><td>Why 6 is worse than 7</td><td>It contains two of one weekday and none of another, adding a wobble.</td></tr>
+    <tr><td>SQL</td><td><code>AVG(x) OVER (ORDER BY d ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)</code>.</td></tr>
+    <tr><td>The gap trap</td><td>rolling counts rows, not time. Our 601.67 spanned nine calendar weeks.</td></tr>
+    <tr><td>The fix</td><td>Reindex onto every period, then decide what an empty one means.</td></tr>
+    <tr><td>Weighted</td><td>Explicit weights summing to one. 0.5/0.3/0.2 gave 734.50 against 768.33.</td></tr>
+    <tr><td>Exponential</td><td>alpha × now + (1 − alpha) × previous average. No start-up gap, one parameter.</td></tr>
+    <tr><td>Not a forecast</td><td>It is a description of the recent past, and the baseline to beat.</td></tr>
+    <tr><td>Always plot both</td><td>Smooth alone hides how much was smoothed. Show the raw series underneath.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Before smoothing anything, check that every period exists in your data, and after smoothing, plot the raw series underneath. Those two steps prevent the silent gap and the false certainty, which are the only two ways this technique really goes wrong. If a series breaks in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The first moving average I shipped smoothed straight across a week when our tracking was broken, so the outage looked like a mild dip and nobody investigated for a month. What has your smooth line quietly averaged away?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Makridakis, S., Spiliotis, E., &amp; Assimakopoulos, V. (2020). The M4 Competition: 100,000 time series and 61 forecasting methods. <em>International Journal of Forecasting</em>, 36(1), 54–74.</li>
+    <li>Gardner, E. S. (2006). Exponential smoothing: The state of the art, Part II. <em>International Journal of Forecasting</em>, 22(4), 637–666.</li>
+    <li>Makridakis, S., &amp; Hibon, M. (2000). The M3-Competition: Results, conclusions and implications. <em>International Journal of Forecasting</em>, 16(4), 451–476.</li>
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice this with a real series in front of you.</strong>
+    <p style="margin:6px 0 0">The <a href="../../forecasting/">Forecasting Kit</a> gives you the repetitions: series to smooth, flash cards on trailing against centred and on window choice, and questions that ask you to predict what a window will do before you compute it. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../forecasting/">Open the Forecasting Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../forecast-accuracy/">Forecast Accuracy</a> · <a href="../sql-running-total/">Running Total in SQL</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../sql-month-over-month/">Month-over-Month in SQL</a> · <a href="../excel-month-over-month/">Month-over-Month in Excel</a> · <a href="../pandas-pct-change-cumsum/">pandas pct_change and cumsum</a> · <a href="../how-charts-mislead/">How Charts Mislead</a> · <a href="../choose-the-right-chart/">Choose the Right Chart</a> · <a href="../standard-deviation/">Standard Deviation</a> · <a href="../confidence-intervals/">Confidence Intervals</a> · <a href="../sql-dates/">SQL Date Functions</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../forecasting/">Forecasting Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
