@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Running Total in SQL: The Window Frame That Decides the Answer — Analyst Prep Kit</title>
+<meta name="description" content="SUM OVER ORDER BY gives a running total, and the default frame quietly lumps ties together. ROWS against RANGE on real data, running totals per group, moving averages, and the check that catches it all.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-running-total/">
+<meta property="og:title" content="Running Total in SQL: The Window Frame That Decides the Answer">
+<meta property="og:description" content="Two orders worth 440 each. The default frame reports 1,825 on both rows; ROWS reports 1,385 and 1,825. Same query except for one clause nobody types.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-running-total.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-running-total/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-running-total.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Running Total in SQL: The Window Frame That Decides the Answer",
+  "description": "SUM OVER ORDER BY gives a running total, and the default frame quietly lumps ties together. ROWS against RANGE on real data, running totals per group, moving averages, and the check that catches it all.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-running-total/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-running-total/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-running-total.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Running Total in SQL: The Window Frame That Decides the Answer",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-running-total/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>Running Total in SQL: The Window Frame That Decides the Answer</h1>
+  <p class="meta">One clause nobody types, and the two rows it gets wrong · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can add a cumulative column to any ordered result, write the frame clause that says exactly which rows are being added, run separate totals for each group in one pass, turn the same shape into a moving average, and check the whole thing with one comparison. It is about twenty-five minutes, and every result below was run.</p>
+
+  <p>Here is what to do today. Find your running-total query and look for the words <code>ROWS BETWEEN</code>. If they are not there, you are using the default frame, and on any column with repeated values the default frame gives every tied row the same cumulative figure. Add <code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code> and compare the two.</p>
+
+  <p>The short version: <code>SUM(x) OVER (ORDER BY y)</code> adds up a <em>frame</em> of rows that ends at the current one, and the frame clause is what decides where it ends.</p>
+
+  <p>The frame growing one row at a time is the idea, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 268" role="img" aria-labelledby="rtTitle rtDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="rtTitle">Each row's total is a frame that ends at that row</title>
+      <desc id="rtDesc">A single column of four stacked cells runs down the left of the picture, holding the values 2,630, then 2,245, then 2,585, then 2,430. To the right of that column stand four tall square brackets, side by side and getting progressively longer. The first bracket encloses only the top cell and has the number 2,630 printed at its foot. The second encloses the top two cells and reads 4,875. The third encloses the top three and reads 7,460. The fourth encloses all four and reads 9,890. Every bracket starts at the very top of the column and differs only in where it ends, so the picture shows one growing span rather than four different calculations, and the last bracket's figure is the total of the whole column.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <g stroke="#E4E7EA" fill="#E0F2F7">
+          <rect x="30" y="30" width="150" height="46"/>
+          <rect x="30" y="76" width="150" height="46"/>
+          <rect x="30" y="122" width="150" height="46"/>
+          <rect x="30" y="168" width="150" height="46"/>
+        </g>
+        <g font-size="16" fill="#09090B" text-anchor="end">
+          <text x="164" y="59">2,630</text><text x="164" y="105">2,245</text>
+          <text x="164" y="151">2,585</text><text x="164" y="197">2,430</text>
+        </g>
+
+        <g stroke="#0E7490" stroke-width="2.6" fill="none">
+          <path d="M226 30 L212 30 L212 76 L226 76"/>
+          <path d="M356 30 L342 30 L342 122 L356 122"/>
+          <path d="M486 30 L472 30 L472 168 L486 168"/>
+          <path d="M616 30 L602 30 L602 214 L616 214"/>
+        </g>
+        <g font-size="16" font-weight="700" fill="#0E7490" text-anchor="middle">
+          <text x="219" y="102">2,630</text>
+          <text x="349" y="148">4,875</text>
+          <text x="479" y="194">7,460</text>
+          <text x="609" y="240">9,890</text>
+        </g>
+      </g>
+    </svg>
+    <figcaption>Four brackets, all starting at the top and ending one row lower each time. The running total is not four sums, it is one span that grows, and the last one has to equal the total of the column.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>The one-line running total</li>
+      <li>What the frame actually is</li>
+      <li>ORDER BY is what makes it running</li>
+      <li>Ties, and the default frame that lumps them</li>
+      <li>A separate running total per group</li>
+      <li>A frame that slides: moving averages</li>
+      <li>The check that catches everything</li>
+      <li>Running counts and running share</li>
+      <li>The full before and after</li>
+      <li>Edge cases that break a running total</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every result on this page is real.</strong> Sixteen orders, 9,890 in revenue, the same table used across this whole set of guides, loaded into DuckDB and queried. The dialect is close to PostgreSQL, so these transfer to Postgres, Redshift and Snowflake unchanged.</div>
+
+  <div class="step">
+    <h2>1. The one-line running total</h2>
+
+    <p>Aggregate to the grain you want to accumulate at first. Here that is one row per month, which is the same starting point as any trend work and is covered in <a href="../sql-dates/">grouping by month</a>.</p>
+
+    <pre><code>2026-01-01 | 2630
+2026-02-01 | 2245
+2026-03-01 | 2585
+2026-05-01 | 2430</code></pre>
+
+    <p>Now the cumulative column.</p>
+
+    <pre><code>SELECT month, revenue,
+       SUM(revenue) OVER (ORDER BY month
+                          ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running
+FROM by_month
+ORDER BY month;
+
+2026-01-01 | 2630 | 2630
+2026-02-01 | 2245 | 4875
+2026-03-01 | 2585 | 7460
+2026-05-01 | 2430 | 9890</code></pre>
+
+    <p>Check by hand: 2,630 plus 2,245 is 4,875, plus 2,585 is 7,460, plus 2,430 is 9,890, which is the table's whole revenue. That last equality is not decoration; it is the test, and section seven makes it a habit.</p>
+
+    <p>Read the clause as a sentence: sum revenue, over the rows ordered by month, from the very beginning up to and including this row. That is what <code>UNBOUNDED PRECEDING</code> and <code>CURRENT ROW</code> mean, and once you can say it aloud the syntax stops needing to be looked up.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. What the frame actually is</h2>
+
+    <p>Before the explanation: a normal <code>SUM</code> with <code>GROUP BY</code> collapses rows. This one keeps all four. Say where the extra number is coming from.</p>
+
+    <p>From a <strong>frame</strong>: a set of rows defined relative to the row you are currently on. A window function walks the result once, and at each row it looks at a span of neighbouring rows and computes something over them. The row itself is never collapsed, which is why you get sixteen rows out of sixteen rows in.</p>
+
+    <p>Three parts, in order, and all three are optional, which is where the trouble comes from.</p>
+
+    <table>
+      <tr><th>Part</th><th>What it decides</th><th>If you leave it out</th></tr>
+      <tr><td><code>PARTITION BY</code></td><td>Where the accumulation restarts</td><td>One partition: the whole result</td></tr>
+      <tr><td><code>ORDER BY</code></td><td>The sequence the frame moves along</td><td>No frame at all; every row sees everything</td></tr>
+      <tr><td><code>ROWS BETWEEN ...</code></td><td>Exactly which rows the frame covers</td><td>A default that is not the one you meant</td></tr>
+    </table>
+
+    <p>The rest of this page is those three, one at a time. If you want the wider tour of what else <code>OVER</code> can do, ranking and <code>LAG</code> and the rest, <a href="../sql-window-functions/">the window functions guide</a> is the place.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. ORDER BY is what makes it running</h2>
+
+    <p>Before the explanation: remove the <code>ORDER BY</code> from inside the <code>OVER</code>. Predict the four numbers.</p>
+
+    <pre><code>SELECT month, revenue, SUM(revenue) OVER () AS whole_thing
+FROM by_month ORDER BY month;
+
+2026-01-01 | 2630 | 9890
+2026-02-01 | 2245 | 9890
+2026-03-01 | 2585 | 9890
+2026-05-01 | 2430 | 9890</code></pre>
+
+    <p>The grand total, repeated four times. With no <code>ORDER BY</code> there is no sequence, so there is no "so far", and every row's frame is the entire partition. That is a genuinely useful thing, it is how you put a denominator beside every row, and it is not a running total.</p>
+
+    <p>Note also the <code>ORDER BY</code> at the end of the statement is a different thing entirely. That one sorts the output. The one inside <code>OVER</code> defines the accumulation order. They are often the same column and they do not have to be, and a query that sorts its output by one column while accumulating along another will produce a cumulative column that appears to jump about.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Ties, and the default frame that lumps them</h2>
+
+    <p>This is the section that justifies the page. Order by revenue instead of month, so that ties exist: two orders are worth 440, two are worth 660 and two are worth 880. Compute the running total twice, once with the default frame and once with <code>ROWS</code>.</p>
+
+    <pre><code>order_id | revenue | default | ROWS
+    1004 |     240 |     240 |  240
+    1009 |     280 |     520 |  520
+    1007 |     425 |     945 |  945
+    1011 |     440 |    1825 | 1385
+    1016 |     440 |    1825 | 1825
+    1008 |     480 |    2305 | 2305
+    1014 |     510 |    2815 | 2815
+    1013 |     600 |    3415 | 3415
+    1003 |     660 |    4735 | 4075
+    1005 |     660 |    4735 | 4735
+    1006 |     680 |    5415 | 5415
+    1012 |     765 |    6180 | 6180
+    1002 |     850 |    7030 | 7030
+    1001 |     880 |    8790 | 7910
+    1015 |     880 |    8790 | 8790
+    1010 |    1100 |    9890 | 9890</code></pre>
+
+    <p>Look at the two 440 rows. The default says 1,825 on both. <code>ROWS</code> says 1,385 and then 1,825. Same for the two 660s and the two 880s: six of the sixteen rows disagree.</p>
+
+    <p>Neither is a bug. When you write <code>ORDER BY</code> in a window and leave the frame out, the standard default is <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>, and <code>RANGE</code> works on <em>values</em> rather than positions: current row means every row with the same ordering value as this one. So both 440s are inside each other's frame, and both get the total including both. <code>ROWS</code> works on positions, so current row means literally this row and no further.</p>
+
+    <p>Say out loud which one you want for a cumulative report. Almost always <code>ROWS</code>, because a reader scanning a running total expects each line to add its own value and no more. <code>RANGE</code> is the right answer when tied rows genuinely belong together, for instance a cumulative total by day where several orders share a date and you want each day's rows to show the day's closing figure.</p>
+
+    <p>The reason nobody notices is that on a unique ordering column the two are identical, which is why the month query in section one gave the same answer either way. Order by anything with repeats, and they diverge. Type the frame.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. A separate running total per group</h2>
+
+    <p><code>PARTITION BY</code> restarts the accumulation whenever the partition column changes.</p>
+
+    <pre><code>SELECT region, order_date, units*unit_price AS revenue,
+       SUM(units*unit_price) OVER (PARTITION BY region ORDER BY order_date
+                                   ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running
+FROM orders ORDER BY region, order_date;
+
+East  | 2026-01-19 |  660 |  660
+East  | 2026-02-09 |  680 | 1340
+East  | 2026-03-09 | 1100 | 2440
+East  | 2026-05-04 |  600 | 3040
+North | 2026-01-05 |  880 |  880
+North | 2026-01-26 |  240 | 1120
+North | 2026-02-16 |  425 | 1545
+North | 2026-03-16 |  440 | 1985
+North | 2026-05-11 |  510 | 2495
+...</code></pre>
+
+    <p>Each region starts again from its own first order, and each region's last running value is that region's total: East 3,040, North 2,495, South 2,670, West 1,685. Those four add to 9,890, so the partitions between them account for every row.</p>
+
+    <p>That is the same partition idea as a <code>GROUP BY</code>, with one difference worth stating plainly: <code>GROUP BY</code> replaces the rows with one row per group, and <code>PARTITION BY</code> keeps every row and adds a column. If you want both the detail and the group figure on the same line, this is the only one of the two that can do it.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. A frame that slides: moving averages</h2>
+
+    <p>Change where the frame starts and it stops being cumulative and starts sliding. <code>ROWS BETWEEN 2 PRECEDING AND CURRENT ROW</code> is a three-row window: this row and the two before it.</p>
+
+    <p>Run on the monthly series with a calendar, so the empty April is a real zero rather than a missing row:</p>
+
+    <pre><code>month      | revenue |    ma3 | running
+2026-01-01 |    2630 | 2630.00 |    2630
+2026-02-01 |    2245 | 2437.50 |    4875
+2026-03-01 |    2585 | 2486.67 |    7460
+2026-04-01 |       0 | 1610.00 |    7460
+2026-05-01 |    2430 | 1671.67 |    9890</code></pre>
+
+    <p>Check one: the three months ending March are 2,630, 2,245 and 2,585, which average to 2,486.67. And notice the first two rows: the frame cannot reach back beyond the start, so January's average is over one row and February's over two. That is usually fine and occasionally misleading, and if it matters you suppress the first rows rather than letting a one-row average look like a three-month one.</p>
+
+    <p>The running column not moving between March and April is the calendar doing its job: a month with no sales adds nothing, and it is visible as a flat step rather than as an absent row. That whole argument is <a href="../sql-dates/">the date guide's</a> and it applies to every frame on this page, because a frame counts rows and a missing month is a missing row.</p>
+
+    <p>Two other frames worth knowing by name. <code>ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING</code> accumulates from here to the end, which gives a remaining-balance column. And <code>ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING</code> centres the window on the current row, which is the honest smoother when you are not forecasting.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. The check that catches everything</h2>
+
+    <p>One comparison catches the frame bug, a wrong partition, a missing row and a duplicated row at once.</p>
+
+    <pre><code>last running value | grand total
+              9890 | 9890</code></pre>
+
+    <p>The final value of a cumulative column must equal the plain total of the column it accumulates. If it is higher, something is being counted twice, usually a join that multiplied rows. If it is lower, rows are missing before the window ever sees them, usually a filter or an inner join. If it is equal but the intermediate values look wrong, the frame is the suspect.</p>
+
+    <p>Write it as a query rather than doing it by eye, because "the last number looks about right" is not a check:</p>
+
+    <pre><code>SELECT (SELECT MAX(running) FROM r) AS last_running,
+       (SELECT SUM(units*unit_price) FROM orders) AS grand_total;</code></pre>
+
+    <p>Picture the cumulative report you send out most often. Is there anything on it that would tell you if its last row and its total had stopped agreeing?</p>
+  </div>
+
+  <div class="step">
+    <h2>8. Running counts and running share</h2>
+
+    <p>The same shape works on anything that can be aggregated, and two variants earn their place on almost any cumulative report.</p>
+
+    <pre><code>month      | orders | running_orders | pct_of_year
+2026-01-01 |      4 |              4 |        26.6
+2026-02-01 |      4 |              8 |        49.3
+2026-03-01 |      4 |             12 |        75.4
+2026-05-01 |      4 |             16 |       100.0</code></pre>
+
+    <p>The running count answers "how many so far", and it ends at 16, which is the row count of the table. The share column divides the running total by the grand total, and it is the one people actually read, because 75.4% of the year's revenue by March is a sentence and 7,460 is a number.</p>
+
+    <p>Note how the share was built: a windowed running total divided by a window with no <code>ORDER BY</code>, which from section three is the whole-partition total. Two windows in one expression, one accumulating and one not.</p>
+
+    <pre><code>ROUND(100.0 * SUM(revenue) OVER (ORDER BY month
+                                 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+      / SUM(revenue) OVER (), 1)</code></pre>
+
+    <p>And the last row must be 100.0. If it is not, it is the section seven check failing in a different disguise.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same question: how did revenue accumulate through the year, and what share was in by each month?</p>
+
+  <h3>Before</h3>
+  <pre><code>SELECT month, revenue,
+       SUM(revenue) OVER (ORDER BY revenue) AS running
+FROM by_month;</code></pre>
+  <p>Three problems in one line. The accumulation is ordered by revenue rather than by month, so the column climbs in size order and means nothing. There is no frame clause, so tied revenues would share a figure. And there is no check anywhere, so none of that is visible.</p>
+
+  <h3>After</h3>
+  <pre><code>SELECT month,
+       revenue,
+       SUM(revenue) OVER (ORDER BY month
+                          ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running,
+       ROUND(100.0 * SUM(revenue) OVER (ORDER BY month
+                                        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+             / SUM(revenue) OVER (), 1) AS pct
+FROM by_month
+ORDER BY month;
+
+2026-01-01 | 2630 | 2630 |  26.6
+2026-02-01 | 2245 | 4875 |  49.3
+2026-03-01 | 2585 | 7460 |  75.4
+2026-05-01 | 2430 | 9890 | 100.0</code></pre>
+
+  <p>Ordered along time, framed explicitly, and finished with a share column whose last value has to be 100.0. The last running figure is 9,890, which is the table total, so the column reconciles.</p>
+
+  <p>The claim, and it is why the frame clause is worth typing every time: <strong>on a column with ties, the default frame gave six of sixteen rows a cumulative figure that included a row below them, and the only visible difference between the two queries was a clause that most people never write.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases that break a running total</h2>
+
+    <p>Six worth knowing.</p>
+
+    <p><strong>A non-unique ordering column.</strong> Section four. If the order column has ties and you have not written a frame, the answer is not the one you are describing. Adding a tie-breaker to the <code>ORDER BY</code>, such as the primary key, also fixes it and makes the result deterministic.</p>
+
+    <p><strong>NULLs in the ordering column.</strong> They sort to one end, and which end differs by engine. A row with a missing date can end up at the start of your cumulative column carrying nothing, or at the end carrying the lot.</p>
+
+    <p><strong>NULLs in the value column.</strong> <code>SUM</code> skips them, so the running total flattens for those rows rather than erroring. Count them before you accumulate.</p>
+
+    <p><strong>A missing period.</strong> A window frame counts rows, so a month with no rows is not a flat step, it simply is not there, and <code>2 PRECEDING</code> reaches back three months instead of two. Build the calendar first.</p>
+
+    <p><strong>Accumulating after a join that multiplied rows.</strong> The running total climbs past the real total, and section seven's check is the only thing on the page that would show it.</p>
+
+    <p><strong>Filtering on the window column.</strong> <code>WHERE running &gt; 5000</code> does not work, because window functions are computed after <code>WHERE</code>. Wrap the query in a CTE and filter outside it, which is exactly the pattern <a href="../sql-subqueries/">named steps</a> exist for.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The first thing to know is that a relational table has no inherent order. Rows are members of a set, and a set has no first element, which is why <code>ORDER BY</code> exists as a presentation step at the very end of a query rather than as a property of a table (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). A running total is inherently about sequence, so it cannot be computed until a sequence is supplied, and that is precisely what the <code>ORDER BY</code> inside <code>OVER</code> is for. It is not sorting the output; it is manufacturing the order that makes "so far" meaningful. Section three's result, the grand total repeated four times, is what the language does when you ask for an accumulation without saying along what.</p>
+
+  <p>The frame is the second half of the same idea. Once there is an order, the engine still has to be told how much of it each row sees, and the two options differ because they answer to different things: <code>ROWS</code> counts positions and <code>RANGE</code> compares values. Database work on evaluating these functions treats the frame as the central object, because it determines both the answer and how cheaply the answer can be produced in a single ordered pass (Cao, Chan, Li, &amp; Tan, 2012, <em>Proceedings of the VLDB Endowment</em>, 5(11), 1244–1255). That is also why the default exists at all and why it is <code>RANGE</code>: it is the behaviour the standard specifies, not an oversight, and it is only surprising if you did not know a choice was being made.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than reread, because actively retrieving something does more than fix it in memory, it reorganises what you know in a way that transfers to new problems (Karpicke, 2012, <em>Current Directions in Psychological Science</em>, 21(3), 157–163).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Auditing every window function at once is miserable. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Search your SQL for <code>OVER (ORDER BY</code></strong> and check each hit for a frame clause. The ones without are the queue.</li>
+    <li><strong>For each, ask whether the ordering column has repeats.</strong> If it can, add <code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code> and compare the before and after.</li>
+    <li><strong>Add a tie-breaker to the ORDER BY</strong> so the result is the same every time it runs, even on an engine that shuffles equal rows.</li>
+    <li><strong>Put the reconciliation in the query</strong>: last running value against the plain total, as two columns you can see.</li>
+    <li><strong>Build the calendar before the frame</strong> on anything periodic, so a gap is a zero row and not an absent one.</li>
+    <li><strong>Move any filter on a windowed column outside</strong>, into a query that reads the named step.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Draw your rows as a column of boxes and, beside them, draw the bracket you actually want at row four: where does it start, where does it end, and does it include row four's twin if there is one. Then write the frame clause that matches the bracket. Most people find they have been picturing <code>ROWS</code> the whole time.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>. If you would rather type queries than read about them, the <a href="../../drill/">SQL Drill</a> gives you one runnable query at a time against a real database.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>The running total</td><td><code>SUM(x) OVER (ORDER BY y ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)</code></td></tr>
+    <tr><td>What a frame is</td><td>The rows, relative to this one, that the function adds up.</td></tr>
+    <tr><td>No ORDER BY inside OVER</td><td>No sequence, so every row sees the whole partition.</td></tr>
+    <tr><td>That is still useful</td><td><code>SUM(x) OVER ()</code> is the denominator for a share column.</td></tr>
+    <tr><td>Two ORDER BYs</td><td>Inside OVER sets the accumulation. At the end sorts the output.</td></tr>
+    <tr><td>The default frame</td><td><code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>.</td></tr>
+    <tr><td>RANGE</td><td>Compares values. Tied rows share one figure.</td></tr>
+    <tr><td>ROWS</td><td>Counts positions. Each row adds only itself.</td></tr>
+    <tr><td>Which to use</td><td>ROWS for a cumulative report. RANGE when ties belong together.</td></tr>
+    <tr><td>Why nobody notices</td><td>On a unique ordering column they are identical.</td></tr>
+    <tr><td><code>PARTITION BY</code></td><td>Restarts the accumulation per group. Keeps every row.</td></tr>
+    <tr><td>Against GROUP BY</td><td>GROUP BY collapses rows; PARTITION BY adds a column.</td></tr>
+    <tr><td>Moving average</td><td><code>ROWS BETWEEN 2 PRECEDING AND CURRENT ROW</code>.</td></tr>
+    <tr><td>Short frames at the start</td><td>The first rows average fewer values. Suppress or label them.</td></tr>
+    <tr><td>Remaining balance</td><td><code>ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING</code>.</td></tr>
+    <tr><td>The check</td><td>Last running value equals the plain total. Share ends at 100.0.</td></tr>
+    <tr><td>Filtering the result</td><td>Not in WHERE. Wrap it in a CTE and filter outside.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Put the last running value and the plain total side by side in the query itself. Every failure on this page, a wrong frame, a wrong partition, a join that multiplied rows, a filter that removed them, shows up as those two numbers disagreeing, and nothing else on a cumulative report does. If a window function misbehaves in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. Mine was a cumulative bookings report ordered by deal value rather than by date, which nobody questioned for a quarter because the last number was always right. What has a window frame quietly done in something you own?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+    <li>Cao, Y., Chan, C.-Y., Li, J., &amp; Tan, K.-L. (2012). Optimization of analytic window functions. <em>Proceedings of the VLDB Endowment</em>, 5(11), 1244–1255.</li>
+    <li>Karpicke, J. D. (2012). Retrieval-based learning: Active retrieval promotes meaningful learning. <em>Current Directions in Psychological Science</em>, 21(3), 157–163.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice frames on data with ties in it.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> gives you the repetitions: cumulative columns to build, ROWS against RANGE on the same ordering, partitions to restart, and flash cards on exactly what each frame boundary means. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../sql-dates/">SQL Date Functions</a> · <a href="../sql-subqueries/">Subquery vs CTE</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-month-over-month/">Month-over-Month in SQL</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-null/">NULL in SQL</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../../sql/">SQL Kit</a> · <a href="../excel-month-over-month/">Month-over-Month in Excel</a> · <a href="../pandas-groupby/">pandas groupby</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
