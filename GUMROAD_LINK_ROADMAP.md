@@ -96,7 +96,12 @@ but the 07-31 handoff had them unlisted.
   Hooks are still written by hand, one per guide, naming the stall that page's
   reader is in. Read/write is UTF-8 with no BOM and existing line endings are
   preserved, per the PowerShell encoding rule.
-- [ ] **B3 — Excel guides 14-26.** if-family, iferror, ifs-vs-nested-if, index-match, kpi-row, label-rows-before-charting, month-over-month, name-your-data, pick-the-chart, pivot-percentages, pivot-table-question, pivot-tables, power-query
+- [x] **B3 — Excel guides 14-26. DONE 2026-08-09, verified live.** if-family, iferror, ifs-vs-nested-if, index-match, kpi-row, label-rows-before-charting, month-over-month, name-your-data, pick-the-chart, pivot-percentages, pivot-table-question, pivot-tables, power-query
+
+  `excel-pick-the-chart` points at Charts and Visualization, not the Excel
+  book. A reader on that page is choosing a mark, not fighting Excel. The
+  prefix of a guide is not automatically the right book, so check the reader's
+  actual problem in later batches too.
 - [ ] **B4 — Excel guides 27-33 + adjacent (13).** remove-duplicates, slicers, sort-your-bars, sum-of-id-trap, sumifs, sumproduct, tables, vlookup-vs-xlookup, budget-vs-actual-variance, export-sql-results-to-excel, connect-excel-to-a-database, free-datasets-to-practice-with, sample-database-for-sql-practice
 - [ ] **B5 — SQL guides 1-13.** aliasing, and-python, case-expression, cohort-retention, comments, count-function, ctes, dates, find-duplicates, funnel-analysis, group-by-having, indexing-for-analysts, joins
 - [ ] **B6 — SQL guides 14-21 + setup (13).** month-over-month, null, reconciliation, running-total, segment-with-case, subqueries, temp-tables-vs-views, window-functions, practice-sql-online-no-install, set-up-a-sql-database, set-up-duckdb, which-sql-database-to-install, install-postgresql-for-beginners
