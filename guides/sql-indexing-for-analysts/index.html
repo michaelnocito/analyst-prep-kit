@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>When to Index a Table: A Practical Guide for Analysts — Analyst Prep Kit</title>
+<meta name="description" content="Read the query plan, add the index, measure. 90.9 ms to 0.2 ms on half a million rows, the three ways to lose an index you already have, and the 7x it costs on writes.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-indexing-for-analysts/">
+<meta property="og:title" content="When to Index a Table: A Practical Guide for Analysts">
+<meta property="og:description" content="One index took a lookup from 90.9 ms to 0.2 ms on 500,000 rows. Then the parts nobody mentions: wrapping the column in a function loses it, and three indexes made inserts 7 times slower.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-indexing-for-analysts.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-indexing-for-analysts/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-indexing-for-analysts.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "When to Index a Table: A Practical Guide for Analysts",
+  "description": "Read the query plan, add the index, measure. 90.9 ms to 0.2 ms on half a million rows, the three ways to lose an index you already have, and the 7x it costs on writes.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-indexing-for-analysts/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-indexing-for-analysts/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-indexing-for-analysts.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "When to Index a Table: A Practical Guide for Analysts",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-indexing-for-analysts/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>When to Index a Table: A Practical Guide for Analysts</h1>
+  <p class="meta">Read the plan, add the index, measure the difference · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can tell whether a query is reading your whole table or jumping straight to what it needs, add an index that changes which of those happens, recognise the three common ways a query throws away an index it already has, and say what indexes cost so you can argue for one honestly. It is about twenty-five minutes, and every timing below was measured on half a million rows.</p>
+
+  <p>Here is what to do today, on the query that is too slow. Put <code>EXPLAIN QUERY PLAN</code> in front of it, or <code>EXPLAIN</code> on Postgres and most others. If the answer contains the word <em>scan</em> against a large table, the engine is reading every row, and that is the fact worth having before you change anything.</p>
+
+  <p>The short version: an index is a sorted copy of one or more columns kept alongside the table, so the engine can jump to a value instead of walking past every row looking for it.</p>
+
+  <p>Walking against jumping is the idea, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 300" role="img" aria-labelledby="ixTitle ixDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="ixTitle">Walk every row, or jump straight to it</title>
+      <desc id="ixDesc">Two copies of the same table stand side by side, each drawn as a tall stack of twelve thin horizontal bars in no particular order, with one bar near the bottom of each stack picked out in a darker shade as the row being looked for. On the left, a single blue line enters at the top of the stack and zigzags down through every single bar in turn before reaching the highlighted one, touching all twelve. On the right, a narrow second strip stands beside the stack, its segments graded evenly from short to long to show that it is a sorted copy of one column. An amber line goes straight into one segment of that sorted strip, without passing any others, and then a short horizontal arrow crosses from that segment to the highlighted bar in the stack. Both routes end at the same row; one of them visits eleven rows it did not want and the other visits none.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <!-- LEFT stack -->
+        <g fill="#E0F2F7" stroke="#B7D9E6">
+          <rect x="60" y="40" width="180" height="14"/><rect x="60" y="60" width="180" height="14"/>
+          <rect x="60" y="80" width="180" height="14"/><rect x="60" y="100" width="180" height="14"/>
+          <rect x="60" y="120" width="180" height="14"/><rect x="60" y="140" width="180" height="14"/>
+          <rect x="60" y="160" width="180" height="14"/><rect x="60" y="180" width="180" height="14"/>
+          <rect x="60" y="200" width="180" height="14"/><rect x="60" y="220" width="180" height="14"/>
+          <rect x="60" y="260" width="180" height="14"/>
+        </g>
+        <rect x="60" y="240" width="180" height="14" fill="#0E7490"/>
+        <path d="M40 47 L52 47 M52 47 L52 67 M52 67 L40 67 M40 67 L40 87 M40 87 L52 87 M52 87 L52 107
+                 M52 107 L40 107 M40 107 L40 127 M40 127 L52 127 M52 127 L52 147 M52 147 L40 147
+                 M40 147 L40 167 M40 167 L52 167 M52 167 L52 187 M52 187 L40 187 M40 187 L40 207
+                 M40 207 L52 207 M52 207 L52 227 M52 227 L40 227 M40 227 L40 247 M40 247 L56 247"
+              stroke="#0E7490" stroke-width="2.2" fill="none"/>
+        <path d="M62 247 L50 240 M62 247 L50 254" stroke="#0E7490" stroke-width="2.2" fill="none"/>
+
+        <!-- RIGHT stack -->
+        <g fill="#E0F2F7" stroke="#B7D9E6">
+          <rect x="470" y="40" width="180" height="14"/><rect x="470" y="60" width="180" height="14"/>
+          <rect x="470" y="80" width="180" height="14"/><rect x="470" y="100" width="180" height="14"/>
+          <rect x="470" y="120" width="180" height="14"/><rect x="470" y="140" width="180" height="14"/>
+          <rect x="470" y="160" width="180" height="14"/><rect x="470" y="180" width="180" height="14"/>
+          <rect x="470" y="200" width="180" height="14"/><rect x="470" y="220" width="180" height="14"/>
+          <rect x="470" y="260" width="180" height="14"/>
+        </g>
+        <rect x="470" y="240" width="180" height="14" fill="#0E7490"/>
+        <!-- sorted strip -->
+        <g fill="#FDF3E3" stroke="#B45309">
+          <rect x="392" y="40" width="14" height="14"/><rect x="392" y="60" width="22" height="14"/>
+          <rect x="392" y="80" width="30" height="14"/><rect x="392" y="100" width="38" height="14"/>
+          <rect x="392" y="120" width="46" height="14"/><rect x="392" y="140" width="54" height="14"/>
+          <rect x="392" y="160" width="62" height="14"/><rect x="392" y="180" width="70" height="14"/>
+          <rect x="392" y="200" width="78" height="14"/><rect x="392" y="220" width="86" height="14"/>
+          <rect x="392" y="240" width="94" height="14"/><rect x="392" y="260" width="102" height="14"/>
+        </g>
+        <path d="M300 247 L378 247" stroke="#B45309" stroke-width="2.6" fill="none"/>
+        <path d="M386 247 L374 240 M386 247 L374 254" stroke="#B45309" stroke-width="2.6" fill="none"/>
+        <path d="M486 247 L462 247" stroke="#B45309" stroke-width="2.6" fill="none" transform="translate(0,0)"/>
+        <path d="M496 247 L484 240 M496 247 L484 254" stroke="#B45309" stroke-width="2.6" fill="none"/>
+      </g>
+    </svg>
+    <figcaption>Same table, same row wanted. On the left the engine reads every row until it finds the match. On the right it goes straight into a sorted copy of the column, lands on the entry, and follows it to the row.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What an index actually is</li>
+      <li>Reading the plan: scan against search</li>
+      <li>The measurement</li>
+      <li>What an index costs</li>
+      <li>Three ways to lose an index you have</li>
+      <li>Composite indexes and the leftmost rule</li>
+      <li>Selectivity: the same index, 130 times apart</li>
+      <li>What to index, and what not to</li>
+      <li>The full before and after</li>
+      <li>Edge cases worth knowing</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every number on this page was measured.</strong> A 500,000-row orders table in SQLite, each query run five times with the fastest run reported, and the query plans read out of the engine rather than guessed. SQLite is used because its plans say <em>SCAN</em> or <em>SEARCH</em> in words; Postgres calls the same two things a sequential scan and an index scan, and everything here transfers.</div>
+
+  <div class="step">
+    <h2>1. What an index actually is</h2>
+
+    <p>Before the explanation: your table has 500,000 rows and you ask for one customer. Say how many rows the engine has to look at.</p>
+
+    <p>All of them, unless something tells it where to stop. A table is a heap of rows in no particular order, so the only way to be sure you have found every match is to check every row. That is a <strong>full table scan</strong>, and it is not a mistake; it is the only correct thing to do without more information.</p>
+
+    <p>An index is that extra information. It is a separate structure holding the values of one or more columns, kept in sorted order, with a pointer from each value back to its row. Because it is sorted, the engine can find a value the way you find a word in a dictionary: not by reading every page, but by repeatedly discarding the half that cannot contain it.</p>
+
+    <p>Two consequences follow immediately and explain most of this page. An index only helps for the columns it covers, so an index on <code>customer_id</code> does nothing for a query about <code>region</code>. And it only helps if the query asks about the value in a way that the sorted order can answer, which is why section five exists.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. Reading the plan: scan against search</h2>
+
+    <p>You never have to guess which one is happening. Every engine will tell you, and on SQLite it is one word in front of the query.</p>
+
+    <pre><code>EXPLAIN QUERY PLAN
+SELECT COUNT(*), SUM(units*unit_price) FROM orders WHERE customer_id = 41234;
+
+SCAN orders</code></pre>
+
+    <p><strong>SCAN</strong> means every row. After adding an index on that column, the same query reports:</p>
+
+    <pre><code>SEARCH orders USING INDEX idx_customer (customer_id=?)</code></pre>
+
+    <p><strong>SEARCH</strong> means it went in through the index. The name of the index is right there, which is how you confirm the one you added is the one being used rather than a different one.</p>
+
+    <p>A third phrase turns up constantly and is worth recognising: <strong>COVERING INDEX</strong>. It means every column the query needed was inside the index, so the engine never had to go back to the table at all. That is the fastest case there is, and it is why an index that includes the column you are counting can outperform one that only includes the column you are filtering on.</p>
+
+    <p>On Postgres the same three ideas read as <code>Seq Scan</code>, <code>Index Scan</code> and <code>Index Only Scan</code>. Different words, same distinction, and <code>EXPLAIN ANALYZE</code> there gives you the timings as well.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. The measurement</h2>
+
+    <p>Here is the same query before and after one index, on 500,000 rows, best of five runs.</p>
+
+    <pre><code>SELECT COUNT(*), SUM(units*unit_price) FROM orders WHERE customer_id = 41234;
+
+no index    SCAN orders                                        90.9 ms
+index       SEARCH orders USING INDEX idx_customer (id=?)       0.2 ms</code></pre>
+
+    <p>The result is identical, nine rows totalling 8,415, in both cases. Only the route changed. That is the whole promise of an index and the reason people reach for one first.</p>
+
+    <p>A range works the same way. Filtering a month out of a year of dates:</p>
+
+    <pre><code>WHERE order_date &gt;= '2026-03-01' AND order_date &lt; '2026-04-01'
+
+no index    SCAN orders                                       123.5 ms
+index       SEARCH orders USING COVERING INDEX idx_date        3.9 ms</code></pre>
+
+    <p>42,470 rows either way. Notice that this one came back as a covering index: the query only needed the date, and the date is in the index, so the table was never touched.</p>
+
+    <p>Say out loud why the range case is slower than the point lookup even with an index. It is returning 42,470 matches rather than nine, and the index gets you to the start of the matches quickly but the engine still has to walk them. An index removes the cost of finding rows, not the cost of reading the ones you asked for.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. What an index costs</h2>
+
+    <p>Indexes are not free, and knowing the price is what lets you ask for one without being waved away.</p>
+
+    <p><strong>Time to build.</strong> Creating the index on 500,000 rows took 572 ms. On a hundred million rows it is minutes, and on some engines it locks the table while it runs.</p>
+
+    <p><strong>Disk.</strong> The database file was 25.1 MB with the first index in place. Every index is a second copy of its columns plus pointers, so a table with six indexes can be several times its own size.</p>
+
+    <p><strong>Writes.</strong> This is the one people underestimate. Every insert, update and delete has to maintain every index on the table. Measured on the same machine, inserting 200,000 rows:</p>
+
+    <pre><code>no indexes        449 ms
+three indexes    3124 ms      7.0x slower</code></pre>
+
+    <p>Seven times, for three indexes. That is the trade in one number: reads get faster and writes get slower, and which matters depends entirely on what the table is for. A reporting table loaded once a night can carry a lot of indexes. A table taking a write per user action cannot.</p>
+
+    <p>It also explains a piece of advice that sounds odd until you have seen this: when bulk loading a large table, drop the indexes, load, then rebuild them. Building an index once over finished data is much cheaper than maintaining it through every row.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Three ways to lose an index you have</h2>
+
+    <p>Before the explanation: the index on <code>customer_id</code> exists and the query filters on <code>customer_id</code>. Say whether that guarantees it will be used.</p>
+
+    <p>It does not, and all three of these were measured on a table where the index existed.</p>
+
+    <p><strong>A function or arithmetic on the column.</strong></p>
+
+    <pre><code>WHERE customer_id = 41234        SEARCH ... (customer_id=?)     0.2 ms
+WHERE customer_id + 0 = 41234    SCAN                          57.9 ms</code></pre>
+
+    <p>The index is sorted by <code>customer_id</code>, not by <code>customer_id + 0</code>. As far as the engine is concerned that is a different expression, and it has no sorted copy of it, so it computes it for every row. The date version is worse:</p>
+
+    <pre><code>WHERE order_date &gt;= '2026-03-01' AND order_date &lt; '2026-04-01'    3.9 ms
+WHERE strftime('%Y-%m', order_date) = '2026-03'                 488.8 ms</code></pre>
+
+    <p>Same 42,470 rows, 125 times slower, and slower than having no index at all was, because now it is doing a full pass <em>and</em> calling a function half a million times. This is the concrete reason behind the advice in <a href="../sql-dates/">the date guide</a> to compare the raw column to a range rather than wrapping it.</p>
+
+    <p><strong>A leading wildcard.</strong> <code>LIKE 'Nor%'</code> can in principle use a sorted index, because everything starting with those three letters sits together. <code>LIKE '%orth'</code> cannot, in any engine, because a sorted list gives no starting point for an unknown prefix. On the engine used here neither form used the index and both scanned, at around 80 to 96 ms, while plain equality on the same column ran as a SEARCH in 16.0 ms. The rule to take away: an equality or a prefix range is index-friendly, and text matching in the middle of a value is a different problem needing a different kind of index.</p>
+
+    <p><strong>A type mismatch.</strong> Comparing an indexed number to a quoted string, or an indexed string to a number, makes the engine convert one side per row, which is a function on the column wearing a disguise. If a query is unexpectedly scanning, check that both sides of the comparison are the same type before checking anything else.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Composite indexes and the leftmost rule</h2>
+
+    <p>An index can cover several columns, and the order you list them in decides what it can be used for. One index on <code>(region, product)</code>, three queries, all measured:</p>
+
+    <pre><code>WHERE region = 'North'                         SEARCH (region=?)              16.1 ms
+WHERE region = 'North' AND product = 'Desk'    SEARCH (region=? AND product=?)  4.7 ms
+WHERE product = 'Desk'                         SCAN                            77.1 ms</code></pre>
+
+    <p>The first two use it and the third does not. The reason is what the sorting means: the index is sorted by region first, and by product only within each region. Ask for a region and you know where to start. Ask for a product without a region and the matching entries are scattered through the whole index, so there is nothing to jump to.</p>
+
+    <p>That is the <strong>leftmost prefix rule</strong>, and it is the single most useful thing to know about composite indexes. An index on <code>(a, b, c)</code> serves queries on <code>a</code>, on <code>a and b</code>, and on <code>a, b and c</code>. It does nothing for a query on <code>b</code> alone.</p>
+
+    <p>Which gives a practical ordering rule: put the column you always filter on first, and the one you sometimes add second. If you genuinely need both directions, that is two indexes, and now you are back in section four deciding whether the write cost is worth it.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Selectivity: the same index, 130 times apart</h2>
+
+    <p>Before the explanation: one index, one column, two queries that differ only in the number in them. Predict whether they take similar time.</p>
+
+    <pre><code>WHERE customer_id &gt; 100        499,157 rows match      26.1 ms
+WHERE customer_id &gt; 59990           74 rows match       0.2 ms</code></pre>
+
+    <p>Both used the index. One is 130 times slower than the other, and nothing about the query or the index changed except how much of the table matched.</p>
+
+    <p>That property has a name, <strong>selectivity</strong>: what fraction of the table a condition keeps. An index is worth having when the condition is selective, and does little when it is not, because returning most of the table means reading most of the table however you got there. The same effect shows on a column with only two values:</p>
+
+    <pre><code>WHERE is_returned = 0     490,000 rows      45.2 ms
+WHERE is_returned = 1      10,000 rows       0.9 ms</code></pre>
+
+    <p>The identical index, on the identical column, is excellent for the rare value and nearly pointless for the common one. This is why "index every column" is bad advice: an index on a flag that is 98% one value pays the full write cost and earns almost nothing on the query people actually run.</p>
+
+    <p>It is also why engines keep statistics about the distribution of values, and why a query that was fast last month can be slow today without anybody changing it: the data changed shape, and the optimiser now makes a different choice.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. What to index, and what not to</h2>
+
+    <p>The short list, in the order I would work through it.</p>
+
+    <table>
+      <tr><th>Index this</th><th>Why</th></tr>
+      <tr><td>Primary keys</td><td>Already done for you in most engines.</td></tr>
+      <tr><td>Foreign keys, the columns you join on</td><td>Often the largest single win, because a join without one is a scan per lookup.</td></tr>
+      <tr><td>Columns in <code>WHERE</code> on big tables</td><td>Especially dates, when you filter a period out of history.</td></tr>
+      <tr><td>Columns you sort by, on big results</td><td>A sorted index can supply the order without a sort step.</td></tr>
+    </table>
+
+    <table>
+      <tr><th>Do not bother</th><th>Why</th></tr>
+      <tr><td>Small tables</td><td>Reading a few thousand rows is already fast. The engine may ignore the index anyway.</td></tr>
+      <tr><td>Low-cardinality columns</td><td>Section seven. A flag with two values earns little and costs the same.</td></tr>
+      <tr><td>Columns that are written constantly</td><td>Every update maintains the index too.</td></tr>
+      <tr><td>Every column, defensively</td><td>Seven times slower writes and a much larger file, for indexes nothing uses.</td></tr>
+    </table>
+
+    <p>One more piece of advice that matters more than any of the above: as an analyst you frequently cannot create an index, because you have read access to somebody else's database. That is not a dead end. The plan output is still available to you, and "this query scans a hundred million rows because there is no index on <code>order_date</code>" is a specific, actionable request that a database owner can act on in a minute. Vague requests to make it faster get nothing; a plan output and a measured timing get an index.</p>
+
+    <p>And when the answer is genuinely no, the remaining moves are the ones in <a href="../handle-large-datasets/">handling large datasets</a>: filter earlier, aggregate in the database, sample while developing, and materialise the result once instead of re-querying it.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same question: what did one customer buy, out of half a million orders?</p>
+
+  <h3>Before</h3>
+  <pre><code>SELECT COUNT(*), SUM(units*unit_price)
+FROM orders WHERE customer_id = 41234;
+
+plan : SCAN orders
+time : 90.9 ms</code></pre>
+  <p>Correct, and it read all 500,000 rows to return nine of them. On a dashboard that runs this once per customer per page load, that is the entire performance problem, and nothing in the query looks wrong.</p>
+
+  <h3>After</h3>
+  <pre><code>CREATE INDEX idx_customer ON orders(customer_id);     -- 572 ms, once
+
+SELECT COUNT(*), SUM(units*unit_price)
+FROM orders WHERE customer_id = 41234;
+
+plan : SEARCH orders USING INDEX idx_customer (customer_id=?)
+time : 0.2 ms</code></pre>
+
+  <p>Same nine rows, same 8,415. One statement, run once, and the cost is 25 MB of file, half a second of build time, and slower writes on a table that is loaded in batches anyway.</p>
+
+  <p>The claim, and it is the reason to read a plan before optimising anything: <strong>the query did not change, the data did not change, and the same result went from 90.9 ms to 0.2 ms because the engine stopped reading rows it was never going to return.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases worth knowing</h2>
+
+    <p>Six that come up.</p>
+
+    <p><strong>The optimiser ignores your index on purpose.</strong> If it estimates that most of the table matches, a scan is genuinely cheaper than jumping around, and it will scan. That is usually correct, and when it is wrong it is because the statistics are stale.</p>
+
+    <p><strong>Stale statistics.</strong> Engines choose plans from summaries of the data that are refreshed periodically. After a big load, run the engine's update command, <code>ANALYZE</code> on both SQLite and Postgres, or the plan may be based on a table that no longer exists in that shape.</p>
+
+    <p><strong>Indexes on a view.</strong> A plain view has no data and cannot be indexed. You index the underlying tables, or you need a materialised view, which is a real stored result.</p>
+
+    <p><strong>NULLs.</strong> Whether nulls are stored in an index and whether <code>IS NULL</code> can use it varies by engine. If you filter for missing values often, test it rather than assuming.</p>
+
+    <p><strong>An index that duplicates another.</strong> An index on <code>(a)</code> is redundant when an index on <code>(a, b)</code> already exists, by the leftmost rule. It is pure write cost. Look for these before adding more.</p>
+
+    <p><strong>Joins.</strong> An unindexed join key is the most expensive thing in most slow queries, because the lookup happens once per row of the other table. If a join is slow, index the key on the larger side first; the mechanics of what a join is doing are in <a href="../sql-joins/">the joins guide</a>.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The reason a lookup can go from ninety milliseconds to a fraction of one is that the two routes have different growth curves rather than different constants. Scanning is proportional to the number of rows: double the table and you double the time. Searching a sorted structure grows with the logarithm of the size, because each step discards a large fraction of what remains. The structure that made this practical for data on disk is the B-tree, designed to keep a large ordered index balanced and shallow so that any value can be reached in a handful of page reads even as the file grows (Bayer &amp; McCreight, 1972, <em>Acta Informatica</em>, 1(3), 173–189). Almost every index you will meet is a variation of it, and its shape is why the win gets bigger as the table gets bigger, not smaller.</p>
+
+  <p>The second half of the page is about the fact that having an index is not the same as using one. The database decides, per query, which route is cheaper, by estimating how many rows each option would touch and costing them; that estimate is why the same index is chosen for one value and ignored for another. The framework for making that decision, including the idea of estimating a condition's selectivity and choosing an access path from it, was set out early and is still the shape of what optimisers do (Selinger, Astrahan, Chamberlin, Lorie, &amp; Price, 1979, <em>Proceedings of the 1979 ACM SIGMOD International Conference on Management of Data</em>, 23–34). Section seven's 130-fold difference is that machinery working correctly, and section five's failures are it working correctly on an expression you did not mean to write.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than reread, because practice testing comes out ahead of restudying across a very large body of comparisons, including ones run in real courses rather than laboratories (Adesope, Trevisan, &amp; Sundararajan, 2017, <em>Review of Educational Research</em>, 87(3), 659–701).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Indexing everything is worse than indexing nothing. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Find the query that is actually slow</strong>, by timing rather than by feel. One query is usually most of the problem.</li>
+    <li><strong>Read its plan.</strong> If there is no scan against a large table, the problem is not indexing and you would have spent a day on the wrong thing.</li>
+    <li><strong>Check the query is not defeating an index it already has</strong>: a function on the column, a type mismatch, a leading wildcard.</li>
+    <li><strong>Index the join keys first</strong>, then the columns in <code>WHERE</code> on the biggest tables.</li>
+    <li><strong>Measure before and after</strong>, best of several runs, and write both numbers down. That pair is the whole argument for keeping the index.</li>
+    <li><strong>If you cannot create indexes</strong>, send the plan and the two timings to whoever can. A specific request gets acted on; a slow report does not.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Write out your slow query and circle every column that appears in <code>WHERE</code>, in <code>JOIN ... ON</code>, and in <code>ORDER BY</code>. Those circles are the entire candidate list for an index, in that order of priority, and most people find there are only two or three.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>. If you would rather type queries than read about them, the <a href="../../drill/">SQL Drill</a> gives you one runnable query at a time against a real database.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>An index</td><td>A sorted copy of some columns, with pointers back to the rows.</td></tr>
+    <tr><td>No index</td><td>Full table scan. Correct, and proportional to the row count.</td></tr>
+    <tr><td>See which is happening</td><td><code>EXPLAIN QUERY PLAN</code>, or <code>EXPLAIN</code> on most engines.</td></tr>
+    <tr><td>SCAN</td><td>Every row. Postgres calls it a Seq Scan.</td></tr>
+    <tr><td>SEARCH</td><td>Went in through the index. Postgres calls it an Index Scan.</td></tr>
+    <tr><td>COVERING INDEX</td><td>Everything needed was in the index. The table was never read.</td></tr>
+    <tr><td>The measured win</td><td>90.9 ms to 0.2 ms on 500,000 rows, same result.</td></tr>
+    <tr><td>Build cost</td><td>572 ms here. Minutes on a very large table.</td></tr>
+    <tr><td>Write cost</td><td>Three indexes made 200,000 inserts 7 times slower.</td></tr>
+    <tr><td>Bulk loading</td><td>Drop the indexes, load, rebuild.</td></tr>
+    <tr><td>Function on the column</td><td>Loses the index. <code>strftime(date)</code> was 125 times slower than a range.</td></tr>
+    <tr><td>Leading wildcard</td><td>Cannot use a sorted index, in any engine.</td></tr>
+    <tr><td>Type mismatch</td><td>A conversion per row. A function in disguise.</td></tr>
+    <tr><td>Composite index</td><td>Sorted by the first column, then within it by the second.</td></tr>
+    <tr><td>Leftmost prefix rule</td><td><code>(a,b)</code> serves a, and a with b. Not b alone.</td></tr>
+    <tr><td>Selectivity</td><td>How much of the table a condition keeps. Rare values win.</td></tr>
+    <tr><td>Same index, two values</td><td>490,000 matches 45.2 ms, 10,000 matches 0.9 ms.</td></tr>
+    <tr><td>Index first</td><td>Join keys, then WHERE columns on big tables.</td></tr>
+    <tr><td>Do not index</td><td>Small tables, two-value flags, heavily written columns.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Read the plan before changing anything, and measure before and after. An index added on a hunch is a permanent write cost paid for an unmeasured benefit, and the plan takes ten seconds to read. If a query is slow in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The one I remember was a nightly report that had crept from four minutes to fifty over a year, where the fix was a single index on a date column and the reason nobody had found it was that everyone assumed the query had simply got more data to chew. What turned out to be the one-line fix for something slow you inherited?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Bayer, R., &amp; McCreight, E. (1972). Organization and maintenance of large ordered indices. <em>Acta Informatica</em>, 1(3), 173–189.</li>
+    <li>Selinger, P. G., Astrahan, M. M., Chamberlin, D. D., Lorie, R. A., &amp; Price, T. G. (1979). Access path selection in a relational database management system. <em>Proceedings of the 1979 ACM SIGMOD International Conference on Management of Data</em>, 23–34.</li>
+    <li>Adesope, O. O., Trevisan, D. A., &amp; Sundararajan, N. (2017). Rethinking the use of tests: A meta-analysis of practice testing. <em>Review of Educational Research</em>, 87(3), 659–701.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice reading plans on queries you can time.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> gives you the repetitions: plans to interpret, queries that defeat their own indexes, and composite indexes to reason about, plus flash cards on which conditions a sorted index can answer. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-dates/">SQL Date Functions</a> · <a href="../sql-subqueries/">Subquery vs CTE</a> · <a href="../sql-running-total/">Running Total in SQL</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../which-sql-database-to-install/">Which SQL Database to Install</a> · <a href="../set-up-duckdb/">Set Up DuckDB</a> · <a href="../../sql/">SQL Kit</a> · <a href="../install-postgresql-for-beginners/">Install PostgreSQL</a> · <a href="../connect-python-to-a-sql-database/">Connect Python to a Database</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
