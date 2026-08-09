@@ -109,7 +109,15 @@ but the 07-31 handoff had them unlisted.
   to Charts, the two SQL-facing pages to SQL, and free-datasets to Thinking
   Like an Analyst, because a reader hunting for practice data does not yet have
   a tool problem, they have a question problem.
-- [ ] **B5 — SQL guides 1-13.** aliasing, and-python, case-expression, cohort-retention, comments, count-function, ctes, dates, find-duplicates, funnel-analysis, group-by-having, indexing-for-analysts, joins
+- [x] **B5 — SQL guides 1-13. DONE 2026-08-09, verified live.** aliasing, and-python, case-expression, cohort-retention, comments, count-function, ctes, dates, find-duplicates, funnel-analysis, group-by-having, indexing-for-analysts, joins
+
+  `sql-and-python` points at the Python book. That reader already has SQL and
+  has hit the wall where it stops being enough.
+
+  **A cache-busted fetch can still hit a stale edge copy.** sql-and-python came
+  back empty on the first verification sweep and correct on a second fetch a
+  few seconds later, with the same `?cb=` trick. One miss in a sweep is not
+  proof of a failure. Re-fetch the single page before believing it.
 - [ ] **B6 — SQL guides 14-21 + setup (13).** month-over-month, null, reconciliation, running-total, segment-with-case, subqueries, temp-tables-vs-views, window-functions, practice-sql-online-no-install, set-up-a-sql-database, set-up-duckdb, which-sql-database-to-install, install-postgresql-for-beginners
 - [ ] **B7 — Python + Power BI (13).** pandas-duplicates, pandas-fillna-dropna, pandas-groupby, pandas-merge, pandas-pct-change-cumsum, pandas-read-csv, connect-python-to-a-sql-database, install-python-for-data-analysis, install-jupyter-notebook, powerbi-calculate, powerbi-measures-vs-columns, powerbi-star-schema, powerbi-switch-true
 - [ ] **B8 — Power BI, Tableau, Stats (13).** powerbi-time-intelligence, import-a-csv-into-power-bi, install-power-bi-desktop, connect-tableau-to-your-data, install-tableau-public, ab-testing-for-analysts, confidence-intervals, correlation-vs-causation, mean-vs-median, p-values, percentiles-iqr-outliers, standard-deviation, forecast-accuracy
