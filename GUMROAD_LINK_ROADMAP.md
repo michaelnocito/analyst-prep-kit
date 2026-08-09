@@ -87,7 +87,15 @@ but the 07-31 handoff had them unlisted.
     visitor kept the pre-batch file. The card was live in the repo and
     invisible on the site. Now `apk-footer.js?v=2` on all 18 pages.
     **Bump that number on any future edit to a shared asset.**
-- [ ] **B2 — Excel guides 1-13.** character-encoding, chart-design-basics, check-your-work, circular-findings, clean-messy-data, conditional-formatting, csv-import-leading-zeros, custom-number-formats, dashboard-build-order, dashboard-claim, data-validation, dates, dynamic-arrays
+- [x] **B2 — Excel guides 1-13. DONE 2026-08-09, verified live.** character-encoding, chart-design-basics, check-your-work, circular-findings, clean-messy-data, conditional-formatting, csv-import-leading-zeros, custom-number-formats, dashboard-build-order, dashboard-claim, data-validation, dates, dynamic-arrays
+
+  The guide pages turned out to be uniform: a `footer{border-top` CSS rule to
+  anchor the `.book` styles to, and a closing `<div class="cta">` to sit the
+  block above, so the kit route still reads first. That makes batches 3 to 9
+  scriptable. The insert script is kept at `tools/insert-book-block.py`.
+  Hooks are still written by hand, one per guide, naming the stall that page's
+  reader is in. Read/write is UTF-8 with no BOM and existing line endings are
+  preserved, per the PowerShell encoding rule.
 - [ ] **B3 — Excel guides 14-26.** if-family, iferror, ifs-vs-nested-if, index-match, kpi-row, label-rows-before-charting, month-over-month, name-your-data, pick-the-chart, pivot-percentages, pivot-table-question, pivot-tables, power-query
 - [ ] **B4 — Excel guides 27-33 + adjacent (13).** remove-duplicates, slicers, sort-your-bars, sum-of-id-trap, sumifs, sumproduct, tables, vlookup-vs-xlookup, budget-vs-actual-variance, export-sql-results-to-excel, connect-excel-to-a-database, free-datasets-to-practice-with, sample-database-for-sql-practice
 - [ ] **B5 — SQL guides 1-13.** aliasing, and-python, case-expression, cohort-retention, comments, count-function, ctes, dates, find-duplicates, funnel-analysis, group-by-having, indexing-for-analysts, joins
