@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CALCULATE and Filter Context in DAX, Explained on Sixteen Rows — Analyst Prep Kit</title>
+<meta name="description" content="The same measure returns 5,060 on every product row and a different number on every region row. Why CALCULATE replaces one filter and adds the other, and how KEEPFILTERS changes it.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-calculate/">
+<meta property="og:title" content="CALCULATE and Filter Context in DAX, Explained on Sixteen Rows">
+<meta property="og:description" content="The same measure returns 5,060 on every product row and a different number on every region row. Why CALCULATE replaces one filter and adds the other, and how KEEPFILTERS changes it.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/powerbi-calculate.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-calculate/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/powerbi-calculate.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "CALCULATE and Filter Context in DAX, Explained on Sixteen Rows",
+  "description": "The same measure returns 5,060 on every product row and a different number on every region row. Why CALCULATE replaces one filter and adds the other, and how KEEPFILTERS changes it.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-calculate/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-calculate/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-09",
+  "dateModified": "2026-08-09",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/powerbi-calculate.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "CALCULATE and Filter Context in DAX, Explained on Sixteen Rows",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-calculate/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../powerbi/">Power BI Kit</a> · <a href="../">All guides</a></p>
+  <h1>CALCULATE and Filter Context in DAX, Explained on Sixteen Rows</h1>
+  <p class="meta">One rule decides everything CALCULATE does · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can predict what CALCULATE will return before you write it, explain why the same measure gives 5,060 on every row of one table and a different number on every row of another, and use KEEPFILTERS on purpose rather than by copying somebody. It rests on one rule, stated in Microsoft's own documentation, and everything else on this page follows from it.</p>
+
+  <p>Here is what to actually do today. Take any CALCULATE you have written and ask one question about each of its filter arguments: is the visual already filtering that same column? If yes, your filter replaces the visual's. If no, your filter is added to it. That question is the whole mechanism, and asking it takes five seconds.</p>
+
+  <p>The short version: a measure runs inside a set of filters, and CALCULATE changes that set before running it. A filter on a column already in the set overwrites what was there. A filter on any other column joins it.</p>
+
+  <p>The replace-against-add difference is the entire page, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 320" role="img" aria-labelledby="pcTitle pcDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="pcTitle">Replaced on the same column, added on a different one</title>
+      <desc id="pcDesc">Two rows of the same three-part arrangement, one above the other. In each row, a rounded box on the left holds a small rounded chip, an arrow runs from that box to a rounded box on the right, and a second chip drops into the arrow from above, so it is arriving as the arrow is followed. In the upper row the left box holds a chip reading Chair, and the arriving chip reads Desk. In the right-hand box of that row there is only one chip, reading Desk, and the Chair chip is shown again faintly behind it with a diagonal line struck through it, so it reads as having been replaced. A small label at the far left of the row reads Product. In the lower row the left box holds a chip reading East and the arriving chip again reads Desk. In the right-hand box of that row there are two chips stacked one above the other, East and Desk, both drawn solid, so it reads as having gained a chip rather than swapped one. A small label at the far left of that row reads Region.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <!-- row A -->
+        <text x="72" y="106" text-anchor="end" font-size="13" font-weight="700" fill="#52525B">Product</text>
+        <rect x="88" y="72" width="128" height="64" rx="12" fill="#FFFFFF" stroke="#E4E7EA" stroke-width="2"/>
+        <rect x="106" y="90" width="92" height="30" rx="9" fill="#E0F2F7" stroke="#0E7490" stroke-width="1.6"/>
+        <text x="152" y="110" text-anchor="middle" font-size="13.5" font-weight="700" fill="#0E7490">Chair</text>
+
+        <rect x="300" y="26" width="92" height="30" rx="9" fill="#FDF3E3" stroke="#B45309" stroke-width="1.8"/>
+        <text x="346" y="46" text-anchor="middle" font-size="13.5" font-weight="700" fill="#B45309">Desk</text>
+        <path d="M346 58 L346 96" stroke="#B45309" stroke-width="2" fill="none"/>
+        <path d="M346 96 L340 86 M346 96 L352 86" stroke="#B45309" stroke-width="2" fill="none"/>
+
+        <path d="M216 104 L470 104" stroke="#A1A1AA" stroke-width="2" fill="none"/>
+        <path d="M470 104 L458 98 M470 104 L458 110" stroke="#A1A1AA" stroke-width="2" fill="none"/>
+
+        <rect x="480" y="72" width="150" height="64" rx="12" fill="#FFFFFF" stroke="#E4E7EA" stroke-width="2"/>
+        <rect x="498" y="82" width="92" height="26" rx="8" fill="#F1F3F5" stroke="#D4D4D8" stroke-width="1.3"/>
+        <text x="544" y="100" text-anchor="middle" font-size="13" font-weight="700" fill="#A1A1AA">Chair</text>
+        <path d="M494 106 L594 78" stroke="#B45309" stroke-width="2"/>
+        <rect x="508" y="104" width="92" height="30" rx="9" fill="#FDF3E3" stroke="#B45309" stroke-width="1.8"/>
+        <text x="554" y="124" text-anchor="middle" font-size="13.5" font-weight="700" fill="#B45309">Desk</text>
+
+        <!-- row B -->
+        <text x="72" y="246" text-anchor="end" font-size="13" font-weight="700" fill="#52525B">Region</text>
+        <rect x="88" y="212" width="128" height="64" rx="12" fill="#FFFFFF" stroke="#E4E7EA" stroke-width="2"/>
+        <rect x="106" y="230" width="92" height="30" rx="9" fill="#E0F2F7" stroke="#0E7490" stroke-width="1.6"/>
+        <text x="152" y="250" text-anchor="middle" font-size="13.5" font-weight="700" fill="#0E7490">East</text>
+
+        <rect x="300" y="166" width="92" height="30" rx="9" fill="#FDF3E3" stroke="#B45309" stroke-width="1.8"/>
+        <text x="346" y="186" text-anchor="middle" font-size="13.5" font-weight="700" fill="#B45309">Desk</text>
+        <path d="M346 198 L346 236" stroke="#B45309" stroke-width="2" fill="none"/>
+        <path d="M346 236 L340 226 M346 236 L352 226" stroke="#B45309" stroke-width="2" fill="none"/>
+
+        <path d="M216 244 L470 244" stroke="#A1A1AA" stroke-width="2" fill="none"/>
+        <path d="M470 244 L458 238 M470 244 L458 250" stroke="#A1A1AA" stroke-width="2" fill="none"/>
+
+        <rect x="480" y="204" width="150" height="80" rx="12" fill="#FFFFFF" stroke="#E4E7EA" stroke-width="2"/>
+        <rect x="508" y="212" width="92" height="30" rx="9" fill="#E0F2F7" stroke="#0E7490" stroke-width="1.6"/>
+        <text x="554" y="232" text-anchor="middle" font-size="13.5" font-weight="700" fill="#0E7490">East</text>
+        <rect x="508" y="246" width="92" height="30" rx="9" fill="#FDF3E3" stroke="#B45309" stroke-width="1.8"/>
+        <text x="554" y="266" text-anchor="middle" font-size="13.5" font-weight="700" fill="#B45309">Desk</text>
+      </g>
+    </svg>
+    <figcaption>The same CALCULATE filter arriving into two different visuals. The upper row is a table sliced by product, so the incoming Desk filter lands on a column that is already filtered and replaces it. The lower row is a table sliced by region, so the Desk filter lands on an untouched column and joins what is there. One measure, two behaviours, decided entirely by what the visual was already filtering.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What filter context is, in one sentence</li>
+      <li>The rule: added, or overwritten</li>
+      <li>The same measure in two visuals</li>
+      <li>KEEPFILTERS, for when you wanted both</li>
+      <li>Removing filters: percent of total</li>
+      <li>Context transition, the other job CALCULATE does</li>
+      <li>What a boolean filter argument may not contain</li>
+      <li>The full before and after</li>
+      <li>Edge cases that catch people out</li>
+      <li>Why this works</li>
+      <li>Using this on your own model</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every number on this page is real.</strong> Sixteen orders and a three-row product table, the same fixture used across these guides. Every DAX behaviour described here is stated in Microsoft's own reference documentation, quoted in the "why this works" section, rather than inferred. If measures against calculated columns is still fuzzy, <a href="../powerbi-measures-vs-columns/">columns vs measures</a> comes first.</div>
+
+  <p><strong>Orders</strong>, the fact table. Sixteen rows.</p>
+  <table>
+    <tr><th>OrderID</th><th>Region</th><th>Product</th><th>Units</th><th>Revenue</th></tr>
+    <tr><td>1001</td><td>North</td><td>Desk</td><td>4</td><td>880</td></tr>
+    <tr><td>1002</td><td>South</td><td>Chair</td><td>10</td><td>850</td></tr>
+    <tr><td>1003</td><td>East</td><td>Desk</td><td>3</td><td>660</td></tr>
+    <tr><td>1004</td><td>North</td><td>Lamp</td><td>6</td><td>240</td></tr>
+    <tr><td>1005</td><td>South</td><td>Desk</td><td>3</td><td>660</td></tr>
+    <tr><td>1006</td><td>East</td><td>Chair</td><td>8</td><td>680</td></tr>
+    <tr><td>1007</td><td>North</td><td>Chair</td><td>5</td><td>425</td></tr>
+    <tr><td>1008</td><td>West</td><td>Lamp</td><td>12</td><td>480</td></tr>
+    <tr><td>1009</td><td>South</td><td>Lamp</td><td>7</td><td>280</td></tr>
+    <tr><td>1010</td><td>East</td><td>Desk</td><td>5</td><td>1,100</td></tr>
+    <tr><td>1011</td><td>North</td><td>Desk</td><td>2</td><td>440</td></tr>
+    <tr><td>1012</td><td>West</td><td>Chair</td><td>9</td><td>765</td></tr>
+    <tr><td>1013</td><td>East</td><td>Lamp</td><td>15</td><td>600</td></tr>
+    <tr><td>1014</td><td>North</td><td>Chair</td><td>6</td><td>510</td></tr>
+    <tr><td>1015</td><td>South</td><td>Desk</td><td>4</td><td>880</td></tr>
+    <tr><td>1016</td><td>West</td><td>Desk</td><td>2</td><td>440</td></tr>
+  </table>
+
+  <p><strong>Products</strong>, the dimension table, joined one-to-many to Orders on Product.</p>
+  <table>
+    <tr><th>Category</th><th>Product</th><th>ListPrice</th><th>Cost</th></tr>
+    <tr><td>Furniture</td><td>Desk</td><td>220</td><td>140</td></tr>
+    <tr><td>Furniture</td><td>Chair</td><td>85</td><td>52</td></tr>
+    <tr><td>Lighting</td><td>Lamp</td><td>40</td><td>22</td></tr>
+  </table>
+
+  <p>Total revenue is 9,890 across 101 units. Desks are 5,060 of it, chairs 3,230 and lamps 1,600.</p>
+
+  <div class="step">
+    <h2>1. What filter context is, in one sentence</h2>
+
+    <p>Before the definition: you put a measure <code>Total Revenue = SUM(Orders[Revenue])</code> into a table sliced by product. It shows 5,060 next to Desk and 3,230 next to Chair. Say what made those two numbers different, given that the measure never mentions Product.</p>
+
+    <p>The visual did. <strong>Filter context</strong> is the set of filters in force when a measure is evaluated, and it is assembled from everything on the report: the row the measure is sitting in, the columns, the slicers, the page filters, the cross-highlighting from another visual. The measure does not know or care where they came from. It just runs against whatever rows survive.</p>
+
+    <p>So a measure has no fixed answer. <code>SUM(Orders[Revenue])</code> is 9,890 with nothing filtered, 5,060 in the Desk row, 3,040 in the East row, and 1,760 in a cell where Desk and East cross. One formula, one meaning, and a different number in every cell, which is the entire point of a measure and is covered from the other side in <a href="../powerbi-measures-vs-columns/">columns vs measures</a>.</p>
+
+    <p>The useful mental picture is a set of allowed values per column. Before any filtering, every column allows everything. A table sliced by product puts Product into that set with exactly one allowed value in each row. CALCULATE is the function that edits the set.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. The rule: added, or overwritten</h2>
+
+    <p>Before the rule: you write <code>CALCULATE([Total Revenue], Products[Product] = "Desk")</code> and drop it into a table sliced by product. Predict what appears in the Chair row, before reading on.</p>
+
+    <p>5,060, the same as the Desk row, and it is not a bug. Microsoft's reference page states the rule in two lines, and it is worth reading slowly:</p>
+
+    <div class="note">If the columns or tables aren't in the filter context, new filters are added to the filter context to evaluate the expression. If the columns or tables are already in the filter context, the existing filters are overwritten by the new filters.</div>
+
+    <p>In the Chair row, Product is already in the filter context, restricted to Chair. Your filter names the same column, so it overwrites: Product is now restricted to Desk. The measure runs and returns Desk's 5,060, and it does that in every row of the table, because every row's Product filter is overwritten by the same one.</p>
+
+    <p>Say out loud why the total row also shows 5,060 rather than 9,890. The total row has no Product filter of its own, so there is nothing to overwrite. The Desk filter is added instead, and the answer is Desk's total. Same rule, and this time the "added" branch of it.</p>
+
+    <pre><code>Total Revenue = SUM ( Orders[Revenue] )
+
+Desk Revenue =
+CALCULATE ( [Total Revenue], Products[Product] = "Desk" )</code></pre>
+
+    <table>
+      <tr><th>Product</th><th>Total Revenue</th><th>Desk Revenue</th></tr>
+      <tr><td>Chair</td><td>3,230</td><td>5,060</td></tr>
+      <tr><td>Desk</td><td>5,060</td><td>5,060</td></tr>
+      <tr><td>Lamp</td><td>1,600</td><td>5,060</td></tr>
+      <tr><td><strong>Total</strong></td><td><strong>9,890</strong></td><td><strong>5,060</strong></td></tr>
+    </table>
+  </div>
+
+  <div class="step">
+    <h2>3. The same measure in two visuals</h2>
+
+    <p>Before the table: take that identical <code>Desk Revenue</code> measure and put it in a table sliced by <em>region</em> instead. Predict whether every row shows 5,060 again.</p>
+
+    <p>They do not, and this is the moment the rule stops being a fact and becomes useful.</p>
+
+    <table>
+      <tr><th>Region</th><th>Total Revenue</th><th>Desk Revenue</th></tr>
+      <tr><td>East</td><td>3,040</td><td>1,760</td></tr>
+      <tr><td>North</td><td>2,495</td><td>1,320</td></tr>
+      <tr><td>South</td><td>2,670</td><td>1,540</td></tr>
+      <tr><td>West</td><td>1,685</td><td>440</td></tr>
+      <tr><td><strong>Total</strong></td><td><strong>9,890</strong></td><td><strong>5,060</strong></td></tr>
+    </table>
+
+    <p>Here the visual filters Region, and the measure filters Product. Different columns, so nothing is overwritten and both filters apply. East's 1,760 is East's two desk orders, 660 plus 1,100. And the four regional figures add to 5,060, which is the check that both filters are really in force.</p>
+
+    <p>One measure, written once, behaving two ways. Neither behaviour is special-cased; both come out of the same sentence in the documentation. This is why "CALCULATE overwrites filters" and "CALCULATE adds filters" are both things people say and both are half the rule.</p>
+
+    <p>Now picture a measure in your own model that returns the same number in every row of one visual and sensible numbers in another. Which column is it filtering, and is that the column the broken visual is sliced by?</p>
+  </div>
+
+  <div class="step">
+    <h2>4. KEEPFILTERS, for when you wanted both</h2>
+
+    <p>Before the fix: in the product table, you actually wanted the Chair row to show desk-and-chair revenue, which is nothing, rather than all desks. Say what you need CALCULATE to do differently.</p>
+
+    <p>You need it to intersect rather than replace, and there is a function whose entire job is that. Microsoft lists KEEPFILTERS among the filter modifiers with the description "Add filter without removing existing filters on the same columns."</p>
+
+    <pre><code>Desk Revenue Kept =
+CALCULATE ( [Total Revenue], KEEPFILTERS ( Products[Product] = "Desk" ) )</code></pre>
+
+    <table>
+      <tr><th>Product</th><th>Desk Revenue</th><th>Desk Revenue Kept</th></tr>
+      <tr><td>Chair</td><td>5,060</td><td>(blank)</td></tr>
+      <tr><td>Desk</td><td>5,060</td><td>5,060</td></tr>
+      <tr><td>Lamp</td><td>5,060</td><td>(blank)</td></tr>
+      <tr><td><strong>Total</strong></td><td><strong>5,060</strong></td><td><strong>5,060</strong></td></tr>
+    </table>
+
+    <p>The Chair row now asks for rows that are both Chair and Desk. There are none, the measure has nothing to sum, and DAX returns blank rather than zero. Blank rows are hidden by default in most visuals, which is usually what you wanted.</p>
+
+    <p>Which of the two is correct depends entirely on the question. "How much do desks bring in, regardless of what this row is about?" is the first measure, and it is genuinely what you want as the denominator of a share. "How much of this row is desks?" is the second. Deciding which sentence you meant is the work; the function is just the switch.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Removing filters: percent of total</h2>
+
+    <p>Before the technique: you want each region's share of total revenue. The numerator is easy. Say what makes the denominator hard, before reading on.</p>
+
+    <p>The denominator has to ignore the row it is sitting in. In the East row, the filter context restricts Region to East, and you need a number computed as if it did not. That is what REMOVEFILTERS is for.</p>
+
+    <pre><code>Revenue % of Total =
+DIVIDE (
+    [Total Revenue],
+    CALCULATE ( [Total Revenue], REMOVEFILTERS ( Orders[Region] ) )
+)</code></pre>
+
+    <table>
+      <tr><th>Region</th><th>Total Revenue</th><th>Denominator</th><th>Revenue % of Total</th></tr>
+      <tr><td>East</td><td>3,040</td><td>9,890</td><td>30.7%</td></tr>
+      <tr><td>South</td><td>2,670</td><td>9,890</td><td>27.0%</td></tr>
+      <tr><td>North</td><td>2,495</td><td>9,890</td><td>25.2%</td></tr>
+      <tr><td>West</td><td>1,685</td><td>9,890</td><td>17.0%</td></tr>
+      <tr><td><strong>Total</strong></td><td><strong>9,890</strong></td><td><strong>9,890</strong></td><td><strong>100.0%</strong></td></tr>
+    </table>
+
+    <p>Three notes that save time later. Use <code>DIVIDE</code> rather than the slash, because it returns blank on a zero denominator instead of an error. Remove filters from the specific column you are slicing by, not from the whole table, or a slicer on another column will stop working. And <code>ALL</code> does the same job as REMOVEFILTERS in this position; Microsoft's own note says that if your tool supports REMOVEFILTERS, use it, because ALL doubles as a table-returning function and is easier to misread.</p>
+
+    <p>The variant worth knowing is <code>ALLSELECTED</code>, which removes the filters coming from inside the visual but respects slicers and page filters. Percentages built with REMOVEFILTERS always add to 100 percent of everything; percentages built with ALLSELECTED add to 100 percent of what the user has currently chosen. Both are defensible and they are different reports.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Context transition, the other job CALCULATE does</h2>
+
+    <p>Before the second job: CALCULATE with no filter arguments at all looks pointless. Predict what it could possibly be for, before reading on.</p>
+
+    <p>It converts <strong>row context</strong> into filter context. Microsoft's page is explicit: "Using the CALCULATE function without filters achieves a specific requirement. It transitions row context to filter context."</p>
+
+    <p>Row context is what you have when you are standing on one row: inside a calculated column, or inside an iterator like SUMX. It lets you read that row's values. It does <em>not</em> filter anything, which is the fact that surprises people, because it feels like it should.</p>
+
+    <p>Here is the demonstration. Add a calculated column to the three-row Products table.</p>
+
+    <pre><code>-- calculated column on Products, no CALCULATE
+Revenue Wrong = SUM ( Orders[Revenue] )
+
+-- calculated column on Products, with CALCULATE
+Revenue Right = CALCULATE ( SUM ( Orders[Revenue] ) )</code></pre>
+
+    <table>
+      <tr><th>Product</th><th>Revenue Wrong</th><th>Revenue Right</th></tr>
+      <tr><td>Desk</td><td>9,890</td><td>5,060</td></tr>
+      <tr><td>Chair</td><td>9,890</td><td>3,230</td></tr>
+      <tr><td>Lamp</td><td>9,890</td><td>1,600</td></tr>
+    </table>
+
+    <p>Without CALCULATE, you are standing on the Desk row and can see the word "Desk", and nothing is filtered, so the sum is the whole table: 9,890 on every row. With CALCULATE, the row you are standing on becomes a filter on Products, that filter travels down the relationship to Orders, and you get 5,060.</p>
+
+    <p>The same thing happens inside SUMX, and there is one shortcut worth memorizing: when you reference a model measure inside a row context, the transition is automatic. Microsoft states it plainly: "When you use a model measure in row context, context transition is automatic." That is why <code>SUMX(Products, [Total Revenue])</code> gives 9,890 and not 29,670. The measure reference is doing an invisible CALCULATE.</p>
+
+    <p>Say in one sentence why this is the single most common source of confusion in DAX. It is because the same function does two unrelated-looking jobs, and the second one happens silently every time you use a measure inside an iterator.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. What a boolean filter argument may not contain</h2>
+
+    <p>Before the rules: <code>Products[Product] = "Desk"</code> is a boolean filter. Guess what happens if you write <code>Orders[Revenue] &gt; [Average Order]</code> instead, where the right side is a measure.</p>
+
+    <p>It errors. Microsoft's page lists the constraints on a boolean filter expression and they are strict:</p>
+
+    <ul>
+      <li>It can reference columns from a single table.</li>
+      <li>It can't reference measures.</li>
+      <li>It can't use a nested CALCULATE function.</li>
+      <li>It can't use functions that scan or return a table unless you pass them as arguments to aggregation functions.</li>
+    </ul>
+
+    <p>Every one of those is fixed the same way: use <code>FILTER</code>, which takes a table and a condition and returns the rows that survive, and which has none of those restrictions.</p>
+
+    <pre><code>Above Average Revenue =
+VAR AvgOrder = AVERAGE ( Orders[Revenue] )       -- 618.125
+RETURN
+    CALCULATE (
+        [Total Revenue],
+        FILTER ( Orders, Orders[Revenue] &gt; AvgOrder )
+    )
+-- 6,475, across the 8 orders above the average</code></pre>
+
+    <p>Two things worth taking from that. The <code>VAR</code> computes the average once, in the outer filter context, before FILTER starts iterating, which is almost always what you meant. And FILTER is a table filter rather than a boolean one, so it replaces the whole table's filters on the columns it touches, which is why <code>FILTER(Orders, ...)</code> over a big fact table is slower than a boolean filter and should be aimed at the smallest table that will do.</p>
+
+    <p>The rule of thumb: reach for a boolean filter first because it is faster and clearer, and switch to FILTER only when the condition needs a measure, two tables, or a comparison against something computed.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same requirement both times: a table by region showing revenue, desk revenue, and each region's share.</p>
+
+  <h3>Before</h3>
+  <pre><code>Desk Share =
+DIVIDE (
+    CALCULATE ( SUM ( Orders[Revenue] ), Orders[Product] = "Desk" ),
+    SUM ( Orders[Revenue] )
+)</code></pre>
+  <p>It works in a region table and breaks the moment somebody adds Product to the visual, because then the numerator's Product filter overwrites the row's and every product row shows desks over its own total. There is also a hidden dependency: it filters <code>Orders[Product]</code>, so it silently stops matching the Products dimension if the model is ever tidied.</p>
+
+  <h3>After</h3>
+  <pre><code>Total Revenue = SUM ( Orders[Revenue] )
+
+Desk Revenue =
+CALCULATE ( [Total Revenue], KEEPFILTERS ( Products[Product] = "Desk" ) )
+
+Revenue % of Total =
+DIVIDE (
+    [Total Revenue],
+    CALCULATE ( [Total Revenue], REMOVEFILTERS ( Orders[Region] ) )
+)</code></pre>
+  <p>Three measures instead of one expression. The base measure is defined once and reused, so a change to how revenue is summed happens in one place. KEEPFILTERS makes the desk measure honest in any visual, including one sliced by product. And the share measure names the exact column it ignores, so a slicer on anything else keeps working. Same numbers in the original visual, and none of them fall over when the visual changes.</p>
+
+  <div class="step">
+    <h2>Edge cases that catch people out</h2>
+
+    <p>Six that each cost somebody an afternoon.</p>
+
+    <p><strong>Two filters on the same column in one CALCULATE.</strong> They are combined with AND, so <code>Products[Product] = "Desk", Products[Product] = "Chair"</code> returns blank rather than both. For either-or, write one argument with <code>||</code>, or use <code>IN { "Desk", "Chair" }</code>.</p>
+
+    <p><strong>Filtering the fact table when you meant the dimension.</strong> <code>Orders[Product] = "Desk"</code> and <code>Products[Product] = "Desk"</code> give the same answer here and behave differently the moment a product exists in the dimension with no orders. Filter the dimension by default; that is what dimensions are for, as <a href="../powerbi-star-schema/">the star schema guide</a> covers.</p>
+
+    <p><strong>Expecting blank and zero to behave alike.</strong> A measure with no rows returns blank, blank rows are hidden by most visuals, and <code>0 + BLANK()</code> is 0 while <code>BLANK() + BLANK()</code> is blank. If you need a visible zero, wrap it: <code>[Measure] + 0</code>.</p>
+
+    <p><strong>ALL on a table when you meant one column.</strong> <code>ALL(Orders)</code> removes every filter on every column of the fact table, so a slicer the user set is silently ignored. Name the column.</p>
+
+    <p><strong>A measure that works until somebody adds a slicer.</strong> If the measure hard-codes a filter on a column, the slicer on that column stops doing anything, and no error appears. This is the number one cause of "the report is wrong but only for some users".</p>
+
+    <p><strong>FILTER over the fact table on a large model.</strong> Correct and slow. It iterates every row. Filter the dimension, or use a boolean filter, unless the condition genuinely needs the fact rows.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>Filter context is set semantics, and reading it that way makes the replace-against-add rule obvious rather than arbitrary. A filter context is a set of allowed values for each column, and a query returns the rows whose values are in every one of those sets. CALCULATE replaces the set for any column it names and leaves the others alone, so a second filter on Product cannot coexist with the first, and a filter on Product alongside one on Region simply intersects. That is the relational algebra of selection over a product of attribute domains, which is the footing SQL and DAX both inherit (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). KEEPFILTERS opts out of the replacement and asks for the intersection instead, which is why it can produce an empty set and a blank result.</p>
+
+  <p>The specific behaviours on this page are product behaviour, not research findings, so the authority for them is the vendor's own reference documentation rather than a journal. Every rule quoted above comes from Microsoft's DAX reference for CALCULATE, which states the add-or-overwrite rule, the context transition behaviour, the automatic transition for model measures, and the constraints on boolean filter expressions. Those pages are listed in the references and are worth reading directly; they are short, precise, and more reliable than any summary of them, including this one.</p>
+
+  <p>One note on why this page kept asking you to predict before showing you the answer. Attempting an answer before seeing the correct one reliably improves how well the correct one is retained, even when the attempt is wrong (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725). The 5,060 in the Chair row sticks because you were asked to guess it first, and most people guess blank.</p>
+
+  <h2>Using this on your own model</h2>
+
+  <p>Auditing every measure in an inherited model is miserable and you will stop at the sixth. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Define one base measure per number</strong> and build everything else from it. <code>[Total Revenue]</code> once, then reference it. Nothing else keeps a model maintainable.</li>
+    <li><strong>For each CALCULATE, name the column it filters</strong> and check whether any visual slices by that column. That one check finds most broken measures.</li>
+    <li><strong>Add KEEPFILTERS</strong> wherever you meant "of this row" rather than "regardless of this row".</li>
+    <li><strong>Use REMOVEFILTERS on named columns</strong>, never on whole tables, for any percent-of-total.</li>
+    <li><strong>Test every measure in two visuals</strong>, one sliced by the column it filters and one not. If it behaves the same in both, you have not tested it.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional drawing is worth five minutes. Draw a box for the filter context with a chip in it for each filtered column, then draw your own CALCULATE's filter arriving. Deciding by hand whether it lands on an occupied chip or an empty space is the whole skill, and doing it with a pen once makes it automatic.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Python, Excel, Power BI and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Idea</th><th>What it means</th></tr>
+    <tr><td>Filter context</td><td>The set of filters a measure runs inside. Rows, columns, slicers, page filters, cross-highlighting.</td></tr>
+    <tr><td>The rule</td><td>Filter on a column already filtered: overwritten. Filter on any other column: added.</td></tr>
+    <tr><td>Same measure, product table</td><td>5,060 in every row, because Product is overwritten each time.</td></tr>
+    <tr><td>Same measure, region table</td><td>1,760 / 1,320 / 1,540 / 440, because Region survives and Product joins.</td></tr>
+    <tr><td>The check</td><td>Those four add to 5,060. If they did not, one of the filters was lost.</td></tr>
+    <tr><td>KEEPFILTERS</td><td>Intersect instead of replace. Chair row becomes blank, not 5,060.</td></tr>
+    <tr><td>Blank vs zero</td><td>No rows gives blank. Blank rows are hidden by most visuals. Add 0 to force a zero.</td></tr>
+    <tr><td>REMOVEFILTERS</td><td>Drop filters from a named column. The denominator of any percent of total.</td></tr>
+    <tr><td>ALL vs REMOVEFILTERS</td><td>Same job here. Prefer REMOVEFILTERS; ALL is also a table function and reads ambiguously.</td></tr>
+    <tr><td>ALLSELECTED</td><td>Ignore the visual's own filters but respect slicers. A different, valid percentage.</td></tr>
+    <tr><td>Context transition</td><td>CALCULATE with no filters turns the current row into a filter. 9,890 becomes 5,060.</td></tr>
+    <tr><td>Automatic transition</td><td>Referencing a model measure inside a row context transitions for you, invisibly.</td></tr>
+    <tr><td>Boolean filter limits</td><td>One table, no measures, no nested CALCULATE, no table functions outside aggregations.</td></tr>
+    <tr><td>FILTER</td><td>The escape hatch for all of those. Slower. Aim it at the smallest table that works.</td></tr>
+    <tr><td>Two filters, same column</td><td>Combined with AND, so they cancel. Use <code>||</code> or <code>IN</code>.</td></tr>
+    <tr><td>The test</td><td>Try every measure in two visuals, one sliced by the column it filters and one not.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> For every CALCULATE you write, say out loud which column it filters and whether the visual already filters that column. Added or overwritten is the only question, and answering it before you run the report is faster than debugging it afterwards. If a measure breaks in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The first CALCULATE I shipped returned the same number in every row of a table and I spent an afternoon convinced the data was broken. What is the measure in your model that behaves differently in two visuals, and have you worked out which column it is filtering?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+    <li>Microsoft. <em>CALCULATE function (DAX)</em>, DAX reference. The source of every quoted rule on this page: add-or-overwrite, context transition, automatic transition for model measures, and the constraints on boolean filter expressions. Product documentation rather than peer-reviewed research, which is the correct authority for how a product behaves.</li>
+    <li>Microsoft. <em>KEEPFILTERS function (DAX)</em> and <em>REMOVEFILTERS function (DAX)</em>, DAX reference.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice this with a model in front of you.</strong>
+    <p style="margin:6px 0 0">The <a href="../../powerbi/">Power BI Kit</a> gives you the repetitions: measures to predict before running, flash cards on the add-or-overwrite rule, and questions that ask you which visual will break a given CALCULATE. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../powerbi/">Open the Power BI Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../powerbi-measures-vs-columns/">Columns vs Measures in Power BI</a> · <a href="../powerbi-star-schema/">Star Schema in Power BI</a> · <a href="../powerbi-time-intelligence/">DAX Time Intelligence</a> · <a href="../powerbi-switch-true/">SWITCH TRUE for Segmentation</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../excel-pivot-tables/">Excel Pivot Tables</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../choose-the-right-chart/">Choose the Right Chart</a> · <a href="../how-charts-mislead/">How Charts Mislead</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../powerbi/">Power BI Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
