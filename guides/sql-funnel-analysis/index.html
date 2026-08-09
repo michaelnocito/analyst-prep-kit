@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Funnel Conversion in SQL, and the Step That Shows 100% — Analyst Prep Kit</title>
+<meta name="description" content="Conditional aggregation gives a funnel in one row. Then the checks: count sessions not events, and find out why one step converts at 100% while overall conversion is 30% or 20%.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-funnel-analysis/">
+<meta property="og:title" content="Funnel Conversion in SQL, and the Step That Shows 100%">
+<meta property="og:description" content="A checkout step converting at 100% is not a perfect checkout, it is a checkout being skipped. Conditional aggregation, the strict funnel, and 30% against 20% on the same sessions.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-funnel-analysis.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-funnel-analysis/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-funnel-analysis.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Funnel Conversion in SQL, and the Step That Shows 100%",
+  "description": "Conditional aggregation gives a funnel in one row. Then the checks: count sessions not events, and find out why one step converts at 100% while overall conversion is 30% or 20%.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-funnel-analysis/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-funnel-analysis/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-funnel-analysis.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Funnel Conversion in SQL, and the Step That Shows 100%",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-funnel-analysis/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>Funnel Conversion in SQL, and the Step That Shows 100%</h1>
+  <p class="meta">One query for the counts, three checks for the meaning · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can turn a table of events into a funnel in one query, work out what fraction of people get from each step to the next, tell the difference between a step people pass and a step people skip, and produce the one summary a funnel is actually for: where everybody stops. It is about twenty-five minutes, and every result below was run.</p>
+
+  <p>Here is what to do today, on the funnel you already report. Look for any step converting at or near 100%. That is almost never a step working perfectly; it is a step that can be bypassed, or one that is logged as a side effect of the next one. Find the sessions that reached the later step without the earlier one, and you will have found it in a single query.</p>
+
+  <p>The short version: count distinct sessions per step with conditional aggregation, then check whether reaching a step actually required the one before it.</p>
+
+  <p>A step that can be bypassed is the idea, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 296" role="img" aria-labelledby="fnTitle fnDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="fnTitle">The step people can go around</title>
+      <desc id="fnDesc">Four horizontal bars are stacked and centred, forming a funnel that narrows downwards. The top bar is labelled view and holds the number 10, and it is the widest. Below it a narrower bar labelled cart holds 7. Below that a much narrower bar labelled checkout holds 3. At the bottom a bar labelled purchase holds 3, and it is drawn exactly as wide as the checkout bar above it, so the funnel stops narrowing at the last step. An amber pipe leaves the right-hand end of the cart bar, curves out to the right, runs down past the checkout bar without touching it, and turns back in to join the right-hand end of the purchase bar. The picture shows two things at once that are really one thing: the last two bars match in width, and there is a route from cart to purchase that never enters checkout.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <g font-size="14.5" font-weight="700" fill="#52525B" text-anchor="end">
+          <text x="104" y="66">view</text><text x="104" y="116">cart</text>
+          <text x="104" y="166">checkout</text><text x="104" y="216">purchase</text>
+        </g>
+        <rect x="120" y="40" width="440" height="38" rx="5" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <rect x="186" y="90" width="308" height="38" rx="5" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <rect x="274" y="140" width="132" height="38" rx="5" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <rect x="274" y="190" width="132" height="38" rx="5" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <g font-size="18" font-weight="700" fill="#09090B" text-anchor="middle">
+          <text x="340" y="66">10</text><text x="340" y="116">7</text>
+          <text x="340" y="166">3</text><text x="340" y="216">3</text>
+        </g>
+
+        <path d="M494 109 C592 109 640 118 640 160 C640 200 592 209 414 209"
+              stroke="#B45309" stroke-width="3" fill="none"/>
+        <path d="M406 209 L418 202 M406 209 L418 216" stroke="#B45309" stroke-width="3" fill="none"/>
+      </g>
+    </svg>
+    <figcaption>Ten sessions view, seven add to the cart, three reach checkout and three purchase. The last two bars are the same width because one session took the pipe: it went from cart straight to purchase and never touched checkout.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What a funnel query has to produce</li>
+      <li>Count sessions, not events</li>
+      <li>Conditional aggregation: the whole funnel in one row</li>
+      <li>Step to step, and overall</li>
+      <li>The 100% that means a step is being skipped</li>
+      <li>The strict funnel</li>
+      <li>Where sessions actually stop</li>
+      <li>Order and time windows</li>
+      <li>The full before and after</li>
+      <li>Edge cases that break a funnel</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every result on this page is real.</strong> Twenty-four events across ten sessions, four steps, loaded into DuckDB and queried. Ten sessions is deliberately small enough that you can hold the whole thing in your head and check every number, which is how funnel queries should be built before they meet real volumes.</div>
+
+  <p>Here is everything the ten sessions did, so nothing later is a surprise.</p>
+
+  <table>
+    <tr><th>Session</th><th>Path</th><th>Events</th></tr>
+    <tr><td>S1</td><td>view &gt; cart &gt; checkout &gt; purchase</td><td>4</td></tr>
+    <tr><td>S2</td><td>view &gt; cart &gt; checkout &gt; purchase</td><td>4</td></tr>
+    <tr><td>S3</td><td>view &gt; cart &gt; checkout</td><td>3</td></tr>
+    <tr><td>S4</td><td>view &gt; cart</td><td>2</td></tr>
+    <tr><td>S5</td><td>view &gt; cart</td><td>2</td></tr>
+    <tr><td>S6</td><td>view</td><td>1</td></tr>
+    <tr><td>S7</td><td>view</td><td>1</td></tr>
+    <tr><td>S8</td><td>view</td><td>1</td></tr>
+    <tr><td>S9</td><td>view &gt; cart &gt; purchase</td><td>3</td></tr>
+    <tr><td>S10</td><td>view &gt; view &gt; cart</td><td>3</td></tr>
+  </table>
+
+  <div class="step">
+    <h2>1. What a funnel query has to produce</h2>
+
+    <p>A funnel is a count of <em>things</em> that reached each of an ordered list of steps. Three decisions come before any SQL, and all three change the numbers.</p>
+
+    <p><strong>What is the thing being counted?</strong> Sessions, users, orders, applications. A user who visits five times is one user and five sessions, and those funnels look nothing alike.</p>
+
+    <p><strong>What are the steps, in what order?</strong> The order is your claim about the process, and section five is what happens when the data disagrees with it.</p>
+
+    <p><strong>Over what window?</strong> All time, a day, within thirty minutes of the first step. A funnel with no window quietly counts somebody who viewed in January and purchased in May as a conversion.</p>
+
+    <p>Write those three down before writing the query. They are the same discipline as any other metric, and <a href="../defining-metrics/">defining a metric</a> is the longer version of why.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. Count sessions, not events</h2>
+
+    <p>Before the explanation: ten sessions produced twenty-four events. Say how many of those events are views.</p>
+
+    <pre><code>SELECT step, COUNT(*) AS events, COUNT(DISTINCT session_id) AS sessions
+FROM events GROUP BY 1;
+
+view     | 11 | 10
+cart     |  7 |  7
+checkout |  3 |  3
+purchase |  3 |  3</code></pre>
+
+    <p>Eleven view events, ten sessions. Session S10 viewed twice, which is entirely normal behaviour and completely wrong to count twice: the top of a funnel is the number of sessions that got that far, not the number of times they did it.</p>
+
+    <p>The gap is small here and it is never small in real data, because the first step of a funnel is exactly the step people repeat. A homepage view logged on every navigation can produce a top-of-funnel figure several times the number of visitors, which makes every conversion rate below it look terrible for no reason.</p>
+
+    <p>So every count in a funnel is <code>COUNT(DISTINCT thing_id)</code>. If your funnel's top number is bigger than your visitor count, this is why.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Conditional aggregation: the whole funnel in one row</h2>
+
+    <p>The grouped version above gives one row per step, which is fine for a chart and awkward for computing rates, because each rate needs two rows. Conditional aggregation puts the whole funnel on one row instead.</p>
+
+    <pre><code>SELECT COUNT(DISTINCT CASE WHEN step='view'     THEN session_id END) AS viewed,
+       COUNT(DISTINCT CASE WHEN step='cart'     THEN session_id END) AS carted,
+       COUNT(DISTINCT CASE WHEN step='checkout' THEN session_id END) AS checked_out,
+       COUNT(DISTINCT CASE WHEN step='purchase' THEN session_id END) AS purchased
+FROM events;
+
+10 | 7 | 3 | 3</code></pre>
+
+    <p>The mechanism is worth understanding rather than copying. <code>CASE</code> returns the session id when the step matches and <code>NULL</code> when it does not, and <code>COUNT</code> ignores nulls, so each column counts only the sessions that reached that step. It is the same trick as a pivot done by hand, and <a href="../sql-case-expression/">the CASE guide</a> covers the expression itself.</p>
+
+    <p>One row of four numbers is what you want, because now every rate is arithmetic between columns rather than a join between rows.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Step to step, and overall</h2>
+
+    <p>Two different questions, and reports routinely show one while labelling it the other.</p>
+
+    <pre><code>viewed | carted | checked_out | purchased
+    10 |      7 |           3 |         3
+
+view to cart          70.0%
+cart to checkout      42.9%
+checkout to purchase 100.0%
+overall (view to purchase) 30.0%</code></pre>
+
+    <p><strong>Step to step</strong> divides each count by the one above it, and it answers "of the people who got here, how many went on". <strong>Overall</strong> divides by the top, and it answers "of everybody who started, how many finished". Multiplying the step rates together gives the overall rate, which is a useful check: 0.700 × 0.429 × 1.000 is 0.300.</p>
+
+    <p>Both belong on the report. Step to step tells you where to spend your effort; overall tells you what the process is worth. Publishing only the step rates lets a page with a 90% rate look like a success when only forty people a month reach it.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. The 100% that means a step is being skipped</h2>
+
+    <p>Before the explanation: checkout to purchase came out at exactly 100.0%. Say what that would mean if it were true.</p>
+
+    <p>That not one person who reached the checkout page failed to buy: no abandoned baskets, no failed cards, no second thoughts. On any real checkout that is not a result, it is a symptom, and the question to ask is not "why is checkout so good" but "is checkout actually on the path".</p>
+
+    <p>One query answers it. Reduce each session to flags, then look for the ones that reached the later step without the earlier one.</p>
+
+    <pre><code>WITH s AS (
+  SELECT session_id,
+         MAX(step='checkout')::INT AS did_checkout,
+         MAX(step='purchase')::INT AS did_purchase
+  FROM events GROUP BY 1)
+SELECT session_id FROM s WHERE did_purchase = 1 AND did_checkout = 0;
+
+S9</code></pre>
+
+    <p>S9 went view, cart, purchase. Three sessions checked out and three purchased, but they are not the same three, and the ratio between two different sets of three is not a conversion rate at all.</p>
+
+    <p>In real systems this has ordinary causes. A one-click or saved-card path skips the checkout page. A mobile app fires different events from the website. A checkout event is logged only on submission, so anyone who pays another way never generates one. Every one of those is worth knowing, and none of them is visible in a funnel chart.</p>
+
+    <p>Say out loud what the ratio between two overlapping-but-different sets is called. It is not a conversion rate, and giving it that name is how a data problem becomes a target somebody is asked to improve.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. The strict funnel</h2>
+
+    <p>If your claim is that the steps happen in order, make the query enforce it. Flag each session per step, then require every earlier flag as well.</p>
+
+    <pre><code>WITH s AS (
+  SELECT session_id,
+         MAX(step='view')::INT     AS v,
+         MAX(step='cart')::INT     AS c,
+         MAX(step='checkout')::INT AS k,
+         MAX(step='purchase')::INT AS p
+  FROM events GROUP BY 1)
+SELECT SUM(v)       AS viewed,
+       SUM(v*c)     AS carted,
+       SUM(v*c*k)   AS checked_out,
+       SUM(v*c*k*p) AS purchased
+FROM s;
+
+10 | 7 | 3 | 2</code></pre>
+
+    <p>Multiplying the flags is an <code>AND</code>: a session counts at a step only if it has that flag and every flag before it. The first three numbers are unchanged and the last one drops from 3 to 2, because S9 no longer qualifies.</p>
+
+    <p>Now the two headline rates, side by side:</p>
+
+    <pre><code>any purchase at all        30.0%
+completed the full path    20.0%</code></pre>
+
+    <p>Ten percentage points apart on ten sessions, from one customer using a different route. Neither number is wrong. The first answers "how many bought", the second answers "how many went through the process we designed", and a report should say which one it is showing rather than leaving the reader to assume.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Where sessions actually stop</h2>
+
+    <p>The funnel chart shows how many reached each step. What people actually want to know is where everybody gave up, and that is a different query with a much more useful answer, because every session appears exactly once.</p>
+
+    <pre><code>SELECT CASE WHEN p=1 THEN 'purchased'
+            WHEN k=1 THEN 'stopped at checkout'
+            WHEN c=1 THEN 'stopped at cart'
+            ELSE        'stopped at view' END AS outcome,
+       COUNT(*) AS sessions
+FROM s GROUP BY 1 ORDER BY sessions DESC;
+
+purchased           | 3
+stopped at view     | 3
+stopped at cart     | 3
+stopped at checkout | 1</code></pre>
+
+    <p>Three, three, three and one, adding to ten, which is the session count. That reconciliation is the reason to build it this way: a funnel's counts overlap, so they cannot be checked against a total, while a furthest-step table partitions the sessions and must add up.</p>
+
+    <p>The <code>CASE</code> order matters and does the work: it tests the furthest step first, so each session lands in exactly one bucket, which is the same first-true-wins ordering rule as any other condition chain.</p>
+
+    <p>Picture your own funnel for a moment. If you rebuilt it as a furthest-step table, would the buckets add up to the number of people who entered? If not, something in the funnel is being counted in two places.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. Order and time windows</h2>
+
+    <p>Two refinements that matter as soon as the data is real.</p>
+
+    <p><strong>Order within a session.</strong> The flag approach above asks whether a step happened, not whether it happened after the previous one. A session that purchases and then views a product page counts as a full path. If sequence matters, compare timestamps rather than flags: require the checkout time to be after the cart time, usually with <code>MIN(...)</code> of each step's time per session.</p>
+
+    <pre><code>MIN(CASE WHEN step='cart'     THEN event_time END) AS cart_at,
+MIN(CASE WHEN step='checkout' THEN event_time END) AS checkout_at
+-- then: WHERE checkout_at &gt; cart_at</code></pre>
+
+    <p><strong>The window.</strong> Decide how long a session has to complete the funnel. Without a limit, a return visit weeks later is credited to the original view, which inflates conversion and makes any change to the process impossible to measure. With a limit that is too tight, you undercount slow but genuine conversions. There is no correct answer, only a stated one, and it belongs in the report heading rather than in the query.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same events, same question: how well does the process convert?</p>
+
+  <h3>Before</h3>
+  <pre><code>SELECT step, COUNT(*) AS n FROM events GROUP BY 1;
+
+view     | 11
+cart     |  7
+checkout |  3
+purchase |  3
+
+view to cart 63.6%, cart to checkout 42.9%, checkout to purchase 100%</code></pre>
+  <p>Three problems. The top number counts events, so it is eleven rather than ten and the first rate is wrong. The final step reports a perfect 100% that nobody questions because it is good news. And there is no total anywhere, so none of it can be reconciled against the ten sessions that exist.</p>
+
+  <h3>After</h3>
+  <pre><code>-- one row per session, one flag per step
+WITH s AS (
+  SELECT session_id,
+         MAX(step='view')::INT AS v, MAX(step='cart')::INT AS c,
+         MAX(step='checkout')::INT AS k, MAX(step='purchase')::INT AS p
+  FROM events GROUP BY 1)                                   -- 10 rows
+
+SELECT SUM(v) AS viewed, SUM(v*c) AS carted,
+       SUM(v*c*k) AS checked_out, SUM(v*c*k*p) AS purchased,
+       ROUND(100.0*SUM(p)/SUM(v),1)       AS any_purchase,
+       ROUND(100.0*SUM(v*c*k*p)/SUM(v),1) AS full_path
+FROM s;
+
+10 | 7 | 3 | 2 | 30.0 | 20.0
+
+-- and the table that has to add up
+purchased 3, stopped at view 3, stopped at cart 3, stopped at checkout 1   = 10</code></pre>
+
+  <p>One row per session before any counting, so events cannot be double counted. Both conversion figures, labelled. And a furthest-step table that reconciles to the session count.</p>
+
+  <p>The claim, and it is the reason to look at a perfect step rather than celebrate it: <strong>checkout to purchase read 100%, and the reason was that one session in ten never went through checkout at all, which also moved the honest conversion rate from 30% to 20%.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases that break a funnel</h2>
+
+    <p>Six worth knowing.</p>
+
+    <p><strong>The step names changed.</strong> A release renames <code>add_to_cart</code> to <code>cart_add</code> and the middle of the funnel collapses overnight. Check the distinct step values before believing a sudden drop.</p>
+
+    <p><strong>A step that is not logged everywhere.</strong> Web fires it, the app does not. The funnel then measures platform mix rather than behaviour, and it moves whenever marketing changes channel.</p>
+
+    <p><strong>Sessions that start mid-funnel.</strong> Somebody arrives on a product page from an email and never sees the homepage. They are a real conversion and they fail the strict funnel. Decide whether your top step is genuinely required.</p>
+
+    <p><strong>Bots.</strong> They view and never buy, so they inflate the top of the funnel and depress every rate below it. Filter them before counting, not after questioning the numbers.</p>
+
+    <p><strong>Sessions spanning midnight or a timeout.</strong> One person becomes two sessions, one of which viewed and one of which purchased, so a real conversion appears as two failures. This is the same identity problem as <a href="../entity-resolution/">entity resolution</a>, applied to sessions rather than customers.</p>
+
+    <p><strong>Comparing funnels of different populations.</strong> A funnel that improved after a campaign may just have started with different people. The fix is the same as everywhere else in analytics: compare cohorts rather than periods, which is what <a href="../sql-cohort-retention/">cohort analysis</a> is for.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>A funnel is a claim about sequence, and sequence is not something a table of events contains by itself; it has to be imposed. Work on mining patterns from event data treats the ordering as the object of study rather than as background, precisely because the interesting questions are about which things happen after which, and answering them requires a definition of what counts as a sequence and over what span (Agrawal &amp; Srikant, 1995, <em>Proceedings of the 11th International Conference on Data Engineering</em>, 3–14). Section eight's two refinements, comparing timestamps and choosing a window, are the small version of that. A funnel without them is not measuring a process, it is counting whether four things ever happened to the same session.</p>
+
+  <p>The deeper problem on this page is what happens when a number that does not mean what it says gets published anyway. Once a figure becomes a performance measure, people act on it, and a measure that captures only part of what it claims to reliably produces effort aimed at the measure rather than at the thing it stands for (Ridgway, 1956, <em>Administrative Science Quarterly</em>, 1(2), 240–247). A checkout step reading 100% because it can be bypassed is exactly that shape: it is not merely wrong, it is wrong in the direction that invites a team to be congratulated and then asked to improve a different step instead.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than reread, because the benefit of self-testing carries over to problems that differ from the ones you tested on, which is what matters when the next funnel has different steps (Pan &amp; Rickard, 2018, <em>Psychological Bulletin</em>, 144(7), 710–756).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Rebuilding every funnel at once is unnecessary. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Check the top number against your visitor or session count.</strong> If it is larger, you are counting events.</li>
+    <li><strong>Reduce to one row per thing first</strong>, with a flag per step, before any counting happens. Everything else becomes arithmetic on that.</li>
+    <li><strong>Look at every step converting above about 95%</strong> and run the bypass query on it.</li>
+    <li><strong>Publish both rates</strong>, any-completion and full-path, with the labels on them.</li>
+    <li><strong>Build the furthest-step table</strong> and check it adds to your entry count. It is the only reconciliation a funnel has.</li>
+    <li><strong>State the window in the heading</strong>, not in the query, so the reader knows what "converted" means.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Draw your funnel as boxes, then draw every arrow you know about that skips a box: the saved-card path, the phone order, the salesperson entering it manually. Most funnels have at least one, and the ones with none usually have one nobody has drawn yet.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>. If you would rather type queries than read about them, the <a href="../../drill/">SQL Drill</a> gives you one runnable query at a time against a real database.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>Three decisions first</td><td>What is counted, what the steps are, over what window.</td></tr>
+    <tr><td>Count the thing, not the event</td><td><code>COUNT(DISTINCT session_id)</code>. Views get repeated.</td></tr>
+    <tr><td>Conditional aggregation</td><td><code>COUNT(DISTINCT CASE WHEN step='x' THEN id END)</code>, one column per step.</td></tr>
+    <tr><td>Why it works</td><td>CASE returns NULL when the step does not match, and COUNT skips nulls.</td></tr>
+    <tr><td>Step to step</td><td>Each count over the one above it.</td></tr>
+    <tr><td>Overall</td><td>Each count over the top. Step rates multiply to it.</td></tr>
+    <tr><td>A step at 100%</td><td>Not a perfect step. A step being skipped or logged as a side effect.</td></tr>
+    <tr><td>Finding the bypass</td><td>Flag per session, then later step is 1 and earlier step is 0.</td></tr>
+    <tr><td>Strict funnel</td><td>Multiply the flags: <code>SUM(v*c*k*p)</code>. Requires every earlier step.</td></tr>
+    <tr><td>Two headline rates</td><td>Any completion, and full path. Here 30.0% and 20.0%.</td></tr>
+    <tr><td>Furthest step table</td><td>Every session once. Must add to the entry count.</td></tr>
+    <tr><td>CASE order there</td><td>Furthest step first, so each session lands in one bucket.</td></tr>
+    <tr><td>Order within a session</td><td>Flags do not check it. Compare <code>MIN(time)</code> per step.</td></tr>
+    <tr><td>The window</td><td>No limit credits a purchase months later to the original view.</td></tr>
+    <tr><td>Renamed steps</td><td>A collapse in the middle. Check the distinct step values first.</td></tr>
+    <tr><td>Bots</td><td>Inflate the top, depress every rate. Filter before counting.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Build the furthest-step table alongside the funnel and check it adds up to the number of sessions that entered. Funnel counts overlap, so they can never disagree with each other visibly; the furthest-step table partitions the same sessions, so it can, and it is the only reconciliation this shape of analysis has. If a funnel misbehaves in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The one I remember was a signup funnel where the email-verification step converted at 99.6%, which everyone read as a well-designed email, until it turned out verification was auto-completed for anyone arriving through a partner link and the real number for everybody else was around sixty. What has a suspiciously good step turned out to be in something you own?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Agrawal, R., &amp; Srikant, R. (1995). Mining sequential patterns. <em>Proceedings of the 11th International Conference on Data Engineering</em>, 3–14.</li>
+    <li>Ridgway, V. F. (1956). Dysfunctional consequences of performance measurements. <em>Administrative Science Quarterly</em>, 1(2), 240–247.</li>
+    <li>Pan, S. C., &amp; Rickard, T. C. (2018). Transfer of test-enhanced learning: Meta-analytic review and synthesis. <em>Psychological Bulletin</em>, 144(7), 710–756.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice funnels on sessions you can count by hand.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> gives you the repetitions: conditional aggregation to write, bypass sessions to find, strict funnels to build, and flash cards on which count belongs in which rate. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-case-expression/">The SQL CASE Expression</a> · <a href="../sql-cohort-retention/">Cohort Retention in SQL</a> · <a href="../sql-subqueries/">Subquery vs CTE</a> · <a href="../sql-running-total/">Running Total in SQL</a> · <a href="../sql-dates/">SQL Date Functions</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../../sql/">SQL Kit</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../report-vs-analysis/">Report vs Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
