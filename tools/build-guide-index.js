@@ -122,7 +122,7 @@ for (const c of cards) {
   const external = c.href.startsWith('..');
   const guideFile = path.join(ROOT, c.href, 'index.html');
 
-  let pageTitle = '', metaDesc = '';
+  let pageTitle = '', metaDesc = '', mins = 0;
   if (fs.existsSync(guideFile)) {
     const g = fs.readFileSync(guideFile, 'utf8');
     const t = g.match(/<title>([\s\S]*?)<\/title>/i);
@@ -130,6 +130,20 @@ for (const c of cards) {
     pageTitle = t ? clean(t[1]).replace(/ — Analyst Prep Kit$/, '') : '';
     metaDesc = d ? clean(d[1]) : '';
     if (!metaDesc) console.warn('  no meta description, weaker search: ' + slug);
+
+    /* Reading time, counted inside <main> so the nav and footer do not inflate
+       it. 220 wpm is the middle of the range for adults reading prose on screen;
+       these guides carry code and tables, which people read slower, so this
+       reads as a floor rather than a promise. Rounded to 5-minute steps past 10
+       so it never implies more precision than a word count can support. */
+    const body = g.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
+    const text = (body ? body[1] : g)
+      .replace(/<(script|style)[\s\S]*?<\/\1>/gi, '')
+      .replace(/<[^>]*>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ');
+    const n = (text.match(/[A-Za-z0-9][A-Za-z0-9'-]*/g) || []).length;
+    const raw = n / 220;
+    // Not on the two app cards: you do a drill, you do not read it.
+    if (!external) mins = raw <= 10 ? Math.max(1, Math.round(raw)) : Math.round(raw / 5) * 5;
   }
 
   const visible = new Set(toks(c.title + ' ' + c.desc + ' ' + c.section));
@@ -146,7 +160,7 @@ for (const c of cards) {
   // without moving the cards and breaking anybody's bookmark.
   if (/^tableau-/.test(slug)) tools.delete('sql');
 
-  meta.set(c.href, { kw: kw.join(' ').replace(/"/g, ''), tools: [...tools].sort(), external });
+  meta.set(c.href, { kw: kw.join(' ').replace(/"/g, ''), tools: [...tools].sort(), external, mins });
 }
 
 /* Pass 3: rewrite the opening tags, dropping any attributes from a prior run. */
@@ -156,7 +170,8 @@ html = html.replace(/<a class="gcard"[^>]*href="([^"]+)"[^>]*>/g, (full, href) =
   if (!d) throw new Error('no metadata computed for ' + href);
   n++;
   return '<a class="gcard"' + (d.external ? ' data-kind="app"' : '') +
-    ' href="' + href + '" data-tool="' + d.tools.join(' ') + '" data-kw="' + d.kw + '">';
+    ' href="' + href + '" data-tool="' + d.tools.join(' ') + '"' +
+    (d.mins ? ' data-min="' + d.mins + '"' : '') + ' data-kw="' + d.kw + '">';
 });
 
 fs.writeFileSync(FILE, html.replace(/\n/g, '\r\n'));

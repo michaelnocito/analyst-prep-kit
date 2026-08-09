@@ -31,18 +31,27 @@ const clean = s => s.replace(/<[^>]*>/g, '')
 /* Walk in document order so each card inherits the <h2> above it. */
 const guides = [];
 let section = '';
-const re = /<h2>([\s\S]*?)<\/h2>|<a class="gcard"(?<app> data-kind="app")? href="(?<href>[^"]+)" data-tool="(?<tool>[^"]*)" data-kw="(?<kw>[^"]*)">\s*<p class="t">(?<title>[\s\S]*?)<\/p>/g;
+/* Attributes are read out of the captured tag one at a time rather than pinned
+   to an order. An earlier version required data-kw to sit immediately after
+   data-tool, and adding data-min between them silently matched nothing. */
+const re = /<h2>([\s\S]*?)<\/h2>|<a class="gcard"([^>]*)>\s*<p class="t">([\s\S]*?)<\/p>/g;
+const attr = (tag, name) => {
+  const m = tag.match(new RegExp(name + '="([^"]*)"'));
+  return m ? m[1] : '';
+};
 let m;
 while ((m = re.exec(html)) !== null) {
   if (m[1] !== undefined) { section = clean(m[1]).replace(/\d+$/, '').trim(); continue; }
-  const g = m.groups;
-  if (g.app) continue;                       // ../drill/ and ../viz/ are apps, already in the palette
-  if (g.href.startsWith('..')) continue;
+  const tag = m[2], title = m[3];
+  const href = attr(tag, 'href');
+  if (!href) throw new Error('a .gcard has no href: ' + tag.slice(0, 80));
+  // ../drill/ and ../viz/ are apps, already reachable from the palette
+  if (/data-kind="app"/.test(tag) || href.startsWith('..')) continue;
   guides.push({
-    t: clean(g.title),
-    h: g.href.replace(/\/$/, ''),
+    t: clean(title),
+    h: href.replace(/\/$/, ''),
     u: section,
-    k: [g.kw, g.tool, g.href.replace(/[/-]/g, ' ')].join(' ').replace(/\s+/g, ' ').trim(),
+    k: [attr(tag, 'data-kw'), attr(tag, 'data-tool'), href.replace(/[/-]/g, ' ')].join(' ').replace(/\s+/g, ' ').trim(),
   });
 }
 
