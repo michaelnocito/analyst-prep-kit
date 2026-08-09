@@ -118,7 +118,13 @@ but the 07-31 handoff had them unlisted.
   back empty on the first verification sweep and correct on a second fetch a
   few seconds later, with the same `?cb=` trick. One miss in a sweep is not
   proof of a failure. Re-fetch the single page before believing it.
-- [ ] **B6 — SQL guides 14-21 + setup (13).** month-over-month, null, reconciliation, running-total, segment-with-case, subqueries, temp-tables-vs-views, window-functions, practice-sql-online-no-install, set-up-a-sql-database, set-up-duckdb, which-sql-database-to-install, install-postgresql-for-beginners
+- [x] **B6 — SQL guides 14-21 + setup (13). DONE 2026-08-09, verified live.** month-over-month, null, reconciliation, running-total, segment-with-case, subqueries, temp-tables-vs-views, window-functions, practice-sql-online-no-install, set-up-a-sql-database, set-up-duckdb, which-sql-database-to-install, install-postgresql-for-beginners
+
+  **Every SQL guide on the site is now linked.** Guides: 102 of 131. The five
+  setup pages get a hook about the empty database rather than a technique,
+  because that reader has just finished installing and has nothing to type yet.
+  The verification sweep now retries a page once before reporting a miss, which
+  is what the sql-and-python false alarm in B5 called for.
 - [ ] **B7 — Python + Power BI (13).** pandas-duplicates, pandas-fillna-dropna, pandas-groupby, pandas-merge, pandas-pct-change-cumsum, pandas-read-csv, connect-python-to-a-sql-database, install-python-for-data-analysis, install-jupyter-notebook, powerbi-calculate, powerbi-measures-vs-columns, powerbi-star-schema, powerbi-switch-true
 - [ ] **B8 — Power BI, Tableau, Stats (13).** powerbi-time-intelligence, import-a-csv-into-power-bi, install-power-bi-desktop, connect-tableau-to-your-data, install-tableau-public, ab-testing-for-analysts, confidence-intervals, correlation-vs-causation, mean-vs-median, p-values, percentiles-iqr-outliers, standard-deviation, forecast-accuracy
 - [ ] **B9 — Last guides + personal site (13).** moving-averages, choose-the-right-chart, how-charts-mislead, choose-your-analyst-role, then michaelnocito.github.io: index, portfolio/index, portfolio/analyst-prep-kit, portfolio/data-migration-toolkit, portfolio/telco-churn, portfolio/steam-hidden-gems, portfolio/music-hidden-gems, portfolio/hidden-gem-movies, migration-toolkit/index
