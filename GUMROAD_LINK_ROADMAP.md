@@ -102,7 +102,13 @@ but the 07-31 handoff had them unlisted.
   book. A reader on that page is choosing a mark, not fighting Excel. The
   prefix of a guide is not automatically the right book, so check the reader's
   actual problem in later batches too.
-- [ ] **B4 — Excel guides 27-33 + adjacent (13).** remove-duplicates, slicers, sort-your-bars, sum-of-id-trap, sumifs, sumproduct, tables, vlookup-vs-xlookup, budget-vs-actual-variance, export-sql-results-to-excel, connect-excel-to-a-database, free-datasets-to-practice-with, sample-database-for-sql-practice
+- [x] **B4 — Excel guides 27-33 + adjacent (13). DONE 2026-08-09, verified live.** remove-duplicates, slicers, sort-your-bars, sum-of-id-trap, sumifs, sumproduct, tables, vlookup-vs-xlookup, budget-vs-actual-variance, export-sql-results-to-excel, connect-excel-to-a-database, free-datasets-to-practice-with, sample-database-for-sql-practice
+
+  **Every Excel guide on the site is now linked.** Guides overall: 76 of 131.
+  Three in this batch went somewhere other than the Excel book. sort-your-bars
+  to Charts, the two SQL-facing pages to SQL, and free-datasets to Thinking
+  Like an Analyst, because a reader hunting for practice data does not yet have
+  a tool problem, they have a question problem.
 - [ ] **B5 — SQL guides 1-13.** aliasing, and-python, case-expression, cohort-retention, comments, count-function, ctes, dates, find-duplicates, funnel-analysis, group-by-having, indexing-for-analysts, joins
 - [ ] **B6 — SQL guides 14-21 + setup (13).** month-over-month, null, reconciliation, running-total, segment-with-case, subqueries, temp-tables-vs-views, window-functions, practice-sql-online-no-install, set-up-a-sql-database, set-up-duckdb, which-sql-database-to-install, install-postgresql-for-beginners
 - [ ] **B7 — Python + Power BI (13).** pandas-duplicates, pandas-fillna-dropna, pandas-groupby, pandas-merge, pandas-pct-change-cumsum, pandas-read-csv, connect-python-to-a-sql-database, install-python-for-data-analysis, install-jupyter-notebook, powerbi-calculate, powerbi-measures-vs-columns, powerbi-star-schema, powerbi-switch-true
