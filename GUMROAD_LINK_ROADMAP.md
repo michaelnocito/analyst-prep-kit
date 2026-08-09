@@ -125,7 +125,16 @@ but the 07-31 handoff had them unlisted.
   because that reader has just finished installing and has nothing to type yet.
   The verification sweep now retries a page once before reporting a miss, which
   is what the sql-and-python false alarm in B5 called for.
-- [ ] **B7 — Python + Power BI (13).** pandas-duplicates, pandas-fillna-dropna, pandas-groupby, pandas-merge, pandas-pct-change-cumsum, pandas-read-csv, connect-python-to-a-sql-database, install-python-for-data-analysis, install-jupyter-notebook, powerbi-calculate, powerbi-measures-vs-columns, powerbi-star-schema, powerbi-switch-true
+- [x] **B7 — Python + Power BI (13). DONE 2026-08-09, verified live.** pandas-duplicates, pandas-fillna-dropna, pandas-groupby, pandas-merge, pandas-pct-change-cumsum, pandas-read-csv, connect-python-to-a-sql-database, install-python-for-data-analysis, install-jupyter-notebook, powerbi-calculate, powerbi-measures-vs-columns, powerbi-star-schema, powerbi-switch-true
+
+  Guides: 115 of 137. The count moved because six unpublished Tableau drafts
+  were swept into a commit by a careless `git add -A` and, on Mike's call, were
+  then published properly: aliases, hierarchies, sorts, sheets-to-dashboard,
+  extensions and the Desktop Foundations exam page, all six added to
+  `sitemap.xml` and the guides index, with their social cards committed. Those
+  cards were pointing at PNGs that had never been committed, so every share
+  preview would have 404'd. **Stage explicit paths, never `-A`, in a repo where
+  Mike may be working in parallel.**
 - [ ] **B8 — Power BI, Tableau, Stats (13).** powerbi-time-intelligence, import-a-csv-into-power-bi, install-power-bi-desktop, connect-tableau-to-your-data, install-tableau-public, ab-testing-for-analysts, confidence-intervals, correlation-vs-causation, mean-vs-median, p-values, percentiles-iqr-outliers, standard-deviation, forecast-accuracy
 - [ ] **B9 — Last guides + personal site (13).** moving-averages, choose-the-right-chart, how-charts-mislead, choose-your-analyst-role, then michaelnocito.github.io: index, portfolio/index, portfolio/analyst-prep-kit, portfolio/data-migration-toolkit, portfolio/telco-churn, portfolio/steam-hidden-gems, portfolio/music-hidden-gems, portfolio/hidden-gem-movies, migration-toolkit/index
 - [ ] **B10 — Close-out (13 checks).** art/index, GA4 label audit across all new links, dead-slug sweep, hub vs guide event split verified in GA4, pack slugs confirmed, Gumroad-side cross-sell between the 12 products (the biggest structural gap: 12 listings with no connections between them)
