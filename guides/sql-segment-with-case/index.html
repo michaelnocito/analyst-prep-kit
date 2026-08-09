@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Customer Segmentation in SQL With CASE WHEN — Analyst Prep Kit</title>
+<meta name="description" content="Aggregate to one row per customer, label with CASE, group by the label. The order that deletes a whole segment, the gap that creates a NULL one, and fixed cut-offs against NTILE.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-segment-with-case/">
+<meta property="og:title" content="Customer Segmentation in SQL With CASE WHEN">
+<meta property="og:description" content="Twelve customers, two defensible methods, and two of them change segment. Plus the condition order that made the High segment disappear entirely, with no error.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-segment-with-case.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-segment-with-case/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-segment-with-case.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Customer Segmentation in SQL With CASE WHEN",
+  "description": "Aggregate to one row per customer, label with CASE, group by the label. The order that deletes a whole segment, the gap that creates a NULL one, and fixed cut-offs against NTILE.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-segment-with-case/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-segment-with-case/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-segment-with-case.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Customer Segmentation in SQL With CASE WHEN",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-segment-with-case/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>Customer Segmentation in SQL With CASE WHEN</h1>
+  <p class="meta">Label every row, then group by the label · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can turn a table of transactions into named customer groups, count and total each group, cross two segmentations into a matrix, choose between cut-offs you picked and cut-offs the data picked, and prove that every customer landed in exactly one group. It is about twenty-five minutes, and every query and result below was run.</p>
+
+  <p>Here is what to do today, on the segmentation you already have. Count the customers in each segment and add them up. If the total is less than your customer count, some rows fell through the conditions and are sitting in a null segment nobody looks at. If any segment has zero customers, the conditions are in the wrong order.</p>
+
+  <p>The short version: aggregate to one row per customer, add a <code>CASE</code> expression that names the group, then group by that name.</p>
+
+  <p>Label first, group second, is the idea, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 286" role="img" aria-labelledby="sgTitle sgDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="sgTitle">Label every row, then group by the label</title>
+      <desc id="sgDesc">Three panels left to right, joined by arrows. The first panel is a column of twelve horizontal bars of different lengths, standing for twelve customers and how much each spent, in no particular grouping. The second panel repeats the same twelve bars in the same order, but each one now has a small coloured square attached to its left-hand end: three bars carry a dark square, four carry a mid-toned square and five carry a pale square, so every bar has exactly one square and no bar has none. The third panel holds just three stacked blocks, one in each of the three shades, sized in proportion to how many bars carried that shade, and holding the figures 3, 4 and 5. The picture shows that the grouping in the third panel is produced entirely by the squares added in the second, and that the twelve bars are still all accounted for.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <!-- panel 1 -->
+        <g fill="#E0F2F7" stroke="#0E7490" stroke-width="1.2">
+          <rect x="40" y="26" width="150" height="12"/><rect x="40" y="46" width="118" height="12"/>
+          <rect x="40" y="66" width="96"  height="12"/><rect x="40" y="86" width="88"  height="12"/>
+          <rect x="40" y="106" width="70" height="12"/><rect x="40" y="126" width="62" height="12"/>
+          <rect x="40" y="146" width="50" height="12"/><rect x="40" y="166" width="47" height="12"/>
+          <rect x="40" y="186" width="42" height="12"/><rect x="40" y="206" width="28" height="12"/>
+          <rect x="40" y="226" width="23" height="12"/><rect x="40" y="246" width="20" height="12"/>
+        </g>
+        <path d="M212 140 L250 140" stroke="#52525B" stroke-width="2.2" fill="none"/>
+        <path d="M258 140 L246 133 M258 140 L246 147" stroke="#52525B" stroke-width="2.2" fill="none"/>
+
+        <!-- panel 2 -->
+        <g fill="#E0F2F7" stroke="#0E7490" stroke-width="1.2">
+          <rect x="300" y="26" width="150" height="12"/><rect x="300" y="46" width="118" height="12"/>
+          <rect x="300" y="66" width="96"  height="12"/><rect x="300" y="86" width="88"  height="12"/>
+          <rect x="300" y="106" width="70" height="12"/><rect x="300" y="126" width="62" height="12"/>
+          <rect x="300" y="146" width="50" height="12"/><rect x="300" y="166" width="47" height="12"/>
+          <rect x="300" y="186" width="42" height="12"/><rect x="300" y="206" width="28" height="12"/>
+          <rect x="300" y="226" width="23" height="12"/><rect x="300" y="246" width="20" height="12"/>
+        </g>
+        <g stroke="#09090B" stroke-width="0.8">
+          <rect x="280" y="26" width="14" height="12" fill="#0E7490"/>
+          <rect x="280" y="46" width="14" height="12" fill="#0E7490"/>
+          <rect x="280" y="66" width="14" height="12" fill="#0E7490"/>
+          <rect x="280" y="86" width="14" height="12" fill="#7FBFD4"/>
+          <rect x="280" y="106" width="14" height="12" fill="#7FBFD4"/>
+          <rect x="280" y="126" width="14" height="12" fill="#7FBFD4"/>
+          <rect x="280" y="146" width="14" height="12" fill="#7FBFD4"/>
+          <rect x="280" y="166" width="14" height="12" fill="#D9EDF5"/>
+          <rect x="280" y="186" width="14" height="12" fill="#D9EDF5"/>
+          <rect x="280" y="206" width="14" height="12" fill="#D9EDF5"/>
+          <rect x="280" y="226" width="14" height="12" fill="#D9EDF5"/>
+          <rect x="280" y="246" width="14" height="12" fill="#D9EDF5"/>
+        </g>
+        <path d="M472 140 L510 140" stroke="#52525B" stroke-width="2.2" fill="none"/>
+        <path d="M518 140 L506 133 M518 140 L506 147" stroke="#52525B" stroke-width="2.2" fill="none"/>
+
+        <!-- panel 3 -->
+        <g stroke="#09090B" stroke-width="1.2">
+          <rect x="560" y="42" width="170" height="52" fill="#0E7490"/>
+          <rect x="560" y="102" width="170" height="66" fill="#7FBFD4"/>
+          <rect x="560" y="176" width="170" height="82" fill="#D9EDF5"/>
+        </g>
+        <g font-size="24" font-weight="700" text-anchor="middle">
+          <text x="645" y="77" fill="#FFFFFF">3</text>
+          <text x="645" y="145" fill="#09090B">4</text>
+          <text x="645" y="227" fill="#09090B">5</text>
+        </g>
+      </g>
+    </svg>
+    <figcaption>Twelve customers go in. Each gets exactly one label, and the labels do the grouping. Three plus four plus five is twelve, which is the only thing that proves nobody fell out on the way.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>Get to one row per customer first</li>
+      <li>CASE: the label is just a column</li>
+      <li>Group by the label</li>
+      <li>The order that deletes a segment</li>
+      <li>Every row must land somewhere</li>
+      <li>Two dimensions at once</li>
+      <li>Cut-offs you chose, or cut-offs the data chose</li>
+      <li>The reconciliation</li>
+      <li>The full before and after</li>
+      <li>Edge cases that break a segmentation</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every result on this page is real.</strong> Twelve customers, nineteen purchases and 2,430 in spend, loaded into DuckDB and queried. Twelve is small enough to check every segment by hand, which is the only way to know a segmentation query is right before it meets a real customer base.</div>
+
+  <div class="step">
+    <h2>1. Get to one row per customer first</h2>
+
+    <p>Segmentation is about customers, and the transactions table is about purchases, so the first move is always an aggregate. Nothing about the labelling works until the grain is right.</p>
+
+    <pre><code>SELECT customer_id, COUNT(*) AS purchases, SUM(amount) AS spend,
+       MAX(purchase_date) AS last_seen
+FROM purchases GROUP BY 1;
+
+C2  | 3 | 470 | 2026-03-14
+C1  | 3 | 350 | 2026-03-05
+C7  | 2 | 300 | 2026-03-19
+C6  | 2 | 270 | 2026-03-08
+C3  | 2 | 210 | 2026-02-18
+C10 | 1 | 190 | 2026-03-04
+C4  | 1 | 150 | 2026-01-21
+C12 | 1 | 145 | 2026-03-25
+C8  | 1 | 130 | 2026-02-17
+C11 | 1 |  85 | 2026-03-12
+C9  | 1 |  70 | 2026-02-24
+C5  | 1 |  60 | 2026-01-28</code></pre>
+
+    <p>Twelve rows, and they sum to 2,430, which is the whole purchases table. Those three columns are the classic ingredients of a customer segmentation: how recently, how often, how much. You do not have to use all three, and you do have to compute them before you can band them.</p>
+
+    <p>Do this as a named step rather than nesting it, so the customer count can be checked on its own; the argument for that is in <a href="../sql-subqueries/">subquery against CTE</a>, and it matters here because everything downstream is divided by that count.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. CASE: the label is just a column</h2>
+
+    <p><code>CASE</code> reads a condition list from top to bottom and returns the value attached to the first condition that is true.</p>
+
+    <pre><code>CASE WHEN spend &gt;= 300 THEN 'High'
+     WHEN spend &gt;= 150 THEN 'Mid'
+     ELSE 'Low'
+END AS segment</code></pre>
+
+    <p>What comes out is an ordinary text column. That is the whole idea and it is the thing worth internalising: the segment is not a special kind of object, it is a value computed per row, which means it can be selected, filtered, joined on, counted and, most usefully, grouped by. The mechanics of the expression itself, including the difference between the simple and searched forms, are in <a href="../sql-case-expression/">the CASE guide</a>.</p>
+
+    <p>Because it is computed rather than stored, the definition lives in the query. That is convenient while exploring and a liability once three reports each contain their own slightly different copy, which is what section eight's reconciliation and the note about materialising it are for.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Group by the label</h2>
+
+    <p>Put the <code>CASE</code> in the select list and group by it, and the segmentation is done.</p>
+
+    <pre><code>WITH c AS (SELECT customer_id, SUM(amount) AS spend FROM purchases GROUP BY 1)
+SELECT CASE WHEN spend &gt;= 300 THEN 'High'
+            WHEN spend &gt;= 150 THEN 'Mid'
+            ELSE 'Low' END AS segment,
+       COUNT(*) AS customers, SUM(spend) AS spend
+FROM c GROUP BY 1;
+
+High | 3 | 1120
+Mid  | 4 |  820
+Low  | 5 |  490</code></pre>
+
+    <p>Three, four and five customers, adding to twelve. Their spend adds to 2,430. Check one by hand: High is C2 at 470, C1 at 350 and C7 at 300, which is 1,120.</p>
+
+    <p>And now the finding, which is the point of doing it at all: <strong>three customers out of twelve, a quarter of them, account for 1,120 of 2,430, which is 46% of all spending.</strong> That is a sentence somebody can act on. "We have twelve customers" is not.</p>
+
+    <p>Two syntax notes. <code>GROUP BY 1</code> means group by the first selected column, which saves repeating the whole <code>CASE</code>; most engines also let you group by the alias. And if yours insists on the full expression in both places, that is the moment to move it into a CTE and group by the resulting column name instead of writing it twice, because two copies drift.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. The order that deletes a segment</h2>
+
+    <p>Before the explanation: the same three bands, with the first two conditions swapped. Predict the three counts.</p>
+
+    <pre><code>CASE WHEN spend &gt;= 150 THEN 'Mid'
+     WHEN spend &gt;= 300 THEN 'High'
+     ELSE 'Low' END
+
+Mid | 7 | 1940
+Low | 5 |  490</code></pre>
+
+    <p>Two rows, not three. High has not shrunk, it has ceased to exist: every customer who would have been High satisfied the 150 test first and was labelled Mid. There is no error, no warning, and no empty High row to notice, because a group with no rows produces no row.</p>
+
+    <p>That last part is what makes this dangerous rather than merely wrong. A segment reporting zero would at least be visible on the page. A segment that is simply absent looks like a segmentation with two bands, and the totals still come to twelve customers and 2,430.</p>
+
+    <p><code>CASE</code> takes the first condition that is true, not the best or most specific one, so overlapping conditions are resolved entirely by the order you wrote them in. The rule: <strong>most restrictive first</strong>, which for numeric bands means starting at the top threshold and working down.</p>
+
+    <p>The same stopping rule catches people in every language that has one. If you have met it in a spreadsheet, it is the same mechanism as <a href="../excel-ifs-vs-nested-if/">nested IF against IFS</a>, and the fix is identical.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Every row must land somewhere</h2>
+
+    <p>Before the explanation: here are the bands with no <code>ELSE</code>, and with the middle boundary set to 151 rather than 150. Say what happens to the customer who spent exactly 150.</p>
+
+    <pre><code>CASE WHEN spend &gt;= 300 THEN 'High'
+     WHEN spend &gt;= 151 THEN 'Mid' END
+
+High | 3 | 1120
+Mid  | 3 |  670
+NULL | 6 |  640</code></pre>
+
+    <p>A third segment appeared, called nothing. <code>CASE</code> with no matching condition and no <code>ELSE</code> returns <code>NULL</code>, and <code>GROUP BY</code> gathers all the nulls into one group, so six customers and 640 of spend are now in a bucket with no name.</p>
+
+    <p>Two separate mistakes produced that, and both are worth being able to see independently. The missing <code>ELSE</code> means anything unmatched becomes null instead of landing in a band. The 151 means there is a gap between the bands, so the customer who spent exactly 150 matches neither, which is the boundary problem that every banding scheme has and most banding schemes have not thought about.</p>
+
+    <p>Two rules follow, and they are short. <strong>Always write an ELSE.</strong> And <strong>make the bands touch</strong>: if one ends at 150 the next begins at 150, expressed as <code>&gt;= 150</code>, so there is nowhere to fall between them.</p>
+
+    <p>A useful habit while the segmentation is still being developed: make the <code>ELSE</code> say <code>'check this'</code> rather than naming a real band. Then anything you did not anticipate arrives labelled as a question rather than quietly joining the bottom group.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Two dimensions at once</h2>
+
+    <p>One <code>CASE</code> per dimension, both in the select list, group by both, and you have a matrix.</p>
+
+    <pre><code>frequency | value | customers | spend
+often     | High  |         2 |   820
+twice     | High  |         1 |   300
+twice     | Mid   |         2 |   480
+once      | Mid   |         2 |   340
+once      | Low   |         5 |   490</code></pre>
+
+    <p>Five cells rather than nine, because four of the possible combinations have nobody in them. The customers add to twelve and the spend to 2,430.</p>
+
+    <p>Read the shape rather than the individual cells. Everybody who bought once is Mid or Low, and everybody who is High bought at least twice, so on this data value and frequency move together. That is the kind of statement a one-dimensional segmentation cannot make, and it is why the matrix is worth the extra <code>CASE</code>.</p>
+
+    <p>Two practical notes. Empty combinations do not appear as zero rows, they simply do not appear, so if the matrix is going into a report, join it to a grid of all combinations first. And resist going to three dimensions: twenty-seven cells over twelve customers is not a segmentation, it is a list with extra steps.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Cut-offs you chose, or cut-offs the data chose</h2>
+
+    <p>The 300 and the 150 came from nowhere. An alternative is to let the distribution decide, with <code>NTILE</code>, which sorts the rows and cuts them into equal-sized groups.</p>
+
+    <pre><code>NTILE(3) OVER (ORDER BY spend DESC)
+
+third | customers | lowest | highest | spend
+    1 |         4 |    270 |     470 |  1390
+    2 |         4 |    145 |     210 |   695
+    3 |         4 |     60 |     130 |   345</code></pre>
+
+    <p>Four, four and four by construction. Now compare the two methods customer by customer:</p>
+
+    <pre><code>customer | spend | fixed | thirds | agree
+C2       |   470 | High  | High   | yes
+C1       |   350 | High  | High   | yes
+C7       |   300 | High  | High   | yes
+C6       |   270 | Mid   | High   | no
+C3       |   210 | Mid   | Mid    | yes
+C10      |   190 | Mid   | Mid    | yes
+C4       |   150 | Mid   | Mid    | yes
+C12      |   145 | Low   | Mid    | no
+C8       |   130 | Low   | Low    | yes
+C11      |    85 | Low   | Low    | yes
+C9       |    70 | Low   | Low    | yes
+C5       |    60 | Low   | Low    | yes</code></pre>
+
+    <p>Ten agree and two do not. C6 at 270 is Mid under fixed cut-offs and High under thirds; C12 at 145 is Low under fixed and Mid under thirds. Neither method is wrong, and if those two customers get different treatment, the choice of method is the reason.</p>
+
+    <p>Which to use depends on what the segment is for. <strong>Fixed cut-offs</strong> are right when the number means something outside the data: a spend level at which a discount becomes profitable, a threshold in a contract. They are stable over time and can leave a band empty. <strong>Thirds or quartiles</strong> are right for relative questions like "who are our best customers", they always fill every band, and they move: a customer can change segment because other customers changed, without buying anything differently.</p>
+
+    <p>Whichever you pick, pick it on purpose and write down why. A cut-off chosen because it is round is a decision dressed as an observation, and <a href="../data-driven-thresholds/">choosing thresholds from the data</a> is the longer version of that argument.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. The reconciliation</h2>
+
+    <p>One query, run every time, and it catches everything on this page.</p>
+
+    <pre><code>customers_in | customers_out | spend_in | spend_out
+          12 |            12 |     2430 |      2430</code></pre>
+
+    <p>Customers going into the segmentation against customers coming out of it, and the same for the money. Equal on both counts means every customer landed in exactly one segment and no spend was created or lost.</p>
+
+    <p>Each failure on this page shows up here. A missing <code>ELSE</code> does not change the totals, because nulls still group, but it does add a segment named nothing, so check the segment list as well as the sums. A duplicated customer key inflates <code>customers_out</code>. A join added before the labelling inflates <code>spend_out</code>. And a filter applied inside the segmentation but not to the input makes <code>customers_out</code> smaller, which is the one people write on purpose and then forget.</p>
+
+    <p>The related check is the one from section four: <strong>every segment you defined should appear in the output.</strong> Compare the number of distinct segments returned against the number of labels in your <code>CASE</code>. Fewer means one is unreachable.</p>
+
+    <p>Picture your own segmentation for a moment. If a whole tier of it had been unreachable since the day it was written, is there anything on the report that would say so?</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same twelve customers, same question: who matters most?</p>
+
+  <h3>Before</h3>
+  <pre><code>SELECT CASE WHEN spend &gt;= 150 THEN 'Mid'
+            WHEN spend &gt;= 300 THEN 'High' END AS segment,
+       COUNT(*) FROM ... GROUP BY 1;
+
+Mid  | 7
+Low  | 0 rows, because there is no ELSE and no High row either</code></pre>
+  <p>Conditions in the wrong order, so High is unreachable. No <code>ELSE</code>, so anybody below 150 becomes a nameless group. Two of the three segments are broken and the query runs perfectly.</p>
+
+  <h3>After</h3>
+  <pre><code>WITH c AS (
+  SELECT customer_id, COUNT(*) AS purchases, SUM(amount) AS spend
+  FROM purchases GROUP BY 1                              -- 12 customers, 2,430
+), labelled AS (
+  SELECT *, CASE WHEN spend &gt;= 300 THEN 'High'
+                 WHEN spend &gt;= 150 THEN 'Mid'
+                 ELSE 'Low' END AS segment
+  FROM c
+)
+SELECT segment, COUNT(*) AS customers, SUM(spend) AS spend,
+       ROUND(100.0*SUM(spend)/SUM(SUM(spend)) OVER (), 1) AS pct_of_spend
+FROM labelled GROUP BY 1 ORDER BY spend DESC;
+
+High | 3 | 1120 | 46.1
+Mid  | 4 |  820 | 33.7
+Low  | 5 |  490 | 20.2
+
+-- and the check
+customers 12 in, 12 out;  spend 2,430 in, 2,430 out;  3 segments defined, 3 returned</code></pre>
+
+  <p>Most restrictive condition first, an <code>ELSE</code> that catches everything, the labelling in a named step so it exists once, a share column so the numbers mean something, and a reconciliation.</p>
+
+  <p>The claim, and it is why section four is the longest one: <strong>swapping two lines removed a whole customer tier from the report, and the totals still came to twelve customers and 2,430.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases that break a segmentation</h2>
+
+    <p>Six worth knowing.</p>
+
+    <p><strong>Nulls in the column being banded.</strong> <code>NULL &gt;= 300</code> is unknown, not false, so a customer with no spend falls through every condition to the <code>ELSE</code> and is labelled Low as if they had spent a little. Test for it first: <code>WHEN spend IS NULL THEN 'unknown'</code>.</p>
+
+    <p><strong>Customers with no transactions at all.</strong> They are not in the purchases table, so they are not in the segmentation. If the question is about all customers, start from the customer table and left join, or the churned ones are invisible.</p>
+
+    <p><strong>The window the spend is measured over.</strong> A segmentation with no date filter uses all history, so a customer who was big three years ago outranks one who is big now. State the window in the segment name if it matters, as in "spend in the last twelve months".</p>
+
+    <p><strong>Segments that move on their own.</strong> With <code>NTILE</code>, a customer can drop a tier while spending exactly the same, because others rose. That is correct behaviour and it is a surprise in a monthly report unless the report says so.</p>
+
+    <p><strong>Ties at a boundary.</strong> <code>NTILE</code> splits by position, not by value, so two customers with identical spend can land in different tiers. If that is unacceptable, band by value instead, or use a ranking function that treats ties together.</p>
+
+    <p><strong>The definition living in five places.</strong> Once more than one report segments customers, the <code>CASE</code> gets copied and the copies drift. Put it in a view, so the definition has one home, and read <a href="../sql-temp-tables-vs-views/">temp table against view</a> for the trade that comes with it.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The uncomfortable part of segmentation is that the groups are not in the data waiting to be found; they are imposed, and different reasonable choices produce different groups. Reviews of segmentation practice make this explicit: the number of segments, the variables used and the cut-offs are all decisions by the analyst, the methods will happily return groups from data that has no natural grouping at all, and the resulting scheme has to be justified by whether it supports a decision rather than by the procedure that produced it (Punj &amp; Stewart, 1983, <em>Journal of Marketing Research</em>, 20(2), 134–148). Section seven's two disagreeing customers are that in miniature. Neither method found the truth about C6; each applied a different rule.</p>
+
+  <p>There is also a cost to banding at all, and it is worth knowing so you spend it deliberately. Cutting a continuous measure into groups throws away the differences within each group: a customer at 300 and one at 470 become the same thing, while 145 and 150 become different things, and analyses that then use the bands are working with less information than the original numbers held (Altman &amp; Royston, 2006, <em>BMJ</em>, 332(7549), 1080). The reason to do it anyway is human rather than statistical. "High, Mid and Low" can be acted on by a team; a column of twelve numbers cannot. Band for communication and decisions, and keep the underlying value in the table for anything that needs the detail.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than reread, because self-testing improves retention in genuine course settings and not only in short laboratory studies (McDaniel, Anderson, Derbish, &amp; Morrisette, 2007, <em>European Journal of Cognitive Psychology</em>, 19(4–5), 494–513).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Rewriting every segmentation is unnecessary. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Count the segments returned against the labels defined.</strong> Fewer means one is unreachable, and that check takes ten seconds.</li>
+    <li><strong>Add the reconciliation</strong>: customers in against customers out, and the same for the money.</li>
+    <li><strong>Reorder the conditions most restrictive first</strong>, and make the bands touch so nothing can fall between them.</li>
+    <li><strong>Give every CASE an ELSE</strong>, and make it say "check this" while the definition is still settling.</li>
+    <li><strong>Write down why each cut-off is where it is</strong>, in a comment beside it. If the reason is that it is a round number, that is worth knowing too.</li>
+    <li><strong>Move the definition into a view</strong> once a second report needs it, so the labels cannot drift apart.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Draw a line for your measure, mark your cut-offs on it, and write beside each cut-off the decision that changes when a customer crosses it. Any cut-off with nothing written beside it is a number somebody made up, and that is fine as long as everyone knows.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>. If you would rather type queries than read about them, the <a href="../../drill/">SQL Drill</a> gives you one runnable query at a time against a real database.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>Step one</td><td>Aggregate to one row per customer. The grain has to be right first.</td></tr>
+    <tr><td>The three ingredients</td><td>How recently, how often, how much.</td></tr>
+    <tr><td>CASE</td><td>Returns the value for the first true condition. An ordinary column.</td></tr>
+    <tr><td>Grouping by it</td><td><code>GROUP BY 1</code>, or by the alias, or from a CTE.</td></tr>
+    <tr><td>Order of conditions</td><td>Most restrictive first. Highest threshold first for bands.</td></tr>
+    <tr><td>Wrong order</td><td>A segment becomes unreachable and does not appear at all.</td></tr>
+    <tr><td>No ELSE</td><td>Unmatched rows become NULL and group into a nameless segment.</td></tr>
+    <tr><td>A gap in the bands</td><td>The value on the boundary matches nothing. Make the bands touch.</td></tr>
+    <tr><td>ELSE while developing</td><td>Make it say "check this" rather than naming a real band.</td></tr>
+    <tr><td>Two dimensions</td><td>One CASE each, group by both. Empty combinations do not appear.</td></tr>
+    <tr><td>Fixed cut-offs</td><td>Stable, meaningful outside the data, can leave a band empty.</td></tr>
+    <tr><td><code>NTILE(3)</code></td><td>Equal-sized groups, always full, and they move when others move.</td></tr>
+    <tr><td>Here they disagreed</td><td>On two of twelve customers.</td></tr>
+    <tr><td>Nulls in the measure</td><td>Fall through to the ELSE and get labelled as low. Test for them first.</td></tr>
+    <tr><td>Customers with no rows</td><td>Absent entirely. Start from the customer table and left join.</td></tr>
+    <tr><td>The reconciliation</td><td>Customers in equals out, spend in equals out, segments defined equals returned.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Compare the number of segments your query returns against the number of labels your <code>CASE</code> defines. A segmentation cannot tell you about a tier that is unreachable, because an empty group produces no row at all, and this is the only check that notices. If a segmentation misbehaves in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The one I remember was a tiering scheme where the enterprise threshold sat below the mid-market one in the CASE, so the biggest accounts had been reported as mid-market for two quarters and the top tier simply never appeared on the slide. What has a condition order quietly done to a report you own?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Punj, G., &amp; Stewart, D. W. (1983). Cluster analysis in marketing research: Review and suggestions for application. <em>Journal of Marketing Research</em>, 20(2), 134–148.</li>
+    <li>Altman, D. G., &amp; Royston, P. (2006). The cost of dichotomising continuous variables. <em>BMJ</em>, 332(7549), 1080.</li>
+    <li>McDaniel, M. A., Anderson, J. L., Derbish, M. H., &amp; Morrisette, N. (2007). Testing the testing effect in the classroom. <em>European Journal of Cognitive Psychology</em>, 19(4–5), 494–513.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice segmentation on customers you can count.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> gives you the repetitions: bands to define, condition orders to fix, matrices to cross, and NTILE against fixed cut-offs on the same data, plus flash cards on what CASE does when nothing matches. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-case-expression/">The SQL CASE Expression</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../sql-cohort-retention/">Cohort Retention in SQL</a> · <a href="../sql-subqueries/">Subquery vs CTE</a> · <a href="../sql-temp-tables-vs-views/">Temp Table vs View</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../../sql/">SQL Kit</a> · <a href="../excel-ifs-vs-nested-if/">Nested IF vs IFS</a> · <a href="../build-a-risk-index/">Build a Risk Index</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../report-vs-analysis/">Report vs Analysis</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
