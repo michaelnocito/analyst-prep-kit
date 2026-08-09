@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Percentiles, the IQR and the 1.5 Outlier Rule: How to Flag a Bad Row — Analyst Prep Kit</title>
+<meta name="description" content="Quartiles by hand on sixteen orders, the IQR fence that flags a mistyped row, and why the same percentile comes out differently in Excel, SQL and pandas.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/percentiles-iqr-outliers/">
+<meta property="og:title" content="Percentiles, the IQR and the 1.5 Outlier Rule: How to Flag a Bad Row">
+<meta property="og:description" content="Quartiles by hand on sixteen orders, the IQR fence that flags a mistyped row, and why the same percentile comes out differently in Excel, SQL and pandas.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/percentiles-iqr-outliers.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/percentiles-iqr-outliers/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/percentiles-iqr-outliers.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Percentiles, the IQR and the 1.5 Outlier Rule: How to Flag a Bad Row",
+  "description": "Quartiles by hand on sixteen orders, the IQR fence that flags a mistyped row, and why the same percentile comes out differently in Excel, SQL and pandas.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/percentiles-iqr-outliers/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/percentiles-iqr-outliers/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-09",
+  "dateModified": "2026-08-09",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/percentiles-iqr-outliers.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Percentiles, the IQR and the 1.5 Outlier Rule: How to Flag a Bad Row",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/percentiles-iqr-outliers/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../stats/">Statistics Kit</a> · <a href="../">All guides</a></p>
+  <h1>Percentiles, the IQR and the 1.5 Outlier Rule: How to Flag a Bad Row</h1>
+  <p class="meta">Sorting, counting, and the fence that catches a typo · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can compute quartiles by hand, build the standard outlier fence from them, and run that fence over any column to get back a short list of rows worth looking at. On the sixteen orders below, one mistyped quantity gets flagged automatically while every honest large order stays inside the fence.</p>
+
+  <p>Here is what to actually do today. On the column you care about most, get four numbers: the 25th percentile, the 75th, their difference, and 1.5 times that difference added to the 75th. Anything above that last number is a row to open and read. It is one query, and it turns "is this data clean" into a list of specific rows.</p>
+
+  <p>The short version: a percentile is a value with a known share of the data below it. The interquartile range is the width of the middle half. Values more than one and a half of those widths beyond the middle half get flagged.</p>
+
+  <p>The fence is easier to see than to read, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 250" role="img" aria-labelledby="iqTitle iqDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="iqTitle">The middle half sets the fence</title>
+      <desc id="iqDesc">A horizontal line with a row of small filled dots along it, spaced unevenly and thinning out towards the right. A tall rectangle is drawn around the dots in the middle of the row, covering the central half of them, with a thick vertical bar inside it. The rectangle's left edge is labelled Q1, its right edge Q3, and the bar inside it median. From each edge of the rectangle a horizontal whisker line runs outward to a short vertical cap, reaching the furthest dot on that side that still lies within range. To the right of the right-hand cap stands a tall dashed vertical line labelled fence, drawn one and a half rectangle-widths beyond the rectangle's right edge, with a small double-headed measuring arrow underneath showing that distance against the rectangle's own width. One lone dot sits well to the right of that dashed line, drawn as a hollow ring instead of a filled dot, so it reads as picked out rather than belonging with the rest. Every other dot in the picture sits between the two whisker caps.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <line x1="60" y1="120" x2="720" y2="120" stroke="#E4E7EA" stroke-width="1.5"/>
+
+        <path d="M196 120 L118 120" stroke="#52525B" stroke-width="1.6"/>
+        <path d="M118 104 L118 136" stroke="#52525B" stroke-width="2"/>
+        <path d="M340 120 L486 120" stroke="#52525B" stroke-width="1.6"/>
+        <path d="M486 104 L486 136" stroke="#52525B" stroke-width="2"/>
+
+        <rect x="196" y="90" width="144" height="60" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <rect x="264" y="90" width="5" height="60" fill="#09090B"/>
+
+        <g fill="#0E7490">
+          <circle cx="118" cy="120" r="5.5"/><circle cx="148" cy="120" r="5.5"/>
+          <circle cx="176" cy="120" r="5.5"/><circle cx="198" cy="120" r="5.5"/>
+          <circle cx="214" cy="120" r="5.5"/><circle cx="230" cy="120" r="5.5"/>
+          <circle cx="248" cy="120" r="5.5"/><circle cx="266" cy="120" r="5.5"/>
+          <circle cx="288" cy="120" r="5.5"/><circle cx="310" cy="120" r="5.5"/>
+          <circle cx="332" cy="120" r="5.5"/><circle cx="372" cy="120" r="5.5"/>
+          <circle cx="410" cy="120" r="5.5"/><circle cx="448" cy="120" r="5.5"/>
+          <circle cx="486" cy="120" r="5.5"/>
+        </g>
+
+        <text x="182" y="176" font-size="13" font-weight="700" fill="#0E7490">Q1</text>
+        <text x="330" y="176" font-size="13" font-weight="700" fill="#0E7490">Q3</text>
+        <text x="242" y="80" font-size="13" font-weight="700" fill="#09090B">median</text>
+
+        <path d="M556 46 L556 194" stroke="#B45309" stroke-width="2" stroke-dasharray="6 5"/>
+        <text x="538" y="38" font-size="13" font-weight="700" fill="#B45309">fence</text>
+
+        <path d="M340 212 L556 212" stroke="#B45309" stroke-width="1.4"/>
+        <path d="M340 212 L348 207 M340 212 L348 217" stroke="#B45309" stroke-width="1.4" fill="none"/>
+        <path d="M556 212 L548 207 M556 212 L548 217" stroke="#B45309" stroke-width="1.4" fill="none"/>
+        <path d="M196 212 L340 212" stroke="#0E7490" stroke-width="1.4"/>
+        <path d="M196 212 L204 207 M196 212 L204 217" stroke="#0E7490" stroke-width="1.4" fill="none"/>
+        <path d="M340 212 L332 207 M340 212 L332 217" stroke="#0E7490" stroke-width="1.4" fill="none"/>
+        <path d="M196 200 L196 220 M340 200 L340 220 M556 200 L556 220" stroke="#A1A1AA" stroke-width="1"/>
+
+        <circle cx="664" cy="120" r="8" fill="#FFFFFF" stroke="#B45309" stroke-width="2.5"/>
+      </g>
+    </svg>
+    <figcaption>The box holds the middle half of the values, from the 25th percentile to the 75th. The fence sits one and a half box-widths past the box, which is what the two measuring arrows underneath compare. The one hollow point is past the fence, and it is the only row this rule asks you to go and read.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What a percentile is, in counting terms</li>
+      <li>Quartiles by hand on sixteen orders</li>
+      <li>The IQR, and what the middle half tells you</li>
+      <li>The 1.5 fence, and why clean data flags nothing</li>
+      <li>The typo: what the IQR does that the standard deviation cannot</li>
+      <li>Why Excel, SQL and pandas give different percentiles</li>
+      <li>What to do with an outlier once you have found one</li>
+      <li>The full before and after</li>
+      <li>Edge cases that catch people out</li>
+      <li>Why this works</li>
+      <li>Using this on your own work</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every number on this page is real.</strong> One sixteen-row order table, run rather than described. It is the same table used in <a href="../mean-vs-median/">mean vs median</a> and <a href="../standard-deviation/">standard deviation</a>, where the mean is 618.125, the median is 630 and the standard deviation is 236.81.</div>
+
+  <p>Here are the sixteen order revenues, already sorted, because sorting is the first step of everything on this page.</p>
+
+  <pre><code>position:   1    2    3    4    5    6    7    8    9   10   11   12   13   14   15    16
+value:    240  280  425  440  440  480  510  600  660  660  680  765  850  880  880  1100</code></pre>
+
+  <div class="step">
+    <h2>1. What a percentile is, in counting terms</h2>
+
+    <p>Before the definition: look at the sorted row above and find the value with a quarter of the data below it. Say which one you picked before reading on.</p>
+
+    <p>A <strong>percentile</strong> is a value with a stated share of the data at or below it. The 25th percentile has a quarter of the values below it, the 90th has nine tenths below it, and the 50th is the median. That is the whole idea, and notice what it is built from: positions in a sorted list, not sizes. The 90th percentile does not care whether the top value is 1,100 or 1,100,000. It only cares that it is at the top.</p>
+
+    <p>The word <strong>quantile</strong> covers the same thing in other slices. Quartiles cut the data into four parts, deciles into ten, percentiles into a hundred. They are the same operation with different cut counts, and every tool implements them with the same function.</p>
+
+    <p>This is the reason percentiles are the natural language for anything with a long tail. "Our average page loads in 400 milliseconds" hides the customers waiting four seconds. "Our 95th percentile page loads in 3.9 seconds" is a statement about those specific customers, and it does not move at all when one absurd 60-second reading arrives, because that reading is still just one position at the top.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. Quartiles by hand on sixteen orders</h2>
+
+    <p>Before the arithmetic: sixteen values and you want the 25th percentile. A quarter of sixteen is four. Decide whether the answer is the 4th value, and what you would do if you are not sure.</p>
+
+    <p>It is not quite the 4th value, and the reason is worth having straight. The commonest method, the one Excel's <code>PERCENTILE.INC</code>, pandas and numpy all use by default, puts the 0th percentile on the first value and the 100th on the last, then spreads the rest evenly between them. The position it wants is:</p>
+
+    <pre><code>position = 1 + p × (n − 1)</code></pre>
+
+    <p>With p as a fraction and n = 16, that gives 1 + 0.25 × 15 = <strong>4.75</strong>. There is no 4.75th value, so it takes three quarters of the way from the 4th to the 5th. Both of those are 440, so the answer is <strong>440</strong> with no interpolation needed.</p>
+
+    <p>Do the 75th the same way: 1 + 0.75 × 15 = 12.25. The 12th value is 765 and the 13th is 850, and a quarter of the way between them is 765 + 0.25 × 85 = <strong>786.25</strong>. That decimal is the interpolation showing its working. It is a real answer, and it is not any order's revenue.</p>
+
+    <p>Here is the whole set, computed the same way.</p>
+
+    <table>
+      <tr><th>Percentile</th><th>Position</th><th>Value</th><th>Read it as</th></tr>
+      <tr><td>10th</td><td>2.50</td><td>352.50</td><td>The smallest tenth of orders are below this</td></tr>
+      <tr><td>25th (Q1)</td><td>4.75</td><td>440.00</td><td>A quarter of orders are below this</td></tr>
+      <tr><td>50th (median)</td><td>8.50</td><td>630.00</td><td>Half are below, half above</td></tr>
+      <tr><td>75th (Q3)</td><td>12.25</td><td>786.25</td><td>Three quarters are below this</td></tr>
+      <tr><td>90th</td><td>14.50</td><td>880.00</td><td>The largest tenth of orders are above this</td></tr>
+      <tr><td>95th</td><td>15.25</td><td>935.00</td><td>The largest twentieth are above this</td></tr>
+    </table>
+
+    <pre><code>-- SQL
+SELECT PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY Revenue) AS q1,
+       PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY Revenue) AS median,
+       PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY Revenue) AS q3
+FROM Orders;</code></pre>
+
+    <pre><code># pandas
+df['Revenue'].quantile([0.25, 0.5, 0.75])
+# 0.25    440.00
+# 0.50    630.00
+# 0.75    786.25</code></pre>
+
+    <pre><code>' Excel
+=QUARTILE.INC(Orders[Revenue], 1)    ' 440
+=QUARTILE.INC(Orders[Revenue], 3)    ' 786.25
+=PERCENTILE.INC(Orders[Revenue], 0.9) ' 880</code></pre>
+  </div>
+
+  <div class="step">
+    <h2>3. The IQR, and what the middle half tells you</h2>
+
+    <p>Before the definition: you have Q1 at 440 and Q3 at 786.25. Say in one sentence what the gap between them describes, before reading on.</p>
+
+    <p>It describes the width of the middle half of your orders. The <strong>interquartile range</strong>, or IQR, is simply Q3 minus Q1: 786.25 − 440 = <strong>346.25</strong>. Half of all orders fall inside a 346-wide band, and that band runs from 440 to 786.</p>
+
+    <p>Compare that with the standard deviation's answer to the same question. Both describe spread and both are in dollars, but they are built from different things. The standard deviation squares every distance from the mean, so every value votes and the far ones vote loudest. The IQR asks two positions in the sorted list where they are, and ignores everything else entirely.</p>
+
+    <table>
+      <tr><th>Measure of spread</th><th>Value</th><th>Built from</th><th>Broken by</th></tr>
+      <tr><td>Range (max − min)</td><td>860</td><td>Two values, the extremes</td><td>Any single bad value</td></tr>
+      <tr><td>Standard deviation</td><td>236.81</td><td>Every value, squared distances</td><td>Any single bad value</td></tr>
+      <tr><td>IQR</td><td>346.25</td><td>Two positions, a quarter in from each end</td><td>Only if a quarter of the data is bad</td></tr>
+    </table>
+
+    <p>Section five puts a number on that last column. For now, notice that the IQR is larger than the standard deviation here, which surprises people who expect them to be interchangeable. They are not on the same scale and there is no reason they should match. On perfectly bell-shaped data the IQR runs about 1.35 times the standard deviation, and 346.25 ÷ 236.81 = 1.46, which is close enough to say this data is not far from that shape.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. The 1.5 fence, and why clean data flags nothing</h2>
+
+    <p>Before the rule: you have a middle half that is 346.25 wide. Somebody has to draw a line past which a value counts as unusual. Decide roughly how far beyond the box you would draw it, before you see the standard answer.</p>
+
+    <p>The standard answer is one and a half box-widths, and it goes on both sides.</p>
+
+    <pre><code>lower fence = Q1 − 1.5 × IQR = 440.00   − 1.5 × 346.25 = −79.375
+upper fence = Q3 + 1.5 × IQR = 786.25   + 1.5 × 346.25 = 1305.625</code></pre>
+
+    <p>Now run it. Our largest order is 1,100 and the upper fence is 1,305.63, so nothing is flagged. Our smallest is 240 and the lower fence is below zero, so nothing is flagged there either. <strong>This clean table has no outliers</strong>, and that is the correct and useful answer.</p>
+
+    <p>Say out loud why a lower fence of −79.375 is not a mistake. Revenue cannot be negative, so the rule is telling you that no order is unusually small, because there is not enough room below the box for one to be. A fence that falls outside the possible range of the data simply never fires, and that is fine.</p>
+
+    <p>There is a second, wider fence at 3 × IQR, which on this data sits at 1,825. Values past the 1.5 fence are conventionally called mild outliers and values past the 3 fence extreme ones. In practice I use the 1.5 fence to build a list to read and the 3 fence to decide what to escalate.</p>
+
+    <pre><code>-- The whole rule as one query
+WITH q AS (
+  SELECT PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY Revenue) AS q1,
+         PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY Revenue) AS q3
+  FROM Orders
+)
+SELECT o.*
+FROM Orders o CROSS JOIN q
+WHERE o.Revenue &lt; q.q1 - 1.5 * (q.q3 - q.q1)
+   OR o.Revenue &gt; q.q3 + 1.5 * (q.q3 - q.q1);
+-- 0 rows</code></pre>
+  </div>
+
+  <div class="step">
+    <h2>5. The typo: what the IQR does that the standard deviation cannot</h2>
+
+    <p>Before the numbers: somebody keys order 1013 as 150 lamps instead of 15, so its revenue reads 6,000 instead of 600. Predict what happens to the IQR, and separately to the standard deviation.</p>
+
+    <p>Here is what actually happens.</p>
+
+    <table>
+      <tr><th>Statistic</th><th>Clean</th><th>With the typo</th><th>Moved by</th></tr>
+      <tr><td>Mean</td><td>618.13</td><td>955.63</td><td>+55%</td></tr>
+      <tr><td>Standard deviation</td><td>236.81</td><td>1,365.84</td><td>+477%</td></tr>
+      <tr><td>Median</td><td>630.00</td><td>660.00</td><td>+5%</td></tr>
+      <tr><td>Q1</td><td>440.00</td><td>440.00</td><td>unchanged</td></tr>
+      <tr><td>Q3</td><td>786.25</td><td>857.50</td><td>+9%</td></tr>
+      <tr><td>IQR</td><td>346.25</td><td>417.50</td><td>+21%</td></tr>
+      <tr><td>Upper fence</td><td>1,305.63</td><td>1,483.75</td><td>+14%</td></tr>
+    </table>
+
+    <p>The standard deviation nearly sextupled. The IQR moved by a fifth, and only because one value shifting to the top pushed everything below it up a position. The fence moved from 1,305.63 to 1,483.75, and 6,000 is comfortably past both, so <strong>the rule flags exactly one row and it is the right one</strong>. The 1,100 desk order stays inside, correctly, because it is a real order.</p>
+
+    <p>Here is the failure this avoids. The obvious way to find unusual values is a z-score: how many standard deviations from the mean. Run that on the typo data and 6,000 scores 3.69, which is over the usual threshold but not dramatically. Run it against the clean standard deviation and the same value scores 22.7. The gap between 3.69 and 22.7 is the problem in one line: <strong>the bad row inflated the standard deviation it is then measured against</strong>, so it partly hides itself. The more extreme the error, the more effectively it does this.</p>
+
+    <p>The IQR cannot be gamed that way, because a value at the top of the sorted list contributes its position and nothing else. That is the entire reason the standard outlier rule is built from quartiles rather than from the mean and standard deviation.</p>
+
+    <p>If you would rather stay in z-score language, there is a robust version. Replace the mean with the median and the standard deviation with the median absolute deviation, the median of every value's distance from the median. Here that is 220, and the modified score for our 6,000 row is 16.4 rather than 3.69. Same idea, same units, but built from positions.</p>
+
+    <p>Now picture your own largest table and the one numeric column everything depends on. If a row in it were keyed ten times too large tomorrow, which of these two rules would notice?</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Why Excel, SQL and pandas give different percentiles</h2>
+
+    <p>Before the problem: you compute the 90th percentile of these sixteen orders in three tools and get 880, 880 and 946. Decide whether one of them is broken, before reading on.</p>
+
+    <p>None of them is. There is no single agreed definition of a sample percentile, and the common statistical packages implement several. The differences show up on small data sets and vanish on large ones, which is exactly the wrong way round for catching them, because you develop on small data.</p>
+
+    <p>Three families, and what each does on our sixteen orders.</p>
+
+    <table>
+      <tr><th>Method</th><th>Where you meet it</th><th>Q1</th><th>Q3</th><th>90th</th></tr>
+      <tr><td>Linear interpolation, endpoints included</td><td>Excel <code>PERCENTILE.INC</code>, pandas, numpy, SQL <code>PERCENTILE_CONT</code></td><td>440</td><td>786.25</td><td>880</td></tr>
+      <tr><td>Linear interpolation, endpoints excluded</td><td>Excel <code>PERCENTILE.EXC</code></td><td>440</td><td>828.75</td><td>946</td></tr>
+      <tr><td>Nearest rank, no interpolation</td><td>SQL <code>PERCENTILE_DISC</code></td><td>440</td><td>765</td><td>880</td></tr>
+    </table>
+
+    <p>The nearest-rank family always returns a value that is actually in your data, which is a real advantage when the number will be shown to somebody as an example row. The interpolating family returns a smoother estimate that usually is not in your data. The excluded-endpoints version assumes your sample came from a larger population and pushes the extremes outward accordingly, which is why its 90th percentile of 946 sits above every value except 1,100.</p>
+
+    <p>The practical rule is short. Pick one method, write down which one, and use it everywhere in a piece of work. Do not compute Q1 in Excel and Q3 in SQL. And if a percentile ever has to reconcile against somebody else's number, ask which function they used before assuming anybody made a mistake.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. What to do with an outlier once you have found one</h2>
+
+    <p>Before the options: the fence has handed you one row. List what you could do about it before reading my list.</p>
+
+    <p>There are four honest options and one dishonest one.</p>
+
+    <p><strong>Fix it,</strong> if it is an error you can correct. The 150-lamp row was meant to be 15. Correct the source, not the copy, and note the correction.</p>
+
+    <p><strong>Exclude it and say so,</strong> if it is an error you cannot correct. A row you cannot verify is a row you can drop, but the count and the reason go in the write-up. "Fifteen of sixteen orders, one excluded as an unverifiable quantity" is a complete sentence and it is the whole cost. <a href="../documenting-data-limitations/">Documenting data limitations</a> covers how to phrase this so it does not read as hedging.</p>
+
+    <p><strong>Keep it and report the median instead of the mean,</strong> if it is real. A genuinely enormous order is not an error and deleting it is falsifying your data. Switch to statistics that tolerate it, which is the argument in <a href="../mean-vs-median/">mean vs median</a>.</p>
+
+    <p><strong>Split it out,</strong> if there are several and they share a story. Six orders ten times the size of the rest are not outliers, they are a second population, probably wholesale against retail. Report the two groups separately and the noise disappears.</p>
+
+    <p>The dishonest option is deleting it quietly because the chart looks better. It happens most often in the last hour before a deadline, and the reason it is dishonest rather than merely wrong is that the reader cannot tell it happened. An outlier rule is a tool for finding rows to think about, and it never decides anything on its own.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same question both times: is there anything wrong with this revenue column? The typo from section five is in the data.</p>
+
+  <h3>Before</h3>
+  <pre><code>SELECT AVG(Revenue) AS avg_order,
+       STDDEV_SAMP(Revenue) AS sd
+FROM Orders;
+-- 955.625   1365.84</code></pre>
+  <p>Two numbers with nothing to act on. The spread looks large, but large compared with what? There is no row to open, no name for the problem, and nothing that says whether the column has one bad value or forty.</p>
+
+  <h3>After</h3>
+  <pre><code>WITH q AS (
+  SELECT PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY Revenue) AS q1,
+         PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY Revenue) AS q3
+  FROM Orders
+)
+SELECT o.OrderID, o.Region, o.Product, o.Units, o.UnitPrice, o.Revenue,
+       ROUND(q.q3 + 1.5 * (q.q3 - q.q1), 2) AS upper_fence
+FROM Orders o CROSS JOIN q
+WHERE o.Revenue &gt; q.q3 + 1.5 * (q.q3 - q.q1)
+ORDER BY o.Revenue DESC;</code></pre>
+  <pre><code>OrderID  Region  Product  Units  UnitPrice  Revenue  upper_fence
+   1013    East     Lamp    150         40     6000      1483.75</code></pre>
+  <p>One row, named, with the columns you need to judge it. 150 lamps at 40 each, in a table where every other lamp order is between 6 and 15 units. That is not a statistical finding, it is a keystroke, and the query found it without anyone knowing in advance that it was there.</p>
+
+  <div class="step">
+    <h2>Edge cases that catch people out</h2>
+
+    <p>Six that each cost somebody an afternoon.</p>
+
+    <p><strong>The fence flags nothing and you conclude the data is clean.</strong> It is not the same claim. The rule catches values far from the middle half. A date typed as 2062 instead of 2026, a region spelled two ways, a row duplicated exactly: none of those move a revenue percentile at all.</p>
+
+    <p><strong>The fence flags a tenth of your rows.</strong> That means the shape is skewed rather than that a tenth of your data is broken. On heavily right-tailed columns like income or session length the 1.5 rule fires constantly by design. Either work on the log of the column or accept that the top tail is the data, not an error.</p>
+
+    <p><strong>Quartiles on categories.</strong> A percentile needs an order. It works on numbers and on dates, and it does not work on region names. Sorting alphabetically and taking the 25th percentile of "East, North, South, West" produces a value and no meaning.</p>
+
+    <p><strong>Percentile of a percentile.</strong> The 90th percentile of your ten regional 90th percentiles is not the 90th percentile of the underlying rows, and there is no way to combine them that gets you there. Percentiles must be computed on the raw data every time, which is why they are expensive on large tables and why pre-aggregated dashboards so often quietly get them wrong.</p>
+
+    <p><strong>Two rows either side of the fence.</strong> A value at 1,483.74 and a value at 1,483.76 are treated as completely different by the rule and are identical in reality. The fence is a triage tool, not a verdict, and rows just inside it deserve the same look as rows just outside.</p>
+
+    <p><strong>Percentiles on tiny groups.</strong> A 90th percentile of three values is the second-largest of them with extra decimal places. Print the count next to any percentile computed per group, the same discipline <a href="../sql-group-by-having/">GROUP BY and HAVING</a> asks for.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The box plot and the 1.5 fence come from Tukey's programme of exploratory data analysis, which argued that the first job with a new data set is to look at its shape with tools that do not assume what the shape is (Tukey, 1977, <em>Exploratory Data Analysis</em>, Addison-Wesley). The multiplier is a convention rather than a theorem: on perfectly bell-shaped data it flags roughly seven values in a thousand, which is rare enough to be worth reading and common enough to be worth running. Nothing deeper is claimed for it, and knowing that is what stops you treating a flag as a finding.</p>
+
+  <p>The case for building the rule from quartiles rather than from the mean and standard deviation is the arithmetic in section five, and it has been tested directly. Leys and colleagues showed that the standard deviation approach systematically hides the very values it is meant to catch, because those values inflate the yardstick, and recommended the median absolute deviation as the default replacement (Leys, Ley, Klein, Bernard, &amp; Licata, 2013, <em>Journal of Experimental Social Psychology</em>, 49(4), 764–766). Our 3.69 against 22.7 is that effect in miniature.</p>
+
+  <p>Section six's disagreement between tools is not sloppiness either; it is documented and deliberate. Hyndman and Fan catalogued the definitions of a sample quantile in use across statistical packages, found nine distinct ones, and showed they give materially different answers on small samples (Hyndman &amp; Fan, 1996, <em>The American Statistician</em>, 50(4), 361–365). Their advice is the same as section six's: state which one you used.</p>
+
+  <p>One note on why this page kept asking you to commit to an answer first. Attempting an answer before seeing the correct one reliably improves how well the correct one is retained, even when the attempt is wrong (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725).</p>
+
+  <h2>Using this on your own work</h2>
+
+  <p>Auditing every column of every table is miserable and you will stop at the third table. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Pick the one numeric column</strong> your reporting depends on most. Usually revenue, duration or count.</li>
+    <li><strong>Run the four numbers</strong> on it: Q1, Q3, IQR, and Q3 plus 1.5 IQR. One query.</li>
+    <li><strong>Read every row past the fence</strong>, actually read them, with enough columns beside them to judge. Not the count of them, the rows.</li>
+    <li><strong>Decide per row using section seven's four options</strong>, and write down which one you chose. The write-down is the part that makes it defensible later.</li>
+    <li><strong>Save the query</strong> and run it whenever new data lands. The value of an outlier check is almost entirely in it being routine.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional drawing is worth five minutes. Write your own last twenty values in sorted order, draw a box around the middle ten, then measure that box's width and step one and a half of it beyond each side. Doing it with a ruler once is how the rule stops being a formula you look up.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Python, Excel, statistics and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Idea</th><th>What it means</th></tr>
+    <tr><td>Percentile</td><td>A value with a stated share of the data below it. Built from positions, not sizes.</td></tr>
+    <tr><td>Position formula</td><td>1 + p × (n − 1). For Q3 here: 1 + 0.75 × 15 = 12.25.</td></tr>
+    <tr><td>Interpolation</td><td>12.25 means a quarter of the way from the 12th value to the 13th. 786.25.</td></tr>
+    <tr><td>Q1 / median / Q3</td><td>440 / 630 / 786.25 on these sixteen orders.</td></tr>
+    <tr><td>IQR</td><td>Q3 − Q1 = 346.25. The width of the middle half.</td></tr>
+    <tr><td>Upper fence</td><td>Q3 + 1.5 × IQR = 1,305.63. Lower fence: Q1 − 1.5 × IQR.</td></tr>
+    <tr><td>Clean data here</td><td>Flags nothing. The largest real order, 1,100, sits inside the fence.</td></tr>
+    <tr><td>One typo</td><td>sd goes 236.81 → 1,365.84. IQR goes 346.25 → 417.50. The fence still fires.</td></tr>
+    <tr><td>Why not z-scores</td><td>The bad row inflates the sd it is measured against. 3.69 against a true 22.7.</td></tr>
+    <tr><td>Robust z</td><td>Use the median and the median absolute deviation. 16.4 here instead of 3.69.</td></tr>
+    <tr><td>PERCENTILE.INC vs .EXC</td><td>Endpoints included or excluded. Q3 786.25 against 828.75.</td></tr>
+    <tr><td>PERCENTILE_CONT vs _DISC</td><td>Interpolated, or an actual value from your data. 786.25 against 765.</td></tr>
+    <tr><td>Long tails</td><td>Report percentiles, not averages. p95 describes the slowest twentieth.</td></tr>
+    <tr><td>What a flag is</td><td>A row to read. Never a decision, never a deletion.</td></tr>
+    <tr><td>The four responses</td><td>Fix it, exclude and say so, keep it and switch statistics, or split the populations.</td></tr>
+    <tr><td>Percentiles do not combine</td><td>You cannot average group percentiles into an overall one. Recompute from raw rows.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Run the fence on your main numeric column every time new data lands, and read the rows it returns rather than counting them. It is one saved query, and it turns data quality from a worry into a short list. If a check breaks in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The first outlier query I ever saved found a single order with an extra zero that had been sitting in three months of published reports. What has a fence caught in your data that nobody had noticed by eye?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Hyndman, R. J., &amp; Fan, Y. (1996). Sample quantiles in statistical packages. <em>The American Statistician</em>, 50(4), 361–365.</li>
+    <li>Leys, C., Ley, C., Klein, O., Bernard, P., &amp; Licata, L. (2013). Detecting outliers: Do not use standard deviation around the mean, use absolute deviation around the median. <em>Journal of Experimental Social Psychology</em>, 49(4), 764–766.</li>
+    <li>Tukey, J. W. (1977). <em>Exploratory Data Analysis</em>. Addison-Wesley. (The origin of the box plot and the 1.5 × IQR convention. A monograph rather than a journal article.)</li>
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice this with numbers in front of you.</strong>
+    <p style="margin:6px 0 0">The <a href="../../stats/">Statistics Kit</a> gives you the repetitions: worked percentile calculations, flash cards on the fence arithmetic, and questions that ask you to predict which rows a rule will flag before you run it. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../stats/">Open the Statistics Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../mean-vs-median/">Mean vs Median</a> · <a href="../standard-deviation/">Standard Deviation</a> · <a href="../confidence-intervals/">Confidence Intervals</a> · <a href="../p-values/">P-Values</a> · <a href="../ab-testing-for-analysts/">A/B Testing for Analysts</a> · <a href="../how-charts-mislead/">How Charts Mislead</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../excel-clean-messy-data/">Clean Messy Data in Excel</a> · <a href="../pandas-groupby/">pandas groupby</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../stats/">Statistics Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
