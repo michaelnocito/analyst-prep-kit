@@ -56,13 +56,37 @@ Hub pages get `hub_book_click` instead of `guide_book_click`.
 | Migration | The Data Migration Playbook | data-migration-playbook |
 | Career / method | Thinking Like an Analyst | thinking-like-an-analyst |
 
+Prices, confirmed on the live listings 2026-08-09: $19 for Excel, SQL, Tableau,
+Python, Power BI, Statistics and Thinking Like an Analyst. $12 for Forecasting
+and Charts and Visualization. $29 for the Data Migration Playbook.
+
 Open question, verify before Batch 9: whether pack-core, pack-bi and
 pack-everything are live listings with slugs. Memory has them built and staged
 but the 07-31 handoff had them unlisted.
 
 ## Batches
 
-- [ ] **B1 — Kit hubs (13).** excel, sql, tableau, python, powerbi, statistics, forecasting, viz, chart-literacy, interview, path, projects, guides index
+- [x] **B1 — Kit hubs (13). DONE 2026-08-09, verified live.** excel, sql, tableau, python, powerbi, stats, forecasting, viz, chart-literacy, interview, path, projects, guides index
+
+  Ten came from one edit to `assets/apk-footer.js`, which now carries a
+  `BOOKS` map keyed by path segment and injects a card above the shared
+  footer. Opt-in, so drill, final, simulator and the cert pages stay clean
+  (checked live, no card on any of them). `viz` and the guides index got a
+  static `.book` block instead, because both already have their own footer
+  and the shared script would have added a second one. `path` was missing
+  the shared script entirely and now includes it.
+
+  **Corrections found while building:**
+  - `statistics/` is a meta-refresh redirect to `stats/`. The real hub is
+    `stats/`, which is where the card went. It was on the excluded list by
+    mistake.
+  - Prices are all confirmed off the live listings: $19 for Excel, SQL,
+    Tableau, Python, Power BI, Statistics and Thinking; $12 for Forecasting
+    and Charts; $29 for the Playbook. No more guessing needed in later batches.
+  - **The include had no version query**, so the CDN and every returning
+    visitor kept the pre-batch file. The card was live in the repo and
+    invisible on the site. Now `apk-footer.js?v=2` on all 18 pages.
+    **Bump that number on any future edit to a shared asset.**
 - [ ] **B2 — Excel guides 1-13.** character-encoding, chart-design-basics, check-your-work, circular-findings, clean-messy-data, conditional-formatting, csv-import-leading-zeros, custom-number-formats, dashboard-build-order, dashboard-claim, data-validation, dates, dynamic-arrays
 - [ ] **B3 — Excel guides 14-26.** if-family, iferror, ifs-vs-nested-if, index-match, kpi-row, label-rows-before-charting, month-over-month, name-your-data, pick-the-chart, pivot-percentages, pivot-table-question, pivot-tables, power-query
 - [ ] **B4 — Excel guides 27-33 + adjacent (13).** remove-duplicates, slicers, sort-your-bars, sum-of-id-trap, sumifs, sumproduct, tables, vlookup-vs-xlookup, budget-vs-actual-variance, export-sql-results-to-excel, connect-excel-to-a-database, free-datasets-to-practice-with, sample-database-for-sql-practice
