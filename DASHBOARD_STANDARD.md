@@ -70,10 +70,20 @@ principles, not decoration.
   ways to read one number.
 - Color is a pointer, not decoration. Mute the context, color the subject.
   The subject is not always the biggest shape.
+- **Never spend the accent on the numerous thing.** Added 2026-08-09 out of the
+  guides index. That page gave its only accent colour to all 131 card titles and
+  left the 10 section headings in near-black, so the things you were choosing
+  between shouted louder than the signposts meant to help you choose. An accent
+  used everywhere is not an accent, it is the body colour. Count how many
+  elements carry it before adding one more.
 - Sorted hands the reader the ranking. Unsorted makes them work it out.
 - Rates compare groups of different sizes. Counts just show which group is big.
 - Everything on a page competes for the same attention. Anything not carrying
-  meaning is taking attention from something that is.
+  meaning is taking attention from something that is. **Inside a chart this
+  stands.** For whether a non-informational element may exist elsewhere on a
+  page, the ban was replaced by a four-gate friction test on 2026-08-09; see
+  `marketing/ARTICLE_STANDARD.md` section 4b. Charts are not a wayfinding
+  surface, so the strict reading still applies here.
 - Format changes appearance. Typing changes substance. Never fake a number to
   make it look right.
 
