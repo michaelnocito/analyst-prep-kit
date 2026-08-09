@@ -771,7 +771,7 @@ footer a:hover{color:var(--accent-d)}
       <input id="pal-input" type="search" name="grain-topic-search" placeholder="Search lessons, terms and apps…" autocomplete="off" autocorrect="off" spellcheck="false" aria-autocomplete="list">
       <kbd style="font-family:var(--font-mono);font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:5px;padding:2px 7px">Esc</kbd>
     </div>
-    <div class="pal-results" id="pal-results"><div class="pal-empty">Type to search every lesson, glossary term and app — e.g. "VLOOKUP", "LEFT JOIN", "p-value".</div></div>
+    <div class="pal-results" id="pal-results"><div class="pal-empty">Type to search every lesson, guide, glossary term and app — e.g. "VLOOKUP", "LEFT JOIN", "p-value".</div></div>
     <div class="pal-foot"><span><kbd>↑↓</kbd> navigate</span><span><kbd>Enter</kbd> open</span><span><kbd>Esc</kbd> close</span></div>
   </div>
 </div>
@@ -784,7 +784,9 @@ footer a:hover{color:var(--accent-d)}
 
   function loadIx(){
     if(IX) return Promise.resolve(IX);
-    return fetch('assets/search-index.json?v=1').then(r=>r.json()).then(j=>{IX=j; return j;}).catch(()=>({}));
+    // v2 adds the guides. Bump this whenever the index is rebuilt, or returning
+    // visitors keep a cached copy that cannot find the new entries.
+    return fetch('assets/search-index.json?v=2').then(r=>r.json()).then(j=>{IX=j; return j;}).catch(()=>({}));
   }
   function apps(){
     // Two shapes now: the PrepLoop .kit-card, and .skill-item rows inside the
@@ -810,16 +812,22 @@ footer a:hover{color:var(--accent-d)}
         if(hit(g.t)||hit(g.d)) out.push({type:'term', kit:kit.name, title:g.t, sub:g.d, href:kit.path, score:hit(g.t)?2:0.5});
       });
     });
+    // Guides live in a flat top-level array, not a kit, so they are matched
+    // here rather than in the loop above (which skips them: no lessons/gloss).
+    // Built by tools/build-search-index-guides.js from guides/index.html.
+    (IX.guides||[]).forEach(g=>{
+      if(hit(g.t)||hit(g.k)) out.push({type:'guide', kit:'Guide', title:g.t, sub:g.u, href:'guides/'+g.h+'/', score:hit(g.t)?2:1});
+    });
     apps().forEach(a=>{ if(hit(a.title)||hit(a.sub)) out.push({...a, score:hit(a.title)?2:1}); });
     out.sort((a,b)=>b.score-a.score || a.title.length-b.title.length);
     return out.slice(0,30);
   }
   function render(){
     if(!items.length){
-      res.innerHTML='<div class="pal-empty">'+(inp.value.trim()?'No matches. Try a shorter word — "join", "pivot", "null".':'Type to search every lesson, glossary term and app.')+'</div>';
+      res.innerHTML='<div class="pal-empty">'+(inp.value.trim()?'No matches. Try a shorter word — "join", "pivot", "null".':'Type to search every lesson, guide, glossary term and app.')+'</div>';
       return;
     }
-    const groups=[['lesson','Lessons'],['term','Glossary'],['app','Apps & games']];
+    const groups=[['lesson','Lessons'],['guide','Guides'],['term','Glossary'],['app','Apps & games']];
     let html='', idx=0;
     groups.forEach(([type,label])=>{
       const g=items.filter(i=>i.type===type);
