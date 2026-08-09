@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cohort Retention Analysis in SQL, Step by Step — Analyst Prep Kit</title>
+<meta name="description" content="Group customers by their first month, count how many come back in each later month, and read the triangle. Includes the two definitions of retained that give 50% and 33% from the same data.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-cohort-retention/">
+<meta property="og:title" content="Cohort Retention Analysis in SQL, Step by Step">
+<meta property="og:description" content="Four short steps to a retention triangle, and the definition question underneath it: does retained mean active this month, or active every month since? The same cohort answers 50% or 33%.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-cohort-retention.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-cohort-retention/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-cohort-retention.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Cohort Retention Analysis in SQL, Step by Step",
+  "description": "Group customers by their first month, count how many come back in each later month, and read the triangle. Includes the two definitions of retained that give 50% and 33% from the same data.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-cohort-retention/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-cohort-retention/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-cohort-retention.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Cohort Retention Analysis in SQL, Step by Step",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-cohort-retention/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>Cohort Retention Analysis in SQL, Step by Step</h1>
+  <p class="meta">Four short queries, and the definition question underneath them · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can put every customer into the month they arrived, measure how many of each arrival group come back in each later month, build the triangle that shows it, and say precisely which of two reasonable definitions of "retained" your number uses. It is about twenty-five minutes, and every query and result below was run.</p>
+
+  <p>Here is what to do today, before writing any of it. Write down what one row of your finished table will mean, in a sentence with two dates in it: "of the customers whose first purchase was in month X, this many bought again in month Y." Everything on this page is that sentence turned into SQL, and most retention numbers that turn out to be wrong were wrong in the sentence.</p>
+
+  <p>The short version: tag every customer with their first month, tag every event with how many months after that it happened, then count distinct customers per pair.</p>
+
+  <p>The shape you are heading for is the idea, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 244" role="img" aria-labelledby="crTitle crDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="crTitle">The triangle, and why it is a triangle</title>
+      <desc id="crDesc">A grid three rows deep and three columns wide, with the columns headed 0, 1 and 2 for the number of months since a group arrived, and the rows labelled Jan, Feb and Mar for the month each group arrived in. The top row is complete: three filled cells reading 5, then 3, then 2. The middle row has only two filled cells, reading 4 then 2, and its third position is an empty dashed outline. The bottom row has a single filled cell reading 3, and its second and third positions are empty dashed outlines. The filled cells therefore form a descending staircase, and the empty dashed ones form a triangle of missing information in the lower right. Nothing is missing because of a data problem: the March group has simply not existed for two months yet, so no number can be there.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <g font-size="14" font-weight="700" fill="#52525B" text-anchor="middle">
+          <text x="290" y="36">0</text><text x="430" y="36">1</text><text x="570" y="36">2</text>
+        </g>
+        <g font-size="15" font-weight="700" fill="#52525B" text-anchor="end">
+          <text x="200" y="83">Jan</text><text x="200" y="141">Feb</text><text x="200" y="199">Mar</text>
+        </g>
+        <g stroke="#0E7490" stroke-width="2" fill="#E0F2F7">
+          <rect x="222" y="52" width="136" height="42"/>
+          <rect x="362" y="52" width="136" height="42"/>
+          <rect x="502" y="52" width="136" height="42"/>
+          <rect x="222" y="110" width="136" height="42"/>
+          <rect x="362" y="110" width="136" height="42"/>
+          <rect x="222" y="168" width="136" height="42"/>
+        </g>
+        <g stroke="#B45309" stroke-width="2" stroke-dasharray="6 5" fill="#FFFFFF">
+          <rect x="502" y="110" width="136" height="42"/>
+          <rect x="362" y="168" width="136" height="42"/>
+          <rect x="502" y="168" width="136" height="42"/>
+        </g>
+        <g font-size="19" font-weight="700" fill="#09090B" text-anchor="middle">
+          <text x="290" y="81">5</text><text x="430" y="81">3</text><text x="570" y="81">2</text>
+          <text x="290" y="139">4</text><text x="430" y="139">2</text>
+          <text x="290" y="197">3</text>
+        </g>
+      </g>
+    </svg>
+    <figcaption>Every group starts at its own arrival month and can only be observed for as long as it has existed. The empty cells in the lower right are not missing data, they are months that have not happened yet, and treating them as zeros is the most common way to make retention look worse than it is.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What a cohort is, and the decision that defines it</li>
+      <li>Step one: everyone's first month</li>
+      <li>Step two: how many months later</li>
+      <li>Step three: the triangle</li>
+      <li>Counts against rates</li>
+      <li>Customers, not purchases</li>
+      <li>Two definitions of retained</li>
+      <li>Revenue retention</li>
+      <li>The full before and after</li>
+      <li>Edge cases that break a cohort table</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every result on this page is real.</strong> Twelve customers, nineteen purchases, 2,430 in revenue, from 6 January to 25 March 2026, loaded into DuckDB and queried. Small enough to check every number by hand, which is the point: build a cohort query on data you can count on your fingers before pointing it at millions of rows.</div>
+
+  <div class="step">
+    <h2>1. What a cohort is, and the decision that defines it</h2>
+
+    <p>A cohort is a group of customers who share a starting point, and almost always that starting point is when they arrived. Group by arrival month, then watch each group over time. The reason to do it at all is that a single overall retention number mixes people who joined last week with people who joined three years ago, and those are different populations having different experiences.</p>
+
+    <p>Before the explanation: your table has a first-purchase date, a signup date and a first-login date. Say which one defines the cohort.</p>
+
+    <p>Whichever one you can defend in the meeting, and you have to pick before writing SQL, because the answer changes every number afterwards. First purchase is right for a retention question about paying behaviour. Signup is right if you are measuring whether the product converts people. They are not the same customers and they are not the same months, and a table that says "cohort" without saying which is not a finding. Getting that written down is the whole of <a href="../defining-metrics/">defining a metric</a>, applied here.</p>
+
+    <p>This page uses first purchase, on a purchases table with three columns: customer, date, amount. Nineteen rows, twelve customers.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. Step one: everyone's first month</h2>
+
+    <p>One aggregate gives every customer a cohort, and it is the only place the word <code>MIN</code> appears.</p>
+
+    <pre><code>SELECT customer_id,
+       MIN(purchase_date)                              AS first_purchase,
+       DATE_TRUNC('month', MIN(purchase_date))::DATE   AS cohort
+FROM purchases
+GROUP BY 1;
+
+C1  | 2026-01-06 | 2026-01-01
+C2  | 2026-01-09 | 2026-01-01
+C3  | 2026-01-14 | 2026-01-01
+C4  | 2026-01-21 | 2026-01-01
+C5  | 2026-01-28 | 2026-01-01
+C6  | 2026-02-03 | 2026-02-01
+...</code></pre>
+
+    <p>Two things worth noticing. The cohort is a <em>date</em>, the first of the month, not a string, for all the reasons in <a href="../sql-dates/">the date guide</a>: it sorts chronologically, it can be subtracted from, and it can be joined to a calendar. And every customer appears exactly once, which makes this a table you can safely join back to the purchases without multiplying anything.</p>
+
+    <p>Counting it gives the denominators for the whole analysis:</p>
+
+    <pre><code>2026-01-01 | 5
+2026-02-01 | 4
+2026-03-01 | 3</code></pre>
+
+    <p>Five, four and three, which adds to twelve, the number of customers. Check that sum every time. If cohort sizes do not add up to your customer count, somebody has two first purchases, which means the customer key is not unique.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Step two: how many months later</h2>
+
+    <p>Join the first-month table back onto every purchase and subtract, in months.</p>
+
+    <pre><code>SELECT p.customer_id,
+       f.cohort,
+       DATE_TRUNC('month', p.purchase_date)::DATE AS activity_month,
+       DATEDIFF('month', f.cohort, DATE_TRUNC('month', p.purchase_date)) AS month_no
+FROM purchases p
+JOIN first_p f USING (customer_id);
+
+C1 | 2026-01-01 | 2026-01-01 | 0
+C1 | 2026-01-01 | 2026-02-01 | 1
+C1 | 2026-01-01 | 2026-03-01 | 2
+C3 | 2026-01-01 | 2026-01-01 | 0
+C3 | 2026-01-01 | 2026-02-01 | 1
+C6 | 2026-02-01 | 2026-02-01 | 0
+C6 | 2026-02-01 | 2026-03-01 | 1
+...</code></pre>
+
+    <p>That <code>month_no</code> column is the whole trick. It converts calendar time into time-since-arrival, so a customer who joined in January and one who joined in March can be compared at the same age. Without it you can only compare calendar months, which mixes ages together and is the reason a plain monthly active count never answers a retention question.</p>
+
+    <p>Two details. Truncate both sides to the month before subtracting, or a purchase on the 2nd of the next month and one on the 30th of the same month will land in different buckets by a day. And month 0 exists by construction: everybody is active in the month they arrived, so the first column of a cohort table is always the cohort size.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Step three: the triangle</h2>
+
+    <p>Now count distinct customers per cohort per month number. Here it is laid out the way people read it, with the month numbers across the top:</p>
+
+    <pre><code>cohort     |  m0 |  m1 |  m2
+2026-01-01 |   5 |   3 |   2
+2026-02-01 |   4 |   2 |   .
+2026-03-01 |   3 |   . |   .</code></pre>
+
+    <p>Read the first row: five customers arrived in January, three of them bought again in February, two bought in March. Check it by hand against the list in step three and you will find C1, C2 and C3 in month 1, and C1 and C2 in month 2.</p>
+
+    <p>The gaps in the lower right are not missing data. February's cohort has only existed for two months, so it has no month 2 yet, and March's has no month 1. That is the single most important thing to get right when presenting one of these, because filling those cells with zeros turns "we do not know yet" into "nobody came back", and the average down a column then falls for a reason that has nothing to do with the product.</p>
+
+    <p>The query is one <code>CASE</code> per column, which is fine for three and unwieldy for twelve. The version that scales returns one row per cell instead and lets the reporting tool lay it out:</p>
+
+    <pre><code>SELECT cohort, month_no, COUNT(DISTINCT customer_id) AS active
+FROM act
+GROUP BY 1, 2
+ORDER BY 1, 2;</code></pre>
+  </div>
+
+  <div class="step">
+    <h2>5. Counts against rates</h2>
+
+    <p>Counts are what you check; rates are what you compare. Joining the cohort sizes back gives both.</p>
+
+    <pre><code>cohort     | size | month_no | active | retention_pct
+2026-01-01 |    5 |        0 |      5 |         100.0
+2026-01-01 |    5 |        1 |      3 |          60.0
+2026-01-01 |    5 |        2 |      2 |          40.0
+2026-02-01 |    4 |        0 |      4 |         100.0
+2026-02-01 |    4 |        1 |      2 |          50.0
+2026-03-01 |    3 |        0 |      3 |         100.0</code></pre>
+
+    <p>Month 0 is 100% in every row by definition, which is a useful check rather than a finding: if it is not 100%, the join lost rows.</p>
+
+    <p>Now the comparison the table exists for. January retained 60% at month 1 and February retained 50%. Say out loud whether that is a real decline before reading on.</p>
+
+    <p>It is three customers against two, on cohorts of five and four. A single customer moving changes January by 20 points and February by 25. On this data the honest sentence is that the cohorts are too small to compare, and the way you say that is by publishing the counts next to the rates, which is why the table above has both. Percentages on tiny denominators are the most confidently wrong numbers in analytics.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Customers, not purchases</h2>
+
+    <p>Before the explanation: one January customer buys twice in January. Say what that does to the month 0 cell if you count with <code>COUNT(*)</code>.</p>
+
+    <p>Adding exactly that customer to the data and running both counts side by side:</p>
+
+    <pre><code>cohort     | month_no | purchases | customers
+2026-01-01 |        0 |         7 |         6
+2026-01-01 |        1 |         3 |         3
+2026-01-01 |        2 |         2 |         2</code></pre>
+
+    <p>Seven purchases, six customers. The cohort has six people in it and <code>COUNT(*)</code> claims seven, so month 0 comes out at 116.7% and everything below it is divided by the wrong denominator.</p>
+
+    <p>Retention is a question about people, so every count in a cohort table is <code>COUNT(DISTINCT customer_id)</code>. The only exception is when you genuinely mean order frequency, and then the column should be called something other than retention.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Two definitions of retained</h2>
+
+    <p>This is the part that decides whether two teams agree, and it is invisible in the SQL unless you look for it.</p>
+
+    <p>Add one customer to the January cohort who buys in January, buys nothing in February, and comes back in March. The cohort goes from five to six, and the triangle now reads:</p>
+
+    <pre><code>cohort     | size | month_no | active | retention_pct
+2026-01-01 |    6 |        0 |      6 |         100.0
+2026-01-01 |    6 |        1 |      3 |          50.0
+2026-01-01 |    6 |        2 |      3 |          50.0</code></pre>
+
+    <p>Retention did not fall between month 1 and month 2. Under this definition it cannot be read as a survival curve at all, because a customer who lapses and returns is counted again. That definition has a name worth using: <strong>active in month N</strong>.</p>
+
+    <p>The other definition asks who has been active in every month since arriving. On the same six customers:</p>
+
+    <pre><code>cohort_size | active in m2 | active every month
+          6 |            3 |                  2</code></pre>
+
+    <p>Three against two, which is 50% against 33.3% for the same cohort in the same month. Neither query is wrong. They answer different questions, and the difference is one customer who took a month off.</p>
+
+    <p>Which to use depends on the business. For a subscription, where lapsing means cancelling, "active every month since" is closer to the truth. For a shop, where people buy when they need something, "active in month N" is the sensible one and a gap is not a loss. Write the choice into the column heading, not into a comment, because the column heading is the only part that travels.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. Revenue retention</h2>
+
+    <p>The same skeleton with <code>SUM(amount)</code> instead of a count answers a different and often more useful question: not how many came back, but how much.</p>
+
+    <pre><code>cohort     | month_no | revenue
+2026-01-01 |        0 |     610
+2026-01-01 |        1 |     380
+2026-01-01 |        2 |     250
+2026-02-01 |        0 |     460
+2026-02-01 |        1 |     310
+2026-03-01 |        0 |     420</code></pre>
+
+    <p>Those six cells add to 2,430, which is the total of the purchases table, so no money has been lost or double counted on the way through the join. That reconciliation is the check to keep: <strong>every cell of a cohort revenue table, added together, must equal the source total.</strong></p>
+
+    <p>Reading it alongside the customer table is where it earns its place. January kept 60% of its customers into month 1 and 62.3% of its revenue, 380 out of 610, so the ones who stayed were spending at about the same rate. When the two percentages diverge sharply, that is the finding: keeping half your customers and 90% of your money is a very different business from keeping half of each.</p>
+
+    <p>Picture your own customer table for a moment. If you built this today, which would you expect to fall faster, the count or the revenue? That expectation is worth writing down before you run it.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same question: are we keeping the customers we get?</p>
+
+  <h3>Before</h3>
+  <pre><code>SELECT DATE_TRUNC('month', purchase_date) AS month,
+       COUNT(DISTINCT customer_id) AS active
+FROM purchases GROUP BY 1 ORDER BY 1;
+
+2026-01-01 | 5
+2026-02-01 | 7
+2026-03-01 | 7</code></pre>
+  <p>Monthly active customers, which looks like growth and says nothing about retention. It mixes brand new customers with returning ones, so a month can hold flat while every existing customer leaves and is replaced. There is no denominator, no age, and no way to tell those two stories apart.</p>
+
+  <h3>After</h3>
+  <pre><code>WITH first_p AS (
+  SELECT customer_id, DATE_TRUNC('month', MIN(purchase_date))::DATE AS cohort
+  FROM purchases GROUP BY 1                        -- 12 customers
+), sizes AS (
+  SELECT cohort, COUNT(*) AS n FROM first_p GROUP BY 1     -- 5, 4, 3
+), act AS (
+  SELECT f.cohort,
+         DATEDIFF('month', f.cohort, DATE_TRUNC('month', p.purchase_date)) AS month_no,
+         p.customer_id
+  FROM purchases p JOIN first_p f USING (customer_id)      -- 19 rows, unchanged
+), grid AS (
+  SELECT cohort, month_no, COUNT(DISTINCT customer_id) AS active
+  FROM act GROUP BY 1, 2
+)
+SELECT g.cohort, s.n AS cohort_size, g.month_no, g.active,
+       ROUND(100.0 * g.active / s.n, 1) AS retention_pct
+FROM grid g JOIN sizes s USING (cohort)
+ORDER BY g.cohort, g.month_no;</code></pre>
+
+  <p>Four named steps with a row count each, a denominator on every rate, and the month 0 column sitting at 100% as a built-in check. The triangle is honest about what has not happened yet.</p>
+
+  <p>The claim, and it is the reason section seven exists: <strong>the same January cohort in the same month is 50% retained or 33.3% retained depending on which definition of the word you used, and the SQL for both is four lines long.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases that break a cohort table</h2>
+
+    <p>Six that get through.</p>
+
+    <p><strong>Zeros in the future cells.</strong> A <code>LEFT JOIN</code> onto a full grid of cohort-by-month pairs will helpfully fill every gap with zero, including the months that have not happened. Filter to <code>cohort + month_no &lt;= the last complete month</code> before anyone averages a column.</p>
+
+    <p><strong>An incomplete current month.</strong> The most recent column is always partial, so it always looks like a collapse. Either exclude it or label it, the same discipline as <a href="../excel-month-over-month/">a partial month in a trend</a>.</p>
+
+    <p><strong>The customer key is not one customer.</strong> If people can create two accounts, their second one starts a new cohort and their first one appears to churn. That is <a href="../entity-resolution/">entity resolution</a>, and it flatters churn and depresses retention at the same time.</p>
+
+    <p><strong>Refunds and cancellations counted as activity.</strong> A refund row is a purchase row in most schemas. Decide whether a customer who only returned something counts as retained, and filter before the cohort step, not after.</p>
+
+    <p><strong>Backfilled history.</strong> If old data was migrated with a load date rather than an event date, every migrated customer joins the same fake cohort, which appears as one enormous group with strange retention. Check the cohort sizes for a suspicious spike before believing anything.</p>
+
+    <p><strong>Tiny cohorts.</strong> A cohort of four cannot produce a percentage worth comparing. Publish the counts, and set a floor below which you show the count only, the same argument as the small-group floor in <a href="../sql-group-by-having/">GROUP BY and HAVING</a>.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>A cohort table is a survival analysis with the statistics taken out. The reason it has to be a triangle is the same reason survival studies exist as a separate field: the newest subjects have not been observed for as long as the oldest ones, so their later outcomes are unknown rather than negative. The standard treatment of that situation, estimating survival from records where some subjects have simply not been followed long enough, is what Kaplan and Meier set out, and the key move is that an unobserved period must be excluded rather than counted as a failure (Kaplan &amp; Meier, 1958, <em>Journal of the American Statistical Association</em>, 53(282), 457–481). Filling the lower-right cells with zeros is precisely the error their method exists to avoid, and it is the commonest mistake in a retention deck.</p>
+
+  <p>The other half of the page, the two definitions, is not a SQL problem at all. Customer-base analysis treats "still a customer" as something that has to be modelled rather than observed, because in a non-contractual setting nobody tells you they have left; a gap in purchasing is consistent both with churn and with a customer who buys twice a year (Fader &amp; Hardie, 2009, <em>Journal of Interactive Marketing</em>, 23(1), 61–69). That is exactly the customer in section seven who skipped February. Whether they count as retained in March is a modelling choice, and the honest thing to do in a report is to name the choice in the column heading.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than reread, because the act of testing yourself is itself a learning event rather than merely a measurement of one (Roediger &amp; Karpicke, 2006, <em>Perspectives on Psychological Science</em>, 1(3), 181–210).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Building the full thing in one go is how cohort queries end up unverifiable. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Write the sentence first.</strong> "Of the customers whose first X was in month A, this many did Y in month B." Both halves need a definition.</li>
+    <li><strong>Build step one on its own</strong> and check that the cohort sizes add to your customer count.</li>
+    <li><strong>Build step two on its own</strong> and check that the row count still equals the number of events you started with. A join that changes it has multiplied something.</li>
+    <li><strong>Check the month 0 column is 100%</strong> before looking at anything else.</li>
+    <li><strong>Publish counts beside rates</strong>, and hide the percentage where the cohort is too small to support one.</li>
+    <li><strong>Mark the incomplete cells as unknown</strong>, never as zero, and exclude the current partial month.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Draw the triangle empty, with your own months down the side and month numbers across the top, then shade the cells that could possibly contain a number today. The unshaded region is what your query must not fill in, and drawing it is faster than arguing about it after the deck is built.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>. If you would rather type queries than read about them, the <a href="../../drill/">SQL Drill</a> gives you one runnable query at a time against a real database.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>A cohort</td><td>Customers who share a starting month.</td></tr>
+    <tr><td>The first decision</td><td>Which event starts the clock: signup, first purchase, first login.</td></tr>
+    <tr><td>Step one</td><td><code>MIN(date)</code> per customer, truncated to the month.</td></tr>
+    <tr><td>Cohort sizes</td><td>Must add up to your customer count.</td></tr>
+    <tr><td>Step two</td><td><code>DATEDIFF('month', cohort, activity_month)</code>.</td></tr>
+    <tr><td>Truncate both sides</td><td>Or a purchase a day apart lands in a different bucket.</td></tr>
+    <tr><td>Month 0</td><td>Always the cohort size. Always 100%. A check, not a finding.</td></tr>
+    <tr><td>Step three</td><td><code>COUNT(DISTINCT customer_id)</code> per cohort per month number.</td></tr>
+    <tr><td>Never COUNT(*)</td><td>Two purchases in one month becomes 117% retention.</td></tr>
+    <tr><td>The empty cells</td><td>Months that have not happened. Not zeros.</td></tr>
+    <tr><td>Active in month N</td><td>Counts a returning lapsed customer. Can go up.</td></tr>
+    <tr><td>Active every month</td><td>A survival curve. Can only go down.</td></tr>
+    <tr><td>The gap between them</td><td>On the same cohort here, 50% against 33.3%.</td></tr>
+    <tr><td>Revenue retention</td><td>Same skeleton, <code>SUM(amount)</code>. Cells must add to the source total.</td></tr>
+    <tr><td>Reading them together</td><td>Customers down 40% and revenue down 38% is a different story from 40% and 10%.</td></tr>
+    <tr><td>Small cohorts</td><td>One customer moves the rate by twenty points. Show the count.</td></tr>
+    <tr><td>The current month</td><td>Partial, so it always looks like a collapse. Exclude or label.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Put the cohort size next to every percentage, in the table itself. Retention is a ratio with a tiny denominator far more often than anyone admits, and the count is the only thing on the page that stops 50% and 33% being argued about as if they were measurements rather than two customers. If a cohort query misbehaves in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The one I remember was a retention deck where the newest three cohorts had been filled in with zeros for months they had not lived through, so every chart bent downwards at the right and the whole company spent a quarter explaining a decline that was an artefact of the query. What has a cohort table told you that turned out to be about the query?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Kaplan, E. L., &amp; Meier, P. (1958). Nonparametric estimation from incomplete observations. <em>Journal of the American Statistical Association</em>, 53(282), 457–481.</li>
+    <li>Fader, P. S., &amp; Hardie, B. G. S. (2009). Probability models for customer-base analysis. <em>Journal of Interactive Marketing</em>, 23(1), 61–69.</li>
+    <li>Roediger, H. L., &amp; Karpicke, J. D. (2006). The power of testing memory: Basic research and implications for educational practice. <em>Perspectives on Psychological Science</em>, 1(3), 181–210.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice cohort queries on data you can count by hand.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> gives you the repetitions: first-event tables to build, month numbers to compute, triangles to assemble, and flash cards on exactly which count belongs in which cell. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-dates/">SQL Date Functions</a> · <a href="../sql-subqueries/">Subquery vs CTE</a> · <a href="../sql-running-total/">Running Total in SQL</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../../sql/">SQL Kit</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../excel-month-over-month/">Month-over-Month in Excel</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../report-vs-analysis/">Report vs Analysis</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
