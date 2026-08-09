@@ -41,7 +41,9 @@ const attr = (tag, name) => {
 };
 let m;
 while ((m = re.exec(html)) !== null) {
-  if (m[1] !== undefined) { section = clean(m[1]).replace(/\d+$/, '').trim(); continue; }
+  // Drop the count span before cleaning; it holds "17 · 4-7 min read" now, so a
+  // trailing-digits strip no longer removes it.
+  if (m[1] !== undefined) { section = clean(m[1].replace(/<span class="seccount"[\s\S]*?<\/span>/g, '')).trim(); continue; }
   const tag = m[2], title = m[3];
   const href = attr(tag, 'href');
   if (!href) throw new Error('a .gcard has no href: ' + tag.slice(0, 80));

@@ -78,6 +78,14 @@ const ALIASES = [
      stopwords are stripped in the page script, so "why is my total wrong"
      arrives here as "total wrong". */
   { test: /sql-joins|pandas-merge/,                   add: 'total wrong doubled double counting numbers too high fan out' },
+
+  /* Her words, not ours. A real tester on 2026-08-09 typed all of these and got
+     nothing back, while our own vocabulary worked fine. "combine" was the worst:
+     it returned two Tableau guides filed under a heading reading SQL concepts. */
+  { test: /sql-joins|pandas-merge|excel-index-match|vlookup-vs-xlookup|sql-reconciliation/,
+    add: 'combine combining two spreadsheets two tables two files two lists side by side match up bring together' },
+  { test: /sql-joins|pandas-merge|excel-power-query/,  add: 'different column names columns do not match stack append' },
+  { test: /entity-resolution|sql-reconciliation/,      add: 'same thing spelled differently names do not match' },
   { test: /sql-reconciliation/,                       add: 'totals do not match numbers different mismatch' },
   { test: /excel-sum-of-id-trap|excel-check-your-work/, add: 'wrong number confident wrong sanity check' },
 ];
@@ -108,7 +116,9 @@ let section = '';
 const scan = /<h2>([\s\S]*?)<\/h2>|<a class="gcard"[^>]*href="([^"]+)"[^>]*>\s*<p class="t">([\s\S]*?)<\/p>\s*<p class="d">([\s\S]*?)<\/p>/g;
 let m;
 while ((m = scan.exec(html)) !== null) {
-  if (m[1] !== undefined) { section = clean(m[1]).replace(/\d+$/, '').trim(); continue; }
+  // Drop the count span before cleaning. It used to hold only digits and a
+  // trailing \d+ strip was enough; it now holds "17 · 4-7 min read".
+  if (m[1] !== undefined) { section = clean(m[1].replace(/<span class="seccount"[\s\S]*?<\/span>/g, '')).trim(); continue; }
   cards.push({ href: m[2], title: clean(m[3]), desc: clean(m[4]), section });
 }
 if (!cards.length) throw new Error('no cards found; has the markup changed?');

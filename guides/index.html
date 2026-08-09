@@ -118,29 +118,36 @@
      and size do the signalling here; it costs no bytes and no requests. */
   h2{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:700;letter-spacing:-.2px}
   h2 svg{width:20px;height:20px;flex:0 0 auto;stroke:var(--accent);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-  h2 .seccount{font-size:12.5px;font-weight:400;color:var(--muted);margin-left:auto;padding-left:10px}
+  h2 .seccount{font-size:12.5px;font-weight:400;color:var(--muted);margin-left:auto;padding-left:10px;text-align:right;flex:0 0 auto}
   .gcard .t{font-weight:600}
 
-  /* Reading time. A fact the reader wants before clicking, drawn from the real
-     word count inside each guide's <main>, so it cannot drift from the writing.
-     Absolutely positioned so 131 cards gain no height. */
+  /* Reading time lives on the SECTION, not on 131 cards.
+     A per-card pill was tried and removed on 2026-08-09. It failed its own
+     rule: the badge was absolutely positioned, but reserving 62px of title
+     space wrapped 62 of 133 titles onto a second line at 390px and added
+     1,792px, about 2.1 phone screens. It also barely discriminated, with 46
+     cards reading "15 min", 53% of neighbouring pairs identical, and ten in a
+     row identical in one section. The variance that matters is between
+     sections, which is where the number now sits. Card data-min is kept as
+     data and feeds these ranges. */
   .gcard{position:relative}
-  .gcard[data-min]::after{
-    content:attr(data-min) " min";
-    position:absolute;top:19px;right:20px;
-    font-size:11.5px;font-weight:600;letter-spacing:.02em;color:var(--muted);
-    background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:2px 8px;
-  }
-  .gcard[data-min] .t{padding-right:62px}
-  .gcard:hover[data-min]::after{border-color:var(--accent);color:var(--accent)}
   /* Or a jump link lands with its heading tucked under the sticky field. */
-  .gsec{scroll-margin-top:72px}
+  .gsec{scroll-margin-top:84px}
+  .gcard{scroll-margin-top:96px}
   .totop{display:inline-block;margin:34px 0 0;font-size:14px;text-decoration:none}
   .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
   @media (max-width:560px){
     .picks li{display:block}
     .picks .tool{padding:0 0 1px}
     .jumplinks{columns:1}
+    /* One scrolling row instead of three wrapped ones. Wrapped chips made the
+       filter block 300px tall, which put the first result 228px below the fold
+       after a tap, and Gate 4 forbids pushing the primary action off screen. */
+    .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+    .chips::-webkit-scrollbar{display:none}
+    .chip{flex:0 0 auto}
+    h2{flex-wrap:wrap;font-size:21px}
+    h2 .seccount{margin-left:0;padding-left:30px;flex-basis:100%}
   }
 </style>
 </head>
@@ -153,15 +160,24 @@
   <g id="i-compass"><circle cx="12" cy="12" r="9"/><path d="M16 8l-2.6 5.4L8 16l2.6-5.4z"/></g>
   <g id="i-keys"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7.5 14h9"/></g>
   <g id="i-setup"><path d="M12 3v10"/><path d="M8.5 9.5L12 13l3.5-3.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></g>
-  <!-- A screen on a stand, not a divided rectangle: at 20px a divided rectangle
-       was too close to the Excel grid to signal a different section. -->
-  <g id="i-layout"><rect x="2.5" y="4" width="19" height="12.5" rx="2"/><path d="M12 16.5V20"/><path d="M8 20h8"/><path d="M6.5 13l3-3.5 2.5 2.2 3.5-4.2"/></g>
+  <!-- A screen on a stand. It first held a small line chart, which turned out to
+       be the same drawing as i-line, so the two collided. Slide lines instead:
+       a divided rectangle collides with the Excel grid, a chart collides with
+       Statistics, so the distinguishing mark has to be neither. -->
+  <g id="i-layout"><rect x="2.5" y="4" width="19" height="12.5" rx="2"/><path d="M12 16.5V20"/><path d="M8 20h8"/><path d="M6.5 8.5h8"/><path d="M6.5 12h5"/></g>
   <g id="i-db"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/><path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3"/></g>
-  <g id="i-move"><path d="M4 8.5h13"/><path d="M13.5 5l3.5 3.5-3.5 3.5"/><path d="M20 15.5H7"/><path d="M10.5 12L7 15.5 10.5 19"/></g>
+  <!-- One box to another, one direction. Two opposed arrows read as sync or
+       two-way exchange, which is the wrong mental model: a migration is a
+       one-way cutover, and all 17 guides in that section teach it that way. -->
+  <g id="i-move"><rect x="2.5" y="7.5" width="6" height="9" rx="1.5"/><rect x="15.5" y="7.5" width="6" height="9" rx="1.5"/><path d="M10 12h4"/><path d="M12.5 10l2 2-2 2"/></g>
   <g id="i-grid"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></g>
   <g id="i-bars"><path d="M3 20h18"/><path d="M6.5 20v-6M12 20V7M17.5 20v-9"/></g>
   <g id="i-line"><path d="M3 3v18h18"/><path d="M7 15l3.5-4.5 3 3L18 7"/></g>
-  <g id="i-gauge"><path d="M3.5 18a8.5 8.5 0 1117 0"/><path d="M12 18l4.2-5.2"/></g>
+  <!-- A stopwatch, not a gauge. Four of eleven icons were chart glyphs and three
+       of those sat consecutively in the bottom 4,000px, so every landmark down
+       there looked the same. Operations analytics is about how long work takes,
+       which a stopwatch says without being a fourth chart. -->
+  <g id="i-gauge"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 1.5"/><path d="M9.5 3h5"/><path d="M12 3v3"/></g>
   <g id="i-bulb"><path d="M9.5 21h5"/><path d="M12 3a6 6 0 00-3.4 10.9c.5.4.9 1 .9 1.7v.4h5v-.4c0-.7.4-1.3.9-1.7A6 6 0 0012 3z"/></g>
 </defs></svg>
 <main id="top">
@@ -175,8 +191,11 @@
 
   <!-- ── Filter. Every card ships visible in the HTML and is only hidden after
        someone types, so the full 131-link graph stays crawlable. ── -->
-  <div class="filterwrap">
-    <div class="fstick">
+  <!-- .fstick is a direct child of <main> on purpose. A sticky element can only
+       travel inside its containing block, so while this sat inside .filterwrap
+       it stopped after about 104px of a 21,000px page and the middle of the
+       library had no filter at all. -->
+  <div class="fstick">
     <div class="fbar" id="fbar">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
       <label class="sr" for="gq">Filter guides by keyword</label>
@@ -185,8 +204,10 @@
       <input id="gq" type="search" placeholder="Filter guides" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-describedby="gqhelp" disabled>
       <button id="gqclear" type="button" aria-label="Clear the filter">&times;</button>
     </div>
-    </div>
-    <p class="fhint" id="gqhelp">Results update as you type. Try <code>pivot</code>, <code>leading zeros</code>, <code>encoding</code>, <code>duplicates</code>. Press <kbd>/</kbd> to jump here.</p>
+  </div>
+
+  <div class="filterwrap">
+    <p class="fhint" id="gqhelp">One word works better than a phrase. Try <code>pivot</code>, <code>join</code>, <code>leading zeros</code>, <code>duplicates</code>. Results update as you type; press <kbd>/</kbd> to jump here.</p>
     <!-- hidden until the script wires it, so scripts-off never shows a row of
          buttons that do nothing. The jump links below work without JS. -->
     <div class="chips" id="chips" role="group" aria-label="Filter by tool" hidden>
@@ -285,9 +306,9 @@
       <p class="t">SQL Drill: Learn by Writing Queries</p>
       <p class="d">Get right into it. Thirteen queries against a real database, each one the query you just typed plus one new thing. Nothing graded, nothing hidden, real rows back every time. Made for a desktop.</p>
     </a>
-    <a class="gcard" data-kind="app" href="../viz/" data-tool="" data-kw="drag fields onto new idea per step names">
+    <a class="gcard" data-kind="app" href="../viz/" data-tool="" data-kw="drag fields onto shelves new idea per step names shelf">
       <p class="t">Viz Drill: Build the Chart That Answers Your Query</p>
-      <p class="d">The same analysis with shelves instead of clauses. Eleven rungs from a header list to a finished comparison, each one naming the SQL query it answers, so a GROUP BY you already typed becomes a shelf you can place.</p>
+      <p class="d">Build the chart that answers the query you just wrote. Eleven steps from a plain list of headings to a finished comparison, each one naming the SQL it answers, so a GROUP BY you have already typed becomes a chart you can place.</p>
     </a>
   </div>
   </section>
@@ -394,7 +415,7 @@
       <p class="t">Customer Segmentation in SQL With CASE WHEN</p>
       <p class="d">Aggregate to one row per customer, label with CASE, group by the label. Three of twelve customers turn out to be 46% of the spend, and swapping two conditions makes that whole tier vanish with no error.</p>
     </a>
-    <a class="gcard" href="sql-reconciliation/" data-tool="sql" data-min="20" data-kw="differed localises difference reconciliation totals do not match numbers different mismatch">
+    <a class="gcard" href="sql-reconciliation/" data-tool="sql" data-min="20" data-kw="differed localises difference reconciliation combine combining two spreadsheets tables files lists side by match up bring together same thing spelled differently names do not totals numbers different mismatch">
       <p class="t">How to Reconcile Two Tables in SQL When the Row Counts Match</p>
       <p class="d">Sixteen rows against sixteen, and four hundred missing. The full outer join that finds what is on one side only, the value comparison for matched rows, and the fingerprint that narrows a large table down.</p>
     </a>
@@ -434,7 +455,7 @@
       <p class="t">How to Comment SQL So It Teaches</p>
       <p class="d">A complete commenting format: a boxed WHY header, a read-out-loud block that paraphrases every clause in order, and a clean query with no inline comments. Full before and after.</p>
     </a>
-    <a class="gcard" href="sql-joins/" data-tool="sql" data-min="20" data-kw="concept order build grain edge cases break data total wrong doubled double counting numbers too high fan out">
+    <a class="gcard" href="sql-joins/" data-tool="sql" data-min="20" data-kw="concept order build grain edge cases break data total wrong doubled double counting numbers too high fan out combine combining two spreadsheets tables files lists side by match up bring together different column names columns do not stack append">
       <p class="t">SQL JOINs: How to Join Two Tables Without Losing or Doubling Rows</p>
       <p class="d">The pair rule that predicts any join's row count, all six join types, the silent delete and the silent multiply, the anti-join, and the two counts that catch each failure. Worked on 41 million rows.</p>
     </a>
@@ -478,7 +499,7 @@
       <p class="t">The SQL CASE Expression, Explained for Beginners</p>
       <p class="d">CASE WHEN, THEN, ELSE, END — how SQL's if/else really works, taught with a real data-cleaning problem from Billboard chart history.</p>
     </a>
-    <a class="gcard" href="entity-resolution/" data-tool="sql" data-min="8" data-kw="beginners record linkage explained beginner analysts clerical review complete worked example chart data">
+    <a class="gcard" href="entity-resolution/" data-tool="sql" data-min="8" data-kw="beginners record linkage explained beginner analysts clerical review complete worked example chart data same thing spelled differently names do not match">
       <p class="t">Entity Resolution: One Real Thing, Many Messy Names</p>
       <p class="d">Why one artist appears under seven spellings, how normalization rules get built and tested, match rates, and when not to merge.</p>
     </a>
@@ -584,7 +605,7 @@
       <p class="t">How to Make a Pivot Table, and Read the Answer It Gives You</p>
       <p class="d">Four clicks to a summary, then the settings that decide whether it is right: what Rows and Values really do, the function Excel picks for you, Show Values As, grouped dates, and the refresh that never happened.</p>
     </a>
-    <a class="gcard" href="excel-index-match/" data-tool="excel" data-min="20" data-kw="finds fetches beats inserted northlight #n/a #ref #value na error not found no match">
+    <a class="gcard" href="excel-index-match/" data-tool="excel" data-min="20" data-kw="finds fetches beats inserted northlight #n/a #ref #value na error not found no match combine combining two spreadsheets tables files lists side by up bring together">
       <p class="t">INDEX MATCH vs VLOOKUP: The Lookup That Survives a New Column</p>
       <p class="d">MATCH turns a name into a position, INDEX turns a position into a value. The answer that sits to the left, the hard-coded number that goes stale, and the fourth argument that returns 85 where the answer is 220.</p>
     </a>
@@ -616,7 +637,7 @@
       <p class="t">Excel Drop Down Lists and Data Validation, and the Paste That Removes Them</p>
       <p class="d">Four clicks to a dropdown, a table column as the source so it grows, dependent lists, and the gap nobody mentions: an ordinary Ctrl+V leaves the cell holding a forbidden value and holding no rule.</p>
     </a>
-    <a class="gcard" href="excel-power-query/" data-tool="excel" data-min="20" data-kw="records click replays file getting data unpivoting table ways get and transform m query editor unpivot refresh">
+    <a class="gcard" href="excel-power-query/" data-tool="excel" data-min="20" data-kw="records click replays file getting data unpivoting table ways get and transform m query editor unpivot refresh different column names columns do not match stack append">
       <p class="t">Power Query for Beginners: The Steps That Run Again Next Month</p>
       <p class="d">It is not a cleaning tool, it is a recording of one. The Applied Steps pane, the unpivot that turns a four-by-four report into sixteen usable rows, append and merge, and the load choice that keeps a workbook tidy.</p>
     </a>
@@ -636,7 +657,7 @@
       <p class="t">Month-over-Month Growth in Excel, and the Month That Is Not There</p>
       <p class="d">A month with no sales never becomes a row, so the growth column quietly compares May with March and reports a calm -6.0%. The calendar table that fixes it, and the divide by zero it exposes.</p>
     </a>
-    <a class="gcard" href="vlookup-vs-xlookup/" data-tool="excel" data-min="15" data-kw="#n/a #ref #value na error not found no match">
+    <a class="gcard" href="vlookup-vs-xlookup/" data-tool="excel" data-min="15" data-kw="#n/a #ref #value na error not found no match combine combining two spreadsheets tables files lists side by up bring together">
       <p class="t">VLOOKUP vs XLOOKUP: Which One to Use, and How to Switch</p>
       <p class="d">VLOOKUP has three ways to hand you a wrong value without an error. What each one looks like, how XLOOKUP's arguments remove all three, and when you still need to read VLOOKUP anyway.</p>
     </a>
@@ -680,7 +701,7 @@
       <p class="t">Percentages Are the Whole Story and Excel Hides Them</p>
       <p class="d">Right-click, Show Values As, and the real decision hiding inside it: which total is the denominator. 175 games is a count nobody feels. 22.9% of everything loved is a finding.</p>
     </a>
-    <a class="gcard" href="excel-custom-number-formats/" data-tool="excel" data-min="7" data-kw="formats display 458k holds worth knowing breaks formula pointing">
+    <a class="gcard" href="excel-custom-number-formats/" data-tool="excel" data-min="8" data-kw="formats display 458k holds worth knowing breaks formula pointing">
       <p class="t">Show the Unit Without Breaking the Number</p>
       <p class="d">Ctrl+1, Custom, and 21.1919 displays as 21.2x while the cell still calculates. Typing the unit turns a number into text and a SUM somewhere quietly skips it.</p>
     </a>
@@ -704,7 +725,7 @@
       <p class="t">Sort Your Bar Chart or It Means Nothing</p>
       <p class="d">Alphabetical order answers a question nobody asked. Sort descending at the pivot and the chart becomes a ranking, with the one exception for categories that carry their own order.</p>
     </a>
-    <a class="gcard" href="excel-circular-findings/" data-tool="excel" data-min="7" data-kw="analysis self could come way given things near miss live dashboard build look cleaner ones places circularity hides findings circular reasoning tautology begging the question not reference">
+    <a class="gcard" href="excel-circular-findings/" data-tool="excel" data-min="8" data-kw="analysis self could come way given things near miss live dashboard build look cleaner ones places circularity hides findings circular reasoning tautology begging the question not reference">
       <p class="t">The Finding That Was Just Your Own Definition</p>
       <p class="d">0% hidden in the $20+ band looked like a discovery. Hidden was defined as under $20. The one-sentence audit that catches circular results, and why clean numbers are the tell.</p>
     </a>
@@ -759,7 +780,7 @@
       <p class="t">Handling Missing Values in pandas: dropna, fillna and What Each One Claims</p>
       <p class="d">Seven missing cells cost four whole rows to a bare dropna. Filling with zero moved the mean from 5.29 to 4.63, filling with the mean left it alone and shrank the spread, and a sentinel value hid from every check.</p>
     </a>
-    <a class="gcard" href="pandas-merge/" data-tool="python" data-min="15" data-kw="counts give came key turned total wrong doubled double counting numbers too high fan out">
+    <a class="gcard" href="pandas-merge/" data-tool="python" data-min="15" data-kw="counts give came key turned total wrong doubled double counting numbers too high fan out combine combining two spreadsheets tables files lists side by match up bring together different column names columns do not stack append">
       <p class="t">pandas merge: Left Join, Inner Join, and the One That Doubled the Revenue</p>
       <p class="d">The four hows and the rows each keeps, indicator to see which side matched, and one duplicate in a three-row lookup that took 16 rows and 9,890 to 23 rows and 14,950 with no error at all.</p>
     </a>
@@ -933,9 +954,21 @@
     var cn = b.querySelector('.cn');
     if (cn) cn.textContent = n;
   });
+  /* Section label: how many, and how long they run. The reading time sits here
+     rather than on each card because that is where the variance actually is.
+     Migration guides run 4 to 7 minutes, statistics run 20, and 46 cards shared
+     the single value "15 min" when this was per-card. */
+  function label(sec, count) {
+    var mins = [].slice.call(sec.querySelectorAll('.gcard:not([hidden])[data-min]'))
+      .map(function (c) { return +c.getAttribute('data-min'); })
+      .filter(function (n) { return n > 0; });
+    if (!mins.length) return String(count);
+    var lo = Math.min.apply(null, mins), hi = Math.max.apply(null, mins);
+    return count + ' · ' + (lo === hi ? lo : lo + '-' + hi) + ' min read';
+  }
   secs.forEach(function (s) {
     var el = s.querySelector('.seccount');
-    if (el) el.textContent = s.querySelectorAll('.gcard').length;
+    if (el) el.textContent = label(s, s.querySelectorAll('.gcard').length);
   });
 
   var tool = '';
@@ -988,7 +1021,7 @@
       var vis = s.querySelectorAll('.gcard:not([hidden])').length;
       s.hidden = active && !vis;
       var el = s.querySelector('.seccount');
-      if (el) el.textContent = active ? vis : s.querySelectorAll('.gcard').length;
+      if (el) el.textContent = label(s, active ? vis : s.querySelectorAll('.gcard').length);
     });
 
     var n = shown.filter(function (c) { return !c.isApp; }).length;
@@ -1042,6 +1075,16 @@
       x.setAttribute('aria-pressed', String(x.getAttribute('data-tool') === tool));
     });
     apply();
+    /* A chip press is one deliberate action, so it is allowed to move the page.
+       At 390px the header copy pushed the first result 173px under the fold, and
+       a filter whose results you cannot see has not visibly done anything.
+       Typing does NOT scroll: doing that on every keystroke would be awful. */
+    if (tool) {
+      var first = document.querySelector('.gcard:not([hidden])');
+      if (first && first.getBoundingClientRect().top > window.innerHeight - 120) {
+        first.scrollIntoView({ block: 'start' });
+      }
+    }
   });
   var fnall = document.getElementById('fnall');
   if (fnall) fnall.addEventListener('click', function (e) {
