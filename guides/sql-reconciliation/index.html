@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Reconcile Two Tables in SQL When the Row Counts Match — Analyst Prep Kit</title>
+<meta name="description" content="Both tables had 16 rows and differed by 400. The full outer join that finds what is on each side only, the value comparison for matched rows, and the fingerprint that localises a difference.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-reconciliation/">
+<meta property="og:title" content="How to Reconcile Two Tables in SQL When the Row Counts Match">
+<meta property="og:description" content="16 rows against 16 rows, and 400 missing. One row lost, one invented, one value changed, one spelling changed, and a row count that says everything is fine.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-reconciliation.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-reconciliation/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-reconciliation.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Reconcile Two Tables in SQL When the Row Counts Match",
+  "description": "Both tables had 16 rows and differed by 400. The full outer join that finds what is on each side only, the value comparison for matched rows, and the fingerprint that localises a difference.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-reconciliation/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-reconciliation/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-reconciliation.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "How to Reconcile Two Tables in SQL When the Row Counts Match",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-reconciliation/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>How to Reconcile Two Tables in SQL When the Row Counts Match</h1>
+  <p class="meta">Same number of rows, four hundred missing · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can compare two versions of the same table and say exactly what is different: which rows exist on only one side, which rows exist on both but disagree, which columns the disagreements are in, and how much money the whole thing accounts for. It is about twenty-five minutes, and every query and result below was run.</p>
+
+  <p>Here is what to do today, on any two tables that are supposed to match. After you compare the row counts, compare a total as well. Pick the most important numeric column and sum it on both sides. Row counts are the check that passes while the data is wrong, and a sum on the same rows is thirty seconds of extra work that catches an entire class of failure the count cannot see.</p>
+
+  <p>The short version: match the two tables on their key with a full outer join, then classify every key as matched, changed, source only or target only.</p>
+
+  <p>Two stacks of equal height that do not contain the same rows is the idea, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 316" role="img" aria-labelledby="rcTitle rcDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="rcTitle">Same height, different contents</title>
+      <desc id="rcDesc">Two vertical stacks of small horizontal bars stand facing each other, one on the left and one on the right, and both stacks are exactly the same height because both hold the same number of bars. Most bars are joined across the gap by a plain horizontal connector, showing rows that exist on both sides. Two of those connectors carry a small amber cross in the middle, marking pairs that exist on both sides but whose values disagree. One bar on the left has a connector that runs only halfway and ends in an amber cross with nothing beyond it, meaning that row has no partner on the right. One bar on the right has the mirror image: a stub reaching in from the gap that starts nowhere. Under each stack the same figure, 16, is printed, so the counts agree while the contents do not.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <g id="left" fill="#E0F2F7" stroke="#0E7490" stroke-width="1.2">
+          <rect x="180" y="20" width="150" height="10"/><rect x="180" y="36" width="150" height="10"/>
+          <rect x="180" y="52" width="150" height="10"/><rect x="180" y="68" width="150" height="10"/>
+          <rect x="180" y="84" width="150" height="10"/><rect x="180" y="100" width="150" height="10"/>
+          <rect x="180" y="116" width="150" height="10"/><rect x="180" y="132" width="150" height="10"/>
+          <rect x="180" y="148" width="150" height="10"/><rect x="180" y="164" width="150" height="10"/>
+          <rect x="180" y="180" width="150" height="10"/><rect x="180" y="196" width="150" height="10"/>
+          <rect x="180" y="212" width="150" height="10"/><rect x="180" y="228" width="150" height="10"/>
+          <rect x="180" y="244" width="150" height="10"/><rect x="180" y="260" width="150" height="10"/>
+        </g>
+        <g fill="#E0F2F7" stroke="#0E7490" stroke-width="1.2">
+          <rect x="430" y="20" width="150" height="10"/><rect x="430" y="36" width="150" height="10"/>
+          <rect x="430" y="52" width="150" height="10"/><rect x="430" y="68" width="150" height="10"/>
+          <rect x="430" y="84" width="150" height="10"/><rect x="430" y="100" width="150" height="10"/>
+          <rect x="430" y="116" width="150" height="10"/><rect x="430" y="132" width="150" height="10"/>
+          <rect x="430" y="148" width="150" height="10"/><rect x="430" y="164" width="150" height="10"/>
+          <rect x="430" y="180" width="150" height="10"/><rect x="430" y="196" width="150" height="10"/>
+          <rect x="430" y="212" width="150" height="10"/><rect x="430" y="228" width="150" height="10"/>
+          <rect x="430" y="244" width="150" height="10"/>
+        </g>
+        <g stroke="#C7CBD1" stroke-width="1.6">
+          <path d="M330 25 L430 25"/><path d="M330 41 L430 41"/><path d="M330 57 L430 57"/>
+          <path d="M330 73 L430 73"/><path d="M330 105 L430 105"/><path d="M330 121 L430 121"/>
+          <path d="M330 153 L430 153"/><path d="M330 169 L430 169"/><path d="M330 185 L430 185"/>
+          <path d="M330 201 L430 201"/><path d="M330 217 L430 217"/><path d="M330 233 L430 233"/>
+          <path d="M330 249 L430 249"/>
+        </g>
+        <!-- two changed pairs -->
+        <g stroke="#B45309" stroke-width="1.8">
+          <path d="M330 89 L430 89"/><path d="M330 137 L430 137"/>
+          <path d="M373 83 L387 95 M387 83 L373 95"/>
+          <path d="M373 131 L387 143 M387 131 L373 143"/>
+        </g>
+        <!-- one on each side only -->
+        <g stroke="#B45309" stroke-width="1.8">
+          <path d="M330 265 L368 265"/>
+          <path d="M368 259 L382 271 M382 259 L368 271"/>
+          <path d="M430 281 L392 281"/>
+          <path d="M378 275 L392 287 M392 275 L378 287"/>
+        </g>
+        <rect x="430" y="276" width="150" height="10" fill="#FDF3E3" stroke="#B45309" stroke-width="1.2"/>
+        <g font-size="20" font-weight="700" fill="#09090B" text-anchor="middle">
+          <text x="255" y="304">16</text><text x="505" y="304">16</text>
+        </g>
+      </g>
+    </svg>
+    <figcaption>Both sides hold sixteen rows, so the count agrees. Two pairs disagree on their values, one row exists only on the left and one only on the right, and none of that is visible from the two totals underneath.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>The check that passes and proves nothing</li>
+      <li>Match on the key, in both directions</li>
+      <li>Compare the values on matched rows</li>
+      <li>One summary that says everything</li>
+      <li>Column by column</li>
+      <li>The differences an equals sign will not see</li>
+      <li>Fingerprints: one number per table</li>
+      <li>What to do with what you find</li>
+      <li>The full before and after</li>
+      <li>Edge cases that break a reconciliation</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every result on this page is real.</strong> The sixteen-row orders table used across this set of guides, and a migrated copy of it, loaded into DuckDB and compared. The copy was damaged in four specific ways, and the point of the page is that you are not told which four until the queries find them.</div>
+
+  <div class="step">
+    <h2>1. The check that passes and proves nothing</h2>
+
+    <p>Before the explanation: a table has been copied from one system to another. Say what you would check first.</p>
+
+    <p>Almost everybody says the row count, and here it is.</p>
+
+    <pre><code>source_rows | target_rows
+         16 |          16</code></pre>
+
+    <p>Sixteen against sixteen. On most migrations that is where the checking stops, the ticket gets closed, and the problem surfaces six weeks later in a finance report.</p>
+
+    <p>Now one more query, on the same two tables.</p>
+
+    <pre><code>source_revenue | target_revenue | difference
+          9890 |           9490 |        400</code></pre>
+
+    <p>Four hundred is missing, from a copy with exactly the right number of rows. Rows and values are two different things, and a count can only ever answer a question about rows.</p>
+
+    <p>The reason to lead with this is that the count is not useless, it is just first. A row count catches the biggest failures: nothing loaded, half loaded, everything loaded twice. It cannot catch anything that leaves the count intact, and the rest of this page is about how much that is.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. Match on the key, in both directions</h2>
+
+    <p>To compare rows you need a key: the column, or set of columns, that identifies the same real thing in both tables. Then a <strong>full outer join</strong> on that key, which keeps rows that fail to match from either side, and one look at where the nulls fall.</p>
+
+    <pre><code>SELECT COALESCE(s.order_id, t.order_id) AS order_id,
+       CASE WHEN t.order_id IS NULL THEN 'source only'
+            WHEN s.order_id IS NULL THEN 'target only' END AS where_it_is
+FROM orders s
+FULL OUTER JOIN orders_target t USING (order_id)
+WHERE s.order_id IS NULL OR t.order_id IS NULL;
+
+1008 | source only
+1017 | target only</code></pre>
+
+    <p>Order 1008 exists in the source and not in the copy: it was lost. Order 1017 exists in the copy and not in the source: it was invented, which usually means a load ran twice or a test record escaped.</p>
+
+    <p>One lost and one gained, so the count came out even. That is not a coincidence dreamed up for this page; it is the ordinary shape of a botched rerun, and it is exactly why the count agreed.</p>
+
+    <p>The full outer join is doing the work here, and it is worth being clear about why an inner join would not: an inner join keeps only the rows that matched, which is the set that contains neither of your problems. If joins are not yet automatic, <a href="../sql-joins/">the joins guide</a> covers which rows each kind keeps.</p>
+
+    <p>Some engines lack <code>FULL OUTER JOIN</code>. The portable substitute is two anti-joins, one in each direction, combined with <code>UNION ALL</code>, using <code>NOT EXISTS</code> rather than <code>NOT IN</code> for the reason in <a href="../sql-null/">the NULL guide</a>.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Compare the values on matched rows</h2>
+
+    <p>Rows present on both sides can still disagree, so join them and compare every column.</p>
+
+    <pre><code>SELECT s.order_id, s.region, t.region, s.units, t.units
+FROM orders s JOIN orders_target t USING (order_id)
+WHERE s.region     IS DISTINCT FROM t.region
+   OR s.units      IS DISTINCT FROM t.units
+   OR s.unit_price IS DISTINCT FROM t.unit_price
+   OR s.product    IS DISTINCT FROM t.product
+   OR s.rep        IS DISTINCT FROM t.rep
+   OR s.order_date IS DISTINCT FROM t.order_date;
+
+1003 | East | east | 3 | 3
+1010 | East | East | 5 | 4</code></pre>
+
+    <p>Two rows. Order 1003 has the same numbers and a different spelling of its region. Order 1010 has five units in the source and four in the copy, which is where the missing 400 went: one desk at 220 became four units instead of five, a loss of 220, plus order 1008's 480 lost and order 1017's 300 invented. That arithmetic is worth doing out loud, because being able to explain the 400 exactly is the difference between a finding and a worry: 480 out, 300 in, 220 shaved, which nets to 400.</p>
+
+    <p><code>IS DISTINCT FROM</code> is the operator to use rather than <code>&lt;&gt;</code>, and the difference matters. A plain <code>&lt;&gt;</code> comparison involving a null returns unknown rather than true, so a value that was populated in the source and null in the copy would not be flagged. <code>IS DISTINCT FROM</code> treats null as a value like any other and returns true for that case, which is exactly what a reconciliation needs.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. One summary that says everything</h2>
+
+    <p>The two queries above are what you look at; this is what you report. One row, four numbers, and they have to add up.</p>
+
+    <pre><code>matched | changed | source_only | target_only | total_keys
+     13 |       2 |           1 |           1 |         17</code></pre>
+
+    <p>Thirteen rows are identical on both sides. Two exist on both and disagree. One is only in the source and one only in the target. Seventeen distinct keys were involved, which is more than either table has, because the union of two sixteen-row tables that differ by one row each way is seventeen.</p>
+
+    <p>Check it in both directions: 13 + 2 + 1 source-only is 16, the source count. 13 + 2 + 1 target-only is 16, the target count. If those two additions do not come out to the two row counts, the key is not unique and section ten is about that.</p>
+
+    <p>This table is the deliverable. "The migration is fine" is not a statement anybody can act on; "thirteen rows identical, two changed, one lost, one added, and a net difference of 400 in revenue" is a handover note, and it takes one query.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Column by column</h2>
+
+    <p>Once you know two rows disagree, the useful next question is which columns, because that points at the cause rather than the symptom.</p>
+
+    <pre><code>order_date | rep | region | product | units | unit_price
+         0 |   0 |      1 |       0 |     1 |          0</code></pre>
+
+    <p>One disagreement in region and one in units, and nothing anywhere else. That shape tells you something a list of bad rows does not: this is not a broken load, because a broken load damages a column across many rows. Two different columns each wrong on one row looks like two separate incidents, probably a manual edit and a transcription.</p>
+
+    <p>Contrast it with the shape you would see if, say, every date were shifted by a day: <code>order_date</code> would read 16 and everything else 0, and you would go looking at time zones rather than at rows. Same query, completely different conclusion, and it is the column counts rather than the row list that distinguishes them.</p>
+
+    <p>Say out loud what you would suspect if <code>unit_price</code> came back as 14 out of 16. A rounding or currency difference applied at load, and you would go and read the load code rather than the data.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. The differences an equals sign will not see</h2>
+
+    <p>Before the explanation: the region on order 1003 is "East" in one table and "east" in the other. Say whether a SQL comparison notices.</p>
+
+    <pre><code>'East' = 'east'                  false
+LOWER('East') = LOWER('east')    true</code></pre>
+
+    <p>In this engine string comparison is case sensitive, so it was caught. Not every engine or column collation behaves that way, and on a case-insensitive collation that row would have been reported as matching. Which is the general lesson: <strong>a reconciliation is only as strict as its comparison.</strong> Test the comparison itself on a known difference before trusting a clean result.</p>
+
+    <p>Four kinds of difference routinely slip through a naive comparison. Case, as above. Trailing whitespace, where "North " and "North" differ to a computer and not to a person. Numeric precision, where 10.00 and 10.004 both display as 10.00. And dates carrying a time, where the same day at different hours compares unequal.</p>
+
+    <p>There is also a subtler failure worth seeing, because it is what happens when people reconcile by grouping rather than by key. Comparing region counts on the two tables gives this:</p>
+
+    <pre><code>region | source_rows | target_rows
+East   |           4 |           3
+North  |           5 |           5
+South  |           4 |           4
+West   |           3 |           3
+east   |        NULL |           1</code></pre>
+
+    <p>A fifth region has appeared. The grand totals still agree at sixteen, the individual rows are all present, and the report now has a category nobody has ever heard of. That is the same failure mode as any near-duplicate value, and the cleaning routine for it is in <a href="../excel-clean-messy-data/">finding the character you cannot see</a>.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Fingerprints: one number per table</h2>
+
+    <p>Joining two tables row by row is fine at sixteen rows and expensive at two hundred million, especially when they live in different systems and one of them has to be shipped across a network to be compared.</p>
+
+    <p>The cheaper move is a fingerprint: hash each row into a number and add the numbers up. Addition does not care about order, so two tables holding the same rows in different orders produce the same total.</p>
+
+    <pre><code>SELECT SUM(HASH(order_id, order_date, rep, region, product, units, unit_price)) FROM orders;
+
+source  128147106948374048609
+target  136663960016580492445</code></pre>
+
+    <p>Different, so the tables differ, and that took one pass over each side with nothing to transfer but a single number. It tells you nothing about where, which is the trade.</p>
+
+    <p>You get the where back by fingerprinting groups instead of the whole table. Here, per region:</p>
+
+    <pre><code>region | same
+East   | false
+North  | true
+South  | true
+West   | false
+east   | false</code></pre>
+
+    <p>North and South are provably identical and need no further checking. Everything different is in East, West and the phantom region. On a large table you would fingerprint by month or by key range, find the handful of buckets that differ, and only then do the row-level comparison on those. That is the whole strategy: compare cheaply, narrow, then look closely.</p>
+
+    <p>One caution. Hash functions differ between engines, so a fingerprint computed in Postgres will not match one computed in SQL Server, and comparing across systems needs a hash both can compute, usually MD5 of a concatenated, consistently formatted string. Getting the formatting identical on both sides is most of that job.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. What to do with what you find</h2>
+
+    <p>A reconciliation that ends in a list of differences is half a job. Each category has a different next move.</p>
+
+    <table>
+      <tr><th>Finding</th><th>Usually means</th><th>Next move</th></tr>
+      <tr><td>Source only</td><td>Rows dropped by a filter, a failed batch, or a type conversion error</td><td>Find the pattern: are they all one date, one region, one product?</td></tr>
+      <tr><td>Target only</td><td>A load that ran twice, or test data</td><td>Check whether they are duplicates of real keys or entirely new ones</td></tr>
+      <tr><td>Changed, one column, many rows</td><td>A transformation applied at load</td><td>Read the load logic. This is a code question, not a data question.</td></tr>
+      <tr><td>Changed, many columns, few rows</td><td>Manual edits after the load</td><td>Find out who is allowed to edit the target directly</td></tr>
+    </table>
+
+    <p>And write down what you found even when it is small, because the number that matters to the person receiving the system is the money, not the rows. "Four hundred out of 9,890, which is 4.0%, in two rows, both explained" is a sentence somebody can sign off. A migration dry run exists to produce exactly that sentence before anybody depends on the new system, and <a href="../migration-dry-run/">the dry run guide</a> is where this fits in the wider process.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same two tables, same question: did the copy work?</p>
+
+  <h3>Before</h3>
+  <pre><code>SELECT COUNT(*) FROM orders;          -- 16
+SELECT COUNT(*) FROM orders_target;   -- 16
+-- "counts match, we are good"</code></pre>
+  <p>Passed, closed, and wrong. Four hundred of 9,890 is missing, one order has vanished, one order that never existed is now in the system, one order has the wrong quantity, and a fifth region has been created.</p>
+
+  <h3>After</h3>
+  <pre><code>-- 1. counts and a total, together
+16 rows / 9,890   against   16 rows / 9,490            difference 400
+
+-- 2. keys on one side only
+1008 source only, 1017 target only
+
+-- 3. matched rows that disagree
+1003 region East vs east, 1010 units 5 vs 4
+
+-- 4. the summary, which must add back to both row counts
+matched 13, changed 2, source only 1, target only 1, keys 17
+13 + 2 + 1 = 16 on each side
+
+-- 5. which columns
+region 1, units 1, everything else 0
+
+-- 6. the arithmetic of the difference
+-480 lost, +300 invented, -220 shaved   =   -400</code></pre>
+
+  <p>The claim, and it is why the second query is not optional: <strong>a row count of 16 against 16 was true, reassuring, and completely blind to a lost row, an invented row, a changed quantity and an invented region.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases that break a reconciliation</h2>
+
+    <p>Six worth knowing.</p>
+
+    <p><strong>The key is not unique.</strong> If either side has the key twice, the join multiplies and every count afterwards is wrong. Check both sides first: <code>COUNT(*)</code> against <code>COUNT(DISTINCT key)</code>, on each table, before joining anything.</p>
+
+    <p><strong>The key is not the same key.</strong> Systems renumber. If the target assigned its own identifiers, you are matching on a natural key, and if there is not one you have crossed into <a href="../entity-resolution/">entity resolution</a>.</p>
+
+    <p><strong>Legitimate differences.</strong> The target may deliberately exclude cancelled records or hold a different date format. Agree the expected differences in writing before running the comparison, or you will report them as faults.</p>
+
+    <p><strong>Comparing at different moments.</strong> A live source changes while you are checking it, so a difference of a few recent rows may be time rather than error. Snapshot both sides first, which is what <a href="../sql-temp-tables-vs-views/">a temp table</a> is for.</p>
+
+    <p><strong>Floating point.</strong> Two systems can compute the same total and disagree in the fifteenth decimal place. Round explicitly to the precision the business cares about before comparing money.</p>
+
+    <p><strong>Nulls compared with the wrong operator.</strong> <code>&lt;&gt;</code> silently misses a value-to-null change. Use <code>IS DISTINCT FROM</code>, and if your engine lacks it, <code>COALESCE</code> both sides to a sentinel value that cannot occur in the data.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The reason the row count feels sufficient and is not is that it measures one dimension of quality and there are several. Frameworks for assessing data quality consistently break it into separate dimensions, completeness, accuracy, consistency and so on, precisely because they fail independently and a measure of one says nothing about the others (Batini, Cappiello, Francalanci, &amp; Maurino, 2009, <em>ACM Computing Surveys</em>, 41(3), 1–52). A row count is a completeness check, and a weak one: it detects missing rows only when nothing arrives to take their place. The four checks on this page each cover a different dimension, which is why they find four different problems, and why running one of them is not most of the job.</p>
+
+  <p>The fingerprint strategy in section seven is an old idea with a name. If you hash small pieces of data and then combine those hashes, you can compare two large collections by exchanging almost nothing, and you can then narrow down to the differing part by descending into whichever combined hash disagrees; that hierarchical comparison is the core of Merkle's construction and is why every large-scale synchronisation system uses some version of it (Merkle, 1988, <em>Advances in Cryptology — CRYPTO '87</em>, 369–378). Fingerprinting the whole table, then by region, then by row is that idea done by hand with three queries.</p>
+
+  <p>One note on the questions this page asked before each answer. Explaining a step to yourself before being shown the explanation improves what you retain of it, which is why it is worth guessing at the row count before reading the total (Chi, Bassok, Lewis, Reimann, &amp; Glaser, 1989, <em>Cognitive Science</em>, 13(2), 145–182).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>A full row-level comparison of a huge table is expensive and usually unnecessary. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Check the key is unique on both sides</strong> before anything else. Every number after this depends on it.</li>
+    <li><strong>Compare counts and a total together.</strong> Never the count alone.</li>
+    <li><strong>Fingerprint by a natural bucket</strong>, month or region or key range, and find the buckets that differ.</li>
+    <li><strong>Full outer join inside those buckets only</strong>, and classify every key into the four categories.</li>
+    <li><strong>Count the disagreements per column</strong>, because the shape names the cause.</li>
+    <li><strong>Write the summary as a sentence with money in it</strong>, and list the expected differences separately from the unexpected ones.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Draw two boxes and, between them, write the four categories: matched, changed, only left, only right. Then write beside each one what number you would expect it to hold if the copy were perfect. Three of them are zero, and being explicit about that before you run anything is what stops a non-zero being explained away.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>. If you would rather type queries than read about them, the <a href="../../drill/">SQL Drill</a> gives you one runnable query at a time against a real database.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>Row count</td><td>Catches nothing loaded, half loaded, doubled. Nothing else.</td></tr>
+    <tr><td>Count plus a total</td><td>Catches the whole class the count cannot. Thirty seconds.</td></tr>
+    <tr><td>First check of all</td><td>Key uniqueness on both sides: <code>COUNT(*)</code> against <code>COUNT(DISTINCT key)</code>.</td></tr>
+    <tr><td>Finding one-sided rows</td><td><code>FULL OUTER JOIN</code>, then look at where the nulls are.</td></tr>
+    <tr><td>No FULL OUTER JOIN</td><td>Two <code>NOT EXISTS</code> anti-joins with <code>UNION ALL</code>.</td></tr>
+    <tr><td>Comparing values</td><td><code>IS DISTINCT FROM</code>, never <code>&lt;&gt;</code>.</td></tr>
+    <tr><td>Why</td><td><code>&lt;&gt;</code> against a null is unknown, so the row is not flagged.</td></tr>
+    <tr><td>The four categories</td><td>Matched, changed, source only, target only.</td></tr>
+    <tr><td>The reconciliation</td><td>Matched + changed + one-sided must equal each row count.</td></tr>
+    <tr><td>Per-column counts</td><td>One column many rows is a load bug. Many columns few rows is manual edits.</td></tr>
+    <tr><td>Case and whitespace</td><td>May or may not be caught, depending on collation. Test it.</td></tr>
+    <tr><td>Grouped comparison</td><td>Invents a category when a value differs by case. Totals still agree.</td></tr>
+    <tr><td>Fingerprint</td><td><code>SUM(HASH(cols))</code>. Order independent, one number, no detail.</td></tr>
+    <tr><td>Localising</td><td>Fingerprint per bucket, then row-compare only the buckets that differ.</td></tr>
+    <tr><td>Across systems</td><td>Hash functions differ. Use MD5 of an identically formatted string.</td></tr>
+    <tr><td>The deliverable</td><td>A sentence with the money in it, and the expected differences listed separately.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Never report a row count without a total beside it. The count is the check that agrees while a row is lost and another invented in its place, and the total is the one line of extra work that makes that impossible to miss. If a reconciliation misbehaves in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The one I remember was a migration signed off on matching row counts, where a rerun had dropped one batch and added another, and the two happened to be almost the same size; the difference surfaced four months later as a supplier chasing an invoice that no longer existed in either system. What has a matching row count hidden from you?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Batini, C., Cappiello, C., Francalanci, C., &amp; Maurino, A. (2009). Methodologies for data quality assessment and improvement. <em>ACM Computing Surveys</em>, 41(3), 1–52.</li>
+    <li>Merkle, R. C. (1988). A digital signature based on a conventional encryption function. <em>Advances in Cryptology — CRYPTO '87</em>, 369–378.</li>
+    <li>Chi, M. T. H., Bassok, M., Lewis, M. W., Reimann, P., &amp; Glaser, R. (1989). Self-explanations: How students study and use examples in learning to solve problems. <em>Cognitive Science</em>, 13(2), 145–182.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice reconciling two tables that nearly match.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> gives you the repetitions: copies damaged in ways you have to find, full outer joins to classify, and fingerprints to narrow with, plus flash cards on which comparison operator catches which kind of difference. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../migration-dry-run/">The Migration Dry Run</a> · <a href="../what-is-data-migration/">What Is Data Migration?</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-null/">NULL in SQL</a> · <a href="../sql-find-duplicates/">Find Duplicates in SQL</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../sql-temp-tables-vs-views/">Temp Table vs View</a> · <a href="../sql-subqueries/">Subquery vs CTE</a> · <a href="../../sql/">SQL Kit</a> · <a href="../migration-cutover/">Migration Cutover</a> · <a href="../migration-uat/">Migration UAT</a> · <a href="../excel-clean-messy-data/">Clean Messy Data</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
