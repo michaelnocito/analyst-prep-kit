@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Handling Missing Values in pandas: dropna, fillna and What Each One Claims — Analyst Prep Kit</title>
+<meta name="description" content="Seven missing cells cost four rows to dropna and half a column to axis=1. Filling with zero moved the mean to 4.63, filling with the mean shrank the spread, and a sentinel hid entirely.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-fillna-dropna/">
+<meta property="og:title" content="Handling Missing Values in pandas: dropna, fillna and What Each One Claims">
+<meta property="og:description" content="Two missing quantities. Leave them and the mean is 5.29. Fill with zero and it is 4.63. Fill with the mean and it stays 5.29 while the spread quietly shrinks.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/pandas-fillna-dropna.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-fillna-dropna/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/pandas-fillna-dropna.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Handling Missing Values in pandas: dropna, fillna and What Each One Claims",
+  "description": "Seven missing cells cost four rows to dropna and half a column to axis=1. Filling with zero moved the mean to 4.63, filling with the mean shrank the spread, and a sentinel hid entirely.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-fillna-dropna/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-fillna-dropna/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/pandas-fillna-dropna.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Handling Missing Values in pandas: dropna, fillna and What Each One Claims",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-fillna-dropna/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../python/">Python Kit</a> · <a href="../">All guides</a></p>
+  <h1>Handling Missing Values in pandas: dropna, fillna and What Each One Claims</h1>
+  <p class="meta">Every option is a statement about what the missing value was · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can count what is missing and where, choose between dropping rows, filling them and leaving them alone, say out loud what each of those claims about the data, and recognise the missing value that is not stored as missing at all. It is about twenty-five minutes, and every number below came out of running the code.</p>
+
+  <p>Here is what to do today, before deciding anything. Run <code>df.isna().sum()</code> and write the numbers down. Then run <code>len(df.dropna())</code> and compare it with <code>len(df)</code>. Those two lines tell you how much is missing and what the laziest fix would cost, and most people reach for the fix without ever knowing either number.</p>
+
+  <p>The short version: pandas will happily skip missing values in a summary, drop the rows that contain them, or replace them with something you choose. All three are decisions, and only one of them is honest by default.</p>
+
+  <p>What filling with the mean does to the spread is the idea, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 226" role="img" aria-labelledby="naTitle naDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="naTitle">Filled values are not observations</title>
+      <desc id="naDesc">A horizontal value axis runs across the picture with a tall dashed vertical line standing at the average. Fourteen small solid blue dots are scattered along the axis at their own positions, some well to the left of the dashed line and some well to the right, so the real measurements are spread out. Above the axis sit two hollow circles drawn with dashed outlines, standing for the two values that were never recorded. A short arrow drops from each hollow circle straight down onto the dashed average line, where two solid amber dots now sit, one on top of the other, exactly on the line. Every other dot is somewhere of its own; these two are on the average and nowhere else, so the picture shows that the filled points contribute no spread at all.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <line x1="40" y1="168" x2="724" y2="168" stroke="#09090B" stroke-width="2"/>
+        <line x1="352" y1="60" x2="352" y2="192" stroke="#52525B" stroke-width="2" stroke-dasharray="6 5"/>
+
+        <g fill="#0E7490">
+          <circle cx="96" cy="168" r="7"/><circle cx="152" cy="168" r="7"/>
+          <circle cx="196" cy="168" r="7"/><circle cx="238" cy="168" r="7"/>
+          <circle cx="266" cy="168" r="7"/><circle cx="300" cy="168" r="7"/>
+          <circle cx="330" cy="168" r="7"/><circle cx="392" cy="168" r="7"/>
+          <circle cx="440" cy="168" r="7"/><circle cx="486" cy="168" r="7"/>
+          <circle cx="540" cy="168" r="7"/><circle cx="588" cy="168" r="7"/>
+          <circle cx="650" cy="168" r="7"/><circle cx="704" cy="168" r="7"/>
+        </g>
+
+        <circle cx="200" cy="42" r="10" fill="none" stroke="#B45309" stroke-width="2.2" stroke-dasharray="4 4"/>
+        <circle cx="520" cy="42" r="10" fill="none" stroke="#B45309" stroke-width="2.2" stroke-dasharray="4 4"/>
+        <path d="M208 52 C260 78 300 100 342 128" stroke="#B45309" stroke-width="2.2" fill="none"/>
+        <path d="M348 134 L336 130 M348 134 L342 122" stroke="#B45309" stroke-width="2.2" fill="none"/>
+        <path d="M512 52 C452 80 404 104 362 132" stroke="#B45309" stroke-width="2.2" fill="none"/>
+        <path d="M356 137 L368 133 M356 137 L362 125" stroke="#B45309" stroke-width="2.2" fill="none"/>
+
+        <circle cx="344" cy="152" r="8" fill="#B45309"/>
+        <circle cx="360" cy="152" r="8" fill="#B45309"/>
+      </g>
+    </svg>
+    <figcaption>The fourteen real values are spread across the axis. The two that were never recorded get placed exactly on the average, so they add to the count without adding any variation, and the data looks more consistent than it was measured to be.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>Find them first, and count them</li>
+      <li>dropna, and what it takes with it</li>
+      <li>The summaries already skip them</li>
+      <li>Filling with zero</li>
+      <li>Filling with the mean</li>
+      <li>Forward fill, and the value it invents</li>
+      <li>The missing value that is not stored as missing</li>
+      <li>groupby quietly drops the missing key</li>
+      <li>The full before and after</li>
+      <li>Edge cases worth knowing</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every number on this page is real.</strong> The sixteen-row orders table used across this whole set of guides, with seven cells removed on purpose, run in pandas 3.0.2. Sixteen rows is small enough to check any of it by hand.</div>
+
+  <div class="step">
+    <h2>1. Find them first, and count them</h2>
+
+    <p>One line, and it is the only place the whole picture appears.</p>
+
+    <pre><code>df.isna().sum()
+
+order_id      0
+order_date    0
+rep           0
+region        1
+product       0
+units         2
+unit_price    1
+revenue       3
+
+128 cells in the frame, 7 of them missing</code></pre>
+
+    <p>Seven cells out of a hundred and twenty-eight. Notice that <code>revenue</code> has three missing where <code>units</code> has two and <code>unit_price</code> has one: revenue is computed from both, so a hole in either produces a hole in the result. <strong>Missingness spreads through arithmetic</strong>, and a derived column is missing wherever any of its inputs is.</p>
+
+    <p>Two more lines are worth running at the same time. <code>df.isna().mean()</code> gives the proportion rather than the count, which is what you will quote. And <code>df.isna().sum(axis=1)</code> gives the count per row, which tells you whether the holes are concentrated in a few bad rows or scattered across many, and those two situations call for different treatment.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. dropna, and what it takes with it</h2>
+
+    <p>Before the explanation: seven cells are missing out of sixteen rows. Say how many rows survive <code>dropna()</code>.</p>
+
+    <pre><code>len(df)                          16
+len(df.dropna())                 12
+len(df.dropna(subset=["units"])) 14
+len(df.dropna(how="all"))        16
+df.dropna(axis=1).shape[1]        4 of 8 columns</code></pre>
+
+    <p>Plain <code>dropna()</code> removed four rows, a quarter of the table, to deal with seven cells. Its default is <code>how="any"</code>: a row goes if <em>any</em> column in it is missing, including columns you were not going to use. That is the most common way to throw away data by accident.</p>
+
+    <p>The three arguments that make it deliberate:</p>
+
+    <table>
+      <tr><th>Call</th><th>Drops a row when</th><th>Use when</th></tr>
+      <tr><td><code>dropna()</code></td><td>Any column is missing</td><td>Rarely. You are about to use every column.</td></tr>
+      <tr><td><code>dropna(subset=["units"])</code></td><td>The columns you name are missing</td><td>Usually. Drop on what the analysis needs.</td></tr>
+      <tr><td><code>dropna(how="all")</code></td><td>Every column is missing</td><td>Clearing genuinely empty rows from an import.</td></tr>
+      <tr><td><code>dropna(thresh=8)</code></td><td>Fewer than 8 columns have a value</td><td>Removing rows too sparse to be useful.</td></tr>
+    </table>
+
+    <p>And <code>axis=1</code> drops columns rather than rows, which on this frame leaves four of the eight standing. It is occasionally right for a wide import full of empty fields, and it is a very fast way to lose the column your analysis was about, so name the columns instead when you can.</p>
+
+    <p>Whichever you use, print the row count before and after. Losing a quarter of the table is a finding; losing it without noticing is the problem.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. The summaries already skip them</h2>
+
+    <p>Before you decide to fill or drop anything, know what pandas already does, because for a lot of work the answer is that you do not have to do either.</p>
+
+    <pre><code>units, with two values missing
+  count 14   sum 74.0   mean 5.2857   std 2.5246
+
+the same column with nothing missing
+  count 16   sum 101    mean 6.3125   std 3.7008</code></pre>
+
+    <p>Every summary skipped the missing values rather than erroring or returning nothing. <code>sum</code> added the fourteen it had. <code>mean</code> divided by fourteen, not sixteen. And <code>count</code> reports fourteen, which is the point: <strong><code>count</code> tells you how many values a summary was computed from, and comparing it with the row count is the cheapest missing-data check there is.</strong></p>
+
+    <p>That behaviour is helpful and it is also the quiet part. A mean over a column that is one-eighth missing is a statement about the seven-eighths that answered, and it will be presented as a statement about everybody unless somebody says otherwise. Here the honest sentence is that average units are 5.29 <em>among the fourteen orders where we know the quantity</em>.</p>
+
+    <p>The knock-on for derived columns is worth seeing too. Revenue needed both units and price, so it exists on thirteen of the sixteen rows, and its total is 8,150 against a true 9,890. That 1,740 gap is not an error in the arithmetic; it is three rows that could not be computed.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Filling with zero</h2>
+
+    <p><code>fillna(0)</code> is the reflex, and it is a specific claim: that the missing quantity was none.</p>
+
+    <pre><code>leave as NaN   count 14   sum 74.0   mean 5.2857   std 2.5246
+fillna(0)      count 16   sum 74.0   mean 4.6250   std 2.9637</code></pre>
+
+    <p>The sum did not move, because adding zero adds nothing. The mean fell from 5.29 to 4.63, because the denominator went from fourteen to sixteen. And the spread went <em>up</em>, from 2.52 to 2.96, because two values were placed at the bottom of the range.</p>
+
+    <p>So the rule is narrow: <strong>fill with zero only when zero is what happened.</strong> No sales that month, no returns that day, no clicks on that link. Those are real measurements that happen to be zero, and a database that stores them as missing is the thing that is wrong.</p>
+
+    <p>When the value is unknown rather than none, a zero is a false measurement that will be averaged, charted and summed exactly like a real one. This is the same trade as <a href="../excel-iferror/">hiding an error behind a zero in a spreadsheet</a>, and it goes wrong for the same reason.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Filling with the mean</h2>
+
+    <p>Before the explanation: filling the two holes with the column's own mean cannot change the mean. Say what it does change.</p>
+
+    <pre><code>leave as NaN     count 14   mean 5.2857   std 2.5246
+fillna(mean)     count 16   mean 5.2857   std 2.3503</code></pre>
+
+    <p>The mean is identical, to four decimal places, which is exactly why the method feels safe. The standard deviation fell from 2.52 to 2.35, and it had to: two values were placed precisely at the average, so they contribute nothing to the spread while still counting toward the divisor.</p>
+
+    <p>That is the picture at the top of the page. The filled points are not measurements, they are the average repeated, and the data now looks more consistent than it was ever observed to be. Anything downstream that reads the spread, an error bar, a confidence interval, a control limit, a correlation, is now reading a number that is too small, and nothing indicates it.</p>
+
+    <p>Mean filling has a place: a single missing value in a large, well-behaved column, where you need a complete column for a tool that will not accept holes, and where nobody will use the spread. Outside that, prefer to leave the hole, or to fill from something that actually knows: the same customer's other orders, the same product's usual quantity, the group median rather than the overall mean.</p>
+
+    <p>Say out loud which of your reports would change if the spread of one column were understated by seven percent. If none of them would, mean filling costs you nothing. If one of them is a control chart, it costs you the chart.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Forward fill, and the value it invents</h2>
+
+    <p><code>ffill</code> carries the previous value forward. On a genuine time series of something that persists, a price, a status, a meter reading, that is often exactly right: the value did not change, it simply was not re-recorded.</p>
+
+    <p>On anything else it invents data. Sorted by date, with one region missing:</p>
+
+    <pre><code>order_date   region   region_ffill
+2026-05-04   East     East
+2026-05-11   NaN      East      &lt;- the real answer was North
+2026-05-18   South    South
+2026-05-25   West     West</code></pre>
+
+    <p>The filled value is confidently wrong. Nothing about the previous row's region tells you anything about this one, because region is a property of the order rather than a state that persists between orders.</p>
+
+    <p>Two guards make it safer where it does apply. <code>limit=1</code> stops a single known value being carried across a long gap, which is what turns one missing reading into a week of flat line. And sorting explicitly before filling is not optional: <code>ffill</code> uses row order, so a frame that is not in time order fills from whatever happened to be above.</p>
+
+    <p><code>bfill</code> is the same thing backwards and carries a stronger warning: it fills a value from the future, which in anything you will model or forecast is leakage.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. The missing value that is not stored as missing</h2>
+
+    <p>Before the explanation: a source system writes <code>-1</code> where the quantity is unknown. Say what <code>isna()</code> reports.</p>
+
+    <p>Zero. It is a number, so nothing is missing as far as pandas is concerned.</p>
+
+    <pre><code>with -1 as the marker   mean 4.5000   count 16   min -1
+stored as missing       mean 5.2857   count 14</code></pre>
+
+    <p>The mean is wrong by nearly one whole unit, the count says every row has a value, and the only visible clue is that the minimum is negative. Change the marker to <code>0</code> or <code>999</code> and even that clue disappears.</p>
+
+    <p>This is the worst case on the page precisely because none of the tools on the page apply: <code>isna</code> finds nothing, <code>dropna</code> drops nothing, and <code>fillna</code> has nothing to fill. The only defence is to look, once, at the values themselves.</p>
+
+    <pre><code>df["units"].min(), df["units"].max()      absurd extremes
+df["units"].value_counts().head()         one value appearing far too often
+df.describe()                             a min or max that cannot be real</code></pre>
+
+    <p>The habit that catches it: on any new numeric column, look at the minimum and the maximum, and ask whether both are possible. A quantity of −1, an age of 999, a date of 1900-01-01 and a price of 0.01 are all the same thing, and all of them are best converted to a real missing value at load time with <code>na_values</code>, which is <a href="../pandas-read-csv/">the read_csv argument for exactly this</a>.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. groupby quietly drops the missing key</h2>
+
+    <p>One row has no region. Grouping by region:</p>
+
+    <pre><code>East   4
+North  4
+South  4
+West   3
+        rows accounted for: 15 of 16</code></pre>
+
+    <p>Fifteen of sixteen. The row with no region is not a group, it is not an empty group, it is simply gone from the result, and no warning is printed. On a real table that can be a fifth of your revenue absent from every regional report with every printed number individually correct.</p>
+
+    <pre><code>df.groupby("region", dropna=False)
+
+East   4
+North  4
+South  4
+West   3
+NaN    1
+        rows accounted for: 16 of 16</code></pre>
+
+    <p>One argument, and the missing group appears. Run it that way once for every key you group by, read the <code>NaN</code> row, and then decide what to do about it rather than letting the default decide. That is the same habit and the same argument as in <a href="../pandas-groupby/">the groupby guide</a>, and the check is arithmetic: group sizes must add back to the row count you started with.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same sixteen orders, same question: what is the average order quantity?</p>
+
+  <h3>Before</h3>
+  <pre><code>df["units"] = df["units"].fillna(0)
+df.groupby("region")["units"].mean()
+
+mean units 4.63, spread 2.96, sixteen values, no missing data anywhere</code></pre>
+  <p>A complete-looking column, a mean that is 0.66 too low, a spread that is too high, one region silently missing from the grouping, and nothing on the page recording that anything was ever absent.</p>
+
+  <h3>After</h3>
+  <pre><code># 1. count first
+df.isna().sum()                      units 2, unit_price 1, region 1
+len(df), len(df.dropna())            16, 12
+
+# 2. leave the holes, and say what the summary is over
+df["units"].count()                  14 of 16
+df["units"].mean()                   5.2857
+
+# 3. group without losing the missing key
+df.groupby("region", dropna=False)["units"].count().sum()    16 of 16
+
+# 4. the sentence that goes with the number
+"Average order quantity is 5.29 units, over the 14 of 16 orders
+ where the quantity was recorded. Two orders have no quantity."</code></pre>
+
+  <p>The claim, and it is why the choice deserves a paragraph rather than a reflex: <strong>the same two missing quantities give an average of 5.29, 4.63 or 5.29-with-less-spread depending on which one-line fix you reach for, and only one of the three tells the reader that anything was missing at all.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases worth knowing</h2>
+
+    <p>Six that come up.</p>
+
+    <p><strong>NaN is not equal to itself.</strong> <code>np.nan == np.nan</code> is <code>False</code>, so <code>df[df["region"] == np.nan]</code> returns nothing while <code>df["region"].isna().sum()</code> returns one. Always use <code>isna</code> and <code>notna</code>, never an equality test.</p>
+
+    <p><strong>An integer column becomes a float.</strong> Whole numbers plus a missing value cannot all be integers, so pandas widens the column and your quantities become 4.0 and 10.0. That is a signal rather than a fault, and the nullable integer type <code>"Int64"</code>, with a capital I, keeps them whole if it matters.</p>
+
+    <p><strong>Missing text is not an empty string.</strong> <code>NaN</code> and <code>""</code> behave differently: one is skipped by counts and the other is counted. A column cleaned by filling text holes with <code>""</code> will report more values than it has.</p>
+
+    <p><strong>Filling in place, invisibly.</strong> A <code>fillna</code> early in a notebook affects everything after it, including cells you wrote before. Fill into a new column while exploring, so the original is still there to compare against.</p>
+
+    <p><strong>Missing values in a merge key.</strong> They match each other, which multiplies rows. Remove or fill them before joining, not after.</p>
+
+    <p><strong>Why it is missing matters.</strong> A quantity missing at random is a different problem from a quantity missing because the order was cancelled. The second one is information, and dropping those rows deletes a pattern rather than a nuisance.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The reason there is no default right answer is that the correct treatment depends on <em>why</em> a value is absent, and that is not something the data can tell you. The standard framing distinguishes values missing completely at random from values whose absence is related to something else, and the point of the distinction is practical: analysing only the complete cases is safe in the first situation and biased in the second, and you cannot tell which you are in from the file alone (Rubin, 1976, <em>Biometrika</em>, 63(3), 581–592). A quantity missing because the field was skipped is one thing; a quantity missing because those orders were cancelled is another, and <code>dropna()</code> treats them identically.</p>
+
+  <p>The specific harm in section five is well documented rather than a matter of taste. Replacing missing values with the mean of the observed ones is criticised precisely because it preserves the mean while artificially reducing variability, so standard deviations, standard errors and any interval built from them come out too small, and the analysis looks more precise than the data supports (Schafer &amp; Graham, 2002, <em>Psychological Methods</em>, 7(2), 147–177). The drop from 2.52 to 2.35 on two values in sixteen is the small version of that; on a column that is a fifth missing it is not small.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than reread, because reviews of study techniques put practice testing and spacing near the top of what works and rereading and highlighting near the bottom, despite rereading feeling much more productive (Dunlosky, Rawson, Marsh, Nathan, &amp; Willingham, 2013, <em>Psychological Science in the Public Interest</em>, 14(1), 4–58).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>There is no cleanup to do in bulk here, only a decision to make properly once per column. Do this, in order.</p>
+
+  <ol>
+    <li><strong>Count before you decide.</strong> <code>isna().sum()</code>, and <code>isna().mean()</code> for the proportion you will quote.</li>
+    <li><strong>Check for sentinels.</strong> Look at the min and max of every numeric column and ask whether both are possible.</li>
+    <li><strong>Ask why each column is missing</strong>, once, of whoever owns the data. That answer decides everything that follows.</li>
+    <li><strong>Prefer leaving the hole</strong> and reporting the count it was computed over. It is the only option that is honest by default.</li>
+    <li><strong>Drop on the subset you actually use</strong>, never with a bare <code>dropna()</code>, and print the row count either side.</li>
+    <li><strong>Group with <code>dropna=False</code></strong> at least once per key, and check the group sizes add back to the row count.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Draw a column of your data as a strip of boxes, cross out the ones that are missing, and write beside each cross what you think the real value would have been and how you know. The ones where you can write something are candidates for filling. The ones where you cannot are the ones to leave alone and report.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>. The same problem in a database, where a missing value has its own logic, is <a href="../sql-null/">NULL in SQL</a>.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>Find them</td><td><code>df.isna().sum()</code>, and <code>.mean()</code> for the proportion.</td></tr>
+    <tr><td>Per row</td><td><code>df.isna().sum(axis=1)</code>. Concentrated or scattered?</td></tr>
+    <tr><td>Derived columns</td><td>Missing wherever any input is. Holes spread through arithmetic.</td></tr>
+    <tr><td><code>dropna()</code></td><td>Drops a row if <em>any</em> column is missing. Took 16 rows to 12.</td></tr>
+    <tr><td><code>dropna(subset=[...])</code></td><td>Only on the columns you name. Usually what you meant.</td></tr>
+    <tr><td><code>dropna(axis=1)</code></td><td>Drops columns. Left 4 of 8 here.</td></tr>
+    <tr><td>Summaries</td><td>Skip missing values by default. No error, no warning.</td></tr>
+    <tr><td><code>count()</code></td><td>How many values the summary used. Compare with the row count.</td></tr>
+    <tr><td><code>fillna(0)</code></td><td>Claims the value was none. Mean fell 5.29 to 4.63.</td></tr>
+    <tr><td>When zero is right</td><td>No sales, no returns, no clicks. A real measurement of nothing.</td></tr>
+    <tr><td><code>fillna(mean)</code></td><td>Mean unchanged, spread shrank 2.52 to 2.35.</td></tr>
+    <tr><td>Why that matters</td><td>Filled points sit on the average and add no variation.</td></tr>
+    <tr><td><code>ffill</code></td><td>Carries the previous value. Right for states, wrong for events.</td></tr>
+    <tr><td><code>ffill(limit=1)</code></td><td>Stops one value being carried across a long gap.</td></tr>
+    <tr><td><code>bfill</code></td><td>Fills from the future. Leakage in anything you model.</td></tr>
+    <tr><td>Sentinels</td><td>-1, 999, 1900-01-01. <code>isna</code> finds nothing. Check min and max.</td></tr>
+    <tr><td><code>NaN == NaN</code></td><td>False. Use <code>isna</code>, never an equality test.</td></tr>
+    <tr><td><code>groupby</code></td><td>Drops the missing key silently. Use <code>dropna=False</code>.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Report the count a summary was computed over, beside the summary. "Average 5.29 over 14 of 16 orders" is a sentence nobody can misread; "average 5.29" is the same number with the important part removed, and every option on this page except leaving the hole alone makes that removal permanent. If missing data behaves in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. Mine was a survey export where unanswered numeric questions came through as zero, so satisfaction scores looked catastrophic for one region and the real story was that a form had been broken for a fortnight. What has a missing value pretended to be in your data?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Rubin, D. B. (1976). Inference and missing data. <em>Biometrika</em>, 63(3), 581–592.</li>
+    <li>Schafer, J. L., &amp; Graham, J. W. (2002). Missing data: Our view of the state of the art. <em>Psychological Methods</em>, 7(2), 147–177.</li>
+    <li>Dunlosky, J., Rawson, K. A., Marsh, E. J., Nathan, M. J., &amp; Willingham, D. T. (2013). Improving students' learning with effective learning techniques. <em>Psychological Science in the Public Interest</em>, 14(1), 4–58.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice on data with holes in it on purpose.</strong>
+    <p style="margin:6px 0 0">The <a href="../../python/">Python Kit</a> gives you the repetitions: columns with scattered and concentrated missingness, sentinel values to find, and the same summary computed four ways, plus flash cards on what each fill claims. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../python/">Open the Python Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../pandas-groupby/">pandas groupby</a> · <a href="../pandas-read-csv/">pandas read_csv</a> · <a href="../pandas-merge/">pandas merge</a> · <a href="../sql-null/">NULL in SQL</a> · <a href="../excel-iferror/">How to Use IFERROR</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../../python/">Python Kit</a> · <a href="../excel-clean-messy-data/">Clean Messy Data</a> · <a href="../correlation-vs-causation/">Correlation vs Causation</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
