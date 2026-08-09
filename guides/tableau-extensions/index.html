@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tableau Dashboard Extensions: What They Add, and What They Can Read — Analyst Prep Kit</title>
+<meta name="description" content="An extension is a third-party web application running inside your dashboard. The two hosting kinds, what each permission level gives access to, how to add one, and the print behaviour that catches people out.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-extensions/">
+<meta property="og:title" content="Tableau Dashboard Extensions: What They Add, and What They Can Read">
+<meta property="og:description" content="The panel looks like part of your dashboard. The code behind it may be running on somebody else's server. Here is how to tell, and what the permission box is actually asking.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/tableau-extensions.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-extensions/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/tableau-extensions.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+  .book{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px}
+  .book p{margin:6px 0 0}
+  .book a.booklink{display:inline-block;margin-top:10px;font-weight:600}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Tableau Dashboard Extensions: What They Add, and What They Can Read",
+  "description": "An extension is a third-party web application running inside your dashboard. The two hosting kinds, what each permission level gives access to, how to add one, and the print behaviour that catches people out.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-extensions/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-extensions/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-09",
+  "dateModified": "2026-08-09",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/tableau-extensions.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Tableau Dashboard Extensions: What They Add, and What They Can Read",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-extensions/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../tableau/">Tableau Kit</a> · <a href="../">All guides</a></p>
+  <h1>Tableau Dashboard Extensions: What They Add, and What They Can Read</h1>
+  <p class="meta">The panel is on your dashboard. The code may not be. · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can add an extension to a dashboard, tell the two hosting kinds apart, and read the permission box well enough to know what you're agreeing to. You'll also know the one behaviour that surprises people after publishing, which is what an extension looks like in a PDF. It's about twelve minutes.</p>
+
+  <p>Here's what to do before you add your first one. Find out where it runs. An extension you drop onto a dashboard is a web application, and some of them are hosted on Tableau-managed servers while others are hosted by whoever built them. That single fact decides how much thought the rest of the decision needs.</p>
+
+  <p>The short version: an extension is a third-party web application running inside a dashboard object, and one of the two permission levels gives it your full underlying data along with table and field names.</p>
+
+  <p>Where the code actually runs is the thing the panel doesn't show you, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 280" role="img" aria-labelledby="exTitle exDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="exTitle">Three views are drawn by Tableau, the extension panel is drawn by someone else's server</title>
+      <desc id="exDesc">A large rectangle labelled your dashboard contains four panels that all look alike. Three of them are shaded the same and marked as ordinary views. The fourth, in the lower right and outlined in a warning colour, is labelled extension. A line runs from that fourth panel, crosses the boundary of the dashboard rectangle, and continues out to a separate box drawn outside and to the right labelled third-party host. The three ordinary views have no lines leaving the rectangle. The drawing shows that the extension panel sits inside the dashboard visually while its code and its data traffic reach outside it, which the other three panels never do.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <text x="40" y="26" font-size="13" font-weight="700" fill="#52525B">your dashboard</text>
+        <rect x="40" y="36" width="420" height="200" rx="12" fill="#FFFFFF" stroke="#52525B" stroke-width="1.5"/>
+
+        <rect x="60" y="56" width="180" height="76" rx="8" fill="#E0F2F7" stroke="#0E7490"/>
+        <rect x="260" y="56" width="180" height="76" rx="8" fill="#E0F2F7" stroke="#0E7490"/>
+        <rect x="60" y="148" width="180" height="70" rx="8" fill="#E0F2F7" stroke="#0E7490"/>
+
+        <rect x="260" y="148" width="180" height="70" rx="8" fill="#FDE8CE" stroke="#B45309" stroke-width="2.5"/>
+        <text x="350" y="188" font-size="13" font-weight="700" fill="#B45309" text-anchor="middle">extension</text>
+
+        <path d="M440 183 C 500 183, 500 150, 566 150" stroke="#B45309" stroke-width="2.5" fill="none" marker-end="url(#xr)"/>
+        <path d="M566 162 C 500 162, 500 195, 440 195" stroke="#B45309" stroke-width="2.5" fill="none" stroke-dasharray="6 4" marker-end="url(#xr)"/>
+        <defs>
+          <marker id="xr" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M0 0 L9 4.5 L0 9 z" fill="#B45309"/>
+          </marker>
+        </defs>
+
+        <rect x="570" y="118" width="150" height="76" rx="10" fill="#FFFFFF" stroke="#B45309" stroke-width="2"/>
+        <text x="645" y="152" font-size="12.5" font-weight="700" fill="#B45309" text-anchor="middle">third-party</text>
+        <text x="645" y="170" font-size="12.5" font-weight="700" fill="#B45309" text-anchor="middle">host</text>
+
+        <path d="M60 252 L240 252" stroke="#0E7490" stroke-width="2"/>
+        <text x="250" y="257" font-size="12.5" fill="#52525B">these three stay inside</text>
+      </g>
+    </svg>
+    <figcaption>Four panels, one boundary crossed. Nothing on the dashboard says which is which.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What an extension actually is</li>
+      <li>The two kinds, and where the code runs</li>
+      <li>What the permission box is really asking</li>
+      <li>Adding one, and what it needs to work</li>
+      <li>When to reach for one, and when not to</li>
+      <li>Why the permission box is the hard part</li>
+      <li>Using this on your own dashboard</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="step">
+    <h2>1. What an extension actually is</h2>
+
+    <p>Before the explanation: you drop an extension onto a dashboard and it draws a chart type Tableau doesn't have. Where did that chart come from?</p>
+
+    <p>From a web application, written by somebody else, running inside a panel on your dashboard. Tableau's own description is that extensions "let you add unique features to dashboards or directly integrate them with applications outside Tableau," and that they are "web applications created by third-party developers."</p>
+
+    <p>That's a bigger idea than a plugin. A worksheet is Tableau drawing your data. An extension panel is a separate application that Tableau has given a rectangle to, and which can be given access to the data behind the dashboard.</p>
+
+    <p>The things people use them for are genuinely useful and genuinely outside what a worksheet does: write-back to a database from inside the dashboard, chart types Tableau doesn't ship, integration with a planning or ticketing tool, or a control that changes several sheets at once in a way parameters can't.</p>
+
+    <p>Extensions are added as a dashboard object, which puts them in the same family as a text box, an image or a web page object rather than in the same family as a sheet.</p>
+
+    <div class="note"><strong>The sentence to remember.</strong> An extension is somebody else's application borrowing a rectangle on your dashboard. Everything else on this page follows from taking that literally.</div>
+  </div>
+
+  <div class="step">
+    <h2>2. The two kinds, and where the code runs</h2>
+
+    <p>Before the distinction: two extensions do the same job and look identical on the dashboard. What could make one a much easier decision than the other?</p>
+
+    <p>Who is hosting it. Tableau splits extensions by exactly that, and it's the first thing to establish about any one you're considering.</p>
+
+    <table>
+      <tr><th>Kind</th><th>Where it runs</th><th>What that means for you</th></tr>
+      <tr><td><strong>Tableau Trusted</strong></td><td>Tableau-managed hosts. Reviewed by Tableau, and includes ones built by Tableau and by Exchange Partners through Tableau's review service.</td><td>Someone with a stake in it has looked at the code, and the hosting is not a stranger's</td></tr>
+      <tr><td><strong>Network-enabled</strong></td><td>A third-party host. The developer manages delivery without Tableau in the middle.</td><td>Your judgment about that developer is the whole safeguard</td></tr>
+    </table>
+
+    <p>There's also a sandboxed option, which runs an extension in an isolated environment with no access to the network outside. It's the tightest of the choices, and it needs Tableau Server 2019.4 or later.</p>
+
+    <p>Say out loud why hosting matters more than what the extension displays, before reading on. It's because the panel's appearance is authored by the same people you'd be trusting. A polished panel is evidence of design effort and nothing else. Where it runs is a fact about the software rather than a claim by it.</p>
+
+    <p>None of that makes network-enabled extensions a bad choice. Plenty of good tools are delivered that way, and being outside Tableau's review service is not a mark against a developer. It means the question moves to you, and the question is the ordinary one you'd ask about any vendor handling company data.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. What the permission box is really asking</h2>
+
+    <p>Before the answer: an extension asks for permission and you click allow. What did you just agree to?</p>
+
+    <p>It depends which of two things it asked for, and the difference is large. Tableau's model has you "allow or deny the dashboard extension access to data in the workbook," and a network-enabled extension may request the higher level, called Full Data Access.</p>
+
+    <p>Full Data Access includes access to full underlying data, plus table and field names from the data sources. Read that as a sentence about your database rather than about your chart. Field and table names are the shape of your systems, and underlying data is the rows themselves rather than the totals on screen.</p>
+
+    <table>
+      <tr><th>What it can reach</th><th>Summary data</th><th>Full Data Access</th></tr>
+      <tr><td>The aggregated numbers shown in the view</td><td>Yes</td><td>Yes</td></tr>
+      <tr><td>The underlying rows behind those numbers</td><td>No</td><td>Yes</td></tr>
+      <tr><td>Table and field names from the data source</td><td>No</td><td>Yes</td></tr>
+    </table>
+
+    <p>The practical rule falls out of the table. An extension that draws a chart of what's already on screen has no need for the underlying rows. If one asks for Full Data Access and its job is drawing a picture of a summary, that mismatch is the thing to ask about, and asking is reasonable rather than paranoid.</p>
+
+    <p>If you change your mind later, Tableau has Reset Permissions, so an early allow is not permanent. Worth knowing before you spend an afternoon worrying about a click you already made.</p>
+
+    <p>Picture the dashboards you've built at work. If one of their extensions could read every underlying row, whose data would that be, and would they know? That question is the whole of this section.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Adding one, and what it needs to work</h2>
+
+    <p>Before the steps: your extension panel is blank on a colleague's machine and fine on yours. What's the most likely cause?</p>
+
+    <p>Usually one of two things, and both are in this section. Adding an extension is three steps.</p>
+
+    <ol>
+      <li>Open a dashboard sheet in a Tableau workbook.</li>
+      <li>Drag an Extension object from the Objects section onto the dashboard.</li>
+      <li>Either search for an extension, or browse locally for a <code>.trex</code> file you've already downloaded.</li>
+    </ol>
+
+    <p>That <code>.trex</code> file is the manifest, meaning it's the small file that tells Tableau where the extension lives and what it's called. It isn't the extension itself, which is the point people miss when they wonder why such a small file added such a large feature.</p>
+
+    <p>Three requirements, each of which produces a blank or missing panel when unmet.</p>
+
+    <p><strong>JavaScript must be enabled in Tableau Desktop.</strong> It's a dashboard setting, and an extension cannot run without it.</p>
+
+    <p><strong>An administrator can disable extensions entirely.</strong> On Tableau Server and Tableau Cloud this is a setting someone else controls, so an extension that works on your machine can be blocked in the environment you publish to. Check before you design a dashboard around one.</p>
+
+    <p><strong>Sandboxed extensions need Tableau Server 2019.4 or later.</strong> An older server is a hard stop rather than a degraded experience.</p>
+
+    <p>Then the one that catches people after publishing. On Tableau Server and Tableau Cloud, extension objects appear blank in prints, PDFs and images. So a dashboard that gets exported for a monthly pack has a blank rectangle where the extension was, and nobody finds out until the pack is circulated.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. When to reach for one, and when not to</h2>
+
+    <p>Before the list: an extension would solve your problem in ten minutes. What's worth checking before you use it?</p>
+
+    <p>Whether Tableau already does it, because a native answer costs no permission decision, no hosting question and no blank box in the PDF.</p>
+
+    <p>Extensions earn their place when the job is genuinely outside Tableau: writing data back to a source, a chart type that isn't in the Show Me options, or connecting the dashboard to another system your team works in. That's real capability and there's no native substitute.</p>
+
+    <p>Three cases where the native route is the better answer, and all three are common.</p>
+
+    <table>
+      <tr><th>What you want</th><th>Native answer</th></tr>
+      <tr><td>One control that drives several sheets</td><td>A parameter, or a dashboard action</td></tr>
+      <tr><td>Readers changing which group is highlighted</td><td>A <a href="../tableau-sets/">set action</a>, which updates set membership from the dashboard</td></tr>
+      <tr><td>Drill-down from summary to detail</td><td>A <a href="../tableau-hierarchies/">hierarchy</a>, which puts the control on the pill for free</td></tr>
+    </table>
+
+    <p>Two more things worth deciding before you commit, both about the dashboard rather than the extension. An extension panel occupies space, and space on a dashboard is the scarce thing: the <a href="../tableau-sheets-to-dashboard/">two or three views</a> guidance applies to a panel that isn't a view either. And an extension is a dependency, so a dashboard built around one stops working properly if the developer stops maintaining it.</p>
+  </div>
+
+  <h2>Why the permission box is the hard part</h2>
+
+  <p>The technical steps here are easy and the judgment is not, and that split is worth naming because it's where the real risk sits. The problem isn't that the permission box is hidden. It's shown, clearly, at the moment you add the extension. The problem is that permission prompts are a weak way to get a good decision out of anyone.</p>
+
+  <p>Felt and colleagues studied exactly this on Android, where users see a permission list before installing an application. Their conclusion was that the permission warnings did not help most users make correct security decisions, while a notable minority did both notice them and understand them reasonably well (Felt, Ha, Egelman, Haney, Chin, &amp; Wagner, 2012, <em>Proceedings of the Eighth Symposium on Usable Privacy and Security</em>). The finding generalises past Android because the mechanism is the same: a prompt arrives when someone has already decided they want the thing, and it asks them to weigh a cost they can't see against a benefit they came for.</p>
+
+  <p>The fix that follows is not to concentrate harder at the prompt. It's to move the decision earlier, to a moment when you haven't yet committed. Establish where an extension is hosted and what it needs access to before you drag it onto the dashboard, and the box at the end becomes a confirmation of something you already decided rather than the decision itself.</p>
+
+  <p>The product behaviour on this page comes from Tableau's own documentation, which is the authority on it. Use dashboard extensions (Tableau Help, current version) is the source for the definition of an extension, the trusted and network-enabled distinction, the Full Data Access description, Reset Permissions, the three steps for adding one, the JavaScript requirement, the administrator control, the Tableau Server 2019.4 requirement for sandboxed extensions, and the statement that extension objects appear blank in prints, PDFs and images. Where a secondary write-up disagrees with that page, the page wins.</p>
+
+  <h2>Using this on your own dashboard</h2>
+
+  <p>Think about any dashboard you've published with an extension on it. Could you say today who hosts that extension and what data it was granted?</p>
+
+  <p>Do this per extension rather than as a project, in this order.</p>
+
+  <ol>
+    <li><strong>Ask whether Tableau already does it.</strong> Parameters, dashboard actions, set actions and hierarchies cover more of the common asks than people expect.</li>
+    <li><strong>Establish the hosting before you install.</strong> Tableau Trusted, network-enabled or sandboxed. This is a fact you can look up, not a judgment call.</li>
+    <li><strong>Decide what level of access the job actually needs</strong>, then compare it with what's requested. A mismatch is a question, not necessarily a problem.</li>
+    <li><strong>Check your environment allows extensions at all</strong>, and check the server version if you need a sandboxed one. Both are hard stops and both are cheap to check first.</li>
+    <li><strong>Export the dashboard to PDF before you call it finished.</strong> The blank rectangle is much better discovered by you than by the person who circulates the monthly pack.</li>
+    <li><strong>Write down what you granted and why</strong>, next to the workbook. Six months later, nobody remembers, and Reset Permissions is a much easier conversation with a note beside it.</li>
+  </ol>
+
+  <p>If you have paper and five spare minutes, there's one sketch worth doing and it's optional. Draw your dashboard as boxes, then draw a line out of the page from every box whose contents come from outside your organisation. Most dashboards produce no lines at all, which is exactly why the one that does deserves a minute of thought.</p>
+
+  <div class="cta">
+    <strong>Practice this before the exam.</strong>
+    <p style="margin:6px 0 0">Dashboards and sharing sit in Section 3 of the Tableau Desktop Foundations exam, worth 25%. The <a href="../../tableau-cert/">certification kit</a> drills dashboard objects, actions and publishing in the exam's own format.</p>
+    <a class="btn" href="../../tableau-cert/">Open the certification kit →</a>
+    <p style="margin:10px 0 0;font-size:15px">Want the section map first? <a href="../tableau-desktop-foundations-exam/">The Foundations exam breakdown</a> turns the published weights into question counts.</p>
+  </div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Concept</th><th>What it does</th></tr>
+    <tr><td>Dashboard extension</td><td>A third-party web application running in a dashboard object</td></tr>
+    <tr><td>What it adds</td><td>Features outside Tableau, or integration with an outside application</td></tr>
+    <tr><td>Tableau Trusted</td><td>Reviewed by Tableau and deployed on Tableau-managed hosts</td></tr>
+    <tr><td>Network-enabled</td><td>Hosted by a third party, delivered without Tableau in the middle</td></tr>
+    <tr><td>Sandboxed</td><td>Runs isolated, with no outside network access. Needs Tableau Server 2019.4 or later.</td></tr>
+    <tr><td>Permission choice</td><td>Allow or deny the extension access to data in the workbook</td></tr>
+    <tr><td>Full Data Access</td><td>Full underlying data, plus table and field names from the data sources</td></tr>
+    <tr><td>Changed your mind</td><td>Reset Permissions</td></tr>
+    <tr><td>Adding one</td><td>Drag an Extension object from Objects, then search or browse for a .trex file</td></tr>
+    <tr><td>.trex file</td><td>The manifest. It points at the extension, it is not the extension.</td></tr>
+    <tr><td>Requirement</td><td>JavaScript enabled in Tableau Desktop</td></tr>
+    <tr><td>Administrator control</td><td>Extensions can be disabled entirely on Server and Cloud</td></tr>
+    <tr><td>In a PDF or image</td><td>Extension objects appear blank on Server and Cloud</td></tr>
+    <tr><td>Reach for native first</td><td>Parameters, dashboard actions, set actions, hierarchies</td></tr>
+    <tr><td>The standing cost</td><td>A dependency on someone else continuing to maintain it</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Decide where an extension is hosted and what access it needs before you drag it onto the dashboard. Making the call while you still have nothing invested is the only reliable way to make it well, and it turns the permission box into a confirmation instead of a decision.</div>
+
+  <p>One last thought, and I'd like other people's answers. The detail that changed how I think about these is the blank rectangle in a PDF, because it means the dashboard behaves differently depending on how someone consumes it, and nothing warns you. What's the extension you've actually found worth the dependency?</p>
+
+  <div class="book">
+    <strong>You can build the chart. Saying why Tableau put the numbers there is the harder part.</strong>
+    <p><em>Tableau for Analysts</em> is 110 pages on how Tableau actually thinks: dimensions against measures, relationships against joins, sets, and level of detail. Enough that you stop dragging fields until it looks right.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/tableau-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-tableau-extensions'})">Tableau for Analysts, $19 &rarr;</a>
+  </div>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Tableau. Use dashboard extensions. <em>Tableau Desktop and Web Authoring Help</em>, current version. help.tableau.com. The authority for the product behaviour described here.</li>
+    <li>Felt, A. P., Ha, E., Egelman, S., Haney, A., Chin, E., &amp; Wagner, D. (2012). Android permissions: User attention, comprehension, and behavior. <em>Proceedings of the Eighth Symposium on Usable Privacy and Security (SOUPS '12)</em>.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Build the views, not just the vocabulary.</strong>
+    <p style="margin:6px 0 0">The <a href="../../tableau/">Tableau Kit</a> walks through dimensions, measures, aggregation and dashboard building, with worked examples and flash cards. Or drag fields onto shelves yourself in <a href="../../viz/">Viz Drill</a>, one chart at a time.</p>
+    <a class="btn" href="../../tableau/">Open the Tableau Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../tableau-sheets-to-dashboard/">Sheets to Dashboard</a> · <a href="../build-a-tableau-dashboard/">Build a Tableau Dashboard</a> · <a href="../tableau-sets/">Tableau Sets</a> · <a href="../tableau-hierarchies/">Tableau Hierarchies</a> · <a href="../tableau-aliases/">Tableau Aliases</a> · <a href="../tableau-sorts/">Tableau Sorting</a> · <a href="../tableau-concepts/">Tableau Concepts</a> · <a href="../tableau-relationships/">Tableau Relationships</a> · <a href="../tableau-desktop-foundations-exam/">The Foundations Exam</a> · <a href="../verify-ai-agent-work/">Verify AI Agent Work</a> · <a href="../install-tableau-public/">Install Tableau Public</a> · <a href="../../viz/">Viz Drill</a> · <a href="../../tableau/">Tableau Kit</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
