@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forecast Accuracy: MAE, RMSE, MAPE and the Month That Broke One of Them — Analyst Prep Kit</title>
+<meta name="description" content="Five measures on the same forecast. MAPE returns infinity because one month is zero, RMSE is nearly twice MAE, and MASE says the plan beat the naive baseline by half.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/forecast-accuracy/">
+<meta property="og:title" content="Forecast Accuracy: MAE, RMSE, MAPE and the Month That Broke One of Them">
+<meta property="og:description" content="Five measures on the same forecast. MAPE returns infinity because one month is zero, RMSE is nearly twice MAE, and MASE says the plan beat the naive baseline by half.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/forecast-accuracy.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/forecast-accuracy/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/forecast-accuracy.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Forecast Accuracy: MAE, RMSE, MAPE and the Month That Broke One of Them",
+  "description": "Five measures on the same forecast. MAPE returns infinity because one month is zero, RMSE is nearly twice MAE, and MASE says the plan beat the naive baseline by half.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/forecast-accuracy/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/forecast-accuracy/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-09",
+  "dateModified": "2026-08-09",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/forecast-accuracy.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Forecast Accuracy: MAE, RMSE, MAPE and the Month That Broke One of Them",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/forecast-accuracy/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../forecasting/">Forecasting Kit</a> · <a href="../">All guides</a></p>
+  <h1>Forecast Accuracy: MAE, RMSE, MAPE and the Month That Broke One of Them</h1>
+  <p class="meta">Five ways to score the same forecast, and which one to report · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can score a forecast five different ways, say what each measure rewards and punishes, and answer the only question that makes any of them meaningful: is this forecast better than doing nothing. On the five months below, the same forecast scores an average miss of 600, a root-mean-square miss of 1,084, and a percentage error of infinity.</p>
+
+  <p>Here is what to actually do today. Take your current forecast and compare it to the laziest possible alternative: last period's actual, repeated. If your forecast is not beating that, the sophistication is not earning its keep, and that comparison takes about two minutes to run.</p>
+
+  <p>The short version: measure the error each period, then decide how to average them. Averaging the sizes gives MAE. Averaging the squares and taking the root gives RMSE, which punishes one big miss much harder. Averaging the percentages gives MAPE, which breaks whenever an actual is zero.</p>
+
+  <p>The difference between the first two is the whole reason both exist, and it is easier to see than to define, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 236" role="img" aria-labelledby="faTitle faDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="faTitle">Same total error, very different squares</title>
+      <desc id="faDesc">Two arrangements side by side, each built from a horizontal bar on top and shaded squares standing on a common baseline below. On the left, the horizontal bar is divided by three tick marks into four equal short pieces, and beneath it four small identical squares stand in a row, each one as wide as one piece of the bar. On the right, the horizontal bar is exactly the same total length as the left one but is a single unbroken piece, and beneath it stands one large square whose side equals that whole length. The large square on the right is visibly far bigger than the four small squares on the left put together, taking up roughly four times as much shaded area, even though the two bars above them are the same length. The left row is labelled error at the bar and error squared at the squares.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <text x="112" y="66" text-anchor="end" font-size="13" font-weight="700" fill="#52525B">error</text>
+        <text x="112" y="212" text-anchor="end" font-size="13" font-weight="700" fill="#52525B">error squared</text>
+
+        <!-- left: four small errors -->
+        <rect x="130" y="54" width="100" height="12" fill="#7FC3D8"/>
+        <path d="M155 50 L155 70 M180 50 L180 70 M205 50 L205 70" stroke="#FFFFFF" stroke-width="2.5"/>
+        <g fill="#0E7490">
+          <rect x="130" y="190" width="25" height="25"/>
+          <rect x="158" y="190" width="25" height="25"/>
+          <rect x="186" y="190" width="25" height="25"/>
+          <rect x="214" y="190" width="25" height="25"/>
+        </g>
+
+        <!-- right: one big error -->
+        <rect x="470" y="54" width="100" height="12" fill="#7FC3D8"/>
+        <rect x="470" y="115" width="100" height="100" fill="#B45309"/>
+
+        <line x1="110" y1="215" x2="620" y2="215" stroke="#A1A1AA" stroke-width="1.5"/>
+      </g>
+    </svg>
+    <figcaption>Two forecasts, both off by 400 in total across four periods. On the left it is four misses of 100 each; on the right it is one miss of 400 and three perfect periods. The bars are the same length, so MAE scores them identically at 100. The squares are what RMSE averages, and the one on the right is four times the area of the four on the left put together, so RMSE scores them 100 against 200.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>The error, and the one that cancels itself out</li>
+      <li>MAE: the average miss, in your own units</li>
+      <li>RMSE: the one that hates a single big miss</li>
+      <li>MAPE, and the month that returns infinity</li>
+      <li>WAPE and sMAPE, the two usual repairs</li>
+      <li>MASE: better than doing nothing, or not</li>
+      <li>Which one to report, and to whom</li>
+      <li>The full before and after</li>
+      <li>Edge cases that catch people out</li>
+      <li>Why this works</li>
+      <li>Using this on your own work</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every number on this page is real.</strong> The same order table used across these guides, aggregated to five months. There are genuinely no April orders, and that is not a contrivance: it is the ordinary case of a period with no activity, and section four is about what it does. The companion page on building the forecast in the first place is <a href="../moving-averages/">moving averages</a>.</div>
+
+  <p>Here is the setup. The plan for the year was a flat 2,400 a month, set in advance. Here is what actually happened.</p>
+
+  <table>
+    <tr><th>Month</th><th>Actual</th><th>Forecast</th><th>Error (actual − forecast)</th><th>Absolute error</th></tr>
+    <tr><td>January</td><td>2,630</td><td>2,400</td><td>+230</td><td>230</td></tr>
+    <tr><td>February</td><td>2,245</td><td>2,400</td><td>−155</td><td>155</td></tr>
+    <tr><td>March</td><td>2,585</td><td>2,400</td><td>+185</td><td>185</td></tr>
+    <tr><td>April</td><td>0</td><td>2,400</td><td>−2,400</td><td>2,400</td></tr>
+    <tr><td>May</td><td>2,430</td><td>2,400</td><td>+30</td><td>30</td></tr>
+  </table>
+
+  <div class="step">
+    <h2>1. The error, and the one that cancels itself out</h2>
+
+    <p>Before the arithmetic: add up the five errors in that last-but-one column, with their signs. Predict roughly what you will get, before reading on.</p>
+
+    <p>You get −2,110, which divided by five is −422. That is the <strong>bias</strong>, or mean error, and it is a genuinely useful number that answers a different question from the rest of this page. It says whether you are systematically forecasting too high or too low. Ours is negative, so the plan ran above reality on average, mostly because of April.</p>
+
+    <p>What it cannot do is measure accuracy, because positive and negative errors cancel. A forecast that is 5,000 too high one month and 5,000 too low the next has a bias of zero and is not accurate. Every other measure on this page exists because of that cancellation, and each one deals with it differently: MAE takes the absolute value, RMSE squares.</p>
+
+    <p>Report bias alongside accuracy, never instead of it. A forecast with low error and no bias is good. Low error with a consistent bias means you have a correctable offset, which is the cheapest improvement available to any forecast.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. MAE: the average miss, in your own units</h2>
+
+    <p>Before the calculation: take the five absolute errors, 230, 155, 185, 2,400 and 30, and average them in your head to the nearest hundred.</p>
+
+    <p>(230 + 155 + 185 + 2,400 + 30) ÷ 5 = 3,000 ÷ 5 = <strong>600</strong>. The <strong>mean absolute error</strong> is the average size of a miss, ignoring direction. It is in dollars, so it can be read straight out: this forecast is off by about 600 a month.</p>
+
+    <p>Say out loud what is misleading about that sentence, given the table above it. The forecast was off by 230, 155, 185 and 30 in four of the five months, and by 2,400 in one. Nothing was "off by 600" in any month. The average is being dragged by one period, exactly as the <a href="../mean-vs-median/">mean is dragged by an outlier</a>, and for the same reason.</p>
+
+    <p>MAE's advantages are real anyway. It is in the units people care about, every period counts equally, and it is the easiest measure to explain to somebody who does not want a statistics lesson. Its disadvantage is that you cannot compare it across products, regions or time periods with different scales. An MAE of 600 is excellent on a million-dollar line and catastrophic on a two-thousand-dollar one.</p>
+
+    <pre><code>import numpy as np
+actual   = np.array([2630, 2245, 2585, 0, 2430], float)
+forecast = np.array([2400, 2400, 2400, 2400, 2400], float)
+error    = actual - forecast
+
+mae  = np.abs(error).mean()          # 600.0
+bias = error.mean()                  # -422.0</code></pre>
+  </div>
+
+  <div class="step">
+    <h2>3. RMSE: the one that hates a single big miss</h2>
+
+    <p>Before the number: same five errors. Square each, average the squares, take the square root. Predict whether the answer is above or below 600.</p>
+
+    <p>Well above: <strong>1,083.70</strong>. Squaring makes a 2,400 miss 256 times more expensive than a 150 miss, rather than 16 times, so the one bad month dominates completely.</p>
+
+    <pre><code>rmse = np.sqrt((error ** 2).mean())  # 1083.70</code></pre>
+
+    <p>The picture at the top of this page is that fact with the numbers removed. Two forecasts, each 400 off in total across four periods. Four misses of 100 give MAE 100 and RMSE 100. One miss of 400 gives MAE 100 and RMSE 200. Identical by one measure, double by the other, and the difference is entirely about how the error was distributed.</p>
+
+    <table>
+      <tr><th>Error pattern</th><th>Total error</th><th>MAE</th><th>RMSE</th></tr>
+      <tr><td>100, 100, 100, 100</td><td>400</td><td>100</td><td>100</td></tr>
+      <tr><td>0, 0, 0, 400</td><td>400</td><td>100</td><td>200</td></tr>
+    </table>
+
+    <p>Which behaviour is correct depends entirely on what a miss costs you. If being 400 wrong once is much worse than being 100 wrong four times, because it empties a warehouse or blows a budget, then RMSE is measuring what you care about and you should use it. If a miss costs proportionally, so four small misses hurt exactly as much as one big one, MAE is the honest measure and RMSE will make you over-fit to your worst month.</p>
+
+    <p>RMSE is always at least as large as MAE, and the gap between them tells you how uneven your errors are. Ours are 600 and 1,083.70, a ratio of 1.8, which is a loud signal that one period is doing most of the damage. When MAE and RMSE are close, your errors are evenly spread.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. MAPE, and the month that returns infinity</h2>
+
+    <p>Before the problem: MAPE divides each error by the actual value to get a percentage, then averages those. Look at the April row and say what happens, before reading on.</p>
+
+    <p>April's actual is zero. 2,400 divided by 0 is not a number, so the average of the five percentages is not a number either. <strong>MAPE is infinite</strong>, and depending on your tool you will get <code>inf</code>, a division-by-zero error, or, worst of all, a silently skipped row and a plausible-looking answer.</p>
+
+    <pre><code>ape = np.abs(error / actual)
+# array([0.0875, 0.0690, 0.0716, inf, 0.0123])
+ape.mean()     # inf</code></pre>
+
+    <p>This is not an edge case you can dismiss. Any period with no activity gives an actual of zero: a closed store, a product before launch, a channel that went quiet, a week the tracking broke. <strong>MAPE is undefined for exactly the periods you most want to understand.</strong></p>
+
+    <p>Excluding April, MAPE is 6.01 percent, and the four monthly percentage errors are 8.75, 6.90, 7.16 and 1.23. That number is genuinely informative about the four normal months, and reporting it as "MAPE 6 percent" without saying that a month was dropped is the kind of omission that gets found later.</p>
+
+    <p>MAPE has a second, quieter problem: it is asymmetric. Forecasting 200 when the actual is 100 gives an error of 100 percent. Forecasting 100 when the actual is 200 gives 50 percent. The same absolute miss, scored twice as harshly in one direction, which means optimizing for MAPE quietly pushes your forecasts low.</p>
+
+    <p>None of that makes MAPE useless. It is unitless, so it compares across products and regions, and non-technical readers understand a percentage immediately. Use it when your actuals are comfortably away from zero, and reach for section five when they are not.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. WAPE and sMAPE, the two usual repairs</h2>
+
+    <p>Before the fix: the problem with MAPE is dividing by each individual actual. Say what you would divide by instead, before reading on.</p>
+
+    <p>The total. <strong>WAPE</strong>, the weighted absolute percentage error, adds up all the absolute errors and divides by the sum of the actuals, dividing once instead of five times.</p>
+
+    <pre><code>wape = np.abs(error).sum() / actual.sum()
+# 3000 / 9890 = 0.3033  ->  30.33%</code></pre>
+
+    <p>April no longer breaks anything, because its zero contributes zero to the denominator rather than being a denominator of its own. And the result is naturally weighted by size, so a miss in a big month counts more than a miss in a small one, which is usually what you want. WAPE is my default whenever a percentage is required.</p>
+
+    <p>Compare the two on the four normal months, where both work: MAPE 6.01 percent and WAPE 6.07 percent. Almost identical, because those months are all about the same size. The gap only opens when period sizes differ, and then WAPE is the one that reflects the business.</p>
+
+    <p><strong>sMAPE</strong>, the symmetric version, divides by the average of the actual and the forecast rather than by the actual alone. That fixes the asymmetry and it does not really fix the zero problem: on our data it gives 44.90 percent, which is a strange-looking number driven by April scoring 200 percent, its maximum. sMAPE is common in forecasting competitions and I would not put it in front of a business reader without explaining it, which is usually a sign to use something else.</p>
+
+    <table>
+      <tr><th>Measure</th><th>All five months</th><th>Four months, April removed</th></tr>
+      <tr><td>MAE</td><td>600.00</td><td>150.00</td></tr>
+      <tr><td>RMSE</td><td>1,083.70</td><td>167.37</td></tr>
+      <tr><td>Bias</td><td>−422.00</td><td>+72.50</td></tr>
+      <tr><td>MAPE</td><td>undefined</td><td>6.01%</td></tr>
+      <tr><td>WAPE</td><td>30.33%</td><td>6.07%</td></tr>
+      <tr><td>sMAPE</td><td>44.90%</td><td>6.12%</td></tr>
+    </table>
+
+    <p>Read the two columns side by side and the point of this page appears. Removing one month of five turns an average miss of 600 into 150, and turns a positive bias into a negative one. Neither column is dishonest. The one you publish is a decision about whether April is part of the thing you are forecasting, and it belongs in writing next to the number.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. MASE: better than doing nothing, or not</h2>
+
+    <p>Before the idea: an MAE of 600 is good or bad compared with what? Name the comparison you would want, before reading on.</p>
+
+    <p>The comparison you want is against the effort-free alternative. The standard one is the <strong>naive forecast</strong>: predict that next month equals this month. Compute its error the same way, then divide.</p>
+
+    <pre><code>naive_mae = np.abs(np.diff(actual)).mean()   # 1435.0
+mase      = np.abs(error).mean() / naive_mae # 600 / 1435 = 0.418</code></pre>
+
+    <p>A <strong>MASE</strong> below 1 means you beat the naive forecast; above 1 means you did not. Ours is <strong>0.418</strong>, so the flat plan of 2,400 was about twice as accurate as guessing that each month repeats the last one. Here are both, scored the same way.</p>
+
+    <table>
+      <tr><th>Forecast</th><th>MAE</th><th>RMSE</th><th>Bias</th><th>MASE</th></tr>
+      <tr><td>Flat plan of 2,400</td><td>600.00</td><td>1,083.70</td><td>−422.00</td><td>0.418</td></tr>
+      <tr><td>Naive, last month repeated</td><td>1,174.00</td><td>1,604.24</td><td>−14.00</td><td>0.818</td></tr>
+    </table>
+
+    <p>Both beat the in-sample naive baseline, and the flat plan beats it by more. Notice the naive forecast's bias of −14, nearly zero, which is a good illustration of why bias alone proves nothing: a forecast can be unbiased and still be wrong by 1,174 a month, because its errors cancel rather than being small.</p>
+
+    <p>MASE is unitless, works when actuals are zero, and is symmetric, which is why forecasting researchers reach for it. Its cost is that it is not intuitive: nobody in a business meeting knows what 0.418 means without the sentence attached. So report it as the sentence. "About twice as accurate as assuming next month repeats this one" is what it says.</p>
+
+    <p>Now picture your own forecast, whatever produces it. If you scored it against last period repeated, would it win? That single comparison is worth more than any refinement to the model.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Which one to report, and to whom</h2>
+
+    <p>Before the recommendation: you have six numbers describing one forecast. Decide which you would put on a slide, before reading mine.</p>
+
+    <table>
+      <tr><th>Audience or purpose</th><th>Report</th><th>Because</th></tr>
+      <tr><td>An operations team acting on the number</td><td>MAE, plus bias</td><td>In their units, and it says which way you lean.</td></tr>
+      <tr><td>Big misses are disproportionately costly</td><td>RMSE</td><td>It prices one large miss the way the business does.</td></tr>
+      <tr><td>Comparing across products or regions</td><td>WAPE</td><td>Unitless, weighted by size, survives zeros.</td></tr>
+      <tr><td>Choosing between forecasting methods</td><td>MASE</td><td>Scale-free and anchored to the do-nothing baseline.</td></tr>
+      <tr><td>A non-technical summary</td><td>WAPE and bias, in words</td><td>"Off by about 6 percent, running slightly high."</td></tr>
+    </table>
+
+    <p>My own default block is four numbers: MAE, bias, WAPE and MASE, with the period count and any excluded periods named. It takes one line, it covers the size of the error, its direction, its relative scale and whether the forecast is earning its keep.</p>
+
+    <p>The one thing to avoid is picking the measure after seeing the results. If MAPE looks bad and you switch to RMSE without saying so, you have chosen your grade. Decide the measure when you build the forecast, and write it down, for the same reason you decide an A/B test's metric in advance in <a href="../ab-testing-for-analysts/">A/B testing</a>.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same forecast, same five months, two write-ups.</p>
+
+  <h3>Before</h3>
+  <pre><code>Forecast accuracy: 94%.</code></pre>
+  <p>One number with no definition. It is presumably 100 minus a MAPE, computed on the four months where MAPE is defined, with April silently dropped by whichever tool produced it. Nobody can reproduce it, nobody knows how many periods it covers, and nothing says whether 94 percent is better than repeating last month's number.</p>
+
+  <h3>After</h3>
+  <pre><code>Flat plan of 2,400, scored on 5 months (Jan to May 2026).
+  MAE      600      average miss, in dollars
+  Bias    -422      plan ran above actual on average
+  WAPE   30.3%      total miss as a share of total actual
+  MASE    0.418     about twice as accurate as repeating last month
+  MAPE    undefined April has zero actual revenue
+
+  April had no orders at all. Excluding it, MAE is 150 and WAPE 6.1%.
+  Both figures are shown because whether April belongs in the forecast
+  period is a business question, not a statistical one.</code></pre>
+  <p>Six lines, and every number is reproducible. The reader can see the size of the error, its direction, its scale, whether the forecast beat doing nothing, and precisely what April did to the arithmetic. The last sentence is the one that matters most, because it hands the judgement back to the person who can actually make it.</p>
+
+  <div class="step">
+    <h2>Edge cases that catch people out</h2>
+
+    <p>Six that each cost somebody a quarter.</p>
+
+    <p><strong>Zeros in the actuals.</strong> The headline case on this page. MAPE is undefined, and several tools will drop the row without telling you, producing a confident number computed on fewer periods than you think.</p>
+
+    <p><strong>Scoring on the data you fitted.</strong> A model tuned on the same months you then score it against will look excellent and will not be. Hold out periods the model never saw, or score forward as new actuals arrive.</p>
+
+    <p><strong>Restated actuals.</strong> If last month's actual changes after a data correction, your recorded accuracy changes too. Store the forecast and the actual as they stood when the forecast was scored, with the date, or your accuracy history will quietly rewrite itself.</p>
+
+    <p><strong>Comparing MAPE across series with different sizes.</strong> A small-volume product will show a terrible MAPE for a tiny absolute miss. That is arithmetic, not performance, and it is why WAPE weighted by size is the fairer comparison.</p>
+
+    <p><strong>Aggregating errors before measuring them.</strong> Forecast accuracy computed on a total is always better than accuracy computed per product and then combined, because errors cancel in the sum. Both numbers are real, and they answer different questions. Say which one you computed.</p>
+
+    <p><strong>One-period-ahead against many.</strong> A forecast scored one month ahead is a different task from one scored twelve months ahead, and comparing them is meaningless. State the horizon with the score, always.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The failures in sections four and five are not folklore. Hyndman and Koehler examined the standard accuracy measures against a set of properties any general-purpose measure ought to have, showed that percentage errors are undefined or infinite whenever an actual is zero and asymmetric otherwise, and that symmetric MAPE does not actually fix the asymmetry it is named for. They proposed the scaled error in section six as a measure that is defined in every case, unitless, and anchored to a naive baseline (Hyndman &amp; Koehler, 2006, <em>International Journal of Forecasting</em>, 22(4), 679–688). Our infinite MAPE is that argument reproduced on five months of real data.</p>
+
+  <p>Armstrong and Collopy compared error measures empirically across large collections of series and reached a similar conclusion from the other direction: measures based on relative or scaled errors are more reliable for choosing between methods than percentage errors, particularly on series with low or intermittent values (Armstrong &amp; Collopy, 1992, <em>International Journal of Forecasting</em>, 8(1), 69–80).</p>
+
+  <p>The habit of scoring against a naive baseline comes from the forecasting competitions, where it is standard practice and where the results have been consistently humbling. Across thousands of real series, elaborate methods frequently fail to beat simple ones out of sample, which is why "did it beat the naive forecast" is the first question rather than a footnote (Makridakis, Spiliotis, &amp; Assimakopoulos, 2020, <em>International Journal of Forecasting</em>, 36(1), 54–74).</p>
+
+  <p>One note on why this page kept asking you to answer before showing you the answer. Attempting an answer before seeing the correct one reliably improves how well the correct one is retained, even when the attempt is wrong (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725). The infinite MAPE sticks because you were asked to look at the April row and work out what would happen.</p>
+
+  <h2>Using this on your own work</h2>
+
+  <p>Rebuilding your forecasting process is not an afternoon's work. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Save the forecast.</strong> You cannot score what you did not record. A two-column table of period, forecast, and later the actual, is the whole infrastructure.</li>
+    <li><strong>Compute the naive baseline.</strong> Last period repeated. Score it the same way you score yours. This is the two-minute job that tells you whether anything else is worth doing.</li>
+    <li><strong>Check for zeros and near-zeros</strong> in the actuals before choosing a percentage measure. If any exist, use WAPE.</li>
+    <li><strong>Report four numbers:</strong> MAE, bias, WAPE and MASE, with the period count and the horizon.</li>
+    <li><strong>Write down excluded periods and why.</strong> Every exclusion is defensible and none of them is defensible silently.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional drawing is worth five minutes. Draw your last few forecast errors as bars along a line, then draw a square on each one with the bar's length as its side. Seeing your worst period's square swallow all the others is what makes the MAE against RMSE choice a decision rather than a default.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Python, Excel, statistics and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Measure</th><th>What it is, and what it does</th></tr>
+    <tr><td>Error</td><td>Actual minus forecast, with its sign. Ours: +230, −155, +185, −2,400, +30.</td></tr>
+    <tr><td>Bias (mean error)</td><td>−422 here. Says which way you lean. Cannot measure accuracy: errors cancel.</td></tr>
+    <tr><td>MAE</td><td>Average size of a miss. 600. In your units, every period equal.</td></tr>
+    <tr><td>RMSE</td><td>Root of the average squared error. 1,083.70. One big miss dominates.</td></tr>
+    <tr><td>MAE vs RMSE</td><td>Four misses of 100: both 100. One miss of 400: MAE 100, RMSE 200.</td></tr>
+    <tr><td>The ratio</td><td>RMSE ÷ MAE = 1.8 here. Far above 1 means one period is doing the damage.</td></tr>
+    <tr><td>MAPE</td><td>Average of per-period percentage errors. Undefined here: April's actual is zero.</td></tr>
+    <tr><td>MAPE's other flaw</td><td>Asymmetric. Over-forecasting is punished harder, so it pushes forecasts low.</td></tr>
+    <tr><td>WAPE</td><td>Total absolute error ÷ total actual. 30.3%. Survives zeros, weights by size.</td></tr>
+    <tr><td>sMAPE</td><td>Divides by the average of actual and forecast. 44.9%. Does not fix zeros.</td></tr>
+    <tr><td>MASE</td><td>Your MAE ÷ the naive forecast's MAE. 0.418. Below 1 means you beat doing nothing.</td></tr>
+    <tr><td>Naive forecast</td><td>Next period equals this period. The baseline everything must beat.</td></tr>
+    <tr><td>April removed</td><td>MAE 600 → 150, WAPE 30.3% → 6.1%, bias −422 → +72.5. Say which you published.</td></tr>
+    <tr><td>Holdout</td><td>Never score on the periods you fitted. Hold out, or score forward.</td></tr>
+    <tr><td>Horizon</td><td>One month ahead and twelve months ahead are different tasks. State it.</td></tr>
+    <tr><td>The default block</td><td>MAE, bias, WAPE, MASE, period count, exclusions. One line each.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Score every forecast against the naive baseline before you score it any other way. If it is not beating last period repeated, no accuracy measure will make it worth having. If a score breaks in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The first accuracy number I ever reported was a MAPE with the zero months silently dropped by the tool, and it made a mediocre forecast look excellent for two quarters. What is the accuracy figure in your reporting that nobody has ever recomputed by hand?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Hyndman, R. J., &amp; Koehler, A. B. (2006). Another look at measures of forecast accuracy. <em>International Journal of Forecasting</em>, 22(4), 679–688.</li>
+    <li>Armstrong, J. S., &amp; Collopy, F. (1992). Error measures for generalizing about forecasting methods: Empirical comparisons. <em>International Journal of Forecasting</em>, 8(1), 69–80.</li>
+    <li>Makridakis, S., Spiliotis, E., &amp; Assimakopoulos, V. (2020). The M4 Competition: 100,000 time series and 61 forecasting methods. <em>International Journal of Forecasting</em>, 36(1), 54–74.</li>
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice this with a real forecast in front of you.</strong>
+    <p style="margin:6px 0 0">The <a href="../../forecasting/">Forecasting Kit</a> gives you the repetitions: forecasts to score, flash cards on which measure survives a zero and which punishes a single big miss, and questions that ask you to predict a score before you compute it. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../forecasting/">Open the Forecasting Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../moving-averages/">Moving Averages</a> · <a href="../mean-vs-median/">Mean vs Median</a> · <a href="../standard-deviation/">Standard Deviation</a> · <a href="../confidence-intervals/">Confidence Intervals</a> · <a href="../ab-testing-for-analysts/">A/B Testing for Analysts</a> · <a href="../how-charts-mislead/">How Charts Mislead</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../sql-month-over-month/">Month-over-Month in SQL</a> · <a href="../excel-month-over-month/">Month-over-Month in Excel</a> · <a href="../pandas-pct-change-cumsum/">pandas pct_change and cumsum</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../forecasting/">Forecasting Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
