@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Temp Table vs View in SQL: A Saved Answer or a Saved Question — Analyst Prep Kit</title>
+<meta name="description" content="A view re-runs its query every time you read it; a temp table holds the result. Measured: 467.6 ms against 0.0 ms, and one of them was still right after the data changed.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-temp-tables-vs-views/">
+<meta property="og:title" content="Temp Table vs View in SQL: A Saved Answer or a Saved Question">
+<meta property="og:description" content="Reading the view took 467.6 ms and the temp table 0.0 ms. Then 100 rows arrived, and only one of them noticed. Which trade you want, and how to get both.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-temp-tables-vs-views.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-temp-tables-vs-views/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-temp-tables-vs-views.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Temp Table vs View in SQL: A Saved Answer or a Saved Question",
+  "description": "A view re-runs its query every time you read it; a temp table holds the result. Measured: 467.6 ms against 0.0 ms, and one of them was still right after the data changed.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-temp-tables-vs-views/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-temp-tables-vs-views/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-temp-tables-vs-views.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Temp Table vs View in SQL: A Saved Answer or a Saved Question",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-temp-tables-vs-views/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>Temp Table vs View in SQL: A Saved Answer or a Saved Question</h1>
+  <p class="meta">One re-runs every time you look at it. The other does not, which is both the feature and the risk · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can choose between a view, a temporary table and a CTE for any intermediate result, say what each one costs in time and in freshness, refresh a temp table in one statement, and explain why one of the two can be indexed and the other cannot. It is about twenty-five minutes, and every timing below was measured on a 400,000-row table.</p>
+
+  <p>Here is what to do today, on the query you keep re-running while exploring. If you are reading the same expensive aggregate more than twice, put it in a temporary table once and query that instead. Reading it went from 467.6 ms to effectively nothing in the measurements below, and the only thing you give up is freshness, which during a single analysis session you usually want frozen anyway.</p>
+
+  <p>The short version: a view stores a query, so every read runs it again. A temp table stores rows, so every read is just a read.</p>
+
+  <p>Saved question against saved answer is the idea, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 300" role="img" aria-labelledby="tvTitle tvDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="tvTitle">A saved question, or a saved answer</title>
+      <desc id="tvDesc">A large base table is drawn at the bottom centre as a stack of four wide bars. Above it to the left sits a hollow rounded rectangle with a dashed outline, labelled view, containing nothing at all. Above it to the right sits a solid filled rounded rectangle, labelled temp table, containing four short rows of numbers. A blue arrow enters the hollow view box from the left, passes straight through it and continues down to the base table, showing that reading the view reaches all the way back to the data every time. A separate amber arrow enters the solid temp table box from the right and stops there, because the numbers it wants are already inside. A single faded amber arrow runs upward from the base table into the solid box, drawn much lighter than the others, standing for the one time the temp table was filled.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <!-- base table -->
+        <g fill="#E0F2F7" stroke="#0E7490" stroke-width="1.6">
+          <rect x="250" y="208" width="260" height="18"/>
+          <rect x="250" y="226" width="260" height="18"/>
+          <rect x="250" y="244" width="260" height="18"/>
+          <rect x="250" y="262" width="260" height="18"/>
+        </g>
+
+        <!-- view: hollow -->
+        <text x="66" y="52" font-size="14" font-weight="700" fill="#0E7490">view</text>
+        <rect x="62" y="62" width="212" height="76" rx="12" fill="none" stroke="#0E7490" stroke-width="2.6" stroke-dasharray="7 6"/>
+
+        <!-- reader arrow through the view, down to the table -->
+        <path d="M18 100 L56 100" stroke="#0E7490" stroke-width="2.6" fill="none"/>
+        <path d="M62 100 L286 100 C300 100 300 100 300 118 L300 198" stroke="#0E7490" stroke-width="2.6" fill="none"/>
+        <path d="M300 206 L293 194 M300 206 L307 194" stroke="#0E7490" stroke-width="2.6" fill="none"/>
+
+        <!-- temp table: solid -->
+        <text x="490" y="52" font-size="14" font-weight="700" fill="#B45309">temp table</text>
+        <rect x="486" y="62" width="212" height="76" rx="12" fill="#FDF3E3" stroke="#B45309" stroke-width="2.6"/>
+        <g fill="#B45309">
+          <rect x="506" y="76" width="120" height="8" rx="4"/>
+          <rect x="506" y="90" width="152" height="8" rx="4"/>
+          <rect x="506" y="104" width="96" height="8" rx="4"/>
+          <rect x="506" y="118" width="134" height="8" rx="4"/>
+        </g>
+        <path d="M742 100 L710 100" stroke="#B45309" stroke-width="2.6" fill="none"/>
+        <path d="M702 100 L714 93 M702 100 L714 107" stroke="#B45309" stroke-width="2.6" fill="none"/>
+
+        <!-- the one-off fill -->
+        <path d="M470 208 C470 176 560 172 578 146" stroke="#B45309" stroke-width="2.2" fill="none" opacity="0.35"/>
+        <path d="M574 140 L586 146 M574 140 L572 153" stroke="#B45309" stroke-width="2.2" fill="none" opacity="0.35"/>
+      </g>
+    </svg>
+    <figcaption>Reading the view goes all the way back to the base table, every single time. Reading the temp table stops at the numbers, which got there once, on the faded arrow.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What each one is</li>
+      <li>The measurement</li>
+      <li>The freshness trade, shown</li>
+      <li>Refreshing a temp table</li>
+      <li>Only one of them can be indexed</li>
+      <li>Scope: who else can see it</li>
+      <li>CTE, temp table, view: which when</li>
+      <li>Materialised views, which are both</li>
+      <li>The full before and after</li>
+      <li>Edge cases worth knowing</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every number on this page was measured.</strong> A 400,000-row orders table in SQLite, with an aggregate saved once as a view and once as a temporary table, each read five times with the fastest run reported. The behaviour is the same in Postgres, MySQL and SQL Server; the syntax differences are noted where they matter.</div>
+
+  <div class="step">
+    <h2>1. What each one is</h2>
+
+    <p>Both are created from a <code>SELECT</code> and both are then queried like a table, which is exactly why they get confused.</p>
+
+    <pre><code>CREATE VIEW v_region AS
+  SELECT region, COUNT(*) AS orders, SUM(units*unit_price) AS revenue
+  FROM orders GROUP BY region;
+
+CREATE TEMP TABLE t_region AS
+  SELECT region, COUNT(*) AS orders, SUM(units*unit_price) AS revenue
+  FROM orders GROUP BY region;</code></pre>
+
+    <p>The difference is what got stored. The view stored the text of the query and nothing else; it holds no rows and takes no space. The temp table ran the query once and stored the rows that came out.</p>
+
+    <p>Read either one and you get the same four rows:</p>
+
+    <pre><code>East  | 100000 | 86499255
+North | 100000 | 33500090
+South | 100000 | 86999300
+West  | 100000 | 68000200</code></pre>
+
+    <p>Identical output, and from here on everything about them differs.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. The measurement</h2>
+
+    <p>Before the explanation: reading four rows from each. Say whether you expect a difference worth caring about.</p>
+
+    <pre><code>SELECT * FROM v_region      467.6 ms
+SELECT * FROM t_region        0.0 ms</code></pre>
+
+    <p>Four rows either way. The view took nearly half a second because reading it means running a <code>GROUP BY</code> over 400,000 rows, every time. The temp table took no measurable time because the four rows are already sitting there.</p>
+
+    <p>That gap compounds with use. Reading each of them ten times in a row:</p>
+
+    <pre><code>view        4688.8 ms
+temp table     0.2 ms</code></pre>
+
+    <p>The view did the whole aggregate ten times. This is the concrete reason a dashboard built on a stack of views can be slow in a way that looks mysterious: each panel reads a view, each view runs its query, and a view built on another view runs both.</p>
+
+    <p>Say out loud what you are actually paying for when you accept that cost. You are paying for the numbers to be current at the moment of reading, which is the next section.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. The freshness trade, shown</h2>
+
+    <p>One hundred new North orders are inserted into the base table. Neither the view nor the temp table is touched. Then both are read again.</p>
+
+    <pre><code>the view       North | 100100 | 33600090
+the temp table North | 100000 | 33500090</code></pre>
+
+    <p>The view noticed. The temp table did not, and never will, because it is a copy of what the answer was at the moment it was made.</p>
+
+    <p>Both behaviours are correct and both are what somebody wants. A view is right when the answer must reflect the data now: an operational dashboard, a definition other people build on, anything where being out of date is the failure. A temp table is right when the answer must not move underneath you: a multi-step analysis where every step has to see the same numbers, a report that has to reconcile across ten queries, anything you will be asked to explain tomorrow.</p>
+
+    <p>The second case is underrated. If you run four queries against live data over an hour, they can legitimately disagree with each other, and you will spend the afternoon looking for a bug that is really the data arriving. Freezing the input at the start makes the whole analysis internally consistent, and that is a feature rather than staleness.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Refreshing a temp table</h2>
+
+    <p>Being frozen is only a problem if you cannot easily unfreeze it, and you can. Two statements, and it is current again:</p>
+
+    <pre><code>DELETE FROM t_region;
+INSERT INTO t_region
+  SELECT region, COUNT(*), SUM(units*unit_price) FROM orders GROUP BY region;
+
+the temp table after the refresh    North | 100100 | 33600090</code></pre>
+
+    <p>Now it matches the view. Which gives you the pattern that solves most of the tension on this page: <strong>refresh deliberately, at a moment you choose, and know when it happened.</strong> A temp table refreshed at the top of your script is a snapshot with a timestamp you can state, which is a much better thing to hand somebody than "it was live at whatever moment each query happened to run".</p>
+
+    <p>Keep the defining query in one place rather than typing it twice. In practice that means writing the aggregate once, as a view, and having the temp table load from the view: the view is the definition and the temp table is today's copy of it. That combination is worth more than either alone.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Only one of them can be indexed</h2>
+
+    <p>Before the explanation: both behave like tables in a query. Say whether you can put an index on each.</p>
+
+    <pre><code>CREATE INDEX ix_t ON t_region(region);      index created
+CREATE INDEX ix_v ON v_region(region);      views may not be indexed</code></pre>
+
+    <p>The error message is the explanation. An index is a sorted structure over stored rows, and a view has no stored rows to sort. There is nothing to build.</p>
+
+    <p>That matters more than it sounds when the intermediate result is large and you are going to join it to something. A temp table of a million rows with an index on the join key behaves like any other table; the same result as a view is re-derived on every join attempt and cannot be indexed at all. If you are doing anything repetitive with an intermediate result, that alone is often the deciding argument, and the rest of what indexes do is in <a href="../sql-indexing-for-analysts/">when to index a table</a>.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Scope: who else can see it</h2>
+
+    <p>A view is a permanent object in the database. It appears in the catalogue, other people can query it, and it survives disconnection. A temporary table is private to your connection and disappears when you disconnect.</p>
+
+    <p>Opening a second connection to the same database and asking for each of them:</p>
+
+    <pre><code>sees the view       : 4 rows
+sees the temp table : no such table: t_region</code></pre>
+
+    <p>Both halves of that are useful. The view being shared is the point of a view: it is how a definition gets used consistently by several people instead of being re-typed slightly differently in each of their queries. The temp table being private is also the point: you can create, drop and recreate it freely without affecting anybody, and you cannot leave a mess behind, because it cleans itself up when you disconnect.</p>
+
+    <p>The corollary catches people out. If your reporting tool opens a new connection per query, a temp table created in one query will not exist in the next. Where that is the case, the answer is usually a real table in a scratch schema rather than a temporary one.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. CTE, temp table, view: which when</h2>
+
+    <p>There is a third thing that does a similar-looking job, and choosing between all three is easier than it looks because they live on different timescales.</p>
+
+    <table>
+      <tr><th></th><th>Lives for</th><th>Stores rows</th><th>Can be indexed</th><th>Shared</th></tr>
+      <tr><td><strong>CTE</strong></td><td>One query</td><td>Usually not</td><td>No</td><td>No</td></tr>
+      <tr><td><strong>Temp table</strong></td><td>Your session</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+      <tr><td><strong>View</strong></td><td>Forever</td><td>No</td><td>No</td><td>Yes</td></tr>
+    </table>
+
+    <p>The rule of thumb that follows: use a <strong>CTE</strong> when the intermediate result is needed once, inside one statement, which is most of the time and is what <a href="../sql-subqueries/">named steps</a> are for. Use a <strong>temp table</strong> when several statements need the same intermediate result, or when it is expensive and you will read it repeatedly, or when you need it to hold still. Use a <strong>view</strong> when other people, or other queries, need the same definition and must always get the current answer.</p>
+
+    <p>One case is worth calling out because it is common and slow. A CTE referenced three times inside one query may be computed three times, depending on the engine. If it is expensive and used more than once, that is a temp table, not a CTE.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. Materialised views, which are both</h2>
+
+    <p>A materialised view is a view that stores its rows: a defined query, kept in the catalogue like a view, with the result written down like a table. It can be indexed, it is shared, and it is stale until refreshed.</p>
+
+    <pre><code>-- PostgreSQL
+CREATE MATERIALIZED VIEW mv_region AS SELECT ... ;
+REFRESH MATERIALIZED VIEW mv_region;</code></pre>
+
+    <p>That is the combination most reporting setups actually want: the definition lives in one place, everybody reads the same object, reads are fast, and a scheduled refresh decides how fresh "fresh" means. The cost is that somebody has to own the refresh, and a materialised view nobody refreshes is the worst of all worlds, because it looks like a live object and is not.</p>
+
+    <p>Support varies. PostgreSQL and Oracle have them under that name. SQL Server has indexed views, which update automatically and come with restrictions on what the query may contain. MySQL and SQLite have neither, and the standard workaround is exactly the pattern in section four: a real table plus a scheduled job that reloads it.</p>
+
+    <p>Picture the slowest dashboard you have to look at. How many of its panels are reading a view that recomputes an aggregate over the whole table, and how current does each of them genuinely need to be?</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same job: an analysis that reads a regional aggregate several times.</p>
+
+  <h3>Before</h3>
+  <pre><code>CREATE VIEW v_region AS SELECT region, COUNT(*), SUM(units*unit_price)
+                        FROM orders GROUP BY region;
+
+-- read it ten times over the course of the analysis
+4688.8 ms of aggregation, and the numbers can move between reads</code></pre>
+  <p>Half a second per read, ten times, plus the risk that step one and step seven of the same analysis disagree because rows arrived in between. Neither problem announces itself.</p>
+
+  <h3>After</h3>
+  <pre><code>-- the definition, once, shared, always current for anyone who needs that
+CREATE VIEW v_region AS SELECT region, COUNT(*) AS orders,
+       SUM(units*unit_price) AS revenue FROM orders GROUP BY region;
+
+-- today's frozen copy, for this session's work
+CREATE TEMP TABLE t_region AS SELECT * FROM v_region;
+CREATE INDEX ix_t ON t_region(region);
+
+-- ten reads
+0.2 ms total, and every step of the analysis sees identical numbers</code></pre>
+
+  <p>The definition is still in one place and still shared. The reading is instant. The numbers hold still for the length of the session, and a refresh is two statements when you want them to move.</p>
+
+  <p>The claim, and it is why the distinction is worth ten minutes: <strong>the same four rows cost 467.6 ms from a view and nothing from a temp table, and after a hundred rows arrived only one of the two changed, which is the feature you are choosing between rather than a bug in either.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases worth knowing</h2>
+
+    <p>Six that come up.</p>
+
+    <p><strong>Views built on views.</strong> Each layer re-runs, so a three-deep stack runs three queries per read. This is the commonest cause of an inexplicably slow reporting layer, and it is invisible until you read the definitions.</p>
+
+    <p><strong>A temp table that outlives its usefulness.</strong> It lasts for the session, and a long-lived connection in a notebook can be a session for days. If numbers stop matching production, check when the snapshot was taken before checking anything else.</p>
+
+    <p><strong>Connection pooling.</strong> Tools that hand out a different connection per query will lose your temp table between statements, and the error looks like the table was never created.</p>
+
+    <p><strong>Temp table name collisions.</strong> They are per-session, so two people can each have a <code>t_region</code> and neither affects the other. That is convenient and it means a name in a shared script tells you nothing about whose data is in it.</p>
+
+    <p><strong>Views hide their cost.</strong> A query joining two views is a query joining two aggregates over full tables, and its plan will show that, which is another reason to read plans rather than judge queries by their length.</p>
+
+    <p><strong>Disk and memory.</strong> A temp table is real data somewhere, in memory or in a temporary file, so a snapshot of a hundred million rows is not free. When the intermediate result is that big, filter it down first; the rest of that argument is in <a href="../handle-large-datasets/">handling large datasets</a>.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>A view exists for a reason older than performance. The relational model separates how data is stored from how it is presented, so that a query can be written against a stable logical shape while the underlying tables are reorganised beneath it; that separation is what lets a definition be shared and survive change (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). That is why a view stores a query rather than rows: storing rows would tie it to a moment, and the whole point is to be a name for a derivation rather than for a result. The 467.6 ms is the price of that guarantee, and once you see it as a guarantee rather than an inefficiency, choosing between the two stops being a matter of taste.</p>
+
+  <p>The materialised version is the recognition that the guarantee is not always worth paying for on every read. Storing the result of a derived relation and keeping it usable is a well-studied problem precisely because the moment you store it, it can disagree with the tables it came from, and the interesting question becomes how and when to bring it back into line rather than whether to store it at all (Blakeley, Larson, &amp; Tompa, 1986, <em>Proceedings of the 1986 ACM SIGMOD International Conference on Management of Data</em>, 61–71). The two-statement refresh in section four is the hand-rolled version of that, and the reason it is worth doing deliberately is that the alternative is not freshness, it is not knowing.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than reread, because the advantage of self-testing over restudying holds up in reviews of real classroom use rather than only in controlled experiments (Yang, Luo, Vadillo, Yu, &amp; Shanks, 2021, <em>Psychological Bulletin</em>, 147(4), 399–435).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Rewriting a reporting layer is a project. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Time the read.</strong> If reading a view takes hundreds of milliseconds, it is doing real work every time, and multiplying that by how often it is read gives you the size of the problem.</li>
+    <li><strong>Check for views built on views.</strong> Read the definitions two levels down before optimising anything.</li>
+    <li><strong>Snapshot into a temp table for any multi-step analysis</strong>, at the start, so every step sees the same numbers and you can say which moment they are from.</li>
+    <li><strong>Index the snapshot</strong> if you are joining to it more than once.</li>
+    <li><strong>Keep the definition in a view and load the temp table from it</strong>, so the logic exists once.</li>
+    <li><strong>Where the engine supports it, ask for a materialised view</strong> with a scheduled refresh, and make sure somebody owns the schedule.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Draw the objects your report reads as boxes, and draw an arrow from each one to whatever it reads from. Then mark every box that stores rows. The chains of boxes with nothing stored in them are the ones re-running on every read, and most people find one chain that is three long.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>. If you would rather type queries than read about them, the <a href="../../drill/">SQL Drill</a> gives you one runnable query at a time against a real database.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>A view</td><td>Stores the query. No rows, no space.</td></tr>
+    <tr><td>A temp table</td><td>Stores the rows the query returned, once.</td></tr>
+    <tr><td>Reading a view</td><td>Runs the whole query again. 467.6 ms here.</td></tr>
+    <tr><td>Reading a temp table</td><td>Just a read. Effectively nothing.</td></tr>
+    <tr><td>Ten reads</td><td>4,688.8 ms against 0.2 ms.</td></tr>
+    <tr><td>After the data changes</td><td>The view updates. The temp table does not.</td></tr>
+    <tr><td>Which is right</td><td>View for a shared, always-current definition. Temp table to hold still.</td></tr>
+    <tr><td>Refresh</td><td><code>DELETE</code> then <code>INSERT ... SELECT</code>. Two statements.</td></tr>
+    <tr><td>Indexing</td><td>Temp table yes. View rejected: no rows to sort.</td></tr>
+    <tr><td>Scope</td><td>View is permanent and shared. Temp table is private to the session.</td></tr>
+    <tr><td>Second connection</td><td>Sees the view. Does not see the temp table.</td></tr>
+    <tr><td>A CTE</td><td>One query only. May be recomputed per reference.</td></tr>
+    <tr><td>Pick a CTE</td><td>Needed once, inside one statement.</td></tr>
+    <tr><td>Pick a temp table</td><td>Several statements, expensive, or must not move.</td></tr>
+    <tr><td>Pick a view</td><td>A definition other people use and must be current.</td></tr>
+    <tr><td>Materialised view</td><td>Both: stored rows, shared, indexable, stale until refreshed.</td></tr>
+    <tr><td>Views on views</td><td>Every layer re-runs. The usual cause of a slow reporting layer.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Snapshot into a temp table at the start of any analysis with more than two steps, and write down the time you took it. Internal consistency across your own queries is worth more than each of them being individually current, and the timestamp is what turns a frozen copy from staleness into a stated fact. If an intermediate result misbehaves in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The one that taught me this was a reconciliation that never balanced, run over an hour against live tables, where the discrepancy was simply new orders arriving between the first query and the last. What have you chased that turned out to be the data moving rather than the logic being wrong?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+    <li>Blakeley, J. A., Larson, P.-Å., &amp; Tompa, F. W. (1986). Efficiently updating materialized views. <em>Proceedings of the 1986 ACM SIGMOD International Conference on Management of Data</em>, 61–71.</li>
+    <li>Yang, C., Luo, L., Vadillo, M. A., Yu, R., &amp; Shanks, D. R. (2021). Testing (quizzing) boosts classroom learning: A systematic and meta-analytic review. <em>Psychological Bulletin</em>, 147(4), 399–435.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice choosing between the three.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> gives you the repetitions: intermediate results to place, snapshots to refresh, and views to read the definitions of, plus flash cards on which of the three can be indexed, shared or frozen. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-subqueries/">Subquery vs CTE</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-indexing-for-analysts/">When to Index a Table</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../sql-running-total/">Running Total in SQL</a> · <a href="../sql-dates/">SQL Date Functions</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../../sql/">SQL Kit</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../export-sql-results-to-excel/">Export SQL Results to Excel</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
