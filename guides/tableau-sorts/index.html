@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tableau Sorting: A Rule That Re-Runs, or an Order You Froze — Analyst Prep Kit</title>
+<meta name="description" content="The four Tableau sort options, and the one question that separates them: does this sort re-evaluate when new data arrives? Includes the alphabetic sort that puts Item 10 before Item 2, and how nested sorts behave when you drill.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-sorts/">
+<meta property="og:title" content="Tableau Sorting: A Rule That Re-Runs, or an Order You Froze">
+<meta property="og:description" content="A computed sort is a rule. A manual sort is an arrangement. Next month's data is what tells you which one you picked.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/tableau-sorts.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-sorts/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/tableau-sorts.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+  .book{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px}
+  .book p{margin:6px 0 0}
+  .book a.booklink{display:inline-block;margin-top:10px;font-weight:600}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Tableau Sorting: A Rule That Re-Runs, or an Order You Froze",
+  "description": "The four Tableau sort options, and the one question that separates them: does this sort re-evaluate when new data arrives? Includes the alphabetic sort that puts Item 10 before Item 2, and how nested sorts behave when you drill.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-sorts/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-sorts/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-09",
+  "dateModified": "2026-08-09",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/tableau-sorts.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Tableau Sorting: A Rule That Re-Runs, or an Order You Froze",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-sorts/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../tableau/">Tableau Kit</a> · <a href="../">All guides</a></p>
+  <h1>Tableau Sorting: A Rule That Re-Runs, or an Order You Froze</h1>
+  <p class="meta">The four sort options, and which of them survive next month's data · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can sort any Tableau view four different ways, and say for each one whether it will still be correct after the data refreshes. That second part is the one that catches people, because a sort that's gone stale looks exactly like a sort that's working. It's about twelve minutes.</p>
+
+  <p>Here's the move to make today. Open a bar chart you've built and ask which of these you did: told Tableau a rule, or dragged the bars where you wanted them. If you dragged, that order is frozen, and a new top performer next quarter will appear wherever you left a gap rather than at the top.</p>
+
+  <p>The short version: three of Tableau's four sort options are rules that re-evaluate as data changes. One is an arrangement you fixed by hand.</p>
+
+  <p>What that difference does when new data arrives is the whole point, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 300" role="img" aria-labelledby="soTitle soDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="soTitle">A new value slots into place under a rule and lands at the end under a frozen order</title>
+      <desc id="soDesc">Two small bar charts side by side, each showing the same four existing bars plus one new longer bar arriving. On the left, headed rule, the bars are ordered longest to shortest and the new long bar has slotted into first position at the top, keeping the descending order intact. On the right, headed frozen, the four original bars remain in the exact positions they were dragged to, and the new long bar has been appended at the bottom, below three bars that are shorter than it. The right-hand chart is therefore no longer in size order, even though nothing about it was changed. The contrast shows that a computed sort absorbs new data correctly while a manual sort keeps the arrangement it was given.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <text x="30" y="26" font-size="13" font-weight="700" fill="#0E7490">rule</text>
+        <rect x="30" y="40" width="250" height="22" rx="4" fill="#0E7490" stroke="#0E7490"/>
+        <text x="292" y="56" font-size="11.5" fill="#0E7490" font-weight="700">new</text>
+        <rect x="30" y="70" width="196" height="22" rx="4" fill="#B8DCE8" stroke="#0E7490"/>
+        <rect x="30" y="100" width="150" height="22" rx="4" fill="#B8DCE8" stroke="#0E7490"/>
+        <rect x="30" y="130" width="104" height="22" rx="4" fill="#B8DCE8" stroke="#0E7490"/>
+        <rect x="30" y="160" width="62" height="22" rx="4" fill="#B8DCE8" stroke="#0E7490"/>
+        <path d="M30 196 L280 196" stroke="#D4D4D8"/>
+        <text x="30" y="218" font-size="12.5" fill="#52525B">order still holds</text>
+
+        <path d="M380 30 L380 240" stroke="#E4E7EA" stroke-width="1.5"/>
+
+        <text x="420" y="26" font-size="13" font-weight="700" fill="#B45309">frozen</text>
+        <rect x="420" y="40" width="196" height="22" rx="4" fill="#F1F3F5" stroke="#A1A1AA"/>
+        <rect x="420" y="70" width="150" height="22" rx="4" fill="#F1F3F5" stroke="#A1A1AA"/>
+        <rect x="420" y="100" width="104" height="22" rx="4" fill="#F1F3F5" stroke="#A1A1AA"/>
+        <rect x="420" y="130" width="62" height="22" rx="4" fill="#F1F3F5" stroke="#A1A1AA"/>
+        <rect x="420" y="160" width="250" height="22" rx="4" fill="#FDE8CE" stroke="#B45309" stroke-width="2"/>
+        <text x="682" y="176" font-size="11.5" fill="#B45309" font-weight="700">new</text>
+        <path d="M420 196 L670 196" stroke="#D4D4D8"/>
+        <text x="420" y="218" font-size="12.5" fill="#B45309">longest bar, last row</text>
+      </g>
+    </svg>
+    <figcaption>Same new number, two charts. Nothing errored on the right, and nothing is in order either.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>The four ways to sort, and where each one lives</li>
+      <li>Computed against manual, and what happens next month</li>
+      <li>The alphabetic sort that puts Item 10 before Item 2</li>
+      <li>Nested sorts, and what drilling does to them</li>
+      <li>Details people miss</li>
+      <li>Why sorting is analysis, not decoration</li>
+      <li>Using this on your own workbook</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>This is on the certification.</strong> Sorting is objective 2.3.1 on the Tableau Desktop Foundations exam, inside Section 2, which is 37% of the paper and the largest section on it. The distinction the objective is testing is the computed against manual one in section 2 below.</div>
+
+  <div class="step">
+    <h2>1. The four ways to sort, and where each one lives</h2>
+
+    <p>Before the list: you want your bars biggest to smallest. How many different ways could Tableau give you that?</p>
+
+    <p>Several, and they're not equivalent, which is the reason to read a list of them at all. Open the sort dialog on a field and you get four options.</p>
+
+    <table>
+      <tr><th>Option</th><th>What it does</th><th>Is it a rule?</th></tr>
+      <tr><td><strong>Data source order</strong></td><td>Sorts based on how the data is sorted in the data source</td><td>Yes, and the rule lives outside Tableau</td></tr>
+      <tr><td><strong>Alphabetic</strong></td><td>Sorts the data alphabetically</td><td>Yes</td></tr>
+      <tr><td><strong>Field</strong></td><td>Sorts by the values of a field you choose, with an aggregation you choose</td><td>Yes. This is the one you usually want.</td></tr>
+      <tr><td><strong>Manual</strong></td><td>Lets you select a value and move it to the position you want</td><td>No. It's an arrangement.</td></tr>
+    </table>
+
+    <p>Two things about the Field option are worth pulling out, because they're what make it powerful and almost nobody uses them.</p>
+
+    <p><strong>The sorting field doesn't have to be in the view.</strong> You can sort products by profit while showing sales. Nothing on screen says profit, and the order carries it.</p>
+
+    <p><strong>You choose the aggregation.</strong> Sum, average, minimum, maximum and so on. Sorting regions by average order value gives a different order from sorting by total, and both are one dropdown away.</p>
+
+    <p>There's also a faster route for the common case. The toolbar has ascending and descending sort buttons, and you can sort straight from an axis, a header or a legend. Tableau's note about those quick sorts is the important part: "The sort updates if the underlying data changes."</p>
+
+    <p>To sort manually without the dialog, select a header in the view or on a legend and drag it. A heavy black line shows where it will land.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. Computed against manual, and what happens next month</h2>
+
+    <p>Before the answer: you drag your five regions into the order you want. Next quarter a sixth region is added to the data. Where does it appear?</p>
+
+    <p>Wherever Tableau puts it, which is not a position you chose, because you never gave a rule that covers it. That's the difference between the two kinds of sort, and it's what the exam objective is really about.</p>
+
+    <p>A <strong>computed sort</strong> is a rule. You've told Tableau how to decide the order, so it can decide again whenever the data changes. Data source order, alphabetic and field are all rules.</p>
+
+    <p>A <strong>manual sort</strong> is an arrangement. You've told Tableau the answer rather than the method, so there's nothing to re-run. New members have no place in it, and existing members keep their places even after the numbers behind them change.</p>
+
+    <p>Say out loud which of those two you'd want for a chart of your top ten customers, before reading on. This is the hinge of the guide.</p>
+
+    <p>The answer is a rule, almost always, because "top ten" is a rule and next month's top ten is a different ten people. The place a manual sort genuinely wins is when the order carries meaning that isn't in the data. Small, Medium and Large is the standard example: alphabetically that's Large, Medium, Small, which is wrong in a way no rule in your dataset can fix.</p>
+
+    <table>
+      <tr><th></th><th>Computed sort</th><th>Manual sort</th></tr>
+      <tr><td>You give Tableau</td><td>A method</td><td>An answer</td></tr>
+      <tr><td>New data arrives</td><td>Re-evaluates</td><td>Keeps the arrangement</td></tr>
+      <tr><td>New member appears</td><td>Placed by the rule</td><td>Placed by nothing you chose</td></tr>
+      <tr><td>Right for</td><td>Anything ranked by a number</td><td>An order the data doesn't contain</td></tr>
+      <tr><td>Goes stale</td><td>No</td><td>Yes, quietly</td></tr>
+    </table>
+
+    <p>If that shape feels familiar, it's the same one as dynamic and fixed <a href="../tableau-sets/">sets</a>. Tableau keeps offering you the choice between a rule and a list, in several different places, and the right question is always the same: did I mean a rule or did I mean these specific ones?</p>
+  </div>
+
+  <div class="step">
+    <h2>3. The alphabetic sort that puts Item 10 before Item 2</h2>
+
+    <p>Before the explanation: you sort a list alphabetically and it reads Item 1, Item 10, Item 11, Item 2. Is that broken?</p>
+
+    <p>No, and Tableau documents exactly why. Its alphabetic sort "is case sensitive, sorts [A-Z] before [a-z], and treats digits individually."</p>
+
+    <p>Take that last clause literally. Treating digits individually means the sort compares character by character rather than reading "10" as ten. Comparing "Item 10" with "Item 2", it reaches the digit 1 against the digit 2, finds 1 is smaller, and stops. Item 10 wins, and it will keep winning however many rows you add.</p>
+
+    <p>The case rule bites the same way. Uppercase letters sort before lowercase ones, so a list holding "Zebra" and "apple" puts Zebra first. That looks like a bug in a list of product names entered by different people at different times, and it isn't. It's telling you the field has inconsistent capitalisation.</p>
+
+    <table>
+      <tr><th>Values</th><th>Alphabetic gives</th><th>What it's telling you</th></tr>
+      <tr><td>Item 1, Item 2, Item 10</td><td>Item 1, Item 10, Item 2</td><td>The number is stored inside text</td></tr>
+      <tr><td>Zebra, apple</td><td>Zebra, apple</td><td>Capitalisation is inconsistent in the field</td></tr>
+      <tr><td>Q1, Q2, Q3, Q4</td><td>Q1, Q2, Q3, Q4</td><td>Nothing. Single digits sort correctly.</td></tr>
+    </table>
+
+    <p>That last row is the trap inside the trap. Single-digit labels sort correctly, so this problem hides until your tenth item arrives, and by then the chart has been trusted for months.</p>
+
+    <p>Two fixes, depending on which problem you have. If the number should be a number, separate it into its own field and sort on that with the Field option. If the order genuinely isn't alphabetical, use a manual sort and accept that you'll maintain it.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Nested sorts, and what drilling does to them</h2>
+
+    <p>Before the explanation: your view shows sub-categories inside categories. You sort by sales. Should the sub-categories be ranked within their own category, or across the whole view?</p>
+
+    <p>Both are legitimate, and Tableau treats them as two different sorts. The distinction is called nesting, and it matters as soon as you have a <a href="../tableau-hierarchies/">hierarchy</a> on the shelf.</p>
+
+    <p>A <strong>nested sort</strong> considers values independently per pane rather than in aggregate across panes. So each category ranks its own sub-categories, and the ranking restarts in the next category. A non-nested sort applies one consistent order across every pane, based on the aggregated values.</p>
+
+    <p>Which one you want depends on the question. "Which sub-category leads in each category" is nested. "Which sub-categories are the biggest overall" is not.</p>
+
+    <p>One behaviour worth knowing before you build a drill-down: when you create a nested sort, the sort is inherited as you drill down through the dimensions. That's usually what you want, and it means a drill-down you set up once keeps ranking sensibly at every level rather than reverting to alphabetical.</p>
+
+    <p>Picture a category with three sub-categories and another with nine. Under a nested sort, both panes start their ranking at one. Under a non-nested sort, the nine-item category may take every top position and the three-item one may appear nowhere near the top. Same data, same chart type, two very different readings.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Details people miss</h2>
+
+    <p>Before the list: you've sorted three fields in one view and want to start over. Do you have to undo them one at a time?</p>
+
+    <p>No. Tableau has both. To remove the sort on a specific field, right-click to open the menu and select Clear Sort. To remove every sort in the view, open the menu next to the clear sheet icon in the toolbar and select Clear Sorts.</p>
+
+    <p>Five more.</p>
+
+    <p><strong>The documentation and the exam use different words.</strong> The Tableau help page presents Manual as one of four options in the Sort dialog, and does not set "computed sort" against "manual sort" as two named categories. The certification does use that pairing. Both describe the same behaviour, so learn the behaviour and the words in either vocabulary will make sense.</p>
+
+    <p><strong>An <a href="../tableau-aliases/">alias</a> does not change the sort.</strong> Renaming the member E to East leaves the sort working on whatever it was working on before. If the order suddenly looks arbitrary after an aliasing pass, that's why.</p>
+
+    <p><strong>Sorting is not filtering.</strong> A sort changes the order of everything. It never removes a row. If your chart is showing fewer bars than you expected, look at the filters, not the sort.</p>
+
+    <p><strong>Legends can be sorted too.</strong> The order of items in a colour legend is a sort like any other, and dragging a legend entry is a manual sort with all the same consequences.</p>
+
+    <p><strong>Sorting by a field not in the view is invisible to the reader.</strong> That's a feature when the order is obvious and a problem when it isn't. If products are ordered by profit on a chart of sales, say so in the title or the caption, or the reader will assume the order matches the bars they can see.</p>
+  </div>
+
+  <h2>Why sorting is analysis, not decoration</h2>
+
+  <p>An unsorted bar chart makes the reader do a search. To find the biggest bar in a list of twenty, they have to look at each one and hold a running maximum, which is a serial process that takes longer as the chart grows. Treisman and Gelade's work on visual attention established that finding a target defined by comparing across items requires this kind of item-by-item search, in contrast to features that are picked up immediately and in parallel across the whole display (Treisman &amp; Gelade, 1980, <em>Cognitive Psychology</em>, 12(1), 97&ndash;136). Sorting removes the search entirely, because the answer is now at a known end of the chart.</p>
+
+  <p>That's why sorting counts as analysis rather than polish. Ordering the bars is you doing the comparison once, on behalf of everyone who reads it, instead of every reader doing it separately and some of them getting it wrong. The same argument applies to <a href="../choose-the-right-chart/">choosing a chart type</a>: both decisions move work off the reader and onto the person who had the data in front of them.</p>
+
+  <p>The second reason to care is the one this whole page is built around. A sort is a claim about order that keeps being made after you stop looking at it. A rule keeps making the claim correctly. An arrangement keeps making the claim you made in March, in November, without telling anyone it has stopped being true. Nothing on screen distinguishes the two, which is why the only reliable moment to decide is when you build it.</p>
+
+  <p>The product behaviour on this page comes from Tableau's own documentation, which is the authority on it. Sort data in a visualization (Tableau Help, current version) is the source for the four sort options, the note that a quick sort updates if the underlying data changes, the alphabetic sort being case sensitive and treating digits individually, the manual drag behaviour, the description of nested sorting and its inheritance when drilling, and both Clear Sort commands. Where a secondary write-up disagrees with that page, the page wins.</p>
+
+  <h2>Using this on your own workbook</h2>
+
+  <p>Open the chart you refresh most often. Do you know, without checking, whether its order is a rule or an arrangement?</p>
+
+  <p>Auditing a whole workbook at once is dull and you'll stop. Take the charts that refresh, in this order.</p>
+
+  <ol>
+    <li><strong>Ask the one question first: rule or arrangement?</strong> Everything else on this page follows from the answer, and it takes five seconds per chart.</li>
+    <li><strong>Convert any ranking to a Field sort.</strong> If the order is meant to reflect a number, it should be computed from that number, not dragged.</li>
+    <li><strong>Keep manual sorts only for orders the data doesn't contain.</strong> Small, Medium, Large. Stages of a process. Anything where the sequence is meaning rather than size.</li>
+    <li><strong>Name the manual ones.</strong> Put the order in the chart title or a caption, so the next person knows it was chosen rather than computed.</li>
+    <li><strong>Check any alphabetic sort for double-digit values.</strong> If the field will ever hold Item 10, the alphabetic sort is already wrong and nobody has noticed.</li>
+    <li><strong>Say whether a hidden sort field is in play.</strong> Sorting by profit on a chart of sales is fine, and silent about it is not.</li>
+  </ol>
+
+  <p>If you have paper nearby and five spare minutes, there's one sketch worth doing and it's optional. Draw your chart's bars as they are today, then add one new bar longer than all of them and put it where your current sort would actually place it. If your pen went to the bottom of the page, you have a manual sort.</p>
+
+  <div class="cta">
+    <strong>Practice this before the exam.</strong>
+    <p style="margin:6px 0 0">Sorting is objective 2.3.1, inside the largest section of the Tableau Desktop Foundations exam. The <a href="../../tableau-cert/">certification kit</a> drills it alongside filtering, grouping and sets, in the real exam's format, and links back to this guide when you miss one.</p>
+    <a class="btn" href="../../tableau-cert/">Open the certification kit →</a>
+    <p style="margin:10px 0 0;font-size:15px">Want the full section map? <a href="../tableau-desktop-foundations-exam/">The Foundations exam breakdown</a> converts the published weights into question counts.</p>
+  </div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Concept</th><th>What it does</th></tr>
+    <tr><td>Computed sort</td><td>A rule. Re-evaluates when the data changes.</td></tr>
+    <tr><td>Manual sort</td><td>An arrangement you set by hand. Does not re-evaluate.</td></tr>
+    <tr><td>Data source order</td><td>Sorts by how the data is ordered in the source</td></tr>
+    <tr><td>Alphabetic</td><td>Case sensitive, A-Z before a-z, digits treated individually</td></tr>
+    <tr><td>Field</td><td>Sorts by a field's values, with an aggregation you pick</td></tr>
+    <tr><td>Field sort, hidden field</td><td>The sorting field does not have to be in the view</td></tr>
+    <tr><td>Manual, in the view</td><td>Drag a header. A heavy black line shows where it lands.</td></tr>
+    <tr><td>Quick sort</td><td>Toolbar buttons, axes, headers and legends. Updates with the data.</td></tr>
+    <tr><td>Item 1, Item 10, Item 2</td><td>Correct alphabetic behaviour. The number is inside text.</td></tr>
+    <tr><td>Zebra before apple</td><td>Correct. Uppercase sorts before lowercase.</td></tr>
+    <tr><td>Nested sort</td><td>Ranks values independently per pane, not across panes</td></tr>
+    <tr><td>Nested sort and drilling</td><td>The sort is inherited as you drill down through the dimensions</td></tr>
+    <tr><td>Clear one sort</td><td>Right-click the field, Clear Sort</td></tr>
+    <tr><td>Clear every sort</td><td>Menu beside the clear sheet icon in the toolbar, Clear Sorts</td></tr>
+    <tr><td>Sorting against filtering</td><td>A sort reorders everything. It never removes a row.</td></tr>
+    <tr><td>Aliases and sorting</td><td>Renaming a member does not change the sort</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Every time you sort something, say which of the two you just did: gave a rule, or gave an answer. It takes a second, it's the whole content of exam objective 2.3.1, and it's the only thing standing between you and a chart that quietly stops being in order.</div>
+
+  <p>One last thought, and I'd like other people's answers. The one that got me was Item 10 before Item 2, because single digits sort correctly and the chart looks fine right up until the tenth row exists. What's the sort you trusted for months before finding out what it was actually ordering by?</p>
+
+  <div class="book">
+    <strong>You can build the chart. Saying why Tableau put the numbers there is the harder part.</strong>
+    <p><em>Tableau for Analysts</em> is 110 pages on how Tableau actually thinks: dimensions against measures, relationships against joins, sets, and level of detail. Enough that you stop dragging fields until it looks right.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/tableau-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-tableau-sorts'})">Tableau for Analysts, $19 &rarr;</a>
+  </div>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Tableau. Sort data in a visualization. <em>Tableau Desktop and Web Authoring Help</em>, current version. help.tableau.com. The authority for the product behaviour described here.</li>
+    <li>Treisman, A. M., &amp; Gelade, G. (1980). A feature-integration theory of attention. <em>Cognitive Psychology</em>, 12(1), 97&ndash;136.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Build the views, not just the vocabulary.</strong>
+    <p style="margin:6px 0 0">The <a href="../../tableau/">Tableau Kit</a> walks through dimensions, measures, aggregation and dashboard building, with worked examples and flash cards. Or drag fields onto shelves yourself in <a href="../../viz/">Viz Drill</a>, one chart at a time.</p>
+    <a class="btn" href="../../tableau/">Open the Tableau Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../tableau-sets/">Tableau Sets</a> · <a href="../tableau-hierarchies/">Tableau Hierarchies</a> · <a href="../tableau-aliases/">Tableau Aliases</a> · <a href="../tableau-concepts/">Tableau Concepts</a> · <a href="../tableau-relationships/">Tableau Relationships</a> · <a href="../tableau-sheets-to-dashboard/">Sheets to Dashboard</a> · <a href="../tableau-extensions/">Dashboard Extensions</a> · <a href="../build-a-tableau-dashboard/">Build a Tableau Dashboard</a> · <a href="../tableau-desktop-foundations-exam/">The Foundations Exam</a> · <a href="../choose-the-right-chart/">Choose the Right Chart</a> · <a href="../excel-sort-your-bars/">Sort Your Bars in Excel</a> · <a href="../install-tableau-public/">Install Tableau Public</a> · <a href="../../viz/">Viz Drill</a> · <a href="../../tableau/">Tableau Kit</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

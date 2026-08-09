@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tableau Hierarchies: One Drag Puts a Drill-Down on Every Chart — Analyst Prep Kit</title>
+<meta name="description" content="Drop one field on another and Tableau builds a hierarchy, which puts plus and minus drill controls on every view that uses it. How to build one, why the order matters, and how a hierarchy differs from a group, a set and a bin.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-hierarchies/">
+<meta property="og:title" content="Tableau Hierarchies: One Drag Puts a Drill-Down on Every Chart">
+<meta property="og:description" content="A hierarchy organises fields into levels. A group, a set and a bin organise values inside one field. That single distinction sorts out all four.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/tableau-hierarchies.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-hierarchies/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/tableau-hierarchies.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+  .book{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px}
+  .book p{margin:6px 0 0}
+  .book a.booklink{display:inline-block;margin-top:10px;font-weight:600}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Tableau Hierarchies: One Drag Puts a Drill-Down on Every Chart",
+  "description": "Drop one field on another and Tableau builds a hierarchy, which puts plus and minus drill controls on every view that uses it. How to build one, why the order matters, and how a hierarchy differs from a group, a set and a bin.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-hierarchies/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-hierarchies/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-09",
+  "dateModified": "2026-08-09",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/tableau-hierarchies.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Tableau Hierarchies: One Drag Puts a Drill-Down on Every Chart",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-hierarchies/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../tableau/">Tableau Kit</a> · <a href="../">All guides</a></p>
+  <h1>Tableau Hierarchies: One Drag Puts a Drill-Down on Every Chart</h1>
+  <p class="meta">The organiser that works on fields, not on values · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can build a hierarchy in one drag, put it in the right order first time, and say exactly how it differs from a group, a set and a bin. Those four get confused constantly, and one sentence tells them apart for good. It's about twelve minutes.</p>
+
+  <p>Here's the thing to do today. In the Data pane, drag Sub-Category and drop it directly on top of Category. Tableau asks for a name, and from that moment every view built on Category carries a small plus icon. Click it and the chart expands into sub-categories, in place, without you building a second sheet.</p>
+
+  <p>The short version: a hierarchy organises fields into levels. A group, a set and a bin organise the values inside one field. That's the whole distinction.</p>
+
+  <p>What a level actually costs you is the part people are surprised by, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 290" role="img" aria-labelledby="hiTitle hiDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="hiTitle">Each level down multiplies the number of rows in the view</title>
+      <desc id="hiDesc">Three tiers stacked vertically and widening as they descend. The top tier shows three wide boxes labelled Category. The middle tier shows nine narrower boxes labelled Sub-Category, with lines fanning out from each box above to three below it. The bottom tier shows a long row of many very thin boxes labelled Product, again fanning out from each box above. A plus symbol sits at the left of the top tier and a minus symbol at the left of the bottom tier, marking the drill controls that move between them. The widening shape shows that every step down the hierarchy multiplies the number of marks in the view, so the bottom level holds far more rows than the top.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <circle cx="34" cy="44" r="13" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+        <path d="M28 44h12M34 38v12" stroke="#0E7490" stroke-width="2"/>
+        <text x="60" y="30" font-size="12.5" font-weight="700" fill="#0E7490">Category</text>
+        <rect x="60" y="36" width="196" height="20" rx="4" fill="#E0F2F7" stroke="#0E7490"/>
+        <rect x="268" y="36" width="196" height="20" rx="4" fill="#E0F2F7" stroke="#0E7490"/>
+        <rect x="476" y="36" width="196" height="20" rx="4" fill="#E0F2F7" stroke="#0E7490"/>
+
+        <path d="M158 56 L92 106 M158 56 L158 106 M158 56 L224 106" stroke="#A1A1AA" stroke-width="1"/>
+        <path d="M366 56 L300 106 M366 56 L366 106 M366 56 L432 106" stroke="#A1A1AA" stroke-width="1"/>
+        <path d="M574 56 L508 106 M574 56 L574 106 M574 56 L640 106" stroke="#A1A1AA" stroke-width="1"/>
+
+        <text x="60" y="122" font-size="12.5" font-weight="700" fill="#52525B">Sub-Category</text>
+        <g fill="#FFFFFF" stroke="#52525B">
+          <rect x="60" y="128" width="60" height="18" rx="3"/><rect x="128" y="128" width="60" height="18" rx="3"/><rect x="196" y="128" width="60" height="18" rx="3"/>
+          <rect x="268" y="128" width="60" height="18" rx="3"/><rect x="336" y="128" width="60" height="18" rx="3"/><rect x="404" y="128" width="60" height="18" rx="3"/>
+          <rect x="476" y="128" width="60" height="18" rx="3"/><rect x="544" y="128" width="60" height="18" rx="3"/><rect x="612" y="128" width="60" height="18" rx="3"/>
+        </g>
+
+        <path d="M90 146 L70 196 M90 146 L90 196 M90 146 L110 196" stroke="#D4D4D8" stroke-width="1"/>
+        <path d="M298 146 L278 196 M298 146 L298 196 M298 146 L318 196" stroke="#D4D4D8" stroke-width="1"/>
+        <path d="M574 146 L554 196 M574 146 L574 196 M574 146 L594 196" stroke="#D4D4D8" stroke-width="1"/>
+
+        <circle cx="34" cy="212" r="13" fill="#FFFFFF" stroke="#B45309" stroke-width="2"/>
+        <path d="M28 212h12" stroke="#B45309" stroke-width="2"/>
+        <text x="60" y="212" font-size="12.5" font-weight="700" fill="#B45309">Product</text>
+        <g fill="#F1F3F5" stroke="#D4D4D8">
+          <rect x="60" y="218" width="12" height="16" rx="2"/><rect x="76" y="218" width="12" height="16" rx="2"/><rect x="92" y="218" width="12" height="16" rx="2"/>
+          <rect x="108" y="218" width="12" height="16" rx="2"/><rect x="124" y="218" width="12" height="16" rx="2"/><rect x="140" y="218" width="12" height="16" rx="2"/>
+          <rect x="156" y="218" width="12" height="16" rx="2"/><rect x="172" y="218" width="12" height="16" rx="2"/><rect x="188" y="218" width="12" height="16" rx="2"/>
+          <rect x="204" y="218" width="12" height="16" rx="2"/><rect x="220" y="218" width="12" height="16" rx="2"/><rect x="236" y="218" width="12" height="16" rx="2"/>
+          <rect x="252" y="218" width="12" height="16" rx="2"/><rect x="268" y="218" width="12" height="16" rx="2"/><rect x="284" y="218" width="12" height="16" rx="2"/>
+          <rect x="300" y="218" width="12" height="16" rx="2"/><rect x="316" y="218" width="12" height="16" rx="2"/><rect x="332" y="218" width="12" height="16" rx="2"/>
+          <rect x="348" y="218" width="12" height="16" rx="2"/><rect x="364" y="218" width="12" height="16" rx="2"/><rect x="380" y="218" width="12" height="16" rx="2"/>
+          <rect x="396" y="218" width="12" height="16" rx="2"/><rect x="412" y="218" width="12" height="16" rx="2"/><rect x="428" y="218" width="12" height="16" rx="2"/>
+          <rect x="444" y="218" width="12" height="16" rx="2"/><rect x="460" y="218" width="12" height="16" rx="2"/><rect x="476" y="218" width="12" height="16" rx="2"/>
+          <rect x="492" y="218" width="12" height="16" rx="2"/><rect x="508" y="218" width="12" height="16" rx="2"/><rect x="524" y="218" width="12" height="16" rx="2"/>
+          <rect x="540" y="218" width="12" height="16" rx="2"/><rect x="556" y="218" width="12" height="16" rx="2"/><rect x="572" y="218" width="12" height="16" rx="2"/>
+          <rect x="588" y="218" width="12" height="16" rx="2"/><rect x="604" y="218" width="12" height="16" rx="2"/><rect x="620" y="218" width="12" height="16" rx="2"/>
+          <rect x="636" y="218" width="12" height="16" rx="2"/><rect x="652" y="218" width="12" height="16" rx="2"/><rect x="668" y="218" width="12" height="16" rx="2"/>
+        </g>
+
+        <path d="M700 40 L700 234" stroke="#B45309" stroke-width="1.5" fill="none" marker-end="url(#hd)"/>
+        <defs>
+          <marker id="hd" markerWidth="9" markerHeight="9" refX="4.5" refY="8" orient="auto">
+            <path d="M0 0 L9 0 L4.5 9 z" fill="#B45309"/>
+          </marker>
+        </defs>
+        <text x="714" y="140" font-size="12" fill="#52525B">3</text>
+        <text x="714" y="158" font-size="12" fill="#52525B">9</text>
+        <text x="714" y="176" font-size="12" fill="#52525B">39</text>
+
+        <text x="60" y="272" font-size="12.5" fill="#52525B">one click down, thirteen times the marks</text>
+      </g>
+    </svg>
+    <figcaption>Drilling is cheap to click and expensive to read. That's why the top level is the default.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What a hierarchy actually is</li>
+      <li>Building one, and getting the order right</li>
+      <li>Hierarchy against group, set and bin</li>
+      <li>What the plus and minus controls do</li>
+      <li>Details people miss</li>
+      <li>Why this works</li>
+      <li>Using this on your own workbook</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>This is on the certification.</strong> Hierarchies sit in Section 2, Exploring and Analyzing Data, which is 37% of the Tableau Desktop Foundations exam and the largest section on it. The <a href="../../tableau-cert/">certification kit</a> drills them alongside groups, sets and bins, which is where the wrong answers usually come from.</div>
+
+  <div class="step">
+    <h2>1. What a hierarchy actually is</h2>
+
+    <p>Before the explanation: you build a hierarchy from Category and Sub-Category. What happens to the two original fields?</p>
+
+    <p>Nothing. They're both still there, still usable on their own, now sitting inside a named hierarchy in the Data pane. A hierarchy doesn't consume the fields it's made of.</p>
+
+    <p>That's the first thing to hold onto. A hierarchy is an arrangement of existing fields into levels, ordered from broad at the top to specific at the bottom. It creates no new field and changes no data. It records a relationship you already knew about: every sub-category belongs to exactly one category.</p>
+
+    <p>What you get in exchange is a control. Once a hierarchy field is in a view, Tableau puts a small plus or minus icon on the pill, and clicking it adds or removes a level of detail in place. The chart you already built becomes a chart the reader can open up.</p>
+
+    <p>That is a bigger deal than it sounds, because the alternative is building a second sheet. Without a hierarchy, "sales by category" and "sales by sub-category" are two views someone has to navigate between. With one, they're the same view at two depths.</p>
+
+    <div class="note"><strong>The sentence to remember.</strong> A hierarchy organises fields into levels and hands the reader a drill control. It does not change the fields, and it does not change the data.</div>
+  </div>
+
+  <div class="step">
+    <h2>2. Building one, and getting the order right</h2>
+
+    <p>Before the steps: you drop Category onto Product instead of the other way round. What does the reader get?</p>
+
+    <p>A drill that starts specific and gets vaguer, which reads as broken even though nothing errored. Order is the only decision in building a hierarchy, and it's the one people get wrong.</p>
+
+    <p>Building it, per Tableau's documentation:</p>
+
+    <ol>
+      <li>In the Data pane, drag a field and drop it directly on top of another field.</li>
+      <li>Tableau asks you to name the hierarchy. Give it a name a reader would recognise.</li>
+      <li>Drag additional fields into the hierarchy as needed, to add more levels.</li>
+      <li>Re-order fields in the hierarchy by dragging them to a new position.</li>
+    </ol>
+
+    <p>If the field you want lives inside a folder, the drag is awkward, so use the other route: right-click the field and select Create Hierarchy.</p>
+
+    <p>Now the order rule, and it's one line. <strong>Coarse at the top, fine at the bottom.</strong> Each level down must be contained by the level above it.</p>
+
+    <p>Say out loud why containment is the test, before reading on. It's because drilling means "show me what this is made of". Category contains sub-categories, so opening a category to reveal its sub-categories makes sense. Product does not contain categories, so the reverse drill has nothing sensible to reveal, and Tableau will still let you build it.</p>
+
+    <table>
+      <tr><th>Hierarchy</th><th>Order</th><th>Works because</th></tr>
+      <tr><td>Product</td><td>Category → Sub-Category → Product Name</td><td>Each level is contained by the one above</td></tr>
+      <tr><td>Location</td><td>Country → State → City → Postcode</td><td>Same containment, and the one everyone recognises</td></tr>
+      <tr><td>Date</td><td>Year → Quarter → Month → Day</td><td>Tableau builds this one for you on any date field</td></tr>
+      <tr><td>Org</td><td>Region → Manager → Rep</td><td>Contained, as long as a rep reports to one manager</td></tr>
+    </table>
+
+    <p>That last row carries the caveat worth knowing. Containment has to be true in your data, not just in the org chart. If a rep is shared across two managers, drilling will show their sales under both, and the levels will not add up to the total. Check before you build.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Hierarchy against group, set and bin</h2>
+
+    <p>Before the table: hierarchies, groups, sets and bins all sound like ways of organising data. What single question separates them?</p>
+
+    <p>Whether they work on fields or on the values inside one field. A hierarchy is the only one of the four that arranges several fields. The other three reshape the values inside a single field, and they do it in three different ways.</p>
+
+    <table>
+      <tr><th>Tool</th><th>Works on</th><th>What it does</th><th>What you get</th></tr>
+      <tr><td><strong>Hierarchy</strong></td><td>Several fields</td><td>Orders them into levels</td><td>A drill control. Nothing changes until someone clicks.</td></tr>
+      <tr><td><strong>Group</strong></td><td>One field's members</td><td>Combines several members into one bigger member</td><td>Fewer, coarser categories</td></tr>
+      <tr><td><strong>Set</strong></td><td>One field's members</td><td>Labels every member IN or OUT</td><td>Two groups you can compare</td></tr>
+      <tr><td><strong>Bin</strong></td><td>One measure's values</td><td>Cuts a continuous range into equal-width buckets</td><td>A dimension you can count, like a histogram</td></tr>
+    </table>
+
+    <p>Two of those pairs get confused more than the others, so here are both in a sentence.</p>
+
+    <p><strong>Hierarchy against group.</strong> They feel similar because both make things coarser. A group makes Sub-Category coarser by merging its members. A hierarchy leaves Sub-Category alone and lets a reader step up to Category, which was already a separate field. If the coarser level already exists as a field, you want a hierarchy. If it doesn't exist and you have to invent it, you want a group.</p>
+
+    <p><strong>Set against group.</strong> A group combines members into bigger members and everything stays in the view. A <a href="../tableau-sets/">set</a> splits members into IN and OUT so you can compare the two halves. Different jobs entirely, which the sets guide goes through properly.</p>
+
+    <p>Picture your own data pane for a moment. How many of your dimensions are really levels of one thing that nobody has connected yet? Region and Country. Manager and Rep. Those pairs are hierarchies waiting to be dragged together.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. What the plus and minus controls do</h2>
+
+    <p>Before the explanation: you click the plus icon on a hierarchy pill. Does the view replace the current level or add to it?</p>
+
+    <p>It adds. Tableau's wording is that you can "drill up or down in the hierarchy to add or subtract more levels of detail", and the key word is add. Category stays on the shelf and Sub-Category joins it, so you get sub-categories nested inside their categories rather than a flat list of sub-categories.</p>
+
+    <p>That distinction is worth a moment. Drilling down gives you both levels, with the parent still grouping the children. If you wanted only sub-categories, you don't drill, you swap the field.</p>
+
+    <p>Two practical consequences follow from the picture at the top of this page.</p>
+
+    <p><strong>Marks multiply, they don't shift.</strong> Three categories drilling into nine sub-categories is three times the marks. Drilling again into thirty-nine products is thirteen times the original. That's fine on a bar chart and painful on a map or a scatter plot, so check what the chart does at the bottom level before you ship the drill.</p>
+
+    <p><strong>Build the view at the level you want people to land on.</strong> The default state is whatever you saved, and most readers never click anything. So save it at the top level, and let the drill be for the people who want more.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Details people miss</h2>
+
+    <p>Before the list: someone says removing a hierarchy will delete the fields inside it. Are they right?</p>
+
+    <p>No, and this is the fact that stops people experimenting. Right-click the hierarchy and select Remove Hierarchy. Tableau's own description: "The fields in the hierarchy are removed from the hierarchy and the hierarchy disappears from the Data pane." The fields go back to being ordinary fields. Nothing is lost, so a hierarchy is safe to try.</p>
+
+    <p>Five more worth knowing.</p>
+
+    <p><strong>Date fields get a hierarchy automatically.</strong> Year, quarter, month, day. You don't build it, and the plus and minus on a date pill are doing exactly what they do on one you made yourself.</p>
+
+    <p><strong>A hierarchy belongs to the data source, not the sheet.</strong> Build it once and every worksheet on that data source can use it. This is the same arrangement as sets, and it's the reason both live in the Data pane.</p>
+
+    <p><strong>You can drill into one member instead of all of them.</strong> Clicking the plus on the pill opens every category. Clicking the plus on a single header opens just that one, which is usually what a reader actually wanted.</p>
+
+    <p><strong>Levels can be reordered after the fact.</strong> Drag a field to a new position inside the hierarchy. You do not have to remove it and start again, which is what most people do the first time.</p>
+
+    <p><strong>A hierarchy does not enforce anything.</strong> It records a containment you believe is true. If your data has a sub-category appearing under two categories, Tableau will show it under both without complaint, and your levels will not sum to the total. That's a data problem the hierarchy will faithfully display rather than catch.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>Drilling isn't a Tableau invention, it's a general answer to a problem every large dataset has: the view that shows everything shows nothing. Shneiderman set out the pattern that most interactive tools still follow, summarised as overview first, zoom and filter, then details on demand (Shneiderman, 1996, <em>Proceedings of the 1996 IEEE Symposium on Visual Languages</em>, 336&ndash;343). A hierarchy is that pattern made into one control. The overview is the top level, and the detail arrives only when someone asks for it.</p>
+
+  <p>The reason this beats building two sheets is about where the effort sits. Two sheets ask the reader to notice that a second view exists, find it, and hold the first one in memory while looking at it. One view with a drill asks them to click a plus. The information is the same and the work of connecting the two levels has moved from the reader to the tool.</p>
+
+  <p>The product behaviour on this page comes from Tableau's own documentation, which is the authority on it. Create hierarchies (Tableau Help, current version) is the source for the drag-and-drop creation step, the ability to add and re-order fields, the plus and minus drill controls, the Create Hierarchy route for fields inside folders, and the statement about what Remove Hierarchy does to the fields. Where a secondary write-up disagrees with that page, the page wins.</p>
+
+  <h2>Using this on your own workbook</h2>
+
+  <p>Open your Data pane and read the dimension list. How many pairs are levels of the same thing, sitting next to each other unconnected?</p>
+
+  <p>Doing this to a whole workbook at once is dull and you'll stop. Take one, in this order.</p>
+
+  <ol>
+    <li><strong>Find a pair where one contains the other.</strong> Region and country. Category and sub-category. Manager and rep. If neither contains the other, it isn't a hierarchy.</li>
+    <li><strong>Check the containment in the data, not the org chart.</strong> Count the distinct parents per child. More than one means drilling will double-count, and you have a data question before you have a hierarchy.</li>
+    <li><strong>Drag the finer field onto the coarser one.</strong> Fine onto coarse. Getting this backwards is the whole failure mode.</li>
+    <li><strong>Name it for a reader, not for you.</strong> "Product hierarchy" is fine. The name shows up in the Data pane and other people will read it.</li>
+    <li><strong>Save the view at the top level.</strong> Most readers never drill, so the state you save is the state almost everyone sees.</li>
+    <li><strong>Click down to the bottom level once, and look.</strong> If the chart is unreadable at full depth, either the chart type is wrong or that level does not belong in the hierarchy.</li>
+  </ol>
+
+  <p>If you have paper nearby and five spare minutes, there's one drawing worth doing and it's optional. Write your three levels as three rows, then write the number of distinct values in each row next to it. Seeing 3, 9 and 39 in your own handwriting is what makes the bottom-level chart problem obvious before you build it.</p>
+
+  <div class="cta">
+    <strong>Practice this before the exam.</strong>
+    <p style="margin:6px 0 0">Hierarchies sit in Section 2, the largest section of the Tableau Desktop Foundations exam at 37%. The <a href="../../tableau-cert/">certification kit</a> drills them alongside groups, sets and bins, in the real exam's format, and links back to this guide when you miss one.</p>
+    <a class="btn" href="../../tableau-cert/">Open the certification kit →</a>
+    <p style="margin:10px 0 0;font-size:15px">New to the tool? <a href="../tableau-concepts/">Tableau concepts</a> covers dimensions, measures and aggregation first.</p>
+  </div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Concept</th><th>What it does</th></tr>
+    <tr><td>Hierarchy</td><td>Orders several fields into levels and hands the reader a drill control</td></tr>
+    <tr><td>How to build one</td><td>Drag a field and drop it directly on top of another field in the Data pane</td></tr>
+    <tr><td>Field inside a folder</td><td>Right-click the field and select Create Hierarchy</td></tr>
+    <tr><td>Adding levels</td><td>Drag more fields into the hierarchy</td></tr>
+    <tr><td>Reordering levels</td><td>Drag a field to a new position inside the hierarchy</td></tr>
+    <tr><td>Order rule</td><td>Coarse at the top, fine at the bottom. Each level contained by the one above.</td></tr>
+    <tr><td>Plus and minus icons</td><td>Drill up or down, adding or subtracting a level of detail</td></tr>
+    <tr><td>Drilling adds</td><td>The parent level stays on the shelf. You get both, nested.</td></tr>
+    <tr><td>Removing a hierarchy</td><td>Right-click, Remove Hierarchy. The fields survive as ordinary fields.</td></tr>
+    <tr><td>Where it lives</td><td>The Data pane, so it belongs to the data source and works on every sheet</td></tr>
+    <tr><td>Date fields</td><td>Get year, quarter, month and day automatically. No build needed.</td></tr>
+    <tr><td>Hierarchy against group</td><td>Hierarchy arranges fields. A group merges members inside one field.</td></tr>
+    <tr><td>Hierarchy against set</td><td>A set labels members IN or OUT of one field. No levels involved.</td></tr>
+    <tr><td>Hierarchy against bin</td><td>A bin cuts a continuous measure into equal-width buckets</td></tr>
+    <tr><td>What it does not do</td><td>Enforce containment. Bad data drills into double counting silently.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Before you build a hierarchy, count the distinct parents for each child. One parent means it's a hierarchy. More than one means drilling will double-count, and you've found a data problem worth more than the drill control was.</div>
+
+  <p>One last thought, and I'd like other people's answers. What made these click for me was the fields-against-values line: a hierarchy is the only one of the four that touches more than one field, and once that landed I stopped mixing it up with groups. What's the pair of Tableau features you had to keep looking up before something finally separated them?</p>
+
+  <div class="book">
+    <strong>You can build the chart. Saying why Tableau put the numbers there is the harder part.</strong>
+    <p><em>Tableau for Analysts</em> is 110 pages on how Tableau actually thinks: dimensions against measures, relationships against joins, sets, and level of detail. Enough that you stop dragging fields until it looks right.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/tableau-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-tableau-hierarchies'})">Tableau for Analysts, $19 &rarr;</a>
+  </div>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Tableau. Create hierarchies. <em>Tableau Desktop and Web Authoring Help</em>, current version. help.tableau.com. The authority for the product behaviour described here.</li>
+    <li>Shneiderman, B. (1996). The eyes have it: A task by data type taxonomy for information visualizations. <em>Proceedings of the 1996 IEEE Symposium on Visual Languages</em>, 336&ndash;343.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Build the views, not just the vocabulary.</strong>
+    <p style="margin:6px 0 0">The <a href="../../tableau/">Tableau Kit</a> walks through dimensions, measures, aggregation and dashboard building, with worked examples and flash cards. Or drag fields onto shelves yourself in <a href="../../viz/">Viz Drill</a>, one chart at a time.</p>
+    <a class="btn" href="../../tableau/">Open the Tableau Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../tableau-sets/">Tableau Sets</a> · <a href="../tableau-aliases/">Tableau Aliases</a> · <a href="../tableau-sorts/">Tableau Sorting</a> · <a href="../tableau-concepts/">Tableau Concepts</a> · <a href="../tableau-relationships/">Tableau Relationships</a> · <a href="../tableau-sheets-to-dashboard/">Sheets to Dashboard</a> · <a href="../tableau-extensions/">Dashboard Extensions</a> · <a href="../build-a-tableau-dashboard/">Build a Tableau Dashboard</a> · <a href="../tableau-desktop-foundations-exam/">The Foundations Exam</a> · <a href="../choose-the-right-chart/">Choose the Right Chart</a> · <a href="../install-tableau-public/">Install Tableau Public</a> · <a href="../connect-tableau-to-your-data/">Connect Tableau to Your Data</a> · <a href="../../viz/">Viz Drill</a> · <a href="../../tableau/">Tableau Kit</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

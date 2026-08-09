@@ -927,6 +927,30 @@ These are things we got wrong in the last session and corrected:
 - **Use real-world non-tech analogies in any explanation** — Mike's
   own GR-D rule. "Triage is like an emergency room." "Versioning is
   like dating Word doc saves." Apply to your own writing too.
+- **Ship every new page with a Gumroad book block.** Added 2026-08-09
+  after an audit found 95 of 131 guides and all 16 kit hubs linking
+  the store nowhere. A page that teaches and then sends the reader
+  nowhere is a page written for nobody. Full rules in
+  `marketing/ARTICLE_STANDARD.md` §5; the roadmap for the backfill is
+  `GUMROAD_LINK_ROADMAP.md`.
+  - Guides: `tools/insert-book-block.py` does the mechanical insert.
+    The block sits above the kit CTA, the `.book` CSS goes after the
+    `footer{border-top` rule, the event is `guide_book_click`.
+  - Kit hubs: add one entry to the `BOOKS` map in
+    `assets/apk-footer.js`. It injects the card and fires
+    `hub_book_click`. App shells (drill, final, simulator, cert
+    pages) are deliberately not in the map.
+  - **Write the hook by hand for that page.** A templated hook is
+    worse than none; a reader who sees the same sentence four times
+    learns to skip it.
+  - **Pick the book by the reader's problem, not the slug prefix.**
+    `excel-pick-the-chart` goes to Charts and Visualization.
+  - **Bump the `?v=` on any shared asset you edit**, or the CDN and
+    returning browsers keep serving the old file. That happened to
+    `apk-footer.js` on day one of the rollout.
+  - **Verify on the live URL, not the repo.** If a page comes back
+    empty, fetch it once more before believing it — a cache-busted
+    request can still hit a stale edge copy.
 
 ---
 

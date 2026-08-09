@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Tableau Dashboard Needs Two or Three Views, Not Eight — Analyst Prep Kit</title>
+<meta name="description" content="Tableau's own guidance is to limit a dashboard to two or three views. How to pick which sheets survive, where the important one goes, and how to choose between fixed, automatic and range sizing.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-sheets-to-dashboard/">
+<meta property="og:title" content="Your Tableau Dashboard Needs Two or Three Views, Not Eight">
+<meta property="og:description" content="Crowded dashboards are not a discipline problem. They happen when one dashboard is asked to serve several audiences at once. Here is the filter that fixes it.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/tableau-sheets-to-dashboard.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-sheets-to-dashboard/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/tableau-sheets-to-dashboard.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+  .book{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px}
+  .book p{margin:6px 0 0}
+  .book a.booklink{display:inline-block;margin-top:10px;font-weight:600}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Your Tableau Dashboard Needs Two or Three Views, Not Eight",
+  "description": "Tableau's own guidance is to limit a dashboard to two or three views. How to pick which sheets survive, where the important one goes, and how to choose between fixed, automatic and range sizing.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-sheets-to-dashboard/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-sheets-to-dashboard/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-09",
+  "dateModified": "2026-08-09",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/tableau-sheets-to-dashboard.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Your Tableau Dashboard Needs Two or Three Views, Not Eight",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-sheets-to-dashboard/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../tableau/">Tableau Kit</a> · <a href="../">All guides</a></p>
+  <h1>Your Tableau Dashboard Needs Two or Three Views, Not Eight</h1>
+  <p class="meta">Turning finished sheets into something a room can follow · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can look at a folder of eight finished sheets and say which two or three belong on the dashboard, which one goes in the upper-left corner, and which of Tableau's three sizing options to pick. You'll also have a one-sentence test that decides every one of those calls. It's about fifteen minutes.</p>
+
+  <p>Here's the move to make today. Open your busiest dashboard and write the single question it answers, in one sentence, for one named person. Then remove every view that isn't part of answering it. Most people delete half, and the half that survives lands harder than the whole thing did.</p>
+
+  <p>The short version: Tableau's own guidance is two or three views on a dashboard. Crowding is what happens when one dashboard is asked to serve several audiences at once.</p>
+
+  <p>Where the surviving views sit is the second decision, and it has a known answer, so that gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 300" role="img" aria-labelledby="dbTitle dbDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="dbTitle">The reading path across a dashboard starts at the top left</title>
+      <desc id="dbDesc">A single dashboard rectangle divided into three panes. One large pane occupies the whole upper-left area and spans most of the width. Two smaller panes sit below it, side by side. A curved arrow enters at the top-left corner of the large pane, travels right across it, then drops down and moves left to right across the two smaller panes, showing the order a reader takes them in. A small numeral one sits on the large pane, two and three on the smaller panes. The drawing shows that the first thing a reader meets is whatever occupies the upper left, so the most important view belongs there and the supporting views belong underneath.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <rect x="60" y="24" width="640" height="240" rx="10" fill="#FFFFFF" stroke="#A1A1AA" stroke-width="1.5"/>
+
+        <rect x="80" y="44" width="480" height="120" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <circle cx="104" cy="68" r="13" fill="#0E7490"/>
+        <text x="104" y="73" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text>
+        <path d="M128 130 L340 130 M128 146 L268 146" stroke="#0E7490" stroke-width="6" stroke-linecap="round" opacity="0.45"/>
+
+        <rect x="580" y="44" width="100" height="120" rx="8" fill="#F1F3F5" stroke="#E4E7EA"/>
+        <text x="630" y="110" font-size="12" fill="#A1A1AA" text-anchor="middle">filters</text>
+
+        <rect x="80" y="182" width="288" height="62" rx="8" fill="#FFFFFF" stroke="#52525B" stroke-width="1.5"/>
+        <circle cx="104" cy="206" r="13" fill="#52525B"/>
+        <text x="104" y="211" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text>
+
+        <rect x="392" y="182" width="288" height="62" rx="8" fill="#FFFFFF" stroke="#52525B" stroke-width="1.5"/>
+        <circle cx="416" cy="206" r="13" fill="#52525B"/>
+        <text x="416" y="211" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text>
+
+        <path d="M40 34 L74 50" stroke="#B45309" stroke-width="2.5" fill="none" marker-end="url(#ah)"/>
+        <path d="M96 172 C 240 176, 200 200, 76 196" stroke="#B45309" stroke-width="2" fill="none" stroke-dasharray="5 4"/>
+        <path d="M368 213 L386 213" stroke="#B45309" stroke-width="2" stroke-dasharray="5 4" fill="none"/>
+        <defs>
+          <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0 0 L9 4.5 L0 9 z" fill="#B45309"/>
+          </marker>
+        </defs>
+        <text x="24" y="286" font-size="12.5" fill="#52525B">enters here</text>
+      </g>
+    </svg>
+    <figcaption>Readers arrive at the top left. Whatever is there is your headline, whether you chose it or not.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>Why two or three, and where that number comes from</li>
+      <li>The filter that decides which sheets survive</li>
+      <li>Where each surviving view goes</li>
+      <li>Fixed, automatic or range: picking a size</li>
+      <li>Before and after, same six sheets</li>
+      <li>Details people miss</li>
+      <li>Why this works</li>
+      <li>Doing this to your own dashboard</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="step">
+    <h2>1. Why two or three, and where that number comes from</h2>
+
+    <p>Before the explanation: you have eight finished sheets and one dashboard. How many of them would you put on it?</p>
+
+    <p>Two or three. That's not a taste call, it's Tableau's published guidance: "In general, it's a good idea to limit the number of views you include in your dashboard to two or three."</p>
+
+    <p>The reason is about attention rather than about screen space. A dashboard is read, and a reader gives it one pass. Every view you add divides that pass. Four views means each one gets a quarter of the attention that one view would have had, and none of them gets long enough to land.</p>
+
+    <p>There's a second cost that's easier to miss. Adding a view doesn't just take attention from the others, it takes away the reader's sense of which one mattered. A dashboard with one clear view and two supporting ones tells the reader where to look. A dashboard with eight equal panels tells them to work it out themselves, which is the job you were supposed to do.</p>
+
+    <p>The number isn't sacred. Four views can work when three of them are small supporting numbers rather than full charts. But if your answer to "how many views" is six or more, the honest problem is usually the next section.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. The filter that decides which sheets survive</h2>
+
+    <p>Before the answer: two people ask for the same dashboard. One runs the sales team, one runs the warehouse. Should they get one dashboard or two?</p>
+
+    <p>Two. And this is the whole idea of the page, because trying to serve both with one dashboard is where crowding actually comes from.</p>
+
+    <p>Tableau puts the standard plainly: "The best visualizations have a clear purpose and work for their intended audience." Those two things travel together. A purpose without an audience is a topic, and an audience without a purpose is a mailing list.</p>
+
+    <p>So the filter is one sentence, and you write it before you drag anything onto the canvas.</p>
+
+    <p><strong>This dashboard answers <em>[one question]</em> for <em>[one named person or role]</em>.</strong></p>
+
+    <p>Then take each finished sheet in turn and ask whether a reader needs it to answer that question. Not whether it's interesting, and not whether it took you two hours to build. Whether the question can be answered without it.</p>
+
+    <p>Say out loud what happens to a sheet that fails that test, before reading on. It doesn't get deleted. It goes onto a different dashboard, for the audience it was actually serving, or into the appendix of the deck. The sunk cost is the reason people keep views, and moving a view somewhere useful is what makes it possible to let go of.</p>
+
+    <p>Picture your own busiest dashboard for a moment. How many separate people would you name if you had to say who each view was for? If the answer is more than one, you have found the crowding.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Where each surviving view goes</h2>
+
+    <p>Before the explanation: your dashboard has one headline view and two supporting ones. Which corner does the headline go in?</p>
+
+    <p>Upper left. Tableau's guidance is to place your "most important view so that it occupies or spans the upper-left corner," and the reason it gives is that "most viewers scan web content starting at the top left."</p>
+
+    <p>That's worth taking literally. The upper-left view is your headline whether or not you meant it to be, in the same way the first sentence of a paragraph is its topic sentence whether or not you wrote it that way. If a filter panel is sitting up there, your headline is a filter panel.</p>
+
+    <p>Three placements that follow from it:</p>
+
+    <table>
+      <tr><th>Element</th><th>Where it goes</th><th>Why</th></tr>
+      <tr><td>The headline view</td><td>Upper left, spanning if it can</td><td>First thing read, and size signals importance</td></tr>
+      <tr><td>Supporting views</td><td>Below or to the right</td><td>Read after the headline, which is the order they make sense in</td></tr>
+      <tr><td>Filters and legends</td><td>Right side or under the title</td><td>Controls, not content. They should not be the first thing read.</td></tr>
+    </table>
+
+    <p>One more move that costs nothing. Give the dashboard a title that states the finding rather than the subject. "Regional sales" names a topic. "The West is carrying two thirds of growth" names the answer, and a reader who only sees the title has still been told something true.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Fixed, automatic or range: picking a size</h2>
+
+    <p>Before the options: you build a dashboard on a large monitor and email it to someone on a laptop. What do they see?</p>
+
+    <p>It depends entirely on one setting, and this is the decision that produces most of the "it looks wrong on my machine" messages. Here is the fork.</p>
+
+    <p><strong>The question:</strong> what dimensions should the dashboard be?</p>
+
+    <p><strong>Answer one, fixed.</strong> You choose exact dimensions and design at them. Everyone sees the identical layout, and nothing shifts. If their screen is smaller, they scroll or the whole thing scales down. Choosing this means you're saying you know the screen it will be read on.</p>
+
+    <p><strong>Answer two, automatic.</strong> Tableau adapts the overall dimensions of the visualization based on screen size. Nothing gets cut off on a smaller display. The cost is that your careful placement flexes, so things you lined up may not stay lined up.</p>
+
+    <p><strong>Answer three, range.</strong> You set a minimum and a maximum size. The dashboard flexes between them and stops flexing outside them. It's the middle option, and it exists because both of the others are absolute about something.</p>
+
+    <p><strong>What decides it:</strong> whether you know the screen. A dashboard going onto a wall-mounted display or into a specific report has a known size, so fixed is right. A dashboard published to Tableau Public for strangers has an unknown size, so range or automatic is right.</p>
+
+    <p><strong>Why it matters:</strong> a fixed dashboard designed at a large size and read on a laptop is the single most common reason a dashboard that looked finished arrives looking broken. It's not a rendering fault. It's an answer to this question that nobody remembered making.</p>
+
+    <p>In Tableau Desktop there's a fourth path worth knowing about: you can design specific device layouts, so a phone reader gets a different arrangement of the same views rather than a squeezed copy of the desktop one.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Details people miss</h2>
+
+    <p>Before the list: someone adds a ninth view because a stakeholder asked for it. What's the honest answer to that request?</p>
+
+    <p>That it belongs on their dashboard, not this one. Requests are not the enemy. Putting every request on one canvas is.</p>
+
+    <p>Five more.</p>
+
+    <p><strong>A number can be a view.</strong> Two or three views doesn't mean two or three charts. A single large number with a label is often the best headline a dashboard can have, and it costs almost no attention to read.</p>
+
+    <p><strong>Sheets do not have to be used.</strong> A workbook can hold twelve sheets and put three on the dashboard. The other nine are working notes, and nobody has to see them.</p>
+
+    <p><strong>Pick the encoding your reader can read accurately.</strong> Length and position along a scale are read more accurately than area or angle, which is why a bar chart beats a pie chart for comparing sizes. The <a href="../choose-the-right-chart/">chart choice guide</a> walks through the whole set.</p>
+
+    <p><strong>Sort the headline view.</strong> An unsorted bar chart makes the reader do the ranking. <a href="../tableau-sorts/">Sorting in Tableau</a> is one click and it's an analytic act, not decoration.</p>
+
+    <p><strong>Test it at the size it will be read.</strong> Not at the size you built it. If it's going in a slide deck, put it in a slide before you call it finished.</p>
+  </div>
+
+  <h2>Before and after, same six sheets</h2>
+
+  <p>One build, two ways of assembling it. Nothing was rebuilt between these, and no new analysis was done. Only the assembly changed.</p>
+
+  <table>
+    <tr><th></th><th>Before</th><th>After</th></tr>
+    <tr><td>Views on the dashboard</td><td>6</td><td>3</td></tr>
+    <tr><td>Question it answers</td><td>Not written down</td><td>"Which region should we staff next quarter?"</td></tr>
+    <tr><td>Audience</td><td>Sales, warehouse and finance</td><td>The sales director</td></tr>
+    <tr><td>Upper-left corner</td><td>Filter panel</td><td>The headline chart</td></tr>
+    <tr><td>Title</td><td>"Regional performance"</td><td>"The West is carrying two thirds of growth"</td></tr>
+    <tr><td>Size setting</td><td>Fixed, at the author's monitor size</td><td>Range, with a laptop minimum</td></tr>
+    <tr><td>The three views removed</td><td>Deleted</td><td>Moved to a warehouse dashboard, where they had an audience</td></tr>
+  </table>
+
+  <p>The row that matters most is the last one. The three views were not wrong, they were on the wrong page. That's what makes the cut possible: nobody is being told their work was wasted.</p>
+
+  <h2>Why this works</h2>
+
+  <p>The crowding problem has a name in the research and a cause that isn't a lack of discipline. Sarikaya and colleagues surveyed a large collection of real dashboards and found that a single dashboard is routinely asked to do several jobs at once, such as informing, monitoring and enabling exploration, for different people (Sarikaya, Gleicher, &amp; Szafir, 2019, <em>IEEE Transactions on Visualization and Computer Graphics</em>, 25(1), 682&ndash;692). Those jobs pull the design in different directions, and the visible result is a crowded canvas. Naming the one question and the one audience is a fix aimed directly at that cause.</p>
+
+  <p>It's also fair to say that specific dashboard design guidance is thinner than you'd expect for such a common artefact. Bach and colleagues assembled a set of dashboard design patterns and noted how little concrete guidance existed to draw on, which is part of why the same mistakes keep being reinvented (Bach, Freeman, Abdul-Rahman, Turkay, Khan, Fan, &amp; Chen, 2023, <em>IEEE Transactions on Visualization and Computer Graphics</em>, 29(1), 342&ndash;352). If dashboard advice has ever felt like folklore to you, that's a reasonable read of the field rather than a gap in your reading.</p>
+
+  <p>The encoding point rests on older and firmer ground. Cleveland and McGill ran experiments on how accurately people judge quantities from different graphical forms and ranked them, with judgments of position along a common scale coming out most accurate and judgments of area and angle less so (Cleveland &amp; McGill, 1984, <em>Journal of the American Statistical Association</em>, 79(387), 531&ndash;554). That ordering is why a bar chart is the safe default for a headline view.</p>
+
+  <p>The product behaviour on this page, including the two-or-three guidance, the upper-left placement advice and the three sizing options, comes from Tableau's own documentation, which is the authority on it. Where a secondary write-up disagrees, that documentation wins.</p>
+
+  <h2>Doing this to your own dashboard</h2>
+
+  <p>Think of the dashboard you've shared most often. Could you say, right now, what one question it answers and who for? If that took more than a few seconds, this is worth an hour.</p>
+
+  <p>Rebuilding everything at once is miserable and you'll abandon it halfway. Take one dashboard, in this order.</p>
+
+  <ol>
+    <li><strong>Write the sentence first.</strong> One question, one named person. If you can't finish the sentence, that's the finding, and no layout change will fix it.</li>
+    <li><strong>Mark every view keep or move.</strong> Move, not delete. Moved views go to a dashboard for the audience they were really serving.</li>
+    <li><strong>Put the survivor that answers the question in the upper left</strong>, and let it span if it can. Size is a signal and readers use it.</li>
+    <li><strong>Move filters and legends off the top left.</strong> They're controls. They should not be the first thing anyone reads.</li>
+    <li><strong>Rewrite the title as the finding.</strong> One sentence with a number in it. If you can't write it, the dashboard is a pile of charts.</li>
+    <li><strong>Set the size deliberately</strong>, using the fork above, and then open it on the screen it will actually be read on.</li>
+  </ol>
+
+  <p>If you have paper and five spare minutes, there's one sketch worth doing and it's optional. Draw the dashboard as empty boxes, no data, and write the one question across the top. Then cross out every box that isn't needed to answer it. Doing that on paper is much faster than doing it on the canvas, and much easier to be honest during.</p>
+
+  <div class="cta">
+    <strong>Build the views, not just the vocabulary.</strong>
+    <p style="margin:6px 0 0">The <a href="../../tableau/">Tableau Kit</a> covers dimensions, measures, aggregation and dashboard assembly with worked examples. Or drag fields onto shelves yourself in <a href="../../viz/">Viz Drill</a>, one chart at a time.</p>
+    <a class="btn" href="../../tableau/">Open the Tableau Kit →</a>
+    <p style="margin:10px 0 0;font-size:15px">Want the click-by-click build instead? <a href="../build-a-tableau-dashboard/">How to build a Tableau dashboard and story</a> goes from raw data to a published link.</p>
+  </div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Decision</th><th>The answer</th></tr>
+    <tr><td>How many views</td><td>Two or three, per Tableau's own guidance</td></tr>
+    <tr><td>Which views survive</td><td>The ones needed to answer one question for one audience</td></tr>
+    <tr><td>What to do with the rest</td><td>Move them to a dashboard for their real audience. Do not delete.</td></tr>
+    <tr><td>Why dashboards get crowded</td><td>One dashboard serving several purposes and several audiences at once</td></tr>
+    <tr><td>Upper-left corner</td><td>The most important view, spanning if it can</td></tr>
+    <tr><td>Why upper left</td><td>Most viewers scan web content starting at the top left</td></tr>
+    <tr><td>Filters and legends</td><td>Right side or under the title. They are controls, not content.</td></tr>
+    <tr><td>Fixed sizing</td><td>Exact dimensions. Identical for everyone. Use when you know the screen.</td></tr>
+    <tr><td>Automatic sizing</td><td>Tableau adapts dimensions to screen size. Placement can shift.</td></tr>
+    <tr><td>Range sizing</td><td>Flexes between a minimum and a maximum you set</td></tr>
+    <tr><td>Device layouts</td><td>Design a separate arrangement for phone or tablet in Tableau Desktop</td></tr>
+    <tr><td>Best headline encoding</td><td>Length or position along a scale. Bars before pies.</td></tr>
+    <tr><td>The title</td><td>States the finding, with a number. Not the subject.</td></tr>
+    <tr><td>When to test the size</td><td>On the screen it will be read on, before calling it finished</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Write the sentence before you drag anything onto the canvas. One question, one named person. Every other decision on this page falls out of that sentence, and a dashboard that can't produce one is telling you something you need to know before you spend the afternoon on layout.</div>
+
+  <p>One last thought, and I'd like other people's answers. The thing that changed my own dashboards was realising that a view failing the test doesn't get deleted, it gets moved, which is what finally made cutting them possible. What's the view you kept on a dashboard for months before admitting it was there for somebody else?</p>
+
+  <div class="book">
+    <strong>You can build the chart. Saying why Tableau put the numbers there is the harder part.</strong>
+    <p><em>Tableau for Analysts</em> is 110 pages on how Tableau actually thinks: dimensions against measures, relationships against joins, sets, and level of detail. Enough that you stop dragging fields until it looks right.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/tableau-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-tableau-sheets-to-dashboard'})">Tableau for Analysts, $19 &rarr;</a>
+  </div>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Tableau. Best practices for effective dashboards. <em>Tableau Desktop and Web Authoring Help</em>, current version. help.tableau.com. The authority for the product behaviour and guidance described here.</li>
+    <li>Sarikaya, A., Gleicher, M., &amp; Szafir, D. A. (2019). What do we talk about when we talk about dashboards? <em>IEEE Transactions on Visualization and Computer Graphics</em>, 25(1), 682&ndash;692.</li>
+    <li>Bach, B., Freeman, E., Abdul-Rahman, A., Turkay, C., Khan, S., Fan, Y., &amp; Chen, M. (2023). Dashboard design patterns. <em>IEEE Transactions on Visualization and Computer Graphics</em>, 29(1), 342&ndash;352.</li>
+    <li>Cleveland, W. S., &amp; McGill, R. (1984). Graphical perception: Theory, experimentation, and application to the development of graphical methods. <em>Journal of the American Statistical Association</em>, 79(387), 531&ndash;554.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Sitting the certification?</strong>
+    <p style="margin:6px 0 0">Dashboards and sharing sit in Section 3 of the Tableau Desktop Foundations exam, worth 25%. The <a href="../../tableau-cert/">certification kit</a> drills it in the exam's own format, and the <a href="../tableau-desktop-foundations-exam/">exam guide breakdown</a> shows where the rest of the marks are.</p>
+    <a class="btn" href="../../tableau-cert/">Open the certification kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../build-a-tableau-dashboard/">Build a Tableau Dashboard</a> · <a href="../tableau-concepts/">Tableau Concepts</a> · <a href="../tableau-extensions/">Dashboard Extensions</a> · <a href="../tableau-sorts/">Tableau Sorting</a> · <a href="../tableau-hierarchies/">Tableau Hierarchies</a> · <a href="../tableau-aliases/">Tableau Aliases</a> · <a href="../tableau-sets/">Tableau Sets</a> · <a href="../tableau-relationships/">Tableau Relationships</a> · <a href="../tableau-desktop-foundations-exam/">The Foundations Exam</a> · <a href="../choose-the-right-chart/">Choose the Right Chart</a> · <a href="../how-charts-mislead/">How Charts Mislead</a> · <a href="../install-tableau-public/">Install Tableau Public</a> · <a href="../../viz/">Viz Drill</a> · <a href="../../tableau/">Tableau Kit</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
