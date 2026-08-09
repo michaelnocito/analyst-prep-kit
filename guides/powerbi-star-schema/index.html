@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Star Schema in Power BI: Why One Flat Table Cannot Answer the Question — Analyst Prep Kit</title>
+<meta name="description" content="Lamps are the smallest product line at 1,600 of 9,890 and the highest margin at 45.0 percent. That sentence needs a column the flat table does not have, and a relationship to reach it.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-star-schema/">
+<meta property="og:title" content="Star Schema in Power BI: Why One Flat Table Cannot Answer the Question">
+<meta property="og:description" content="Lamps are the smallest product line at 1,600 of 9,890 and the highest margin at 45.0 percent. That sentence needs a column the flat table does not have, and a relationship to reach it.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/powerbi-star-schema.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-star-schema/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/powerbi-star-schema.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Star Schema in Power BI: Why One Flat Table Cannot Answer the Question",
+  "description": "Lamps are the smallest product line at 1,600 of 9,890 and the highest margin at 45.0 percent. That sentence needs a column the flat table does not have, and a relationship to reach it.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-star-schema/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-star-schema/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-09",
+  "dateModified": "2026-08-09",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/powerbi-star-schema.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Star Schema in Power BI: Why One Flat Table Cannot Answer the Question",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-star-schema/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../powerbi/">Power BI Kit</a> · <a href="../">All guides</a></p>
+  <h1>Star Schema in Power BI: Why One Flat Table Cannot Answer the Question</h1>
+  <p class="meta">Dimensions filter, facts summarize, and the arrows point one way · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can look at any table and say whether it belongs in the model as a fact or a dimension, build the relationships that make filtering work, and explain why the shape matters even on sixteen rows. The finding it unlocks on our data: lamps are the smallest product line by revenue, 1,600 of 9,890, and the most profitable at 45.0 percent margin against the desk's 36.4. The flat table cannot say that sentence.</p>
+
+  <p>Here is what to actually do today. Open your model view and count the arrows. If every table connects directly to one central table, and every arrow points inward toward it, you have a star. If tables chain off other tables, or two tables point at each other, that is where your slicers will misbehave.</p>
+
+  <p>The short version: put the things you count in one table, put the things you slice by in their own tables, and join each of those to the counting table. Filters then flow one way, from the describing tables into the counting table.</p>
+
+  <p>The shape is the idea, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 320" role="img" aria-labelledby="ssTitle ssDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="ssTitle">Three tables filtering one</title>
+      <desc id="ssDesc">Four rounded boxes arranged around a centre. One larger, solid, dark-filled box sits in the middle of the picture and is labelled Orders. Three smaller, lighter boxes sit around it: one at the upper left labelled Date, one at the upper right labelled Products, and one directly below the centre labelled Reps. A line runs from each of the three outer boxes to the central box. Every one of those three lines carries a single arrowhead, and in all three cases the arrowhead is at the end that touches the central box, so all three arrows point inward toward the centre and none points outward. Beside each line, at the end nearest the outer box, sits a small numeral one, and at the end nearest the central box sits a small asterisk, marking one row on the outer side against many rows on the inner side. The overall arrangement reads as three points radiating from a single hub.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <path d="M232 88 L306 130" stroke="#0E7490" stroke-width="2.2" fill="none"/>
+        <path d="M306 130 L293 129 M306 130 L299 119" stroke="#0E7490" stroke-width="2.2" fill="none"/>
+        <text x="240" y="106" font-size="12.5" font-weight="700" fill="#52525B">1</text>
+        <text x="288" y="140" font-size="13.5" font-weight="700" fill="#52525B">*</text>
+
+        <path d="M528 88 L454 130" stroke="#0E7490" stroke-width="2.2" fill="none"/>
+        <path d="M454 130 L467 129 M454 130 L461 119" stroke="#0E7490" stroke-width="2.2" fill="none"/>
+        <text x="514" y="106" font-size="12.5" font-weight="700" fill="#52525B">1</text>
+        <text x="466" y="140" font-size="13.5" font-weight="700" fill="#52525B">*</text>
+
+        <path d="M380 236 L380 190" stroke="#0E7490" stroke-width="2.2" fill="none"/>
+        <path d="M380 190 L374 201 M380 190 L386 201" stroke="#0E7490" stroke-width="2.2" fill="none"/>
+        <text x="390" y="230" font-size="12.5" font-weight="700" fill="#52525B">1</text>
+        <text x="390" y="200" font-size="13.5" font-weight="700" fill="#52525B">*</text>
+
+        <rect x="120" y="40" width="120" height="52" rx="10" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="180" y="72" text-anchor="middle" font-size="14.5" font-weight="700" fill="#0E7490">Date</text>
+
+        <rect x="520" y="40" width="130" height="52" rx="10" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="585" y="72" text-anchor="middle" font-size="14.5" font-weight="700" fill="#0E7490">Products</text>
+
+        <rect x="310" y="236" width="140" height="52" rx="10" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="380" y="268" text-anchor="middle" font-size="14.5" font-weight="700" fill="#0E7490">Reps</text>
+
+        <rect x="304" y="118" width="152" height="70" rx="12" fill="#0E7490"/>
+        <text x="380" y="160" text-anchor="middle" font-size="16" font-weight="700" fill="#FFFFFF">Orders</text>
+      </g>
+    </svg>
+    <figcaption>Three describing tables, one counting table, and three arrows all pointing the same way. The one and the asterisk mark which side has one row per value and which has many. Nothing chains off anything else, and nothing points outward, which is what makes every slicer in the report behave predictably.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>Fact or dimension, and how the model decides</li>
+      <li>The flat table, and the question it cannot answer</li>
+      <li>Splitting it: what goes where</li>
+      <li>Building the relationships, and the direction that matters</li>
+      <li>Snowflake: when a dimension chains off another</li>
+      <li>Two dates on one table: role-playing dimensions</li>
+      <li>The exceptions Microsoft actually recommends</li>
+      <li>The full before and after</li>
+      <li>Edge cases that catch people out</li>
+      <li>Why this works</li>
+      <li>Using this on your own model</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every number on this page is real.</strong> Sixteen orders and a three-row product table, the same fixture used across these guides. The modelling rules quoted here come from Microsoft's own star schema guidance rather than from habit, and are quoted directly in the "why this works" section. <a href="../powerbi-calculate/">CALCULATE and filter context</a> is the companion page: this one is about the shape, that one is about what runs on top of it.</div>
+
+  <div class="step">
+    <h2>1. Fact or dimension, and how the model decides</h2>
+
+    <p>Before the definitions: you have an orders table and a products table. Say which one you would count and which one you would slice by, before reading on. You already know the answer; the words are what this section adds.</p>
+
+    <p>Microsoft's guidance splits every model table in two, and the split is by job.</p>
+
+    <p><strong>Dimension tables describe things.</strong> Products, people, places, dates. They have a key column that uniquely identifies each row, plus columns you want to filter and group by. They are usually small. Ours has three rows.</p>
+
+    <p><strong>Fact tables record events.</strong> Orders, transactions, readings, page views. They have key columns pointing at the dimensions, plus the numbers you add up. They are usually large and they keep growing. Ours has sixteen rows and would have sixteen thousand in a year.</p>
+
+    <p>Two sentences from the guidance are worth keeping, because they turn the distinction from a vibe into a rule: "Dimension tables enable filtering and grouping" and "Fact tables enable summarization."</p>
+
+    <p>Here is the part that surprises people. There is no setting anywhere in Power BI that declares a table to be one or the other. The guidance says so directly: "There's no table property that modelers set to set the table type as dimension or fact. It's in fact determined by the model relationships." Specifically the cardinality: "The 'one' side is always a dimension table while the 'many' side is always a fact table."</p>
+
+    <p>So the type is not a label you apply. It is a consequence of how you joined things, which means getting the relationships right <em>is</em> getting the model right.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. The flat table, and the question it cannot answer</h2>
+
+    <p>Before the problem: here is the flat table, one row per order with everything on it. Look for what you would need to compute gross margin by product, and notice what is not there.</p>
+
+    <table>
+      <tr><th>OrderID</th><th>OrderDate</th><th>Rep</th><th>Region</th><th>Product</th><th>Units</th><th>UnitPrice</th><th>Revenue</th></tr>
+      <tr><td>1001</td><td>2026-01-05</td><td>Dana Reyes</td><td>North</td><td>Desk</td><td>4</td><td>220</td><td>880</td></tr>
+      <tr><td>1002</td><td>2026-01-12</td><td>Owen Park</td><td>South</td><td>Chair</td><td>10</td><td>85</td><td>850</td></tr>
+      <tr><td>1003</td><td>2026-01-19</td><td>Priya Shah</td><td>East</td><td>Desk</td><td>3</td><td>220</td><td>660</td></tr>
+      <tr><td colspan="8">… thirteen more rows, 9,890 in total revenue across 101 units …</td></tr>
+    </table>
+
+    <p>There is no cost anywhere. Revenue is on every row and cost is on none of them, so a margin measure has nothing to work with. That is not a flaw in this particular export; it is the normal state of a fact table. Costs belong to products, not to orders, and repeating a product's cost on every one of its order rows is exactly the duplication that a separate table exists to avoid.</p>
+
+    <p>Here is the answer once a products table is in the model, with a cost column.</p>
+
+    <table>
+      <tr><th>Product</th><th>Units</th><th>Revenue</th><th>Cost of goods</th><th>Gross profit</th><th>Margin</th></tr>
+      <tr><td>Desk</td><td>23</td><td>5,060</td><td>3,220</td><td>1,840</td><td>36.4%</td></tr>
+      <tr><td>Chair</td><td>38</td><td>3,230</td><td>1,976</td><td>1,254</td><td>38.8%</td></tr>
+      <tr><td>Lamp</td><td>40</td><td>1,600</td><td>880</td><td>720</td><td>45.0%</td></tr>
+      <tr><td><strong>Total</strong></td><td><strong>101</strong></td><td><strong>9,890</strong></td><td><strong>6,076</strong></td><td><strong>3,814</strong></td><td><strong>38.6%</strong></td></tr>
+    </table>
+
+    <p>Check a line by hand: 23 desks at a cost of 140 each is 3,220, and 5,060 minus 3,220 is 1,840. And now there is a claim instead of a list. <strong>Lamps are last by revenue and first by margin.</strong> A revenue ranking and a margin ranking put them at opposite ends, and the only thing standing between those two sentences is a second table and a relationship.</p>
+
+    <p>Say out loud what a flat table would have to do to answer this. It would have to carry the cost on all sixteen rows, repeated. Then a cost correction becomes sixteen edits instead of one, and a product that sold nothing this month disappears from the model entirely.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Splitting it: what goes where</h2>
+
+    <p>Before the split: take the eight columns of the flat table and sort them into "describes something" and "is an event or a number". Do it before reading on.</p>
+
+    <p>Here is where they land.</p>
+
+    <table>
+      <tr><th>Table</th><th>Type</th><th>Rows</th><th>Columns</th></tr>
+      <tr><td>Orders</td><td>Fact</td><td>16, growing</td><td>OrderID, OrderDate, Rep, Product, Units, UnitPrice, Revenue</td></tr>
+      <tr><td>Products</td><td>Dimension</td><td>3</td><td>Product (key), Category, ListPrice, Cost</td></tr>
+      <tr><td>Reps</td><td>Dimension</td><td>4</td><td>Rep (key), Region</td></tr>
+      <tr><td>Date</td><td>Dimension</td><td>365 per year</td><td>Date (key), Year, Month, Month Sort, Quarter</td></tr>
+    </table>
+
+    <p>Two decisions in that table are worth explaining because they are the ones people get wrong.</p>
+
+    <p><strong>Region moved to the Reps table.</strong> In our data each rep works one region, so region describes the rep, not the order. Putting it on the fact table would repeat it sixteen times and make it possible for the same rep to appear in two regions on different rows, which is a data quality problem you have just invented. If reps could move between regions over time, that is a slowly changing dimension and it needs versioning, which is a different and harder problem.</p>
+
+    <p><strong>Revenue stayed on the fact table even though it is Units times UnitPrice.</strong> It is a number you add up, so it is a fact. And it is deliberately stored rather than looked up, because the price on the day of the order is not necessarily today's list price. A fact table records what happened; a dimension records what is currently true.</p>
+
+    <p>The date dimension is the one nobody regrets. Even on five months of data it is what makes month-over-month, year-to-date and prior-period measures work at all, for reasons worked through in <a href="../powerbi-time-intelligence/">DAX time intelligence</a>.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Building the relationships, and the direction that matters</h2>
+
+    <p>Before the settings: you join Products to Orders on the product name. Predict which way filters should travel, before reading on.</p>
+
+    <p>From Products into Orders, and only that way. Choosing "Products" in a slicer should cut down the orders. Choosing an order should not cut down the product list. Each relationship gets three settings, and the defaults are usually right.</p>
+
+    <table>
+      <tr><th>Setting</th><th>Value</th><th>Why</th></tr>
+      <tr><td>Cardinality</td><td>One to many</td><td>One row per product, many orders per product. This is what makes Products a dimension.</td></tr>
+      <tr><td>Cross-filter direction</td><td>Single</td><td>Products filters Orders. Orders does not filter Products.</td></tr>
+      <tr><td>Active</td><td>Yes</td><td>Only one relationship between two tables can be active. See section six.</td></tr>
+    </table>
+
+    <p>The setting worth resisting is <strong>Both</strong> for the cross-filter direction. It looks harmless and it makes filters travel in both directions, which means a filter can leave a dimension, reach the fact table, and travel back up a different relationship into a second dimension. With three dimensions there are paths the engine has to resolve, and with more than a few there are ambiguous ones it will refuse. Turn it on only for a specific, tested reason.</p>
+
+    <p>Then, in the visuals, slice by the dimension's columns rather than the fact table's. Both work in our model because Product is on both tables, and they behave differently the moment a product exists with no orders. Slicing by <code>Products[Product]</code> shows it with a blank measure; slicing by <code>Orders[Product]</code> never mentions it. One of those is a report that can say "this line sold nothing", and the other is a report that quietly loses it.</p>
+
+    <p>My own tidying rule: once the relationships exist, hide the fact table's key columns from report view. Nobody should be choosing between <code>Orders[Product]</code> and <code>Products[Product]</code> at report-building time, and hiding one removes the choice.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Snowflake: when a dimension chains off another</h2>
+
+    <p>Before the shape: our products have categories, Furniture and Lighting. You could store categories in their own table joined to Products. Say what that would buy and what it would cost.</p>
+
+    <p>That shape is a <strong>snowflake</strong>: a dimension normalized across several tables so the chain runs Category, Products, Orders instead of Products, Orders. Microsoft's guidance is direct about the trade: "Generally, the benefits of a single model table outweigh the benefits of multiple model tables", and it lists four specific costs.</p>
+
+    <ul>
+      <li>More tables loaded, "which is less efficient from storage and performance perspectives".</li>
+      <li>"Longer relationship filter propagation chains need to be traversed", so filters take an extra hop.</li>
+      <li>More tables in the Data pane, "which can result in a less intuitive experience", especially when the extra table has one or two columns.</li>
+      <li>"It's not possible to create a hierarchy that comprises columns from more than one table", so a Category to Product drill-down cannot exist.</li>
+    </ul>
+
+    <p>That last one is the practical killer. With Category on the Products table you can build a hierarchy and let users drill from Furniture down to Desk in one visual. With Category in its own table you cannot, at all.</p>
+
+    <p>So flatten it: put Category on the Products table as a column, which is exactly how our three-row table is built. The cost is repeating the word "Furniture" twice, which on a three-row table is nothing and on a three-thousand-row product table is still nothing.</p>
+
+    <p>The check, on our data: Furniture is 8,290 of revenue and Lighting is 1,600, and they add to 9,890. That grouping works because Category sits on the dimension the fact table is joined to, one hop away.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Two dates on one table: role-playing dimensions</h2>
+
+    <p>Before the problem: orders have an order date and a ship date, and you want to analyse by either. Predict what happens if you join the date table to both columns.</p>
+
+    <p>Power BI creates both relationships and makes only one active. The guidance states the constraint plainly: "there can only be one active relationship between two Power BI semantic model tables. All remaining relationships must be set to inactive." A dimension used in several roles like this is called a <strong>role-playing dimension</strong>.</p>
+
+    <p>Two ways to handle it, and the second is the one Microsoft recommends.</p>
+
+    <p><strong>Activate the inactive relationship inside specific measures.</strong> <code>USERELATIONSHIP</code> turns one on for the duration of one CALCULATE.</p>
+
+    <pre><code>Revenue by Ship Date =
+CALCULATE (
+    [Total Revenue],
+    USERELATIONSHIP ( 'Date'[Date], Orders[ShipDate] )
+)</code></pre>
+
+    <p>It works and it does not scale. You need a duplicate of every measure per date role, the Data pane fills with near-identical names, and, as the guidance notes, you still "can't produce a visual that plots order date sales by shipped sales", because only one path can be active at a time.</p>
+
+    <p><strong>Build a second date table.</strong> A Ship Date table, cloned from the first, each with its own active relationship. One line of DAX creates it: <code>Ship Date = 'Date'</code>. Then rename its columns to be self-describing, Ship Year rather than Year, so a chart title reads correctly without editing. The cost is a duplicated dimension table, and since dimension tables are small, that is rarely a concern.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. The exceptions Microsoft actually recommends</h2>
+
+    <p>Before the exceptions: the rule so far is "never mix facts and dimensions in one table". Guess whether there is a documented exception, before reading on.</p>
+
+    <p>There is exactly one common one, and knowing it stops you from over-normalizing.</p>
+
+    <p><strong>Degenerate dimensions.</strong> An order number is an attribute you want to filter by, and building a one-column table just to hold it would add a table and clutter the Data pane for no benefit. The guidance calls this "an exception to the formerly introduced rule that you shouldn't mix table types" and says to leave it on the fact table. Our OrderID is exactly this.</p>
+
+    <p>Three more shapes worth recognizing when you meet them, all documented, none needed on our sixteen rows:</p>
+
+    <p><strong>Surrogate keys.</strong> When a dimension has no single unique column, add one. In Power Query that is an index column, merged into the fact query so both sides carry it.</p>
+
+    <p><strong>Junk dimensions.</strong> Several tiny attributes with few values each, like order status and delivery status, consolidated into one dimension table rather than several, to reduce clutter and model size.</p>
+
+    <p><strong>Factless fact tables.</strong> A table of only dimension keys, recording that something happened, or bridging two dimensions in a many-to-many relationship. If a salesperson can belong to several regions, that bridging table is the recommended way to model it.</p>
+
+    <p>Now picture your own model's table list. Which tables are there because something genuinely has its own grain, and which are there because a source system happened to export them separately?</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same requirement both times: revenue and margin by product and by month, with slicers on region and category.</p>
+
+  <h3>Before</h3>
+  <pre><code>Model:  One table, Orders, 16 rows x 8 columns. Everything imported as exported.
+Slicer: Orders[Region], Orders[Product]
+Margin: not possible, there is no cost column anywhere</code></pre>
+  <p>It renders, and it is a dead end. Margin cannot be computed at all. Time intelligence fails because there is no date table. A product with no orders this month vanishes from every slicer. And a cost correction, when the cost column eventually gets pasted in, is sixteen edits with sixteen chances to mistype.</p>
+
+  <h3>After</h3>
+  <pre><code>Tables:  Orders (fact, 16 rows)
+         Products (dimension, 3 rows: Product, Category, ListPrice, Cost)
+         Reps     (dimension, 4 rows: Rep, Region)
+         Date     (dimension, CALENDARAUTO)
+
+Relationships, all one-to-many, single direction, into Orders:
+         Products[Product] -> Orders[Product]
+         Reps[Rep]         -> Orders[Rep]
+         'Date'[Date]      -> Orders[OrderDate]
+
+Total Revenue = SUM ( Orders[Revenue] )
+Cost of Goods = SUMX ( Orders, Orders[Units] * RELATED ( Products[Cost] ) )
+Gross Profit  = [Total Revenue] - [Cost of Goods]
+Margin %      = DIVIDE ( [Gross Profit], [Total Revenue] )</code></pre>
+  <p>Four tables, three relationships, four measures, and the numbers from section two fall out: 9,890 revenue, 6,076 cost, 3,814 profit, 38.6 percent margin, with lamps at 45.0 percent. <code>RELATED</code> is what reaches across a relationship from the many side to the one side, and it works here precisely because the relationship exists and points the right way. Slicers on Category and Region now filter everything, and a cost correction is one cell.</p>
+
+  <div class="step">
+    <h2>Edge cases that catch people out</h2>
+
+    <p>Six that each cost somebody an afternoon.</p>
+
+    <p><strong>Duplicate keys on the dimension side.</strong> Power BI refuses to create a one-to-many relationship if the "one" side is not unique, and the error message names the constraint rather than the offending row. Find the duplicate with a quick group-by before assuming the relationship is impossible.</p>
+
+    <p><strong>Blank keys on the fact side.</strong> Orders whose product is missing get lumped into a blank row on the dimension. The total still reconciles, and the blank line in a visual is the model telling you about a data quality problem, not a bug to hide.</p>
+
+    <p><strong>Both-direction filtering everywhere.</strong> It solves one visual and creates ambiguity for the engine. Microsoft's own filter modifier list includes <code>CROSSFILTER</code> for changing direction inside a single measure, which is nearly always the better tool than changing it on the relationship.</p>
+
+    <p><strong>Mixed grain in one fact table.</strong> Order lines and order headers in the same table double-count anything summed. The guidance is explicit that "fact tables always load data at a consistent grain". One row means one thing, and the same thing, throughout.</p>
+
+    <p><strong>Slicing by the fact table's copy of a column.</strong> Works until a dimension member has no facts, then silently disappears from the slicer. Hide the fact table's descriptive columns to remove the choice.</p>
+
+    <p><strong>Modelling one flat export because it is one flat export.</strong> The shape of the file you were sent is a fact about the sender's system, not about your model. Power Query exists to reshape it, and <a href="../excel-power-query/">Power Query</a> is the same tool doing the same job in Excel.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>A star schema is normalization applied with a specific stopping point. Codd's relational model separates entities from the relationships between them so that each fact is recorded once, which is what makes a cost correction one edit instead of sixteen (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). Dimensional modelling stops the normalization one step short of fully normal form, keeping each dimension in a single wide table, because query readability and filter propagation matter more in an analytical model than storage does. Kimball's account is the canonical one and the reason the vocabulary on this page is standard across every tool (Kimball &amp; Ross, 2013, <em>The Data Warehouse Toolkit</em>, 3rd edition, Wiley; a monograph rather than a journal article).</p>
+
+  <p>Everything specific to Power BI here is documented behaviour rather than preference. The rule that the table type is decided by relationship cardinality, the split of filtering-and-grouping against summarization, the four costs of a snowflake, the single-active-relationship constraint, the degenerate dimension exception and the consistent grain requirement are all quoted above from Microsoft's star schema guidance for Power BI. That page is worth reading in full; it is the shortest route to understanding why models that look fine in a table view behave strangely in a report.</p>
+
+  <p>One note on why this page kept asking you to predict before showing the answer. Attempting an answer before seeing the correct one reliably improves how well the correct one is retained, even when the attempt is wrong (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725). The lamps result sticks because you were asked to look for the missing column first.</p>
+
+  <h2>Using this on your own model</h2>
+
+  <p>Rebuilding an inherited model from scratch is rarely the right call. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Open the model view and count the arrows.</strong> Every table should reach the fact table in one hop, and every arrow should point at it.</li>
+    <li><strong>Add the date table first</strong> if there is not one. It is the highest-value single change in almost any model.</li>
+    <li><strong>Pull descriptive columns out of the fact table</strong> one at a time, starting with the one that appears in the most slicers. This is incremental and each step is testable.</li>
+    <li><strong>Set every relationship to single direction</strong> and turn one back to both only when a specific visual demands it and you have tested what else moved.</li>
+    <li><strong>Hide the fact table's key and descriptive columns</strong> from report view, so report builders can only pick the dimension's copy.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional drawing is worth five minutes. Draw your own model as boxes and arrows from memory, then open the model view and compare. The tables you forgot are usually the ones nothing filters, and the arrows you drew the wrong way are usually the ones causing the bug you have been chasing.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Python, Excel, Power BI and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Idea</th><th>What it means</th></tr>
+    <tr><td>Dimension table</td><td>Describes things. Enables filtering and grouping. Small, one row per thing.</td></tr>
+    <tr><td>Fact table</td><td>Records events. Enables summarization. Large and growing.</td></tr>
+    <tr><td>Who decides the type</td><td>Nothing you set. The relationship cardinality does. One side is the dimension.</td></tr>
+    <tr><td>The shape</td><td>Every dimension one hop from the fact table, every arrow pointing inward.</td></tr>
+    <tr><td>Cardinality</td><td>One to many, from dimension to fact.</td></tr>
+    <tr><td>Cross-filter direction</td><td>Single, by default. Both creates ambiguity. Use CROSSFILTER in a measure instead.</td></tr>
+    <tr><td>What the flat table cannot do</td><td>Margin. There is no cost column, and there is nowhere for it to live.</td></tr>
+    <tr><td>The finding it unlocks</td><td>Lamps: last by revenue at 1,600 of 9,890, first by margin at 45.0%.</td></tr>
+    <tr><td>RELATED</td><td>Reaches from the many side to the one side across a relationship.</td></tr>
+    <tr><td>Snowflake</td><td>A dimension chained across tables. Four documented costs, including no cross-table hierarchy.</td></tr>
+    <tr><td>Role-playing dimension</td><td>Order date and ship date. Only one relationship can be active.</td></tr>
+    <tr><td>USERELATIONSHIP</td><td>Activates an inactive one inside a single measure. Does not scale.</td></tr>
+    <tr><td>Second date table</td><td>The recommended fix. <code>Ship Date = 'Date'</code>, then rename its columns.</td></tr>
+    <tr><td>Degenerate dimension</td><td>Order number stays on the fact table. The documented exception.</td></tr>
+    <tr><td>Consistent grain</td><td>One row means the same thing throughout. Mixing headers and lines double-counts.</td></tr>
+    <tr><td>Slice by the dimension</td><td>Not the fact table's copy, or members with no facts vanish.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Every column that describes something lives on a dimension, and every number you add up lives on the fact table. When you are unsure which a column is, ask whether you would ever put it on a slicer. If yes, it belongs on a dimension. If a model breaks in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The first model I built was one flat export with forty columns, and it worked until somebody asked for margin, at which point there was nowhere to put the cost. What is the question your current model cannot answer, and is it a missing measure or a missing table?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+    <li>Kimball, R., &amp; Ross, M. (2013). <em>The Data Warehouse Toolkit: The Definitive Guide to Dimensional Modeling</em> (3rd ed.). Wiley. (The canonical treatment of dimensional modelling. A monograph rather than a journal article.)</li>
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+    <li>Microsoft. <em>Understand star schema and the importance for Power BI</em>, Power BI guidance. The source of every rule quoted on this page: table types determined by cardinality, the snowflake costs, single active relationship, degenerate dimensions and consistent grain. Product documentation rather than peer-reviewed research, which is the correct authority for how a product behaves.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice this with a model in front of you.</strong>
+    <p style="margin:6px 0 0">The <a href="../../powerbi/">Power BI Kit</a> gives you the repetitions: tables to sort into facts and dimensions, flash cards on cardinality and filter direction, and questions that ask you which column belongs where before the answer appears. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../powerbi/">Open the Power BI Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../powerbi-calculate/">CALCULATE and Filter Context</a> · <a href="../powerbi-time-intelligence/">DAX Time Intelligence</a> · <a href="../powerbi-switch-true/">SWITCH TRUE for Segmentation</a> · <a href="../powerbi-measures-vs-columns/">Columns vs Measures in Power BI</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../excel-power-query/">Power Query in Excel</a> · <a href="../excel-index-match/">INDEX MATCH in Excel</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../sql-reconciliation/">Reconciling Two Tables in SQL</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../powerbi/">Power BI Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
