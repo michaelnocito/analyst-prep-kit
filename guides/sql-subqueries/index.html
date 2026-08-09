@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subquery vs CTE in SQL: Same Logic, One You Can Check — Analyst Prep Kit</title>
+<meta name="description" content="The four places a subquery can go, the correlated one that runs per row, the NOT IN that returns nothing, and why a CTE is the same query with a name and a row count.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-subqueries/">
+<meta property="og:title" content="Subquery vs CTE in SQL: Same Logic, One You Can Check">
+<meta property="og:description" content="A subquery buries its intermediate result; a CTE names it, so you can count it. Plus the NOT IN that returns zero rows because one value in the list was NULL.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-subqueries.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-subqueries/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-subqueries.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Subquery vs CTE in SQL: Same Logic, One You Can Check",
+  "description": "The four places a subquery can go, the correlated one that runs per row, the NOT IN that returns nothing, and why a CTE is the same query with a name and a row count.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-subqueries/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-subqueries/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-subqueries.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Subquery vs CTE in SQL: Same Logic, One You Can Check",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-subqueries/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>Subquery vs CTE in SQL: Same Logic, One You Can Check</h1>
+  <p class="meta">A query inside a query, and the version that lets you count the middle · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can write a query that uses the answer to another query, recognise the four places one can go, spot the correlated kind that runs once per row, avoid the <code>NOT IN</code> that silently returns nothing, and convert any nest into named steps you can count one at a time. It is about twenty-five minutes, and every query and result below was run.</p>
+
+  <p>Here is what to do today, on the most nested query you own. Take the innermost subquery, lift it out to the top as a CTE with a real name, and run <code>SELECT COUNT(*)</code> against that name. You now know how many rows the middle of your query is working with, which is the one number a nested version will not give you.</p>
+
+  <p>The short version: a subquery is a query used as a value, a list, or a table. A CTE is the same query given a name up front. The logic is identical and only one of them can be checked in pieces.</p>
+
+  <p>That difference is the idea, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 272" role="img" aria-labelledby="sqTitle sqDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="sqTitle">Nested, or named and countable</title>
+      <desc id="sqDesc">Two arrangements of the same three-part query sit side by side. On the left, three rounded rectangles are drawn one inside another like nested boxes, the innermost small and buried at the centre. Only the outermost box has a count chip attached to its right-hand edge, showing the figure 4; the two inner boxes have no chip and no way to attach one, because nothing outside can reach them. On the right the same three parts are drawn as three separate boxes stacked vertically and joined by short downward arrows, each box the same size as the others. Every one of the three boxes has its own count chip on its right-hand edge, reading 16, then 8, then 4 from top to bottom. The final figure is 4 in both arrangements, so the answer has not changed; what has changed is that two intermediate numbers now exist and can be read.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <rect x="30" y="46" width="252" height="176" rx="14" fill="#FFFFFF" stroke="#0E7490" stroke-width="2.4"/>
+        <rect x="60" y="80" width="192" height="110" rx="12" fill="#F5F7F8" stroke="#A1A1AA" stroke-width="2"/>
+        <rect x="94" y="112" width="124" height="48" rx="10" fill="#E9ECEF" stroke="#A1A1AA" stroke-width="2"/>
+        <rect x="290" y="118" width="58" height="32" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+        <text x="319" y="140" font-size="16" font-weight="700" fill="#09090B" text-anchor="middle">4</text>
+        <path d="M282 134 L286 134" stroke="#0E7490" stroke-width="2.4" fill="none"/>
+
+        <g stroke="#0E7490" stroke-width="2.4" fill="#FFFFFF">
+          <rect x="440" y="34" width="212" height="52" rx="12"/>
+          <rect x="440" y="110" width="212" height="52" rx="12"/>
+          <rect x="440" y="186" width="212" height="52" rx="12"/>
+        </g>
+        <g stroke="#52525B" stroke-width="2.2" fill="none">
+          <path d="M546 86 L546 100"/><path d="M546 108 L540 96 M546 108 L552 96"/>
+          <path d="M546 162 L546 176"/><path d="M546 184 L540 172 M546 184 L552 172"/>
+        </g>
+        <g fill="#E0F2F7" stroke="#0E7490" stroke-width="2">
+          <rect x="668" y="44" width="62" height="32" rx="8"/>
+          <rect x="668" y="120" width="62" height="32" rx="8"/>
+          <rect x="668" y="196" width="62" height="32" rx="8"/>
+        </g>
+        <g font-size="16" font-weight="700" fill="#09090B" text-anchor="middle">
+          <text x="699" y="66">16</text><text x="699" y="142">8</text><text x="699" y="218">4</text>
+        </g>
+        <g stroke="#0E7490" stroke-width="2.4" fill="none">
+          <path d="M652 60 L664 60"/><path d="M652 136 L664 136"/><path d="M652 212 L664 212"/>
+        </g>
+      </g>
+    </svg>
+    <figcaption>Same three steps, same final answer. Nested, only the outside has a number you can read. Named, every step has one, and the step where the count goes wrong is the step that is wrong.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>What a subquery is, and the four places it goes</li>
+      <li>A scalar subquery: one value</li>
+      <li>IN, and the NOT IN that returns nothing</li>
+      <li>Correlated subqueries: one run per row</li>
+      <li>The derived table, and where it stops being readable</li>
+      <li>The CTE: the same query with a name</li>
+      <li>Counting every step</li>
+      <li>When a window function beats both</li>
+      <li>The full before and after</li>
+      <li>Edge cases that break a subquery</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every result on this page is real.</strong> Sixteen orders, 9,890 in revenue, the same table used across this whole set of guides, loaded into DuckDB and queried. DuckDB's dialect is close to PostgreSQL, so these transfer to Postgres, Redshift and Snowflake unchanged.</div>
+
+  <div class="step">
+    <h2>1. What a subquery is, and the four places it goes</h2>
+
+    <p>A subquery is a <code>SELECT</code> written inside another statement, wrapped in brackets. What it is <em>for</em> depends on where you put it, and there are only four places.</p>
+
+    <table>
+      <tr><th>Where</th><th>What it must return</th><th>What it is doing</th></tr>
+      <tr><td>In <code>WHERE</code>, against <code>=</code> or <code>&gt;</code></td><td>One value</td><td>Supplying a number you would otherwise look up first</td></tr>
+      <tr><td>In <code>WHERE</code>, against <code>IN</code></td><td>One column, any number of rows</td><td>Supplying a list to match against</td></tr>
+      <tr><td>In <code>SELECT</code></td><td>One value</td><td>Putting a total or a rate beside every row</td></tr>
+      <tr><td>In <code>FROM</code></td><td>A whole table</td><td>Querying the result of a query</td></tr>
+    </table>
+
+    <p>Everything else on this page is one of those four with a variation. Knowing which of the four you are writing tells you immediately what shape the subquery has to return, and most subquery errors are a shape mismatch: a list where one value was expected, or one column where a table was.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. A scalar subquery: one value</h2>
+
+    <p>Before the explanation: you want the orders worth more than the average order. Say why you cannot write <code>WHERE revenue &gt; AVG(revenue)</code>.</p>
+
+    <p>Because <code>WHERE</code> runs before any aggregation, so at the moment it is evaluated there is no average yet. The subquery solves it by computing the average as a separate, complete query first.</p>
+
+    <pre><code>SELECT COUNT(*) AS orders, SUM(units*unit_price) AS revenue
+FROM orders
+WHERE units*unit_price &gt; (SELECT AVG(units*unit_price) FROM orders);
+
+8 | 6475</code></pre>
+
+    <p>Eight of the sixteen orders, worth 6,475 between them. The average itself is 9,890 ÷ 16, which is 618.125, and the eight are the ones above it.</p>
+
+    <p>A subquery that returns exactly one value is called <strong>scalar</strong>, and it can be used anywhere a number could be. That includes the select list, which is how you put a whole-table figure beside every row:</p>
+
+    <pre><code>SELECT order_id,
+       units*unit_price AS revenue,
+       ROUND(100.0*(units*unit_price)
+             / (SELECT SUM(units*unit_price) FROM orders), 1) AS pct
+FROM orders ORDER BY revenue DESC LIMIT 3;
+
+1010 | 1100 | 11.1
+1001 |  880 |  8.9
+1015 |  880 |  8.9</code></pre>
+
+    <p>The largest order is 11.1% of everything. Check it: 1,100 ÷ 9,890 is 0.1112. The subquery ran once, not once per row, because it does not depend on the row it sits beside. That distinction becomes the whole of section four.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. IN, and the NOT IN that returns nothing</h2>
+
+    <p><code>IN</code> takes a list rather than a value, so the subquery returns one column and as many rows as it likes.</p>
+
+    <pre><code>SELECT COUNT(*) FROM orders
+WHERE order_id IN (SELECT order_id FROM cancelled);
+
+2</code></pre>
+
+    <p>Two of the sixteen orders are on the cancelled list. Now the obvious next step, and this is the one to slow down for.</p>
+
+    <p>Before the explanation: the cancelled table holds three rows, <code>1004</code>, <code>1009</code> and one <code>NULL</code>. Predict how many of the sixteen orders come back as not cancelled.</p>
+
+    <pre><code>SELECT COUNT(*) FROM orders
+WHERE order_id NOT IN (SELECT order_id FROM cancelled);
+
+0</code></pre>
+
+    <p>Zero. Not fourteen. Every row disappeared, and nothing errored.</p>
+
+    <p>The reason is that <code>x NOT IN (a, b, NULL)</code> expands to <code>x &lt;&gt; a AND x &lt;&gt; b AND x &lt;&gt; NULL</code>, and a comparison with <code>NULL</code> is never true, it is unknown. An <code>AND</code> chain containing an unknown can never come out true, so no row qualifies. The full account of why unknown behaves that way is in <a href="../sql-null/">NULL in SQL</a>, and this is its most expensive consequence.</p>
+
+    <p>Two fixes, both verified on the same data:</p>
+
+    <pre><code>-- exclude the NULLs from the list
+WHERE order_id NOT IN (SELECT order_id FROM cancelled WHERE order_id IS NOT NULL)
+14
+
+-- or use NOT EXISTS, which is immune by construction
+WHERE NOT EXISTS (SELECT 1 FROM cancelled c WHERE c.order_id = o.order_id)
+14</code></pre>
+
+    <p>Prefer <code>NOT EXISTS</code>. It cannot be broken by a null appearing in the list next month, it usually plans at least as well, and it reads as what you mean: there is no matching row. Keep <code>IN</code> for the positive case, where a null in the list is harmless.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Correlated subqueries: one run per row</h2>
+
+    <p>A subquery that refers to a column from the outer query cannot be computed once, because its answer is different for every outer row. That is a <strong>correlated</strong> subquery.</p>
+
+    <p>The question: which orders beat the average <em>for their own region</em>? Here are the region averages first, so there is something to check against.</p>
+
+    <pre><code>East  | 4 orders | 3040 | 760.00
+North | 5 orders | 2495 | 499.00
+South | 4 orders | 2670 | 667.50
+West  | 3 orders | 1685 | 561.67</code></pre>
+
+    <pre><code>SELECT o.order_id, o.region, o.units*o.unit_price AS revenue
+FROM orders o
+WHERE o.units*o.unit_price &gt; (
+  SELECT AVG(i.units*i.unit_price)
+  FROM orders i
+  WHERE i.region = o.region)
+ORDER BY o.region, revenue DESC;
+
+1010 | East  | 1100
+1001 | North |  880
+1014 | North |  510
+1015 | South |  880
+1002 | South |  850
+1012 | West  |  765</code></pre>
+
+    <p>Six orders. Check one: North's average is 499, and North's orders are 880, 510, 440, 425 and 240, so exactly two clear it. The inner query ran sixteen times, once per outer row, each time filtered to that row's region.</p>
+
+    <p>Two things follow. It reads well, because the <code>WHERE i.region = o.region</code> line says out loud what "their own region" means. And it is the slowest shape on this page, because it is a loop: on sixteen rows nobody notices, on sixteen million it is the difference between a second and a coffee break. Section eight has the version that does the same job in one pass.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. The derived table, and where it stops being readable</h2>
+
+    <p>A subquery in <code>FROM</code> returns a whole table, which the outer query then treats as if it were one. It has to be given an alias, and it is the shape that lets you filter on an aggregate you just computed.</p>
+
+    <pre><code>SELECT region, revenue FROM (
+  SELECT region, SUM(units*unit_price) AS revenue
+  FROM orders GROUP BY 1
+) t
+WHERE revenue &gt; 2500
+ORDER BY revenue DESC;
+
+East  | 3040
+South | 2670</code></pre>
+
+    <p>This works and it is fine at one level deep. The trouble starts at two, because the reading order inverts: the query executes from the inside out and is written from the outside in, so you scroll down to find the beginning. At three levels, with a join in the middle, nobody reads it at all, including whoever wrote it.</p>
+
+    <p>There is also a practical limitation worth knowing before it bites. A derived table can only be used once. If two parts of your query need the same intermediate result, you write it twice, and then somebody edits one copy.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. The CTE: the same query with a name</h2>
+
+    <p>A common table expression is the same subquery moved to the top and given a name with <code>WITH</code>. Here is the derived table from section five, unchanged in meaning:</p>
+
+    <pre><code>WITH by_region AS (
+  SELECT region, SUM(units*unit_price) AS revenue
+  FROM orders GROUP BY 1
+)
+SELECT region, revenue
+FROM by_region
+WHERE revenue &gt; 2500
+ORDER BY revenue DESC;
+
+East  | 3040
+South | 2670</code></pre>
+
+    <p>Identical output. What changed is that the steps are now in the order they happen, the intermediate result has a name a person chose, and the final <code>SELECT</code> is short enough to read in one go.</p>
+
+    <p>They stack, separated by commas, and each one can use the ones above it:</p>
+
+    <pre><code>WITH big AS (
+  SELECT * FROM orders WHERE units*unit_price &gt; 600
+), by_rep AS (
+  SELECT rep, COUNT(*) AS orders, SUM(units*unit_price) AS revenue
+  FROM big GROUP BY 1
+)
+SELECT rep, orders, revenue FROM by_rep ORDER BY revenue DESC;
+
+Priya Shah | 3 | 2440
+Owen Park  | 3 | 2390
+Dana Reyes | 1 |  880
+Sam Okafor | 1 |  765</code></pre>
+
+    <p>Eight large orders, spread four ways. Reading it top to bottom describes the analysis in the order somebody would explain it out loud: first take the large orders, then group them by rep, then sort. A nested version of the same thing says the last step first.</p>
+
+    <p>A named step can also be used more than once, which the derived table could not. <a href="../sql-ctes/">The CTE guide</a> goes further into the syntax and into building a query in checkable stages; this page is about when to reach for one instead of a subquery.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Counting every step</h2>
+
+    <p>This is the practical reason to prefer CTEs, and it is worth more than the readability.</p>
+
+    <p>When a nested query returns the wrong answer, you have one number, the final one, and no way to tell which layer went wrong. With named steps you can point <code>SELECT COUNT(*)</code> at any of them by changing the last line:</p>
+
+    <pre><code>WITH big AS (
+  SELECT * FROM orders WHERE units*unit_price &gt; 600
+), by_rep AS (
+  SELECT rep, COUNT(*) AS orders, SUM(units*unit_price) AS revenue
+  FROM big GROUP BY 1
+)
+SELECT COUNT(*) FROM big;      -- 8
+-- SELECT COUNT(*) FROM by_rep;   -- 4</code></pre>
+
+    <p>Sixteen orders in, eight survive the filter, four rows come out of the grouping. Write those three numbers down before you run the real query, then compare. A filter that was meant to remove a handful and removed most of the table announces itself immediately, and a grouping that produced more rows than you have categories means a join multiplied something.</p>
+
+    <p>Say out loud what the equivalent debugging looks like on a three-deep nested query. You comment out the outer layers one at a time, editing the query to inspect it, which means the thing you are testing is no longer the thing that was wrong. Named steps let you look without changing anything above the last line.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. When a window function beats both</h2>
+
+    <p>The correlated subquery from section four asked: is this order above its region's average? Here is the same question with no subquery at all.</p>
+
+    <pre><code>SELECT order_id, region, revenue FROM (
+  SELECT order_id, region,
+         units*unit_price AS revenue,
+         AVG(units*unit_price) OVER (PARTITION BY region) AS region_avg
+  FROM orders)
+WHERE revenue &gt; region_avg
+ORDER BY region, revenue DESC;
+
+1010 | East  | 1100
+1001 | North |  880
+1014 | North |  510
+1015 | South |  880
+1002 | South |  850
+1012 | West  |  765</code></pre>
+
+    <p>The same six orders. <code>AVG(...) OVER (PARTITION BY region)</code> computes each region's average once and attaches it to every row of that region, in a single pass, instead of running a separate query per row.</p>
+
+    <p>So the rule of thumb: whenever a correlated subquery is computing an aggregate over a group the outer row belongs to, a window function does it faster and usually more clearly. <a href="../sql-window-functions/">Window functions</a> covers the rest of what <code>OVER</code> can do. Correlated subqueries keep their place for existence checks and for logic a window cannot express.</p>
+
+    <p>Picture the slowest query you are responsible for. Is there a subquery inside it that mentions a column from the outer query? That one line is where the time is going.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same question: which reps are carrying the large orders?</p>
+
+  <h3>Before</h3>
+  <pre><code>SELECT rep, COUNT(*), SUM(revenue) FROM (
+  SELECT rep, units*unit_price AS revenue FROM orders
+  WHERE units*unit_price &gt; (SELECT AVG(units*unit_price) FROM orders)
+) x GROUP BY 1 ORDER BY 3 DESC;</code></pre>
+  <p>Correct, and it has to be read from the middle outwards. The threshold is buried two levels down. There is no way to ask how many rows survived the filter without editing the query, and the derived table is called <code>x</code>, which tells the next reader nothing.</p>
+
+  <h3>After</h3>
+  <pre><code>WITH avg_order AS (
+  SELECT AVG(units*unit_price) AS v FROM orders          -- 618.125
+), big AS (
+  SELECT * FROM orders
+  WHERE units*unit_price &gt; (SELECT v FROM avg_order)     -- 8 rows
+), by_rep AS (
+  SELECT rep, COUNT(*) AS orders, SUM(units*unit_price) AS revenue
+  FROM big GROUP BY 1                                    -- 4 rows
+)
+SELECT rep, orders, revenue FROM by_rep ORDER BY revenue DESC;
+
+Priya Shah | 3 | 2440
+Owen Park  | 3 | 2390
+Dana Reyes | 1 |  880
+Sam Okafor | 1 |  765</code></pre>
+
+  <p>Same answer, read top to bottom, with the threshold named and three intermediate counts you can verify separately. 2,440 plus 2,390 plus 880 plus 765 is 6,475, which is the figure section two produced from the whole table, so nothing was lost between the steps.</p>
+
+  <p>The claim, and it is the reason to convert: <strong>a nested query gives you one number to check and a named one gives you a number per step, which is the difference between knowing the answer is wrong and knowing where.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases that break a subquery</h2>
+
+    <p>Six worth knowing.</p>
+
+    <p><strong>A scalar subquery that returns more than one row.</strong> Fine until the data changes, then the query errors. If you are relying on it returning one row, say so with <code>LIMIT 1</code> and an <code>ORDER BY</code>, or aggregate it.</p>
+
+    <p><strong>A scalar subquery that returns no rows.</strong> It gives <code>NULL</code>, not an error, and <code>NULL</code> in a comparison makes the whole condition unknown, so rows quietly disappear rather than a message appearing.</p>
+
+    <p><strong><code>NOT IN</code> against anything nullable.</strong> Section three. Assume every column is nullable unless the schema says otherwise, and reach for <code>NOT EXISTS</code>.</p>
+
+    <p><strong>A correlated subquery on a large table.</strong> It is a loop. If a query got slow after somebody added a filter that references the outer table, this is why.</p>
+
+    <p><strong>The same CTE used twice.</strong> Some engines recompute it each time it is referenced and some materialise it once, and which one yours does affects both speed and, if the CTE contains anything non-deterministic, the answer. Check your engine's behaviour before relying on it.</p>
+
+    <p><strong>An alias that shadows a table.</strong> In a correlated subquery, if the inner and outer tables are not clearly aliased, <code>WHERE region = region</code> compares a column to itself and is always true, so the filter silently does nothing. Always alias both, as <code>o</code> and <code>i</code> above.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The nesting is not an accident of the language, it is the design. SQL's ancestor was built around the idea of a query block that could appear wherever a value or a table could, so that a complex question could be composed out of simpler ones without inventing new syntax for each combination (Chamberlin &amp; Boyce, 1974, <em>Proceedings of the 1974 ACM SIGFIDET Workshop on Data Description, Access and Control</em>, 249–264). That is why there are exactly four places a subquery can go: they are the four places a value or a table can appear. And it explains why a CTE is not a different feature. It is the same block, given a name and moved to the front, which is why converting between them never changes the answer.</p>
+
+  <p>The <code>NOT IN</code> failure is also a design consequence rather than a bug. A missing value is explicitly not the same as any other value, including itself, so a comparison involving one yields unknown rather than true or false, and an <code>AND</code> chain containing unknown cannot come out true (Codd, 1979, <em>ACM Transactions on Database Systems</em>, 4(4), 397–434). Once you accept that rule, zero rows from <code>NOT IN</code> is not surprising, it is forced. The reason it catches everybody is that <code>IN</code> behaves perfectly normally on the same list, so the failure appears only on the negation.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than reread, because self-testing beats restudying reliably enough to show up across a wide range of real classroom and workplace settings, not only in the laboratory (Agarwal, Nunes, &amp; Blunt, 2021, <em>Educational Psychology Review</em>, 33(4), 1409–1453).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Rewriting every query in a repository is miserable and pointless. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Search your queries for <code>NOT IN (SELECT</code></strong> and change each to <code>NOT EXISTS</code>. That is a correctness fix, not a style one, and it is mechanical.</li>
+    <li><strong>Find any query nested more than one level</strong> and convert only that one. Two levels is where readability falls off a cliff.</li>
+    <li><strong>Name each CTE after what one of its rows is</strong>: <code>big_orders</code>, <code>by_rep</code>, <code>first_purchase</code>. Not <code>t</code>, <code>x</code> or <code>cte1</code>.</li>
+    <li><strong>Write the expected row count as a comment on each step</strong> before you run it, then check. That habit finds more bugs than reading the SQL does.</li>
+    <li><strong>Look for correlated subqueries in anything slow</strong>, and replace the aggregate ones with a window function.</li>
+    <li><strong>Leave working single-level subqueries alone.</strong> A scalar subquery in a <code>WHERE</code> clause is clear and needs no ceremony.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Draw your query as boxes, one per step, with an arrow between them, and write beside each box how many rows you expect to come out of it. That drawing is the CTE version, and typing it up afterwards is mostly transcription.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>. If you would rather type queries than read about them, the <a href="../../drill/">SQL Drill</a> hands you one runnable query at a time against a real database, each one the query you just typed plus one new thing.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>A subquery</td><td>A SELECT used as a value, a list or a table.</td></tr>
+    <tr><td>The four places</td><td>WHERE with a comparison, WHERE with IN, SELECT, FROM.</td></tr>
+    <tr><td>Scalar subquery</td><td>Returns one value. Usable anywhere a number could go.</td></tr>
+    <tr><td>Why not <code>WHERE x &gt; AVG(x)</code></td><td>WHERE runs before aggregation. There is no average yet.</td></tr>
+    <tr><td><code>IN (SELECT ...)</code></td><td>One column, any number of rows.</td></tr>
+    <tr><td><code>NOT IN</code> with a NULL</td><td>Returns zero rows. No error.</td></tr>
+    <tr><td>The fix</td><td><code>NOT EXISTS</code>, or filter the NULLs out of the list.</td></tr>
+    <tr><td>Correlated subquery</td><td>Mentions an outer column, so it runs once per outer row.</td></tr>
+    <tr><td>Its cost</td><td>A loop. Invisible on small tables, expensive on large ones.</td></tr>
+    <tr><td>Derived table</td><td>A subquery in FROM. Needs an alias. Usable once.</td></tr>
+    <tr><td>CTE</td><td><code>WITH name AS (...)</code>. Same query, named, at the top.</td></tr>
+    <tr><td>Stacking</td><td>Comma-separated. Each can use the ones above it.</td></tr>
+    <tr><td>Why prefer a CTE</td><td>Every step gets a name and a row count you can check.</td></tr>
+    <tr><td>Debugging a CTE</td><td>Change the final line to <code>SELECT COUNT(*) FROM step</code>.</td></tr>
+    <tr><td>Correlated aggregate</td><td>Replace with <code>AVG(...) OVER (PARTITION BY ...)</code>.</td></tr>
+    <tr><td>Scalar returning no rows</td><td>NULL, so the comparison is unknown and rows vanish.</td></tr>
+    <tr><td>Alias both tables</td><td>Or <code>WHERE region = region</code> is always true.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Write the row count you expect beside every step before you run it. A nested query only lets you check the last number; a named one lets you check all of them, and the first count that disagrees with your expectation is the bug. If a query misbehaves in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The one that cost me most was a <code>NOT IN</code> against a supplier list that had been fine for a year, until one supplier record was created with a blank code, and the exclusion report went from a few hundred rows to none overnight without anybody noticing an empty report was unusual. What has a subquery quietly done to you?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Chamberlin, D. D., &amp; Boyce, R. F. (1974). SEQUEL: A structured English query language. <em>Proceedings of the 1974 ACM SIGFIDET Workshop on Data Description, Access and Control</em>, 249–264.</li>
+    <li>Codd, E. F. (1979). Extending the database relational model to capture more meaning. <em>ACM Transactions on Database Systems</em>, 4(4), 397–434.</li>
+    <li>Agarwal, P. K., Nunes, L. D., &amp; Blunt, J. R. (2021). Retrieval practice consistently benefits student learning: A systematic review of applied research. <em>Educational Psychology Review</em>, 33(4), 1409–1453.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice building queries in steps you can check.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> gives you the repetitions: subqueries in all four positions, correlated ones to convert, and NOT IN traps to walk into on purpose, plus flash cards on exactly the shape each position requires. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-null/">NULL in SQL</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-dates/">SQL Date Functions</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-find-duplicates/">Find Duplicates in SQL</a> · <a href="../sql-case-expression/">The SQL CASE Expression</a> · <a href="../../sql/">SQL Kit</a> · <a href="../sql-aliasing/">SQL Aliases</a> · <a href="../sql-teaching-comments/">Comment SQL So It Teaches</a> · <a href="../pandas-groupby/">pandas groupby</a> · <a href="../excel-index-match/">INDEX MATCH vs VLOOKUP</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
