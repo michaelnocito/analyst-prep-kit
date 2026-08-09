@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pandas drop_duplicates: keep='first', and the Row It Chose For You — Analyst Prep Kit</title>
+<meta name="description" content="duplicated and drop_duplicates on the same eight rows: 7, 5 or 2 rows out depending on the arguments. Which row survives is decided by the sort, and pandas disagrees with Excel about case.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-duplicates/">
+<meta property="og:title" content="pandas drop_duplicates: keep='first', and the Row It Chose For You">
+<meta property="og:description" content="Eight rows in. Seven, five or two out, depending on subset and keep. The survivor is whichever row happened to be higher up, and the same table de-duplicates differently in Excel.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/pandas-duplicates.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-duplicates/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/pandas-duplicates.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "pandas drop_duplicates: keep='first', and the Row It Chose For You",
+  "description": "duplicated and drop_duplicates on the same eight rows: 7, 5 or 2 rows out depending on the arguments. Which row survives is decided by the sort, and pandas disagrees with Excel about case.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-duplicates/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-duplicates/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/pandas-duplicates.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "pandas drop_duplicates: keep='first', and the Row It Chose For You",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-duplicates/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../python/">Python Kit</a> · <a href="../">All guides</a></p>
+  <h1>pandas drop_duplicates: keep='first', and the Row It Chose For You</h1>
+  <p class="meta">Two different questions, and the sort that answers one of them · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can tell the difference between a repeated row and a repeated key, count each of them without deleting anything, choose which of two conflicting rows survives, and know why the same table de-duplicates differently in pandas and in a spreadsheet. It is about twenty-five minutes, and every number below came out of running the code.</p>
+
+  <p>Here is what to do today, before any <code>drop_duplicates</code>. Run these two lines and compare them:</p>
+
+  <pre><code>df.duplicated().sum()                       # whole rows repeated
+df.duplicated(subset=["order_id"]).sum()    # keys repeated</code></pre>
+
+  <p>If the second is larger than the first, you have rows that share a key and disagree about something, and those rows are the interesting part of your data rather than a nuisance to be removed.</p>
+
+  <p>The short version: <code>keep="first"</code> keeps whichever row happened to be higher up, so the survivor is chosen by the sort rather than by the data.</p>
+
+  <p>That is the idea, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 226" role="img" aria-labelledby="pdTitle pdDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="pdTitle">The sort chooses the survivor</title>
+      <desc id="pdDesc">Two small stacks stand side by side, and each holds the same pair of rows: both rows carry the order number 1003, one of them with a quantity of 3 and the other with a quantity of 5. In the left stack the row holding 3 is on top and the row holding 5 is underneath. In the right stack the order is reversed, so the row holding 5 is on top. In both stacks the top row is drawn in full strength with a heavy blue outline, and the bottom row is drawn pale grey with a line struck through it. The result is that the left stack keeps the 3 and the right stack keeps the 5, from identical data, because the only thing that differs between the two pictures is which row was placed first.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <!-- left -->
+        <rect x="60" y="60" width="280" height="52" fill="#E0F2F7" stroke="#0E7490" stroke-width="3"/>
+        <text x="84" y="93" font-size="18" fill="#09090B">1003</text>
+        <text x="316" y="93" font-size="18" fill="#09090B" text-anchor="end">3</text>
+        <rect x="60" y="118" width="280" height="52" fill="#FAFAFA" stroke="#E4E7EA" stroke-width="2"/>
+        <text x="84" y="151" font-size="18" fill="#C7CBD1">1003</text>
+        <text x="316" y="151" font-size="18" fill="#C7CBD1" text-anchor="end">5</text>
+        <path d="M60 144 L340 144" stroke="#B45309" stroke-width="2.4" fill="none"/>
+
+        <!-- right -->
+        <rect x="420" y="60" width="280" height="52" fill="#E0F2F7" stroke="#0E7490" stroke-width="3"/>
+        <text x="444" y="93" font-size="18" fill="#09090B">1003</text>
+        <text x="676" y="93" font-size="18" fill="#09090B" text-anchor="end">5</text>
+        <rect x="420" y="118" width="280" height="52" fill="#FAFAFA" stroke="#E4E7EA" stroke-width="2"/>
+        <text x="444" y="151" font-size="18" fill="#C7CBD1">1003</text>
+        <text x="676" y="151" font-size="18" fill="#C7CBD1" text-anchor="end">3</text>
+        <path d="M420 144 L700 144" stroke="#B45309" stroke-width="2.4" fill="none"/>
+      </g>
+    </svg>
+    <figcaption>The same two rows, in two orders. Both times the top one lives and the bottom one goes, so one picture keeps a quantity of 3 and the other keeps 5. Nothing about the data decided that.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>Two different questions</li>
+      <li>duplicated, and the three keeps</li>
+      <li>drop_duplicates, and the rows it returns</li>
+      <li>The survivor is chosen by the sort</li>
+      <li>Mark instead of delete</li>
+      <li>pandas is case sensitive, and the spreadsheet is not</li>
+      <li>The index afterwards</li>
+      <li>Counting instead of dropping</li>
+      <li>The full before and after</li>
+      <li>Edge cases worth knowing</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every number on this page is real.</strong> An eight-row table, run in pandas 3.0.2. It is deliberately the same eight rows used in <a href="../excel-remove-duplicates/">the spreadsheet version of this problem</a>, because the two tools give different answers to the same question and section six is about why.</div>
+
+  <p>Here is the table. Eight rows, 56 units, and three of the rows repeat an order number.</p>
+
+  <table>
+    <tr><th>Row</th><th>order_id</th><th>rep</th><th>region</th><th>units</th><th>What it is</th></tr>
+    <tr><td>0</td><td>1001</td><td>Dana Reyes</td><td>North</td><td>4</td><td></td></tr>
+    <tr><td>1</td><td>1002</td><td>Owen Park</td><td>South</td><td>10</td><td></td></tr>
+    <tr><td>2</td><td>1002</td><td>Owen Park</td><td>South</td><td>10</td><td>the same row twice</td></tr>
+    <tr><td>3</td><td>1003</td><td>Priya Shah</td><td>East</td><td>3</td><td></td></tr>
+    <tr><td>4</td><td>1003</td><td>Priya Shah</td><td>East</td><td>5</td><td>same key, different units</td></tr>
+    <tr><td>5</td><td>1004</td><td>Dana Reyes</td><td>North</td><td>6</td><td></td></tr>
+    <tr><td>6</td><td>1004</td><td>Dana Reyes</td><td>north</td><td>6</td><td>differs by one capital letter</td></tr>
+    <tr><td>7</td><td>1005</td><td>Sam Okafor</td><td>West</td><td>12</td><td></td></tr>
+  </table>
+
+  <div class="step">
+    <h2>1. Two different questions</h2>
+
+    <p>Before the explanation: eight rows, three repeated order numbers. Say how many of the rows are duplicates.</p>
+
+    <p>The question has two answers, and which one you want decides everything else.</p>
+
+    <pre><code>df.duplicated().sum()                      1     whole rows repeated
+df.duplicated(subset=["order_id"]).sum()   3     keys repeated</code></pre>
+
+    <p>One row is an exact copy of another. Three rows share an order number with a row above them. The gap between one and three is the whole subject: two of those rows repeat a key while carrying different information, and they are not copies of anything.</p>
+
+    <p>"Duplicate" is not a property of the data, it is a property of the columns you compare. Comparing every column asks "is this row a copy". Comparing the key asks "should this thing appear only once". Those are different questions and they have different right answers, and <code>drop_duplicates</code> will answer whichever one your <code>subset</code> argument asked for without commenting on the choice.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. duplicated, and the three keeps</h2>
+
+    <p><code>duplicated()</code> returns a boolean per row, and the <code>keep</code> argument decides which member of each group is <em>not</em> flagged.</p>
+
+    <pre><code>df.duplicated()                 flags 1 row     keep='first', the default
+df.duplicated(keep='last')      flags 1 row
+df.duplicated(keep=False)       flags 2 rows</code></pre>
+
+    <p><code>keep='first'</code> flags everything except the first of each group, which is what you want when you are about to drop. <code>keep=False</code> flags <em>every</em> member of any group that has more than one, which is what you want when you are about to look, because it gives you all the rows involved rather than only the extras.</p>
+
+    <p>That second one is the more useful of the two while investigating:</p>
+
+    <pre><code>df[df.duplicated(subset=["order_id"], keep=False)]</code></pre>
+
+    <p>That is the query to run first, every time. It returns the six rows that share a key with something, side by side, so you can see what they disagree about before deciding anything.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. drop_duplicates, and the rows it returns</h2>
+
+    <p>Same table, four calls, and four different answers.</p>
+
+    <pre><code>drop_duplicates()                                rows 7   units 46
+drop_duplicates(subset=["order_id"])             rows 5   units 35
+drop_duplicates(subset=["order_id"], keep="last") rows 5   units 37
+drop_duplicates(subset=["order_id"], keep=False)  rows 2   units 16</code></pre>
+
+    <p>From 8 rows and 56 units to anywhere between 7 and 2. The last one is the surprise for most people: <code>keep=False</code> here does not mean "keep none of the duplicates", it means <strong>drop every row involved in any group of more than one</strong>, so only the two order numbers that appear exactly once survive.</p>
+
+    <p>The middle two differ only in which member of each group lived, and that changed the units total from 35 to 37. Two units, on eight rows, from one keyword. On a real table it is not two units.</p>
+
+    <p>Say out loud what a 35 or a 37 would look like in a report. Both are plausible, neither carries any indication that a choice was made, and the person reading it cannot tell which keyword was typed.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. The survivor is chosen by the sort</h2>
+
+    <p>Since <code>keep="first"</code> means "whichever is higher up", the way to choose deliberately is to put the row you want on top before dropping.</p>
+
+    <pre><code>df.sort_values(["order_id", "units"]).drop_duplicates(subset=["order_id"])
+     1003 keeps 3        total units 35
+
+df.sort_values(["order_id", "units"], ascending=[True, False]) \
+  .drop_duplicates(subset=["order_id"])
+     1003 keeps 5        total units 37</code></pre>
+
+    <p>Identical data, identical drop, two different results, decided entirely by the sort in front of it. That is not a flaw; it is the only place where the choice can be expressed, which is why it should be written down rather than left to whatever order the file arrived in.</p>
+
+    <p>Three sorts that come up constantly:</p>
+
+    <table>
+      <tr><th>Sort by</th><th>Keeps</th></tr>
+      <tr><td>A timestamp, descending</td><td>The most recent version of each record.</td></tr>
+      <tr><td>An amount, descending</td><td>The largest, which is often the real one and a rerun's is the partial.</td></tr>
+      <tr><td>A completeness score, descending</td><td>The row with fewest blanks: <code>df["filled"] = df.notna().sum(axis=1)</code>.</td></tr>
+    </table>
+
+    <p>Write the sort and the drop as one chained expression, so nobody can move one without the other, and put a comment on it saying which rule you chose.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Mark instead of delete</h2>
+
+    <p>Two extra columns turn a destructive operation into a reversible one, and they answer both questions from section one at once.</p>
+
+    <pre><code>df["seen"]     = df.groupby("order_id").cumcount() + 1
+df["row_seen"] = df.groupby(list(df.columns)).cumcount() + 1</code></pre>
+
+    <p><code>cumcount</code> numbers the rows within each group, starting at zero, so adding one gives a human-readable "this is the nth time I have seen this". Run on the table:</p>
+
+    <pre><code>row  order_id  region  units  seen  row_seen
+  0      1001   North      4     1         1
+  1      1002   South     10     1         1
+  2      1002   South     10     2         2
+  3      1003   East       3     1         1
+  4      1003   East       5     2         1
+  5      1004   North      6     1         1
+  6      1004   north      6     2         1
+  7      1005   West      12     1         1
+
+rows where the key repeats:  3
+rows where the row repeats:  1
+the rows worth looking at:   1003 and 1004</code></pre>
+
+    <p>Rows 4 and 6 are the point. Both have <code>seen = 2</code> and <code>row_seen = 1</code>: the order number has been seen before, and this exact row has not. Those are the two rows where the data disagrees with itself, and a one-column de-duplication destroys both without comment.</p>
+
+    <p>Keep the marked frame and filter from it, rather than dropping and hoping. It costs two columns and it means every later question, how many, which ones, what did they disagree about, can be answered without reloading anything.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. pandas is case sensitive, and the spreadsheet is not</h2>
+
+    <p>Before the explanation: rows 5 and 6 are identical except that one region is <code>North</code> and the other is <code>north</code>. Say whether <code>drop_duplicates()</code> treats them as the same row.</p>
+
+    <pre><code>"North" == "north"                False
+df["region"].nunique()            5    East, North, South, West, north
+df["region"].str.lower().nunique() 4</code></pre>
+
+    <p>It does not. pandas compares strings exactly, so those are two different rows and both survive, which is why <code>drop_duplicates()</code> on all columns returned <strong>seven</strong> rows here.</p>
+
+    <p>The same eight rows in Excel come back as <strong>six</strong>, because its Remove Duplicates comparison ignores capitals. Same data, same intent, two tools, two answers, and neither of them tells you it made a choice about case.</p>
+
+    <p>That is worth knowing beyond the trivia, because analyses migrate between tools and the row counts stop matching for a reason nobody suspects. The defence is to normalise before comparing rather than to rely on either default:</p>
+
+    <pre><code>key = df["region"].str.strip().str.casefold()</code></pre>
+
+    <p><code>casefold</code> rather than <code>lower</code>, because it handles more of the world's alphabets, and <code>strip</code> first, because whitespace is the other invisible difference. Do the same to any text column you are comparing on, and the two tools agree again.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. The index afterwards</h2>
+
+    <p>Dropping rows does not renumber the ones that are left.</p>
+
+    <pre><code>df.drop_duplicates(subset=["order_id"]).index      [0, 1, 3, 5, 7]</code></pre>
+
+    <p>The index has gaps where the dropped rows were, which is correct and occasionally awkward. It means <code>.iloc[2]</code> and <code>.loc[2]</code> now refer to different rows, and anything that assumes a contiguous index, including some plotting and concatenation, will behave oddly.</p>
+
+    <pre><code>df.drop_duplicates(subset=["order_id"]).reset_index(drop=True).index   [0, 1, 2, 3, 4]</code></pre>
+
+    <p><code>drop=True</code> matters: without it the old index is kept as a new column called <code>index</code>, which is occasionally useful for tracing a row back to the original file and usually just clutter.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. Counting instead of dropping</h2>
+
+    <p>Often the honest deliverable is not a de-duplicated table, it is a count.</p>
+
+    <pre><code>df["order_id"].value_counts().sort_index()
+
+1001  1
+1002  2
+1003  2
+1004  2
+1005  1</code></pre>
+
+    <p>Three order numbers appear twice. That is a fact about the data, and if the order number is supposed to be unique then it is a fact about a system somewhere that needs fixing, which is a more useful thing to report than a table you tidied on your own initiative.</p>
+
+    <p>Two related counts worth having beside it. <code>df["order_id"].nunique()</code> against <code>len(df)</code> tells you the size of the problem in one comparison, 5 against 8 here. And <code>value_counts()[lambda s: s &gt; 1]</code> filters straight to the offenders.</p>
+
+    <p>Picture your own most-used extract. If its identifier column stopped being unique next month, is there anything in your code that would notice, or would the totals simply go up?</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same eight rows, same job: one row per order.</p>
+
+  <h3>Before</h3>
+  <pre><code>df = df.drop_duplicates(subset=["order_id"])
+
+rows 8 -> 5, units 56 -> 35</code></pre>
+  <p>Twenty-one units gone. Five of them belonged to order 1003, which was not a copy of anything, and six to a row that differed only by a capital letter. No record of any of it, and the survivor of each pair was whichever row the file happened to list first.</p>
+
+  <h3>After</h3>
+  <pre><code># 1. normalise the text you will compare on
+df["region_key"] = df["region"].str.strip().str.casefold()
+
+# 2. mark rather than delete
+df["seen"]     = df.groupby("order_id").cumcount() + 1
+df["row_seen"] = df.groupby(["order_id","rep","region_key","units"]).cumcount() + 1
+
+# 3. read the two counts and the disagreement
+(df.seen > 1).sum()                       3
+(df.row_seen > 1).sum()                   2
+df[(df.seen > 1) & (df.row_seen == 1)]    order 1003, the real conflict
+
+# 4. choose the survivor on purpose, and say why
+clean = (df.sort_values(["order_id", "units"], ascending=[True, False])
+           .drop_duplicates(subset=["order_id"])      # keep the larger quantity
+           .reset_index(drop=True))
+
+rows 5, units 37, and the choice is in the code</code></pre>
+
+  <p>The claim, and it is why section one comes first: <strong>the same eight rows return 7, 5 or 2 rows depending on two keyword arguments, and the units total moves from 35 to 37 on the choice of <code>keep</code> alone, with nothing in the output recording which was used.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases worth knowing</h2>
+
+    <p>Six that get through.</p>
+
+    <p><strong>Whitespace.</strong> <code>"North "</code> and <code>"North"</code> are different, so duplicates hide behind a trailing space and <code>drop_duplicates</code> reports finding nothing. Strip before comparing.</p>
+
+    <p><strong>Missing values in the key.</strong> pandas treats <code>NaN</code> as equal to <code>NaN</code> for this purpose, so every row with a missing key is a duplicate of every other one and all but one are dropped. On a partly populated key that can be most of the table.</p>
+
+    <p><strong>Floats.</strong> 10.0 and 10.000000001 are different rows and display identically. Round explicitly before comparing on a numeric column.</p>
+
+    <p><strong>Dates with a time.</strong> Two records on the same day are different values if one carries 09:14. Normalise with <code>.dt.normalize()</code> if the day is what you mean.</p>
+
+    <p><strong>Column order in <code>subset</code>.</strong> It does not matter for correctness, and it does matter for reading: list the columns in the order somebody would say them, because that list is your definition of identity.</p>
+
+    <p><strong>Duplicates created by a merge.</strong> If the row count went up before you got here, the duplicates are not in the data, they were manufactured by a join to a table whose key was not unique. De-duplicating afterwards hides the cause; <a href="../pandas-merge/">the merge guide</a> has the check that catches it at the source.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>The reason no default is right is that identity is a claim about the world rather than a property of the table. In relational terms, declaring a key is declaring that some set of columns identifies a row uniquely, and everything downstream depends on that declaration being true (Codd, 1970, <em>Communications of the ACM</em>, 13(6), 377–387). Passing <code>subset=["order_id"]</code> is making that declaration in passing, and the two rows with <code>seen = 2</code> and <code>row_seen = 1</code> are the data telling you the declaration is currently false. Deleting them removes the evidence rather than the problem.</p>
+
+  <p>The exact-match case is also only the easy half of the job. Detecting records that refer to the same real thing without being byte-identical is a research area with its own similarity measures, thresholds and evaluation methods, because in general there is no exact rule and the decision involves judgement about how much difference still counts as the same entity (Elmagarmid, Ipeirotis, &amp; Verykios, 2007, <em>IEEE Transactions on Knowledge and Data Engineering</em>, 19(1), 1–16). <code>North</code> against <code>north</code> is the mildest possible version of that, and the fact that two mainstream tools resolve it differently is a good indication that it is a judgement rather than a fact.</p>
+
+  <p>One note on why this page separates the two questions before doing anything. Holding several unfamiliar distinctions at once is what makes a topic feel hard, and instructional research treats the load imposed by how material is presented as something a designer controls independently of the material's own difficulty (Sweller, 1988, <em>Cognitive Science</em>, 12(2), 257–285). Repeated row and repeated key are two ideas; trying to learn <code>subset</code>, <code>keep</code> and the sort while still conflating them is three ideas resting on a confusion.</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>De-duplicating a whole pipeline is not a task. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Compare <code>nunique()</code> with <code>len()</code></strong> on every identifier column. One line, and it sizes the problem.</li>
+    <li><strong>Run the two <code>duplicated</code> counts</strong>, whole row and key, and look at the gap.</li>
+    <li><strong>Look at the offenders</strong> with <code>keep=False</code> before deciding anything.</li>
+    <li><strong>Normalise the text</strong> you compare on: strip, then casefold.</li>
+    <li><strong>Sort deliberately</strong> in front of every drop, and comment the rule you chose.</li>
+    <li><strong>Report the count</strong> as well as shipping the clean table. A key that is not unique is somebody's bug, not your housekeeping.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Write your columns in a row and draw a box around the ones that together identify one real thing. Then write beside the box what you would do if two rows inside it disagreed. That box is your <code>subset</code> and that sentence is your sort, and both are decisions you would otherwise make by accident.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>. The same job in a database, where nothing is deleted and the duplicates are listed instead, is <a href="../sql-find-duplicates/">finding duplicate rows in SQL</a>.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>Two questions</td><td>Is this row a copy? Should this key appear once? Different answers.</td></tr>
+    <tr><td><code>duplicated()</code></td><td>Boolean per row. Flags all but the first of each group.</td></tr>
+    <tr><td><code>keep='last'</code></td><td>Flags all but the last.</td></tr>
+    <tr><td><code>keep=False</code></td><td>Flags every row in any group of more than one. Use it to look.</td></tr>
+    <tr><td>The look-first query</td><td><code>df[df.duplicated(subset=key, keep=False)]</code></td></tr>
+    <tr><td><code>drop_duplicates()</code></td><td>All columns. Exact copies only. 8 rows became 7.</td></tr>
+    <tr><td><code>subset=["order_id"]</code></td><td>Key only. 8 rows became 5, units 56 became 35.</td></tr>
+    <tr><td><code>keep='last'</code> there</td><td>Same 5 rows, different members, units 37.</td></tr>
+    <tr><td><code>keep=False</code> there</td><td>Drops every involved row. 2 rows left.</td></tr>
+    <tr><td>Which row survives</td><td>Whichever is higher up. Sort first, deliberately.</td></tr>
+    <tr><td>Common sorts</td><td>Newest timestamp, largest amount, fewest blanks.</td></tr>
+    <tr><td>Mark instead</td><td><code>groupby(key).cumcount() + 1</code>, and again over all columns.</td></tr>
+    <tr><td>The interesting rows</td><td>Key seen twice, row seen once. Same key, different data.</td></tr>
+    <tr><td>Case</td><td>pandas is sensitive, Excel is not. Same table, 7 rows against 6.</td></tr>
+    <tr><td>Normalising</td><td><code>.str.strip().str.casefold()</code> before comparing.</td></tr>
+    <tr><td>Missing keys</td><td>Count as equal to each other, so they collapse into one.</td></tr>
+    <tr><td>The index</td><td>Keeps gaps. <code>reset_index(drop=True)</code> to renumber.</td></tr>
+    <tr><td>Counting instead</td><td><code>value_counts()</code>, and <code>nunique()</code> against <code>len()</code>.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Compare the whole-row duplicate count with the key duplicate count before you drop anything. When they differ, the gap is made of rows that share an identifier and disagree about the data, and those rows are a finding about a system rather than untidiness in a file. If duplicates behave in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. Mine was a nightly extract that occasionally ran twice, where the second run had partial amounts, and a <code>drop_duplicates</code> on the order id kept whichever arrived first, so about one night a month reported a smaller number than the business had actually done. What has a de-duplication quietly chosen for you?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Codd, E. F. (1970). A relational model of data for large shared data banks. <em>Communications of the ACM</em>, 13(6), 377–387.</li>
+    <li>Elmagarmid, A. K., Ipeirotis, P. G., &amp; Verykios, V. S. (2007). Duplicate record detection: A survey. <em>IEEE Transactions on Knowledge and Data Engineering</em>, 19(1), 1–16.</li>
+    <li>Sweller, J. (1988). Cognitive load during problem solving: Effects on learning. <em>Cognitive Science</em>, 12(2), 257–285.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice on a table with duplicates planted in it.</strong>
+    <p style="margin:6px 0 0">The <a href="../../python/">Python Kit</a> gives you the repetitions: exact copies, shared keys and case variants in the same frame, plus flash cards on what each <code>keep</code> returns and a mock exam that asks for the row count before you run the drop. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../python/">Open the Python Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../excel-remove-duplicates/">Remove Duplicates in Excel</a> · <a href="../sql-find-duplicates/">Find Duplicates in SQL</a> · <a href="../pandas-merge/">pandas merge</a> · <a href="../pandas-groupby/">pandas groupby</a> · <a href="../pandas-read-csv/">pandas read_csv</a> · <a href="../pandas-fillna-dropna/">Missing Values in pandas</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../../python/">Python Kit</a> · <a href="../excel-clean-messy-data/">Clean Messy Data</a> · <a href="../sql-reconciliation/">Reconcile Two Tables</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
