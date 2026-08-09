@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pandas read_csv: Your First DataFrame, and What It Guessed — Analyst Prep Kit</title>
+<meta name="description" content="Four commands to look at a new file, then the arguments that stop read_csv guessing: dtype, parse_dates with a format, na_values and thousands. Includes a sum that concatenated instead of adding.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-read-csv/">
+<meta property="og:title" content="pandas read_csv: Your First DataFrame, and What It Guessed">
+<meta property="og:description" content="08053 became 8053, a money column stayed text and its sum came back as one long string. Four arguments fix all of it, and four commands tell you whether you needed them.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/pandas-read-csv.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-read-csv/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/pandas-read-csv.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "pandas read_csv: Your First DataFrame, and What It Guessed",
+  "description": "Four commands to look at a new file, then the arguments that stop read_csv guessing: dtype, parse_dates with a format, na_values and thousands. Includes a sum that concatenated instead of adding.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-read-csv/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-read-csv/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/pandas-read-csv.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "pandas read_csv: Your First DataFrame, and What It Guessed",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-read-csv/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../python/">Python Kit</a> · <a href="../">All guides</a></p>
+  <h1>pandas read_csv: Your First DataFrame, and What It Guessed</h1>
+  <p class="meta">One line to load it, four to find out what it did · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can load a CSV into pandas, find out in twenty seconds what type every column became, stop the identifier columns losing their leading zeros, get dates read the way they were written, and turn a money column that arrived as text into numbers. It is about twenty-five minutes, and every output below was produced by running the code.</p>
+
+  <p>Here is what to do today, the moment after you first load a file. Run <code>df.dtypes</code>. Not <code>df.head()</code>, which shows you what the values look like, but <code>dtypes</code>, which shows you what they are. A column of identifiers that says <code>int64</code> has already lost its leading zeros, and a money column that says <code>object</code> or <code>str</code> is text that will refuse to add up.</p>
+
+  <p>The short version: <code>read_csv</code> reads characters and guesses a type per column. The guess is usually right, it is silent when it is wrong, and four arguments replace guessing with instruction.</p>
+
+  <p>The same characters becoming two different values is the idea, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 262" role="img" aria-labelledby="pcTitle pcDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="pcTitle">The same characters, two different values</title>
+      <desc id="pcDesc">On the left, a strip of five small square boxes holds one character each, reading zero, eight, zero, five, three, as the characters appear in the file. Two arrows branch out from that strip. The upper arrow leads to a strip of five boxes in which the first box is empty, crossed through and outlined in amber, while the remaining four hold eight, zero, five and three; the leading character has been discarded. The lower arrow leads to a strip of five boxes holding zero, eight, zero, five and three, identical to the original, outlined in blue. Both destinations came from the same source strip, and only one of them still contains everything the file did.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <g stroke="#52525B" stroke-width="1.6" fill="#FFFFFF">
+          <rect x="30" y="106" width="34" height="42"/><rect x="64" y="106" width="34" height="42"/>
+          <rect x="98" y="106" width="34" height="42"/><rect x="132" y="106" width="34" height="42"/>
+          <rect x="166" y="106" width="34" height="42"/>
+        </g>
+        <g font-size="19" fill="#09090B" text-anchor="middle">
+          <text x="47" y="135">0</text><text x="81" y="135">8</text><text x="115" y="135">0</text>
+          <text x="149" y="135">5</text><text x="183" y="135">3</text>
+        </g>
+
+        <path d="M208 120 C260 120 268 74 320 68" stroke="#B45309" stroke-width="2.4" fill="none"/>
+        <path d="M328 67 L315 61 M328 67 L316 75" stroke="#B45309" stroke-width="2.4" fill="none"/>
+        <path d="M208 134 C260 134 268 182 320 188" stroke="#0E7490" stroke-width="2.4" fill="none"/>
+        <path d="M328 189 L316 181 M328 189 L315 195" stroke="#0E7490" stroke-width="2.4" fill="none"/>
+
+        <!-- lossy -->
+        <rect x="344" y="46" width="34" height="42" fill="#FFFFFF" stroke="#B45309" stroke-width="2.4" stroke-dasharray="5 4"/>
+        <path d="M350 52 L372 82 M372 52 L350 82" stroke="#B45309" stroke-width="2.2" fill="none"/>
+        <g stroke="#B45309" stroke-width="2" fill="#FDF3E3">
+          <rect x="378" y="46" width="34" height="42"/><rect x="412" y="46" width="34" height="42"/>
+          <rect x="446" y="46" width="34" height="42"/><rect x="480" y="46" width="34" height="42"/>
+        </g>
+        <g font-size="19" fill="#09090B" text-anchor="middle">
+          <text x="395" y="75">8</text><text x="429" y="75">0</text><text x="463" y="75">5</text><text x="497" y="75">3</text>
+        </g>
+
+        <!-- intact -->
+        <g stroke="#0E7490" stroke-width="2" fill="#E0F2F7">
+          <rect x="344" y="166" width="34" height="42"/><rect x="378" y="166" width="34" height="42"/>
+          <rect x="412" y="166" width="34" height="42"/><rect x="446" y="166" width="34" height="42"/>
+          <rect x="480" y="166" width="34" height="42"/>
+        </g>
+        <g font-size="19" fill="#09090B" text-anchor="middle">
+          <text x="361" y="195">0</text><text x="395" y="195">8</text><text x="429" y="195">0</text>
+          <text x="463" y="195">5</text><text x="497" y="195">3</text>
+        </g>
+      </g>
+    </svg>
+    <figcaption>Five characters in the file. Read as a number, the first one is gone and cannot be recovered from what is left. Read as text, all five survive. Nothing in the file decided which happened.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>Load it, then look at it</li>
+      <li>What it guessed, and what that cost</li>
+      <li>Declare the types</li>
+      <li>Dates: say the format</li>
+      <li>Missing values are only missing if you say so</li>
+      <li>Numbers wearing punctuation</li>
+      <li>usecols, nrows and the index trap</li>
+      <li>The check block for any new file</li>
+      <li>The full before and after</li>
+      <li>Edge cases that break a load</li>
+      <li>Why this works</li>
+      <li>Using this on your own project</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every output on this page is real.</strong> Run on pandas 3.0.2 against a small CSV built to contain the four problems every real export has: an identifier with leading zeros, ambiguous dates, a text marker for missing values, and money with a thousands separator. If your pandas is older, the arguments are the same and one or two of the default behaviours differ, which is noted where it matters.</div>
+
+  <p>Here is the file, as characters. Four rows, and everything on this page comes out of it.</p>
+
+  <pre><code>order_id,order_date,zip,rep,region,units,amount
+1001,05/01/2026,08053,Dana Reyes,North,4,"1,234.50"
+1002,12/01/2026,02134,Owen Park,South,10,"850.00"
+1003,19/01/2026,00501,Priya Shah,East,N/A,"660.00"
+1004,26/01/2026,90210,Dana Reyes,North,6,"240.00"</code></pre>
+
+  <div class="step">
+    <h2>1. Load it, then look at it</h2>
+
+    <p>One line loads it. Four more tell you what you got, and skipping them is the mistake this whole page is about.</p>
+
+    <pre><code>import pandas as pd
+df = pd.read_csv("orders.csv")
+
+df.shape          # (4, 7)  rows and columns
+df.dtypes         # what each column became
+df.head()         # what the values look like
+df.isna().sum()   # how many are missing, per column</code></pre>
+
+    <p>Run in that order. <code>shape</code> against the row count you expected catches a truncated file or a delimiter problem immediately. <code>dtypes</code> is the one people skip and the one that matters. <code>head</code> is for the eye. And <code>isna().sum()</code> is the number you will be asked about later.</p>
+
+    <p>Add <code>df.describe()</code> when the file is numeric. It gives count, mean, min, max and the quartiles per numeric column, and the useful part for a first look is the <strong>count</strong> row, because a column whose count is lower than your row count has missing values in it.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. What it guessed, and what that cost</h2>
+
+    <p>Before the explanation: the file above is loaded with no arguments at all. Say which of the seven columns you expect to be wrong.</p>
+
+    <pre><code>df = pd.read_csv("orders.csv")
+
+   order_id  order_date    zip         rep region  units    amount
+0      1001  05/01/2026   8053  Dana Reyes  North    4.0  1,234.50
+1      1002  12/01/2026   2134   Owen Park  South   10.0    850.00
+2      1003  19/01/2026    501  Priya Shah   East    NaN    660.00
+3      1004  26/01/2026  90210  Dana Reyes  North    6.0    240.00</code></pre>
+
+    <p>Three problems, none of which raised anything.</p>
+
+    <p><strong>The zip column lost its leading zeros.</strong> 08053 became 8053 and 00501 became 501, because the characters looked like a number and were read as one. The information is gone from the frame; no amount of reformatting will bring back a digit that was never stored.</p>
+
+    <p><strong>The amount column is still text</strong>, because of the comma in 1,234.50. And text that looks numeric does something worse than erroring when you total it:</p>
+
+    <pre><code>df["amount"].sum()
+
+'1,234.50850.00660.00240.00'</code></pre>
+
+    <p>That is not a number. <code>sum</code> on text concatenates, so the "total" is every value glued together, and if it lands in a report as a string nobody will read it as an arithmetic failure.</p>
+
+    <p><strong>The units column became a float.</strong> Whole numbers with one <code>N/A</code> among them cannot all be integers, because the missing one has to be represented, so pandas widened the column to <code>float64</code> and the values are now 4.0, 10.0, NaN, 6.0. That one is not damage, it is a signal: <strong>an integer column that arrives as a float almost always means something in it was missing.</strong></p>
+
+    <p>Say out loud which of those three would be visible in <code>head()</code> alone. The zeros, if you happened to know they should be there. The other two look completely normal.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Declare the types</h2>
+
+    <p><code>dtype</code> takes a dictionary of column names and types, and it applies before any conversion, which is what saves the zeros.</p>
+
+    <pre><code>df = pd.read_csv("orders.csv", dtype={"zip": "string", "order_id": "string"})
+
+zip   ->  ['08053', '02134', '00501', '90210']</code></pre>
+
+    <p>All five characters, every time. The rule worth adopting: <strong>anything that identifies something rather than measures something is text.</strong> Zip codes, account numbers, order references, product codes, phone numbers, employee IDs. The test is the one from the spreadsheet world: would adding two of these together mean anything? If not, it is not a number, whatever it looks like. The Excel version of exactly this failure is in <a href="../excel-csv-import-leading-zeros/">the dialog that quietly deletes your zip codes</a>, and it is the same characters being lost in a different tool.</p>
+
+    <p>Two notes on the type names. <code>"string"</code> is the modern pandas string type and is what to use; older code says <code>str</code> and gets a generic object column, which works and is less clear about its intent. And declaring a type for one column does not stop pandas guessing the rest, so <code>dtype</code> is a list of exceptions rather than a full schema unless you write one.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. Dates: say the format</h2>
+
+    <p>Before the explanation: the dates read <code>05/01/2026</code>. Say which day that is.</p>
+
+    <p>You cannot know, and neither can pandas. Asking it to parse them without saying which order the pieces are in:</p>
+
+    <pre><code>pd.read_csv("orders.csv", parse_dates=["order_date"])
+
+dtype: str
+first value: '05/01/2026'</code></pre>
+
+    <p>Nothing happened. The column is still text, no exception was raised, and if you had not checked <code>dtypes</code> you would have carried on assuming it was a date. Current pandas declines to guess an ambiguous format rather than picking one, which is much better behaviour than guessing and much easier to miss than an error.</p>
+
+    <p>Say the format and it works:</p>
+
+    <pre><code>pd.read_csv("orders.csv", parse_dates=["order_date"], date_format="%d/%m/%Y")
+
+['2026-01-05', '2026-01-12', '2026-01-19', '2026-01-26']</code></pre>
+
+    <p>And here is the part worth knowing, because it is the safety net. Declaring the <em>wrong</em> format also leaves the column as text rather than producing wrong dates: asking for <code>%m/%d/%Y</code> on this file gives back <code>str</code>, because 19/01 and 26/01 are not valid month-first dates. So a mistake in the format shows up in <code>dtypes</code> rather than in the numbers, as long as at least one row in the file is unambiguous.</p>
+
+    <p>Which is also the warning. A file where every date happens to have a day of twelve or less is entirely ambiguous, both formats parse cleanly, and the wrong one gives you a working column full of wrong dates. That is not a pandas problem, it is a property of the file, and the fix is to ask the source for <code>yyyy-mm-dd</code>. The wider version of this is in <a href="../excel-dates/">how dates are stored</a>.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Missing values are only missing if you say so</h2>
+
+    <p>pandas recognises a list of markers as missing out of the box, including empty fields, <code>NA</code>, <code>NaN</code>, <code>NULL</code> and <code>N/A</code>. That last one is why <code>units</code> already came back with a <code>NaN</code> above.</p>
+
+    <p>What it does not recognise is whatever your source system invented. Real files use <code>-</code>, <code>none</code>, <code>Unknown</code>, <code>#N/A</code>, <code>999</code>, <code>-1</code>, and a single space. Those arrive as ordinary values, which means a text marker makes the whole column text, and a numeric marker like <code>-1</code> or <code>999</code> is far worse: it is a real number, it will be averaged, and nothing will ever look wrong.</p>
+
+    <pre><code>pd.read_csv("orders.csv", na_values=["N/A", "-", "Unknown", "none"])</code></pre>
+
+    <p>Then check what that produced, because the count is the finding:</p>
+
+    <pre><code>df.isna().sum()
+
+order_id      0
+order_date    0
+zip           0
+units         1
+amount        0
+
+units: sum 20.0, count 3, rows 4</code></pre>
+
+    <p>One missing unit value. Note the last line: the column sums to 20 over a count of 3, in a frame of 4 rows. <strong>A count lower than the row count is the definition of a column with missing values</strong>, and comparing those two numbers is the cheapest check in pandas. What to do about them, fill or drop or leave, is a separate decision with its own page.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Numbers wearing punctuation</h2>
+
+    <p>The amount column stayed text because of one comma. One argument fixes it at read time.</p>
+
+    <pre><code>pd.read_csv("orders.csv", thousands=",")
+
+df["amount"].sum()    2984.5</code></pre>
+
+    <p>A number, and one that adds up: 1,234.50 plus 850 plus 660 plus 240 is 2,984.50.</p>
+
+    <p>Three relatives, for files from elsewhere. <code>decimal=","</code> for European files where the comma is the decimal point and the dot groups thousands. <code>encoding="utf-8"</code>, or <code>"latin-1"</code>, or <code>"cp1252"</code>, when accented characters arrive as gibberish. And <code>sep=";"</code> or <code>sep="\t"</code> when the file is not actually comma separated, which announces itself as a frame with one very wide column.</p>
+
+    <p>A currency symbol is not covered by <code>thousands</code>. <code>£1,234.50</code> stays text, and it has to be cleaned after loading:</p>
+
+    <pre><code>df["amount"] = (df["amount"].str.replace(r"[£$,]", "", regex=True).astype(float))</code></pre>
+  </div>
+
+  <div class="step">
+    <h2>7. usecols, nrows and the index trap</h2>
+
+    <p>Three arguments that change how much you load rather than how it is interpreted.</p>
+
+    <p><strong><code>usecols</code></strong> reads only the columns you name. On a file with ninety columns and four you need, this is the difference between a frame you can look at and a frame you scroll sideways through, and it saves the memory too.</p>
+
+    <pre><code>pd.read_csv("orders.csv", usecols=["order_id", "amount"])</code></pre>
+
+    <p><strong><code>nrows</code></strong> reads only the first few. Point it at a very large file first, work out the arguments you need on two hundred rows, then load the whole thing once with the right settings. That is the habit that turns a slow first hour into a fast one, and the rest of the too-big-to-open problem is in <a href="../handle-large-datasets/">handling large datasets</a>.</p>
+
+    <p><strong><code>index_col</code></strong> makes a column the index rather than a column, and it catches beginners out because the column then disappears from <code>df.columns</code> and from anything that iterates over columns.</p>
+
+    <pre><code>df = pd.read_csv("orders.csv", index_col="order_id")
+list(df.columns)    # order_id is not in here any more</code></pre>
+
+    <p>Use it deliberately when the identifier is genuinely the row label and you will be looking rows up by it. Leave it alone otherwise; a default numeric index is fine and keeps the id where you can see it.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. The check block for any new file</h2>
+
+    <p>Six lines, run every single time, before any analysis. They take twenty seconds and they cover everything on this page.</p>
+
+    <pre><code>df.shape                      # does the row count match what you expected?
+df.dtypes                     # is every column the type it should be?
+df.head()                     # do the values look right?
+df.isna().sum()               # how many missing, per column?
+df.describe()                 # count row lower than shape? min or max absurd?
+df.nunique()                  # distinct values: is it the number you expected?</code></pre>
+
+    <p>That last one earns its place more than it looks. A region column with six distinct values when you know there are four is a spelling problem, found before it becomes a report with two extra regions in it.</p>
+
+    <p>Picture the last file somebody sent you. Which of those six would have told you something you did not already know, and did you run it?</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same file, same four rows.</p>
+
+  <h3>Before</h3>
+  <pre><code>df = pd.read_csv("orders.csv")
+
+zip            8053, 2134, 501, 90210        leading zeros gone
+order_date     '05/01/2026'                  text, not a date
+amount         '1,234.50'                    text
+amount.sum()   '1,234.50850.00660.00240.00'  concatenated</code></pre>
+  <p>One line, four columns wrong, no errors, no warnings. Three of the four are invisible unless you look at <code>dtypes</code>.</p>
+
+  <h3>After</h3>
+  <pre><code>df = pd.read_csv(
+    "orders.csv",
+    dtype={"zip": "string", "order_id": "string"},
+    parse_dates=["order_date"], date_format="%d/%m/%Y",
+    na_values=["N/A", "-", "Unknown"],
+    thousands=",",
+)
+
+order_id              string
+order_date    datetime64[us]
+zip                   string
+units                float64
+amount               float64
+
+zip            '08053', '02134', '00501', '90210'
+amount.sum()   2984.5
+units          sum 20.0, count 3, rows 4      one value missing</code></pre>
+
+  <p>The claim, and it is why <code>dtypes</code> is the first command rather than the fourth: <strong>the same file loaded two ways gives 2,984.50 or every amount glued into one string, and the only difference visible on screen is the word <code>str</code> in a line most people never print.</strong></p>
+
+  <div class="step">
+    <h2>Edge cases that break a load</h2>
+
+    <p>Six worth knowing.</p>
+
+    <p><strong>Mixed types in one column.</strong> If a column is numeric for a hundred thousand rows and then holds <code>"pending"</code>, pandas reads the file in chunks and can produce a column of mixed types. Declaring the dtype removes the possibility.</p>
+
+    <p><strong>Very large integers.</strong> An account number with nineteen digits exceeds what an integer column can hold exactly, and the last digits change. Another reason identifiers are text.</p>
+
+    <p><strong>A header that is not on row one.</strong> Two title rows above the data make the first title into the column names and everything else into strings. Use <code>skiprows=2</code>, or <code>header=2</code>.</p>
+
+    <p><strong>Extra commas inside quoted fields.</strong> Handled correctly by default, and broken by files that quote inconsistently. A frame with more columns than the header is the symptom.</p>
+
+    <p><strong>Trailing blank lines and footers.</strong> A total row at the bottom becomes a data row containing text in your numeric columns, which is often what turned the column to text in the first place. <code>skipfooter</code> exists; deleting the row at source is better.</p>
+
+    <p><strong>Whitespace around values.</strong> <code>" North"</code> and <code>"North"</code> are different values and will show up in <code>nunique</code>. <code>skipinitialspace=True</code> handles the common case, and the rest is the ordinary cleaning routine.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>A CSV file contains no types. It is characters and separators, and nothing in it says whether 08053 is a number or a label, so a reader has to decide, and pandas decides by inspecting the values. That inference is a deliberate design choice rather than an oversight: the library was built around the idea that loading real, messy, tabular data should take one line and produce something usable immediately, with the tuning available for the cases where the guess is wrong (McKinney, 2010, <em>Proceedings of the 9th Python in Science Conference</em>, 51–56). The convenience is real. The cost is that the moment of the guess is invisible, which is why the discipline is not to avoid the inference but to inspect it, once, on every file.</p>
+
+  <p>The reason to care disproportionately about identifier columns is that the loss is not recoverable and not visible. This is the same failure that produced a well-documented problem in published science, where spreadsheet software silently converted gene names into dates and numbers, and the converted values survived peer review because a converted cell looks exactly like an ordinary one (Ziemann, Eren, &amp; El-Osta, 2016, <em>Genome Biology</em>, 17, 177). A zip code that became 8053 has the same property: it is a perfectly plausible number, it will join to nothing, and the failure will surface as missing matches rather than as an error.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than reread, because the advantage of self-testing over restudying holds for complex, realistic material and not only for word lists (Karpicke &amp; Aue, 2015, <em>Educational Psychology Review</em>, 27(2), 317–326).</p>
+
+  <h2>Using this on your own project</h2>
+
+  <p>Rewriting every load in an old notebook is miserable. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Print <code>dtypes</code> immediately after every read.</strong> One line, and it is the whole diagnosis.</li>
+    <li><strong>Declare every identifier column as <code>"string"</code></strong>, before anything else. That is the irreversible loss.</li>
+    <li><strong>Give every date a <code>date_format</code></strong>, and check the dtype afterwards to confirm it took.</li>
+    <li><strong>List your source's missing markers in <code>na_values</code></strong>, and then look at <code>isna().sum()</code> rather than assuming it is zero.</li>
+    <li><strong>Use <code>nrows</code> to work out the arguments</strong> on a big file, then load it once properly.</li>
+    <li><strong>Keep the six-line check block</strong> at the top of every notebook and run it on every new file.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch is worth five minutes. Write out your file's column names and, beside each, the type it should be and why: measure or label, date or text, allowed to be missing or not. That list is your <code>dtype</code> dictionary and your <code>na_values</code> list, and writing it takes less time than finding out later which one pandas got wrong.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: Python, SQL, Excel, and the working habits around them. The next step after loading is usually summarising, which is <a href="../pandas-groupby/">pandas groupby</a>.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>First command after loading</td><td><code>df.dtypes</code>. Not head.</td></tr>
+    <tr><td>A CSV has no types</td><td>pandas infers one per column, silently.</td></tr>
+    <tr><td>Identifier read as a number</td><td>Leading zeros gone, unrecoverably.</td></tr>
+    <tr><td>The test</td><td>Would adding two of these mean anything? If not, it is text.</td></tr>
+    <tr><td><code>dtype={"zip": "string"}</code></td><td>Applies before conversion, so the characters survive.</td></tr>
+    <tr><td>Text that looks numeric</td><td><code>sum()</code> concatenates instead of adding.</td></tr>
+    <tr><td>Integer column arriving as float</td><td>Something in it was missing.</td></tr>
+    <tr><td><code>parse_dates</code> alone</td><td>Declines an ambiguous format and leaves it as text.</td></tr>
+    <tr><td><code>date_format="%d/%m/%Y"</code></td><td>Says which order the pieces are in.</td></tr>
+    <tr><td>A wrong format</td><td>Also leaves it as text, if any row is unambiguous.</td></tr>
+    <tr><td>Recognised missing markers</td><td>Empty, NA, NaN, NULL, N/A. Not yours.</td></tr>
+    <tr><td><code>na_values=[...]</code></td><td>Your source's markers. A numeric marker like -1 is the dangerous one.</td></tr>
+    <tr><td><code>thousands=","</code></td><td>Turns "1,234.50" into a number at read time.</td></tr>
+    <tr><td>Currency symbols</td><td>Not covered. Strip them after loading.</td></tr>
+    <tr><td><code>usecols</code>, <code>nrows</code></td><td>Fewer columns, fewer rows. Tune on a sample, load once.</td></tr>
+    <tr><td><code>index_col</code></td><td>The column leaves <code>df.columns</code>. Use deliberately.</td></tr>
+    <tr><td>The check block</td><td>shape, dtypes, head, isna().sum(), describe, nunique.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Print <code>df.dtypes</code> before you do anything else with a new frame, every time. Every failure on this page is visible in that one output and invisible in all the others, and it costs one line at the top of a cell you are writing anyway. If a load misbehaves in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. Mine was a customer file where the account numbers loaded as integers, so every account beginning with a zero failed to join to the billing extract, and the missing customers looked like churn for most of a quarter. What has a type guess quietly cost you?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>McKinney, W. (2010). Data structures for statistical computing in Python. <em>Proceedings of the 9th Python in Science Conference</em>, 51–56.</li>
+    <li>Ziemann, M., Eren, Y., &amp; El-Osta, A. (2016). Gene name errors are widespread in the scientific literature. <em>Genome Biology</em>, 17, 177.</li>
+    <li>Karpicke, J. D., &amp; Aue, W. R. (2015). The testing effect is alive and well with complex materials. <em>Educational Psychology Review</em>, 27(2), 317–326.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Practice loading files that fight back.</strong>
+    <p style="margin:6px 0 0">The <a href="../../python/">Python Kit</a> gives you the repetitions: CSVs seeded with leading zeros, ambiguous dates and invented missing markers, plus flash cards on which argument fixes which symptom and a mock exam that asks what a column's dtype will be before you load it. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../python/">Open the Python Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../pandas-groupby/">pandas groupby</a> · <a href="../excel-csv-import-leading-zeros/">Leading Zeros on Import</a> · <a href="../excel-dates/">Excel Dates</a> · <a href="../install-python-for-data-analysis/">Install Python for Data Analysis</a> · <a href="../install-jupyter-notebook/">Set Up Jupyter Notebook</a> · <a href="../connect-python-to-a-sql-database/">Connect Python to a Database</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../../python/">Python Kit</a> · <a href="../excel-clean-messy-data/">Clean Messy Data</a> · <a href="../excel-character-encoding/">Character Encoding</a> · <a href="../sql-and-python/">How SQL and Python Work Together</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
