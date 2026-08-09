@@ -1,8 +1,31 @@
-# Batch 2 — insert the Excel for Analysts book block into 13 Excel guides.
-# Reads/writes UTF-8 with no BOM and preserves existing line endings.
+# Insert a Gumroad book block into guide pages.
+#
+# Used by the batches in GUMROAD_LINK_ROADMAP.md. Each guide page is uniform:
+# a `footer{border-top` CSS rule to anchor the .book styles to, and a closing
+# `<div class="cta">` to sit the block above, so the kit route still reads first.
+#
+# Edit BATCH below, then run:  python tools/insert-book-block.py
+#
+# Reads and writes UTF-8 with no BOM and preserves existing line endings, so it
+# does not do to these files what PowerShell's Set-Content does.
 import io, os, re, sys
 
-ROOT = r"C:\Users\Mike\Projects\analyst-prep-kit\guides"
+ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "guides")
+
+# Prices verified against the live Gumroad listings 2026-08-09.
+# Page counts are the 2026-08-09 rebuild.
+BOOKS = {
+    "excel":       ("Excel for Analysts",       "excel-for-analysts",       378, "$19"),
+    "sql":         ("SQL for Analysts",         "sql-for-analysts",         458, "$19"),
+    "python":      ("Python for Analysts",      "python-for-analysts",      203, "$19"),
+    "powerbi":     ("Power BI for Analysts",    "power-bi-for-analysts",    187, "$19"),
+    "tableau":     ("Tableau for Analysts",     "tableau-for-analysts",     128, "$19"),
+    "stats":       ("Statistics for Analysts",  "statistics-for-analysts",  123, "$19"),
+    "charts":      ("Charts and Visualization", "charts-and-visualization",  42, "$12"),
+    "forecasting": ("Forecasting for Analysts", "forecasting-for-analysts",  43, "$12"),
+    "thinking":    ("Thinking Like an Analyst", "thinking-like-an-analyst",  64, "$19"),
+    "migration":   ("The Data Migration Playbook", "data-migration-playbook", 63, "$29"),
+}
 
 CSS = (
     "  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;"
@@ -13,85 +36,91 @@ CSS = (
     "  .book a.booklink:hover{text-decoration:underline}\n"
 )
 
-GUIDES = {
- "excel-character-encoding": (
-   "The file opened. Every accented name came back as garbage, and nothing warned you it had happened.",
-   "encoding, imports and the other places Excel changes your data on the way in"),
- "excel-chart-design-basics": (
-   "The chart has everything on it, which is exactly why nobody can see the point.",
-   "chart choices made one decision at a time, with the before and after shown side by side"),
- "excel-check-your-work": (
-   "The number is probably right. The stall comes when somebody asks how you know.",
-   "the checks that catch your own mistakes, and how to say what a number does not cover"),
- "excel-circular-findings": (
-   "The finding was real. It was also just your own filter, handed back to you.",
-   "how an analyst frames a question so the answer is not built into it"),
- "excel-clean-messy-data": (
-   "The lookup fails on a name that looks identical on screen.",
-   "TRIM, CLEAN and the cleanup order that stops a match failing for reasons you cannot see"),
- "excel-conditional-formatting": (
-   "The rule works on one cell and falls apart the moment you copy it down.",
-   "absolute and relative references read symbol by symbol, so a copied rule lands where you meant"),
- "excel-csv-import-leading-zeros": (
-   "The zip codes lost their leading zeros somewhere between the file and the sheet.",
-   "text, numbers and the import settings that decide which one your ID column becomes"),
- "excel-custom-number-formats": (
-   "The column is correct and still reads wrong, because nothing on it says what the unit is.",
-   "number formats written out code by code, so the sheet says what it means without a legend"),
- "excel-dashboard-build-order": (
-   "Every tile is built. The stall comes when two of them disagree about the same total.",
-   "the build order that makes a dashboard correct first, then clear, then good looking"),
- "excel-dashboard-claim": (
-   "The dashboard is finished and nobody in the room can say what it is claiming.",
-   "how to write the one sentence a dashboard exists to prove, and cut everything that does not"),
- "excel-data-validation": (
-   "The drop down works until somebody pastes straight over it.",
-   "validation, protection and the gaps between them, with what each one actually stops"),
- "excel-dates": (
-   "The dates sort in the wrong order and the filter offers you text instead of years.",
-   "serial numbers, text that looks like a date, and the functions that tell the two apart"),
- "excel-dynamic-arrays": (
-   "The formula spills, then breaks with #SPILL!, and the cause is somewhere off screen.",
-   "FILTER, UNIQUE and SORT read argument by argument, including what blocks a spill range"),
-}
-
 BLOCK = (
  '  <div class="book">\n'
  '    <strong>{hook}</strong>\n'
- '    <p><em>Excel for Analysts</em> is 378 pages, {what}, with practice questions that print the answer and the reason it is right.</p>\n'
- '    <a class="booklink" href="https://michaelnocito.gumroad.com/l/excel-for-analysts" target="_blank" rel="noopener"'
- ' onclick="if(window.gtag)gtag(\'event\',\'guide_book_click\',{{kit:\'guide-{slug}\'}})">Excel for Analysts, $19 &rarr;</a>\n'
+ '    <p><em>{title}</em> is {pages} pages, {what}.</p>\n'
+ '    <a class="booklink" href="https://michaelnocito.gumroad.com/l/{bslug}" target="_blank" rel="noopener"'
+ ' onclick="if(window.gtag)gtag(\'event\',\'guide_book_click\',{{kit:\'guide-{slug}\'}})">{title}, {price} &rarr;</a>\n'
  '  </div>\n\n'
 )
 
-fails = []
-for slug, (hook, what) in GUIDES.items():
-    path = os.path.join(ROOT, slug, "index.html")
-    with io.open(path, "r", encoding="utf-8", newline="") as f:
-        src = f.read()
+# slug -> (book key, hook, what the book is)
+BATCH = {
+ "excel-if-family": ("excel",
+   "The IF works. Then it works on the wrong rows and still returns something.",
+   "the IF family read argument by argument in plain words, including what each one does with a blank"),
+ "excel-iferror": ("excel",
+   "You wrapped it in IFERROR and the error went quiet, which is not the same as gone.",
+   "error handling written out so you hide the errors you understand and keep the ones you do not"),
+ "excel-ifs-vs-nested-if": ("excel",
+   "Five nested IFs, one wrong bracket, and no way to see which branch fired.",
+   "IFS, nested IF and the order of conditions, with the branch table that shows what each row hits"),
+ "excel-index-match": ("excel",
+   "VLOOKUP returned the wrong name because somebody inserted a column.",
+   "INDEX MATCH read argument by argument, and why it survives a column that moves"),
+ "excel-kpi-row": ("excel",
+   "Four big numbers at the top, and nobody can tell which one they are supposed to act on.",
+   "the KPI row built so each number carries its comparison, not just its size"),
+ "excel-label-rows-before-charting": ("excel",
+   "The chart came out labelled 1, 2, 3, and the fix is in the data, not the chart.",
+   "how a sheet has to be laid out before a chart can read it correctly"),
+ "excel-month-over-month": ("excel",
+   "The percentage change is right and still misleading, because the base month was unusual.",
+   "period comparisons, and the sentence you have to say when a base month is small"),
+ "excel-name-your-data": ("excel",
+   "The formula range never grew with the data, and no cell said so.",
+   "tables, named ranges and the references that keep working when rows arrive"),
+ "excel-pick-the-chart": ("charts",
+   "The data is ready and the chart menu offers forty options, most of them wrong.",
+   "picking the mark from the question you are answering, with the wrong choices shown next to the right one"),
+ "excel-pivot-percentages": ("excel",
+   "The percentages add to 100 and answer a question nobody asked.",
+   "Show Values As, and the denominator decision that changes the whole sentence"),
+ "excel-pivot-table-question": ("excel",
+   "Four empty boxes, and no idea which field goes where.",
+   "pivots built from the sentence you are trying to say, so the fields place themselves"),
+ "excel-pivot-tables": ("excel",
+   "The pivot built fine. The stall comes when the Grand Total does not match the source column.",
+   "every pivot setting read one at a time, with the check that catches a stale cache or a cut range"),
+ "excel-power-query": ("excel",
+   "The cleanup worked once, and next month you have to do all of it again by hand.",
+   "Power Query steps written out one at a time, so a refresh replaces the whole manual pass"),
+}
 
-    if "gumroad" in src:
-        fails.append((slug, "already links gumroad")); continue
+def main():
+    fails = []
+    for slug, (bkey, hook, what) in BATCH.items():
+        title, bslug, pages, price = BOOKS[bkey]
+        path = os.path.join(ROOT, slug, "index.html")
+        if not os.path.exists(path):
+            fails.append((slug, "no such guide")); continue
+        with io.open(path, "r", encoding="utf-8", newline="") as f:
+            src = f.read()
+        if "gumroad" in src:
+            fails.append((slug, "already links gumroad")); continue
 
-    # 1. CSS, straight after the footer rule.
-    m = re.search(r"^([ \t]*footer\{border-top.*\n)", src, re.M)
-    if not m:
-        fails.append((slug, "no footer rule")); continue
-    nl = "\r\n" if "\r\n" in src else "\n"
-    css = CSS.replace("\n", nl)
-    src = src[:m.end(1)] + css + src[m.end(1):]
+        nl = "\r\n" if "\r\n" in src else "\n"
 
-    # 2. Block, straight before the closing CTA.
-    m2 = re.search(r"^[ \t]*<div class=\"cta\">", src, re.M)
-    if not m2:
-        fails.append((slug, "no cta block")); continue
-    block = BLOCK.format(hook=hook, what=what, slug=slug).replace("\n", nl)
-    src = src[:m2.start()] + block + src[m2.start():]
+        m = re.search(r"^([ \t]*footer\{border-top.*\n)", src, re.M)
+        if not m:
+            fails.append((slug, "no footer rule to anchor css")); continue
+        src = src[:m.end(1)] + CSS.replace("\n", nl) + src[m.end(1):]
 
-    with io.open(path, "w", encoding="utf-8", newline="") as f:
-        f.write(src)
-    print("ok  " + slug)
+        m2 = re.search(r"^[ \t]*<div class=\"cta\">", src, re.M)
+        if not m2:
+            fails.append((slug, "no cta block")); continue
+        block = BLOCK.format(hook=hook, what=what, slug=slug, title=title,
+                             bslug=bslug, pages=pages, price=price)
+        src = src[:m2.start()] + block.replace("\n", nl) + src[m2.start():]
 
-for slug, why in fails:
-    print("FAIL " + slug + ": " + why)
-sys.exit(1 if fails else 0)
+        with io.open(path, "w", encoding="utf-8", newline="") as f:
+            f.write(src)
+        print("ok   %s  ->  %s" % (slug, title))
+
+    for slug, why in fails:
+        print("FAIL %s: %s" % (slug, why))
+    return 1 if fails else 0
+
+if __name__ == "__main__":
+    sys.exit(main())
