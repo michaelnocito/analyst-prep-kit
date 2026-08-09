@@ -166,8 +166,12 @@ for (const c of cards) {
 
   const tools = new Set(TOOL_BY_SECTION[c.section] || []);
   for (const [t, re] of Object.entries(TOOLS)) if (re.test(slug)) tools.add(t);
-  // Two Tableau guides are filed under "SQL concepts". The chip gathers them
-  // without moving the cards and breaking anybody's bookmark.
+  /* Tableau got its own section on 2026-08-09, when the count reached ten and a
+     real tester's search for "combine" returned Tableau guides sitting under a
+     heading that read SQL concepts. The eight that were mis-filed moved. This
+     line stays as the guard: TOOL_BY_SECTION hands every card in a section the
+     section's tool, so a Tableau guide filed anywhere near SQL must never
+     inherit the sql chip. */
   if (/^tableau-/.test(slug)) tools.delete('sql');
 
   meta.set(c.href, { kw: kw.join(' ').replace(/"/g, ''), tools: [...tools].sort(), external, mins });
