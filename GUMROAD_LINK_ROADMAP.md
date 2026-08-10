@@ -141,5 +141,20 @@ but the 07-31 handoff had them unlisted.
   Guides: 134 of 137, with only the four in B9 left. One copy fix on the way
   past: the mean-vs-median hook said "centre", which now reads "center" to
   match the spelling pass Mike is running on the Tableau set.
-- [ ] **B9 — Last guides + personal site (13).** moving-averages, choose-the-right-chart, how-charts-mislead, choose-your-analyst-role, then michaelnocito.github.io: index, portfolio/index, portfolio/analyst-prep-kit, portfolio/data-migration-toolkit, portfolio/telco-churn, portfolio/steam-hidden-gems, portfolio/music-hidden-gems, portfolio/hidden-gem-movies, migration-toolkit/index
+- [x] **B9 — Last guides + personal site (13). DONE 2026-08-09, verified live.** moving-averages, choose-the-right-chart, how-charts-mislead, choose-your-analyst-role, then michaelnocito.github.io: index, portfolio/index, portfolio/analyst-prep-kit, portfolio/data-migration-toolkit, portfolio/telco-churn, portfolio/steam-hidden-gems, portfolio/music-hidden-gems, portfolio/hidden-gem-movies, migration-toolkit/index
+
+  **Every guide on analyst-prep-kit now links the store, and so does every
+  page on the personal site.** 137 of 137 guides, 13 of 13 hubs, 9 of 9
+  personal-site pages.
+
+  The personal site is read by hiring managers, so the link is sized to what
+  each page is for rather than dropped in uniformly. The home page gets a tile
+  inside the existing Teaching Analytics section, beside the kit and the sprint
+  apps. The two product case studies get a real block above the footer, with
+  the migration one pointing at the Playbook specifically. The five analysis
+  write-ups and the toolkit page get one quiet footer link and nothing more.
+  A storefront tone on a case study would cost more than it earns.
+
+  GA4 event on that property is `site_book_click` with a `page` label, so it
+  can be told apart from the kit's `guide_book_click` and `hub_book_click`.
 - [ ] **B10 — Close-out (13 checks).** art/index, GA4 label audit across all new links, dead-slug sweep, hub vs guide event split verified in GA4, pack slugs confirmed, Gumroad-side cross-sell between the 12 products (the biggest structural gap: 12 listings with no connections between them)
