@@ -162,6 +162,22 @@ main{max-width:780px;margin:0 auto;padding:32px 20px 80px}
 .explanation.show{display:block}
 .explanation strong{color:var(--accent)}
 
+/* GUIDE LINK + POPUP */
+.guide-link{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:0;background:none;border:0;color:var(--dim);font-size:12.5px;font-family:inherit;cursor:pointer;border-bottom:1px dotted var(--dim);line-height:1.4}
+.guide-link:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.guide-modal{position:fixed;inset:0;z-index:9000;display:none;background:rgba(0,0,0,.62)}
+.guide-modal.open{display:block}
+.guide-panel{position:absolute;inset:3vh 3vw;display:flex;flex-direction:column;background:var(--surf);border-radius:var(--r-md);overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.45)}
+.guide-bar{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surf2);border-bottom:1px solid var(--border);flex-shrink:0}
+.guide-bar-title{flex:1;font-size:13.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.guide-open-tab{font-size:12.5px;color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--dim);flex-shrink:0}
+.guide-open-tab:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.guide-close{flex-shrink:0;width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:17px;line-height:1;cursor:pointer}
+.guide-close:hover{background:var(--bad);border-color:var(--bad);color:#fff}
+.guide-frame{flex:1;width:100%;border:0;background:#fff}
+.guide-hint{padding:5px 14px;font-size:11.5px;color:var(--dim);background:var(--surf2);border-top:1px solid var(--border);flex-shrink:0}
+@media(max-width:620px){.guide-panel{inset:0;border-radius:0}}
+
 /* RESULTS */
 .results-hero{text-align:center;margin-bottom:28px}
 .results-eyebrow{font-size:11px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;margin-bottom:10px}
@@ -316,6 +332,67 @@ const STUDY = [
 ];
 
 /* ============== EXAM QUESTIONS — 4 per section ============== */
+/* Questions that have a matching guide. Only guides that actually exist go here,
+   and every one below was checked against the QUESTION TEXT and the guide's own
+   sections, not against a topic name. NOTE: ids here are e1/s1/p1/t1/st1/b1/i1
+   by section, not q1 — the keys must match those, not the cert kits' pattern. */
+const GUIDE_LINKS = {
+  /* Excel */
+  e2: {slug:'vlookup-vs-xlookup', title:'VLOOKUP vs XLOOKUP: Which One to Use, and How to Switch'},
+  e3: {slug:'excel-if-family', title:'IF vs COUNTIF vs SUMIF: One Row at a Time, or All Rows at Once'},
+  e4: {slug:'excel-pivot-table-question', title:'How to Think About Pivot Tables: A Pivot Is a Question, Not a Report'},
+  /* SQL */
+  s1: {slug:'sql-foundations', title:'SQL Foundations, Start to Finish'},
+  s2: {slug:'sql-group-by-having', title:'GROUP BY and HAVING: How to Summarize Rows Without Getting a Fake Answer'},
+  s3: {slug:'sql-joins', title:'SQL JOINs: How to Join Two Tables Without Losing or Doubling Rows'},
+  s4: {slug:'sql-foundations', title:'SQL Foundations, Start to Finish'},
+  /* Python */
+  p1: {slug:'pandas-read-csv', title:'pandas read_csv: Your First DataFrame, and What It Guessed'},
+  p4: {slug:'pandas-groupby', title:'pandas GroupBy: How to Summarize a DataFrame Without Losing Track of Your Rows'},
+  /* Tableau */
+  t1: {slug:'choose-the-right-chart', title:'How to Choose the Right Chart: One Question About Your Data'},
+  t2: {slug:'tableau-concepts', title:'Tableau Concepts, Start to Finish'},
+  t3: {slug:'how-charts-mislead', title:'How Charts Mislead: Eight Distortions, Worked on One Real Table'},
+  t4: {slug:'tableau-concepts', title:'Tableau Concepts, Start to Finish'},
+  /* Statistics */
+  st1:{slug:'mean-vs-median', title:'Mean vs Median: When to Use Each, and When the Answer Changes'},
+  st2:{slug:'p-values', title:'What Is a P-Value? Worked by Shuffling Nine Real Orders 126 Ways'},
+  st3:{slug:'standard-deviation', title:'Standard Deviation in Everyday Words: What It Measures and How to Read It'},
+  st4:{slug:'correlation-vs-causation', title:'Correlation vs Causation: The Three Explanations for Any Pattern'},
+  /* Power BI */
+  b1: {slug:'powerbi-measures-vs-columns', title:'Calculated Column vs Measure in Power BI: The Rule That Decides'},
+  b2: {slug:'powerbi-star-schema', title:'Star Schema in Power BI: Why One Flat Table Cannot Answer the Question'},
+  b4: {slug:'excel-power-query', title:'Power Query for Beginners: The Steps That Run Again Next Month'}
+};
+
+function guideLinkHtml(qid){
+  const g = GUIDE_LINKS[qid];
+  if(!g) return '';
+  return `<button class="guide-link" onclick="openGuide('${g.slug}',this.dataset.t)" data-t="${g.title.replace(/"/g,'&quot;')}">Read more: ${g.title}</button>`;
+}
+
+function openGuide(slug, title){
+  const m = document.getElementById('guideModal');
+  document.getElementById('guideTitle').textContent = title || 'Guide';
+  const tab = document.getElementById('guideTab');
+  tab.href = '../guides/' + slug + '/';
+  document.getElementById('guideFrame').src = '../guides/' + slug + '/';
+  m.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if(window.gtag) gtag('event','guide_popup_open',{kit:'final', guide:slug});
+}
+
+function closeGuide(){
+  const m = document.getElementById('guideModal');
+  m.classList.remove('open');
+  document.getElementById('guideFrame').src = 'about:blank';
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeGuide();
+});
+
 const QUESTIONS = [
   // EXCEL
   {id:'e1', section:'excel', type:'mc', q:`The difference between <code>$A$1</code> and <code>A1</code> in Excel is:`,
@@ -798,7 +875,7 @@ function renderQuestion(q){
   //  correct variation can never be marked wrong on a text mismatch)
 
   const explanation = submitted
-    ? `<div class="explanation show"><strong>${isCorrect(q) ? 'Correct.' : 'Heads up: '}</strong> ${q.explain}</div>`
+    ? `<div class="explanation show"><strong>${isCorrect(q) ? 'Correct.' : 'Heads up: '}</strong> ${q.explain}${guideLinkHtml(q.id)}</div>`
     : '';
 
   return `
@@ -1041,5 +1118,16 @@ async function initAuthUI(){
 }
 setTimeout(initAuthUI,600);
 </script>
+<div class="guide-modal" id="guideModal" onclick="if(event.target===this)closeGuide()">
+  <div class="guide-panel">
+    <div class="guide-bar">
+      <span class="guide-bar-title" id="guideTitle">Guide</span>
+      <a class="guide-open-tab" id="guideTab" href="../guides/" target="_blank" rel="noopener">Open in a tab</a>
+      <button class="guide-close" onclick="closeGuide()" aria-label="Close guide" title="Close (Esc)">&times;</button>
+    </div>
+    <iframe class="guide-frame" id="guideFrame" src="about:blank" title="Guide"></iframe>
+    <div class="guide-hint">Press Esc, click outside, or use the X to close. Your answers are kept.</div>
+  </div>
+</div>
 </body>
 </html>
