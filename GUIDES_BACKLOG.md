@@ -86,12 +86,15 @@ user actually falls into.
 
 Ranked by how many kits the hole appears in.
 
-1. **Absolute vs relative references** — `excel-cert` q25, `final` e1. TWO kits.
-   The one thing every formula question assumes and no guide teaches.
-   `excel-sumifs` shows `$D$2:$D$17` in passing and
-   `excel-conditional-formatting` §3 covers mixed refs inside CF rules; neither
-   is findable by someone searching the concept. Target: "absolute vs relative
-   reference excel", "what does the dollar sign do in excel".
+1. ✅ **Absolute vs relative references** — BUILT 2026-08-10 as
+   `excel-absolute-vs-relative-references`, and wired straight into the two
+   questions that proved it, `excel-cert` q25 and `final` e1. It was the only
+   item on this list that bit two kits. The page is built on one fact, that a
+   reference stores a distance rather than an address, and one worked failure:
+   a commission column that should total 1,326.40 totals 1,840.00 because the
+   fill walks onto the next two assumptions and then into empty cells, with row
+   2 correct in both versions. F4 order and the Mac shortcut come from
+   Microsoft's own reference page; the 63%/83% inspection numbers are Panko 1999.
 2. **Power BI domains 3 and 4** — `powerbi-cert` q29-q50, **22 of 50 questions
    with one guide between them**. Visuals, drillthrough, bookmarks, AI visuals,
    the Service, workspaces and roles, apps, gateways, RLS, data alerts.
