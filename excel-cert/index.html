@@ -186,6 +186,22 @@ main{max-width:780px;margin:0 auto;padding:32px 20px 80px}
 .explanation.show{display:block}
 .explanation strong{color:var(--accent)}
 
+/* GUIDE LINK + POPUP */
+.guide-link{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:0;background:none;border:0;color:var(--dim);font-size:12.5px;font-family:inherit;cursor:pointer;border-bottom:1px dotted var(--dim);line-height:1.4}
+.guide-link:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.guide-modal{position:fixed;inset:0;z-index:9000;display:none;background:rgba(0,0,0,.62)}
+.guide-modal.open{display:block}
+.guide-panel{position:absolute;inset:3vh 3vw;display:flex;flex-direction:column;background:var(--surf);border-radius:var(--r-md);overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.45)}
+.guide-bar{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surf2);border-bottom:1px solid var(--border);flex-shrink:0}
+.guide-bar-title{flex:1;font-size:13.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.guide-open-tab{font-size:12.5px;color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--dim);flex-shrink:0}
+.guide-open-tab:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.guide-close{flex-shrink:0;width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:17px;line-height:1;cursor:pointer}
+.guide-close:hover{background:var(--bad);border-color:var(--bad);color:#fff}
+.guide-frame{flex:1;width:100%;border:0;background:#fff}
+.guide-hint{padding:5px 14px;font-size:11.5px;color:var(--dim);background:var(--surf2);border-top:1px solid var(--border);flex-shrink:0}
+@media(max-width:620px){.guide-panel{inset:0;border-radius:0}}
+
 /* RESULTS */
 .results-hero{text-align:center;margin-bottom:28px}
 .results-eyebrow{font-size:11px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;margin-bottom:10px}
@@ -383,6 +399,52 @@ const STUDY = [
 /* ============== PRACTICE DRILL — 35 questions weighted to the objectives ==============
    d1: 10 · d2: 10 · d3: 4 · d4: 6 · d5: 5
    (real exam: ~6-7 live-Excel projects with ~35 tasks, 50 min, pass 700/1000) */
+/* Questions that have a matching guide. Only guides that actually exist go here,
+   and every one below was checked against the QUESTION TEXT and the guide's own
+   sections, not against a topic name. Most of MO-210 is ribbon mechanics the
+   guide library does not cover, so 11 of 35 is the honest ceiling right now. */
+const GUIDE_LINKS = {
+  q4: {slug:'excel-csv-import-leading-zeros', title:'Excel Removes Leading Zeros from Zip Codes: The CSV Import Fix'},
+  q14:{slug:'excel-custom-number-formats', title:'Custom Number Formats in Excel: Show the Unit Without Breaking the Number'},
+  q19:{slug:'excel-conditional-formatting', title:'Conditional Formatting Based on Another Cell'},
+  q13:{slug:'excel-tables', title:'Excel Tables vs Ranges: What Ctrl+T Actually Changes'},
+  q21:{slug:'excel-tables', title:'Excel Tables vs Ranges: What Ctrl+T Actually Changes'},
+  q22:{slug:'excel-tables', title:'Excel Tables vs Ranges: What Ctrl+T Actually Changes'},
+  q23:{slug:'excel-tables', title:'Excel Tables vs Ranges: What Ctrl+T Actually Changes'},
+  q24:{slug:'excel-tables', title:'Excel Tables vs Ranges: What Ctrl+T Actually Changes'},
+  q27:{slug:'excel-if-family', title:'IF vs COUNTIF vs SUMIF: One Row at a Time, or All Rows at Once'},
+  q28:{slug:'excel-dynamic-arrays', title:'Excel Dynamic Arrays: FILTER, UNIQUE and SORT in One Formula'},
+  q31:{slug:'excel-pick-the-chart', title:'Which Chart Should I Use? Bar, Line or Scatter'}
+};
+
+function guideLinkHtml(qid){
+  const g = GUIDE_LINKS[qid];
+  if(!g) return '';
+  return `<button class="guide-link" onclick="openGuide('${g.slug}',this.dataset.t)" data-t="${g.title.replace(/"/g,'&quot;')}">Read more: ${g.title}</button>`;
+}
+
+function openGuide(slug, title){
+  const m = document.getElementById('guideModal');
+  document.getElementById('guideTitle').textContent = title || 'Guide';
+  const tab = document.getElementById('guideTab');
+  tab.href = '../guides/' + slug + '/';
+  document.getElementById('guideFrame').src = '../guides/' + slug + '/';
+  m.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if(window.gtag) gtag('event','guide_popup_open',{kit:'excel-cert', guide:slug});
+}
+
+function closeGuide(){
+  const m = document.getElementById('guideModal');
+  m.classList.remove('open');
+  document.getElementById('guideFrame').src = 'about:blank';
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeGuide();
+});
+
 const QUESTIONS = [
   /* ---------- DOMAIN 1 · Manage Worksheets & Workbooks (10) ---------- */
   {id:'q1', domain:'d1', type:'mc', q:`You need row 1 (headers) AND column A (names) to stay visible while scrolling anywhere in a big sheet. The single correct move:`,
@@ -941,7 +1003,7 @@ function renderQuestion(q){
   }).join('')}</div>`;
 
   const explanation = state.submitted
-    ? `<div class="explanation show"><strong>${isCorrect(q) ? 'Correct.' : 'Heads up: '}</strong> ${q.explain}</div>`
+    ? `<div class="explanation show"><strong>${isCorrect(q) ? 'Correct.' : 'Heads up: '}</strong> ${q.explain}${guideLinkHtml(q.id)}</div>`
     : '';
 
   return `
@@ -1151,5 +1213,16 @@ function grainRefreshIcons(){
 })();
 </script>
 <script src="../assets/apk-footer.js?v=2" defer></script>
+<div class="guide-modal" id="guideModal" onclick="if(event.target===this)closeGuide()">
+  <div class="guide-panel">
+    <div class="guide-bar">
+      <span class="guide-bar-title" id="guideTitle">Guide</span>
+      <a class="guide-open-tab" id="guideTab" href="../guides/" target="_blank" rel="noopener">Open in a tab</a>
+      <button class="guide-close" onclick="closeGuide()" aria-label="Close guide" title="Close (Esc)">&times;</button>
+    </div>
+    <iframe class="guide-frame" id="guideFrame" src="about:blank" title="Guide"></iframe>
+    <div class="guide-hint">Press Esc, click outside, or use the X to close. Your answers are kept.</div>
+  </div>
+</div>
 </body>
 </html>
