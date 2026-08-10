@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Absolute vs Relative References in Excel: What the Dollar Sign Locks — Analyst Prep Kit</title>
+<meta name="description" content="What the dollar sign does in an Excel formula, and why a copied column can be wrong while its first row is right. The four F4 states in order, mixed references, and when you need no dollar sign at all.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-absolute-vs-relative-references/">
+<meta property="og:title" content="Absolute vs Relative References in Excel: What the Dollar Sign Locks">
+<meta property="og:description" content="Excel stores the distance to a cell, not its address. A dollar sign replaces that distance with a fixed address, which is why one missing sign made a 1,326.40 column read 1,840.00.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-absolute-vs-relative-references.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-absolute-vs-relative-references/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-absolute-vs-relative-references.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Absolute vs Relative References in Excel: What the Dollar Sign Locks",
+  "description": "What the dollar sign does in an Excel formula, and why a copied column can be wrong while its first row is right. The four F4 states in order, mixed references, and when you need no dollar sign at all.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-absolute-vs-relative-references/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-absolute-vs-relative-references/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-10",
+  "dateModified": "2026-08-10",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/excel-absolute-vs-relative-references.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Absolute vs Relative References in Excel: What the Dollar Sign Locks",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-absolute-vs-relative-references/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../excel/">Excel Kit</a> · <a href="../">All guides</a></p>
+  <h1>Absolute vs Relative References in Excel: What the Dollar Sign Locks</h1>
+  <p class="meta">One character decides what moves when you copy · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can copy a formula anywhere in a sheet and say in advance which parts of it will move. You will be able to pin a rate so a whole column can use it, fill a nine-cell grid from a single formula, and recognize the copied column that is wrong even though its first row is right. It takes about twenty minutes. Every number below is printed next to the arithmetic that produced it, so you can check any of them.</p>
+
+  <p>Here is the move. When a formula points at a cell that must not move as the formula is copied, put a dollar sign in front of both halves of that address: <code>=D2*$G$1</code>. Click the reference in the formula bar and press F4 to put the signs in. That is the whole mechanic. A dollar sign means "this part stays where it is".</p>
+
+  <p>The short version: Excel does not store the address you typed. It stores the distance from your formula to the cell it points at. A dollar sign replaces that distance with a fixed address.</p>
+
+  <p>That is the idea everything else on the page rests on, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 300" role="img" aria-labelledby="refTitle refDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="refTitle">A relative reference fans out, an absolute one converges</title>
+      <desc id="refDesc">Two diagrams sit side by side. Each one shows a short column of four formula cells on the left and a matching column of four target cells on the right, with arrows running between them. The target cells are drawn identically in both diagrams: the top one is shaded because it holds a value, and the three below it have dashed empty outlines because nothing is stored in them. The only difference between the two diagrams is where the arrows go. Above the left diagram the formula reads equals D2 times G1, with no dollar signs, and its four arrows run straight across in parallel, each one reaching a different target cell, so three of the four land on empty outlines. Above the right diagram the same formula appears with dollar signs, reading equals D2 times dollar G dollar one, and its four arrows all curve upward and meet at the single shaded cell at the top, leaving the three empty ones untouched. Four separate landings on the left, one shared landing on the right.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+
+        <text x="30" y="34" font-size="16" font-weight="700" fill="#52525B">=D2*G1</text>
+        <g stroke="#E4E7EA" fill="#FFFFFF">
+          <rect x="30" y="56" width="96" height="40"/>
+          <rect x="30" y="104" width="96" height="40"/>
+          <rect x="30" y="152" width="96" height="40"/>
+          <rect x="30" y="200" width="96" height="40"/>
+        </g>
+        <rect x="256" y="56" width="86" height="40" fill="#C8E6F5" stroke="#E4E7EA"/>
+        <g stroke="#E4E7EA" fill="none" stroke-dasharray="4 4">
+          <rect x="256" y="104" width="86" height="40"/>
+          <rect x="256" y="152" width="86" height="40"/>
+          <rect x="256" y="200" width="86" height="40"/>
+        </g>
+        <g stroke="#52525B" stroke-width="2" fill="none" marker-end="url(#ah)">
+          <path d="M132 76 L248 76"/>
+          <path d="M132 124 L248 124"/>
+          <path d="M132 172 L248 172"/>
+          <path d="M132 220 L248 220"/>
+        </g>
+
+        <text x="418" y="34" font-size="16" font-weight="700" fill="#0E7490">=D2*$G$1</text>
+        <g stroke="#E4E7EA" fill="#FFFFFF">
+          <rect x="418" y="56" width="96" height="40"/>
+          <rect x="418" y="104" width="96" height="40"/>
+          <rect x="418" y="152" width="96" height="40"/>
+          <rect x="418" y="200" width="96" height="40"/>
+        </g>
+        <rect x="644" y="56" width="86" height="40" fill="#C8E6F5" stroke="#E4E7EA"/>
+        <g stroke="#E4E7EA" fill="none" stroke-dasharray="4 4">
+          <rect x="644" y="104" width="86" height="40"/>
+          <rect x="644" y="152" width="86" height="40"/>
+          <rect x="644" y="200" width="86" height="40"/>
+        </g>
+        <g stroke="#0E7490" stroke-width="2" fill="none" marker-end="url(#ahb)">
+          <path d="M520 76 L636 76"/>
+          <path d="M520 124 C596 124 600 84 636 78"/>
+          <path d="M520 172 C596 172 600 86 636 80"/>
+          <path d="M520 220 C596 220 600 88 636 82"/>
+        </g>
+      </g>
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#52525B"/>
+        </marker>
+        <marker id="ahb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#0E7490"/>
+        </marker>
+      </defs>
+    </svg>
+    <figcaption>Four copies of the same formula. On the left the second half of it travels with the copy, so three of the four arrows land on cells that hold nothing. On the right it is pinned, so every copy asks the same cell.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>The fork: should this part move, or stay?</li>
+      <li>What a relative reference actually stores</li>
+      <li>The rate in one cell, and the 513.60 it cost</li>
+      <li>F4, and the four states in order</li>
+      <li>Mixed: lock one half, free the other</li>
+      <li>Nine answers from one formula</li>
+      <li>Four things the dollar sign does not do</li>
+      <li>When you need no dollar sign at all</li>
+      <li>The full before and after</li>
+      <li>Edge cases that break a copied formula quietly</li>
+      <li>Why this works</li>
+      <li>Using this on your own workbook</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every number on this page is checkable.</strong> The worked example uses the sixteen-row orders table that runs through this set of guides, and every result is printed beside its arithmetic in the form 1,200 &times; 0.08 = 96.00. If a number here does not match the arithmetic next to it, I got it wrong and you caught it.</div>
+
+  <div class="step">
+    <h2>1. The fork: should this part move, or stay?</h2>
+
+    <p>Before the explanation, one question worth answering from memory. Think of a formula you have dragged down a column. Say which parts of it needed to point somewhere new on each row, and which parts needed to keep pointing at the same place.</p>
+
+    <p>That question is the whole decision, and it gets asked once per reference in the formula. There are two possible answers.</p>
+
+    <p><strong>Answer one: it should move.</strong> The reference points at something that belongs to this row. The amount for this order, the date of this order, the name on this line. If that is true, you want the reference to shift as the formula is copied, and you leave it alone. This is called a <strong>relative</strong> reference, and it is what you get by default.</p>
+
+    <p><strong>Answer two: it should stay.</strong> The reference points at one thing that every row shares. A commission rate, a tax percentage, an exchange rate, the top-left corner of a lookup table. If that is true, you want every copy of the formula to ask the same cell, and you write it as <code>$G$1</code>. This is an <strong>absolute</strong> reference.</p>
+
+    <p>What decides between them is not the formula and not the cell. It is the sentence you would say out loud about that reference. "The amount on this row" moves. "The rate" stays.</p>
+
+    <p>It matters because getting it backwards does not usually produce an error message. It produces a number, and the next section is about why that number is often believable.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. What a relative reference actually stores</h2>
+
+    <p>Here is the fact that makes the rest of the page obvious rather than memorized. Type <code>=D2</code> into cell E2. Excel does not remember "D2". It remembers "one cell to my left".</p>
+
+    <p>Copy that formula to E5 and it still means one cell to my left, which is now D5. The formula did not know it said D2. It only ever knew the distance.</p>
+
+    <p>Say it out loud, because it is the sentence the whole topic hangs off: a reference is a direction and a distance, not an address.</p>
+
+    <p>That is exactly why filling a column works at all. You write one formula for row 2 and copy it to row 17, and each copy quietly points at its own row, because "one cell to my left" is true on every row.</p>
+
+    <p>A dollar sign switches off that behavior for the half of the address it sits in front of. <code>$G</code> means column G, always, no matter where this formula ends up. <code>$1</code> means row 1, always. Put both in and the reference stops being a distance and becomes a place.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. The rate in one cell, and the 513.60 it cost</h2>
+
+    <p>Here is the failure, worked end to end on real numbers.</p>
+
+    <p>The orders table sits in A1:D17. Column D holds the amount. Off to the side is a small block of assumptions, which is where a careful person puts rates so they are visible and editable instead of buried inside formulas.</p>
+
+    <table>
+      <tr><th>Cell</th><th>Label</th><th>Value</th></tr>
+      <tr><td>G1</td><td>Commission rate</td><td>0.08</td></tr>
+      <tr><td>G2</td><td>Tax rate</td><td>0.20</td></tr>
+      <tr><td>G3</td><td>Uplift factor</td><td>1.05</td></tr>
+    </table>
+
+    <p>Now commission per order goes in column E. In E2 you write <code>=D2*G1</code> and fill it down to E17.</p>
+
+    <p>The first row is right. E2 reads 96.00, and 1,200 &times; 0.08 = 96.00. So the formula gets a nod and the fill gets trusted.</p>
+
+    <p>Here is what the next three rows did.</p>
+
+    <table>
+      <tr><th>Cell</th><th>What it became</th><th>Arithmetic</th><th>Result</th></tr>
+      <tr><td>E2</td><td><code>=D2*G1</code></td><td>1,200 &times; 0.08</td><td>96.00</td></tr>
+      <tr><td>E3</td><td><code>=D3*G2</code></td><td>950 &times; 0.20</td><td>190.00</td></tr>
+      <tr><td>E4</td><td><code>=D4*G3</code></td><td>1,480 &times; 1.05</td><td>1,554.00</td></tr>
+      <tr><td>E5</td><td><code>=D5*G4</code></td><td>720 &times; nothing</td><td>0.00</td></tr>
+      <tr><td>E6:E17</td><td><code>=D6*G5</code> and down</td><td>each amount &times; nothing</td><td>0.00</td></tr>
+    </table>
+
+    <p>The column totals <strong>1,840.00</strong>. It should total <strong>1,326.40</strong>, because the sixteen amounts add up to 16,580 and 16,580 &times; 0.08 = 1,326.40. The sheet is over by 513.60, and 1,840.00 minus 1,326.40 = 513.60.</p>
+
+    <p>Before reading on, say why row 2 came out right. Getting this in your own words is worth more than the fix itself.</p>
+
+    <p>Row 2 is right because row 2 is the row you wrote the formula for. The distance from E2 to G1 is up one, right two. On row 3 that same distance lands on G2, which is the tax rate. On row 4 it lands on the uplift factor. From row 5 down it lands in empty space, and an empty cell is treated as zero in arithmetic.</p>
+
+    <p>Two of those wrong numbers, 190.00 and 1,554.00, look like money. That is the part worth remembering. This mistake does not announce itself, and the one row a reviewer usually checks is the one row that is correct.</p>
+
+    <p>The fix is one keystroke. In E2, click on the <code>G1</code> and press F4, which turns it into <code>$G$1</code>, then fill down again.</p>
+
+    <pre><code>=D2*$G$1</code></pre>
+
+    <p>Now every row asks G1, the column totals 1,326.40, and changing the rate in G1 updates all sixteen rows at once. That second part is the real reward. The rate is in a cell someone can type into, which is what makes the sheet a model instead of a printout.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. F4, and the four states in order</h2>
+
+    <p>You almost never type dollar signs. You put the cursor on a reference and press F4, which cycles through the four possible states. Microsoft documents the order, and it is worth knowing because it means one extra press gets you where you want rather than starting over.</p>
+
+    <table>
+      <tr><th>Press</th><th>Looks like</th><th>What is locked</th><th>Use it when</th></tr>
+      <tr><td>1</td><td><code>$A$1</code></td><td>Column and row</td><td>One cell every copy must ask. Rates, thresholds, a lookup range.</td></tr>
+      <tr><td>2</td><td><code>A$1</code></td><td>Row only</td><td>Filling across and down, where the anchor lives in one row.</td></tr>
+      <tr><td>3</td><td><code>$A1</code></td><td>Column only</td><td>Filling across and down, where the anchor lives in one column.</td></tr>
+      <tr><td>4</td><td><code>A1</code></td><td>Nothing</td><td>Back to a plain relative reference.</td></tr>
+    </table>
+
+    <p>On a Mac the same toggle is Cmd+T, and F4 also works if your function keys are set up for it.</p>
+
+    <p>One thing that confuses people on Windows: F4 only cycles references when the cursor is on a reference inside a formula. Anywhere else it repeats your last action, which is a genuinely useful key for a different job.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Mixed: lock one half, free the other</h2>
+
+    <p>Before the explanation, a prediction. If <code>$G$1</code> pins both halves and <code>G1</code> pins neither, say what you think <code>G$1</code> pins.</p>
+
+    <p>The row. <code>G$1</code> is free to move sideways and stuck on row 1. Its mirror, <code>$G1</code>, is stuck in column G and free to move up and down.</p>
+
+    <p>These are called mixed references, and they exist for one situation: a formula that gets copied in two directions at once. When you only ever fill down a column, relative and fully absolute cover everything you need. The moment you fill across as well, you usually want one half of the address pinned and the other half loose.</p>
+
+    <p>The rule of thumb is short. Pin the part that must not change in the direction you are copying.</p>
+
+    <ul>
+      <li>Your anchors sit in a <strong>row</strong> across the top, and you copy down: lock the row, <code>G$1</code>.</li>
+      <li>Your anchors sit in a <strong>column</strong> down the side, and you copy across: lock the column, <code>$D2</code>.</li>
+      <li>Both at once is the grid in the next section, and it needs one of each.</li>
+    </ul>
+  </div>
+
+  <div class="step">
+    <h2>6. Nine answers from one formula</h2>
+
+    <p>Finance wants the commission bill at three possible rates, for the first three orders, so they can pick one. That is nine numbers. It is also one formula.</p>
+
+    <p>Put the three rates across the top, in J1, K1 and L1: 0.06, 0.08 and 0.10. The amounts are already down column D. In J2 write this, then fill it right to L2 and down to row 4.</p>
+
+    <pre><code>=$D2*J$1</code></pre>
+
+    <p>Read it as two decisions rather than as punctuation. <code>$D2</code> is locked to column D and free on the row, because the amount is always in D but changes row by row. <code>J$1</code> is locked to row 1 and free on the column, because the rate is always in row 1 but changes column by column.</p>
+
+    <p>Here is what the nine cells hold, with the arithmetic.</p>
+
+    <table>
+      <tr><th>Amount</th><th>At 0.06</th><th>At 0.08</th><th>At 0.10</th></tr>
+      <tr><td>1,200</td><td>72.00 (1,200 &times; 0.06)</td><td>96.00 (1,200 &times; 0.08)</td><td>120.00 (1,200 &times; 0.10)</td></tr>
+      <tr><td>950</td><td>57.00 (950 &times; 0.06)</td><td>76.00 (950 &times; 0.08)</td><td>95.00 (950 &times; 0.10)</td></tr>
+      <tr><td>1,480</td><td>88.80 (1,480 &times; 0.06)</td><td>118.40 (1,480 &times; 0.08)</td><td>148.00 (1,480 &times; 0.10)</td></tr>
+    </table>
+
+    <p>Nine correct answers, one formula, typed once. If you get a grid like this wrong, the symptom is recognizable: the whole first row or the whole first column is right and everything else is nonsense, because the one copy you checked was the one that needed no shifting.</p>
+
+    <p>Now picture this on your own numbers. Take a table you actually use, put two or three scenario values across the top of a blank area, and imagine which half of each address you would pin. You do not have to build it. Just decide, for one formula, which two dollar signs you would place and where.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. Four things the dollar sign does not do</h2>
+
+    <p>Each of these catches somebody, and three of them are only visible after the damage.</p>
+
+    <p><strong>It does not change the answer where you typed it.</strong> <code>=D2*G1</code> and <code>=D2*$G$1</code> return exactly the same number in E2. The difference appears only when the formula is copied somewhere else. That is why testing one cell proves nothing about a fill.</p>
+
+    <p><strong>It does not protect the cell from editing.</strong> Locking a reference and locking a cell are unrelated. Stopping people from typing over G1 is sheet protection, which is a different feature in a different menu.</p>
+
+    <p><strong>It does not stop a reference changing when the target physically moves.</strong> This one surprises people who think absolute means permanent. Insert a row above row 1, and every <code>$G$1</code> in the workbook quietly rewrites itself to <code>$G$2</code>, because Excel is following the value you pointed at. Absolute means "does not shift when the formula is copied", not "never changes".</p>
+
+    <p><strong>It does not survive a cut.</strong> Cutting the anchor cell with Ctrl+X and pasting it elsewhere drags every reference to it along, dollar signs and all. Copying it does not. If a model breaks the day someone tidied the layout, this is usually why.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. When you need no dollar sign at all</h2>
+
+    <p>There are two ways to get the same protection without any punctuation, and both read better afterwards.</p>
+
+    <p><strong>Name the cell.</strong> Select G1, type <code>CommissionRate</code> into the Name Box beside the formula bar, and press Enter. Now the formula is <code>=D2*CommissionRate</code>, which is already absolute, and which says what it means to anyone who opens the file next year. Defined names do not shift when a formula is copied.</p>
+
+    <p><strong>Put the data in a table.</strong> Inside an <a href="../excel-tables/">Excel Table created with Ctrl+T</a>, a column reference is written <code>[@Amount]</code> and it means "the amount on this row" by name rather than by distance. There is nothing to lock and nothing to get backwards, and the reference keeps working when columns are inserted. This is one of the better reasons to press Ctrl+T on a range you are about to write formulas against.</p>
+
+    <p>Neither one removes the need to understand the dollar sign, because you will read other people's workbooks for the rest of your career. But for the sheets you build, a named rate is easier to be right about than a pinned address.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same table, same rate, same fill. One character apart.</p>
+
+  <table>
+    <tr><th></th><th>Before: <code>=D2*G1</code></th><th>After: <code>=D2*$G$1</code></th></tr>
+    <tr><td>Row 2</td><td>96.00</td><td>96.00</td></tr>
+    <tr><td>Row 3</td><td>190.00 (used the tax rate)</td><td>76.00 (950 &times; 0.08)</td></tr>
+    <tr><td>Row 4</td><td>1,554.00 (used the uplift)</td><td>118.40 (1,480 &times; 0.08)</td></tr>
+    <tr><td>Rows 5 to 17</td><td>0.00 (pointed at empty cells)</td><td>Each amount &times; 0.08</td></tr>
+    <tr><td>Column total</td><td>1,840.00</td><td>1,326.40</td></tr>
+    <tr><td>Change the rate in G1</td><td>Three rows react, thirteen do not</td><td>All sixteen rows react</td></tr>
+    <tr><td>What a reviewer sees first</td><td>A correct first row</td><td>A correct first row</td></tr>
+  </table>
+
+  <p>The last line is the point of the whole page. Both versions pass the check most people run.</p>
+
+  <h2>Edge cases that break a copied formula quietly</h2>
+
+  <p>These are the ones that produce a number rather than an error.</p>
+
+  <ul>
+    <li><strong>A lookup range with no dollar signs.</strong> <code>=VLOOKUP(A2,H2:I50,2,FALSE)</code> filled down becomes <code>H3:I51</code>, then <code>H4:I52</code>. The range slides off the bottom of your lookup table and the last rows return not-found for no visible reason. Lock it: <code>$H$2:$I$50</code>. There is more on this in <a href="../vlookup-vs-xlookup/">VLOOKUP vs XLOOKUP</a>.</li>
+    <li><strong>Filling right when you only tested down.</strong> A column-only test passes, then somebody drags the same formula sideways and the row reference was never pinned. Test a fill in both directions if the formula might be copied in both.</li>
+    <li><strong>A mixed reference on the wrong axis.</strong> <code>$D2</code> where you meant <code>D$2</code> still returns numbers. They are just the wrong numbers, taken from a plausible neighbor.</li>
+    <li><strong>Rows inserted inside a locked range.</strong> <code>$H$2:$I$50</code> expands to <code>$H$2:$I$51</code> when a row is inserted inside it, which is usually what you want. Rows added at the bottom, outside the range, are not picked up at all. A table reference avoids the whole question.</li>
+    <li><strong>Conditional formatting uses the same mechanism.</strong> A formula rule is written once for the top-left cell of the selection and filled across the rest, which is why <a href="../excel-conditional-formatting/">one dollar sign turns a highlighted cell into a highlighted row</a>.</li>
+    <li><strong>The value that never moves anyway.</strong> If a rate appears in exactly one formula and nowhere else, a dollar sign is not the fix for anything. The fix is putting the rate in a cell in the first place, so it is visible and editable.</li>
+  </ul>
+
+  <h2>Why this works</h2>
+
+  <p>The mechanism itself is a design decision with an obvious payoff: storing an offset instead of an address is what lets one typed formula serve sixteen rows. Everything in this topic, including the failure, comes out of that single choice.</p>
+
+  <p>The failure is worth taking seriously, because reference mistakes are one of the plainest examples of a general finding about spreadsheets. They are common, they produce plausible output, and inspection catches fewer of them than people expect. When undergraduate students inspected a spreadsheet seeded with deliberate errors, working alone for forty-five minutes, they found 63% of them on average, and groups of three working together found 83% (Panko, 1999, <em>Journal of Management Information Systems</em>, 16(2), 159&ndash;176). A single reviewer glancing at one row is a long way below either number. The broader review of this literature is worth reading if you build models anybody relies on (Panko, 1998, <em>Journal of End User Computing</em>, 10(2), 15&ndash;21).</p>
+
+  <p>That is the argument for the habit at the end of this page rather than for being more careful. Care is not a control. A total you predicted before you looked is a control, and it is the reason this page keeps printing the arithmetic beside every number.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than read, because testing yourself on material transfers to new situations better than restudying it, which matters here since you will be applying this to sheets that look nothing like the one above (Butler, 2010, <em>Journal of Experimental Psychology: Learning, Memory, and Cognition</em>, 36(5), 1118&ndash;1133).</p>
+
+  <h2>Using this on your own workbook</h2>
+
+  <p>Auditing every reference in an inherited file is miserable and you will give up on the second sheet. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Find the numbers typed inside formulas.</strong> Anything like <code>*0.08</code> or <code>*1.2</code> sitting in a formula is a rate with nowhere to live. Move it to a labeled cell first. The dollar sign question does not even arise until the value has a home.</li>
+    <li><strong>Say the sentence out loud for each reference.</strong> "The amount on this row" moves. "The rate" stays. If you cannot say which one it is, that reference is the one to check.</li>
+    <li><strong>Use F4 rather than typing the signs.</strong> Fewer keystrokes and no chance of putting one in front of the wrong half.</li>
+    <li><strong>Check the last row, not the first.</strong> The first row of a fill is the one that is right in both the working and the broken version. Scroll to the bottom and read one formula there.</li>
+    <li><strong>Predict the column total before you look at it.</strong> Sixteen orders at eight percent should land near 1,300. A total of 1,840 fails that test in one second, and there is more on where these checks belong in <a href="../excel-check-your-work/">checking your work before anyone else does</a>.</li>
+    <li><strong>Name the anchors you keep reusing.</strong> A rate used in four formulas is worth a name. A rate used once is not.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch locks this in for good. Draw two columns of four boxes. On the left write one formula at the top and draw an arrow from each box to where it points when copied down. Do it once with the arrows fanning out to four different boxes, and once with all four arrows meeting at the top box. Then label which picture needed the dollar signs. You will not need to look this up again.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: Excel, SQL, Python, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>What a reference stores</td><td>A direction and a distance, not an address.</td></tr>
+    <tr><td><code>A1</code></td><td>Relative. Moves with the copy, both ways.</td></tr>
+    <tr><td><code>$A$1</code></td><td>Absolute. Every copy asks the same cell.</td></tr>
+    <tr><td><code>A$1</code></td><td>Row locked, column free. Anchors sitting in one row.</td></tr>
+    <tr><td><code>$A1</code></td><td>Column locked, row free. Anchors sitting in one column.</td></tr>
+    <tr><td>F4 order</td><td><code>$A$1</code>, <code>A$1</code>, <code>$A1</code>, <code>A1</code>. Mac: Cmd+T.</td></tr>
+    <tr><td>The question to ask</td><td>"The amount on this row" moves. "The rate" stays.</td></tr>
+    <tr><td>Grid, filled both ways</td><td><code>=$D2*J$1</code>. One of each, one formula, nine answers.</td></tr>
+    <tr><td>Why it survives review</td><td>The first row is correct in the broken version too.</td></tr>
+    <tr><td>Row 3 reading 190.00</td><td>The reference walked onto the next assumption down.</td></tr>
+    <tr><td>Rows reading 0.00</td><td>The reference walked into empty cells. Empty is zero.</td></tr>
+    <tr><td>Inserting a row</td><td>Rewrites <code>$G$1</code> to <code>$G$2</code>. Absolute is not permanent.</td></tr>
+    <tr><td>Cutting the anchor</td><td>Drags every reference with it. Copying does not.</td></tr>
+    <tr><td>Lookup range</td><td>Lock it, or it slides off the bottom of the table.</td></tr>
+    <tr><td>No dollar sign needed</td><td>A defined name, or <code>[@Amount]</code> inside a table.</td></tr>
+    <tr><td>Which row to check</td><td>The last one. The first one is right either way.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Predict the total before you read it. Sixteen orders at eight percent is roughly thirteen hundred, so 1,840.00 is wrong before you have looked at a single formula. A rough number you committed to in advance catches reference mistakes faster than reading the formulas will, and it costs about four seconds.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The most expensive version of this I have seen was a forecast where the growth rate was pinned correctly and the base year was not, so every column quietly grew from the wrong starting point and the shape of the chart still looked right. What is the longest one of these has gone unnoticed in a file you inherited?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Panko, R. R. (1999). Applying code inspection to spreadsheet testing. <em>Journal of Management Information Systems</em>, 16(2), 159&ndash;176.</li>
+    <li>Panko, R. R. (1998). What we know about spreadsheet errors. <em>Journal of End User Computing</em>, 10(2), 15&ndash;21.</li>
+    <li>Butler, A. C. (2010). Repeated testing produces superior transfer of learning relative to repeated studying. <em>Journal of Experimental Psychology: Learning, Memory, and Cognition</em>, 36(5), 1118&ndash;1133.</li>
+  </ul>
+
+  <div class="book">
+    <strong>The formula worked in the cell you typed it in, and you have no way to tell whether the other fifteen rows are right.</strong>
+    <p><em>Excel for Analysts</em> is 378 pages, references read one symbol at a time, with the checks that catch a bad fill before it reaches a report, and practice questions that print the answer and the reason it is right.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/excel-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-excel-absolute-vs-relative-references'})">Excel for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Practice this where a wrong reference shows itself.</strong>
+    <p style="margin:6px 0 0">The <a href="../../excel/">Excel Kit</a> gives you the repetitions: fills that break on row three, grids that need one of each sign, and questions that ask which row to check rather than which answer is right. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../excel/">Open the Excel Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../excel-tables/">Excel Tables vs Ranges</a> · <a href="../excel-index-match/">INDEX MATCH vs VLOOKUP</a> · <a href="../vlookup-vs-xlookup/">VLOOKUP vs XLOOKUP</a> · <a href="../excel-sumifs/">SUMIFS and COUNTIFS</a> · <a href="../excel-conditional-formatting/">Conditional Formatting</a> · <a href="../excel-check-your-work/">Check Your Work</a> · <a href="../excel-pivot-tables/">Make a Pivot Table</a> · <a href="../excel-dates/">Excel Dates</a> · <a href="../excel-remove-duplicates/">Remove Duplicates</a> · <a href="../excel-dynamic-arrays/">Dynamic Arrays</a> · <a href="../../excel/">Excel Kit</a> · <a href="../excel-kpi-row/">The KPI Row</a> · <a href="../choose-the-right-chart/">Choose the Right Chart</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
