@@ -207,6 +207,30 @@
   table.data th,table.data td{border:1px solid var(--line);padding:4px 9px;text-align:left;white-space:nowrap}
   table.data th{color:var(--muted);background:var(--bg)}
 
+  /* Celebration. The kit's confetti and toast, fired once per step the moment the shelves
+     match. Nothing here is scored, but finishing is still a fact, and a page that never
+     says so leaves you dragging fields at a chart that is already right. */
+  #celebrate-overlay{position:fixed;inset:0;pointer-events:none;z-index:999}
+  .confetti{position:absolute;top:-20px;width:8px;height:8px;border-radius:2px;
+    animation:fall 1.2s ease-in forwards}
+  @keyframes fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}
+    100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+  #toast{position:fixed;bottom:74px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--ok);color:#fff;padding:12px 24px;border-radius:12px;font-weight:600;
+    font-size:15px;z-index:1000;transition:.35s;opacity:0;pointer-events:none;
+    box-shadow:0 10px 30px rgba(9,9,11,.25)}
+  #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  /* The finished state of the nav button, so the route on is the thing that changed. */
+  button.ready{background:var(--ok);border-color:var(--ok);color:#fff;
+    animation:readypulse 1.6s ease-out 2}
+  button.ready:hover:not(:disabled){background:#126b32;border-color:#126b32;color:#fff}
+  @keyframes readypulse{0%{box-shadow:0 0 0 0 rgba(21,128,61,.5)}
+    100%{box-shadow:0 0 0 12px rgba(21,128,61,0)}}
+  @media (prefers-reduced-motion:reduce){
+    .confetti{display:none}
+    button.ready{animation:none}
+  }
+
   #directive{position:fixed;left:0;right:0;bottom:0;background:var(--card);
     border-top:1px solid var(--line);z-index:5;pointer-events:none}
   #directive p{max-width:1240px;margin:0 auto;padding:13px 20px;font-weight:600;font-size:15px}
@@ -350,7 +374,9 @@
   </footer>
 </div>
 
-<div id="directive"><p id="directive-text">Do the numbered steps on the left, then click Next step.</p></div>
+<div id="directive"><p id="directive-text">Do the numbered steps up top, then click Next step.</p></div>
+<div id="celebrate-overlay" aria-hidden="true"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
 <!-- ?v is bumped whenever these files change. Without it the browser happily serves a
      cached ladder against a fresh page, which shows up as steps that quietly disappear. -->
@@ -989,10 +1015,57 @@ function draw(){
 
   // Described, never scored. What is left to do, in the words of the tool.
   const missing = checkRung();
-  say(missing.length === 0
+  const solved = missing.length === 0;
+  const last = i === LADDER.rungs.length - 1;
+  say(solved
     ? '<span class="done">Done.</span> ' + answerLine() +
-      (i === LADDER.rungs.length - 1 ? ' That is the last step.' : ' Then click Next step.')
+      (last ? ' That is the last step.' : ' Then click Next step.')
     : '<b>Not yet.</b> ' + missing.join(', then ').replace(/^./, c => c.toUpperCase()) + '.');
+  // The moment the shelves match, not every redraw after it. solvedSeen is set true by
+  // render() before the first draw of a rung, so walking Back onto a step your shelves
+  // already satisfy does not throw confetti at you for doing nothing.
+  if(solved && !solvedSeen) celebrate(last ? '\u{1F389} Ladder complete.' : '✓ That is the chart. Next step →');
+  solvedSeen = solved;
+  markReady(solved, last);
+}
+
+// ── the celebration ─────────────────────────────────────────────────────────
+// Confetti and a toast, the kit's, and a green route out. Three signals for one fact,
+// because the one on screen is whichever one you happen to be looking at: the chart you
+// just finished, the button you have not looked at yet, or the line under the page.
+let solvedSeen = true;
+
+function celebrate(msg){
+  const overlay = $('celebrate-overlay');
+  const colors = ['#0E7490','#15803D','#F59E0B','#38BDF8','#A3E635'];
+  overlay.innerHTML = '';
+  for(let n = 0; n < 28; n++){
+    const d = document.createElement('div');
+    d.className = 'confetti';
+    d.style.cssText = 'left:' + (Math.random() * 100) + '%;background:' +
+      colors[n % colors.length] + ';animation-delay:' + (Math.random() * .4) +
+      's;animation-duration:' + (.9 + Math.random() * .6) + 's';
+    overlay.appendChild(d);
+  }
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => { overlay.innerHTML = ''; }, 1800);
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+function markReady(solved, last){
+  const btn = last ? $('restart') : $('next');
+  $('next').classList.remove('ready');
+  $('restart').classList.remove('ready');
+  if(solved) btn.classList.add('ready');
+  $('directive-text').textContent = solved
+    ? (last
+        ? 'That is the last step. Start over from step 1 whenever you want another lap.'
+        : 'That step is done. Click Next step.')
+    : (last
+        ? 'Last step. Do it, then start over from step 1 whenever you want more practice.'
+        : 'Do the numbered steps up top, then click Next step.');
 }
 
 function render(){
@@ -1008,9 +1081,9 @@ function render(){
   $('prev').disabled = i === 0;
   $('next').hidden = last;
   $('restart').hidden = !last;
-  $('directive-text').textContent = last
-    ? 'Last step. Do it, then start over from step 1 whenever you want more practice.'
-    : 'Do the numbered steps on the left, then click Next step.';
+  // A rung that lands already satisfied is announced by the Done line and the green
+  // button, not by confetti. Confetti is for the move that finished it.
+  solvedSeen = true;
   showTab('sql');
   draw();
   remember();

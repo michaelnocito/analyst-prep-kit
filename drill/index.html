@@ -156,6 +156,21 @@
   .tbls b{color:var(--ink)}
   .navbtns{display:flex;gap:8px;margin-left:auto}
 
+  /* Do this: the ask, the columns and the reason, full width above the work row. Read
+     once before the hands start, so it never competes with the query for width. */
+  .todo{margin:0 0 14px}
+  .todobody{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    align-items:stretch}
+  .todobody .question{border-bottom:none;border-right:1px solid var(--line);height:100%}
+  .todobody .colsask{border-bottom:none}
+  .todobody .why{border-top:none;padding-top:0}
+  .todoside{display:flex;flex-direction:column;justify-content:center;min-width:0}
+  @media (max-width:760px){
+    .todobody{grid-template-columns:1fr}
+    .todobody .question{border-right:none;border-bottom:1px solid var(--line)}
+    .todobody .why{padding-top:12px}
+  }
+
   /* Work row: the two things read against each other, and nothing else. */
   .work{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   @media (max-width:980px){ .work{grid-template-columns:1fr} }
@@ -299,6 +314,31 @@
     border-top:1px solid var(--line);z-index:5;pointer-events:none}
   #directive p{max-width:1240px;margin:0 auto;padding:13px 20px;font-weight:600;
     font-size:15px}
+  /* Celebration. The kit's confetti and toast, same as every other kit, fired once per
+     drill on the first match. A page with no score still owes the moment a signal, and the
+     signal has a second job here: it points at the control that carries on. */
+  #celebrate-overlay{position:fixed;inset:0;pointer-events:none;z-index:999}
+  .confetti{position:absolute;top:-20px;width:8px;height:8px;border-radius:2px;
+    animation:fall 1.2s ease-in forwards}
+  @keyframes fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}
+    100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+  #toast{position:fixed;bottom:74px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--ok);color:#fff;padding:12px 24px;border-radius:12px;font-weight:600;
+    font-size:15px;z-index:1000;transition:.35s;opacity:0;pointer-events:none;
+    box-shadow:0 10px 30px rgba(9,9,11,.25)}
+  #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  /* The done state of the nav button. Green, ringed, and it says so: the one complaint a
+     no-score page invites is not knowing when a rung is finished. */
+  button.ready{background:var(--ok);border-color:var(--ok);color:#fff;
+    animation:readypulse 1.6s ease-out 2}
+  button.ready:hover:not(:disabled){background:#126b32;border-color:#126b32;color:#fff}
+  @keyframes readypulse{0%{box-shadow:0 0 0 0 rgba(21,128,61,.5)}
+    100%{box-shadow:0 0 0 12px rgba(21,128,61,0)}}
+  @media (prefers-reduced-motion:reduce){
+    .confetti{display:none}
+    button.ready{animation:none}
+  }
+
   footer{border-top:1px solid var(--line);margin:22px 0 0;padding:18px 0 0;
     font-size:13.5px;color:var(--muted)}
 </style>
@@ -335,16 +375,27 @@
     </span>
   </div>
 
+  <!-- Do this runs full width above the work row. The ask, the columns and the reason are
+       read once before typing starts; sitting them in the left pane squeezed the query and
+       the editor into half a screen each for content neither of them is. -->
+  <div class="pane todo">
+    <div class="panehead"><h2>Do this</h2></div>
+    <div class="todobody">
+      <p class="question" id="question"></p>
+      <div class="todoside">
+        <p class="colsask" id="colsask"></p>
+        <p class="why"><span id="why"></span><a class="whymore" id="whymore" hidden></a></p>
+      </div>
+    </div>
+  </div>
+
   <div class="work">
     <div class="pane">
       <div class="panehead">
         <h2>Type this query</h2>
         <button class="copy" data-copy="query">Copy</button>
       </div>
-      <p class="question" id="question"></p>
-      <p class="colsask" id="colsask"></p>
       <pre id="query"></pre>
-      <p class="why"><span id="why"></span><a class="whymore" id="whymore" hidden></a></p>
     </div>
 
     <div class="pane">
@@ -393,6 +444,8 @@
 </div>
 
 <div id="directive"><p id="directive-text">Type the whole query, run it, then take the next drill.</p></div>
+<div id="celebrate-overlay" aria-hidden="true"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
 <div id="breakwrap" hidden role="dialog" aria-modal="true" aria-labelledby="breakhead">
   <div class="breakcard">
@@ -522,6 +575,12 @@ function render(){
   $('directive-text').textContent = last
     ? 'Last drill. Type it, run it, then start over from drill 1 whenever you want the practice.'
     : 'Type the whole query, run it, then take the next drill.';
+  // A fresh drill is unfinished by definition, so the finished state is cleared here and
+  // nowhere else. Arriving back on a drill you already matched shows it unfinished again,
+  // which is right: the rep is the typing, and you have not typed it this time.
+  celebrated = false;
+  $('next').classList.remove('ready');
+  $('restart').classList.remove('ready');
   showTab('results');
   seedHeader(d.header, carried, mask);
   $('carrynote').hidden = !carried;
@@ -725,6 +784,7 @@ function run(){
     say('That is the comment header on its own. The query goes under it, and the one to ' +
         'type is on the left.', false);
     $('out').innerHTML = '';
+    markReady(false);
     return;
   }
   let res;
@@ -737,6 +797,7 @@ function run(){
     say('<span class="no">SQLite could not run that.</span> It says: ' + esc(e.message) +
         '. Compare your line against the query on the left.', false);
     $('out').innerHTML = '';
+    markReady(false);
     return;
   }
   // Described, not graded. The page promises no score, so the row count is reported as a
@@ -767,7 +828,54 @@ function run(){
   }
   say(line, matched);
   $('out').innerHTML = table(res);
+  markReady(matched);
   handOff(matched);
+}
+
+// ── the celebration ─────────────────────────────────────────────────────────
+// Once per drill, on the first match. Running the same correct query again does not fire
+// it, because a signal that arrives every press stops being a signal.
+let celebrated = false;
+
+function celebrate(msg){
+  if(celebrated) return;
+  celebrated = true;
+  const overlay = $('celebrate-overlay');
+  const colors = ['#0E7490','#15803D','#F59E0B','#38BDF8','#A3E635'];
+  overlay.innerHTML = '';
+  for(let n = 0; n < 28; n++){
+    const d = document.createElement('div');
+    d.className = 'confetti';
+    d.style.cssText = 'left:' + (Math.random() * 100) + '%;background:' +
+      colors[n % colors.length] + ';animation-delay:' + (Math.random() * .4) +
+      's;animation-duration:' + (.9 + Math.random() * .6) + 's';
+    overlay.appendChild(d);
+  }
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => { overlay.innerHTML = ''; }, 1800);
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// The finished state, said in three places at once: the button that carries on, the line
+// under the page, and the confetti. Whichever one they happen to be looking at, they know.
+function markReady(matched){
+  const last = i === LADDER.drills.length - 1;
+  const btn = last ? $('restart') : $('next');
+  $('next').classList.remove('ready');
+  $('restart').classList.remove('ready');
+  if(!matched){
+    $('directive-text').textContent = last
+      ? 'Last drill. Type it, run it, then start over from drill 1 whenever you want the practice.'
+      : 'Type the whole query, run it, then take the next drill.';
+    return;
+  }
+  btn.classList.add('ready');
+  $('directive-text').textContent = last
+    ? 'That is the last drill on this ladder. Start over from drill 1 whenever you want another lap.'
+    : 'That one is done. Click Next drill, or press Enter.';
+  celebrate(last ? '\u{1F389} Ladder complete.' : '✓ Match. Next drill →');
 }
 
 // The answer goes in two places from one string: beside Run, which is the only one on
