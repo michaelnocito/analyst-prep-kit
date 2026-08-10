@@ -76,6 +76,54 @@ winnability (tail terms we can own beat head terms we cannot).
   data-grain ("what is the grain of a table" — the concept every kit teaches),
   pareto-abc-analysis ("abc analysis inventory pareto").
 
+## Gaps found by the guide-popup rollout, 2026-08-09/10
+
+A different source from the 50 above. Those came from kit LESSON lists; these
+came from wiring the "Read more" popup into four kits and finding questions with
+nowhere to send a learner. Each line names the kit questions that proved it, so
+none of these is a guess about what people search for — it is a hole a studying
+user actually falls into.
+
+Ranked by how many kits the hole appears in.
+
+1. **Absolute vs relative references** — `excel-cert` q25, `final` e1. TWO kits.
+   The one thing every formula question assumes and no guide teaches.
+   `excel-sumifs` shows `$D$2:$D$17` in passing and
+   `excel-conditional-formatting` §3 covers mixed refs inside CF rules; neither
+   is findable by someone searching the concept. Target: "absolute vs relative
+   reference excel", "what does the dollar sign do in excel".
+2. **Power BI domains 3 and 4** — `powerbi-cert` q29-q50, **22 of 50 questions
+   with one guide between them**. Visuals, drillthrough, bookmarks, AI visuals,
+   the Service, workspaces and roles, apps, gateways, RLS, data alerts.
+   Probably three or four guides, not one.
+3. **DAX iterators, SUM vs SUMX** — `powerbi-cert` q22, `final` b3. TWO kits.
+   `powerbi-calculate` mentions SUMX only as context transition, never the
+   "SUM takes one column" failure both questions test.
+4. **Interview skills** — `final` i1-i4, **the entire Interview section with
+   zero guides**: STAR, leading with the answer, handling a vague stakeholder
+   ask, when to discuss salary. Closest live pages (`report-vs-analysis`,
+   `technical-tenacity`) do not cover any of the four.
+5. **Pandas selection** — `final` p2, p3. Boolean indexing and `.loc` vs
+   `.iloc`. The pandas cluster jumps from `read_csv` straight to `groupby`.
+6. **The COUNT family** — `excel-cert` q26. COUNT vs COUNTA vs COUNTBLANK.
+   `excel-if-family` is IF/COUNTIF/SUMIF and does not cover the split.
+7. **Paste Special** — `excel-cert` q11, q20. Formulas to values, transpose,
+   formats. Only mention in the library is `excel-data-validation`, where a
+   paste WIPES validation rules — the opposite topic.
+8. **Excel text functions** — `excel-cert` q29, q30. MID/LEFT/RIGHT/LEN and
+   TEXTJOIN. Nothing exists.
+9. **Power Query profiling and query management** — `powerbi-cert` q3, q9, q13.
+   Column quality/distribution defaults, reference vs duplicate, Replace/Remove
+   Errors. `excel-power-query` covers none of the three.
+10. **Semi-additive measures** — `powerbi-cert` q24. Smallest of the set;
+    may belong inside a time-intelligence follow-up rather than its own guide.
+
+Deliberately NOT proposed as guides: the MO-210 ribbon mechanics (freeze panes,
+print area, Page Layout view, Inspect Document, Show Formulas, Format Painter,
+Auto Fill, Ctrl+1, sparklines, Move Chart, Switch Row/Column, chart alt text).
+They are exam-specific button locations, not concepts, and the kit's own
+explanations already do that job.
+
 ## Rules that govern the builds
 - Every guide follows `marketing/ARTICLE_STANDARD.md` and clones the current
   guide template (sql-group-by-having is the reference page).
