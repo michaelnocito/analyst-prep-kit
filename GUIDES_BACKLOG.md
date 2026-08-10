@@ -95,10 +95,28 @@ Ranked by how many kits the hole appears in.
    fill walks onto the next two assumptions and then into empty cells, with row
    2 correct in both versions. F4 order and the Mac shortcut come from
    Microsoft's own reference page; the 63%/83% inspection numbers are Panko 1999.
-2. **Power BI domains 3 and 4** — `powerbi-cert` q29-q50, **22 of 50 questions
-   with one guide between them**. Visuals, drillthrough, bookmarks, AI visuals,
-   the Service, workspaces and roles, apps, gateways, RLS, data alerts.
-   Probably three or four guides, not one.
+2. **Power BI domains 3 and 4** — `powerbi-cert` q29-q50, originally **22 of 50
+   questions with one guide between them**. Being split by exam domain, one
+   guide per batch. Remaining sub-items in the order I would take them:
+   - ⬜ **Domain 3, visuals and interactions** — q31-q41. Slicers vs the Filters
+     pane, cross-filtering defaults, drillthrough, bookmarks, decomposition
+     tree and the AI visuals, conditional formatting, forecasting, sync
+     slicers, binning, phone layout. Probably two guides, not one.
+   - ⬜ **Domain 4, the Service and sharing** — q42-q44, q49, q50. Workspace to
+     app, workspace roles, report vs dashboard, endorsement and labels, and
+     why app consumers still see yesterday's version until you update the app.
+   - ⬜ **Domain 4, refresh and gateways** — q45, q48. On-premises data gateway,
+     scheduled refresh, data alerts.
+   - ✅ **Row-level security** — BUILT 2026-08-10 as
+     `powerbi-row-level-security`, wired into `powerbi-cert` q46 and q47. One
+     fact: RLS binds Viewers and app consumers only, never workspace Admin,
+     Member or Contributor. One worked failure: an East manager correctly
+     assigned to a correct role reads 9,890 where 3,040 was intended, and
+     View As and Test as role both pass. Plus the additive-roles union, 4,040
+     where 600 was expected, and the dynamic-RLS fall-through of TRUE that
+     hands the table to a typo. Everything quoted from Microsoft's RLS
+     reference and RLS guidance pages; Saltzer and Schroeder 1975 for least
+     privilege and fail-safe defaults.
 3. ✅ **DAX iterators, SUM vs SUMX** — BUILT 2026-08-10 as
    `powerbi-sum-vs-sumx`, wired into both questions that proved it,
    `powerbi-cert` q22 and `final` b3. The second and last item on this list to

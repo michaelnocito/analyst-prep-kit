@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Row-Level Security in Power BI: Who Gets Filtered and Who Does Not — Analyst Prep Kit</title>
+<meta name="description" content="RLS only restricts users with the Viewer role. Workspace Admins, Members and Contributors see every row, by design. Two roles is a union rather than an intersection. Worked on sixteen orders with the arithmetic printed.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-row-level-security/">
+<meta property="og:title" content="Row-Level Security in Power BI: Who Gets Filtered and Who Does Not">
+<meta property="og:description" content="A role is a filter that returns TRUE or FALSE for every row. Whether it binds you depends on your workspace role, not on the filter. An East manager who is a workspace Member reads 9,890 where 3,040 was intended.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/powerbi-row-level-security.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-row-level-security/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/powerbi-row-level-security.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Row-Level Security in Power BI: Who Gets Filtered and Who Does Not",
+  "description": "RLS only restricts users with the Viewer role. Workspace Admins, Members and Contributors see every row, by design. Two roles is a union rather than an intersection. Worked on sixteen orders with the arithmetic printed.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-row-level-security/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-row-level-security/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-10",
+  "dateModified": "2026-08-10",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/powerbi-row-level-security.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Row-Level Security in Power BI: Who Gets Filtered and Who Does Not",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-row-level-security/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../powerbi/">Power BI Kit</a> · <a href="../">All guides</a></p>
+  <h1>Row-Level Security in Power BI: Who Gets Filtered and Who Does Not</h1>
+  <p class="meta">The filter is the easy half. Who it binds is the half that goes wrong · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can set up row-level security, and, more usefully, predict what any given person will actually see before they open the report. You will know the one setting that switches the whole thing off without any warning, why adding somebody to a second role gives them more data rather than less, and what the built-in test proves and what it quietly does not. It takes about twenty-five minutes. Every number below is printed next to the arithmetic that produced it.</p>
+
+  <p>Here is the move. You write a rule in Power BI Desktop under <strong>Modeling &rsaquo; Manage roles</strong>, something like <code>[Region] = "East"</code>. You publish. Then you go to the Power BI Service, open the semantic model's <strong>Security</strong> page, and add people to that role. Two tools, two steps, and skipping the second one is the most common reason RLS appears to do nothing.</p>
+
+  <p>The short version: a role is a filter that answers TRUE or FALSE for every row, and rows that answer FALSE are removed. Whether it binds a particular person depends on their workspace role, not on the filter.</p>
+
+  <p>That second sentence is where almost all the damage lives, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 400" role="img" aria-labelledby="rlsTitle rlsDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="rlsTitle">One path goes through the filter, the other goes around it</title>
+      <desc id="rlsDesc">On the left is a tall stack of sixteen identical narrow bars, drawn in outline, standing for every row in the model. Two routes lead away from that stack to the right. The upper route runs into a funnel, wide where it enters and narrow where it leaves, and comes out the far side as a short stack of only four solid bars, marked Viewer. The lower route leaves the same stack, curves underneath the funnel without touching it, and arrives on the right as a full stack of all sixteen solid bars, marked Admin, Member, Contributor. Same model, same rule, same starting rows. The only difference between the two routes is whether they meet the funnel at all, and the route that misses it delivers everything.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+
+        <g fill="#FFFFFF" stroke="#A1A1AA">
+          <rect x="30" y="60" width="118" height="9"/><rect x="30" y="72" width="118" height="9"/>
+          <rect x="30" y="84" width="118" height="9"/><rect x="30" y="96" width="118" height="9"/>
+          <rect x="30" y="108" width="118" height="9"/><rect x="30" y="120" width="118" height="9"/>
+          <rect x="30" y="132" width="118" height="9"/><rect x="30" y="144" width="118" height="9"/>
+          <rect x="30" y="156" width="118" height="9"/><rect x="30" y="168" width="118" height="9"/>
+          <rect x="30" y="180" width="118" height="9"/><rect x="30" y="192" width="118" height="9"/>
+          <rect x="30" y="204" width="118" height="9"/><rect x="30" y="216" width="118" height="9"/>
+          <rect x="30" y="228" width="118" height="9"/><rect x="30" y="240" width="118" height="9"/>
+        </g>
+
+        <path d="M330 14 L420 42 L420 82 L330 110" fill="none" stroke="#0E7490" stroke-width="2.5" stroke-linejoin="round"/>
+
+        <g stroke="#0E7490" stroke-width="2" fill="none" marker-end="url(#rlsArrow)">
+          <path d="M154 118 C230 118 250 62 322 62"/>
+          <path d="M426 62 L590 62"/>
+        </g>
+        <g stroke="#52525B" stroke-width="2" fill="none" marker-end="url(#rlsArrowGrey)">
+          <path d="M154 200 C300 200 420 264 590 264"/>
+        </g>
+
+        <text x="730" y="30" text-anchor="end" font-size="16" font-weight="700" fill="#0E7490">Viewer</text>
+        <g fill="#0E7490">
+          <rect x="600" y="40" width="130" height="9"/><rect x="600" y="52" width="130" height="9"/>
+          <rect x="600" y="64" width="130" height="9"/><rect x="600" y="76" width="130" height="9"/>
+        </g>
+
+        <text x="730" y="158" text-anchor="end" font-size="15" font-weight="700" fill="#52525B">Admin &#183; Member &#183; Contributor</text>
+        <g fill="#52525B">
+          <rect x="600" y="170" width="130" height="9"/><rect x="600" y="182" width="130" height="9"/>
+          <rect x="600" y="194" width="130" height="9"/><rect x="600" y="206" width="130" height="9"/>
+          <rect x="600" y="218" width="130" height="9"/><rect x="600" y="230" width="130" height="9"/>
+          <rect x="600" y="242" width="130" height="9"/><rect x="600" y="254" width="130" height="9"/>
+          <rect x="600" y="266" width="130" height="9"/><rect x="600" y="278" width="130" height="9"/>
+          <rect x="600" y="290" width="130" height="9"/><rect x="600" y="302" width="130" height="9"/>
+          <rect x="600" y="314" width="130" height="9"/><rect x="600" y="326" width="130" height="9"/>
+          <rect x="600" y="338" width="130" height="9"/><rect x="600" y="350" width="130" height="9"/>
+        </g>
+      </g>
+      <defs>
+        <marker id="rlsArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#0E7490"/>
+        </marker>
+        <marker id="rlsArrowGrey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#52525B"/>
+        </marker>
+      </defs>
+    </svg>
+    <figcaption>Sixteen rows, one role, one rule. The route through the funnel is what a Viewer gets. Anyone with edit rights on the model takes the other route, and the rule never runs for them.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>The fork: can this person edit the model, or only read it?</li>
+      <li>What a role actually is</li>
+      <li>Two tools, two steps: where roles live and where people do</li>
+      <li>The failure: the East manager who sees 9,890</li>
+      <li>Two roles is a union, not an intersection</li>
+      <li>Dynamic RLS, and the typo that opens the whole table</li>
+      <li>What View As proves, and what it does not</li>
+      <li>Four things RLS does not do</li>
+      <li>The full before and after</li>
+      <li>Edge cases that return the wrong rows quietly</li>
+      <li>Why this works</li>
+      <li>Using this on your own model</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every number on this page is checkable.</strong> It runs on the sixteen-order fixture used across these Power BI guides, and every total is printed beside its arithmetic. Every behavior described is quoted from Microsoft's own documentation in the "why this works" section rather than inferred, because this is the one topic on the site where being approximately right is the same as being wrong.</div>
+
+  <p><strong>Orders</strong>, the fact table, with revenue already worked out per line. Sixteen rows, four regions.</p>
+
+  <table>
+    <tr><th>OrderID</th><th>Region</th><th>Product</th><th>Units</th><th>Revenue</th></tr>
+    <tr><td>1001</td><td>North</td><td>Desk</td><td>4</td><td>880</td></tr>
+    <tr><td>1002</td><td>South</td><td>Chair</td><td>10</td><td>850</td></tr>
+    <tr><td>1003</td><td>East</td><td>Desk</td><td>3</td><td>660</td></tr>
+    <tr><td>1004</td><td>North</td><td>Lamp</td><td>6</td><td>240</td></tr>
+    <tr><td>1005</td><td>South</td><td>Desk</td><td>3</td><td>660</td></tr>
+    <tr><td>1006</td><td>East</td><td>Chair</td><td>8</td><td>680</td></tr>
+    <tr><td>1007</td><td>North</td><td>Chair</td><td>5</td><td>425</td></tr>
+    <tr><td>1008</td><td>West</td><td>Lamp</td><td>12</td><td>480</td></tr>
+    <tr><td>1009</td><td>South</td><td>Lamp</td><td>7</td><td>280</td></tr>
+    <tr><td>1010</td><td>East</td><td>Desk</td><td>5</td><td>1,100</td></tr>
+    <tr><td>1011</td><td>North</td><td>Desk</td><td>2</td><td>440</td></tr>
+    <tr><td>1012</td><td>West</td><td>Chair</td><td>9</td><td>765</td></tr>
+    <tr><td>1013</td><td>East</td><td>Lamp</td><td>15</td><td>600</td></tr>
+    <tr><td>1014</td><td>North</td><td>Chair</td><td>6</td><td>510</td></tr>
+    <tr><td>1015</td><td>South</td><td>Desk</td><td>4</td><td>880</td></tr>
+    <tr><td>1016</td><td>West</td><td>Desk</td><td>2</td><td>440</td></tr>
+  </table>
+
+  <p>Four regional totals, and they are the four numbers the rest of the page checks against.</p>
+
+  <table>
+    <tr><th>Region</th><th>Orders</th><th>Revenue</th><th>Arithmetic</th></tr>
+    <tr><td>North</td><td>5</td><td>2,495</td><td>880 + 240 + 425 + 440 + 510</td></tr>
+    <tr><td>South</td><td>4</td><td>2,670</td><td>850 + 660 + 280 + 880</td></tr>
+    <tr><td>East</td><td>4</td><td>3,040</td><td>660 + 680 + 1,100 + 600</td></tr>
+    <tr><td>West</td><td>3</td><td>1,685</td><td>480 + 765 + 440</td></tr>
+    <tr><td><strong>All</strong></td><td><strong>16</strong></td><td><strong>9,890</strong></td><td>2,495 + 2,670 + 3,040 + 1,685</td></tr>
+  </table>
+
+  <div class="step">
+    <h2>1. The fork: can this person edit the model, or only read it?</h2>
+
+    <p>Before the explanation, one question worth answering from memory. Think of the last Power BI report you shared with somebody. Say whether that person could open the underlying model and change a measure, or whether they could only look at what you built.</p>
+
+    <p>That question, not the rule you wrote, decides whether row-level security does anything at all. There are two answers.</p>
+
+    <p><strong>Answer one: they can only read.</strong> Their workspace role is Viewer, or they got the report through a published app. If that is true, every rule you wrote runs against every query they make, and they see only the rows their role permits.</p>
+
+    <p><strong>Answer two: they can edit.</strong> Their workspace role is Admin, Member or Contributor. If that is true, row-level security does not apply to them at all. Not partially, not with a warning. They see every row in the model, and the report gives them no sign that a rule exists.</p>
+
+    <p>What decides between them is a dropdown in the workspace access panel, which is usually set by whoever added the person, often months earlier, and usually not by whoever wrote the security rule. That gap between the two decisions is where this fails.</p>
+
+    <p>It matters because the failure is silent on both sides. The person seeing too much has no idea, and the person who built the model tested it and watched it work.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. What a role actually is</h2>
+
+    <p>A role is a name plus one or more filters, and each filter is attached to a table. The filter is a DAX expression that gets asked about every single row and has to answer TRUE or FALSE. Microsoft's wording is worth having exactly: "A DAX filter evaluates TRUE/FALSE for each row. Only rows that return TRUE are visible. Everything else is completely removed."</p>
+
+    <p>Completely removed is the part to hold on to. This is not a report filter that a user can clear, and it is not a default someone can override in the Filters pane. The rows are gone before the visual is drawn.</p>
+
+    <p>The simplest useful rule, typed into the DAX editor under Modeling &rsaquo; Manage roles, is a comparison:</p>
+
+    <pre><code>[Region] = "East"</code></pre>
+
+    <p>Say out loud what that returns for order 1004, which is a North lamp. FALSE, so the row is dropped. Order 1013 is an East lamp, so TRUE, so the row stays. Sixteen questions, four answers of TRUE, and the model an East role member queries has four rows in Orders and totals 3,040.</p>
+
+    <p>One naming rule that catches people, and it is documented rather than folklore: a role name cannot contain a comma. <code>London,ParisRole</code> is rejected.</p>
+
+    <p>Filters land on one table and then travel. RLS filters propagate through the model's relationships the same way any other filter does, which is why it is usually better to put the rule on a small dimension table and let it flow to the fact table. That is one more argument for a proper <a href="../powerbi-star-schema/">star schema</a>, and Microsoft's guidance says so directly: "it's often more efficient to enforce RLS filters on dimension tables, and not fact tables."</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Two tools, two steps: where roles live and where people do</h2>
+
+    <p>This trips up more exam candidates than any other part of the topic, and the reason is that the job is split across two different products.</p>
+
+    <table>
+      <tr><th>Step</th><th>Where</th><th>What you do</th></tr>
+      <tr><td>1. Define the role</td><td>Power BI Desktop</td><td>Modeling &rsaquo; Manage roles. Name it, pick a table, write the DAX filter.</td></tr>
+      <tr><td>2. Publish</td><td>Desktop to the Service</td><td>The role definitions travel with the model. The membership does not, because it does not exist yet.</td></tr>
+      <tr><td>3. Assign people</td><td>Power BI Service</td><td>Semantic model &rsaquo; Security. Add users or security groups to each role.</td></tr>
+      <tr><td>4. Validate</td><td>Either</td><td>View As in Desktop, or Test as role in the Service.</td></tr>
+    </table>
+
+    <p>You cannot assign users to a role in Desktop. The option is not hidden or buried, it is not there, because Desktop has no idea who is in your organization. And the Security page in the Service only appears for models that already have roles defined, so a model with no roles gives you nothing to click and no explanation.</p>
+
+    <p>Two smaller facts that come up. Only the semantic model's owner or a workspace admin can add members to roles. And Microsoft 365 groups cannot be used for role membership at all; security groups, distribution groups and mail-enabled groups can.</p>
+
+    <p>Anyone who has published a model but not assigned anybody gets the outcome that looks like a bug and is not. A user in no role at all typically sees nothing rather than everything, because the rule is enforced and no role permits any row.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. The failure: the East manager who sees 9,890</h2>
+
+    <p>Here it is worked end to end, and it is the version that actually happens.</p>
+
+    <p>Priya runs the East region. You build the model, write <code>[Region] = "East"</code> into a role called East, publish it, add Priya to the role in the Service, and test it. The test passes: four orders, 3,040.</p>
+
+    <p>Some weeks earlier, though, Priya was added to the workspace so she could open the other three reports the team keeps there. She was given <strong>Member</strong>. Nobody connected the two decisions, because they were made by different people for different reasons on different days.</p>
+
+    <p>Priya opens her regional card. It reads <strong>9,890</strong>.</p>
+
+    <table>
+      <tr><th>What was intended</th><th>What she sees</th><th>Gap</th></tr>
+      <tr><td>3,040, the four East orders</td><td>9,890, all sixteen orders</td><td>6,850 (9,890 &minus; 3,040)</td></tr>
+    </table>
+
+    <p>Before reading on, say why the report gives her no clue. The rule is still there, the role is still assigned, and she is still a member of it.</p>
+
+    <p>Because there is nothing to show. RLS does not grey anything out or add a banner. It removes rows before the query returns, so a report with no rows removed is identical to a report that never had a rule. Priya's card is not displaying an error. It is displaying the correct total for the rows she was given, and she was given all of them.</p>
+
+    <p>The fix is one dropdown, and it is not in the model. In the workspace access panel, change Priya from Member to <strong>Viewer</strong>. She keeps the reports, loses nothing she uses, and the rule starts running. If she needs to build her own reports on top of the model, give her Viewer plus Build permission on the semantic model, because RLS still applies to Viewers who have Build. Microsoft states that case explicitly, including for Analyze in Excel.</p>
+
+    <p>Now picture this on a workspace you actually own. Open the access list and read the roles rather than the names. Say out loud how many people on it could edit, and whether every one of them is supposed to see every row. That count is the real scope of your security rule.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Two roles is a union, not an intersection</h2>
+
+    <p>Before the explanation, a prediction. Somebody is in a role that permits East, and you also add them to a role that permits lamps. Say whether they end up seeing East lamps only, or something larger.</p>
+
+    <p>Something larger, and it is the answer most people get wrong because every other permission system they have used behaves the other way.</p>
+
+    <p>Microsoft's guidance is unambiguous: "When a report user is assigned to multiple roles, RLS filters become additive. It means report users can see table rows that represent the union of those filters." And the sentence right after it is the one to memorize, because it names the assumption being broken: "unlike permissions applied to SQL Server database objects (and other permission models), the 'once denied always denied' principle doesn't apply."</p>
+
+    <p>Worked on the fixture. The East role permits orders 1003, 1006, 1010 and 1013. A Lamps role permits every lamp order, which is 1004, 1008, 1009 and 1013.</p>
+
+    <table>
+      <tr><th>What you get</th><th>Orders</th><th>Revenue</th><th>Arithmetic</th></tr>
+      <tr><td>East role alone</td><td>1003, 1006, 1010, 1013</td><td>3,040</td><td>660 + 680 + 1,100 + 600</td></tr>
+      <tr><td>Lamps role alone</td><td>1004, 1008, 1009, 1013</td><td>1,600</td><td>240 + 480 + 280 + 600</td></tr>
+      <tr><td>What people expect from both</td><td>1013</td><td>600</td><td>The one East lamp</td></tr>
+      <tr><td><strong>What both actually give</strong></td><td><strong>seven orders</strong></td><td><strong>4,040</strong></td><td>660 + 240 + 680 + 480 + 280 + 1,100 + 600</td></tr>
+    </table>
+
+    <p>Expected 600, delivered 4,040, and 4,040 minus 600 = 3,440 of rows nobody meant to hand over. Adding a second role widened the access, which is the opposite of what "adding a restriction" sounds like.</p>
+
+    <p>Microsoft's own illustration of this is starker than mine and worth keeping in your head as the extreme case. A Workers role restricts a Payroll table with the rule <code>FALSE()</code>, so it returns no rows at all. A Managers role uses <code>TRUE()</code>, so it returns everything. Somebody who maps to both roles sees the entire Payroll table. The deny does not win. There is no deny.</p>
+
+    <p>The fix is a design rule rather than a setting: <strong>one person, one role</strong>. If a person needs East and lamps together, build a single role that carries both filters, one on each table, so both conditions apply at once. Microsoft's guidance recommends exactly this, and the reason it gives is worth noting: a user can end up in a second role indirectly, through a security group, without anybody deciding to put them there.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. Dynamic RLS, and the typo that opens the whole table</h2>
+
+    <p>Writing one role per region does not scale past a handful. Dynamic RLS is one role for everybody, where the rule compares a column to whoever is signed in.</p>
+
+    <p>You need a small mapping table, one row per person, with their sign-in address and what they are allowed to see. Then the rule goes on that table:</p>
+
+    <pre><code>[UserEmail] = USERPRINCIPALNAME()</code></pre>
+
+    <p>USERPRINCIPALNAME takes no arguments and returns the user principal name at connection time, which looks like an email address. The filter lands on the mapping table, the mapping table is related to the region, and the filter travels down that relationship to Orders. One role, one rule, and adding a new manager becomes a row in a table rather than a change to the model.</p>
+
+    <p>There is an older function, USERNAME, and the difference is a real trap rather than trivia. In Power BI Desktop, USERNAME returns <code>DOMAIN\User</code>. In the Power BI Service, USERNAME and USERPRINCIPALNAME both return the user principal name. So a rule built and tested against a domain-style value in Desktop can behave differently once published. Use USERPRINCIPALNAME and store matching values in the mapping table.</p>
+
+    <p>Now the part worth the whole section. This pattern, which reads perfectly sensibly, hands over the entire table to a typo:</p>
+
+    <pre><code>IF (
+    USERNAME () = "Worker",
+    [Type] = "Internal",
+    TRUE ()
+)</code></pre>
+
+    <p>Workers see internal rows. Everybody else, meaning managers, sees everything. But "everybody else" is not a list of managers. It is every value that is not exactly the string <code>Worker</code>, so <code>Wrker</code> falls into the else branch and returns TRUE for every row. Microsoft's guidance uses this exact example, and its fix is to test for each expected value and make the fall-through deny:</p>
+
+    <pre><code>IF (
+    USERNAME () = "Worker",
+    [Type] = "Internal",
+    IF (
+        USERNAME () = "Manager",
+        TRUE (),
+        FALSE ()
+    )
+)</code></pre>
+
+    <p>The habit underneath it: in a security rule, the last branch is the one that runs when you have not thought of the case. Make it return nothing.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. What View As proves, and what it does not</h2>
+
+    <p>Desktop has View As on the Modeling ribbon, and the Service has Test as role on the model's Security page. Both are genuinely useful and both prove less than people think.</p>
+
+    <p>What they prove: your DAX filter is valid, it lands on the table you meant, and it propagates through the relationships you expect. That is most of the work, and testing every role this way is not optional.</p>
+
+    <p>What they do not prove, and this is documented rather than folklore:</p>
+
+    <ul>
+      <li><strong>They cannot tell you a person's workspace role.</strong> The whole failure in section 4 is invisible to both tools, because both simulate the rule and neither simulates the bypass.</li>
+      <li><strong>For dynamic RLS, the test uses your own identity.</strong> USERPRINCIPALNAME returns your sign-in name, not the one you are trying to simulate. So a passing test tells you the rule works for you.</li>
+      <li><strong>Not every surface is covered.</strong> Test as role does not work for paginated reports, and it does not validate Q&amp;A visuals, Quick insights or Copilot. It also does not work for DirectQuery models with single sign-on.</li>
+    </ul>
+
+    <p>The test that closes the gap is unglamorous and takes two minutes: put a card on the report showing <code>USERPRINCIPALNAME()</code>, publish, and have one real person in each audience open it and tell you what it says next to their totals. Microsoft's troubleshooting guidance suggests the same measure, named something like "Who Am I". A real user's session is the only thing that exercises both halves at once.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. Four things RLS does not do</h2>
+
+    <p>Each of these is somebody's disappointed afternoon.</p>
+
+    <p><strong>It does not hide columns or measures.</strong> Microsoft is direct about it: RLS "filters table rows. They can't be configured to restrict access to model objects, including tables, columns, or measures." If a person can see a row, they can see every column on that row, salary included. The feature for hiding a column is object-level security, and it is separate.</p>
+
+    <p><strong>It does not let people see a total without the detail.</strong> Asked whether RLS can hide detailed rows while still showing them in a summary, the answer is no: you secure rows, and users can see either the details or the summary of what they have. Getting a company-wide total next to a personal one needs a separate summary table built for that purpose, not a cleverer rule.</p>
+
+    <p><strong>It cannot be overridden by DAX, in either direction.</strong> This one cuts both ways and is worth knowing. No measure can escape RLS, and Microsoft goes further: a DAX expression "can't even determine that RLS is enforced". So there is no writing a smarter measure to work around it, and equally no accidentally punching a hole in it with ALL or REMOVEFILTERS. If you want the mechanics of what a measure can and cannot see, that is <a href="../powerbi-calculate/">CALCULATE and filter context</a>.</p>
+
+    <p><strong>It does not follow the model everywhere.</strong> Live connections to Analysis Services enforce security in that model rather than in Power BI, and the Security option does not even appear. Publish to web does not work with RLS at all. Service principals cannot be added to a role, so an app authenticating that way is not filtered by one.</p>
+  </div>
+
+  <h2>The full before and after</h2>
+
+  <p>Same model, same rule, same person. One dropdown apart.</p>
+
+  <table>
+    <tr><th></th><th>Before: Priya is a workspace Member</th><th>After: Priya is a Viewer</th></tr>
+    <tr><td>Role exists in the model</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Priya is assigned to it</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>View As in Desktop</td><td>Passes, shows 3,040</td><td>Passes, shows 3,040</td></tr>
+    <tr><td>Test as role in the Service</td><td>Passes, shows 3,040</td><td>Passes, shows 3,040</td></tr>
+    <tr><td>What Priya actually sees</td><td>9,890, all sixteen orders</td><td>3,040, her four orders</td></tr>
+    <tr><td>Can she still open the reports</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Can she still build her own</td><td>Yes</td><td>Yes, with Build permission, still filtered</td></tr>
+    <tr><td>Anything on screen that says so</td><td>No</td><td>No</td></tr>
+  </table>
+
+  <p>The last two lines are the point of the page. Every test you can run from your own desk passes in both columns.</p>
+
+  <h2>Edge cases that return the wrong rows quietly</h2>
+
+  <p>These produce data rather than an error, which is the only kind that matters here.</p>
+
+  <ul>
+    <li><strong>An inactive relationship.</strong> RLS filters only travel along active relationships. A model with a second, inactive date relationship will not carry the security filter down it, so a visual built on that path can show rows the role never permitted.</li>
+    <li><strong>A bi-directional relationship you assumed was enough.</strong> Security filtering runs one way by default, whether or not the relationship itself is bi-directional. Propagating security both ways is a separate checkbox on the relationship, "Apply security filter in both directions", and it is off until you tick it.</li>
+    <li><strong>A user in a security group you forgot about.</strong> The second role does not have to be assigned deliberately. Group membership puts people into roles, roles are additive, and the resulting access is the union.</li>
+    <li><strong>A changed name.</strong> Dynamic RLS matches a stored string against a live sign-in name. Somebody's account changes and their row stops matching, so they abruptly see nothing, and it looks like an outage rather than a mapping problem.</li>
+    <li><strong>An import model whose source already has security.</strong> Importing does not bring the source's security rules with it: on import you must define RLS in Power BI. With DirectQuery the source's own rules apply, which is a genuinely different arrangement to reason about.</li>
+    <li><strong>A calculated column doing the filtering job.</strong> Rules belong in the role. Building the same logic into a column and hoping it filters is a category error, and which of the two you should be writing is decided in <a href="../powerbi-measures-vs-columns/">calculated column vs measure</a>.</li>
+  </ul>
+
+  <h2>Why this works</h2>
+
+  <p>The design reason for the bypass is defensible once you say it plainly: people who can edit the model can already see the data, because editing a model means reading it. A Contributor can open the semantic model, write their own measure and read any number in it. Filtering their report while leaving the model open to them would be a lock on a door with no wall attached. Microsoft states the boundary in one line: "RLS only restricts data access for users with Viewer permissions. It doesn't apply to workspace Admin, Member, or Contributor roles."</p>
+
+  <p>So the control is real, and its scope is a workspace role. That makes this an instance of the oldest rule in the field. Saltzer and Schroeder set out eight design principles for protecting information, and the one this page keeps running into is least privilege: every user should operate with the smallest set of privileges the job needs (Saltzer &amp; Schroeder, 1975, <em>Proceedings of the IEEE</em>, 63(9), 1278&ndash;1308). Priya was given edit rights so she could read four reports. The extra privilege was not the point of the decision and it silently outranked the security rule.</p>
+
+  <p>Their other principle worth naming here is fail-safe defaults: base access on permission rather than exclusion, so the default outcome is no access. That is exactly the shape of the additive-roles behavior. A rule returning FALSE grants nothing; it does not deny. Union it with a rule that grants everything and everything is what you get, which is why the fix is one role per person rather than a carefully layered stack of them.</p>
+
+  <p>One note on the cheat sheet below. It is built to be covered and recalled rather than read, because testing yourself on material transfers to new situations better than restudying it, which matters here since you will be applying this to workspaces that look nothing like the one above (Butler, 2010, <em>Journal of Experimental Psychology: Learning, Memory, and Cognition</em>, 36(5), 1118&ndash;1133).</p>
+
+  <h2>Using this on your own model</h2>
+
+  <p>Auditing every role in an inherited tenant is miserable and you will stop at the second workspace. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Open the workspace access list before you open the model.</strong> Read the roles, not the names. Everyone listed as Admin, Member or Contributor sees every row, whatever your rules say. That list is the answer to "who can see everything", and it takes thirty seconds.</li>
+    <li><strong>Move every consumer to Viewer.</strong> If somebody needs to build on the model, Viewer plus Build permission does that and stays filtered. Editing rights are for people who edit.</li>
+    <li><strong>Count roles per person, not people per role.</strong> Anybody in two roles is getting the union. Expand the security groups, because that is where the second role hides.</li>
+    <li><strong>Read the last branch of every dynamic rule.</strong> If the fall-through is TRUE, an unexpected sign-in name returns the whole table. Make it FALSE and test with a value you know is wrong.</li>
+    <li><strong>Publish a "Who am I" card.</strong> One card with <code>USERPRINCIPALNAME()</code> next to the totals, and one real person from each audience telling you what it says. This is the only test that covers the workspace role and the rule at the same time.</li>
+    <li><strong>Write down who each role is for.</strong> One sentence per role, stored with the model. Roles outlive the person who wrote them, and a role nobody can explain is a role nobody will dare remove.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional sketch makes the additive rule stick. Draw two overlapping circles, label one East and one Lamps, and shade the small piece where they overlap. That is what most people expect two roles to give. Now shade both whole circles. That is what two roles actually give. You will not get this one wrong again.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: Power BI, SQL, Excel, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Thing</th><th>What it does</th></tr>
+    <tr><td>What a role is</td><td>A DAX filter asked of every row. TRUE stays, FALSE is removed completely.</td></tr>
+    <tr><td>Where roles are defined</td><td>Power BI Desktop, Modeling &rsaquo; Manage roles.</td></tr>
+    <tr><td>Where members are assigned</td><td>The Power BI Service, semantic model &rsaquo; Security. Never in Desktop.</td></tr>
+    <tr><td>Who RLS applies to</td><td>Viewers, and app consumers. That is the whole list.</td></tr>
+    <tr><td>Who it does not apply to</td><td>Workspace Admin, Member and Contributor. By design, with no warning.</td></tr>
+    <tr><td>Viewer plus Build</td><td>Still filtered, including through Analyze in Excel.</td></tr>
+    <tr><td>Two roles</td><td>A union. More data, not less. "Once denied always denied" does not apply.</td></tr>
+    <tr><td>The design rule</td><td>One person, one role. Put both filters in the same role instead.</td></tr>
+    <tr><td>A user in no role</td><td>Usually sees nothing, because no role permits any row.</td></tr>
+    <tr><td>Static rule</td><td><code>[Region] = "East"</code></td></tr>
+    <tr><td>Dynamic rule</td><td><code>[UserEmail] = USERPRINCIPALNAME()</code>, against a mapping table.</td></tr>
+    <tr><td>USERNAME vs USERPRINCIPALNAME</td><td>In Desktop USERNAME gives DOMAIN\User. In the Service both give the UPN.</td></tr>
+    <tr><td>The dangerous else</td><td>A fall-through of TRUE hands the table to any typo. End on FALSE.</td></tr>
+    <tr><td>What View As proves</td><td>The rule and its propagation. Not the workspace role, not another person's identity.</td></tr>
+    <tr><td>Filter propagation</td><td>Active relationships only. Security both ways is a separate checkbox.</td></tr>
+    <tr><td>Where to put the rule</td><td>On the dimension table, and let it flow to the fact table.</td></tr>
+    <tr><td>What RLS cannot hide</td><td>Columns and measures. That is object-level security.</td></tr>
+    <tr><td>Role names</td><td>No commas allowed.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> Read the workspace access list before you trust the rule. Anyone on it above Viewer sees every row, and no amount of correct DAX changes that. It is the first thing to check and the last thing anyone thinks of, and it takes thirty seconds.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The version of this I found hardest to explain afterwards was a model where the rules were perfect and three people had been added to the workspace as Contributors during a handover, for two weeks, eighteen months earlier. Nobody had taken them out and nobody had noticed, because nothing about the reports looked different. What is the longest one of these has been open in a tenant you inherited?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Saltzer, J. H., &amp; Schroeder, M. D. (1975). The protection of information in computer systems. <em>Proceedings of the IEEE</em>, 63(9), 1278&ndash;1308.</li>
+    <li>Butler, A. C. (2010). Repeated testing produces superior transfer of learning relative to repeated studying. <em>Journal of Experimental Psychology: Learning, Memory, and Cognition</em>, 36(5), 1118&ndash;1133.</li>
+    <li>Microsoft. Row-level security (RLS) with Power BI, and Row-level security (RLS) guidance in Power BI Desktop, and USERPRINCIPALNAME function (DAX). Microsoft Learn. All quotations above are taken from these pages.</li>
+  </ul>
+
+  <div class="book">
+    <strong>The rule is written, the test passes, and you still cannot say out loud which of the eleven people in that workspace can see everything.</strong>
+    <p><em>Power BI for Analysts</em> is 187 pages, the model built one decision at a time, with the sharing and permission steps that decide whether any of it holds, and practice questions that print the answer and the reason it is right.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/power-bi-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-powerbi-row-level-security'})">Power BI for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Practice this where the wrong answer looks like the right one.</strong>
+    <p style="margin:6px 0 0">The <a href="../../powerbi/">Power BI Kit</a> gives you the repetitions: rules that pass every test and filter nobody, roles that stack into a union, and questions that ask who can see the row rather than how to write the DAX. You now own the method; the kit is the practice. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../powerbi/">Open the Power BI Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../powerbi-star-schema/">Star Schema in Power BI</a> · <a href="../powerbi-calculate/">CALCULATE and Filter Context</a> · <a href="../powerbi-sum-vs-sumx/">SUM vs SUMX in DAX</a> · <a href="../powerbi-measures-vs-columns/">Columns vs Measures in Power BI</a> · <a href="../powerbi-time-intelligence/">DAX Time Intelligence</a> · <a href="../powerbi-switch-true/">SWITCH TRUE for Segmentation</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../powerbi/">Power BI Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
