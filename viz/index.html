@@ -69,6 +69,29 @@
     border-radius:10px;padding:10px 14px;font-size:14.5px;margin:12px 0 0}
   @media (max-width:980px){ .desktop-note{display:block} }
 
+  /* Mode picker. The same control the Track picker is in SQL Drill, because it does the
+     same job: one page, two ways through it, chosen up front and remembered. */
+  .modes{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:16px 0 0;
+    font-size:14.5px}
+  .modes .lab{font:700 11px/1 inherit;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--muted)}
+  .modes a{display:inline-block;padding:6px 12px;border-radius:999px;
+    border:1px solid var(--line);background:var(--card);text-decoration:none;
+    color:var(--ink);font-weight:600;font-size:14px}
+  .modes a:hover{border-color:var(--accent);color:var(--accent)}
+  .modes a[aria-current="true"]{background:var(--accent);border-color:var(--accent);
+    color:#fff}
+  .mode-blurb{font-size:14.5px;color:var(--muted);margin:8px 0 0;max-width:78ch}
+
+  /* Recall. The steps are not deleted, they are folded away behind one button, because a
+     page that withholds the answer outright turns practice into an exam and this kit does
+     not run exams. What changes is only that you try before you look. */
+  .recall{border:1px dashed var(--line);border-radius:10px;padding:14px 16px;
+    background:var(--bg)}
+  .recall p{margin:0 0 10px;font-size:15px;color:var(--muted)}
+  .recall[hidden]{display:none}
+  .revealed{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+
   .drillbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--card);
     border:1px solid var(--line);border-radius:12px;padding:10px var(--pad);margin:14px 0 12px}
   .rung{font:700 12px/1 inherit;letter-spacing:.06em;text-transform:uppercase;
@@ -247,8 +270,11 @@
 <div class="shell">
   <p class="crumb"><a href="../">&larr; Analyst Prep Kit</a> &middot; <a href="../drill/">SQL Drill</a> &middot; <a href="../tableau/">Tableau Kit</a> &middot; <a href="../guides/">Guides</a></p>
   <h1>Viz Drill</h1>
-  <p class="lead">Build a chart by dragging fields, one small move at a time. Each step says exactly what to drag and where. Nothing is graded.</p>
+  <p class="lead" id="lead">Build a chart by dragging fields, one small move at a time. Each step says exactly what to drag and where. Nothing is graded.</p>
   <p class="desktop-note"><strong>Made for a desktop.</strong> Dragging is easier with a mouse, though you can tap a field and then tap a shelf.</p>
+
+  <nav class="modes" id="modes" aria-label="Mode"></nav>
+  <p class="mode-blurb" id="mode-blurb"></p>
 
   <div class="drillbar">
     <span class="rung" id="rung">Step 1</span>
@@ -263,13 +289,20 @@
   <!-- Do this runs full width above the work area. Squeezed into a 290px column it wrapped
        every step onto three lines and pushed the chart off the first screen. -->
   <div class="pane todo">
-    <div class="panehead"><h2>Do this</h2></div>
+    <div class="panehead"><h2 id="todohead">Do this</h2></div>
     <div class="panebody todobody">
       <div>
         <p class="question" id="question"></p>
         <p class="why" id="why"></p>
       </div>
-      <ol class="steps" id="task"></ol>
+      <div>
+        <div class="recall" id="recall" hidden>
+          <p id="recall-text">Build it from memory. The steps are here the moment you want them.</p>
+          <button id="reveal">Show the steps</button>
+        </div>
+        <p class="revealed" id="revealed" hidden>Shown for this step only. The next step starts hidden again.</p>
+        <ol class="steps" id="task"></ol>
+      </div>
     </div>
   </div>
 
@@ -384,6 +417,35 @@
 <script src="ladder.js?v=2"></script>
 <script>
 const $ = id => document.getElementById(id);
+
+// ── modes ───────────────────────────────────────────────────────────────────
+// The same ladder twice. Guided spells out every drag; Recall shows the business ask and
+// nothing else, so the moves have to come out of your head instead of off the screen.
+// Recall is not a test: the steps are one button away on every rung, and asking for them
+// costs nothing except that you tried first, which is the whole exercise.
+const MODES = {
+  guided: {title: 'Guided',
+           blurb: 'Every step spelled out: what to drag, where to drop it, and why.'},
+  recall: {title: 'Recall',
+           blurb: 'The business question only. Build the chart from memory, and click for the steps whenever you want them.'}
+};
+const MODE_KEY = 'apk-viz-drill-mode';
+const DEFAULT_MODE = 'guided';
+
+// The URL wins, then whatever was open last, then Guided. Matches the Track picker in
+// SQL Drill, so a link to a mode is a link anyone can send.
+function chooseMode(){
+  const asked = new URLSearchParams(location.search).get('mode');
+  if(asked && MODES[asked]) return asked;
+  let saved = null;
+  try { saved = localStorage.getItem(MODE_KEY); } catch(e){}
+  return (saved && MODES[saved]) ? saved : DEFAULT_MODE;
+}
+const MODE = chooseMode();
+const RECALL = MODE === 'recall';
+try { localStorage.setItem(MODE_KEY, MODE); } catch(e){}
+// Per rung, cleared on every move, because the point is to try this one before looking.
+let revealed = false;
 
 // ── fields ──────────────────────────────────────────────────────────────────
 // Number of Records is carried as a field on purpose: it is how a shelf-based tool
@@ -1017,10 +1079,17 @@ function draw(){
   const missing = checkRung();
   const solved = missing.length === 0;
   const last = i === LADDER.rungs.length - 1;
+  // In Recall the check counts what is still wrong without naming it, because naming it is
+  // the step, and a line that reads "put Listeners on Columns" has handed over the answer
+  // the reveal button exists to hand over on purpose.
+  const hide = RECALL && !revealed;
   say(solved
     ? '<span class="done">Done.</span> ' + answerLine() +
       (last ? ' That is the last step.' : ' Then click Next step.')
-    : '<b>Not yet.</b> ' + missing.join(', then ').replace(/^./, c => c.toUpperCase()) + '.');
+    : hide
+      ? '<b>Not yet.</b> ' + missing.length + (missing.length === 1 ? ' thing' : ' things') +
+        ' still to change on the shelves.'
+      : '<b>Not yet.</b> ' + missing.join(', then ').replace(/^./, c => c.toUpperCase()) + '.');
   // The moment the shelves match, not every redraw after it. solvedSeen is set true by
   // render() before the first draw of a rung, so walking Back onto a step your shelves
   // already satisfy does not throw confetti at you for doing nothing.
@@ -1059,25 +1128,61 @@ function markReady(solved, last){
   $('next').classList.remove('ready');
   $('restart').classList.remove('ready');
   if(solved) btn.classList.add('ready');
+  const unguided = RECALL && !revealed;
   $('directive-text').textContent = solved
     ? (last
         ? 'That is the last step. Start over from step 1 whenever you want another lap.'
         : 'That step is done. Click Next step.')
     : (last
-        ? 'Last step. Do it, then start over from step 1 whenever you want more practice.'
-        : 'Do the numbered steps up top, then click Next step.');
+        ? (unguided
+            ? 'Last step. Build it from the question up top, and the steps are one click away.'
+            : 'Last step. Do it, then start over from step 1 whenever you want more practice.')
+        : (unguided
+            ? 'Answer the question up top with the shelves, then click Next step.'
+            : 'Do the numbered steps up top, then click Next step.'));
 }
 
-function render(){
+// The picker is drawn from the registry, not written out by hand, so adding a mode is one
+// entry in MODES and nothing else.
+function renderModes(){
+  $('modes').innerHTML = '<span class="lab">Mode</span>' +
+    Object.keys(MODES).map(k =>
+      '<a href="?mode=' + k + '"' + (k === MODE ? ' aria-current="true"' : '') + '>' +
+      esc(MODES[k].title) + '</a>').join('');
+  $('mode-blurb').textContent = MODES[MODE].blurb;
+  if(RECALL) $('lead').textContent = 'Read the business question and build the chart that answers it. ' +
+    'The same 17 steps as Guided, with the drags left out, so what comes back is what you remember. ' +
+    'Nothing is graded and the steps are always one click away.';
+}
+
+// What the Do this pane is allowed to say on this rung. Guided says everything. Recall
+// says the ask, and holds the rest until it is asked for.
+function renderAsk(){
   const r = LADDER.rungs[i];
+  const hide = RECALL && !revealed;
+  $('todohead').textContent = RECALL ? (revealed ? 'The ask, and the steps' : 'The ask') : 'Do this';
+  // In Recall the headline would name the move it is asking you to remember.
+  $('adds').textContent = hide ? 'Build this one from memory.' : r.adds;
+  $('question').innerHTML = '<span>The question</span>' + esc(r.q || '');
+  $('task').innerHTML = hide ? '' : (r.do || []).map(a => '<li>' + a + '</li>').join('');
+  $('why').textContent = hide ? '' : (r.why || '');
+  // The step's own SQL is the answer written in the other language, so it goes behind the
+  // same button. The live SQL under it is their own worksheet and always shows.
+  $('tie').textContent = hide ? '' : r.tie;
+  $('sql').textContent = hide
+    ? '-- Hidden in Recall. Click Show the steps to see the query this step matches.'
+    : r.sql;
+  $('recall').hidden = !hide;
+  $('revealed').hidden = !(RECALL && revealed);
+}
+
+$('reveal').onclick = () => { revealed = true; renderAsk(); draw(); };
+
+function render(){
   const last = i === LADDER.rungs.length - 1;
   $('rung').textContent = 'Step ' + (i + 1) + ' of ' + LADDER.rungs.length;
-  $('adds').textContent = r.adds;
-  $('question').innerHTML = '<span>The question</span>' + esc(r.q || '');
-  $('task').innerHTML = (r.do || []).map(a => '<li>' + a + '</li>').join('');
-  $('why').textContent = r.why || '';
-  $('tie').textContent = r.tie;
-  $('sql').textContent = r.sql;
+  revealed = false;
+  renderAsk();
   $('prev').disabled = i === 0;
   $('next').hidden = last;
   $('restart').hidden = !last;
@@ -1094,6 +1199,8 @@ $('prev').onclick = () => { if(i > 0){ i--; render(); } };
 $('restart').onclick = () => { i = 0; render(); scrollTo({top:0, behavior:'smooth'}); };
 addEventListener('resize', drawChart);
 
+renderModes();
+if(RECALL) document.title = 'Viz Drill, Recall: Build the Chart From the Ask — Analyst Prep Kit';
 render();
 </script>
 </body>

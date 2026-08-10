@@ -116,6 +116,13 @@
     color:#fff}
   .ladder-blurb{font-size:14.5px;color:var(--muted);margin:8px 0 0;max-width:78ch}
 
+  /* Recall. The query is not deleted, it is folded away behind one button, because a page
+     that withholds the answer outright turns practice into an exam and this kit does not
+     run exams. What changes is only that you type before you look. */
+  .recall{padding:var(--pad)}
+  .recall p{margin:0 0 10px;font-size:15px;color:var(--muted)}
+  .recall[hidden]{display:none}
+
   /* Break timer. It counts DOWN to a rest, it never counts up to a target, and it never
      reports how many drills went by. The page promises nothing to beat, and a timer that
      scored the session would break that promise on the same screen it is written on. */
@@ -348,11 +355,13 @@
 <div class="shell">
   <p class="crumb"><a href="../">&larr; Analyst Prep Kit</a> &middot; <a href="../sql/">SQL Kit</a> &middot; <a href="../guides/">Guides</a></p>
   <h1>SQL Drill</h1>
-  <p class="lead">Get right into it and learn by writing queries. Each drill is the query you just typed plus one new thing. Nothing is graded, the answer is on screen the whole time, and the only job is typing it out.</p>
+  <p class="lead" id="lead">Get right into it and learn by writing queries. Each drill is the query you just typed plus one new thing. Nothing is graded, the answer is on screen the whole time, and the only job is typing it out.</p>
   <p class="desktop-note"><strong>Made for a desktop.</strong> The queries get long, and this page shows every line of them rather than shrinking them to fit a phone. A keyboard makes it a lot better.</p>
 
   <nav class="ladders" id="ladders" aria-label="Tracks"></nav>
+  <nav class="ladders" id="modes" aria-label="Mode"></nav>
   <p class="ladder-blurb" id="ladder-blurb"></p>
+  <p class="ladder-blurb" id="mode-blurb"></p>
 
   <div class="timer" id="timer">
     <span class="lab">Break timer</span>
@@ -392,8 +401,12 @@
   <div class="work">
     <div class="pane">
       <div class="panehead">
-        <h2>Type this query</h2>
-        <button class="copy" data-copy="query">Copy</button>
+        <h2 id="queryhead">Type this query</h2>
+        <button class="copy" id="copybtn" data-copy="query">Copy</button>
+      </div>
+      <div class="recall" id="recall" hidden>
+        <p id="recall-text">Write it from the question above. The query is here the moment you want it.</p>
+        <button type="button" id="reveal">Show the query</button>
       </div>
       <pre id="query"></pre>
     </div>
@@ -500,6 +513,33 @@ function chooseLadder(){
 const SLUG = chooseLadder();
 try { localStorage.setItem(LADDER_KEY, SLUG); } catch(e){}
 
+// ── modes ───────────────────────────────────────────────────────────────────
+// The same ladder twice. Guided puts the query on the left to copy line for line; Recall
+// shows the business ask and the columns it wants back, and holds the query until asked.
+// Recall is not a test: the query is one button away on every drill, and asking for it
+// costs nothing except that you tried first, which is the whole exercise.
+const MODES = {
+  guided: {title: 'Guided',
+           blurb: 'The query sits beside the editor. Type it out line by line.'},
+  recall: {title: 'Recall',
+           blurb: 'The business question and the columns it wants back. Write the query from memory, and click for it whenever you want it.'}
+};
+const MODE_KEY = 'apk-sql-drill-mode';
+const DEFAULT_MODE = 'guided';
+
+function chooseMode(){
+  const asked = new URLSearchParams(location.search).get('mode');
+  if(asked && MODES[asked]) return asked;
+  let saved = null;
+  try { saved = localStorage.getItem(MODE_KEY); } catch(e){}
+  return (saved && MODES[saved]) ? saved : DEFAULT_MODE;
+}
+const MODE = chooseMode();
+const RECALL = MODE === 'recall';
+try { localStorage.setItem(MODE_KEY, MODE); } catch(e){}
+// Per drill, cleared on every move, because the point is to try this one before looking.
+let revealed = false;
+
 function loadScript(src){
   return new Promise((ok, no) => {
     const s = document.createElement('script');
@@ -535,32 +575,52 @@ function showTab(name){
 TABS.forEach(t => { $('tab-' + t).onclick = () => showTab(t); });
 
 // ── the drill ───────────────────────────────────────────────────────────────
-function render(){
+// What the reference pane and the explanation are allowed to say on this drill. Guided
+// says everything. Recall says the ask and the columns, and holds the rest until asked.
+function renderAsk(){
   const d = LADDER.drills[i];
-  $('rung').textContent = 'Drill ' + (i + 1) + ' of ' + LADDER.drills.length;
-  $('adds').textContent = d.adds;
-  const used = tablesInDrill(d.sql);
-  $('tables').innerHTML = used.length
-    ? (used.length > 1 ? 'TABLES: ' : 'TABLE: ') + used.map(n => '<b>' + esc(n) + '</b>').join(' &middot; ')
-    : '';
-  $('question').innerHTML = '<span>The question</span>' + esc(d.q || '');
-  $('why').textContent = d.why || '';
+  const hide = RECALL && !revealed;
+  // In Recall the headline would name the clause it is asking you to remember.
+  $('adds').textContent = hide ? 'Write this one from memory.' : d.adds;
+  $('why').textContent = hide ? '' : (d.why || '');
   // Every drill names one guide that covers the idea it adds. The link is one phrase, so a
   // learner who wants the reading can get it without the drill turning into an article.
+  // In Recall it names the clause, so it comes back with the query.
   const more = $('whymore');
-  if (d.guide) {
+  if (d.guide && !hide) {
     more.href = d.guide.href;
     more.textContent = d.guide.label;
     more.hidden = false;
   } else {
     more.hidden = true;
   }
+  $('queryhead').textContent = RECALL
+    ? (revealed ? 'The query' : 'Write it yourself')
+    : 'Type this query';
+  $('recall').hidden = !hide;
+  $('query').hidden = hide;
+  $('copybtn').hidden = hide;
+}
+
+function render(){
+  const d = LADDER.drills[i];
+  $('rung').textContent = 'Drill ' + (i + 1) + ' of ' + LADDER.drills.length;
+  revealed = false;
+  const used = tablesInDrill(d.sql);
+  $('tables').innerHTML = used.length
+    ? (used.length > 1 ? 'TABLES: ' : 'TABLE: ') + used.map(n => '<b>' + esc(n) + '</b>').join(' &middot; ')
+    : '';
+  $('question').innerHTML = '<span>The question</span>' + esc(d.q || '');
   paintCols(d.sql);
   // Always measured against the rung below this one, whichever direction you arrived from,
   // so a drill looks the same every time you land on it.
-  const mask = carryMask(i > 0 ? LADDER.drills[i - 1].sql : '', d.sql);
-  const carried = carriedText(d.sql, mask);
+  // Recall carries nothing. Carried lines are the lines the last drill already taught, and
+  // handing them over pre-typed is handing over most of the query this drill is asking for.
+  const mask = RECALL ? d.sql.split('\n').map(() => false)
+                      : carryMask(i > 0 ? LADDER.drills[i - 1].sql : '', d.sql);
+  const carried = RECALL ? '' : carriedText(d.sql, mask);
   paintQuery(d.sql, mask);
+  renderAsk();
   $('verdict').className = 'hint';
   $('verdict').textContent = 'Run your query and the rows appear here.';
   $('out').innerHTML = '';
@@ -780,9 +840,12 @@ function run(){
   showTab('results');
   // With the header pre-filled the editor is never empty, so an empty run has to be
   // caught on the body rather than on the box, or it comes back as a bare zero rows.
+  // In Recall the reference pane is folded away, so every line that points at it has to
+  // point at the button that opens it instead.
+  const where = (RECALL && !revealed) ? 'Show the query opens it on the left.'
+                                      : 'The one to type is on the left.';
   if(!bodyOf(typed)){
-    say('That is the comment header on its own. The query goes under it, and the one to ' +
-        'type is on the left.', false);
+    say('That is the comment header on its own. The query goes under it. ' + where, false);
     $('out').innerHTML = '';
     markReady(false);
     return;
@@ -795,7 +858,9 @@ function run(){
     // Run like every other answer: a typo used to render a thousand pixels below the fold,
     // which is indistinguishable from the button doing nothing.
     say('<span class="no">SQLite could not run that.</span> It says: ' + esc(e.message) +
-        '. Compare your line against the query on the left.', false);
+        '. ' + ((RECALL && !revealed)
+                 ? 'Read it, fix the line, and Show the query is there if you want it.'
+                 : 'Compare your line against the query on the left.'), false);
     $('out').innerHTML = '';
     markReady(false);
     return;
@@ -823,8 +888,8 @@ function run(){
            gotCols.length + ' column' + (gotCols.length === 1 ? '' : 's') + ' back and the ' +
            'drill asks for ' + WANT_COLS.length + '.';
   } else {
-    line = '<span class="no">Not yet.</span> You got ' + got + ' rows, the query on the ' +
-           'left returns ' + want + '.';
+    line = '<span class="no">Not yet.</span> You got ' + got + ' rows, the drill\'s query ' +
+           'returns ' + want + '.';
   }
   say(line, matched);
   $('out').innerHTML = table(res);
@@ -906,6 +971,7 @@ function handOff(matched){
 $('keyhint').innerHTML = (/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
   ? '<kbd>&#8984;</kbd> <kbd>Enter</kbd>' : '<kbd>Ctrl</kbd> <kbd>Enter</kbd>') + ' runs it';
 
+$('reveal').onclick = () => { revealed = true; renderAsk(); };
 $('run').onclick = run;
 $('next').onclick = () => { if(i < LADDER.drills.length - 1){ i++; render(); } };
 $('prev').onclick = () => { if(i > 0){ i--; render(); } };
@@ -1010,8 +1076,18 @@ document.addEventListener('keydown', e => {
 function renderLadders(){
   $('ladders').innerHTML = '<span class="lab">Track</span>' +
     Object.keys(LADDERS).map(k =>
-      '<a href="?ladder=' + k + '"' + (k === SLUG ? ' aria-current="true"' : '') + '>' +
+      '<a href="?ladder=' + k + '&mode=' + MODE + '"' + (k === SLUG ? ' aria-current="true"' : '') + '>' +
       esc(LADDERS[k].title) + '</a>').join('');
+  // Both pickers carry the other one's choice, so switching mode never silently drops you
+  // onto a different track, and switching track never drops you out of Recall.
+  $('modes').innerHTML = '<span class="lab">Mode</span>' +
+    Object.keys(MODES).map(k =>
+      '<a href="?ladder=' + SLUG + '&mode=' + k + '"' + (k === MODE ? ' aria-current="true"' : '') + '>' +
+      esc(MODES[k].title) + '</a>').join('');
+  $('mode-blurb').textContent = MODES[MODE].blurb;
+  if(RECALL) $('lead').textContent = 'Read the business question and write the query that answers it. ' +
+    'Same drills as Guided, with the model query folded away, so what comes back is what you remember. ' +
+    'Nothing is graded and the query is always one click away.';
 }
 
 Promise.all(LADDERS[SLUG].files.map(loadScript))
@@ -1020,7 +1096,7 @@ Promise.all(LADDERS[SLUG].files.map(loadScript))
   renderLadders();
   $('ladder-blurb').textContent = LADDER.blurb || '';
   $('footnote').innerHTML = LADDER.footnote || '';
-  document.title = 'SQL Drill: ' + LADDER.name + ' · Analyst Prep Kit';
+  document.title = 'SQL Drill' + (RECALL ? ', Recall' : '') + ': ' + LADDER.name + ' · Analyst Prep Kit';
   try { i = Math.min(parseInt(localStorage.getItem(KEY) || '0', 10) || 0, LADDER.drills.length - 1); } catch(e){}
 
   return initSqlJs({locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/' + f});
