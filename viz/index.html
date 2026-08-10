@@ -416,8 +416,7 @@
   <div class="book" id="project" hidden>
     <strong id="project-head"></strong>
     <p id="project-body"></p>
-    <a class="booklink" id="project-link" href="#" target="_blank" rel="noopener"></a>
-    <a class="booklink" id="project-link2" href="#" target="_blank" rel="noopener" style="margin-left:18px"></a>
+    <p id="project-links" style="margin:0"></p>
   </div>
 
   <div class="book">
@@ -509,7 +508,9 @@ const TRACKS = {
         {text: 'The dashboard on Tableau Public &rarr;',
          href: 'https://public.tableau.com/app/profile/michael.nocito8651/viz/TelcoCustomerChurnRiskPersonas/Story1'},
         {text: 'The write-up and the code &rarr;',
-         href: 'https://github.com/michaelnocito/telco-churn-analysis'}
+         href: 'https://github.com/michaelnocito/telco-churn-analysis'},
+        {text: 'The same analysis as SQL, in SQL Drill &rarr;',
+         href: '../drill/?ladder=telco'}
       ]
     }
   }
@@ -1262,14 +1263,16 @@ function renderTracks(){
   if(p){
     $('project-head').textContent = p.head;
     $('project-body').textContent = p.body;
-    p.links.forEach((l, n) => {
-      const el = $('project-link' + (n ? String(n + 1) : ''));
-      if(!el) return;
-      el.innerHTML = l.text;
-      el.href = l.href;
-      el.hidden = false;
-      el.onclick = () => { if(window.gtag) gtag('event', 'viz_project_click',
-        {kit: 'viz', track: TRACK_KEY_NAME, dest: l.href}); };
+    // Built from the list, so a track can carry as many links as it earned. An off-site
+    // link opens in a new tab; the one that stays inside the kit does not.
+    $('project-links').innerHTML = p.links.map(l => {
+      const away = /^https?:/.test(l.href);
+      return '<a class="booklink" style="margin-right:18px" href="' + esc(l.href) + '"' +
+        (away ? ' target="_blank" rel="noopener"' : '') + '>' + l.text + '</a>';
+    }).join('');
+    $('project-links').querySelectorAll('a').forEach((a, n) => {
+      a.onclick = () => { if(window.gtag) gtag('event', 'viz_project_click',
+        {kit: 'viz', track: TRACK_KEY_NAME, dest: p.links[n].href}); };
     });
   }
 }
