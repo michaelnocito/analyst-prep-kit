@@ -28,10 +28,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Viz Drill: Build the Chart That Answers Your Query &mdash; Analyst Prep Kit</title>
-<meta name="description" content="Drag fields onto shelves and build the chart, one new idea per step. Every step names the SQL query it answers, so a GROUP BY you already typed becomes a shelf you can place.">
+<meta name="description" content="Drag fields onto shelves and build the chart, one new idea per step. Two tracks: small data you can check by eye, and the 7,043 customers behind a published churn project. Every step names the SQL query it answers.">
 <link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/viz/">
 <meta property="og:title" content="Viz Drill: Build the Chart That Answers Your Query">
-<meta property="og:description" content="Fifteen steps from a header list to a finished comparison, each one tied to the SQL query that produces the same answer.">
+<meta property="og:description" content="Two tracks from a header list to a finished chart, each step tied to the SQL query that produces the same answer. The Telco Churn track ends on a chart that is published.">
 <meta property="og:type" content="website">
 <!--
   VIZ DRILL. The shelf half of the same analysis SQL Drill types out.
@@ -42,8 +42,17 @@
   transfers is the motion and the vocabulary, which is what the exams and the interviews
   actually ask about.
 
-  The data is the 52 country gem tracks the SQL ladder queries, already joined to
-  artist_era, so a rung can say "this is drill 9" and mean it exactly.
+  TRACKS. One page, one builder, more than one dataset. A track is a registry entry:
+  its rows, its fields, its column names in SQL, and its ladder. Basic is the 52 country
+  gem tracks the SQL ladder queries, so a rung can say "this is drill 9" and mean it
+  exactly. Telco Churn is the 7,043 customers behind the published churn project, so the
+  last rung is a chart that already exists on Tableau Public with a write-up under it.
+  Adding a third track is a data file, a ladder file and one entry in TRACKS.
+
+  There is one way through a track, not two. The steps start folded away behind a button
+  on every rung, so the first thing you do is try, and looking costs one click. Guided and
+  Recall used to be separate modes, which meant every new track owed the page two
+  versions of itself and most people never saw the second one.
 
   Checking reads the shelf state, never the picture. A rung only checks the keys it asks
   for, so nobody is ever marked wrong for a mark type the rung never mentioned. As in the
@@ -69,8 +78,8 @@
     border-radius:10px;padding:10px 14px;font-size:14.5px;margin:12px 0 0}
   @media (max-width:980px){ .desktop-note{display:block} }
 
-  /* Mode picker. The same control the Track picker is in SQL Drill, because it does the
-     same job: one page, two ways through it, chosen up front and remembered. */
+  /* Track picker. The same control SQL Drill uses, because it does the same job: one
+     page, more than one dataset to walk it with, chosen up front and remembered. */
   .modes{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:16px 0 0;
     font-size:14.5px}
   .modes .lab{font:700 11px/1 inherit;letter-spacing:.07em;text-transform:uppercase;
@@ -83,13 +92,19 @@
     color:#fff}
   .mode-blurb{font-size:14.5px;color:var(--muted);margin:8px 0 0;max-width:78ch}
 
-  /* Recall. The steps are not deleted, they are folded away behind one button, because a
-     page that withholds the answer outright turns practice into an exam and this kit does
-     not run exams. What changes is only that you try before you look. */
+  /* The steps are not deleted, they are folded away behind one button, because a page
+     that withholds the answer outright turns practice into an exam and this kit does not
+     run exams. What changes is only that you try before you look. The button is deliberately
+     large: it is the second most important control on the page after Next step, and a small
+     one reads as a footnote you are not supposed to press. */
   .recall{border:1px dashed var(--line);border-radius:10px;padding:14px 16px;
     background:var(--bg)}
   .recall p{margin:0 0 10px;font-size:15px;color:var(--muted)}
   .recall[hidden]{display:none}
+  #reveal{display:block;width:100%;padding:14px 18px;font-size:16.5px;font-weight:700;
+    border:2px solid var(--accent);border-radius:10px;background:var(--card);
+    color:var(--accent);cursor:pointer;line-height:1.3}
+  #reveal:hover{background:var(--accent);color:#fff}
   .revealed{font-size:13.5px;color:var(--muted);margin:0 0 10px}
 
   .drillbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--card);
@@ -270,10 +285,10 @@
 <div class="shell">
   <p class="crumb"><a href="../">&larr; Analyst Prep Kit</a> &middot; <a href="../drill/">SQL Drill</a> &middot; <a href="../tableau/">Tableau Kit</a> &middot; <a href="../guides/">Guides</a></p>
   <h1>Viz Drill</h1>
-  <p class="lead" id="lead">Build a chart by dragging fields, one small move at a time. Each step says exactly what to drag and where. Nothing is graded.</p>
+  <p class="lead" id="lead">Build a chart by dragging fields, one small move at a time. Read the question, try it, and click one button if you want the exact steps. Nothing is graded.</p>
   <p class="desktop-note"><strong>Made for a desktop.</strong> Dragging is easier with a mouse, though you can tap a field and then tap a shelf.</p>
 
-  <nav class="modes" id="modes" aria-label="Mode"></nav>
+  <nav class="modes" id="modes" aria-label="Track"></nav>
   <p class="mode-blurb" id="mode-blurb"></p>
 
   <div class="drillbar">
@@ -297,10 +312,10 @@
       </div>
       <div>
         <div class="recall" id="recall" hidden>
-          <p id="recall-text">Build it from memory. The steps are here the moment you want them.</p>
-          <button id="reveal">Show the steps</button>
+          <p id="recall-text">Have a go at the question first. The exact steps are one click away, and clicking costs you nothing.</p>
+          <button id="reveal">Show me the steps &rarr;</button>
         </div>
-        <p class="revealed" id="revealed" hidden>Shown for this step only. The next step starts hidden again.</p>
+        <p class="revealed" id="revealed" hidden>Shown for this step only. The next step starts folded away again.</p>
         <ol class="steps" id="task"></ol>
       </div>
     </div>
@@ -390,9 +405,19 @@
     </div>
 
     <div class="tabpanel" id="panel-fields" role="tabpanel" aria-labelledby="tab-fields" hidden>
-      <p class="caption">52 country gem tracks, the same rows SQL Drill queries. Blue is a dimension, something you slice by. Green is a measure, something you aggregate.</p>
+      <p class="caption" id="fieldscap"></p>
       <div id="fieldlist"></div>
     </div>
+  </div>
+
+  <!-- Only the tracks built on a published project get this. It is the answer to "so what
+       does this look like when someone does it for real", and the answer is a link, not a
+       paragraph. -->
+  <div class="book" id="project" hidden>
+    <strong id="project-head"></strong>
+    <p id="project-body"></p>
+    <a class="booklink" id="project-link" href="#" target="_blank" rel="noopener"></a>
+    <a class="booklink" id="project-link2" href="#" target="_blank" rel="noopener" style="margin-left:18px"></a>
   </div>
 
   <div class="book">
@@ -413,54 +438,123 @@
 
 <!-- ?v is bumped whenever these files change. Without it the browser happily serves a
      cached ladder against a fresh page, which shows up as steps that quietly disappear. -->
-<script src="data.js?v=2"></script>
-<script src="ladder.js?v=2"></script>
+<script src="data.js?v=3"></script>
+<script src="ladder.js?v=3"></script>
+<script src="telco-data.js?v=3"></script>
+<script src="ladder-telco.js?v=3"></script>
 <script>
 const $ = id => document.getElementById(id);
 
-// ── modes ───────────────────────────────────────────────────────────────────
-// The same ladder twice. Guided spells out every drag; Recall shows the business ask and
-// nothing else, so the moves have to come out of your head instead of off the screen.
-// Recall is not a test: the steps are one button away on every rung, and asking for them
-// costs nothing except that you tried first, which is the whole exercise.
-const MODES = {
-  guided: {title: 'Guided',
-           blurb: 'Every step spelled out: what to drag, where to drop it, and why.'},
-  recall: {title: 'Recall',
-           blurb: 'The business question only. Build the chart from memory, and click for the steps whenever you want them.'}
-};
-const MODE_KEY = 'apk-viz-drill-mode';
-const DEFAULT_MODE = 'guided';
+// ── tracks ──────────────────────────────────────────────────────────────────
+// A track is one dataset walked one ladder. Everything the page needs to change between
+// them lives here: the rows, the field list, the SQL column names, the table name, and
+// the copy that names the data. Nothing below this block knows which track is running.
+//
+// Number of Records is carried as a field in every track on purpose: it is how a
+// shelf-based tool expresses COUNT(*), and it is the field a beginner hunts for longest.
+//
+// fmt says how a measure should be printed. Without it a churn rate reads as 0.47 in one
+// place and 0 in another, and the number a whole track is built on is the one number the
+// page cannot show.
+const TRACKS = {
+  basic: {
+    title: 'Basic',
+    blurb: 'The shelves, from a list of headers to a finished comparison. Small data you can check by eye, and every step is the same question SQL Drill types out.',
+    lead: 'Build a chart by dragging fields, one small move at a time. Read the question, try it, and click one button if you want the exact steps. Nothing is graded.',
+    rows: ROWS,
+    ladder: LADDER,
+    table: 'country_gems',
+    fieldsCaption: '52 country gem tracks, the same rows SQL Drill queries. Blue is a dimension, something you slice by. Green is a measure, something you aggregate.',
+    fields: {
+      artist:    {label: 'Artist',            kind: 'dim'},
+      track:     {label: 'Track',             kind: 'dim'},
+      decade:    {label: 'Decade',            kind: 'dim'},
+      era:       {label: 'Era',               kind: 'dim'},
+      listeners: {label: 'Listeners',         kind: 'meas'},
+      playcount: {label: 'Playcount',         kind: 'meas'},
+      ppl:       {label: 'Plays per listener',kind: 'meas'},
+      records:   {label: 'Number of Records', kind: 'meas'}
+    },
+    sqlCols: {artist: 'artist', track: 'track', decade: 'debut_decade', era: 'era_group',
+              listeners: 'listeners', playcount: 'playcount', ppl: 'plays_per_listener'}
+  },
 
-// The URL wins, then whatever was open last, then Guided. Matches the Track picker in
-// SQL Drill, so a link to a mode is a link anyone can send.
-function chooseMode(){
-  const asked = new URLSearchParams(location.search).get('mode');
-  if(asked && MODES[asked]) return asked;
+  telco: {
+    title: 'Telco Churn',
+    blurb: 'The same shelves on a real project: 7,043 phone customers, and why the new ones leave. The last step is a chart that is published, with the write-up under it.',
+    lead: 'Build the churn analysis one move at a time, on the same 7,043 customers behind the published project. Read the question, try it, and click one button if you want the exact steps. Nothing is graded.',
+    rows: TELCO_ROWS,
+    ladder: TELCO_LADDER,
+    table: 'telco_customers',
+    fieldsCaption: '7,043 phone customers, the extract behind the published churn project. Blue is a dimension, something you slice by. Green is a measure, something you aggregate. Churn and Churned are the same fact twice: one you group by, one you average.',
+    fields: {
+      persona:  {label: 'Persona',            kind: 'dim'},
+      contract: {label: 'Contract',           kind: 'dim'},
+      internet: {label: 'Internet Service',   kind: 'dim'},
+      payment:  {label: 'Payment Method',     kind: 'dim'},
+      churn:    {label: 'Churn',              kind: 'dim'},
+      churned:  {label: 'Churned',            kind: 'meas', fmt: 'pct'},
+      tenure:   {label: 'Tenure Months',      kind: 'meas'},
+      charges:  {label: 'Monthly Charges',    kind: 'meas', fmt: 'money'},
+      services: {label: 'Add-on Services',    kind: 'meas'},
+      records:  {label: 'Number of Records',  kind: 'meas'}
+    },
+    sqlCols: {persona: 'persona', contract: 'contract', internet: 'internet_service',
+              payment: 'payment_method', churn: 'churn', churned: 'churned',
+              tenure: 'tenure_months', charges: 'monthly_charges', services: 'add_on_services'},
+    project: {
+      head: 'You just built a chart that is published.',
+      body: 'The full analysis takes this further: four personas, the contract mechanism behind the gap, and three retention plays costed against the first year. Same 7,043 customers, same numbers.',
+      links: [
+        {text: 'The dashboard on Tableau Public &rarr;',
+         href: 'https://public.tableau.com/app/profile/michael.nocito8651/viz/TelcoCustomerChurnRiskPersonas/Story1'},
+        {text: 'The write-up and the code &rarr;',
+         href: 'https://github.com/michaelnocito/telco-churn-analysis'}
+      ]
+    }
+  }
+};
+const TRACK_KEY = 'apk-viz-drill-track';
+const DEFAULT_TRACK = 'basic';
+
+// The URL wins, then whatever was open last, then Basic. Matches the Track picker in
+// SQL Drill, so a link to a track is a link anyone can send. ?mode= was the old two-mode
+// split; those links still land somewhere sensible instead of on a 404's worth of nothing.
+function chooseTrack(){
+  const q = new URLSearchParams(location.search);
+  const asked = q.get('track');
+  if(asked && TRACKS[asked]) return asked;
   let saved = null;
-  try { saved = localStorage.getItem(MODE_KEY); } catch(e){}
-  return (saved && MODES[saved]) ? saved : DEFAULT_MODE;
+  try { saved = localStorage.getItem(TRACK_KEY); } catch(e){}
+  return (saved && TRACKS[saved]) ? saved : DEFAULT_TRACK;
 }
-const MODE = chooseMode();
-const RECALL = MODE === 'recall';
-try { localStorage.setItem(MODE_KEY, MODE); } catch(e){}
+const TRACK_KEY_NAME = chooseTrack();
+const TRACK = TRACKS[TRACK_KEY_NAME];
+try { localStorage.setItem(TRACK_KEY, TRACK_KEY_NAME); } catch(e){}
+
+// The one honoured leftover from the old modes: ?mode=guided used to mean "spell every
+// step out", so a link that says that still gets it, on every rung, without a click.
+const ALWAYS_SHOW = new URLSearchParams(location.search).get('mode') === 'guided';
 // Per rung, cleared on every move, because the point is to try this one before looking.
-let revealed = false;
+let revealed = ALWAYS_SHOW;
 
 // ── fields ──────────────────────────────────────────────────────────────────
-// Number of Records is carried as a field on purpose: it is how a shelf-based tool
-// expresses COUNT(*), and it is the field a beginner hunts for longest.
-const FIELDS = {
-  artist:    {label: 'Artist',            kind: 'dim'},
-  track:     {label: 'Track',             kind: 'dim'},
-  decade:    {label: 'Decade',            kind: 'dim'},
-  era:       {label: 'Era',               kind: 'dim'},
-  listeners: {label: 'Listeners',         kind: 'meas'},
-  playcount: {label: 'Playcount',         kind: 'meas'},
-  ppl:       {label: 'Plays per listener',kind: 'meas'},
-  records:   {label: 'Number of Records', kind: 'meas'}
-};
+const DATA = TRACK.rows;
+const STEPS = TRACK.ladder;      // not LADDER: ladder.js already owns that name
+const FIELDS = TRACK.fields;
+const COLUMN_SQL = TRACK.sqlCols;
 const AGGS = ['SUM', 'AVG', 'MIN', 'MAX'];
+
+// One number formatter for the whole page, so a rate looks like a rate in the chart, the
+// label, the legend, the result table and the sentence under the chart.
+function fmtVal(field, v){
+  if(v === null || v === undefined || isNaN(v)) return String(v);
+  const f = field && FIELDS[field] ? FIELDS[field].fmt : null;
+  if(f === 'pct') return (v * 100).toFixed(1) + '%';
+  if(f === 'money') return '$' + v.toFixed(2);
+  if(Math.abs(v) >= 1000) return Math.round(v).toLocaleString();
+  return String(Math.round(v * 100) / 100);
+}
 const SHELF_NAMES = {cols: 'Columns', rows: 'Rows', color: 'Color', size: 'Size',
                      label: 'Label', detail: 'Detail', filter: 'Filter'};
 
@@ -475,8 +569,10 @@ const blank = () => ({cols: [], rows: [], color: null, size: null, label: null,
 const BLANK = blank();
 let state = blank();
 let i = 0;
-const KEY = 'apk-viz-drill-rung';
-try { i = Math.min(parseInt(localStorage.getItem(KEY) || '0', 10) || 0, LADDER.rungs.length - 1); } catch(e){}
+// Per track, because step 9 of Basic is not step 9 of Telco Churn and landing on the
+// wrong one reads as the page losing your place.
+const KEY = 'apk-viz-drill-rung-' + TRACK_KEY_NAME;
+try { i = Math.min(parseInt(localStorage.getItem(KEY) || '0', 10) || 0, STEPS.rungs.length - 1); } catch(e){}
 const remember = () => { try { localStorage.setItem(KEY, String(i)); } catch(e){} };
 
 const esc = s => String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
@@ -533,7 +629,7 @@ function place(shelf, field){
   } else {
     state[shelf] = field;
   }
-  if(shelf === 'filter') state.filterVals = [...new Set(ROWS.map(r => String(r[field])))].sort();
+  if(shelf === 'filter') state.filterVals = [...new Set(DATA.map(r => String(r[field])))].sort();
   picked = null;
   draw();
 }
@@ -599,8 +695,8 @@ $('clear').onclick = () => { state = Object.assign({}, BLANK); draw(); };
 
 // ── aggregation, the part that is really SQL ────────────────────────────────
 function activeRows(){
-  if(!state.filter || !state.filterVals) return ROWS;
-  return ROWS.filter(r => state.filterVals.includes(String(r[state.filter])));
+  if(!state.filter || !state.filterVals) return DATA;
+  return DATA.filter(r => state.filterVals.includes(String(r[state.filter])));
 }
 function aggregate(vals, how){
   if(!vals.length) return 0;
@@ -724,8 +820,8 @@ function drawLegend(rs){
   } else {
     const vals = rs.rows.map(r => r.color);
     el.innerHTML = '<b>' + state.agg + '(' + esc(f.label) + ')</b> on Color, a measure, so a ramp:' +
-      Math.round(Math.min(...vals)).toLocaleString() + '<span class="ramp"></span>' +
-      Math.round(Math.max(...vals)).toLocaleString();
+      fmtVal(state.color, Math.min(...vals)) + '<span class="ramp"></span>' +
+      fmtVal(state.color, Math.max(...vals));
   }
 }
 
@@ -744,7 +840,7 @@ function drawTextTable(rs){
     (isDim(state.color) && !rs.dimFields.includes(state.color) ? '<td>' + esc(String(r.color)) + '</td>' : '') +
     (state.detail && !rs.dimFields.includes(state.detail) ? '<td>' + esc(String(r.detail)) + '</td>' : '') +
     (rs.measFields.length > 1 ? '<td>' + esc(FIELDS[r.measure].label) + '</td>' : '') +
-    '<td>' + (Math.round(r.value * 100) / 100).toLocaleString() + '</td></tr>').join('');
+    '<td>' + fmtVal(r.measure || rs.measField, r.value) + '</td></tr>').join('');
   return '<table class="data">' + head + body + '</table>';
 }
 
@@ -798,8 +894,10 @@ function drawChart(){
   const thickness = d => state.size && d.size !== null
     ? .35 + .55 * (sMax === sMin ? 1 : (Number(d.size) - sMin) / (sMax - sMin)) : .76;
   const labelOf = d => d.label === null ? null
-    : (typeof d.label === 'number' ? Math.round(d.label).toLocaleString() : String(d.label));
-  const fmt = v => v >= 1000 ? Math.round(v).toLocaleString() : Math.round(v * 100) / 100;
+    : (typeof d.label === 'number' ? fmtVal(state.label, d.label) : String(d.label));
+  // Marks carry the measure they came from, so a chart with two measures on an axis
+  // formats each set of marks with its own field's rule.
+  const fmt = (v, d) => fmtVal(d ? d.measure : rs.measField, v);
 
   // Scatter needs a measure on each axis, which is the lesson of the mark type: it plots
   // one measure against another. Anything else falls back, and says so rather than
@@ -836,16 +934,19 @@ function drawChart(){
     pts.forEach(p => {
       const cx = padL + p.x / xMax * w, cy = padT + h - p.y / yMax * h;
       const r = state.size ? 4 + 7 * (thickness(p.d) - .35) / .55 : 5;
+      // With everything that splits the points sitting on Detail there is no header to read
+      // them off, so the point carries its own name.
+      const who = p.d.key === 'All' ? (p.d.detail || 'All') : p.d.key;
       svgHTML += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${colorOf(p.d)}" fill-opacity=".8">
-        <title>${esc(p.d.key)}: ${fmt(p.x)} by ${fmt(p.y)}</title></circle>`;
-      const lab = labelOf(p.d);
+        <title>${esc(who)}: ${fmtVal(xField, p.x)} by ${fmtVal(yField, p.y)}</title></circle>`;
+      const lab = labelOf(p.d) || (p.d.detail || (p.d.key !== 'All' ? p.d.key : ''));
       if(lab) svgHTML += `<text x="${cx + 7}" y="${cy - 6}" font-size="10" fill="#52525B">${esc(lab)}</text>`;
     });
-    svgHTML += `<text x="10" y="${padT + 10}" font-size="11" fill="#52525B">${fmt(yMax)}</text>`;
-    svgHTML += `<text x="${W - 60}" y="${H - 10}" font-size="11" fill="#52525B">${fmt(xMax)}</text>`;
+    svgHTML += `<text x="10" y="${padT + 10}" font-size="11" fill="#52525B">${fmtVal(yField, yMax)}</text>`;
+    svgHTML += `<text x="${W - 60}" y="${H - 10}" font-size="11" fill="#52525B">${fmtVal(xField, xMax)}</text>`;
     svgHTML += `<text x="${padL}" y="${H - 10}" font-size="11" fill="#52525B">${esc(FIELDS[xField].label)} across, ${esc(FIELDS[yField].label)} up</text>`;
     svg.innerHTML = svgHTML;
-    $('caption').textContent = data.length + ' points, ' + state.agg + '(' + FIELDS[xField].label +
+    $('caption').textContent = pts.length + ' points, ' + state.agg + '(' + FIELDS[xField].label +
       ') against ' + state.agg + '(' + FIELDS[yField].label + ')';
     return;
   }
@@ -873,7 +974,7 @@ function drawChart(){
       const bh = d.value / max * h;
       const th = thickness(d);
       svgHTML += `<rect x="${padL + idx * band + band * (1 - th) / 2}" y="${padT + h - bh}"
-        width="${band * th}" height="${bh}" fill="${colorOf(d)}" rx="3"><title>${esc(d.key)}: ${fmt(d.value)}</title></rect>`;
+        width="${band * th}" height="${bh}" fill="${colorOf(d)}" rx="3"><title>${esc(d.key)}: ${fmt(d.value, d)}</title></rect>`;
       const lab = labelOf(d);
       if(lab) svgHTML += `<text x="${padL + idx * band + band / 2}" y="${padT + h - bh - 5}"
         font-size="10.5" fill="#52525B" text-anchor="middle">${esc(lab)}</text>`;
@@ -894,7 +995,7 @@ function drawChart(){
         text-anchor="end">${esc(String(d.key).slice(0, 22))}${d.detail ? ' · ' + esc(String(d.detail)) : ''}</text>`;
       svgHTML += `<rect x="${padL}" y="${y + rowH * (1 - th) / 2}" width="${Math.max(bw, 1)}"
         height="${rowH * th}" fill="${colorOf(d)}" rx="3"><title>${esc(d.key)}: ${fmt(d.value)}</title></rect>`;
-      svgHTML += `<text x="${padL + bw + 6}" y="${y + rowH * .72}" font-size="10.5" fill="#52525B">${lab || fmt(d.value)}</text>`;
+      svgHTML += `<text x="${padL + bw + 6}" y="${y + rowH * .72}" font-size="10.5" fill="#52525B">${lab || fmt(d.value, d)}</text>`;
     });
   }
   svg.innerHTML = svgHTML;
@@ -922,17 +1023,14 @@ function drawData(){
   const body = rs.rows.slice(0, 40).map(r => '<tr>' +
     (r.dimVals.length ? r.dimVals.map(v => '<td>' + esc(v) + '</td>').join('') : '<td>All</td>') +
     (rs.measFields.length > 1 ? '<td>' + esc(FIELDS[r.measure].label) + '</td>' : '') +
-    '<td>' + (Math.round(r.value * 100) / 100).toLocaleString() + '</td><td>' + r.n + '</td></tr>').join('');
+    '<td>' + fmtVal(r.measure || rs.measField, r.value) + '</td><td>' + r.n + '</td></tr>').join('');
   $('datatable').innerHTML = '<table class="data">' + head + body + '</table>' +
     (rs.rows.length > 40 ? '<p class="caption">Showing the first 40 of ' + rs.rows.length + ' rows.</p>' : '');
 }
 
 // The query the shelves are actually asking for, generated from state. The step's own SQL
 // is fixed, so without this the one tab whose job is the SQL tie goes stale the moment
-// anybody changes an aggregation.
-const COLUMN_SQL = {artist: 'artist', track: 'track', decade: 'debut_decade',
-                    era: 'era_group', listeners: 'listeners', playcount: 'playcount',
-                    ppl: 'plays_per_listener'};
+// anybody changes an aggregation. The column names and the table come from the track.
 function liveSQL(){
   const rs = resultSet();
   if(!rs) return '-- Nothing on the shelves yet.';
@@ -942,16 +1040,18 @@ function liveSQL(){
     ? 'COUNT(*) AS number_of_records'
     : state.agg + '(' + COLUMN_SQL[m] + ') AS ' + state.agg.toLowerCase() + '_' + COLUMN_SQL[m]);
   const select = dims.map(d => COLUMN_SQL[d]).concat(measures);
-  let sql = 'SELECT ' + (select.length ? select.join(',\n       ') : '*') + '\nFROM country_gems';
+  let sql = 'SELECT ' + (select.length ? select.join(',\n       ') : '*') + '\nFROM ' + TRACK.table;
   if(state.filter && state.filterVals){
-    const all = [...new Set(ROWS.map(r => String(r[state.filter])))];
+    const all = [...new Set(DATA.map(r => String(r[state.filter])))];
     if(state.filterVals.length !== all.length)
       sql += '\nWHERE ' + COLUMN_SQL[state.filter] + ' IN (' +
         state.filterVals.map(v => "'" + v + "'").join(', ') + ')';
   }
   if(dims.length) sql += '\nGROUP BY ' + dims.map(d => COLUMN_SQL[d]).join(', ');
+  // Number of Records has no column to order by, because it is COUNT(*).
   if(state.sort !== 'none' && measures.length)
-    sql += '\nORDER BY ' + (state.agg + '(' + COLUMN_SQL[rs.measField] + ')') +
+    sql += '\nORDER BY ' + (rs.measField === 'records'
+      ? 'COUNT(*)' : state.agg + '(' + COLUMN_SQL[rs.measField] + ')') +
       (state.sort === 'desc' ? ' DESC' : ' ASC');
   return sql + ';';
 }
@@ -960,14 +1060,14 @@ function drawFields(){
   $('fieldlist').innerHTML = '<table class="data"><tr><th>Field</th><th>Role</th><th>Distinct values</th></tr>' +
     Object.keys(FIELDS).map(f => {
       const kind = FIELDS[f].kind === 'dim' ? 'Dimension' : 'Measure';
-      const distinct = f === 'records' ? '&mdash;' : new Set(ROWS.map(r => r[f])).size;
+      const distinct = f === 'records' ? '&mdash;' : new Set(DATA.map(r => r[f])).size;
       return '<tr><td>' + esc(FIELDS[f].label) + '</td><td>' + kind + '</td><td>' + distinct + '</td></tr>';
     }).join('') + '</table>';
 }
 
 // ── the check: reads the shelves, never the picture ─────────────────────────
 function checkRung(){
-  const t = LADDER.rungs[i].target;
+  const t = STEPS.rungs[i].target;
   const missing = [];
   const name = f => f ? FIELDS[f].label : 'nothing';
   Object.keys(t).forEach(k => {
@@ -1015,9 +1115,12 @@ function answerLine(){
     return 'Your answer: ' + [...new Set(rs.rows.map(r => r.key))].length + ' of them.';
   const top = rs.rows.reduce((a, b) => b.value > a.value ? b : a, rs.rows[0]);
   if(!top) return '';
-  const num = Math.round(top.value).toLocaleString();
+  const num = fmtVal(top.measure || rs.measField, top.value);
   const what = rs.measFields.length > 1 && top.measure ? ' ' + FIELDS[top.measure].label.toLowerCase() : '';
-  return 'Your answer: <b>' + esc(top.key) + '</b> is the biggest, at ' + num + what + '.';
+  // Nothing on Rows or Columns to name it by means the splitting field is on Detail, and
+  // "All is the biggest" is not a sentence anybody would say at work.
+  const who = top.key === 'All' ? (top.detail || 'All of it') : top.key;
+  return 'Your answer: <b>' + esc(who) + '</b> is the biggest, at ' + num + what + '.';
 }
 
 function draw(){
@@ -1049,7 +1152,7 @@ function draw(){
   $('filtvals').innerHTML = state.filter
     ? '<span class="hint" style="width:100%">Values of ' + esc(FIELDS[state.filter].label) +
       '. Everything starts included; click one to leave it out.</span>' +
-      [...new Set(ROWS.map(r => String(r[state.filter])))].sort().map(v => {
+      [...new Set(DATA.map(r => String(r[state.filter])))].sort().map(v => {
         const on = (state.filterVals || []).includes(v);
         return `<button class="fv" data-v="${esc(v)}" aria-pressed="${on}"
           title="${on ? 'Included, click to leave it out' : 'Left out, click to put it back'}">${esc(v)}</button>`;
@@ -1078,11 +1181,11 @@ function draw(){
   // Described, never scored. What is left to do, in the words of the tool.
   const missing = checkRung();
   const solved = missing.length === 0;
-  const last = i === LADDER.rungs.length - 1;
-  // In Recall the check counts what is still wrong without naming it, because naming it is
-  // the step, and a line that reads "put Listeners on Columns" has handed over the answer
-  // the reveal button exists to hand over on purpose.
-  const hide = RECALL && !revealed;
+  const last = i === STEPS.rungs.length - 1;
+  // While the steps are folded away the check counts what is still wrong without naming
+  // it, because naming it is the step, and a line that reads "put Listeners on Columns"
+  // has handed over the answer the reveal button exists to hand over on purpose.
+  const hide = !revealed;
   say(solved
     ? '<span class="done">Done.</span> ' + answerLine() +
       (last ? ' That is the last step.' : ' Then click Next step.')
@@ -1128,41 +1231,58 @@ function markReady(solved, last){
   $('next').classList.remove('ready');
   $('restart').classList.remove('ready');
   if(solved) btn.classList.add('ready');
-  const unguided = RECALL && !revealed;
+  const hidden = !revealed;
   $('directive-text').textContent = solved
     ? (last
         ? 'That is the last step. Start over from step 1 whenever you want another lap.'
         : 'That step is done. Click Next step.')
     : (last
-        ? (unguided
+        ? (hidden
             ? 'Last step. Build it from the question up top, and the steps are one click away.'
             : 'Last step. Do it, then start over from step 1 whenever you want more practice.')
-        : (unguided
+        : (hidden
             ? 'Answer the question up top with the shelves, then click Next step.'
             : 'Do the numbered steps up top, then click Next step.'));
 }
 
-// The picker is drawn from the registry, not written out by hand, so adding a mode is one
-// entry in MODES and nothing else.
-function renderModes(){
-  $('modes').innerHTML = '<span class="lab">Mode</span>' +
-    Object.keys(MODES).map(k =>
-      '<a href="?mode=' + k + '"' + (k === MODE ? ' aria-current="true"' : '') + '>' +
-      esc(MODES[k].title) + '</a>').join('');
-  $('mode-blurb').textContent = MODES[MODE].blurb;
-  if(RECALL) $('lead').textContent = 'Read the business question and build the chart that answers it. ' +
-    'The same 17 steps as Guided, with the drags left out, so what comes back is what you remember. ' +
-    'Nothing is graded and the steps are always one click away.';
+// The picker is drawn from the registry, not written out by hand, so adding a track is one
+// entry in TRACKS and nothing else.
+function renderTracks(){
+  $('modes').innerHTML = '<span class="lab">Track</span>' +
+    Object.keys(TRACKS).map(k =>
+      '<a href="?track=' + k + '"' + (k === TRACK_KEY_NAME ? ' aria-current="true"' : '') + '>' +
+      esc(TRACKS[k].title) + '</a>').join('');
+  $('mode-blurb').textContent = TRACK.blurb;
+  $('lead').textContent = TRACK.lead;
+  $('fieldscap').textContent = TRACK.fieldsCaption;
+  // Only a track built on something published carries the box, and it carries the links
+  // the track earned rather than a generic "see more".
+  const p = TRACK.project;
+  $('project').hidden = !p;
+  if(p){
+    $('project-head').textContent = p.head;
+    $('project-body').textContent = p.body;
+    p.links.forEach((l, n) => {
+      const el = $('project-link' + (n ? String(n + 1) : ''));
+      if(!el) return;
+      el.innerHTML = l.text;
+      el.href = l.href;
+      el.hidden = false;
+      el.onclick = () => { if(window.gtag) gtag('event', 'viz_project_click',
+        {kit: 'viz', track: TRACK_KEY_NAME, dest: l.href}); };
+    });
+  }
 }
 
-// What the Do this pane is allowed to say on this rung. Guided says everything. Recall
-// says the ask, and holds the rest until it is asked for.
+// What the Do this pane is allowed to say on this rung. It says the ask, and holds the
+// rest until it is asked for. The steps are one click away and asking costs nothing
+// except that you tried first, which is the whole exercise.
 function renderAsk(){
-  const r = LADDER.rungs[i];
-  const hide = RECALL && !revealed;
-  $('todohead').textContent = RECALL ? (revealed ? 'The ask, and the steps' : 'The ask') : 'Do this';
-  // In Recall the headline would name the move it is asking you to remember.
-  $('adds').textContent = hide ? 'Build this one from memory.' : r.adds;
+  const r = STEPS.rungs[i];
+  const hide = !revealed;
+  $('todohead').textContent = hide ? 'The ask' : 'The ask, and the steps';
+  // Folded away, the headline would name the move it is asking you to remember.
+  $('adds').textContent = hide ? 'Have a go at this one first.' : r.adds;
   $('question').innerHTML = '<span>The question</span>' + esc(r.q || '');
   $('task').innerHTML = hide ? '' : (r.do || []).map(a => '<li>' + a + '</li>').join('');
   $('why').textContent = hide ? '' : (r.why || '');
@@ -1170,18 +1290,18 @@ function renderAsk(){
   // same button. The live SQL under it is their own worksheet and always shows.
   $('tie').textContent = hide ? '' : r.tie;
   $('sql').textContent = hide
-    ? '-- Hidden in Recall. Click Show the steps to see the query this step matches.'
+    ? '-- Folded away with the steps. Click Show me the steps to see the query this one matches.'
     : r.sql;
   $('recall').hidden = !hide;
-  $('revealed').hidden = !(RECALL && revealed);
+  $('revealed').hidden = hide || ALWAYS_SHOW;
 }
 
 $('reveal').onclick = () => { revealed = true; renderAsk(); draw(); };
 
 function render(){
-  const last = i === LADDER.rungs.length - 1;
-  $('rung').textContent = 'Step ' + (i + 1) + ' of ' + LADDER.rungs.length;
-  revealed = false;
+  const last = i === STEPS.rungs.length - 1;
+  $('rung').textContent = 'Step ' + (i + 1) + ' of ' + STEPS.rungs.length;
+  revealed = ALWAYS_SHOW;
   renderAsk();
   $('prev').disabled = i === 0;
   $('next').hidden = last;
@@ -1194,13 +1314,14 @@ function render(){
   remember();
 }
 
-$('next').onclick = () => { if(i < LADDER.rungs.length - 1){ i++; render(); } };
+$('next').onclick = () => { if(i < STEPS.rungs.length - 1){ i++; render(); } };
 $('prev').onclick = () => { if(i > 0){ i--; render(); } };
 $('restart').onclick = () => { i = 0; render(); scrollTo({top:0, behavior:'smooth'}); };
 addEventListener('resize', drawChart);
 
-renderModes();
-if(RECALL) document.title = 'Viz Drill, Recall: Build the Chart From the Ask — Analyst Prep Kit';
+renderTracks();
+if(TRACK.title !== 'Basic')
+  document.title = 'Viz Drill, ' + TRACK.title + ': Build the Chart Step by Step — Analyst Prep Kit';
 render();
 </script>
 </body>
