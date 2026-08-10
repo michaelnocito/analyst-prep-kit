@@ -99,9 +99,18 @@ Ranked by how many kits the hole appears in.
    with one guide between them**. Visuals, drillthrough, bookmarks, AI visuals,
    the Service, workspaces and roles, apps, gateways, RLS, data alerts.
    Probably three or four guides, not one.
-3. **DAX iterators, SUM vs SUMX** — `powerbi-cert` q22, `final` b3. TWO kits.
-   `powerbi-calculate` mentions SUMX only as context transition, never the
-   "SUM takes one column" failure both questions test.
+3. ✅ **DAX iterators, SUM vs SUMX** — BUILT 2026-08-10 as
+   `powerbi-sum-vs-sumx`, wired into both questions that proved it,
+   `powerbi-cert` q22 and `final` b3. The second and last item on this list to
+   bite two kits. Built on one fact, that SUM takes a column while SUMX takes a
+   table and an expression, and two worked failures: 9,890 that reports 214,625
+   because multiplying two totals adds all 256 quantity-and-price pairings, and
+   an AVERAGEX margin of 39.29% where the truth is 38.56%. Every single-row
+   check passes on both measures, which is why neither gets caught. Signatures,
+   the iterator and row-context definitions and the "if you do not need to
+   filter the column, use the SUM function" line all come from Microsoft's own
+   reference pages; the aggregate-then-relate finding is Robinson 1950.
+   Context transition is linked to `powerbi-calculate` rather than repeated.
 4. **Interview skills** — `final` i1-i4, **the entire Interview section with
    zero guides**: STAR, leading with the answer, handling a vague stakeholder
    ask, when to discuss salary. Closest live pages (`report-vs-analysis`,
