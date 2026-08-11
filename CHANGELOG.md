@@ -9,6 +9,25 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [2.7.0] — 2026-08-11 — The kit tells you your result, and a keyboard can reach it
+
+### Fixed
+- **Build and Check never said whether you were right.** The explanation sentence was byte-identical either way, so the only way to learn your own result was to notice which buttons had appeared underneath it. Both stages now lead with the same two words the Try stage uses: `✓ Correct` or `Not quite`. The `.correct` / `.wrong` option styling, which rendered nothing when the sweep measured it, now resolves — the Zinc & Sky tokens fixed that in the meantime — and each option also carries a ✓ or ✕ glyph, so the result never depends on seeing colour.
+- **Keyboard and screen reader could not reach the kit's primary controls.** The home tiles, the Practice tiles, the ordering chips, the lab cards and all 52 path nodes were divs with `onclick` and `cursor:pointer`, `role=null`, `tabindex=null`. They now get `role="button"`, `tabindex="0"` and Enter/Space, plus a visible focus ring. Done with one MutationObserver on `#main` rather than at the fifteen render sites, so a clickable div added later cannot quietly reintroduce the gap. Verified: 68 controls across six types, 0 missing, focus lands, Enter and Space both fire.
+- **A screen reader read the flashcard answer along with the prompt.** The back face was only rotated out of view, so "the clause that specifies which columns to return. SELECT." came in one breath and the retrieval practice was gone. The hidden face now carries `aria-hidden`, flipped in step with the card.
+- **Two contradictory explanations of the review list, one screen apart.** Home said these were lessons you rated below "Have it"; the lesson said they were recorded automatically from what you missed. There is no rating control anywhere in the kit, so home was describing a feature that does not exist. Home now reads "Things you fumbled the first time", and the missed card states the first-attempt rule out loud and says that fixing it on the second go is how learning looks — the clean-run card already stated the rule from the other side. No rating language survives anywhere.
+
+### Changed
+- **Practice items no longer name their own topic above the problem.** Bug Hunt carried WHERE / SELECT / ORDER BY-LIMIT / COUNT / JOIN / GROUP BY as a heading, and Put in Order carried "Build a basic SELECT" and friends: 10 of 11 measured items did the hardest step for the learner before they had done anything. Working out which approach a problem needs is the whole reason interleaved practice beats blocked practice (Rohrer, Dedrick & Stershic 2015, *Journal of Educational Psychology* 107(3):900-908), so the badge was cancelling the benefit while the switch cost stayed. The topic is now the label of what was just practised: `✓ Correct · that was WHERE`. Verified 0 of 30 items name their topic up front.
+
+### Checked, not changed
+- **The auth forms are not in the accessibility tree.** The sweep reported 11 controls sitting ahead of `main` on every screen. Measured directly: the overlay is `display:none`, every control has a null `offsetParent`, and 0 of the 11 can take focus. `display:none` removes a subtree from the tab order and the accessibility tree both; the finding came from enumerating DOM nodes rather than focusable ones. No change made, and `assets/auth_modal.html` is shared by every kit so it would not have been a SQL-only edit anyway.
+- **Reset does clear the review list.** An inbox note said it did not. Driven directly: after `resetProgress()`, `misses` and `flagged` are empty and both recall keys are gone. Already fixed by the DEFAULT_STATE rebuild.
+
+Verified on localhost:4201: 240 lesson renders, all 15 views, all 46 drill screens, every guided-path step and all 38 flashcards render clean, console empty.
+
+---
+
 ## [2.6.0] — 2026-08-11 — One ordering exercise, a hint that is actually a hint, and the next button back on screen
 
 ### Changed

@@ -295,6 +295,15 @@ p strong{color:var(--text)}
 .quiz-opt:hover{border-color:var(--accent)}
 .quiz-opt.correct{background:var(--leaf-50);border-color:var(--green);color:var(--leaf-700)}
 .quiz-opt.wrong{background:var(--rust-50);border-color:var(--red);color:var(--rust-700)}
+/* A mark as well as a colour, so the result does not depend on seeing hue. */
+.quiz-opt.correct::after{content:"\2713";float:right;font-weight:800;margin-left:10px}
+.quiz-opt.wrong::after{content:"\2715";float:right;font-weight:800;margin-left:10px}
+/* Keyboard users have to be able to see where they are. Every clickable div in
+   the kit is given role=button and tabindex=0 by upgradeClickables(). */
+.path-tile:focus-visible,.drill-tile:focus-visible,.ord-chip:focus-visible,.lab-card:focus-visible,
+.pmap-node:focus-visible,.skill-row2:focus-visible,.skill-strip:focus-visible,.flashcard-outer:focus-visible,
+.quiz-opt:focus-visible,.bug-choice:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.drill-topic{color:var(--muted);font-weight:500}
 .quiz-exp{margin-top:12px;padding:12px 14px;background:var(--surf);border-radius:var(--r2);font-size:13px;color:var(--muted);display:none}
 .quiz-exp.show{display:block}
 
@@ -2066,6 +2075,32 @@ function navigate(view, ...args){
   else if(view==='settings') renderSettings();
 }
 
+// ─── KEYBOARD REACH ─────────────────────────────────────────────────────────
+// The kit's primary controls are divs with onclick and cursor:pointer, and
+// role=null, tabindex=null: the home tiles, the Practice tiles, the ordering
+// chips, the lab cards, the path nodes. Keyboard and screen reader could not
+// reach any of them, and the real-test run's own element finder could not
+// locate the Practice tiles at all (sweep, 2026-08-03). Each gets the contract
+// a <button> already has: reachable by Tab, announced as a control, fired by
+// Enter or Space.
+//
+// Done with one observer rather than at the ~15 render sites, so a clickable
+// div added later cannot quietly reintroduce the gap.
+const CLICKABLE_DIVS = '.path-tile,.drill-tile,.ord-chip,.lab-card,.pmap-node,.skill-row2,.flashcard-outer';
+function upgradeClickables(root){
+  (root || document).querySelectorAll(CLICKABLE_DIVS).forEach(el => {
+    if(el.dataset.kbd) return;
+    el.dataset.kbd = '1';
+    if(!el.getAttribute('role')) el.setAttribute('role','button');
+    if(!el.hasAttribute('tabindex')) el.setAttribute('tabindex','0');
+    el.addEventListener('keydown', ev => {
+      if(ev.key !== 'Enter' && ev.key !== ' ' && ev.key !== 'Spacebar') return;
+      ev.preventDefault();   // Space would otherwise scroll the page
+      el.click();
+    });
+  });
+}
+
 function toggleTheme(){
   state.theme = state.theme === 'dark' ? 'light' : 'dark';
   document.documentElement.classList.toggle('light', state.theme === 'light');
@@ -2140,7 +2175,7 @@ function renderHome(){
     <div class="card" id="flaggedCard" style="margin-bottom:16px;border-color:var(--warn,#d9963a);display:none">
       <div class="row mb" style="justify-content:space-between">
         <h2 style="margin:0"><i data-lucide="flag" style="width:18px;height:18px;vertical-align:-2px;color:var(--warn)"></i> Your review list</h2>
-        <span style="font-size:12px;color:var(--muted)">Lessons you rated below “Have it”</span>
+        <span style="font-size:12px;color:var(--muted)">Things you fumbled the first time</span>
       </div>
       <div id="flaggedList"></div>
     </div>
@@ -2453,7 +2488,7 @@ function missPanelHTML(id){
     </div>`;
   return `<div class="miss-panel" style="margin-top:16px">
       <div class="miss-head"><i data-lucide="repeat-2"></i> ${m.length} thing${m.length===1?'':'s'} added to your review list</div>
-      <p class="miss-sub">Recorded automatically from what you missed — no self-rating needed. These come back at spaced intervals.</p>
+      <p class="miss-sub">These are what you did not get right the <strong>first</strong> time. Working it out on the second go is how learning looks, and it still counts — that is exactly what makes it worth seeing again. Nothing to rate; they come back on their own, spaced out.</p>
       <ul class="miss-items">${m.map(x=>`<li>${x}</li>`).join('')}</ul>
       <button class="btn btn-ghost btn-sm miss-clear" onclick="missGotIt(${id});renderLesson(${id})">I have this now — clear it</button>
     </div>`;
@@ -3185,9 +3220,16 @@ function v2ParsCheck(lid){
   } else {
     recordMiss(lid, l.parsons.prompt);
     const fb = document.getElementById('v2sql-pars-fb-'+lid);
-    if(fb) fb.innerHTML='<span style="color:var(--red);font-size:13px;font-weight:600">Not quite — try reordering the pieces.</span>';
+    // The guide link belongs on every wrong answer, not just two of the three.
+    // Build and Quiz have called guideLinkHTML(lid,'miss') since the map went
+    // in; Parsons never did, so the only route out of a wrong ordering was the
+    // hint button beside it, and the red line pointed at retrying. Real Test
+    // run 009 hit exactly that and had nowhere to go. Same call, same wording.
+    if(fb) fb.innerHTML='<span style="color:var(--red);font-size:13px;font-weight:600">Not quite — try reordering the pieces.</span>'
+      + guideLinkHTML(lid,'miss');
     const btn = document.getElementById('v2sql-coach-try-'+lid);
     if(btn) btn.style.display='';
+    if(window.lucide) lucide.createIcons();
   }
 }
 
@@ -3200,8 +3242,15 @@ function v2BuildPick(btn, lid){
   const isCorrect = btn.dataset.correct==='1';
   btn.classList.add(isCorrect?'correct':'wrong');
   if(!isCorrect) wrap.querySelectorAll('.quiz-opt')[l.build.ans].classList.add('correct');
+  // Say the result in words. The explanation sentence used to be byte-identical
+  // whether you were right or wrong, so the only way to learn your own result
+  // was to read which buttons had appeared underneath it (real-test sweep,
+  // 2026-08-03). Same two words the Try stage uses.
   const fb = document.getElementById('v2sql-build-fb-'+lid);
-  if(fb) fb.innerHTML=`<div class="quiz-exp show" style="margin-top:10px">${l.build.exp}</div>`;
+  const verdict = isCorrect
+    ? '<span style="color:var(--green);font-weight:600">&#10003; Correct</span>'
+    : '<span style="color:var(--red);font-weight:600">Not quite</span>';
+  if(fb) fb.innerHTML=`<div style="margin-top:10px;font-size:13px">${verdict}</div><div class="quiz-exp show" style="margin-top:8px">${l.build.exp}</div>`;
   if(!isCorrect){ recordMiss(lid, l.build.q); const cb=document.getElementById('v2sql-coach-build-'+lid); if(cb) cb.style.display=''; }
   const row = isCorrect
     ? `<div class="row mt" style="gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setSqlStage(${lid},3)">${fwdLabel(STAGE_ASK[3])}</button></div>`
@@ -3222,6 +3271,10 @@ function v2QuizAnswer(lid, chosen){
   });
   const exp = document.getElementById('v2sql-quiz-exp-'+lid);
   if(exp) exp.classList.add('show');
+  // Same verdict wording as Build and Try, said before the explanation.
+  if(exp) exp.insertAdjacentHTML('beforebegin', chosen===l.quiz.ans
+    ? '<div style="font-size:13px;margin:10px 0 4px;color:var(--green);font-weight:600">&#10003; Correct</div>'
+    : '<div style="font-size:13px;margin:10px 0 4px;color:var(--red);font-weight:600">Not quite</div>');
   if(chosen===l.quiz.ans){
     celebrate();
     markDone('doneLessons', lid);
@@ -3714,9 +3767,12 @@ const LESSON_GUIDE = {
   // 701 still points at CASE, because the guide that matches it is the
   // conditional-sum pattern rather than anything about a P&L.
   701:['sql-case-expression',              'The SQL CASE expression'],
-  702:['gross-vs-operating-vs-net-margin', 'Gross, operating and net margin'],
-  703:['liquidity-and-leverage-ratios',    'Current ratio, quick ratio and debt to equity'],
-  704:['net-present-value-npv',            'Net present value, step by step'],
+  // Labels match each guide's own H1 word for word. Real Test run 009 landed on
+  // a page whose kit label, footer label and heading were three different names
+  // and had to stop and check it was the right page.
+  702:['gross-vs-operating-vs-net-margin', 'Gross vs operating vs net margin'],
+  703:['liquidity-and-leverage-ratios',    'Current ratio vs quick ratio'],
+  704:['net-present-value-npv',            'Net present value (NPV)'],
   705:['budget-vs-actual-variance',        'Budget vs actual variance'],
   706:['contribution-margin-break-even',   'Contribution margin and break-even'],
   // Unit 8: Advanced Analyst Toolkit
@@ -4223,7 +4279,6 @@ function renderBug(idx){
   const body = `
     <div class="card">
       <h2>Bug Hunt</h2>
-      <h3>${b.concept}</h3>
       <p class="drill-instruction">${b.prompt}</p>
       <div class="code-broken">${b.broken}</div>
       ${drillTablesNote(b.broken)}
@@ -4283,6 +4338,17 @@ function _fillResultHTML(f){
 function _answeredNote(){
   return `<span class="text-muted text-sm">✓ You cleared this one before. Pick it again from cold.</span>`;
 }
+// The topic used to sit above the problem: WHERE, ORDER BY / LIMIT, "Build a
+// COUNT + GROUP BY". 10 of 11 practice items named their own topic before the
+// learner had done anything, which does the hardest step for them — working out
+// which approach the problem needs is the whole reason interleaved practice
+// beats blocked practice (Rohrer, Dedrick & Stershic 2015, J Educational
+// Psychology 107(3):900-908). The switch cost stayed and the benefit went. It
+// is now the label of what was just practised, said after the answer.
+function topicTag(t){
+  return t ? ` <span class="drill-topic">&middot; that was ${t}</span>` : '';
+}
+
 // A correct answer opens the explanation and the corrected query, which grows
 // the card past the fold and leaves the control you are meant to press next
 // off-screen. Measured at 7 of 7 Bug Hunt items: button top 748-750px against a
@@ -4328,7 +4394,7 @@ function pickBugFix(btn, idx){
     document.querySelectorAll('#bugChoices .bug-choice').forEach(x=>x.disabled=true);
     document.getElementById('bug-fix').classList.add('show');
     const iss = document.getElementById('bug-issue'); if(iss) iss.style.display='';
-    res.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Correct</span>`;
+    res.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Correct</span>${topicTag(b.concept)}`;
     celebrate();
     markDone('doneBugs', b.id);
     const nx = document.getElementById('bug-next');
@@ -4355,7 +4421,6 @@ function renderParsons(idx){
   const body = `
     <div class="card">
       <h2>Put in Order</h2>
-      <h3>${p.title}</h3>
       <p class="drill-instruction">${p.prompt}</p>
       ${drillTablesNote(p.lines.join('\n'))}
       ${Ord.html('p'+idx, p.lines)}
@@ -4387,7 +4452,7 @@ function checkParsons(idx){
   const correct = p.answer.every((v,i) => v === userOrder[i]);
   const res = document.getElementById('parsons-result');
   if(correct){
-    res.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Correct</span>`;
+    res.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Correct</span>${topicTag(p.title)}`;
     celebrate();
     markDone('doneParsons', p.id);
     delete _parsonsAttempts[idx];
@@ -4414,7 +4479,7 @@ function checkParsons(idx){
         : idx+1 < DATA.PARSONS.length
           ? `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="navigate('parsons',${idx+1})">${fwdLabel(STEP_ASK.parsons)}</button>`
           : `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="navigate('practice')">${fwdLabel('pick another drill')}</button>`;
-      res.innerHTML = `<span style="color:var(--accent)">Full answer shown — study the order, then move on.</span><br>${nxtBtn}`;
+      res.innerHTML = `<span style="color:var(--accent)">Full answer shown — study the order, then move on.</span>${topicTag(p.title)}<br>${nxtBtn}`;
     }
   }
 }
@@ -5778,10 +5843,10 @@ function renderCardAt(i){
   document.getElementById('main').innerHTML = `
     <h1>Flashcards</h1>
     <p class="text-sm text-muted">${i+1} of ${total} — click card to flip</p>
-    <div class="flashcard-outer" onclick="flipCard()">
+    <div class="flashcard-outer" onclick="flipCard()" aria-label="Flashcard. Recall the term, then activate to check yourself.">
       <div class="flashcard-inner" id="fc-inner">
-        <div class="flashcard-face flashcard-front"><div class="flashcard-def">${def}</div></div>
-        <div class="flashcard-face flashcard-back"><div><div class="flashcard-term">${term}</div><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="event.stopPropagation();practiceCard(${i})">Practice it in the Lab →</button></div></div>
+        <div class="flashcard-face flashcard-front" id="fc-front"><div class="flashcard-def">${def}</div></div>
+        <div class="flashcard-face flashcard-back" id="fc-back" aria-hidden="true"><div><div class="flashcard-term">${term}</div><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="event.stopPropagation();practiceCard(${i})">Practice it in the Lab →</button></div></div>
       </div>
     </div>
     <p class="fc-hint">Read the definition, recall the term, then click to check · ← → arrow keys to navigate</p>
@@ -5794,6 +5859,11 @@ function renderCardAt(i){
 function flipCard(){
   cardFlipped = !cardFlipped;
   document.getElementById('fc-inner').classList.toggle('flipped', cardFlipped);
+  // Only the face you can see is in the accessibility tree. Rotating the back
+  // out of view hid it from eyes and from nothing else.
+  const f = document.getElementById('fc-front'), b = document.getElementById('fc-back');
+  if(f) f.setAttribute('aria-hidden', cardFlipped ? 'true' : 'false');
+  if(b) b.setAttribute('aria-hidden', cardFlipped ? 'false' : 'true');
 }
 function nextCard(){ cardFlipped=false; cardIdx=(cardIdx+1)%DATA.CARDS.length; renderCardAt(cardIdx); }
 function prevCard(){ cardFlipped=false; cardIdx=(cardIdx-1+DATA.CARDS.length)%DATA.CARDS.length; renderCardAt(cardIdx); }
@@ -5881,6 +5951,16 @@ function showToast(msg){
 }
 
 // ─── INIT ──────────────────────────────────────────────────────────────────
+// Watch #main and give every clickable div its keyboard contract as it renders.
+// childList/subtree only: upgradeClickables sets attributes, and attribute
+// changes are not observed here, so it cannot retrigger itself.
+(function(){
+  const main = document.getElementById('main');
+  if(!main) return;
+  upgradeClickables(main);
+  new MutationObserver(() => upgradeClickables(main)).observe(main, {childList:true, subtree:true});
+})();
+
 loadState();
 _migrateStageIndicesR1();
 _migrateConfidence();
@@ -6083,6 +6163,8 @@ setTimeout(initAuthUI,600);
     <li><a href="../guides/sql-ctes/">SQL CTEs</a></li>
     <li><a href="../guides/sql-window-functions/">Window functions</a></li>
     <li><a href="../guides/sql-comments/">How to comment in SQL</a></li>
+    <li><a href="../guides/gross-vs-operating-vs-net-margin/">Gross vs operating vs net margin</a></li>
+    <li><a href="../guides/contribution-margin-break-even/">Contribution margin and break-even</a></li>
   </ul>
   <p><a href="../guides/">Browse all guides</a> · <a href="../">All kits</a></p>
 </section>
