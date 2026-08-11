@@ -9,6 +9,23 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [2.6.0] — 2026-08-11 — One ordering exercise, a hint that is actually a hint, and the next button back on screen
+
+### Changed
+- **The lesson Try stage and Practice "Put in Order" are now one component.** They were two builds of the same interaction: different chip classes, different id schemes, different data attributes, one with drag and one without, and the arrow-nudge controls written out twice. The 2026-08-03 sweep measured them as the kit's worst transition — the same problem, the same two chips, the same answer, built twice with 4 of 6 machinery slots different, all cost and no new content. Everything the learner touches now comes from `Ord`. What genuinely differs stays at the call site, because it is content and not machinery: a lesson does not scaffold and does not auto-advance, a drill does both. Net effect is roughly 90 lines of duplicated interaction code gone, and both surfaces gained what only one of them had — the lesson stage now has drag and named drop zones, the drill now shares the lesson's chip styling and its locked-chip treatment is a class rather than five inline styles.
+
+### Fixed
+- **"Stuck? Get a hint" answered "Add your Anthropic API key in Settings".** It appears exactly when a learner has just failed, so the one affordance offered at the moment of maximum frustration was a dead end. It now always gives a real hint built from the lesson's own content, with no key and no network: for an ordering puzzle it draws the clause-order strip, which says where the pieces go without saying which piece is which; for a multiple-choice miss it gives the lesson's "how you use it" line. Both then offer the worked example and the guide, which is the actual way out of being stuck. If a key IS set, the AI coach becomes an optional second step instead of the only one, and a failed call no longer dead-ends either.
+- **The advance control was below the fold after every correct answer.** Measured at 7 of 7 Bug Hunt items: button top 748-750px against a 721px viewport, scrollY 0, no auto-scroll. A correct answer opens the explanation and the corrected query, which is the point, so the fix is not a shorter panel — it is bringing the next control into view once it exists. Now 7 of 7 visible, and the same fix covers all 16 Fill drills. It only scrolls when it has to, so a learner already looking at the button never gets the page moved under them, and in guided mode it targets the shell's bottom nav rather than a button the drill does not render.
+- **The forward label was still inconsistent in three places** the last pass missed: "Next Bug", "All Done", and the drill "Next". All now use the one `Next: <what is coming>` shape.
+
+### Note on the scroll
+It uses an instant scroll, not a smooth one. Smooth scrolling needs animation frames and silently does nothing wherever they are throttled — verified directly: the instant call moved the page, the smooth call left `scrollY` at 0. A jump the learner asked for by pressing a button beats a glide that sometimes never happens. The first attempt at this fix used `requestAnimationFrame` and failed for the same reason.
+
+Verified on localhost:4201 at 1280×721: 240 lesson renders, all 15 views, all 46 drill screens and every guided-path step clean, console empty. All 48 Try stages build a working ordering exercise with the right chip count. Both surfaces driven to a correct answer through the shared component, plus the two-stage scaffold on a miss (half locked, then full), locked chips confirmed to ignore taps and carry no arrows. Bug Hunt measured 0/7 before and 7/7 after by the same method the original finding used.
+
+---
+
 ## [2.5.0] — 2026-08-11 — The Free Lab tells you what is in the database, and the kit stops renaming its own buttons
 
 ### Fixed

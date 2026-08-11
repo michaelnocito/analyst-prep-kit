@@ -339,14 +339,16 @@ p strong{color:var(--text)}
 .parsons-col label{font-size:12px;color:var(--muted);font-weight:600;display:block;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
 .parsons-pool,.parsons-answer{min-height:80px;background:var(--surf2);border:1px solid var(--border);border-radius:var(--r2);padding:8px;display:flex;flex-direction:column;gap:6px}
 .parsons-answer{border-color:var(--accent)}
-.parsons-chip{font-family:var(--mono);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:var(--r2);padding:9px 12px;cursor:pointer;user-select:none;transition:.15s;display:flex;align-items:center;gap:10px}
-.parsons-chip .pars-txt{flex:1;min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.ord-chip{font-family:var(--mono);font-size:13px;background:var(--surf);border:1.5px solid var(--border);border-radius:var(--r2);padding:9px 12px;cursor:pointer;user-select:none;transition:.15s;display:flex;align-items:center;gap:10px;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%}
+.ord-chip .pars-txt{flex:1;min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.ord-chip.is-locked{opacity:.65;cursor:default;border-color:rgba(47,109,240,.5);background:rgba(47,109,240,.10)}
 /* ↑ ↓ nudge controls on a placed line — thumb-sized, touch is the primary input */
 .pars-move{display:flex;gap:4px;flex:0 0 auto}
 .pars-move button{font:inherit;line-height:1;min-width:36px;min-height:36px;padding:0;color:inherit;background:var(--surf2);border:1px solid var(--border);border-radius:var(--r2);cursor:pointer}
 .pars-move button:disabled{opacity:.3;cursor:default}
-.parsons-chip:hover{border-color:var(--accent);background:var(--surf2)}
-.parsons-chip.dragging{opacity:.4}
+.ord-chip:hover{border-color:var(--accent);background:rgba(47,109,240,.07)}
+.ord-chip.is-locked:hover{border-color:rgba(47,109,240,.5);background:rgba(47,109,240,.10)}
+.ord-chip.dragging{opacity:.4}
 
 /* LAB / TERMINAL */
 .terminal-wrap{background:var(--stone-900);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
@@ -412,7 +414,7 @@ p strong{color:var(--text)}
   /* Standalone practice Parsons: full-width Check CTA + wrapping chips */
   .row:has(.pars-check){flex-wrap:wrap}
   .pars-check{flex:1 1 100%;width:100%;min-height:48px;font-size:15px}
-  .parsons-chip{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
+  .ord-chip{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
   /* High #1: primary stage CTA = full-width, thumb-height button on mobile */
   .v2-stage-card div[style*="display:flex"]{flex-wrap:wrap}
   .v2-stage-card .btn-primary{flex:1 1 100%;width:100%;min-height:48px;font-size:15px;order:2}
@@ -564,12 +566,6 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .v2-stage-card{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-top:16px}
 .v2-stage-card h3{margin:0 0 12px;font-size:15px}
 .v2-stage-card h3 .lucide{width:16px;height:16px;color:var(--accent);vertical-align:-2px;margin-right:6px}
-.v2-pool{display:flex;flex-wrap:wrap;gap:8px;min-height:44px;border:2px dashed var(--border);border-radius:var(--r2);padding:10px;margin-bottom:10px;transition:.15s}
-.v2-answer-zone{min-height:44px;border:2px dashed var(--accent);border-radius:var(--r2);padding:10px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px;transition:.15s}
-.v2-answer-zone.drag-over,.v2-pool.drag-over{background:rgba(47,109,240,.07)}
-.v2-pars-chip{font-family:var(--mono);font-size:13px;background:var(--surf);border:1.5px solid var(--border);border-radius:var(--r2);padding:9px 12px;cursor:pointer;user-select:none;transition:.15s;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%;display:flex;align-items:center;gap:10px}
-.v2-pars-chip .pars-txt{flex:1;min-width:0}
-.v2-pars-chip:hover{border-color:var(--accent);background:rgba(47,109,240,.07)}
 .v2-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 @media(max-width:540px){.v2-compare-grid{grid-template-columns:1fr}}
 .v2-compare-col-head{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
@@ -3024,62 +3020,156 @@ function setSqlStage(lid, s){
 let _v2ParsAttempt = {};
 let _v2ParsWasWrong = {};
 
-function v2ParsChipTap(lid, chip){
-  const pool = document.getElementById('v2sql-pool-'+lid);
-  const ans  = document.getElementById('v2sql-ans-'+lid);
-  if(!pool||!ans) return;
-  if(pool.contains(chip)) ans.appendChild(chip);
-  else pool.appendChild(chip);
-  v2ParsSyncControls(pool, ans);
-}
+// ─── ONE CLAUSE-ORDERING EXERCISE ───────────────────────────────────────────
+// The lesson Try stage and Practice "Put in Order" were two builds of the same
+// interaction: different chip classes, different id schemes, different data
+// attributes, different pool labels, different button casing, one with drag and
+// one without, and the arrow-nudge controls written out twice. The 2026-08-03
+// real-test sweep measured them as the kit's worst transition — the same
+// problem, the same two chips, the same answer, built twice with 4 of 6
+// machinery slots different. All cost, no new content.
+//
+// Everything the learner touches now comes from here. What genuinely differs
+// stays at the call site: a lesson does not scaffold and does not auto-advance,
+// a drill does both. That is content, not machinery.
+const Ord = {
+  pool: k => document.getElementById('ord-pool-' + k),
+  ans:  k => document.getElementById('ord-ans-' + k),
 
-// ↑ ↓ on a placed piece: fixing one line out of order costs one tap instead of
-// clearing the answer and re-tapping everything (playtest S3, 2026-07-20).
-function v2ParsMove(ev, dir){
-  ev.stopPropagation();
-  const chip = ev.currentTarget.closest('.v2-pars-chip');
-  if(!chip) return;
-  const zone = chip.parentElement;
-  const sib = dir < 0 ? chip.previousElementSibling : chip.nextElementSibling;
-  if(!sib) return;
-  if(dir < 0) zone.insertBefore(chip, sib);
-  else zone.insertBefore(sib, chip);
-  v2ParsSyncControls(null, zone);
-}
-function v2ParsSyncControls(pool, ans){
-  if(pool) pool.querySelectorAll('.pars-move').forEach(m => m.remove());
-  if(!ans) return;
-  const chips = [...ans.querySelectorAll('.v2-pars-chip')];
-  chips.forEach((c, i) => {
-    let ctl = c.querySelector('.pars-move');
-    if(!ctl){
-      ctl = document.createElement('span');
-      ctl.className = 'pars-move';
-      ctl.innerHTML = '<button type="button" aria-label="Move this piece up">&uarr;</button>' +
-                      '<button type="button" aria-label="Move this piece down">&darr;</button>';
-      ctl.children[0].onclick = e => v2ParsMove(e, -1);
-      ctl.children[1].onclick = e => v2ParsMove(e, 1);
-      c.appendChild(ctl);
+  // `lines` is the exercise's own array; `order` is the display order of the
+  // pool. Every chip carries its index into `lines`, which is what both
+  // checkers compare against their answer array.
+  html(key, lines, order){
+    const seq = order || lines.map((_, i) => i);
+    const chips = seq.map(i =>
+      `<div class="ord-chip" draggable="true" data-line="${i}" onclick="Ord.tap('${key}',this)"
+         ondragstart="Ord.dragStart(event)" ondragover="Ord.dragOver(event)"
+         ondrop="Ord.drop(event,'${key}','pool')"><span class="pars-txt">${lines[i]}</span></div>`).join('');
+    return `<div class="parsons-wrap">
+      <div class="parsons-col">
+        <label>Tap a piece to move it between the pool and your answer</label>
+        <div class="parsons-pool" id="ord-pool-${key}" ondragover="Ord.dragOver(event)" ondrop="Ord.drop(event,'${key}','pool')">${chips}</div>
+      </div>
+      <div class="parsons-col">
+        <label>Your answer, top to bottom</label>
+        <div class="parsons-answer" id="ord-ans-${key}" ondragover="Ord.dragOver(event)" ondrop="Ord.drop(event,'${key}','ans')"></div>
+      </div>
+    </div>`;
+  },
+
+  // Tap a pool chip and it joins the answer; tap a placed chip and it goes back
+  // to the pool in the pool's original line order, so returning a piece never
+  // reshuffles what is left. Scaffolded chips are locked and ignore taps.
+  tap(key, chip){
+    if(chip.getAttribute('draggable') === 'false') return;
+    const pool = Ord.pool(key), ans = Ord.ans(key);
+    if(!pool || !ans) return;
+    if(chip.parentElement === pool){ ans.appendChild(chip); }
+    else {
+      const line = +chip.dataset.line;
+      const after = [...pool.querySelectorAll('.ord-chip')].find(c => +c.dataset.line > line);
+      pool.insertBefore(chip, after || null);
     }
-    ctl.children[0].disabled = i === 0;
-    ctl.children[1].disabled = i === chips.length - 1;
-  });
-}
+    Ord.sync(key);
+  },
+
+  // ↑ ↓ on a placed piece: fixing one line out of order costs one tap instead
+  // of clearing the answer and re-tapping everything (playtest S3, 2026-07-20).
+  move(key, ev, dir){
+    ev.stopPropagation();
+    const chip = ev.currentTarget.closest('.ord-chip');
+    if(!chip) return;
+    const sib = dir < 0 ? chip.previousElementSibling : chip.nextElementSibling;
+    if(!sib) return;
+    if(dir < 0) chip.parentElement.insertBefore(chip, sib);
+    else chip.parentElement.insertBefore(sib, chip);
+    Ord.sync(key);
+  },
+  sync(key){
+    const pool = Ord.pool(key), ans = Ord.ans(key);
+    if(pool) pool.querySelectorAll('.pars-move').forEach(m => m.remove());
+    if(!ans) return;
+    const chips = [...ans.querySelectorAll('.ord-chip')];
+    chips.forEach((c, i) => {
+      const locked = c.getAttribute('draggable') === 'false';
+      let ctl = c.querySelector('.pars-move');
+      if(locked){ if(ctl) ctl.remove(); return; }
+      if(!ctl){
+        ctl = document.createElement('span');
+        ctl.className = 'pars-move';
+        ctl.innerHTML = '<button type="button" aria-label="Move this piece up">&uarr;</button>' +
+                        '<button type="button" aria-label="Move this piece down">&darr;</button>';
+        ctl.children[0].onclick = e => Ord.move(key, e, -1);
+        ctl.children[1].onclick = e => Ord.move(key, e, 1);
+        c.appendChild(ctl);
+      }
+      ctl.children[0].disabled = i === 0;
+      ctl.children[1].disabled = i === chips.length - 1;
+    });
+  },
+
+  // What the learner has placed, as indices into `lines`, and as text.
+  placed(key){ const a = Ord.ans(key); return a ? [...a.querySelectorAll('.ord-chip')].map(c => +c.dataset.line) : []; },
+  texts(key){ const a = Ord.ans(key); return a ? [...a.querySelectorAll('.ord-chip')].map(c => (c.querySelector('.pars-txt')||c).textContent) : []; },
+
+  // Place the first `count` lines of the correct answer, locked, and return the
+  // rest to the pool in original line order so the remaining ordering is not
+  // given away. The column order stays put for the whole exercise: restacking
+  // it mid-way read as "my second tap jumped above my first" (playtest S3).
+  scaffold(key, lines, answer, count){
+    const pool = Ord.pool(key), ans = Ord.ans(key);
+    if(!pool || !ans) return;
+    const all = {};
+    [...pool.querySelectorAll('.ord-chip'), ...ans.querySelectorAll('.ord-chip')]
+      .forEach(c => { all[+c.dataset.line] = c; });
+    pool.innerHTML = ''; ans.innerHTML = '';
+    const placed = new Set();
+    for(let i = 0; i < count; i++) placed.add(answer[i]);
+    for(let i = 0; i < count; i++){
+      const chip = all[answer[i]];
+      if(!chip) continue;
+      chip.setAttribute('draggable','false');
+      chip.classList.add('is-locked');
+      ans.appendChild(chip);
+    }
+    lines.forEach((_, i) => {
+      if(placed.has(i)) return;
+      const chip = all[i];
+      if(!chip) return;
+      chip.setAttribute('draggable','true');
+      chip.classList.remove('is-locked');
+      pool.appendChild(chip);
+    });
+    Ord.sync(key);
+  },
+
+  _dragged: null,
+  dragStart(e){ Ord._dragged = e.target.closest('.ord-chip'); if(Ord._dragged) Ord._dragged.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; },
+  dragOver(e){ e.preventDefault(); e.dataTransfer.dropEffect = 'move'; },
+  drop(e, key, zone){
+    e.preventDefault();
+    if(!Ord._dragged) return;
+    Ord._dragged.classList.remove('dragging');
+    const el = zone === 'pool' ? Ord.pool(key) : Ord.ans(key);
+    if(el) el.appendChild(Ord._dragged);
+    Ord._dragged = null;
+    Ord.sync(key);
+  }
+};
 
 function v2ParsCheck(lid){
   const l = DATA.LESSONS.find(x=>x.id===lid);
   if(!l||!l.parsons) return;
-  const ans = document.getElementById('v2sql-ans-'+lid);
-  if(!ans) return;
-  const chips = [...ans.querySelectorAll('.v2-pars-chip')];
-  if(chips.length !== l.parsons.answer.length){
+  const key = 'l'+lid;
+  if(!Ord.ans(key)) return;
+  const userOrder = Ord.placed(key);
+  if(userOrder.length !== l.parsons.answer.length){
     const fb = document.getElementById('v2sql-pars-fb-'+lid);
     if(fb) fb.innerHTML='<span style="color:var(--warn);font-size:13px">Move all pieces to the answer area first.</span>';
     return;
   }
-  const userOrder = chips.map(c=>+c.dataset.idx);
   const correct = l.parsons.answer.every((v,i)=>v===userOrder[i]);
-  _v2ParsAttempt[lid] = {lines: chips.map(c=>(c.querySelector('.pars-txt')||c).textContent)};
+  _v2ParsAttempt[lid] = {lines: Ord.texts(key)};
   _v2ParsWasWrong[lid] = !correct;
   if(correct){
     delete _v2ParsWasWrong[lid];
@@ -3194,7 +3284,7 @@ async function _v2CoachCall(prompt, model, targetId){
     });
     const data = await res.json();
     if(el) el.innerHTML = _hintMD(data.content?.[0]?.text || 'No response — check your key.');
-  } catch(e){ if(el) el.textContent='Request failed — check your key in Settings.'; }
+  } catch(e){ if(el) el.innerHTML='The AI coach could not be reached. The hint above still stands, and the worked example is one tap away.'; }
 }
 // The model answers in Markdown, and this used to go through textContent, so a
 // learner pressing the button at the moment they are most stuck read a literal
@@ -3210,6 +3300,49 @@ function _hintMD(t){
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
     .replace(/\n/g, '<br>');
+}
+
+// A real hint, from the lesson's own content, with no key and no network.
+// "Stuck? Get a hint" appears exactly when a learner has just failed, and it
+// used to answer "Add your Anthropic API key in Settings → Hints to turn hints
+// on" — a dead affordance at the moment of maximum frustration (real-test
+// sweep, 2026-08-03). Every lesson now carries an `explain` block and a worked
+// example, so there is always something honest to say. The API coach is the
+// optional second step for people who have set a key, not the only step.
+function stuckHint(lid, stageName){
+  const l = DATA.LESSONS.find(x=>x.id===lid);
+  if(!l) return;
+  const isTry = stageName === 'try';
+  const e = l.explain || {};
+  const el = document.getElementById(`v2sql-coach-resp-${isTry?'try':'build'}-${lid}`);
+  if(!el) return;
+
+  let html = '';
+  // For an ordering puzzle the honest nudge is the clause order itself, which
+  // the lesson already draws in its own strip. It says where the pieces go
+  // without saying which piece is which.
+  if(isTry && e.slot && e.slot.length > 1){
+    html += `<p style="margin:0 0 8px">SQL clauses always come in this order. Put your pieces in the same order.</p>${lxSlotHTML({slot:e.slot})}`;
+  } else if(e.use){
+    html += `<p style="margin:0 0 8px">${e.use}</p>`;
+  } else if(e.is){
+    html += `<p style="margin:0 0 8px">${e.is}</p>`;
+  } else {
+    html += `<p style="margin:0 0 8px">${l.sub || l.title}</p>`;
+  }
+  // The way out of being stuck is the worked example, not a stronger hint.
+  html += `<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px">
+    <button class="btn btn-ghost btn-sm" onclick="setSqlStage(${lid},0)">Show the worked example again</button>
+    ${guideLinkHTML(lid,'miss')}
+  </div>`;
+  if(getCoachKey()){
+    html += `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+      <button class="btn btn-ghost btn-sm" onclick="v2CoachStuck(${lid},'${stageName}')"><i data-lucide="sparkles" style="width:13px;height:13px;vertical-align:-2px"></i> Ask the AI coach as well</button>
+    </div>`;
+  }
+  el.innerHTML = html;
+  el.classList.add('show');
+  if(window.lucide) lucide.createIcons();
 }
 
 function v2CoachStuck(lid, stageName){
@@ -3292,19 +3425,16 @@ function v2SqlBody(l, done){
     const p=l.parsons;
     const idxs=[...p.lines.keys()];
     for(let i=idxs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idxs[i],idxs[j]]=[idxs[j],idxs[i]];}
-    const pool=idxs.map(i=>`<div class="v2-pars-chip" data-idx="${i}" onclick="v2ParsChipTap(${l.id},this)"><span class="pars-txt">${p.lines[i]}</span></div>`).join('');
     body=`<div class="v2-stage-card">
       <h3><i data-lucide="list-ordered"></i> Try It</h3>
-      <p style="font-size:12px;color:var(--muted);margin:0 0 6px">Tap a piece to move it between the pool and your answer:</p>
-      <div class="v2-pool" id="v2sql-pool-${l.id}">${pool}</div>
-      <div class="v2-answer-zone" id="v2sql-ans-${l.id}"></div>
+      ${Ord.html('l'+l.id, p.lines, idxs)}
       <div id="v2sql-pars-fb-${l.id}" style="min-height:18px;margin-bottom:4px"></div>
       <div class="row" id="v2sql-pars-actions-${l.id}" style="gap:10px">
         <button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},0)">← Back</button>
         <button class="btn btn-primary" onclick="v2ParsCheck(${l.id})">Check order</button>
         <button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},2)">Skip this</button>
       </div>
-      <button class="v2-coach-btn" id="v2sql-coach-try-${l.id}" style="display:none" onclick="v2CoachStuck(${l.id},'try')"><i data-lucide="sparkles"></i> Stuck? Get a hint →</button>
+      <button class="v2-coach-btn" id="v2sql-coach-try-${l.id}" style="display:none" onclick="stuckHint(${l.id},'try')"><i data-lucide="life-buoy"></i> Stuck? Show me a hint</button>
       <div class="v2-coach-resp" id="v2sql-coach-resp-try-${l.id}"></div>
     </div>`;
   } else if(stage===2){
@@ -3313,7 +3443,7 @@ function v2SqlBody(l, done){
       <h3><i data-lucide="wrench"></i> Build It</h3>
       ${b.opts.map((o,i)=>`<button class="quiz-opt" data-correct="${i===b.ans?1:0}" onclick="v2BuildPick(this,${l.id})">${o}</button>`).join('')}
       <div id="v2sql-build-fb-${l.id}"></div>
-      <button class="v2-coach-btn" id="v2sql-coach-build-${l.id}" style="display:none" onclick="v2CoachStuck(${l.id},'build')"><i data-lucide="sparkles"></i> Stuck? Get a hint →</button>
+      <button class="v2-coach-btn" id="v2sql-coach-build-${l.id}" style="display:none" onclick="stuckHint(${l.id},'build')"><i data-lucide="life-buoy"></i> Stuck? Show me a hint</button>
       <div class="v2-coach-resp" id="v2sql-coach-resp-build-${l.id}"></div>
       <div class="row" style="margin-top:14px"><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${l.id},1)">&larr; Back</button></div>
     </div>`;
@@ -3987,8 +4117,8 @@ function _fillAdvance(idx){
   return guided
     ? ''
     : idx+1 < DATA.FILLS.length
-      ? `<button class="btn btn-primary btn-sm" onclick="navigate('fill',${idx+1})">Next →</button>`
-      : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">All Done →</button>`;
+      ? `<button class="btn btn-primary btn-sm" onclick="navigate('fill',${idx+1})">${fwdLabel(STEP_ASK.fills)}</button>`
+      : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">${fwdLabel('pick another drill')}</button>`;
 }
 // Drills reached from the guided path belong to that lesson; standalone
 // practice has no lesson to file the miss against, so it records nothing.
@@ -4056,6 +4186,7 @@ function checkFill(idx){
     markDone('doneFills', f.id);
     const nx = document.getElementById('fill-next');
     if(nx) nx.innerHTML = _fillAdvance(idx);
+    revealNext(advanceControl(nx));
     return;
   }
   recordMiss(_drillLesson(), f.q);
@@ -4149,13 +4280,42 @@ function _fillResultHTML(f){
 function _answeredNote(){
   return `<span class="text-muted text-sm">✓ You cleared this one before. Pick it again from cold.</span>`;
 }
+// A correct answer opens the explanation and the corrected query, which grows
+// the card past the fold and leaves the control you are meant to press next
+// off-screen. Measured at 7 of 7 Bug Hunt items: button top 748-750px against a
+// 721px viewport, scrollY 0, no auto-scroll (real-test sweep, 2026-08-03). The
+// fix is not a shorter panel — the explanation is the point — it is bringing
+// the next control into view once it exists. Only scrolls when it has to, so a
+// learner already looking at the button never gets the page moved under them.
+// Measured and scrolled synchronously on purpose. getBoundingClientRect forces
+// layout, so the numbers are already correct here, and requestAnimationFrame
+// does not fire at all in a tab that is not compositing — which is exactly
+// where this gets verified.
+function revealNext(el){
+  if(!el) return;
+  const r = el.getBoundingClientRect();
+  if(r.height === 0) return;
+  if(r.bottom > window.innerHeight - 8 || r.top < 0)
+    // Instant, not smooth. Smooth scrolling needs animation frames, so it
+    // silently does nothing wherever they are throttled — verified here: the
+    // instant call moves the page, the smooth call leaves scrollY at 0. A jump
+    // the learner asked for by pressing a button beats a glide that sometimes
+    // never happens.
+    el.scrollIntoView({block:'center'});
+}
+// In guided mode the advance control is the shell's uniform bottom nav, not a
+// button inside the drill, so that is what has to come into view.
+function advanceControl(localEl){
+  return guided ? document.querySelector('#main button[onclick="guidedNext()"]') : localEl;
+}
+
 // In guided mode the shell's uniform bottom nav is the advance control.
 function _bugAdvance(idx){
   return guided
     ? ''
     : idx+1 < DATA.BUGS.length
-      ? `<button class="btn btn-primary btn-sm" onclick="navigate('bug',${idx+1})">Next Bug →</button>`
-      : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">All Done →</button>`;
+      ? `<button class="btn btn-primary btn-sm" onclick="navigate('bug',${idx+1})">${fwdLabel(STEP_ASK.bugs)}</button>`
+      : `<button class="btn btn-primary btn-sm" onclick="navigate('practice')">${fwdLabel('pick another drill')}</button>`;
 }
 function pickBugFix(btn, idx){
   const b = DATA.BUGS[idx];
@@ -4168,7 +4328,9 @@ function pickBugFix(btn, idx){
     res.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Correct</span>`;
     celebrate();
     markDone('doneBugs', b.id);
-    document.getElementById('bug-next').innerHTML = _bugAdvance(idx);
+    const nx = document.getElementById('bug-next');
+    nx.innerHTML = _bugAdvance(idx);
+    revealNext(advanceControl(nx));
   } else {
     recordMiss(_drillLesson(), b.prompt);
     btn.style.background='rgba(207,34,46,.12)'; btn.style.borderColor='var(--red,#cf222e)'; btn.style.color='var(--red,#cf222e)'; btn.style.opacity='.8'; btn.disabled=true;
@@ -4187,27 +4349,13 @@ function renderParsons(idx){
   if(!p){ if(!guided) navigate('practice'); return ''; }
   const done = state.doneParsons.includes(p.id);
 
-  // Shuffle pool display (just show all lines in original order in pool)
-  const poolLines = [...p.lines];
-
   const body = `
     <div class="card">
       <h2>Put in Order</h2>
       <h3>${p.title}</h3>
       <p class="drill-instruction">${p.prompt}</p>
       ${drillTablesNote(p.lines.join('\n'))}
-      <div class="parsons-wrap">
-        <div class="parsons-col">
-          <label>Tap a piece to move it between the pool and your answer</label>
-          <div class="parsons-pool" id="parsons-pool">
-            ${poolLines.map((line,i) => `<div class="parsons-chip" draggable="true" data-line="${i}" onclick="tapChip(event)" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dropChip(event,'pool')"><span class="pars-txt">${line}</span></div>`).join('')}
-          </div>
-        </div>
-        <div class="parsons-col">
-          <label>Your answer, top to bottom</label>
-          <div class="parsons-answer" id="parsons-answer" ondragover="dragOver(event)" ondrop="dropChip(event,'answer')"></div>
-        </div>
-      </div>
+      ${Ord.html('p'+idx, p.lines)}
       <div class="row mt">
         <button class="btn btn-primary btn-sm pars-check" onclick="checkParsons(${idx})">Check order</button>
         <button class="btn btn-ghost btn-sm" onclick="resetParsons(${idx})">Clear</button>
@@ -4222,87 +4370,17 @@ function renderParsons(idx){
     </div>` + body;
 }
 
-// Tap-to-place (primary interaction; drag kept as a bonus). Tap a pool chip →
-// appends to the answer; tap an answer chip → returns to the pool in original
-// line order. Locked (scaffolded) chips ignore taps.
-function tapChip(e){
-  const chip = e.currentTarget;
-  if(chip.getAttribute('draggable') === 'false') return;
-  const pool = document.getElementById('parsons-pool');
-  const answer = document.getElementById('parsons-answer');
-  if(!pool || !answer) return;
-  if(chip.parentElement === pool){
-    answer.appendChild(chip);
-  } else {
-    const line = parseInt(chip.dataset.line);
-    const after = [...pool.querySelectorAll('.parsons-chip')].find(c => parseInt(c.dataset.line) > line);
-    pool.insertBefore(chip, after || null);
-  }
-  syncParsonsControls();
-}
-
-// A placed line can be nudged with ↑ ↓ so one line out of order costs one tap,
-// not emptying the whole answer and starting again (playtest S3: "I'm not sure
-// if we can put them movable"). Drag still works on desktop; touch has no drag.
-function parsonsMoveChip(ev, dir){
-  ev.stopPropagation();
-  const chip = ev.currentTarget.closest('.parsons-chip');
-  if(!chip) return;
-  const sib = dir < 0 ? chip.previousElementSibling : chip.nextElementSibling;
-  if(!sib) return;
-  if(dir < 0) chip.parentElement.insertBefore(chip, sib);
-  else chip.parentElement.insertBefore(sib, chip);
-  syncParsonsControls();
-}
-function syncParsonsControls(){
-  const pool = document.getElementById('parsons-pool');
-  const answer = document.getElementById('parsons-answer');
-  if(pool) pool.querySelectorAll('.pars-move').forEach(m => m.remove());
-  if(!answer) return;
-  const chips = [...answer.querySelectorAll('.parsons-chip')];
-  chips.forEach((c, i) => {
-    const locked = c.getAttribute('draggable') === 'false';
-    let ctl = c.querySelector('.pars-move');
-    if(locked){ if(ctl) ctl.remove(); return; }
-    if(!ctl){
-      ctl = document.createElement('span');
-      ctl.className = 'pars-move';
-      ctl.innerHTML = '<button type="button" aria-label="Move this line up">&uarr;</button>' +
-                      '<button type="button" aria-label="Move this line down">&darr;</button>';
-      ctl.children[0].onclick = e => parsonsMoveChip(e, -1);
-      ctl.children[1].onclick = e => parsonsMoveChip(e, 1);
-      c.appendChild(ctl);
-    }
-    ctl.children[0].disabled = i === 0;
-    ctl.children[1].disabled = i === chips.length - 1;
-  });
-}
-
-let draggedChip = null;
-function dragStart(e){
-  draggedChip = e.target;
-  e.target.classList.add('dragging');
-  e.dataTransfer.effectAllowed = 'move';
-}
-function dragOver(e){ e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
-function dropChip(e, target){
-  e.preventDefault();
-  if(!draggedChip) return;
-  draggedChip.classList.remove('dragging');
-  const container = document.getElementById('parsons-' + target);
-  container.appendChild(draggedChip);
-  draggedChip = null;
-}
+// Tap-to-place, arrow nudges, drag and the scaffold all live in Ord now — one
+// implementation shared with the lesson Try stage instead of a second copy.
 
 function checkParsons(idx){
   const p = DATA.PARSONS[idx];
-  const answer = document.getElementById('parsons-answer');
-  const chips = [...answer.querySelectorAll('.parsons-chip')];
-  if(chips.length !== p.answer.length){
-    document.getElementById('parsons-result').innerHTML = `<span style="color:var(--yellow)">Move all lines to the answer area first.</span>`;
+  const key = 'p'+idx;
+  const userOrder = Ord.placed(key);
+  if(userOrder.length !== p.answer.length){
+    document.getElementById('parsons-result').innerHTML = `<span style="color:var(--warn)">Move all pieces to the answer area first.</span>`;
     return;
   }
-  const userOrder = chips.map(c => parseInt(c.dataset.line));
   const correct = p.answer.every((v,i) => v === userOrder[i]);
   const res = document.getElementById('parsons-result');
   if(correct){
@@ -4323,63 +4401,19 @@ function checkParsons(idx){
     if(attempts === 1){
       // 1st wrong: scaffold the first half in correct order, leave rest for user
       const half = Math.ceil(p.answer.length / 2);
-      scaffoldParsons(idx, half);
-      res.innerHTML = `<span style="color:var(--yellow)">✗ Not quite — the first ${half} line${half>1?'s are':' is'} placed for you. Tap the rest into order, and use ↑ ↓ on a placed line to move it.</span>`;
+      Ord.scaffold(key, p.lines, p.answer, half);
+      res.innerHTML = `<span style="color:var(--warn)">Not quite — the first ${half} piece${half>1?'s are':' is'} placed for you. Tap the rest into order, and use ↑ ↓ on a placed piece to move it.</span>`;
     } else {
       // 2nd wrong: show the full correct answer locked
-      scaffoldParsons(idx, p.answer.length);
+      Ord.scaffold(key, p.lines, p.answer, p.answer.length);
       const nxtBtn = guided
         ? '' // shell's uniform bottom nav is the advance control
         : idx+1 < DATA.PARSONS.length
-          ? `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="navigate('parsons',${idx+1})">Next →</button>`
-          : `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="navigate('practice')">Done →</button>`;
+          ? `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="navigate('parsons',${idx+1})">${fwdLabel(STEP_ASK.parsons)}</button>`
+          : `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="navigate('practice')">${fwdLabel('pick another drill')}</button>`;
       res.innerHTML = `<span style="color:var(--accent)">Full answer shown — study the order, then move on.</span><br>${nxtBtn}`;
     }
   }
-}
-// Place the first `count` lines of the correct answer into the answer zone (locked/dimmed),
-// return the rest to the pool in original line order.
-function scaffoldParsons(idx, count){
-  const p = DATA.PARSONS[idx];
-  const pool = document.getElementById('parsons-pool');
-  const answer = document.getElementById('parsons-answer');
-  // collect all chips from both zones by their data-line index
-  const allChips = {};
-  [...pool.querySelectorAll('.parsons-chip'), ...answer.querySelectorAll('.parsons-chip')]
-    .forEach(c => { allChips[parseInt(c.dataset.line)] = c; });
-  pool.innerHTML = '';
-  answer.innerHTML = '';
-  const inAnswer = new Set();
-  for(let i = 0; i < count; i++) inAnswer.add(p.answer[i]);
-  // place scaffolded chips in correct order, visually locked
-  for(let i = 0; i < count; i++){
-    const chip = allChips[p.answer[i]];
-    if(!chip) continue;
-    chip.setAttribute('draggable','false');
-    chip.style.opacity = '0.65';
-    chip.style.cursor = 'default';
-    chip.style.borderColor = 'rgba(47,109,240,.5)';
-    chip.style.background = 'rgba(47,109,240,.10)';
-    answer.appendChild(chip);
-  }
-  // remaining chips back to pool in original line-array order (don't reveal ordering)
-  p.lines.forEach((_,lineIdx) => {
-    if(inAnswer.has(lineIdx)) return;
-    const chip = allChips[lineIdx];
-    if(!chip) return;
-    chip.setAttribute('draggable','true');
-    chip.style.opacity = '';
-    chip.style.cursor = '';
-    chip.style.borderColor = '';
-    chip.style.background = '';
-    pool.appendChild(chip);
-  });
-  syncParsonsControls();
-  // NOTE: this used to restack the columns (answer above pool) mid-exercise.
-  // On mobile that swapped the layout out from under the learner right after a
-  // wrong check — combined with the scaffold pulling their placed lines back to
-  // the pool, it read as "my second tap jumped above my first" (playtest S3,
-  // 2026-07-20). The column order must stay put for the whole exercise.
 }
 function resetParsons(idx){ delete _parsonsAttempts[idx]; if(guided) renderGuidedStep(); else navigate('parsons', idx); }
 
