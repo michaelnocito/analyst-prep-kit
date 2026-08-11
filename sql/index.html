@@ -309,7 +309,11 @@ p strong{color:var(--text)}
 
 /* FILLS */
 .fill-prompt{font-size:17px;line-height:1.55;color:var(--text);font-weight:500;margin-bottom:10px}
-.fill-input{width:100%;box-sizing:border-box;font-family:var(--mono);font-size:15px;padding:11px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:var(--surf2);color:var(--text)}
+.fill-input{width:100%;box-sizing:border-box;font-family:var(--mono);font-size:15px;padding:11px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:var(--surf2);color:var(--text);-webkit-appearance:none;appearance:none}
+/* type="search" is there to keep the browser's saved-answer autofill away, not
+   for the widget it comes with. The little clear cross is WebKit's, and it is
+   noise on a one-word answer box. */
+.fill-input::-webkit-search-cancel-button,.fill-input::-webkit-search-decoration{display:none;-webkit-appearance:none}
 .fill-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,109,240,.15)}
 /* Check and Next share one row, so the advance control is already on screen
    the moment the answer lands. Nothing that grows after the press pushes it. */
@@ -2733,6 +2737,16 @@ function setSqlStage(lid, s){
   state.lessonStage[lid] = s;
   saveState();
   renderLesson(lid);
+  // A stage change is a new card, so it starts at the top of itself. Without
+  // this you answer something near the bottom of a long lesson, press Continue,
+  // and the next card loads already scrolled past its own heading and its own
+  // directive — the two things that say what you are now being asked to do
+  // (Mike, 2026-08-11). navigate() and renderGuidedStep() already did this; the
+  // stage advance was the one path through the kit that did not.
+  // Deliberately NOT inside renderLesson(): the miss panel re-renders the
+  // lesson in place to clear an item, and yanking the page to the top there
+  // would lose the spot for no reason.
+  window.scrollTo(0, 0);
 }
 
 // The More detail / Less detail toggle was removed 2026-07-27 (roadmap P8). Focus mode
@@ -3518,7 +3532,9 @@ function renderFill(idx){
       <div class="fill-partial">${f.partial}</div>
       ${drillTablesNote(f.partial)}
       <p class="drill-instruction" style="margin-top:12px">Type the piece that fills the blank:</p>
-      <input id="fillInput" class="fill-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+      <input id="fillInput" class="fill-input" type="search" name="fb-${idx}-${_fillNonce()}"
+        autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+        data-lpignore="true" data-1p-ignore data-form-type="other"
         placeholder="type your answer here" value=""
         onkeydown="if(event.key==='Enter'){event.preventDefault();checkFill(${idx})}">
       <div class="fill-action-row">
@@ -3557,6 +3573,22 @@ function _drillLesson(){ return guided && guided.lessonId!=null ? guided.lessonI
 // Wrong-attempt counter per fill id, so the scaffold escalates across tries
 // within a sitting. A correct answer resets it — the next visit starts clean.
 let _fillAttempts = {};
+// Answers were appearing in the box the moment Mike clicked into it (2026-08-11).
+// Not this page: the page stopped prefilling earlier the same day. It is the
+// BROWSER's saved-form history, which keys its suggestions on a field's name/id
+// signature and offers back everything ever typed into that field. Chrome
+// ignores autocomplete="off" for that particular feature, which is why the
+// attribute that was already here did nothing.
+//
+// A field name it has never seen has no history to offer, so the name changes
+// every render. type="search" matters too (it is the one Mike's browser has
+// behaved on before, see the PrepLoop palette input), and the three data-*
+// attributes tell LastPass and 1Password to keep out.
+//
+// The obvious-looking alternative, readonly-until-focus, is worse: it breaks
+// keyboard users and screen readers to solve a cosmetic problem.
+let _fillNonceN = 0;
+function _fillNonce(){ return (++_fillNonceN).toString(36) + performance.now().toString(36).replace('.',''); }
 function _escHTML(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function _escAttr(s){ return _escHTML(s).replace(/"/g,'&quot;'); }
 // Compare on meaning, not keystrokes: case and run-length of whitespace never

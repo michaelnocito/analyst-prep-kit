@@ -9,6 +9,16 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [2.2.1] — 2026-08-11 — A new card starts at the top of itself, and the browser stops offering the answers
+
+### Fixed
+- **A lesson stage advance kept your scroll position.** Answer something near the bottom of a long lesson, press Continue, and the next card loaded already scrolled past its own heading and its own directive, which are the two things that say what you are now being asked to do. `navigate()` and `renderGuidedStep()` already reset scroll; `setSqlStage()` was the one path through the kit that did not. Deliberately not put inside `renderLesson()`: the miss panel re-renders the lesson in place to clear an item, and that must keep your spot (verified: it does).
+- **The browser was autofilling answers into Fill in the Blank on click.** Not the page, which stopped prefilling earlier the same day. Chrome's saved-form history keys its suggestions on a field's name/id signature and ignores `autocomplete="off"` for that feature, so the attribute already on the input did nothing. The input now takes a name that changes on every render, so there is no history to offer it, plus `type="search"` and the LastPass/1Password opt-out attributes. WebKit's search clear-cross is suppressed in CSS. Rejected `readonly`-until-focus: it breaks keyboard and screen-reader users to solve a cosmetic problem.
+
+Verified on localhost:4201: the field name changes between two renders of the same drill, scroll goes 900 to 0 across a stage advance and stays put across an in-place miss-panel render, 240 lesson-stage renders with no errors, console clean.
+
+---
+
 ## [2.2.0] — 2026-08-11 — Unit 0 is orientation, results tables are back on, and the two adverts earn their space
 
 ### Changed
