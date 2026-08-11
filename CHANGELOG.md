@@ -9,6 +9,22 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [2.1.0] — 2026-08-11 — Drills stop showing the answer, PrepLoop stops being a door, and lessons link their guide
+
+### Fixed
+- **Fill in the Blank opened with the answer already typed in the box** on any drill you had cleared before, and Bug Hunt opened with the correct choice highlighted and every button disabled. A retrieval drill that shows the answer before it asks the question is not a drill. Both now re-open live and empty, exactly as they did the first time; the ✓ in the header row is what tells a returning learner they have been here. SQL kit only for now: the typed fill is SQL-only, and the Bug Hunt pattern also exists in Power BI and Stats.
+
+### Removed
+- **PrepLoop is no longer a door into the suite.** It led the hub grid as a full-width banner and was named in the hero and in every kit's review-list copy. It wrapped the kits in its own timer, iframe and path, so a learner entering through it never got the kit's own flow. The app stays live at `michaelnocito.github.io/prep-loop/`; the framed-mode support inside the kits (auth suppression, `#lesson-<id>-restart`) is untouched, so anyone still using it is not broken.
+
+### Added
+- **Every SQL lesson now names the guide behind it.** `LESSON_GUIDE` maps 43 of the 47 lessons onto a page under `/guides/`, and drills inherit their lesson's guide by inverting `LESSON_DRILLS`, so there is no second map to keep in sync. Links appear in two kinds of moment only: under a wrong answer (Quick Check, Build It, third miss on a fill, second wrong tap on a bug) and on the Done card. Never in the directive, never in the worked example, never above an unanswered question. Every link opens in a new tab so the kit keeps its stage and scroll position.
+- Four Unit 7 lessons (Margins, Liquidity & Leverage, NPV, Unit Economics) deliberately have no link: there is no finance guide to point at yet, and a filler link teaches people these links do not pay off. That is a guides-backlog gap, not a bug.
+
+Verified on localhost:4201: all inline scripts parse, all 30 guide URLs return 200 from the kit path, both themes read correct tokens, console clean.
+
+---
+
 ## [2.0.0] — 2026-07-30 — The paywall is gone; every lesson is free
 
 ### Removed

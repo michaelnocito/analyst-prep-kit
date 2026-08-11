@@ -193,6 +193,15 @@ p strong{color:var(--text)}
 .lx-like{font-style:italic}
 .lx-guide{font-size:12.5px;padding-top:8px;border-top:1px solid var(--border);margin-top:9px}
 .lx-guide a{color:var(--accent);font-weight:600}
+/* The long-form guide behind a lesson. Quiet by default: it is an offer, not
+   the next step, so it never gets button weight or accent fill. */
+.kit-guide{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.55;color:var(--muted);margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.kit-guide .lucide{width:15px;height:15px;flex:0 0 auto;margin-top:2px;color:var(--accent)}
+.kit-guide a{color:var(--accent);font-weight:600;text-decoration:none}
+.kit-guide a:hover{text-decoration:underline}
+/* Under a wrong answer it sits inside an existing block, so it drops the rule
+   above it and tucks in tighter. */
+.kit-guide-miss{margin-top:10px;padding-top:0;border-top:0}
 .ral-body{padding:16px 18px}
 .ral-say{font-size:14px;font-style:italic;color:var(--clay-800);background:var(--clay-50);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:9px 13px 9px 11px;margin-bottom:14px;line-height:1.55;display:flex;gap:7px;align-items:flex-start}
 .ral-say .lucide{width:15px;height:15px;color:var(--accent);flex-shrink:0;margin-top:3px}
@@ -2075,7 +2084,7 @@ function missPanelHTML(id){
     </div>`;
   return `<div class="miss-panel" style="margin-top:16px">
       <div class="miss-head"><i data-lucide="repeat-2"></i> ${m.length} thing${m.length===1?'':'s'} added to your review list</div>
-      <p class="miss-sub">Recorded automatically from what you missed — no self-rating needed. These come back at spaced intervals, and PrepLoop pulls them into its recall sweeps.</p>
+      <p class="miss-sub">Recorded automatically from what you missed — no self-rating needed. These come back at spaced intervals.</p>
       <ul class="miss-items">${m.map(x=>`<li>${x}</li>`).join('')}</ul>
       <button class="btn btn-ghost btn-sm miss-clear" onclick="missGotIt(${id});renderLesson(${id})">I have this now — clear it</button>
     </div>`;
@@ -2717,8 +2726,9 @@ function v2BuildPick(btn, lid){
   if(!isCorrect){ recordMiss(lid, l.build.q); const cb=document.getElementById('v2sql-coach-build-'+lid); if(cb) cb.style.display=''; }
   const row = isCorrect
     ? `<div class="row mt" style="gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setSqlStage(${lid},3)">Continue &rarr;</button></div>`
-    : `<div class="row mt" style="gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setSqlStage(${lid},2)">Try Again</button><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${lid},3)">Continue anyway</button></div>`;
+    : `<div class="row mt" style="gap:10px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="setSqlStage(${lid},2)">Try Again</button><button class="btn btn-ghost btn-sm" onclick="setSqlStage(${lid},3)">Continue anyway</button></div>${guideLinkHTML(lid,'miss')}`;
   if(fb) fb.insertAdjacentHTML('beforeend', row);
+  if(!isCorrect && window.lucide) lucide.createIcons();
 }
 
 function v2QuizAnswer(lid, chosen){
@@ -2744,7 +2754,8 @@ function v2QuizAnswer(lid, chosen){
     wrap.insertAdjacentHTML('beforeend',`<div class="row mt" style="gap:10px;margin-top:14px">
       <button class="btn btn-primary btn-sm" onclick="v2QuizRetry(${lid})">Try Again</button>
       <button class="btn btn-ghost btn-sm" onclick="markDone('doneLessons',${lid});setSqlStage(${lid},4)">Continue anyway</button>
-    </div>`);
+    </div>${guideLinkHTML(lid,'miss')}`);
+    if(window.lucide) lucide.createIcons();
   }
 }
 
@@ -2918,6 +2929,7 @@ function v2SqlBody(l, done){
       <h3><i data-lucide="badge-check"></i> Done</h3>
       ${_wins>0?`<p style="font-size:12px;color:var(--muted);margin:0 0 10px"><i data-lucide="repeat-2" style="width:13px;height:13px;vertical-align:-2px"></i> ${_wins} concept${_wins===1?'':'s'} recalled from memory so far</p>`:''}
       <p style="font-size:15px;line-height:1.7;margin:0">${l.close}</p>
+      ${guideLinkHTML(l.id,'close')}
     </div>
     ${missPanelHTML(l.id)}
     ${done&&l.unlock?`<div class="unlock-card" style="margin-top:16px"><h4><i data-lucide="unlock" style="width:15px;height:15px;vertical-align:-2px"></i> Insight unlocked</h4><p>${l.unlock}</p></div>`:''}
@@ -2973,6 +2985,111 @@ const LESSON_CARDS = {
 };
 // Hands-on lab step woven in where a lesson has a matching lab track.
 const LESSON_LABS = { 4:'join', 5:'agg' };
+
+// ─── THE GUIDE BEHIND EACH LESSON ──────────────────────────────────────────
+// A lesson is ten minutes on one idea. The guide is the same idea with room to
+// breathe: worked numbers, the traps, the interview framing. They already live
+// on this site under /guides/, so the link is one hop within the same domain.
+//
+// PLACEMENT RULE, and it is the whole design. A guide link never sits beside
+// the thing the learner is being asked to do. It appears in exactly two kinds
+// of moment: right after an answer comes back WRONG, and on the Close card once
+// the lesson is finished. Neither is mid-task, so the link competes with
+// nothing. It is never in the directive bar, never in the worked example, and
+// never above an unanswered question. Every link opens in a new tab, so the kit
+// keeps its stage, its editor contents and its scroll position.
+//
+// Adding a guide to a lesson is one line here. The slug must match a folder in
+// /guides/. A lesson with NO honest match gets NO link: a filler link to
+// something vaguely adjacent is worse than nothing, because two of those teach
+// a reader that these links do not pay off, and then they stop reading them.
+// Unit 7 (Financial Analysis) is mostly blank on purpose for that reason.
+const LESSON_GUIDE = {
+  // Unit 0: Orientation
+  101:['sql-foundations',          'SQL foundations, start to finish'],
+  105:['set-up-a-sql-database',    'How to set up a SQL database'],
+  // Unit 1: First Queries
+  1:  ['sql-foundations',          'SQL foundations, start to finish'],
+  2:  ['sql-foundations',          'SQL foundations, start to finish'],
+  104:['sql-null',                 'NULL in SQL, and why = NULL finds nothing'],
+  3:  ['sql-foundations',          'SQL foundations, start to finish'],
+  // Unit 2: Aggregation & Shaping
+  102:['sql-group-by-having',      'GROUP BY and HAVING, without a fake answer'],
+  5:  ['sql-count-function',       'COUNT in SQL, explained'],
+  7:  ['sql-group-by-having',      'GROUP BY and HAVING, without a fake answer'],
+  8:  ['sql-case-expression',      'The SQL CASE expression'],
+  // Unit 3: Joins
+  103:['sql-joins',                'SQL JOINs, without losing or doubling rows'],
+  4:  ['sql-joins',                'SQL JOINs, without losing or doubling rows'],
+  6:  ['sql-null',                 'NULL in SQL, and why = NULL finds nothing'],
+  13: ['sql-joins',                'SQL JOINs, without losing or doubling rows'],
+  // Unit 4: Advanced SQL
+  14: ['sql-dates',                'SQL date functions, and grouping by month'],
+  9:  ['sql-subqueries',           'Subquery vs CTE, same logic'],
+  11: ['sql-ctes',                 'SQL CTEs, a query in steps you can check'],
+  10: ['sql-window-functions',     'Window functions, and the top row per group'],
+  12: ['sql-reconciliation',       'Reconciling two tables in SQL'],
+  15: ['sql-indexing-for-analysts','When to index a table'],
+  16: ['sql-temp-tables-vs-views', 'Temp table vs view'],
+  // Unit 5: Data Migration
+  501:['migration-profiling',      'Profiling the source: the seven checks'],
+  502:['sql-find-duplicates',      'Finding duplicate rows in SQL'],
+  503:['sql-null',                 'NULL in SQL, and why = NULL finds nothing'],
+  504:['migration-cleaning',       'Cleaning and de-duping'],
+  505:['migration-field-mapping',  'Mapping the fields'],
+  506:['sql-null',                 'NULL in SQL, and why = NULL finds nothing'],
+  507:['migration-uat',            'User acceptance testing'],
+  508:['sql-reconciliation',       'Reconciling two tables in SQL'],
+  // Unit 6: From Question to Metric
+  601:['defining-metrics',         'Turning fuzzy questions into definitions'],
+  602:['sql-segment-with-case',    'Customer segmentation with CASE WHEN'],
+  603:['sql-month-over-month',     'Month-over-month growth with LAG'],
+  604:['sql-running-total',        'Running totals, and the window frame'],
+  605:['sql-funnel-analysis',      'Funnel conversion in SQL'],
+  606:['sql-cohort-retention',     'Cohort retention, step by step'],
+  // Unit 7: Financial Analysis — thin. 701/702/703/704/706 have no guide yet.
+  701:['sql-case-expression',      'The SQL CASE expression'],
+  705:['budget-vs-actual-variance','Budget vs actual variance'],
+  // Unit 8: Advanced Analyst Toolkit
+  801:['exploratory-data-analysis','Why exploratory data analysis matters'],
+  802:['sql-find-duplicates',      'Finding duplicate rows in SQL'],
+  803:['percentiles-iqr-outliers', 'Percentiles, the IQR and the outlier rule'],
+  804:['data-driven-thresholds',   'Picking cutoffs you can defend'],
+  805:['correlation-vs-causation', 'Correlation vs causation'],
+  806:['sql-reconciliation',       'Reconciling two tables in SQL']
+};
+
+// Drills inherit their lesson's guide. LESSON_DRILLS already files every drill
+// under the first lesson that teaches it, so inverting that map costs nothing
+// and leaves no second mapping to drift out of sync.
+let _DRILL_LESSON = null;
+function drillLessonId(type, idx){
+  if(!_DRILL_LESSON){
+    _DRILL_LESSON = {};
+    Object.keys(LESSON_DRILLS).forEach(lid => {
+      LESSON_DRILLS[lid].forEach(([t,i]) => { _DRILL_LESSON[t+':'+i] = +lid; });
+    });
+  }
+  const v = _DRILL_LESSON[type+':'+idx];
+  return v === undefined ? null : v;
+}
+// A drill opened from the guided path belongs to that lesson; one opened from
+// the Practice tab falls back to the lesson it is filed under.
+function _drillGuideLid(type, idx){
+  const g = _drillLesson();
+  return g == null ? drillLessonId(type, idx) : g;
+}
+// kind 'miss'  = shown under a wrong answer, while the learner still wants it.
+// kind 'close' = shown on the Done card, when the lesson is behind them.
+function guideLinkHTML(lid, kind){
+  const g = LESSON_GUIDE[lid];
+  if(!g) return '';
+  const href = `../guides/${g[0]}/`;
+  const body = kind === 'miss'
+    ? `Still fuzzy? <a href="${href}" target="_blank" rel="noopener">${g[1]}</a> walks through this one.`
+    : `Go deeper: <a href="${href}" target="_blank" rel="noopener">${g[1]}</a>`;
+  return `<div class="kit-guide kit-guide-${kind}"><i data-lucide="book-open"></i><span>${body}</span></div>`;
+}
 
 // ── Unit-boundary "Make it stick" labs (playtest Batch 3) ──────────────────
 // Each core unit ends with a hand-off into ITS slice of the 18-step capstone —
@@ -3292,7 +3409,7 @@ function renderFill(idx){
       ${drillTablesNote(f.partial)}
       <p class="drill-instruction" style="margin-top:12px">Type the piece that fills the blank:</p>
       <input id="fillInput" class="fill-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
-        placeholder="type your answer here" value="${done?_escAttr(f.ans):''}"
+        placeholder="type your answer here" value=""
         onkeydown="if(event.key==='Enter'){event.preventDefault();checkFill(${idx})}">
       <div class="fill-action-row">
         <button class="btn btn-primary btn-sm" onclick="checkFill(${idx})">Check</button>
@@ -3349,14 +3466,12 @@ function _fillPrefill(ans, frac){
   try{ inp.setSelectionRange(inp.value.length, inp.value.length); }catch(e){}
   return true;
 }
+// A drill you have already cleared opens EMPTY, same as the first time. Putting
+// the answer back in the box on revisit hands over the one thing the drill is
+// for: typing it is the rep, and reading it is not. The ✓ in the header row is
+// how a returning learner knows they have done this one.
 function _fillAnsweredNote(){
-  return `<span style="color:var(--green);font-weight:600">✓ You've answered this one — the answer is in the box.</span>
-    <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="retryFill()">Try again</button>`;
-}
-function retryFill(){
-  const inp = document.getElementById('fillInput');
-  if(inp){ inp.value = ''; inp.focus(); }
-  const res = document.getElementById('fill-result'); if(res) res.innerHTML = '';
+  return `<span class="text-muted text-sm">✓ You cleared this one before. Type it again — the typing is the rep.</span>`;
 }
 function checkFill(idx){
   const f = DATA.FILLS[idx];
@@ -3394,7 +3509,11 @@ function checkFill(idx){
     inp.value = ''; inp.focus();
     help = `Here's the whole answer:<div class="fill-reveal">${_escHTML(f.ans)}</div>Type it out yourself in the empty box and Check. Typing it is the part that sticks.`;
   }
-  res.innerHTML = `<div class="fill-help">${help}</div>`;
+  // Third miss is where the guide earns its place: the scaffold has run out,
+  // and someone who needed all three rungs wants the long version.
+  const deep = att >= 3 ? guideLinkHTML(_drillGuideLid('fills', idx), 'miss') : '';
+  res.innerHTML = `<div class="fill-help">${help}</div>${deep}`;
+  if(deep && window.lucide) lucide.createIcons();
 }
 // ─── BUG DRILL ─────────────────────────────────────────────────────────────
 function renderBug(idx){
@@ -3409,16 +3528,16 @@ function renderBug(idx){
       <p class="drill-instruction">${b.prompt}</p>
       <div class="code-broken">${b.broken}</div>
       ${drillTablesNote(b.broken)}
-      <div class="bug-issue" id="bug-issue" style="${done?'':'display:none'}"><i data-lucide="alert-triangle" style="width:14px;height:14px;vertical-align:-2px"></i> <strong>${b.title}:</strong> ${b.issue}</div>
+      <div class="bug-issue" id="bug-issue" style="display:none"><i data-lucide="alert-triangle" style="width:14px;height:14px;vertical-align:-2px"></i> <strong>${b.title}:</strong> ${b.issue}</div>
       <p class="drill-instruction" style="margin-top:12px">Spot the bug, then tap the correct fix:</p>
       <div id="bugChoices" style="display:flex;flex-direction:column;gap:8px">
-        ${_shuf(b.choices).map(c=>`<button class="bug-choice${done&&c===b.choices[0]?' is-answered':''}" data-correct="${c===b.choices[0]?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:rgba(47,109,240,.08);color:var(--accent);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer" onclick="pickBugFix(this,${idx})" ${done?'disabled':''}>${c}</button>`).join('')}
+        ${_shuf(b.choices).map(c=>`<button class="bug-choice" data-correct="${c===b.choices[0]?1:0}" style="text-align:left;white-space:normal;padding:10px 14px;border:1.5px solid rgba(47,109,240,.4);border-radius:8px;background:rgba(47,109,240,.08);color:var(--accent);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer" onclick="pickBugFix(this,${idx})">${c}</button>`).join('')}
       </div>
-      <div id="bug-result" class="mt">${done?_answeredNote('bugChoices','bug-result'):''}</div>
+      <div id="bug-result" class="mt">${done?_answeredNote():''}</div>
       <button class="hint-cycle-btn" id="hint-cycle-btn" onclick="cycleHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Show Hint</button>
       <div class="hint-panel" id="drill-hint"></div>
       <div class="answer-panel" id="drill-answer"></div>
-      <div class="code-fixed${done?' show':''}" id="bug-fix">${b.fix}</div>
+      <div class="code-fixed" id="bug-fix">${b.fix}</div>
       <div id="bug-next" class="mt">${done?_bugAdvance(idx):''}</div>
     </div>`;
   if(guided) return body;
@@ -3457,16 +3576,13 @@ function _fillResultHTML(f){
     return '';
   }
 }
-// Answered-drill state: a done drill shows its answer highlighted and stays
-// re-answerable — a silent disabled lockout reads as a frozen page on revisit.
-function _answeredNote(choicesId,noteId){
-  return `<span style="color:var(--green);font-weight:600">✓ You've answered this one — the correct choice is highlighted.</span>
-    <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="retryDrill('${choicesId}','${noteId}')">Try again</button>`;
-}
-function retryDrill(choicesId,noteId){
-  const c=document.getElementById(choicesId);
-  if(c) c.querySelectorAll('button').forEach(b=>{b.disabled=false;b.classList.remove('is-answered');b.style.background='';b.style.color='';b.style.borderColor='';b.style.opacity='';});
-  const n=document.getElementById(noteId); if(n) n.innerHTML='';
+// Answered-drill state: a cleared drill re-opens live and unmarked, the same as
+// the first time. It used to open with the right choice pre-highlighted and the
+// buttons disabled, which meant a revisit showed the answer before it asked the
+// question — the one thing a retrieval drill must not do. The ✓ in the header
+// row carries the "you have done this" signal on its own.
+function _answeredNote(){
+  return `<span class="text-muted text-sm">✓ You cleared this one before. Pick it again from cold.</span>`;
 }
 // In guided mode the shell's uniform bottom nav is the advance control.
 function _bugAdvance(idx){
@@ -3491,7 +3607,12 @@ function pickBugFix(btn, idx){
   } else {
     recordMiss(_drillLesson(), b.prompt);
     btn.style.background='rgba(207,34,46,.12)'; btn.style.borderColor='var(--red,#cf222e)'; btn.style.color='var(--red,#cf222e)'; btn.style.opacity='.8'; btn.disabled=true;
-    res.innerHTML = `<span style="color:var(--red)">Not quite — try another, or use the hint.</span>`;
+    // Only once two of the choices are gone: one wrong tap is a guess, two is a
+    // gap, and a link offered on the first miss reads as an interruption.
+    const wrong = [...document.querySelectorAll('#bugChoices .bug-choice')].filter(x=>x.disabled).length;
+    const deep = wrong >= 2 ? guideLinkHTML(_drillGuideLid('bugs', idx), 'miss') : '';
+    res.innerHTML = `<span style="color:var(--red)">Not quite — try another, or use the hint.</span>${deep}`;
+    if(deep && window.lucide) lucide.createIcons();
   }
 }
 
