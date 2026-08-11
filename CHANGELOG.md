@@ -9,6 +9,20 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [2.8.0] — 2026-08-11 — The longest answer is no longer the right one
+
+### Fixed
+- **The correct option was the giveaway.** Across the kit's 96 multiple-choice items, the correct answer was the single longest option in 56 of them, because the correct answer carried the reasoning ("the join fanned out — each order now appears once per promotion it matched, so revenue totals will be inflated") while the three distractors were bare assertions. A learner who always picked the longest option and never read the question scored 58%, against a 25% chance baseline, which inflated lesson completion and every skill count that reads off it. 29 items were outside the ~20% band the finding specified; all 29 are now inside it, and the count outside is **0**. Always-picking-longest now scores 48%, and what remains is items longer by a character or two rather than by double.
+
+### How
+The reasoning was not deleted, it was moved to where it already lived. Every one of these items has an `exp` field that is shown the instant the answer is committed, and in nearly every case the explanation already said the thing the option was over-explaining. So the option now states the claim and the explanation explains it — which is what each field was for. Where trimming alone was not enough, the short distractors were brought up to the same grammatical frame instead ("INNER JOIN" → "A plain INNER JOIN", "A chart" → "A chart of the results"). Two code items were fixed by giving a distractor plausible extra clauses rather than by shortening a query that has to be that long to be right.
+
+One distractor written during this pass was replaced before it shipped: `CAST(COALESCE(amount, 0) AS DECIMAL(10,2))` is arguably defensible depending on whether "blank" means NULL or an empty string, and an item with two defensible answers is a worse problem than the length cue it was fixing. It became `COALESCE(CAST(amount AS INTEGER), 0)` — same shape as the correct answer, unambiguously wrong type.
+
+Verified: 96 items, every one still has exactly four options, a valid answer index and no duplicate options; all 48 quiz stages and all 48 build stages driven to their correct answer in the browser and every one returns the verdict. 240 lesson renders, all views, all drills, every guided step, console clean.
+
+---
+
 ## [2.7.0] — 2026-08-11 — The kit tells you your result, and a keyboard can reach it
 
 ### Fixed
