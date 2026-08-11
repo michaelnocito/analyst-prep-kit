@@ -3523,6 +3523,13 @@ function v2SqlBody(l, done){
   // the learner has read it, and support that helps a novice starts costing the
   // same person once they know it (Kalyuga, Ayres, Chandler & Sweller 2003).
   const explain = stage===0 ? lessonExplainHTML(l) : '';
+  // The same guide, standing under the three middle stages. Stage 0 already
+  // carries it inside the "What this is" block and Close carries it on the Done
+  // card, so this fills the gap rather than doubling up: exactly one link to
+  // the lesson's guide is on screen at every step of the lesson. Below the
+  // card, never between the directive and the task — the last thing read before
+  // acting stays the instruction (CURRICULUM_STANDARD, directive always visible).
+  const stageGuide = (stage>=1 && stage<=3) ? guideLinkHTML(l.id,'stage') : '';
   const directive = DIRECTIVE
     ? `<div class="directive"><span class="d-eyebrow">Do this</span><p>${DIRECTIVE}</p></div>` : '';
 
@@ -3615,7 +3622,8 @@ function v2SqlBody(l, done){
     ${stageBar}
     ${explain}
     ${directive}
-    ${body}`;
+    ${body}
+    ${stageGuide}`;
   if(window.lucide) lucide.createIcons();
 }
 
@@ -3897,8 +3905,14 @@ function guideLinkHTML(lid, kind){
   const href = `../guides/${g[0]}/`;
   const body = kind === 'miss'
     ? `Still fuzzy? <a href="${href}" target="_blank" rel="noopener">${g[1]}</a> walks through this one.`
+    // Word for word what the opening stage calls it. A user test on 2026-08-11
+    // stopped to check it was the right page when the kit label, the footer
+    // label and the heading were three different names for one guide.
+    : kind === 'stage'
+    ? `Full guide: <a href="${href}" target="_blank" rel="noopener">${g[1]}</a>`
     : `Go deeper: <a href="${href}" target="_blank" rel="noopener">${g[1]}</a>`;
-  return `<div class="kit-guide kit-guide-${kind}"><i data-lucide="book-open"></i><span>${body}</span></div>`;
+  const id = kind === 'stage' ? ' id="kit-guide-stage"' : '';
+  return `<div${id} class="kit-guide kit-guide-${kind}"><i data-lucide="book-open"></i><span>${body}</span></div>`;
 }
 
 // ── Unit-boundary "Make it stick" labs (playtest Batch 3) ──────────────────
@@ -4041,6 +4055,7 @@ function renderGuidedStep(){
     ${head}
     ${directive}
     ${body}
+    ${review ? '' : guideLinkHTML(lessonId,'stage')}
     <div class="row" style="justify-content:space-between;gap:10px;margin-top:20px">
       ${backNav}
       <button class="btn btn-primary" onclick="guidedNext()">${nextLabel}</button>

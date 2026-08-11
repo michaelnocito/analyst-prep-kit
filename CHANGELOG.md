@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.1.0] — 2026-08-11 — The full guide is reachable from every step
+
+### Changed
+- **The lesson's guide link now stands under every step of the lesson.** It used to sit in two places only: inside the "What this is" block on the opening stage, and on the Done card at the end. Standing on Try, Build or Check, the only route to the long version was to walk backwards through the stages to find it. The same link, in the same words, now sits under the card on Try, Build and Check, and under both practice steps as well. Counting the way the kit counts, that is all seven.
+- **One link to one page, once.** A wrong answer already prints its own copy of the link right where the learner is reading, so the standing one steps aside rather than repeating the same destination two lines below it. Every step of a lesson shows exactly one route to the guide, never two.
+- **It stays a link and never grows into a block.** The three-row "What this is" explainer is still the opening stage only. Support that carries a novice starts costing that same person once they know it (Kalyuga, Ayres, Chandler & Sweller 2003), and an offer taken on demand charges nothing to the learner who walks past it.
+- **The label is the guide's own name, word for word,** matching the opening stage and the guide's own heading. A first-run test on 2026-08-11 landed on a page whose kit label, footer label and heading were three different names, and stopped to check it was the right page.
+
+### Evidence
+Verified on localhost:4201 by rendering all 48 lessons through all 5 stages, 240 renders: every stage shows exactly one guide link, every link resolves to that lesson's own guide, and all 48 lessons have a guide mapped. Walked lesson 8 (CASE & COALESCE) through both practice steps, `Fill · 6 of 7` and `Order · 7 of 7`, both carrying the link. Answered wrong on Try, on Build and on Quick Check: in all three the standing link gives way to the contextual one and the count stays at one. Console clean.
+
+---
+
 ## [3.0.0] — 2026-08-11 — A lesson and its practice are one screen now
 
 ### Changed
