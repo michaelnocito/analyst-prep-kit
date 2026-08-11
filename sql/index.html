@@ -650,7 +650,13 @@ LESSONS: [
    notes:"Two things worth knowing before you start. First, SQL is <em>declarative</em>: you describe the result you want, not the steps to get it, which is why a query reads more like a sentence than like code. Second, there are small dialect differences between databases (SQLite, PostgreSQL, MySQL, SQL Server), and they are mostly about date functions and a few keywords. The core you will learn here is the same everywhere, and this kit flags a dialect difference wherever one matters.",
    viz:{columns:["region","revenue"],rows:[["West",4200],["West",1850],["West",990]],caption:"Three rows come back because three orders are in the West. Every query returns a table, even when it is one row or one number."},
    quiz:{q:"What does a SQL query always give you back?",opts:["A single number","A table of rows and columns","A chart","A yes or no answer"],ans:1,exp:"Always a table. Even a single count comes back as a table with one row and one column. Holding on to that makes the rest of SQL easier, because the output of one query is the same shape as the input to the next."},
-   parsons:{prompt:"Put the three steps of a SQL job in the order they actually happen.",lines:["-- 3. SQL hands back a table holding just those rows","-- 1. Somebody asks a question: which customers are in the West?","-- 2. You write a query naming the columns, the table, and the test"],answer:[1,2,0]},
+   // The three lines used to be numbered "-- 1." / "-- 2." / "-- 3.", which
+   // handed over the answer to a task whose whole point is working the order
+   // out. Real Test run 009 finished this lesson without being asked anything,
+   // and was then told "clean run, nothing flagged". Order is recoverable
+   // without the numbers: a question has to exist before a query answers it,
+   // and the table cannot come back before the query is written.
+   parsons:{prompt:"Put the three steps of a SQL job in the order they actually happen.",lines:["-- SQL hands back a table holding just those rows","-- Somebody asks a question: which customers are in the West?","-- You write a query naming the columns, the table, and the test"],answer:[1,2,0]},
    compare:"The question always comes first and the table always comes last. The part you are learning is the middle step: turning a sentence somebody said out loud into a query.",
    build:{q:"Your manager says \"the database has 40 million rows.\" Why does that rule out doing this in a spreadsheet?",opts:["Spreadsheets cannot hold that many rows, and a database is built to filter them fast","Spreadsheets cannot do arithmetic","SQL is faster to type","Databases are more accurate than spreadsheets"],ans:0,exp:"Excel caps at 1,048,576 rows per sheet, and would crawl long before that. A database stores the rows on disk and only reads what your query asks for, which is why filtering 40 million rows can return in under a second."},
    close:"You know what SQL is, what it gives back, and why it is on the job posting. Next: the mental model underneath it, which is what a database actually looks like.",
@@ -3187,8 +3193,23 @@ async function _v2CoachCall(prompt, model, targetId){
       body:JSON.stringify({model,max_tokens:350,messages:[{role:'user',content:prompt}]})
     });
     const data = await res.json();
-    if(el) el.textContent = data.content?.[0]?.text || 'No response — check your key.';
+    if(el) el.innerHTML = _hintMD(data.content?.[0]?.text || 'No response — check your key.');
   } catch(e){ if(el) el.textContent='Request failed — check your key in Settings.'; }
+}
+// The model answers in Markdown, and this used to go through textContent, so a
+// learner pressing the button at the moment they are most stuck read a literal
+// "**Hint:** ... what do you select *from*" (Real Test run 009). Rendering the
+// raw response as HTML instead would be an injection hole on a public page, so
+// the text is escaped FIRST and only then are bold, italic and inline code
+// turned back into tags. Nothing else in Markdown is honoured, on purpose:
+// three replacements cannot smuggle a tag through, a full parser might.
+function _hintMD(t){
+  return String(t)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+    .replace(/\n/g, '<br>');
 }
 
 function v2CoachStuck(lid, stageName){
