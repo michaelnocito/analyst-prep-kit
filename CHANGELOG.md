@@ -9,6 +9,24 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.0.0] — 2026-08-11 — A lesson and its practice are one screen now
+
+### Changed
+- **Practice renders inside the lesson's own frame.** This is the half of the 2026-07-23 research pass that was parked at the time, and the last structural item from the 2026-08-03 sweep. Crossing from a lesson into its practice, the title used to vanish, the skill strip vanished, the five-dot stage bar was replaced by a second pager in a different style, and the header controls changed. The content changed and the machinery changed in the same moment, which is the switch cost the sweep measured right across the kit. The lesson title, the skill strip, the back control and the stage bar now hold their exact position from the first stage of a lesson through to the last drill of its practice.
+- **One unbroken progress bar.** The five lesson stages and the practice steps are a single run of dots: `Example · 1 of 7` through `Order · 7 of 7`, with the practice dots drawn as rings so you can still see where the reading stops and the doing starts. Practice dots fill in green once that drill is done, read from the progress keys, so returning to a lesson shows what you have already worked. The lesson dots stay clickable from inside practice, which is a way back into the lesson that did not exist before.
+- **The drill's ask moved into the lesson's directive bar.** In guided mode a drill used to print its own heading ("Put in Order") and its own prompt above a card, while the lesson said its ask in a pinned directive. Same job, two different slots. The directive bar now carries the step's ask and the drill drops its heading and prompt — said once, in the slot the learner has been reading from since the first stage. Opened standalone from the Practice tab, the drills are unchanged: there the heading is the only thing naming the exercise.
+- **Mixed review keeps the same components.** It spans several lessons so it has no single title, and it says so — but in the same slots, with the same dot style and the same directive bar, rather than in a differently-shaped header.
+
+### Fixed
+- **Clicking a lesson dot from inside practice left the path live underneath.** Now that the bar runs unbroken through both, that click is reachable for the first time; `setSqlStage` clears the guided path the way `navigate` always has, so the next forward press does not jump back into it.
+
+### Evidence
+Disjointed material imposes extraneous cognitive load for no benefit (Paas, Renkl & Sweller 2003, *Educational Psychologist* 38(1):1-4), and the near-transfer gain from a worked example comes from a fast, low-friction move into practice rather than from more gating (Renkl, Atkinson, Maier & Staley 2002, *Instructional Science* 30:105-119; Reisslein et al. 2005/2007 on the expertise-reversal boundary).
+
+Verified on localhost:4201 by walking lesson 1 from its first stage to its last drill and recording every frame slot at each step: title, skill strip, stage bar, dot count, back control and directive are identical across all seven, and the label counts 1 of 7 to 7 of 7 without resetting. The Close-stage button walks into practice in the same frame, the forward labels still name what is coming, the guided lab round trip still lands in the lab and returns to the exact path position, and the standalone drills still carry their own heading and prompt. 240 lesson renders, all 15 views, all 46 drill screens, every guided-path step, all 38 flashcards, console clean.
+
+---
+
 ## [2.8.0] — 2026-08-11 — The longest answer is no longer the right one
 
 ### Fixed

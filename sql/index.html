@@ -571,6 +571,12 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .v2-stage-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:.25s;flex-shrink:0}
 .v2-stage-dot.done{background:var(--green)}
 .v2-stage-dot.active{background:var(--accent);width:24px;border-radius:4px}
+/* The practice steps continue the same run of dots the lesson started, with a
+   ring instead of a fill so you can see where the reading stops and the doing
+   starts without the bar becoming a second, different-looking pager. */
+.v2-stage-dot.is-practice{background:none;box-shadow:inset 0 0 0 2px var(--border)}
+.v2-stage-dot.is-practice.done{background:var(--green);box-shadow:none}
+.v2-stage-dot.is-practice.active{background:var(--accent);box-shadow:none}
 .v2-stage-label{font-size:12px;color:var(--muted);margin-left:auto;white-space:nowrap}
 .v2-stage-card{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-top:16px}
 .v2-stage-card h3{margin:0 0 12px;font-size:15px}
@@ -3031,6 +3037,12 @@ function badgesCardHTML(){
 
 function getSqlStage(lid){ return ((state.lessonStage||{})[lid]) ?? 0; }
 function setSqlStage(lid, s){
+  // Asking for a lesson stage means leaving the practice path, and now that the
+  // stage bar runs unbroken through both, a learner can click a lesson dot from
+  // inside practice. Without this the path stayed live underneath and the next
+  // forward press jumped back into it. navigate() has always cleared it; this
+  // was the other way back into a lesson.
+  guided = null;
   state.lessonStage = state.lessonStage || {};
   state.lessonStage[lid] = s;
   saveState();
@@ -3423,12 +3435,58 @@ function v2CoachGap(lid){
   _v2CoachCall(prompt, 'claude-sonnet-4-6', `v2sql-coach-resp-gap-${lid}`);
 }
 
+// ─── ONE FRAME FOR A LESSON AND ITS PRACTICE ────────────────────────────────
+// A lesson and the practice that follows it were two differently-shaped pages.
+// Crossing the seam, the title vanished, the skill strip vanished, the five-dot
+// stage bar was replaced by a second pager in a different style, and the header
+// controls changed — the content changed AND the machinery changed in the same
+// moment, which is the switch cost the 2026-08-03 sweep measured right across
+// the kit. Disjointed material imposes extraneous load for no benefit (Paas,
+// Renkl & Sweller 2003, Educational Psychologist 38(1):1-4), and the fast, low-
+// friction transition is what earns the near-transfer gain (Renkl, Atkinson,
+// Maier & Staley 2002, Instructional Science 30:105-119).
+//
+// So the progress bar is now ONE run of dots: the five lesson stages, then one
+// per practice step. "You are 7 of 9 through INNER JOIN" instead of five dots
+// that reset into four different-looking dots.
+const STEP_DOT_LABEL = {fills:'Fill', bugs:'Bug', parsons:'Order', cards:'Recall', lab:'Lab'};
+const STAGE_LABELS = ['Example','Try','Build','Check','Close'];
+function stepIsDone(step){
+  const key = step[0]==='fills' ? 'doneFills' : step[0]==='bugs' ? 'doneBugs' : step[0]==='parsons' ? 'doneParsons' : null;
+  if(!key) return false;
+  const D = step[0]==='fills' ? DATA.FILLS : step[0]==='bugs' ? DATA.BUGS : DATA.PARSONS;
+  const item = D && D[step[1]];
+  return !!(item && (state[key]||[]).includes(item.id));
+}
+// gpos === null while in the lesson; a number once the learner is in practice.
+function unifiedStageBar(l, stage, gpos, done){
+  const seq = l ? guidedSeqFor(l.id) : [];
+  const inPractice = gpos !== null && gpos !== undefined;
+  const active = inPractice ? STAGE_LABELS.length + gpos : stage;
+  const cells = [];
+  STAGE_LABELS.forEach((L,i) => {
+    const isDone = i < active, isActive = i === active;
+    const can = (done || inPractice || i < stage) && !isActive;
+    cells.push(`<div class="v2-stage-dot${isDone?' done':isActive?' active':''}" title="${L}"${
+      can ? ` style="cursor:pointer" onclick="setSqlStage(${l.id},${i})"` : ''}></div>`);
+  });
+  seq.forEach((step,i) => {
+    const idx = STAGE_LABELS.length + i;
+    const isActive = idx === active;
+    const isDone = idx < active || stepIsDone(step);
+    cells.push(`<div class="v2-stage-dot is-practice${isDone?' done':isActive?' active':''}" title="${STEP_DOT_LABEL[step[0]]||'Practice'}"></div>`);
+  });
+  const label = inPractice
+    ? (STEP_DOT_LABEL[(seq[gpos]||[])[0]] || 'Practice')
+    : STAGE_LABELS[Math.min(stage, STAGE_LABELS.length-1)];
+  return `<div class="v2-stage-bar">${cells.join('')}<span class="v2-stage-label">${label} · ${active+1} of ${cells.length}</span></div>`;
+}
+
 function v2SqlBody(l, done){
   const stage = getSqlStage(l.id);
   // R1 (2026-07-27): the "What's this about" orientation card is gone and the lesson
   // opens on the worked example. Five stages, not six. R2: the one thing to do now is
   // the directive bar below, which is pinned rather than scrolled past.
-  const LABELS = ['Example','Try','Build','Check','Close'];
   // One forward label everywhere, and it names what is coming. The kit had five
   // different words for "go forward" ("Try it yourself", "Continue", "Continue
   // path", "Next", "Next Bug") and not one of them said what you were going
@@ -3436,8 +3494,7 @@ function v2SqlBody(l, done){
   // is the cheap half of the fix: preparation measurably reduces switch cost,
   // though it never removes it (Monsell 2003, Trends in Cognitive Sciences
   // 7(3):134-140).
-  const dots = LABELS.map((L,i)=>{const can=(done||i<stage)&&i!==stage;return `<div class="v2-stage-dot${i<stage?' done':i===stage?' active':''}" title="${L}"${can?` style="cursor:pointer" onclick="setSqlStage(${l.id},${i})"`:''}></div>`;}).join('');
-  const stageBar = `<div class="v2-stage-bar">${dots}<span class="v2-stage-label">${LABELS[Math.min(stage,LABELS.length-1)]}</span></div>`;
+  const stageBar = unifiedStageBar(l, stage, null, done);
 
   // One directive per stage, imperative, and it is the same sentence the stage used to
   // print inside its own card — moved out and pinned rather than duplicated. Close has
@@ -3908,13 +3965,7 @@ function renderGuidedStep(){
   const step = seq[pos];
   const isLast = pos === seq.length-1;
 
-  const backTop = review
-    ? `<button class="btn btn-ghost btn-sm" onclick="guidedSkipAll()">Skip review →</button>`
-    : `<button class="btn btn-ghost btn-sm" onclick="navigate('lesson',${lessonId})">← Back to lesson</button>`;
-  const label = review
-    ? `Unit review ${pos+1}/${seq.length} · mixing earlier skills`
-    : `Practice ${pos+1}/${seq.length} · ${DATA.LESSONS.find(l=>l.id===lessonId).title}`;
-  const dots = seq.map((_,i) => `<span style="width:20px;height:6px;border-radius:3px;background:${i<pos?'var(--green,#1a7f37)':i===pos?'var(--accent)':'rgba(127,127,127,.28)'};opacity:${i<=pos?1:.5}"></span>`).join('');
+  const lesson = review ? null : DATA.LESSONS.find(l => l.id === lessonId);
 
   let body;
   if(step[0]==='cards') body = guidedCardBody(step[1]);
@@ -3933,10 +3984,36 @@ function renderGuidedStep(){
       ? `<button class="btn btn-ghost btn-sm" onclick="guidedSkipAll()">Skip review</button>`
       : `<button class="btn btn-ghost btn-sm" onclick="navigate('lesson',${lessonId})">← Lesson</button>`);
 
+  // The same directive component the lesson stages use, carrying this step's own
+  // ask. The drill bodies drop their heading and their prompt in guided mode so
+  // it is said once, in the slot the learner has been reading it from all along.
+  const directive = guidedDirective(step);
+
+  // The lesson's own header, title, skill strip and stage bar. In review mode
+  // there is no single lesson — it mixes several — so it says so, in the same
+  // slots rather than in a different-shaped header.
+  const head = review
+    ? `<div class="row mb">
+         <button class="btn btn-ghost btn-sm" onclick="guidedSkipAll()">Skip review</button>
+         <span class="badge badge-unit" style="margin-left:auto">${guided.reviewUnit || 'Mixed review'}</span>
+       </div>
+       <h1>Mixed review</h1>
+       ${skillStripHTML(guided.reviewUnit)}
+       <div class="v2-stage-bar">${seq.map((s,i) =>
+         `<div class="v2-stage-dot is-practice${i<pos?' done':i===pos?' active':''}" title="${STEP_DOT_LABEL[s[0]]||'Practice'}"></div>`).join('')
+       }<span class="v2-stage-label">${STEP_DOT_LABEL[step[0]]||'Practice'} · ${pos+1} of ${seq.length}</span></div>
+       <p class="text-muted text-sm" style="margin:0 0 10px">Pulled from earlier lessons. Mixed review feels harder than fresh practice, and that is where it sticks.</p>`
+    : `<div class="row mb">
+         <button class="btn btn-ghost btn-sm" onclick="navigate('lessons')">← Lessons</button>
+         ${state.doneLessons.includes(lessonId) ? '<span class="badge badge-done">✓ Done</span>' : ''}
+       </div>
+       <h1>${lesson ? lesson.title : 'Practice'}</h1>
+       ${lesson ? skillStripHTML(lesson.unit) : ''}
+       ${unifiedStageBar(lesson, STAGE_LABELS.length, pos, true)}`;
+
   document.getElementById('main').innerHTML = `
-    <div class="row mb">${backTop}<span class="text-muted text-sm" style="margin-left:auto">${label}</span></div>
-    <div style="display:flex;gap:4px;align-items:center;margin:0 0 14px;flex-wrap:wrap">${dots}</div>
-    ${review?`<p class="text-muted text-sm" style="margin:0 0 10px">Mixed review feels harder than fresh practice — that's normal, and it's where the material sticks.</p>`:''}
+    ${head}
+    ${directive}
     ${body}
     <div class="row" style="justify-content:space-between;gap:10px;margin-top:20px">
       ${backNav}
@@ -3944,6 +4021,20 @@ function renderGuidedStep(){
     </div>`;
   if(window.lucide) lucide.createIcons();
   window.scrollTo(0,0);
+}
+
+// The ask for a practice step, in the lesson's directive bar. Reads the drill's
+// own prompt so there is one sentence, not the drill's heading plus its prompt
+// plus a mechanic line.
+function guidedDirective(step){
+  const [kind, i] = step;
+  let t = '';
+  if(kind === 'fills')       t = (DATA.FILLS[i]   || {}).q;
+  else if(kind === 'bugs')   t = (DATA.BUGS[i]    || {}).prompt;
+  else if(kind === 'parsons')t = (DATA.PARSONS[i] || {}).prompt;
+  else if(kind === 'cards')  t = 'Say it out loud from memory, then check yourself.';
+  else if(kind === 'lab')    t = 'Work a task or two in the lab, then come back and carry on.';
+  return t ? `<div class="directive"><span class="d-eyebrow">Do this</span><p>${t}</p></div>` : '';
 }
 
 // "Recall — no peeking" flashcard step: term shown, learner recalls out loud,
@@ -3955,7 +4046,6 @@ function guidedCardBody(i){
     <div class="card" style="text-align:center;padding:28px">
       <div class="badge badge-unit" style="margin-bottom:12px">Recall — no peeking</div>
       <h2 style="font-family:var(--mono);margin-bottom:10px">${term}</h2>
-      <p class="text-muted" style="margin-bottom:14px">Out loud, from memory: what does this do, and when would you use it? Then flip the card and compare.</p>
       <div id="gcBack" style="display:none;text-align:left;background:var(--surf,rgba(127,127,127,.08));border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px">${def}</div>
       <button id="gcFlip" class="btn btn-ghost" onclick="document.getElementById('gcBack').style.display='block';this.style.display='none'">Check yourself →</button>
     </div>`;
@@ -3970,7 +4060,7 @@ function guidedLabBody(track){
   return `
     <div class="card">
       <h2>Build it in the ${meta.label}</h2>
-      <p>${meta.pitch} Open the lab, work a task or two — a "Continue path" button up top will bring you right back here.</p>
+      <p>${meta.pitch}</p>
       <button class="btn btn-primary" onclick="openGuidedLab('${meta.view}')">Open ${meta.label} →</button>
     </div>`;
 }
@@ -4139,8 +4229,7 @@ function renderFill(idx){
   const done = state.doneFills.includes(f.id);
   const body = `
     <div class="card">
-      <h2>Fill in the Blank</h2>
-      <p class="fill-prompt">${f.q}</p>
+      ${guided ? '' : `<h2>Fill in the Blank</h2><p class="fill-prompt">${f.q}</p>`}
       <div class="fill-partial">${f.partial}</div>
       ${drillTablesNote(f.partial)}
       <p class="drill-instruction" style="margin-top:12px">Type the piece that fills the blank:</p>
@@ -4278,8 +4367,7 @@ function renderBug(idx){
   const done = state.doneBugs.includes(b.id);
   const body = `
     <div class="card">
-      <h2>Bug Hunt</h2>
-      <p class="drill-instruction">${b.prompt}</p>
+      ${guided ? '' : `<h2>Bug Hunt</h2><p class="drill-instruction">${b.prompt}</p>`}
       <div class="code-broken">${b.broken}</div>
       ${drillTablesNote(b.broken)}
       <div class="bug-issue" id="bug-issue" style="display:none"><i data-lucide="alert-triangle" style="width:14px;height:14px;vertical-align:-2px"></i> <strong>${b.title}:</strong> ${b.issue}</div>
@@ -4420,8 +4508,7 @@ function renderParsons(idx){
 
   const body = `
     <div class="card">
-      <h2>Put in Order</h2>
-      <p class="drill-instruction">${p.prompt}</p>
+      ${guided ? '' : `<h2>Put in Order</h2><p class="drill-instruction">${p.prompt}</p>`}
       ${drillTablesNote(p.lines.join('\n'))}
       ${Ord.html('p'+idx, p.lines)}
       <div class="row mt">
