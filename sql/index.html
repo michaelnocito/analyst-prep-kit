@@ -4696,8 +4696,9 @@ function labSchemaInfo(){
     return {name:t, rows:rows, cols: info.length ? info[0].values.map(r => ({name:r[1], type:r[2] || 'TEXT'})) : []};
   });
 }
-function labSchemaHTML(){
-  const tabs = labSchemaInfo();
+function labSchemaHTML(only){
+  let tabs = labSchemaInfo();
+  if(only && only.length) tabs = tabs.filter(t => only.includes(t.name));
   if(!tabs.length) return '<span class="terminal-info">Loading tables…</span>';
   return tabs.map(t => `<div class="lab-tbl">
     <div class="lab-tbl-head"><span class="lab-tbl-name">${t.name}</span><span class="lab-tbl-meta">${t.rows} row${t.rows === 1 ? '' : 's'}</span></div>
@@ -4706,11 +4707,56 @@ function labSchemaHTML(){
          <span class="lc-n">${c.name}</span><span class="lc-t">${c.type}</span></button>`).join('')}</div>
   </div>`).join('');
 }
+
+// Every lab that asks you to answer a business question in SQL has to hand you
+// the table and column names, the way a real analyst reads them off the side of
+// the screen. The Free Lab did; the task labs did not — so "How many customers
+// are in each status group?" started with guessing that the table was called
+// `customers` and the column `status`, and a guess comes back as a red error.
+// One panel, read out of the live database so it can never drift from the data,
+// dropped in next to the editor in every lab.
+let _labSchemaSlots = [];
+function labSchemaCardHTML(id, opts){
+  opts = opts || {};
+  _labSchemaSlots = _labSchemaSlots.filter(s => s.id !== id);
+  _labSchemaSlots.push({id:id, only:opts.only || null});
+  return `<div class="card card-sm mb">
+    <div class="lab-sch-head">${opts.title || 'Tables you can query'} <span>${opts.note || 'click a column name to type it into the editor'}</span></div>
+    <div id="${id}" class="lab-schema"><span class="terminal-info">Loading tables…</span></div>
+  </div>`;
+}
+// Called once the engine is up — every panel on the page fills at once, so a lab
+// with a panel per task (or none) needs no bookkeeping at the call site.
+function fillLabSchemas(){
+  _labSchemaSlots.forEach(s => {
+    const el = document.getElementById(s.id);
+    if(el) el.innerHTML = labSchemaHTML(s.only);
+  });
+  _labSchemaSlots = _labSchemaSlots.filter(s => document.getElementById(s.id));
+}
+
 // Clicking a column types it for you at the cursor. Every desktop client does
 // this, and it keeps a learner in the editor instead of scrolling up to check
 // a spelling — which is the move that produced the guess in the first place.
+// Labs run anywhere from one editor (Free Lab) to eighteen (Capstone), so the
+// click follows the editor you last typed in, falling back to the one on screen.
+let _labEditorId = null;
+document.addEventListener('focusin', e => {
+  const t = e.target;
+  if(t && t.id && t.classList && t.classList.contains('terminal-editor')) _labEditorId = t.id;
+});
+function _labActiveEditor(){
+  let ed = _labEditorId ? document.getElementById(_labEditorId) : null;
+  if(ed) return ed;
+  ed = document.getElementById('sql-editor');
+  if(ed) return ed;
+  // Prefer an editor that is actually visible — the Capstone keeps every step
+  // in the DOM and hides all but the open one.
+  const all = Array.from(document.querySelectorAll('.terminal-editor'));
+  return all.find(e2 => e2.offsetParent !== null) || all[0] || null;
+}
 function labInsert(name){
-  const ed = document.getElementById('sql-editor');
+  const ed = _labActiveEditor();
   if(!ed) return;
   const a = ed.selectionStart, b = ed.selectionEnd;
   ed.value = ed.value.slice(0, a) + name + ed.value.slice(b);
@@ -4772,10 +4818,7 @@ async function renderLab(){
     <h1>SQL Lab</h1>
     ${labTabsHTML('free')}
     <p>Write any query you like and run it. Nothing here is graded and nothing can break.</p>
-    <div class="card card-sm mb">
-      <div class="lab-sch-head">Tables you can query <span>click a column to type it</span></div>
-      <div id="lab-schema" class="lab-schema"><span class="terminal-info">Loading tables…</span></div>
-    </div>
+    ${labSchemaCardHTML('lab-schema', {note:'click a column to type it'})}
     <div class="terminal-wrap">
       <div class="terminal-toolbar">
         <div class="terminal-dot" style="background:#ff5f57"></div>
@@ -4794,8 +4837,7 @@ async function renderLab(){
   if(ok){
     const el = document.getElementById('sql-results');
     if(el) el.innerHTML = '<span class="terminal-info">Ready — run a query.</span>';
-    const sc = document.getElementById('lab-schema');
-    if(sc) sc.innerHTML = labSchemaHTML();
+    fillLabSchemas();
   }
 }
 
@@ -5072,6 +5114,7 @@ async function renderCardDrill(term){
       ${d.note ? `<div style="background:rgba(191,135,0,.1);border:1px solid rgba(191,135,0,.4);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px">💡 ${d.note}</div>` : ''}
       ${drillTablesNote(d.tries.map(t => t.sql).join('\n'))}
       ${triesHtml}
+      ${labSchemaCardHTML('drill-schema', {title:'The database you are querying'})}
       <div class="terminal-wrap">
         <div class="terminal-toolbar">
           <div class="terminal-dot" style="background:#ff5f57"></div>
@@ -5093,7 +5136,10 @@ async function renderCardDrill(term){
     </div>`;
   _drillTries = d.tries; _drillRan = false;
   const ok = await ensureDb(document.getElementById('sql-results'));
-  if(ok){ const el=document.getElementById('sql-results'); if(el) el.innerHTML='<span class="terminal-info">Ready — load a Try and hit Run.</span>'; }
+  if(ok){
+    const el=document.getElementById('sql-results'); if(el) el.innerHTML='<span class="terminal-info">Ready — load a Try and hit Run.</span>';
+    fillLabSchemas();
+  }
 }
 let _drillTries = [], _drillRan = false;
 function loadDrillTry(i){
@@ -5296,12 +5342,14 @@ async function renderLabCapstone(){
       <div style="flex:1;height:8px;border-radius:4px;background:var(--surf2);overflow:hidden"><div style="height:100%;width:${Math.round(nDone/CAPSTONE.steps.length*100)}%;background:var(--accent)"></div></div>
       <span class="text-muted text-sm" style="white-space:nowrap">${nDone} / ${CAPSTONE.steps.length} steps</span>
     </div>
+    ${labSchemaCardHTML('cap-schema', {title:'The database you are querying', note:'the later steps name no tables — read them off here · click a column to type it'})}
     ${stepsHtml}
     <div class="card" id="cap-finale" style="${allDone?'':'display:none'};border:1.5px solid var(--green,#1a7f37)">
       <h3>🎉 Analysis complete</h3>
       <p>You just walked the whole analyst toolkit: raw rows → filters → sorting → computed columns → aggregates → groups → labels → joins → the gap check → subqueries → a windowed ranking — and by the last five steps you were writing everything yourself. That chain is the backbone of most day-one analyst tickets. Come back tomorrow and re-run the "On your own" stage cold — spaced repeats are what make it stick.</p>
     </div>`;
-  await ensureDb(null);
+  const ok = await ensureDb(null);
+  if(ok) fillLabSchemas();
 }
 function toggleCapStep(i){
   const b = document.getElementById('cap-body-'+i);
@@ -5420,7 +5468,8 @@ async function renderLabJoin(){
           <div style="margin-bottom:5px"><span style="color:var(--text);font-weight:700">id</span> <span style="font-size:11px;background:rgba(47,109,240,.15);color:var(--accent);border-radius:4px;padding:1px 6px">PK</span></div>
           <div style="color:var(--muted);margin-bottom:5px">name</div>
           <div style="color:var(--muted);margin-bottom:5px">email</div>
-          <div style="color:var(--muted)">status</div>
+          <div style="color:var(--muted);margin-bottom:5px">status</div>
+          <div style="color:var(--muted)">orders <span style="font-size:10px;opacity:.75">(a count, not the table)</span></div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;padding:0 12px;min-width:80px;text-align:center">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px">customers.id</div>
@@ -5468,7 +5517,7 @@ async function renderLabJoin(){
     ${labTabsHTML('join')}
     <h2 style="margin-bottom:6px">JOIN practice</h2>
     <p style="margin-bottom:6px">Joins only stick when you type them, so this lab <em>is</em> the challenges. Write each query yourself in its terminal and Run it.</p>
-    <p class="text-muted text-sm" style="margin-bottom:14px">Tables: <code style="font-family:var(--mono)">customers(id, name, email, status)</code> and <code style="font-family:var(--mono)">orders(order_id, customer_id, order_date, amount)</code>, joined on <code style="font-family:var(--mono)">customers.id = orders.customer_id</code>. Full diagram is in the reference at the bottom.</p>
+    ${labSchemaCardHTML('join-schema', {title:'The two tables these challenges use', note:'joined on customers.id = orders.customer_id · click a column to type it', only:['customers','orders']})}
     <div style="display:flex;gap:10px;align-items:flex-start;background:rgba(47,109,240,.07);border:1px solid rgba(47,109,240,.2);border-radius:10px;padding:12px 15px;margin-bottom:24px;font-size:13px;line-height:1.6">
       <i data-lucide="info" style="width:16px;height:16px;flex-shrink:0;margin-top:2px;color:var(--accent)"></i>
       <div><strong>Give each one at least 3 tries.</strong> Every time you Run a query that isn't right yet, we fill a little more of it into the editor and add a line of guidance below the terminal. On the third miss we drop in the full answer, so you can run it and read it back against the prompt. The struggle before the answer is what makes it stick.</div>
@@ -5500,6 +5549,7 @@ async function renderLabJoin(){
   const ok = await ensureDb(document.getElementById('jc-results-0'));
   if(ok){
     JOIN_TASKS.forEach((_,i)=>{ const el=document.getElementById('jc-results-'+i); if(el) el.innerHTML='<span class="terminal-info">Write your query above and Run.</span>'; });
+    fillLabSchemas();
   }
 }
 
@@ -5810,6 +5860,7 @@ async function renderLabAgg(){
       </div>
       <h2 style="margin-bottom:8px">${t.title}</h2>
       <p style="margin-bottom:16px">${t.prompt}</p>
+      ${labSchemaCardHTML('agg-schema', {title:'The database you are querying', note:'work out which table answers the question · click a column to type it'})}
       <div class="terminal-wrap">
         <div class="terminal-toolbar">
           <div class="terminal-dot" style="background:#ff5f57"></div>
@@ -5834,7 +5885,10 @@ async function renderLabAgg(){
       <div id="agg-hint" style="display:none;margin-top:10px;padding:13px 16px;background:var(--clay-50);border:1px solid var(--clay-200);border-radius:8px;font-size:13px;color:var(--stone-800);line-height:1.65"><i data-lucide="lightbulb" style="width:14px;height:14px;vertical-align:-2px;color:var(--clay-600)"></i> ${t.hint}</div>
     </div>`;
   const ok = await ensureDb(document.getElementById('agg-results'));
-  if(ok){ const el=document.getElementById('agg-results'); if(el) el.innerHTML='<span class="terminal-info">Edit the query above and click Run →</span>'; }
+  if(ok){
+    const el=document.getElementById('agg-results'); if(el) el.innerHTML='<span class="terminal-info">Edit the query above and click Run →</span>';
+    fillLabSchemas();
+  }
 }
 
 function showLabAnswer(editorId, answer){
