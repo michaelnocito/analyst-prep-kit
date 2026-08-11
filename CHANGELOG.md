@@ -9,6 +9,22 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.2.0] — 2026-08-11 — Python, Power BI, Tableau and Stats reach their guides too
+
+### Added
+- **The standing guide link now runs in four more kits.** SQL got it in 3.1.0. The other kits had no route from a lesson to the long-form guide behind it at all: the guides existed, but they were named only in the footer list at the bottom of the home page, which a learner mid-lesson never sees. Each kit now carries its own lesson-to-guide map and shows the link under every stage of a lesson and under every step of that lesson's practice.
+- **Coverage, by kit.** Python 27 of 42 lessons, Power BI 31 of 39, Tableau 18 of 32, Stats 10 of 16. Every mapped lesson resolves to a guide that already exists on the site.
+- **Unmapped lessons show nothing, deliberately.** A link that does not answer the question the learner arrived with is worse than no link, so a lesson with no honest match carries no row rather than being pointed at something adjacent. That is why Tableau's build-this-chart lessons are blank: the chart-choice guide answers which chart to pick, not how to build the one you already picked.
+- **Labels match what each kit already calls the guide.** Where a kit's own footer names a guide, the lesson link uses that name word for word (clearest in Stats, whose footer already lists all seven of its guides). Shared guides across kits, the financial and profiling ones, carry the same label everywhere.
+
+### Evidence
+Verified in a browser against every kit: 210 lesson-stage renders in Python, 195 in Power BI, 160 in Tableau, 80 in Stats, 645 in total. Every mapped lesson shows exactly one guide link on all five stages, every unmapped lesson shows none, and every guide slug resolves to a real folder under `guides/`. Practice paths walked in all four: Python lesson 8 through nine steps, Power BI lesson 7 through eight, Tableau lesson 15 through three, Stats lesson 3 through five, each carrying its lesson's link. Mixed review shows no link, since it spans several lessons and has no single guide. Parse gate clean on all four files.
+
+### Not included
+Excel. Another session was editing `excel/index.html` while this shipped, and two sets of hands in one file is how work gets lost. Its map is the largest of the seven, 36 Excel guides against 50 lessons, and its lesson flow is the one that stacks every stage on a single scrolling page, so it needs its own placement call rather than a copy of this one. Chart Literacy and Forecasting have no staged lesson flow to hang the link on.
+
+---
+
 ## [3.1.0] — 2026-08-11 — The full guide is reachable from every step
 
 ### Changed

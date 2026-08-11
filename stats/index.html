@@ -168,6 +168,14 @@ input[type=range]{accent-color:var(--accent);width:150px;cursor:pointer}
 .v2-stage-card{background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:20px 22px;margin-top:16px}
 .v2-stage-card h3{margin:0 0 12px;font-size:15px}
 .v2-stage-card h3 .lucide{width:16px;height:16px;color:var(--accent);vertical-align:-2px;margin-right:6px}
+/* The long-form guide behind a lesson. Quiet by default: it is an offer, not
+   the next step, so it never gets button weight or accent fill. It sits
+   OUTSIDE the stage card, below the actions, so it reads as a footnote to the
+   step rather than part of the task. */
+.kit-guide{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.55;color:var(--txt2);margin-top:16px;padding-top:12px;border-top:1px solid var(--bord)}
+.kit-guide .lucide{width:15px;height:15px;flex:0 0 auto;margin-top:2px;color:var(--accent)}
+.kit-guide a{color:var(--accent);font-weight:600;text-decoration:none}
+.kit-guide a:hover{text-decoration:underline}
 .v2-pool{display:flex;flex-wrap:wrap;gap:8px;min-height:44px;border:2px dashed var(--bord);border-radius:8px;padding:10px;margin-bottom:10px;transition:.15s}
 .v2-answer-zone{min-height:44px;border:2px dashed var(--accent);border-radius:8px;padding:10px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px;transition:.15s}
 .v2-pars-chip{font-family:var(--mono);font-size:13px;background:var(--surf2);border:1.5px solid var(--bord);border-radius:8px;padding:9px 12px;cursor:pointer;user-select:none;transition:.15s;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%;display:flex;align-items:center;gap:10px}
@@ -2302,7 +2310,8 @@ function v2StatBody(l, done){
     </div>
     <h2 style="margin-bottom:4px">${l.title}</h2>
     ${stageBar}
-    ${body}`;
+    ${body}
+    ${guideLinkHTML(l.id)}`;
   if(stage===1&&l.viz)drawStatChart(l.viz);
   if(window.lucide) lucide.createIcons();
 }
@@ -2336,6 +2345,43 @@ function startGuided(lessonId){
   activateView('view-practice');
   renderGuidedStep();
 }
+// ─── THE GUIDE BEHIND A LESSON ─────────────────────────────────────────────
+// Every lesson that has a long-form guide on the same site names it here, so
+// the guide is reachable from inside the lesson instead of only from the
+// footer list at the bottom of the page. The labels are word for word the ones
+// that footer already uses: a first-run test on 2026-08-11 landed on a page
+// whose kit label, footer label and heading were three different names, and
+// stopped to check it was the right page.
+//
+// A lesson with no honest match is left out on purpose. A link that does not
+// answer the question the learner arrived with is worse than no link, so the
+// row is absent rather than pointed at something adjacent.
+const LESSON_GUIDE = {
+  // Unit 1: Describing Data
+  1:  ['mean-vs-median',           'Mean vs median'],
+  2:  ['standard-deviation',       'Standard deviation'],
+  3:  ['percentiles-iqr-outliers', 'Percentiles, IQR and outliers'],
+  4:  ['percentiles-iqr-outliers', 'Percentiles, IQR and outliers'],
+  // Unit 2: Distributions & Sampling
+  6:  ['standard-deviation',       'Standard deviation'],
+  8:  ['correlation-vs-causation', 'Correlation vs causation'],
+  // Unit 3: Inference
+  9:  ['p-values',                 'P-values'],
+  10: ['p-values',                 'P-values'],
+  11: ['ab-testing-for-analysts',  'A/B testing for analysts'],
+  12: ['confidence-intervals',     'Confidence intervals']
+};
+// Stands under every step of a lesson, and under every step of its practice.
+// It stays a link and never expands into a block of its own: help that carries
+// a novice starts costing that same person once they know it (Kalyuga, Ayres,
+// Chandler & Sweller 2003), and an offer taken on demand charges nothing to
+// the learner who walks past it.
+function guideLinkHTML(lid){
+  const g = LESSON_GUIDE[lid];
+  if(!g) return '';
+  return `<div class="kit-guide"><i data-lucide="book-open"></i><span>Full guide: <a href="../guides/${g[0]}/" target="_blank" rel="noopener">${g[1]}</a></span></div>`;
+}
+
 function renderGuidedStep(){
   if(!guided)return;
   const {seq,pos,lessonId}=guided; const step=seq[pos];
@@ -2359,7 +2405,9 @@ function renderGuidedStep(){
       <button class="btn btn-sm" onclick="${pos>0?'guidedPrev()':'openLesson('+lessonId+')'}">${pos>0?'← Back':'← Lesson'}</button>
       <button class="btn" style="background:var(--accent);color:#fff" onclick="guidedNext()">${isLast?'Finish — next lesson →':'Next drill →'}</button>
     </div>`;
-  document.getElementById('view-practice').innerHTML=header+body+nav;
+  // Above the bottom bar, not below it: the Back/Next bar is the fixed floor of
+  // the stable frame and stays the last thing on every step.
+  document.getElementById('view-practice').innerHTML=header+body+guideLinkHTML(lessonId)+nav;
   if(step[0]==='parsons'&&!done)initParsons(item);
   window.scrollTo(0,0);
 }

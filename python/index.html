@@ -83,7 +83,15 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
 .btn{display:inline-block;padding:9px 18px;border-radius:6px;border:none;cursor:pointer;font-size:14px;font-family:var(--font);font-weight:600;transition:all .15s}
 .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
 .btn-outline{background:none;border:1px solid var(--border);color:var(--text)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
-.btn-ghost{background:none;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.9)}.btn-ghost:hover{background:rgba(255,255,255,.1)}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--text)}.btn-ghost:hover{background:var(--surf2);border-color:var(--accent)}
+/* .btn-ghost was styled white-on-transparent for the resume card's accent
+   gradient, but it is used on ordinary light cards too — Home, Back, Show
+   answer, I have this now — where white text on the page background is
+   1.07:1 and the button reads as blank. The white variant now only applies
+   inside the resume card, and only in light mode: dark mode already gets
+   deep ink from zinc-sky.css. */
+[data-theme="light"] .resume-card .btn-ghost{border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.9)}
+[data-theme="light"] .resume-card .btn-ghost:hover{background:rgba(255,255,255,.1)}
 .btn-sm{padding:5px 12px;font-size:13px}
 .flag-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 2px;border-top:1px solid var(--border);cursor:pointer}
 .flag-row:hover .flag-row-title{color:var(--accent)}
@@ -355,6 +363,14 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .v2-stage-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-top:16px}
 .v2-stage-card h3{margin:0 0 12px;font-size:15px}
 .v2-stage-card h3 .lucide{width:16px;height:16px;color:var(--accent);vertical-align:-2px;margin-right:6px}
+/* The long-form guide behind a lesson. Quiet by default: it is an offer, not
+   the next step, so it never gets button weight or accent fill. It sits
+   OUTSIDE the stage card, below the actions, so it reads as a footnote to the
+   step rather than part of the task. */
+.kit-guide{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.55;color:var(--dim);margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+.kit-guide .lucide{width:15px;height:15px;flex:0 0 auto;margin-top:2px;color:var(--accent)}
+.kit-guide a{color:var(--accent);font-weight:600;text-decoration:none}
+.kit-guide a:hover{text-decoration:underline}
 .v2-pool{display:flex;flex-wrap:wrap;gap:8px;min-height:44px;border:2px dashed var(--border);border-radius:8px;padding:10px;margin-bottom:10px;transition:.15s}
 .v2-answer-zone{min-height:44px;border:2px dashed var(--accent);border-radius:8px;padding:10px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px;transition:.15s}
 .v2-pars-chip{font-family:var(--mono);font-size:13px;background:var(--surf2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;cursor:pointer;user-select:none;transition:.15s;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%;display:flex;align-items:center;gap:10px}
@@ -2603,7 +2619,8 @@ function v2PyBody(l, done){
       <h1>${l.title}</h1>
     </div>
     ${stageBar}
-    ${body}`;
+    ${body}
+    ${guideLinkHTML(l.id)}`;
   if(window.lucide) lucide.createIcons();
 }
 
@@ -2685,6 +2702,64 @@ function startUnitReview(finishedUnit, nextLid){
   guided={lessonId:null,seq,pos:0,review:true,reviewUnit:finishedUnit,nextLid};
   show('drill'); renderGuidedStep();
 }
+// ─── THE GUIDE BEHIND A LESSON ─────────────────────────────────────────────
+// Every lesson that has a long-form guide on the same site names it here, so
+// the guide is reachable from inside the lesson instead of only from the
+// footer list on the home page. The label is the guide's own name, sentence
+// case: a first-run test on 2026-08-11 landed on a page whose kit label,
+// footer label and heading were three different names, and stopped to check it
+// was the right page. Shared guides carry the SAME label the other kits use.
+//
+// A lesson with no honest match is left out on purpose. A link that does not
+// answer the question the learner arrived with is worse than no link, so the
+// row is absent rather than pointed at something adjacent.
+const LESSON_GUIDE = {
+  // Unit 0: Before You Code
+  104:['pandas-read-csv',            'pandas read_csv, and what it guessed'],
+  // Unit 2: pandas
+  4:  ['pandas-read-csv',            'pandas read_csv, and what it guessed'],
+  5:  ['exploratory-data-analysis',  'Why exploratory data analysis matters'],
+  8:  ['pandas-groupby',             'pandas GroupBy, without losing track of your rows'],
+  9:  ['pandas-merge',               'pandas merge, and the join that doubled the revenue'],
+  // Unit 3: Data Cleaning
+  10: ['pandas-fillna-dropna',       'Missing values in pandas: dropna and fillna'],
+  11: ['migration-cleaning',         'Cleaning and de-duping'],
+  12: ['pandas-duplicates',          'pandas drop_duplicates, and the row it kept'],
+  // Unit 4: Data Migration
+  401:['migration-profiling',        'Profiling the source: the seven checks'],
+  402:['pandas-duplicates',          'pandas drop_duplicates, and the row it kept'],
+  403:['migration-cleaning',         'Cleaning and de-duping'],
+  404:['pandas-read-csv',            'pandas read_csv, and what it guessed'],
+  405:['migration-field-mapping',    'Mapping the fields'],
+  406:['migration-uat',              'User acceptance testing'],
+  // Unit 5: From Question to Metric
+  601:['defining-metrics',           'Turning fuzzy questions into definitions'],
+  602:['data-driven-thresholds',     'Picking cutoffs you can defend'],
+  603:['pandas-pct-change-cumsum',   'pandas pct_change and cumsum'],
+  604:['pandas-pct-change-cumsum',   'pandas pct_change and cumsum'],
+  // Unit 6: Financial Analysis
+  702:['gross-vs-operating-vs-net-margin', 'Gross vs operating vs net margin'],
+  703:['liquidity-and-leverage-ratios',    'Current ratio vs quick ratio'],
+  704:['net-present-value-npv',            'Net present value (NPV)'],
+  705:['budget-vs-actual-variance',        'Budget vs actual variance'],
+  706:['contribution-margin-break-even',   'Contribution margin and break-even'],
+  // Unit 7: Advanced Analyst Toolkit
+  801:['exploratory-data-analysis',  'Why exploratory data analysis matters'],
+  803:['percentiles-iqr-outliers',   'Percentiles, the IQR and the outlier rule'],
+  804:['data-driven-thresholds',     'Picking cutoffs you can defend'],
+  805:['correlation-vs-causation',   'Correlation vs causation']
+};
+// Stands under every step of a lesson, and under every step of its practice.
+// It stays a link and never expands into a block of its own: help that carries
+// a novice starts costing that same person once they know it (Kalyuga, Ayres,
+// Chandler & Sweller 2003), and an offer taken on demand charges nothing to
+// the learner who walks past it.
+function guideLinkHTML(lid){
+  const g = LESSON_GUIDE[lid];
+  if(!g) return '';
+  return `<div class="kit-guide"><i data-lucide="book-open"></i><span>Full guide: <a href="../guides/${g[0]}/" target="_blank" rel="noopener">${g[1]}</a></span></div>`;
+}
+
 // Excel-style stable frame: the header row, progress dots, and the uniform
 // bottom Back/Next bar keep their exact position on every step — only the
 // step body (card / drill / terminal pointer) swaps in the middle. No
@@ -2724,7 +2799,11 @@ function renderGuidedStep(){
       ?`<button class="btn btn-ghost btn-sm" onclick="guidedSkipAll()">Skip review</button>`
       :`<button class="btn btn-ghost btn-sm" onclick="openLesson(${lessonId})">← Lesson</button>`);
   const nav=`<div class="flex mt20" style="justify-content:space-between;gap:10px">${backNav}<button class="btn btn-primary" onclick="guidedNext()">${nextLabel}</button></div>`;
-  document.getElementById('drillContent').innerHTML=header+body+nav;
+  // Above the bottom bar, not below it: the Back/Next bar is the fixed floor of
+  // the stable frame and stays the last thing on every step. Review mixes
+  // several lessons, so it has no single guide and shows none.
+  const guide = review ? '' : guideLinkHTML(lessonId);
+  document.getElementById('drillContent').innerHTML=header+body+guide+nav;
   if(step[0]==='parsons')initParsons(DATA.PARSONS[step[1]],step[1]);
   window.scrollTo(0,0);
 }
