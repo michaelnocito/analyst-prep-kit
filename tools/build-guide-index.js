@@ -37,9 +37,12 @@ const TOOLS = {
   excel: /^excel-|^vlookup-|^budget-vs-actual|^build-a-risk-index|connect-excel/,
   /* The four Financial analysis guides added 2026-08-11 are worked in SQL, so
      they earn the sql chip on their slug even though their section heading is
-     not about SQL. budget-vs-actual-variance sits in the same section and is
-     worked in Excel, which is why the tool comes from the slug here rather than
-     from TOOL_BY_SECTION. */
+     not about SQL. They ALSO carry the finance chip, which they get from
+     TOOL_BY_SECTION below. A card can hold several tools: data-tool is space
+     separated and the page pads it before matching. That double tagging is the
+     point. A first-run user test on 2026-08-11 pressed all seven chips and found
+     the section vanished under five of them, because nobody hunting for margins
+     presses SQL, and finance is the one dimension the row had no word for. */
   sql: /^sql-|^which-sql|^set-up-a-sql|^sample-database|^practice-sql|^export-sql|^install-postgres|^set-up-duckdb|^entity-resolution|connect-python-to-a-sql|connect-excel-to-a-database|^handle-large|^gross-vs-operating|^liquidity-and-leverage|^net-present-value|^contribution-margin/,
   powerbi: /^powerbi-|power-bi/,
   python: /^pandas-|^install-python|^install-jupyter|^sql-and-python|connect-python/,
@@ -47,11 +50,17 @@ const TOOLS = {
   stats: /^mean-vs-median|^standard-deviation|^percentiles|^p-values|^confidence|^ab-testing|^how-charts|^moving-averages|^forecast-accuracy|^correlation|^choose-the-right-chart/,
   migration: /^migration-|^what-is-data-migration|^data-migration/,
 };
+/* Finance is the one chip that is not a tool, and that is deliberate. The row
+   was tools-only until 2026-08-11, which meant a subject nobody thinks of as a
+   tool had no way into it. The section is the source here rather than a slug
+   regex, so a finance guide worked in Excel and one worked in SQL both get it
+   while keeping their own tool. */
 const TOOL_BY_SECTION = {
   'Excel for business analysts': ['excel'],
   'SQL concepts': ['sql'],
   'Data migration': ['migration'],
   'Statistics and charts': ['stats'],
+  'Financial analysis': ['finance'],
 };
 
 const ALIASES = [

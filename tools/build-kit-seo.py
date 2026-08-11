@@ -86,10 +86,17 @@ KITS = {
                   "Aggregation and shaping with GROUP BY", "Joins, and why totals move when you add one",
                   "Advanced SQL: CTEs, subqueries, window functions", "Data migration work",
                   "From a question to a metric", "Financial analysis", "The advanced analyst toolkit"],
+        # The list names a unit it does not cover and a reader notices. This
+        # block sits at the foot of a page whose Unit 7 is Financial analysis,
+        # and it listed seven guides, none of them finance (user test, 2026-08-11).
+        # Unit 7's five lessons map one-to-one onto the five finance guides, so
+        # two of them go in here rather than leaving the unit unrepresented.
         "guides": [("set-up-a-sql-database", "Set up a SQL database in fifteen minutes"),
                    ("sql-foundations", "SQL foundations"), ("sql-joins", "SQL JOINs"),
                    ("sql-group-by-having", "GROUP BY and HAVING"), ("sql-ctes", "SQL CTEs"),
-                   ("sql-window-functions", "Window functions"), ("sql-comments", "How to comment in SQL")],
+                   ("sql-window-functions", "Window functions"), ("sql-comments", "How to comment in SQL"),
+                   ("gross-vs-operating-vs-net-margin", "Gross vs operating vs net margin"),
+                   ("contribution-margin-break-even", "Contribution margin and break-even")],
     },
     "powerbi": {
         "h": "About the Power BI Kit",
