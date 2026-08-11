@@ -71,10 +71,36 @@ winnability (tail terms we can own beat head terms we cannot).
 
 ## Finance (shared Financial Analysis unit in 4 kits; business searchers)
 - ✅ budget-vs-actual-variance — "budget vs actual variance analysis" (counts in the 50 above as the 10th build; slots beside 16/28 in cluster logic)
+- ✅ gross-vs-operating-vs-net-margin — "gross vs operating vs net margin" — SQL Unit 7 lesson 702
+- ✅ liquidity-and-leverage-ratios — "current ratio vs quick ratio" — SQL Unit 7 lesson 703
+- ✅ net-present-value-npv — "how to calculate npv" — SQL Unit 7 lesson 704
+- ✅ contribution-margin-break-even — "contribution margin break even" — SQL Unit 7 lesson 706
 - Bonus bench if any slot frees up: build-a-pnl-from-a-ledger ("p&l from transactions"),
-  contribution-margin-break-even, gross-vs-operating-vs-net-margin,
   data-grain ("what is the grain of a table" — the concept every kit teaches),
   pareto-abc-analysis ("abc analysis inventory pareto").
+
+### The 2026-08-11 finance batch, and what it changed structurally
+
+The four above were built together, because they were the last unmapped lessons
+in the SQL kit's `LESSON_GUIDE` map. All 48 SQL lessons now point at a guide.
+
+Two things worth not re-deriving:
+
+1. **Finance got its own section on `guides/index.html`.** Filing them under
+   "SQL concepts" would have repeated the exact mis-filing the 2026-08-09 real
+   test caught, where a search returned Tableau guides under a SQL heading. The
+   new section uses a balance-scale icon (`i-scale`), and
+   `budget-vs-actual-variance` moved into it out of the Excel section. Section
+   counts and reading times are recomputed at runtime, but the jump-link counts
+   in the on-ramp are static and have to be edited by hand.
+2. **The tool chip comes from the slug, not the section.** The four new guides
+   are worked in SQL and carry the `sql` chip; the variance guide sits beside
+   them and is worked in Excel, so it keeps `excel`. That is why the section is
+   deliberately absent from `TOOL_BY_SECTION` in `tools/build-guide-index.js`.
+
+Every figure on all four pages came out of a `sqlite3` run cross-checked in
+pandas. The scripts are not in the repo; regenerate rather than trusting a
+remembered number.
 
 ## Gaps found by the guide-popup rollout, 2026-08-09/10
 
