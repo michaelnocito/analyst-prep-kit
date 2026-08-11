@@ -61,9 +61,9 @@ END = "<!-- APK:KIT-SEO:END -->"
 # trick apk-footer.js uses, so the block reads correctly in dark and light.
 CSS = """<style>
 .apk-about{max-width:760px;margin:44px auto 0;padding:0 22px;font-family:inherit;
-  font-size:15px;line-height:1.7;color:var(--muted,#555);text-align:left}
-.apk-about h2{font-size:19px;margin:0 0 10px;color:var(--text,inherit)}
-.apk-about h3{font-size:15px;margin:22px 0 6px;color:var(--text,inherit)}
+  font-size:15px;line-height:1.7;color:var(--muted,var(--dim,var(--txt2,#52525B)));text-align:left}
+.apk-about h2{font-size:19px;margin:0 0 10px;color:var(--text,var(--txt,inherit))}
+.apk-about h3{font-size:15px;margin:22px 0 6px;color:var(--text,var(--txt,inherit))}
 .apk-about p{margin:0 0 12px}
 .apk-about ul{margin:0 0 12px;padding-left:20px}
 .apk-about li{margin:3px 0}

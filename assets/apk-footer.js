@@ -17,11 +17,11 @@
   var css = document.createElement('style');
   css.textContent =
     '.apk-eco-footer{text-align:center;padding:30px 18px;margin-top:44px;' +
-    'border-top:1px solid var(--border,#e0d9d2);color:var(--muted,#888);' +
+    'border-top:1px solid var(--border,var(--bord,var(--line,#e0d9d2)));color:var(--muted,var(--dim,var(--txt2,#6B7280)));' +
     'font-size:13px;font-family:inherit;line-height:1.6}' +
-    '.apk-eco-footer a{color:var(--muted,#888);text-decoration:none;transition:color .15s}' +
+    '.apk-eco-footer a{color:var(--muted,var(--dim,var(--txt2,#6B7280)));text-decoration:none;transition:color .15s}' +
     '.apk-eco-footer a:hover{color:var(--accent,#C5511F)}' +
-    '.apk-eco-sep{margin:0 10px;opacity:.45}' +
+    '.apk-eco-sep{margin:0 10px;opacity:.7}' +
     '.apk-eco-tm{display:block;margin-top:10px;font-size:11px;opacity:.7;max-width:560px;' +
     'margin-left:auto;margin-right:auto}';
   document.head.appendChild(css);
@@ -188,26 +188,26 @@
   var bcss = document.createElement('style');
   bcss.textContent =
     '.apk-book{max-width:760px;margin:44px auto 0;padding:18px 22px;' +
-    'border:1px solid var(--border,#e0d9d2);border-left:4px solid var(--accent,#C5511F);' +
+    'border:1px solid var(--border,var(--bord,var(--line,#e0d9d2)));border-left:4px solid var(--accent,#C5511F);' +
     'border-radius:12px;font-family:inherit;font-size:15px;line-height:1.6;text-align:left;' +
     'display:grid;grid-template-columns:1fr;gap:16px}' +
     '.apk-book-body strong{display:block;margin-bottom:8px}' +
-    '.apk-book-body p{margin:0;color:var(--muted,#888);font-size:14px}' +
+    '.apk-book-body p{margin:0;color:var(--muted,var(--dim,var(--txt2,#6B7280)));font-size:14px}' +
     '.apk-book a{display:inline-block;margin-top:12px;font-weight:600;' +
     'color:var(--accent,#C5511F);text-decoration:none}' +
     '.apk-book a:hover{text-decoration:underline}' +
     /* The page. A folded top-right corner, a page number, and a hairline rule
        under the code, so it reads as paper rather than as a callout box. */
-    '.apk-book-pg{position:relative;padding:13px 14px 22px;border:1px solid var(--border,#e0d9d2);' +
-    'border-radius:3px;background:var(--surf,#fff);overflow:hidden}' +
+    '.apk-book-pg{position:relative;padding:13px 14px 22px;border:1px solid var(--border,var(--bord,var(--line,#e0d9d2)));' +
+    'border-radius:3px;background:var(--surf,var(--panel,var(--surface,#fff)));overflow:hidden}' +
     '.apk-book-pg:after{content:"";position:absolute;top:0;right:0;border-width:0 15px 15px 0;' +
     'border-style:solid;border-color:transparent var(--bg,#f5f0e9) transparent transparent}' +
     '.apk-book-pg code{display:block;font-family:var(--mono,ui-monospace,SFMono-Regular,Menlo,monospace);' +
-    'font-size:11.5px;line-height:1.55;color:var(--text,#222);white-space:pre-wrap;word-break:break-word}' +
-    '.apk-book-pg .sy{display:block;margin-top:9px;padding-top:8px;border-top:1px solid var(--border,#e0d9d2);' +
-    'font-size:12px;line-height:1.5;color:var(--muted,#888);font-style:italic}' +
+    'font-size:11.5px;line-height:1.55;color:var(--text,var(--txt,var(--ink,#222)));white-space:pre-wrap;word-break:break-word}' +
+    '.apk-book-pg .sy{display:block;margin-top:9px;padding-top:8px;border-top:1px solid var(--border,var(--bord,var(--line,#e0d9d2)));' +
+    'font-size:12px;line-height:1.5;color:var(--muted,var(--dim,var(--txt2,#6B7280)));font-style:italic}' +
     '.apk-book-pg .pn{position:absolute;bottom:5px;right:10px;font-size:10px;letter-spacing:.05em;' +
-    'color:var(--muted,#888);opacity:.7}' +
+    'color:var(--muted,var(--dim,var(--txt2,#6B7280)));opacity:.7}' +
     '@media(min-width:660px){.apk-book.has-pg{grid-template-columns:minmax(0,1fr) 250px;align-items:start}' +
     '.apk-book.has-pg .apk-book-pg{order:2}}';
   document.head.appendChild(bcss);
