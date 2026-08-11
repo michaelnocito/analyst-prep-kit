@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COMMENT ON TABLE: How to Store a Table Description in the Database Itself — Analyst Prep Kit</title>
+<meta name="description" content="COMMENT ON TABLE and COMMENT ON COLUMN store a description inside the database, where the next analyst will actually find it. The exact syntax in PostgreSQL and Oracle, the different syntax MySQL and SQL Server need, how to read the comments back, and what to write in them.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comment-on-table/">
+<meta property="og:title" content="COMMENT ON TABLE in SQL">
+<meta property="og:description" content="How to attach a description to a table or column inside the database itself, in PostgreSQL, Oracle, MySQL and SQL Server.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comment-on-table/">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-comment-on-table.png">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "COMMENT ON TABLE: How to Store a Table Description in the Database Itself",
+  "description": "COMMENT ON TABLE and COMMENT ON COLUMN store a description inside the database. The exact syntax in PostgreSQL and Oracle, the different syntax MySQL and SQL Server need, and how to read them back.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comment-on-table/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comment-on-table/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-11",
+  "dateModified": "2026-08-11"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Analyst Prep Kit", "item": "https://michaelnocito.github.io/analyst-prep-kit/" },
+    { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/" },
+    { "@type": "ListItem", "position": 3, "name": "COMMENT ON TABLE", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comment-on-table/" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do you add a comment to a table in SQL?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "In PostgreSQL and Oracle the statement is COMMENT ON TABLE table_name IS 'your description'; and the column version is COMMENT ON COLUMN table_name.column_name IS 'your description';. MySQL does not have COMMENT ON: it takes a COMMENT clause inside CREATE TABLE or ALTER TABLE instead. SQL Server has no COMMENT statement at all and uses extended properties via sp_addextendedproperty."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between COMMENT ON TABLE and a -- comment?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A double-dash comment lives in your query file and stops that text from running. COMMENT ON TABLE is a statement you execute, and it stores the description inside the database attached to the object. Anyone who connects to that database can read it, long after your query file is gone."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do you remove a comment from a table in PostgreSQL?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Set it to NULL: COMMENT ON TABLE mytable IS NULL;. Only one comment string is stored per object, so running COMMENT ON again with new text replaces the old one rather than adding to it. Comments are dropped automatically when the object they describe is dropped."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long can a MySQL table comment be?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A table comment in MySQL can be up to 2048 characters and a column comment up to 1024 characters. You can read them back from SHOW CREATE TABLE, SHOW FULL COLUMNS, or the TABLE_COMMENT and COLUMN_COMMENT columns of the information_schema TABLES and COLUMNS tables."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All Guides</a></p>
+  <h1>COMMENT ON TABLE</h1>
+  <p class="meta">How to store a description inside the database, where the next analyst will actually find it · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>There are two completely different things in SQL called a comment, and searching for one gets you pages about the other.</p>
+  <p>The one most people mean is <code>--</code>, which stops a line of your query from running. If that is what you came for, it is covered in <a href="../sql-comments/">how to comment in SQL</a>.</p>
+  <p>This page is about the other one. <code>COMMENT ON TABLE</code> is a statement you run, and it writes a description into the database, attached to the table. It is still there next year, for a colleague who has never seen your query file.</p>
+
+  <div class="note"><strong>The short version.</strong> <code>COMMENT ON TABLE orders IS 'One row per order line, not per order.';</code> in PostgreSQL and Oracle. MySQL and SQL Server each need a different statement, both below.</div>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>Why this is worth doing at all</li>
+      <li>PostgreSQL and Oracle</li>
+      <li>MySQL</li>
+      <li>SQL Server</li>
+      <li>SQLite, which cannot do this</li>
+      <li>Reading the comments back</li>
+      <li>What to actually write in one</li>
+      <li>Cheat sheet</li>
+    </ol>
+  </div>
+
+  <h2>Why this is worth doing at all</h2>
+  <p>Every analyst has opened a table called something like <code>cust_txn_f</code> with a column called <code>flag_3</code> and had nobody left to ask.</p>
+  <p>The knowledge existed once. It was in a Slack message, or a spreadsheet, or somebody's head. It was not in the database, so it did not survive.</p>
+  <p>A table comment survives because it travels with the object it describes. Back up the database and the comment comes too. Point a data catalogue or a BI tool at the database and most of them read these descriptions automatically and show them to people who will never write a query.</p>
+  <p>It takes about twenty seconds per table. It is the cheapest documentation in the job.</p>
+
+  <h2>PostgreSQL and Oracle</h2>
+  <p>Both use the standard statement, and the shape is the same for either.</p>
+  <pre><code>COMMENT ON TABLE orders IS 'One row per order line, not per order.';
+
+COMMENT ON COLUMN orders.status IS 'Values: new, paid, shipped, refunded. Set by the billing job, not the web app.';</code></pre>
+  <p>Three things about how it behaves, all from the PostgreSQL documentation:</p>
+  <ul>
+    <li>Only one comment is stored per object. Running it again replaces the text, it does not add a second one.</li>
+    <li>To remove a comment, set it to <code>NULL</code>: <code>COMMENT ON TABLE orders IS NULL;</code></li>
+    <li>Comments are dropped automatically when the object is dropped, so you never leave orphans behind.</li>
+  </ul>
+  <p>You have to own the object to comment on it, which is worth knowing before you write thirty of these and find half of them rejected.</p>
+
+  <h2>MySQL</h2>
+  <p>MySQL has no <code>COMMENT ON</code> statement. The comment is a clause attached to the table or column instead, and it goes inside <code>CREATE TABLE</code> or <code>ALTER TABLE</code>.</p>
+  <pre><code>CREATE TABLE orders (
+  id      INT PRIMARY KEY COMMENT 'Order line ID, not order ID',
+  status  VARCHAR(20)     COMMENT 'new, paid, shipped, refunded'
+) COMMENT = 'One row per order line, not per order.';</code></pre>
+  <p>On a table that already exists, use <code>ALTER TABLE</code>:</p>
+  <pre><code>ALTER TABLE orders COMMENT = 'One row per order line, not per order.';</code></pre>
+  <p>The limits are documented and worth knowing before you write an essay: a table comment can be 2048 characters, a column comment 1024.</p>
+  <div class="note"><strong>One trap in the column version.</strong> Changing a column comment in MySQL means restating the column's full definition, because <code>ALTER TABLE ... MODIFY COLUMN</code> replaces it. Leave out <code>NOT NULL</code> or the default and you have quietly changed the column, not just its description. Copy the definition from <code>SHOW CREATE TABLE</code> first.</div>
+
+  <h2>SQL Server</h2>
+  <p>SQL Server has no <code>COMMENT</code> statement of any kind. It stores this sort of thing as an extended property, which is a name and value bolted onto an object. The convention is to name the property <code>MS_Description</code>, because that is the one SSMS and most tools look for.</p>
+  <pre><code>EXEC sp_addextendedproperty
+  @name = N'MS_Description',
+  @value = N'One row per order line, not per order.',
+  @level0type = N'SCHEMA', @level0name = N'dbo',
+  @level1type = N'TABLE',  @level1name = N'orders';</code></pre>
+  <p>It is much more typing than the other databases for the same result. Use <code>sp_updateextendedproperty</code> to change one and <code>sp_dropextendedproperty</code> to remove it, since <code>sp_addextendedproperty</code> errors if the property is already there.</p>
+
+  <h2>SQLite, which cannot do this</h2>
+  <p>SQLite has no way to store a table or column description. There is no <code>COMMENT ON</code> and no extended properties.</p>
+  <p>What people do instead is put a <code>--</code> comment in the <code>CREATE TABLE</code> statement itself. SQLite keeps the original text of the statement in <code>sqlite_master.sql</code>, comments and all, so the note is recoverable:</p>
+  <pre><code>SELECT sql FROM sqlite_master WHERE name = 'orders';</code></pre>
+  <p>It is a workaround, not a feature. No tool will read it as a description. If documentation matters on a SQLite project, keep it in the repository next to the schema file.</p>
+
+  <h2>Reading the comments back</h2>
+  <p>Writing them is half the job. Being able to pull them all out is what makes them useful.</p>
+  <table>
+    <tr><th>Database</th><th>How to read the comments</th></tr>
+    <tr><td>PostgreSQL</td><td><code>\d+ tablename</code> in psql, or the <code>obj_description()</code> and <code>col_description()</code> functions in a query</td></tr>
+    <tr><td>Oracle</td><td>Query <code>USER_TAB_COMMENTS</code> and <code>USER_COL_COMMENTS</code></td></tr>
+    <tr><td>MySQL</td><td><code>SHOW CREATE TABLE</code>, <code>SHOW FULL COLUMNS</code>, or <code>information_schema.TABLES.TABLE_COMMENT</code> and <code>information_schema.COLUMNS.COLUMN_COMMENT</code></td></tr>
+    <tr><td>SQL Server</td><td><code>fn_listextendedproperty</code>, or the <code>sys.extended_properties</code> view</td></tr>
+    <tr><td>SQLite</td><td>Not supported. Read <code>sqlite_master.sql</code> and hope somebody left a note</td></tr>
+  </table>
+  <p>The MySQL and PostgreSQL routes are the useful ones, because they are ordinary queries. That means you can join them to the column list and produce a data dictionary for the whole schema in one go, which is a genuinely good thing to have in a portfolio project.</p>
+
+  <h2>What to actually write in one</h2>
+  <p>The syntax takes a minute to learn. Deciding what goes in the string is the part that matters, and it is the same judgment as any other comment.</p>
+  <p>A description earns its place only if it says something the name does not already say. <code>COMMENT ON TABLE orders IS 'The orders table'</code> is worse than nothing, because it looks like documentation and carries none.</p>
+  <p>The things a name genuinely cannot tell you are worth the twenty seconds:</p>
+  <ul>
+    <li><strong>What one row is.</strong> The single most useful sentence about any table. One row per order, or per order line, or per order per day.</li>
+    <li><strong>Where the data comes from and how often.</strong> Loaded nightly from the billing system, or written live by the app.</li>
+    <li><strong>What the values mean.</strong> For any column holding codes or flags, list them.</li>
+    <li><strong>What is wrong with it.</strong> Rows before 2023 have no region. That sentence saves someone a full day.</li>
+  </ul>
+  <p>That last one is the one people leave out, and it is the most valuable. The same principle written out at length, with a full format, is in <a href="../sql-teaching-comments/">how to comment SQL so it teaches</a>.</p>
+
+  <h2>Cheat sheet</h2>
+  <table>
+    <tr><th>Database</th><th>Add a table description</th><th>Remove it</th></tr>
+    <tr><td>PostgreSQL</td><td><code>COMMENT ON TABLE t IS 'text';</code></td><td><code>COMMENT ON TABLE t IS NULL;</code></td></tr>
+    <tr><td>Oracle</td><td><code>COMMENT ON TABLE t IS 'text';</code></td><td><code>COMMENT ON TABLE t IS '';</code></td></tr>
+    <tr><td>MySQL</td><td><code>ALTER TABLE t COMMENT = 'text';</code></td><td><code>ALTER TABLE t COMMENT = '';</code></td></tr>
+    <tr><td>SQL Server</td><td><code>sp_addextendedproperty</code> with <code>MS_Description</code></td><td><code>sp_dropextendedproperty</code></td></tr>
+    <tr><td>SQLite</td><td>Not supported</td><td>Not applicable</td></tr>
+  </table>
+
+  <h2>The one to write first</h2>
+  <p>If you do this for exactly one table today, write the sentence that says what one row is. It is the question every new person asks, it is the one the table name almost never answers, and getting it wrong is how double-counted totals happen.</p>
+
+  <p>Pick the table you have explained out loud most often this year. That explanation is the comment.</p>
+
+  <div class="book">
+    <strong>The query works and the next person, including you in June, cannot tell why it is written that way.</strong>
+    <p><em>SQL for Analysts</em> is 458 pages, queries read line by line in plain words, which is the same habit written into the comments.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/sql-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-sql-comment-on-table'})">SQL for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Write the queries, do not just read them.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> covers SELECT, WHERE, JOIN and GROUP BY with worked examples, practice and a mock exam, all in the browser. If you have no database to practice on yet, start by <a href="../set-up-a-sql-database/">setting one up in fifteen minutes</a>.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+    <p style="margin:10px 0 0;font-size:15px">Or type them yourself one at a time: <a href="../../drill/">open SQL Drill</a>, thirteen queries that each add one thing to the last.</p>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="../sql-comments/">How to Comment in SQL</a> · <a href="../sql-comment-syntax-by-database/">Comment Syntax by Database</a> · <a href="../sql-teaching-comments/">Commenting SQL So It Teaches</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-null/">NULL in SQL</a> · <a href="../documenting-data-limitations/">Documenting Data Limitations</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../which-sql-database-to-install/">Which Database to Install</a> · <a href="../../drill/">SQL Drill</a> · <a href="../../sql/">SQL Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

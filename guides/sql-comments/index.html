@@ -32,7 +32,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>How to Comment in SQL: -- and /* */, and the Two Traps That Break a Query — Analyst Prep Kit</title>
-<meta name="description" content="How to comment in SQL: the two comment syntaxes (-- for one line, /* */ for a block), where each one goes, the two ways commenting out a line breaks a query, and the comma habit that makes it safe. Every example run and checked.">
+<meta name="description" content="How to comment in SQL: the two comment syntaxes (-- for one line, /* */ for a block), how to comment out multiple lines at once in SSMS, MySQL Workbench, DBeaver and pgAdmin, the two ways commenting out a line breaks a query, and the comma habit that makes it safe.">
 <link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comments/">
 <meta property="og:title" content="How to Comment in SQL: -- and /* */">
 <meta property="og:description" content="The two SQL comment syntaxes, where each one goes, and the two ways commenting out a line quietly breaks the query.">
@@ -93,7 +93,7 @@
   },
   "inLanguage": "en",
   "datePublished": "2026-08-07",
-  "dateModified": "2026-08-07"
+  "dateModified": "2026-08-11"
 }
 </script>
 <script type="application/ld+json">
@@ -130,10 +130,26 @@
     },
     {
       "@type": "Question",
+      "name": "How do you comment out multiple lines in SQL?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Either wrap the whole stretch in a slash-star block comment, or select the lines in your editor and press its comment shortcut, which puts two dashes at the front of every line. The shortcut is Ctrl and forward slash in MySQL Workbench, DBeaver, pgAdmin and VS Code. SQL Server Management Studio is the exception: press Ctrl+K, then Ctrl+C, and Ctrl+K then Ctrl+U to undo it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What single character comments out the rest of a line in MySQL?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The hash character, #. MySQL treats everything from a # to the end of the line as a comment. It is one of three comment styles MySQL supports, alongside a double dash and slash-star blocks, but # and the double dash are the only ones that run to the end of a line, and # is the only one that is a single character."
+      }
+    },
+    {
+      "@type": "Question",
       "name": "Can SQL block comments be nested?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "No. The first star-slash closes the block, whatever came before it. Putting one block comment inside another leaves the tail of the outer comment exposed as code, which is a syntax error."
+        "text": "In almost every database, no. The first star-slash closes the block, whatever came before it, so putting one block comment inside another leaves the tail of the outer comment exposed as code, which is a syntax error. PostgreSQL is the exception: its block comments do nest, which its documentation notes is the behaviour the SQL standard actually specifies. Do not rely on that if the query might ever run somewhere else."
       }
     }
   ]
@@ -161,7 +177,9 @@
       <li>The two shapes that break when you comment a line out</li>
       <li>The comma habit that makes it safe</li>
       <li>What looks like a comment and is not</li>
+      <li>How to comment out multiple lines at once</li>
       <li>Differences between databases</li>
+      <li>The other thing called a comment</li>
       <li>What a comment should actually say</li>
       <li>Cheat sheet</li>
     </ol>
@@ -245,9 +263,24 @@ WHERE score > 5
   <pre><code>SELECT 'a -- b';</code></pre>
   <p>That matters when you are searching text that contains dashes, or storing snippets of code in a table. Nothing you write inside quotes can accidentally comment out the rest of your query.</p>
 
-  <p>Block comments also do not nest. The first <code>*/</code> closes the block, whatever came before it:</p>
+  <p>In most databases block comments also do not nest. The first <code>*/</code> closes the block, whatever came before it:</p>
   <pre><code>/* outer /* inner */ this part is now code */</code></pre>
-  <p>The block ends at the first <code>*/</code>, so <code>this part is now code */</code> is handed to the database as SQL and fails. If you need to hide a stretch that already contains a block comment, put <code>--</code> at the front of every line instead. Most editors do that for a whole selection with one shortcut.</p>
+  <p>The block ends at the first <code>*/</code>, so <code>this part is now code */</code> is handed to the database as SQL and fails. If you need to hide a stretch that already contains a block comment, put <code>--</code> at the front of every line instead. Your editor will do that for a whole selection in one keystroke, and the next section has the keys.</p>
+
+  <h2>How to comment out multiple lines at once</h2>
+  <p>Typing <code>--</code> at the front of thirty lines is not a job for a person. Every SQL editor has a shortcut that does it to whatever you have selected. Highlight the lines, press the keys, and each line gets its own <code>--</code>.</p>
+  <p>Reach for this instead of wrapping the stretch in <code>/* */</code>. A line comment on every line still works when the stretch already contains a block comment, and a block comment does not.</p>
+  <table>
+    <tr><th>Editor</th><th>Comment what you selected</th><th>Undo it</th></tr>
+    <tr><td>SQL Server Management Studio</td><td><code>Ctrl</code>+<code>K</code>, then <code>Ctrl</code>+<code>C</code></td><td><code>Ctrl</code>+<code>K</code>, then <code>Ctrl</code>+<code>U</code></td></tr>
+    <tr><td>MySQL Workbench</td><td><code>Ctrl</code>+<code>/</code> (<code>Cmd</code>+<code>/</code> on Mac)</td><td>The same keys again</td></tr>
+    <tr><td>DBeaver</td><td><code>Ctrl</code>+<code>/</code> for lines, <code>Ctrl</code>+<code>Shift</code>+<code>/</code> for a block</td><td>The same keys again</td></tr>
+    <tr><td>pgAdmin 4</td><td><code>Ctrl</code>+<code>/</code> (<code>Cmd</code>+<code>/</code> on Mac)</td><td>The same keys again</td></tr>
+    <tr><td>VS Code</td><td><code>Ctrl</code>+<code>/</code> (<code>Cmd</code>+<code>/</code> on Mac)</td><td>The same keys again</td></tr>
+  </table>
+  <p>Two of those behave differently from the rest, and both catch people out.</p>
+  <p>SSMS is the odd one. It is not a single chord, it is two presses in a row. Hold <code>Ctrl</code>, tap <code>K</code>, tap <code>C</code>. Nothing appears to happen after the <code>K</code>, which is where most people give up and assume the shortcut is wrong.</p>
+  <p>MySQL Workbench is the other. On several builds the shortcut is wired to the divide key on the number pad rather than the forward slash on the main keyboard. On a laptop with no number pad, hold <code>Ctrl</code> and <code>Fn</code> together and press the key that doubles as divide. This has been an open bug for years, so it is your keyboard, not your SQL.</p>
 
   <h2>Differences between databases</h2>
   <p>The two standard forms work everywhere. Two smaller things do not travel.</p>
@@ -256,9 +289,20 @@ WHERE score > 5
     <tr><td><code>--</code> line comment</td><td>Every major database</td><td>Use it freely</td></tr>
     <tr><td><code>/* */</code> block comment</td><td>Every major database</td><td>Use it freely</td></tr>
     <tr><td><code>#</code> line comment</td><td>MySQL and MariaDB only</td><td>Use <code>--</code> instead, so the query survives a move</td></tr>
-    <tr><td>An unclosed <code>/*</code></td><td>Tolerated by some engines, rejected by others</td><td>Always close the block</td></tr>
+    <tr><td><code>--</code> with no space after it</td><td>Fine nearly everywhere, but MySQL rejects it</td><td>Always put a space after the two dashes</td></tr>
+    <tr><td>Nested <code>/* */</code> blocks</td><td>PostgreSQL only</td><td>Do not rely on it if the query might move</td></tr>
+    <tr><td>An unclosed <code>/*</code></td><td>SQLite runs it to the end of input, others reject it</td><td>Always close the block</td></tr>
   </table>
-  <p>If you are writing SQL you might reuse somewhere else, stay on <code>--</code> and <code>/* */</code> and close every block. That is the portable set.</p>
+  <p>Two of those are worth a second look, because both are the kind of thing that works on your machine and fails on someone else's.</p>
+  <p>MySQL is stricter about <code>--</code> than everyone else. It wants at least one space or tab after the second dash. <code>--note</code> is a syntax error in MySQL and a perfectly good comment almost everywhere else, so get in the habit of the space and the question never comes up.</p>
+  <p>PostgreSQL is the one database where block comments nest, which its own documentation says is the standard behaviour and the rest of the world's is not. In Postgres the example above hides the whole line, because the outer <code>/*</code> waits for its matching <code>*/</code>. Write SQL that depends on that and it breaks the day it is run anywhere else.</p>
+  <p>If you are writing SQL you might reuse somewhere else, stay on <code>--</code> with a space, use <code>/* */</code> without nesting it, and close every block. That is the portable set.</p>
+  <p>The full breakdown per engine, including what SQLite does with a block you forgot to close, is in <a href="../sql-comment-syntax-by-database/">SQL comment syntax by database</a>.</p>
+
+  <h2>The other thing called a comment</h2>
+  <p>One more meaning is worth knowing about, because it is a different feature with almost the same name.</p>
+  <p><code>COMMENT ON TABLE</code> does not hide code. It is a statement you run, and it stores a description inside the database, attached to the table, where a colleague who has never seen your query file can still read it. That is covered in <a href="../sql-comment-on-table/">COMMENT ON TABLE</a>.</p>
+  <p>Quick way to tell which one you need. Trying to stop a line from running: <code>--</code>. Trying to record what a column means so it outlives your script: <code>COMMENT ON</code>.</p>
 
   <h2>What a comment should actually say</h2>
   <p>Syntax is the easy half. The harder question is what belongs in the comment once you have one.</p>
@@ -274,6 +318,7 @@ WHERE score > 5
     <tr><td>Comment out one column</td><td>Front-load the comma, then <code>-- , name</code></td><td>Trailing commas leave a syntax error</td></tr>
     <tr><td>Comment out one condition</td><td>Front-load the <code>AND</code>, then <code>-- AND status = 'x'</code></td><td>A dangling <code>AND</code> leaves the query unfinished</td></tr>
     <tr><td>Hide a block that already has <code>/* */</code> in it</td><td><code>--</code> on every line</td><td>Blocks do not nest</td></tr>
+    <tr><td>Comment out many lines at once</td><td>Select them, then <code>Ctrl</code>+<code>/</code></td><td>SSMS is different: <code>Ctrl</code>+<code>K</code>, then <code>Ctrl</code>+<code>C</code></td></tr>
     <tr><td>Write a comment other databases will accept</td><td><code>--</code> or <code>/* */</code></td><td><code>#</code> is MySQL only</td></tr>
   </table>
 
@@ -301,7 +346,7 @@ WHERE score > 5
 
   <div data-apk-subscribe></div>
   <footer>
-    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="../sql-teaching-comments/">Commenting SQL So It Teaches</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-case-expression/">SQL CASE</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../sql-aliasing/">SQL Aliases</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../which-sql-database-to-install/">Which Database to Install</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../../drill/">SQL Drill</a> · <a href="../../sql/">SQL Kit</a>
+    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="../sql-comment-syntax-by-database/">Comment Syntax by Database</a> · <a href="../sql-comment-on-table/">COMMENT ON TABLE</a> · <a href="../sql-teaching-comments/">Commenting SQL So It Teaches</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-case-expression/">SQL CASE</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../sql-aliasing/">SQL Aliases</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../which-sql-database-to-install/">Which Database to Install</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../../drill/">SQL Drill</a> · <a href="../../sql/">SQL Kit</a>
     <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
   </footer>
 </main>
