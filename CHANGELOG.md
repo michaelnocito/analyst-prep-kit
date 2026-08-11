@@ -9,6 +9,25 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [2.5.0] — 2026-08-11 — The Free Lab tells you what is in the database, and the kit stops renaming its own buttons
+
+### Fixed
+- **The Free Lab listed three table names and not one column name.** The 2026-08-03 real-test run named this the abandon point for an Excel-competent, code-nervous learner: the pre-filled query was the only one you could run, and "Practice anything" meant guessing a column and getting `Error: no such column` in red with no reassurance and no way back. There is now a schema panel read out of the database itself — every table, its row count, and every column with its type — and clicking a column types it into the query at the cursor, the way a desktop client does. It also turned out the lab was under-reporting itself: five tables are seeded and three were listed, so `products` and `sales` (180 rows) existed and nobody was told.
+- **Every database error now says what to do next.** No such column names the real columns of the tables your query mentioned. No such table lists the tables that exist. No such function explains that this is SQLite in your browser and gives the SQLite spelling where there is one. A syntax error names the token it stopped at. All of them end the same way: nothing is broken, edit the query and run it again. The results region is `aria-live="polite"`, so a screen reader hears the outcome.
+- **Clear left the old results on screen.** You got an empty editor above a full table belonging to a query that no longer existed.
+
+### Changed
+- **One vocabulary.** The kit had five labels for "go forward" and eight wordings for "correct" inside one product. Forward is now always `Next: <what is coming>`, success is always `✓ Correct`, emptying the box is always Clear (was Clear / Reset / Reset), revealing is always "Show answer" (was Show Answer / Show answer), and retrying is always "Try again".
+- **The forward label says what it leads to.** "Next: put it in order", "Next: find the bug", "Next: recall it from memory". Nothing on any screen used to say what KIND of exercise was coming, so every advance was a small surprise. The 08-03 sweep called this the cheapest fix in it (Monsell 2003, *Trends in Cognitive Sciences* 7(3):134-140: preparation reduces switch cost, though it never removes it).
+- **The two ordering exercises now use the same words.** The sweep's worst measured transition was the lesson Try stage and Practice "Put in Order": the same problem, the same two chips, the same answer, built twice with 4 of 6 machinery slots different. Three of the four were wording (pool label, answer label, check-button casing) and are now identical in both places. The fourth, one shared component, is a bigger job and is still open.
+
+### Note
+`finishLesson()` and the legacy body of `renderLesson()` still carry the old wording. Both are dead code — all 48 lessons have `parsons` and therefore route through `v2SqlBody` — and were deliberately left alone, per the 2026-07-23 finding.
+
+Verified on localhost:4201: 240 lesson renders, all 15 views, all 46 drill screens and every guided-path step render clean. Five Free Lab error paths driven by hand and each returns real recovery advice; a column click inserts at the cursor; Clear empties both panes.
+
+---
+
 ## [2.4.0] — 2026-08-11 — Ten named skills, and the labs become choices instead of a tab bar
 
 ### Added
