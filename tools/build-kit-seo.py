@@ -16,7 +16,16 @@
 # people is cloaking, and it is the kind of thing that gets a site demoted
 # rather than promoted. This block is plain, honest orientation that a first
 # time visitor genuinely benefits from, sitting at the bottom where it does not
-# cover the app. Do not "optimise" it by hiding it later.
+# cover the app. Do not "optimise" it by hiding it on arrival.
+#
+# It IS taken off the other screens (Mike, 2026-08-11: "that text does not need
+# to be on every screen/lesson card in the kit"). The block lives at the end of
+# <body>, outside the app's container, so it survived every re-render and sat
+# under every lesson, drill and settings page as furniture. TOGGLE below hides
+# it once the visitor navigates off the landing screen and brings it back when
+# they return. That is not the hidden-text trick: nothing is served to a crawler
+# that a person on the same URL does not see. The page as fetched shows it,
+# unhidden, with no interaction and no script needed to reveal it.
 #
 # Why not inject into the app's own container. Three different shells are in use
 # here (<main id="main">, <div id="app">, and the view-* pages), each wiped at a
@@ -55,7 +64,45 @@ CSS = """<style>
 .apk-about li{margin:3px 0}
 .apk-about a{color:var(--accent,#C5511F);text-decoration:none}
 .apk-about a:hover{text-decoration:underline}
+.apk-about[hidden]{display:none}
 </style>"""
+
+# Landing-screen only. Four shells are in use across these sixteen pages and
+# each names its current screen differently, so the check walks them in order
+# and stops at the first one the page actually has:
+#
+#   .view.active         stats, tableau, chart-literacy, forecasting, interview
+#   currentView          sql, powerbi
+#   VIEW.name            projects
+#   state.view           final, and the five cert kits
+#
+# A page with none of them (viz, simulator) has no second screen to be wrong on,
+# so it keeps the block up. Those globals are top-level `let`/`const` in each
+# kit's own classic script, which puts them in the same global lexical scope
+# this script reads, hence the bare identifiers and the try/except-style guards.
+#
+# The observer watches childList only, so setting `hidden` (an attribute) cannot
+# retrigger it, and the value guard makes a loop impossible either way.
+SCRIPT = """<script>
+(function(){
+  var about=document.querySelector('.apk-about');
+  if(!about) return;
+  function onLanding(){
+    var v=document.querySelector('.view.active');
+    if(v) return v.id==='view-home';
+    try{ if(typeof currentView==='string') return currentView==='home'; }catch(e){}
+    try{ if(typeof VIEW==='object'&&VIEW&&VIEW.name) return VIEW.name==='home'; }catch(e){}
+    try{ if(typeof state==='object'&&state&&typeof state.view==='string') return state.view==='home'; }catch(e){}
+    return true;
+  }
+  function sync(){ var h=!onLanding(); if(about.hidden!==h) about.hidden=h; }
+  var t;
+  new MutationObserver(function(){ clearTimeout(t); t=setTimeout(sync,60); })
+    .observe(document.body,{childList:true,subtree:true});
+  window.addEventListener('hashchange',sync);
+  sync();
+})();
+</script>"""
 
 # Every claim below was read off the page it describes on 2026-08-11: the unit
 # names come from each kit's own DATA, the counts from its meta description.
@@ -317,6 +364,7 @@ def block_for(slug, kit):
 
     out.append('  <p><a href="../guides/">Browse all guides</a> · <a href="../">All kits</a></p>')
     out.append("</section>")
+    out.append(SCRIPT)
     out.append(END)
     return "\n".join(out)
 

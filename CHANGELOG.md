@@ -9,6 +9,16 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [2.1.1] — 2026-08-11 — The About block belongs to the landing screen, not every screen
+
+### Fixed
+- **The generated "About this kit" section sat under every screen in all sixteen kit pages.** It lives at the end of `<body>`, outside each app's container, which is what makes it crawler-visible but also meant it survived every re-render and appeared under lessons, drills, flashcards and settings. `tools/build-kit-seo.py` now emits a small toggle with the block: it hides once the visitor navigates off the landing screen and comes back when they return. Four shells, checked in order until one matches: `.view.active` (stats, tableau, chart-literacy, forecasting, interview), `currentView` (sql, powerbi), `VIEW.name` (projects), `state.view` (final and the five cert kits). Pages with none of them (viz, simulator) have no second screen, so they keep it up.
+- Not a hiding trick: the section ships with no `hidden` attribute, so the page as fetched shows it to a crawler, to a JS-disabled visitor, and to a person arriving for the first time. Readable-text counts are unchanged on all sixteen pages.
+
+Verified on localhost:4201 by driving all four shell families: SQL hides across nine screens and returns on home, Stats follows `view-home`, Project Studio follows `startProject()`, the Tableau cert kit follows `state.view` rather than the hash, Viz Drill stays up through its rungs. All inline scripts parse; console clean.
+
+---
+
 ## [2.1.0] — 2026-08-11 — Drills stop showing the answer, PrepLoop stops being a door, and lessons link their guide
 
 ### Fixed
