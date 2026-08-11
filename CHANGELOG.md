@@ -9,6 +9,30 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [2.4.0] — 2026-08-11 — Ten named skills, and the labs become choices instead of a tab bar
+
+### Added
+- **The kit now says what you are making progress toward.** It counted lessons and never named a target, so there was progress with nothing on the end of the sentence. There are ten skills now, one per unit, each written as something you could say out loud in an interview ("Combine two tables", "Turn a business question into a metric") rather than as a topic label. Home leads with the target sentence, ten pips and every skill with its state; Your Path heads each unit with its skill; and every lesson and lab carries a one-line strip saying which skill it feeds and how far that skill has come.
+- **A skill strip on every lesson.** `Skill 4/10 · Combine two tables · 2 of 4`. This is where the variation between screens comes from: lesson 12 does not look like lesson 3 because eleven more things are done, not because a different picture loaded. Nothing new is stored — it reads `doneLessons`, `doneFills`, `doneBugs` and `doneParsons`, all of which already existed.
+- **A lab picker.** Landing on Lab now shows the seven labs as cards you can read and choose between: what you actually do in there, what it leans on, and how far through it you are. A lab that leans on an unfinished skill says which skill and how many lessons are left, but nothing is locked.
+
+### Changed
+- **The seven-lab tab bar is gone.** It was rendered at the top of all seven lab screens, scrolled sideways at Mike's window width, and sat under a pill explaining that it was a control. Each lab now opens on its own with one way back to the picker and the skill it exercises. Deep links are untouched: `LESSON_LABS` still drops a learner straight into the JOIN or Aggregation lab mid-path, and `_labReturn` still carries them back to the exact path position (both directions verified).
+- **The end of a unit no longer pushes you into a lab.** It used to name the capstone and offer "Make it stick". It now names the skill that just went ready, counts your skills, and recommends SQL Drill for reps if you want them — labs are somewhere you choose from the picker, not somewhere a lesson hands you off to at the end.
+- **Home carried three overlapping progress readouts** (a "Skill Readiness" card of five invented groupings as bare percentages, per-unit bars, and the Learn tile). It carries one now, and that one says what the progress is of.
+
+### Fixed
+- **The Date & Time Lab preview query could not run.** Its four tasks and its "Open in Free Lab" sample were written in MySQL (`DATE_FORMAT`, `DATE_SUB`, `CURDATE`, `DATEDIFF`) against a SQLite engine, so two clicks from a clean page, with no typing, the learner was told `no such function`. Rewritten to `strftime` and `julianday`. Caught by the 2026-07-28 real-test sweep and still live until now.
+- **The nav highlighted the wrong tab.** `.nav-btn` starts with the "All Kits" button, so the index map was off by one and Home lit up All Kits.
+- **The Make-It-Stick badge counted finishing a unit**, not running the unit lab, because the boundary card was using `unitLabsDone` as its shown-once flag. The card has its own `unitEndSeen` flag now.
+
+### Evidence
+A specific named goal beats "do your best" by a wide margin (Locke & Latham 2002, *American Psychologist* 57(9):705-717), and a large goal works when it splits into sub-goals labelled by what they achieve rather than what they cover (Catrambone 1998, *Journal of Experimental Psychology: General* 127(4):355-376). The nearest unfinished skill is the one put on screen because effort rises as a goal gets visibly nearer (Kivetz, Urminsky & Zheng 2006, *Journal of Marketing Research* 43(1):39-58). Nothing is awarded unearned and the bar starts at zero, since visible unearned progress buys nothing (Nunes & Dreze 2006, *Journal of Consumer Research* 32(4):504-512). No scenery, mascots or ambient art was added: interesting-but-irrelevant pictures measurably reduce learning (Rey 2012, *Educational Research Review* 7(3):216-237; Sundararajan & Adesope 2020, *Educational Psychology Review* 32:707-734), so every mark added here carries state. No streak pressure and no loss language was introduced — the 2026-08-03 real-test sweep recorded their absence as a clean pass worth not regressing.
+
+Verified on localhost:4201: 48 lessons × 5 stages = 240 renders with zero errors, all 15 views and all 46 drill screens clean, console empty, nav-active correct across seven views, and the guided-path lab round trip lands in the lab and returns to the exact path position.
+
+---
+
 ## [2.3.0] — 2026-08-11 — Every lesson now opens by saying what the thing is
 
 ### Added
