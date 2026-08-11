@@ -35,7 +35,12 @@ const FILE = path.join(ROOT, 'index.html');
    a more truthful navigation model than the headings are. */
 const TOOLS = {
   excel: /^excel-|^vlookup-|^budget-vs-actual|^build-a-risk-index|connect-excel/,
-  sql: /^sql-|^which-sql|^set-up-a-sql|^sample-database|^practice-sql|^export-sql|^install-postgres|^set-up-duckdb|^entity-resolution|connect-python-to-a-sql|connect-excel-to-a-database|^handle-large/,
+  /* The four Financial analysis guides added 2026-08-11 are worked in SQL, so
+     they earn the sql chip on their slug even though their section heading is
+     not about SQL. budget-vs-actual-variance sits in the same section and is
+     worked in Excel, which is why the tool comes from the slug here rather than
+     from TOOL_BY_SECTION. */
+  sql: /^sql-|^which-sql|^set-up-a-sql|^sample-database|^practice-sql|^export-sql|^install-postgres|^set-up-duckdb|^entity-resolution|connect-python-to-a-sql|connect-excel-to-a-database|^handle-large|^gross-vs-operating|^liquidity-and-leverage|^net-present-value|^contribution-margin/,
   powerbi: /^powerbi-|power-bi/,
   python: /^pandas-|^install-python|^install-jupyter|^sql-and-python|connect-python/,
   tableau: /^tableau-|tableau/,
@@ -88,6 +93,23 @@ const ALIASES = [
   { test: /entity-resolution|sql-reconciliation/,      add: 'same thing spelled differently names do not match' },
   { test: /sql-reconciliation/,                       add: 'totals do not match numbers different mismatch' },
   { test: /excel-sum-of-id-trap|excel-check-your-work/, add: 'wrong number confident wrong sanity check' },
+
+  /* Finance vocabulary, added 2026-08-11 with the four Financial analysis
+     guides. Every term here is genuinely answered by the page it points at and
+     appears nowhere in that page's title or meta description, which is all the
+     harvester reads. Deliberately NOT aliased: ebitda, working capital ratio,
+     dupont, and altman z-score, because no page actually teaches them and a
+     filler match teaches a reader that this search does not pay off. */
+  { test: /gross-vs-operating-vs-net-margin/,
+    add: 'cogs profit margin formula profitability bottom line income statement margins ebit' },
+  { test: /liquidity-and-leverage-ratios/,
+    add: 'acid test gearing solvency working capital balance sheet ratio formula liabilities creditworthiness covenant' },
+  { test: /net-present-value-npv/,
+    add: 'dcf discounted cash flow discount rate hurdle rate irr internal rate return time value money payback period capital budgeting present value factor' },
+  { test: /contribution-margin-break-even/,
+    add: 'cvp cost volume profit breakeven break even point unit economics margin safety operating leverage variable fixed costs special order pricing floor' },
+  { test: /budget-vs-actual-variance/,
+    add: 'fpa variance report favorable unfavorable plan versus actual materiality' },
 ];
 
 const STOP = new Set(('a an the and or but of in on at to for from with without by as is are was were be been it its ' +

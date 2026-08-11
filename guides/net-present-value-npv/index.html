@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Net Present Value (NPV): How to Discount Cash Flows and Read the Answer — Analyst Prep Kit</title>
+<meta name="description" content="NPV worked on a five-year project, one row at a time. The discount factor, why the same cash flows are worth +$137,236 at 10% and -$2,347 at 20%, and the SQL that returns 350,000 because the discounting never happened.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/net-present-value-npv/">
+<meta property="og:title" content="Net Present Value (NPV): How to Discount Cash Flows and Read the Answer">
+<meta property="og:description" content="The same five cash flows are worth +$137,236 at a 10% required return and -$2,347 at 20%. The rate is the assumption, not the arithmetic, and NPV is only as good as the rate you state.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/net-present-value-npv.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/net-present-value-npv/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/net-present-value-npv.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF;--warn:#B45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+  .refs{font-size:14.5px;color:var(--muted);padding-left:20px}
+  .refs li{margin:6px 0}
+  .figure{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;overflow-x:auto}
+  .figure svg{display:block;width:100%;height:auto;min-width:640px}
+  .figure figcaption{color:var(--muted);font-size:14px;margin-top:10px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Net Present Value (NPV): How to Discount Cash Flows and Read the Answer",
+  "description": "NPV worked on a five-year project, one row at a time. The discount factor, why the same cash flows are worth +$137,236 at 10% and -$2,347 at 20%, and the SQL that returns 350,000 because the discounting never happened.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/net-present-value-npv/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/net-present-value-npv/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-11",
+  "dateModified": "2026-08-11",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/net-present-value-npv.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Net Present Value (NPV): How to Discount Cash Flows and Read the Answer",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/net-present-value-npv/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a> · <a href="../">All guides</a></p>
+  <h1>Net Present Value (NPV): How to Discount Cash Flows and Read the Answer</h1>
+  <p class="meta">Turning a stream of future money into one number you can compare against its cost · Part of the <a href="../../">Analyst Prep Kit</a></p>
+
+  <p>By the end of this page you can take a project that costs money now and pays money later, and produce one number that says whether it is worth doing. You will know the discount factor and where it comes from, the SQL that computes NPV in one line, the three ways that line silently returns the wrong answer, and how to present a result whose whole meaning depends on an assumption you chose. It runs about twenty minutes.</p>
+
+  <p>Here is what to do today. Take any project with an upfront cost and a few years of expected returns. Divide each future year's cash by 1.10 raised to that year's number, add them all up, then subtract the upfront cost. If what is left is positive, the project beats a 10% required return.</p>
+
+  <p>The short version: a dollar arriving in five years is not a dollar. NPV shrinks every future amount down to what it is worth today, then adds the whole stream up, including the negative one at the start.</p>
+
+  <p>The shrinking is the idea the rest of the page rests on, so it gets the picture.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 760 300" role="img" aria-labelledby="npvTitle npvDesc" xmlns="http://www.w3.org/2000/svg">
+      <title id="npvTitle">The cash gets bigger every year and its value today gets smaller</title>
+      <desc id="npvDesc">Five vertical bars rising from a common baseline, one for each of years one to five. The full height of each bar is the cash the project expects to collect in that year, and the bars grow steadily taller from left to right, from one hundred and fifty thousand in year one to one hundred and ninety thousand in year five. Each bar is split into two parts. The solid accent-colored part at the bottom is what that cash is worth today after discounting at ten percent, and the pale hatched cap sitting on top of it is the part the waiting takes away. The solid parts shrink steadily from left to right, from about one hundred and thirty six thousand down to about one hundred and eighteen thousand, while the pale caps grow from a thin sliver in year one to a thick block in year five. A dashed line joins the tops of the five solid parts and slopes downward across the chart, against bars that are getting taller. That opposition is the whole point: a payment can be bigger and still be worth less, because each extra year of waiting divides it by another factor of one point one. A small legend at the top right pairs a pale swatch with the word waiting and a solid swatch with the word today.</desc>
+      <g font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+        <defs>
+          <pattern id="wait" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+            <rect width="7" height="7" fill="#F1F3F5"/>
+            <line x1="0" y1="0" x2="0" y2="7" stroke="#C3C9CF" stroke-width="3"/>
+          </pattern>
+        </defs>
+        <path d="M70 250 L700 250" stroke="#09090B" stroke-width="2" fill="none"/>
+
+        <!-- each bar: full height is the cash, the solid foot is its value today -->
+        <rect x="110" y="100" width="76" height="14"  rx="2" fill="url(#wait)" stroke="#C3C9CF"/>
+        <rect x="110" y="114" width="76" height="136" rx="2" fill="#0E7490"/>
+        <text x="148" y="272" font-size="13" fill="#52525B" text-anchor="middle">year 1</text>
+
+        <rect x="230" y="90"  width="76" height="28"  rx="2" fill="url(#wait)" stroke="#C3C9CF"/>
+        <rect x="230" y="118" width="76" height="132" rx="2" fill="#0E7490"/>
+        <text x="268" y="272" font-size="13" fill="#52525B" text-anchor="middle">year 2</text>
+
+        <rect x="350" y="80"  width="76" height="42"  rx="2" fill="url(#wait)" stroke="#C3C9CF"/>
+        <rect x="350" y="122" width="76" height="128" rx="2" fill="#0E7490"/>
+        <text x="388" y="272" font-size="13" fill="#52525B" text-anchor="middle">year 3</text>
+
+        <rect x="470" y="70"  width="76" height="57"  rx="2" fill="url(#wait)" stroke="#C3C9CF"/>
+        <rect x="470" y="127" width="76" height="123" rx="2" fill="#0E7490"/>
+        <text x="508" y="272" font-size="13" fill="#52525B" text-anchor="middle">year 4</text>
+
+        <rect x="590" y="60"  width="76" height="72"  rx="2" fill="url(#wait)" stroke="#C3C9CF"/>
+        <rect x="590" y="132" width="76" height="118" rx="2" fill="#0E7490"/>
+        <text x="628" y="272" font-size="13" fill="#52525B" text-anchor="middle">year 5</text>
+
+        <!-- the falling line across rising bars -->
+        <path d="M110 114 L186 114 M230 118 L306 118 M350 122 L426 122 M470 127 L546 127 M590 132 L666 132"
+              stroke="#FFFFFF" stroke-width="1.6" fill="none"/>
+        <path d="M148 114 L268 118 L388 122 L508 127 L628 132" stroke="#0E7490" stroke-width="2.2"
+              stroke-dasharray="7 4" fill="none"/>
+
+        <!-- legend -->
+        <rect x="560" y="20" width="16" height="12" rx="2" fill="url(#wait)" stroke="#C3C9CF"/>
+        <text x="584" y="30" font-size="12.5" fill="#52525B">waiting</text>
+        <rect x="644" y="20" width="16" height="12" rx="2" fill="#0E7490"/>
+        <text x="668" y="30" font-size="12.5" fill="#52525B">today</text>
+      </g>
+    </svg>
+    <figcaption>Five years of inflows from the project worked through this page. The whole bar is the cash that year collects, growing from $150,000 to $190,000. The solid foot is what it is worth today at a 10% discount rate, falling from $136,364 to $117,975. The dashed line traces that fall, and it slopes down across bars that are getting taller.</figcaption>
+  </figure>
+
+  <div class="toc">
+    <strong>What you'll learn</strong>
+    <ol>
+      <li>Why a future dollar is worth less, in arithmetic rather than words</li>
+      <li>The discount factor, and the year-0 rule</li>
+      <li>The worked project, row by row</li>
+      <li>The query, and the rate written as 10/100</li>
+      <li>Two off-by-one errors, and which one flips the decision</li>
+      <li>The rate is the assumption, and IRR is the other way round</li>
+      <li>The full before and after</li>
+      <li>Edge cases NPV cannot see</li>
+      <li>Why this works</li>
+      <li>Using this on your own numbers</li>
+      <li>The whole thing on one screen</li>
+    </ol>
+  </div>
+
+  <div class="note"><strong>Every number on this page is verified.</strong> The worked project is six rows, shown in full below. Every discount factor, present value, NPV, rate table and error figure was computed in SQLite and cross-checked in Python before it went on the page, so you can check any row on a calculator and it will agree.</div>
+
+  <div class="step">
+    <h2>1. Why a future dollar is worth less, in arithmetic rather than words</h2>
+
+    <p>Before the explanation: you are offered $100 today or $100 in a year. Beyond simple impatience, name one concrete reason today is worth more.</p>
+
+    <p>Because $100 today can be doing something for the next year. Put it somewhere that returns 10% and by this time next year it is $110. So $100 today and $100 next year are not the same offer, and the size of the difference is whatever return you could have got.</p>
+
+    <p>Run that backwards and you have the whole method. If $100 today grows to $110 in a year, then $110 arriving in a year is worth exactly $100 today. Growing forwards multiplies by 1.10. Coming backwards divides by 1.10. The dividing is called discounting, and the 10% is called the discount rate.</p>
+
+    <p>Do it twice for two years. $100 today grows to $110, then to $121. So $121 in two years is worth $100 today, and the division is by 1.10 twice, which is 1.21. Three years is 1.331. The number you divide by grows fast, which is why money far in the future gets cut down hard.</p>
+
+    <p>Two numbers to hold on to, both from this page's project. At a 10% discount rate, a dollar arriving in five years is worth 62 cents today. Raise the rate to 15% and the same dollar is worth 50 cents. Nothing about the dollar changed. The rate did.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. The discount factor, and the year-0 rule</h2>
+
+    <p>Before the explanation: what should the discount factor be for money you spend today?</p>
+
+    <p>One. Money spent today is already in today's dollars, so it does not get discounted at all, and dividing by 1 leaves it alone. That is not a special case bolted onto the formula. It falls out of it, because any number raised to the power of 0 is 1.</p>
+
+    <p>The discount factor for year <em>t</em> at rate <em>r</em> is <code>(1 + r)</code> raised to the power <em>t</em>. Present value is the cash flow divided by that factor.</p>
+
+    <table>
+      <tr><th>Year</th><th>Factor at 10%</th><th>How it is built</th><th>A dollar is worth</th></tr>
+      <tr><td>0</td><td>1.0000</td><td>1.10 to the power 0</td><td>100 cents</td></tr>
+      <tr><td>1</td><td>1.1000</td><td>1.10</td><td>91 cents</td></tr>
+      <tr><td>2</td><td>1.2100</td><td>1.10 × 1.10</td><td>83 cents</td></tr>
+      <tr><td>3</td><td>1.3310</td><td>1.10 × 1.10 × 1.10</td><td>75 cents</td></tr>
+      <tr><td>4</td><td>1.4641</td><td>and again</td><td>68 cents</td></tr>
+      <tr><td>5</td><td>1.6105</td><td>and again</td><td>62 cents</td></tr>
+    </table>
+
+    <p>Net present value is the sum of every year's present value, with the upfront cost included as a negative number at year 0. The word "net" is that subtraction. A present value that ignores the cost is not an NPV, and section five shows what that mistake looks like when it reaches a slide.</p>
+
+    <p>The decision rule is one line. NPV above zero means the project earns more than the rate you required of it, so it adds value. NPV below zero means it does not. NPV of exactly zero means it earns precisely the required return, no more.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. The worked project, row by row</h2>
+
+    <p>Before the explanation: a project costs $500,000 today and pays back $850,000 over five years. Guess whether it clears a 10% required return, and by roughly how much.</p>
+
+    <p>Here is the project. A production line expansion: $500,000 to build, then five years of extra cash from the capacity it adds. The required return is 10%.</p>
+
+    <table>
+      <tr><th>Year</th><th>Cash flow</th><th>Factor at 10%</th><th>Present value</th></tr>
+      <tr><td>0</td><td>-500,000</td><td>1.0000</td><td>-500,000</td></tr>
+      <tr><td>1</td><td>150,000</td><td>1.1000</td><td>136,364</td></tr>
+      <tr><td>2</td><td>160,000</td><td>1.2100</td><td>132,231</td></tr>
+      <tr><td>3</td><td>170,000</td><td>1.3310</td><td>127,724</td></tr>
+      <tr><td>4</td><td>180,000</td><td>1.4641</td><td>122,942</td></tr>
+      <tr><td>5</td><td>190,000</td><td>1.6105</td><td>117,975</td></tr>
+      <tr><td><strong>NPV</strong></td><td><strong>350,000</strong></td><td></td><td><strong>137,236</strong></td></tr>
+    </table>
+
+    <p>Check one row by hand to trust the rest. Year 3: 170,000 divided by 1.331 is 127,723.5, which rounds to 127,724. Add the present-value column and you get 137,236.</p>
+
+    <p>Look at the two totals on the bottom row, because they are the whole lesson. Undiscounted, the project nets $350,000. Discounted at 10%, it nets $137,236. The $212,764 difference is not a cost anyone pays and not a number in any ledger. It is the return you would have earned on that money elsewhere over five years, and NPV charges the project for it.</p>
+
+    <p>The verdict, in a sentence someone can act on: <strong>the line expansion is worth $137,236 more than the 10% return we could get elsewhere on the same $500,000.</strong> Notice how much work "at 10%" is doing in that sentence. Section six is about how much.</p>
+
+    <p>Say why the discounted total is smaller than the undiscounted one, in your own words, before reading on. If you can say it, the rest of this page is careful arithmetic.</p>
+  </div>
+
+  <div class="step">
+    <h2>4. The query, and the rate written as 10/100</h2>
+
+    <p>Before the explanation: in SQL, what does <code>10/100</code> return when both are whole numbers?</p>
+
+    <p>Zero. And that turns the whole NPV calculation into something else without changing a single row of data. Follow it through: <code>10/100</code> is 0, so <code>1 + 10/100</code> is 1, so <code>POWER(1, year)</code> is 1 for every year, so every cash flow is divided by 1 and no discounting happens at all. The query runs, returns $350,000, and $350,000 is just the raw sum of the cash-flow column.</p>
+
+    <p>That is the worst kind of wrong. It is not an error, it is not a null, and $350,000 is a believable answer for this project. The only way to catch it is to know it can happen.</p>
+
+    <p>The working query, with the rate written as a decimal.</p>
+
+    <pre><code>SELECT ROUND(SUM(cash_flow / POWER(1 + 0.10, year)), 0) AS npv
+FROM project_cash_flows
+WHERE project = 'Line Expansion';        -- 137236</code></pre>
+
+    <p>And the same idea one row at a time, which is what you actually want on screen, because a single NPV number is impossible to check.</p>
+
+    <pre><code>SELECT year,
+       cash_flow,
+       ROUND(POWER(1 + 0.10, year), 4)             AS discount_factor,
+       ROUND(cash_flow / POWER(1 + 0.10, year), 0) AS present_value
+FROM project_cash_flows
+WHERE project = 'Line Expansion'
+ORDER BY year;</code></pre>
+
+    <p>Three notes on the arithmetic, all worth checking once on your own database.</p>
+
+    <table>
+      <tr><th>What you write</th><th>Returns</th><th>Why</th></tr>
+      <tr><td><code>10/100</code></td><td>0</td><td>Whole divided by whole. The rate vanishes.</td></tr>
+      <tr><td><code>10/100.0</code></td><td>0.1</td><td>One decimal makes the whole expression decimal.</td></tr>
+      <tr><td><code>POWER(1 + 10/100, 5)</code></td><td>1.0</td><td>Every factor is 1. No discounting happened.</td></tr>
+      <tr><td><code>POWER(1 + 0.10, 5)</code></td><td>1.61051</td><td>Correct.</td></tr>
+    </table>
+
+    <p><code>POWER</code> itself is safe, because it returns a decimal even when handed whole numbers, so <code>cash_flow / POWER(...)</code> stays decimal. The danger is entirely in how the rate reaches it. Write rates as <code>0.10</code>. If the rate has to come from a column, make that column a decimal type when the table is created, and check one value before you trust the output. The same trap in its percentage form is worked in <a href="../gross-vs-operating-vs-net-margin/">gross vs operating vs net margin</a>.</p>
+
+    <p>One portability note. <code>POWER</code> exists in SQLite, PostgreSQL, SQL Server, MySQL, Oracle, Snowflake and BigQuery, though older SQLite builds may not have it compiled in. Where it is missing, <code>EXP(year * LN(1 + 0.10))</code> is the same calculation and works anywhere that has logs.</p>
+  </div>
+
+  <div class="step">
+    <h2>5. Two off-by-one errors, and which one flips the decision</h2>
+
+    <p>Before the explanation: your cash-flow table was built with a row number instead of a year number, so the first inflow is labelled 0 instead of 1. Does NPV come out too high or too low?</p>
+
+    <p>Too high, and by a lot. Every inflow is being discounted one year less than it should be, so each one is worth more today than it really is, while the cost at year 0 is untouched. On this project the correct answer is $137,236 and the mislabelled one is $200,960, an overstatement of $63,724, which is 46%.</p>
+
+    <p>It matters because it can change the answer. Take the same five inflows against a $660,000 upfront cost instead of $500,000.</p>
+
+    <table>
+      <tr><th>Version</th><th>NPV at 10%</th><th>Decision</th></tr>
+      <tr><td>Inflows correctly at years 1 to 5</td><td>-22,764</td><td>Reject</td></tr>
+      <tr><td>Inflows mislabelled 0 to 4</td><td>+40,960</td><td>Accept</td></tr>
+    </table>
+
+    <p>A row number and a year number look identical in a table. Nothing in the query can tell them apart. The check that catches it takes five seconds: <strong>the year-0 row is the money you spend today, and it should be the only negative one and the only one whose present value equals its cash flow.</strong> If your year-0 row is an inflow, the labels are shifted.</p>
+
+    <p>The second off-by-one is worth knowing because it behaves completely differently. If the <em>whole</em> stream shifts, cost and all, so the cost sits at year 1 and the inflows at 2 to 6, then every present value gets divided by one extra 1.10 and NPV goes from $137,236 to $124,760. That is exactly $137,236 divided by 1.10. Because everything moved together, the sign cannot change, so the accept-or-reject decision is always safe even though the value is 9.1% off. Only the partial shift is dangerous, and the partial shift is the one that happens.</p>
+
+    <p>The third mistake in this family has nothing to do with years. The upfront cost simply is not in the table, because it lives in a different system, or because someone filtered on <code>year &gt; 0</code> to drop what looked like an empty row.</p>
+
+    <pre><code>SELECT ROUND(SUM(cash_flow / POWER(1 + 0.10, year)), 0)
+FROM project_cash_flows
+WHERE project = 'Line Expansion' AND year &gt; 0;      -- 637236</code></pre>
+
+    <p>$637,236, against a real NPV of $137,236. Overstated by exactly the $500,000 that was left out, and there is nothing in the number itself to say so. That is a present value, not a net present value, and the missing word is the entire cost of the project.</p>
+
+    <p>Picture your own company's project table. Where does the upfront cost live, and is it a row in the same table as the returns? If it lives in a capital budget somewhere else, every NPV anyone runs on that table is a gross present value wearing the wrong name.</p>
+  </div>
+
+  <div class="step">
+    <h2>6. The rate is the assumption, and IRR is the other way round</h2>
+
+    <p>Before the explanation: same five cash flows, same $500,000 cost. Guess what rate would make this project not worth doing.</p>
+
+    <p>Just under 20%. Here is the same project at seven different required returns, with nothing else changed.</p>
+
+    <table>
+      <tr><th>Discount rate</th><th>NPV</th><th>Decision</th></tr>
+      <tr><td>0%</td><td>350,000</td><td>Accept</td></tr>
+      <tr><td>5%</td><td>231,791</td><td>Accept</td></tr>
+      <tr><td>10%</td><td>137,236</td><td>Accept</td></tr>
+      <tr><td>15%</td><td>60,575</td><td>Accept</td></tr>
+      <tr><td>20%</td><td>-2,347</td><td>Reject</td></tr>
+      <tr><td>25%</td><td>-54,573</td><td>Reject</td></tr>
+      <tr><td>30%</td><td>-98,367</td><td>Reject</td></tr>
+    </table>
+
+    <p>One project, one set of cash flows, and the verdict flips between 15% and 20%. Every row is arithmetically perfect. The rate is not something the data tells you; it is something you choose and then have to defend. An NPV presented without the rate beside it is not a result, it is half of one.</p>
+
+    <p>Where the rate comes from, in practice. It is the return the company requires on money it puts at risk, usually its weighted average cost of capital, sometimes a hurdle rate set by the finance team, sometimes the return available on a comparable investment. Riskier projects get a higher rate, which is how risk enters the arithmetic: a higher rate punishes distant cash flows hardest, so speculative projects with far-off payoffs have to be much bigger to clear.</p>
+
+    <p>The rate that makes NPV exactly zero has a name: the internal rate of return, or IRR. On this project it is 19.80%. Read it as the project's own return, the break-even required rate. Above it the project is worth doing; below it, not.</p>
+
+    <p>IRR is not a SQL calculation. There is no closed-form solution, so it is found by trying rates until NPV lands on zero, which needs iteration that plain SQL does not do. That is why the practical division of labour is: compute NPV in SQL at the rate your company uses, and hand IRR to a spreadsheet or a Python script. If you want an approximate IRR without leaving SQL, run the NPV query at a handful of rates as above and read off where the sign changes. Between 15% and 20% here, and 19.80% when solved properly.</p>
+
+    <p>Two more numbers worth having, both from the same project. Payback period, the point where the undiscounted cash adds back up to the cost, is 3.11 years. Discounted payback, the same question in today's dollars, is 3.84 years. Payback is easy to explain and it ignores everything that happens after it lands, which is why it is a useful second number and a poor first one.</p>
+  </div>
+
+  <div class="step">
+    <h2>7. The full before and after</h2>
+
+    <p>Same project, two ways of putting it in front of a decision maker.</p>
+
+    <h3>Before</h3>
+    <p>"The line expansion costs $500,000 and returns $850,000 over five years, a 70% return. Recommend approval." Nothing there is false. The reader has no way to know that the $850,000 arrives slowly, that the return is 70% spread over five years rather than 70% a year, or that the same project loses money if the company's required return is 20%. And the single number carries no rate, so nobody in the room can disagree with it usefully.</p>
+
+    <h3>After</h3>
+    <table>
+      <tr><th>Measure</th><th>Value</th><th>Read</th></tr>
+      <tr><td>Upfront cost</td><td>-500,000</td><td>Year 0, spent today</td></tr>
+      <tr><td>Total inflows</td><td>850,000</td><td>Undiscounted, years 1 to 5</td></tr>
+      <tr><td>Discount rate used</td><td>10%</td><td>The company hurdle rate, stated</td></tr>
+      <tr><td>NPV at 10%</td><td>+137,236</td><td>Clears the hurdle</td></tr>
+      <tr><td>NPV at 15%</td><td>+60,575</td><td>Still clears it</td></tr>
+      <tr><td>NPV at 20%</td><td>-2,347</td><td>Does not</td></tr>
+      <tr><td>IRR</td><td>19.80%</td><td>The rate where it breaks even</td></tr>
+      <tr><td>Discounted payback</td><td>3.84 years</td><td>When today's dollars come back</td></tr>
+    </table>
+
+    <p>Same project, four extra rows, and the whole conversation changes. The rate is on the page, so it can be argued with. Two other rates are on the page, so the reader can see how much room there is before the answer changes. And the recommendation now has a shape: <strong>fund it if our required return is below about 19.8%, and the margin gets thin above 15%.</strong> That is a sentence a finance director can either agree with or correct, which is the most useful thing an analysis can be.</p>
+  </div>
+
+  <div class="step">
+    <h2>8. Edge cases NPV cannot see</h2>
+
+    <p>Before the explanation: NPV comes out at exactly zero. Accept or reject?</p>
+
+    <p><strong>Zero means it earns precisely the required return.</strong> It is not a failure and it is not a win. The project would return exactly what the money would have earned elsewhere, so on the numbers alone it is a coin toss, and the decision moves to everything the numbers left out: strategy, risk, what else the money could do, what the team learns by doing it.</p>
+
+    <p><strong>Cash flow is not profit.</strong> NPV wants cash moving in and out, not accounting profit. Depreciation is a real expense on the income statement and no cash leaves the building, so it does not belong in a cash-flow row. If someone hands you a project's projected profit and asks for an NPV, the first job is converting it back to cash.</p>
+
+    <p><strong>The end of the model is not the end of the project.</strong> A production line that still works in year 6 has value that a five-year model gives away for nothing. Either extend the model or add a terminal value in the final year. Whichever you do, say so, because a five-year NPV on a fifteen-year asset understates it badly.</p>
+
+    <p><strong>The cash flows are forecasts, and NPV reports to the nearest dollar.</strong> $137,236 has six digits of apparent precision built on estimates that could be 20% out either way. Presenting NPV to the dollar invites a confidence nobody has earned. Round to the nearest thousand in the summary, keep the full number in the working, and show at least one alternative rate so the range is visible.</p>
+
+    <p><strong>Years are not always the right period.</strong> If cash arrives monthly, discount monthly, and the rate has to be converted first. A 10% annual rate is not 10 divided by 12 per month; it is 1.10 raised to the power of one twelfth, minus 1, which is about 0.797% a month. Mixing an annual rate with monthly periods is a large error dressed as a small one.</p>
+
+    <p><strong>Sign conventions have to be consistent.</strong> Every model needs one rule: costs negative, inflows positive. A cost stored as a positive number in a column the query then adds up will not fail, it will just tell you the project is wonderful.</p>
+  </div>
+
+  <h2>Why this works</h2>
+
+  <p>Discounting is not a modern convenience. Fisher set out the theory that the value of an asset is its future income discounted to the present, and that the rate connecting them is the market rate of interest (Fisher, 1930, <em>The Theory of Interest</em>, Macmillan). Hirshleifer's later paper is the cleaner statement of why NPV rather than IRR should decide, showing that the present-value rule follows directly from optimal investment choice while rate-of-return rules can rank projects wrongly (Hirshleifer, 1958, <em>Journal of Political Economy</em>, 66(4), 329–352). That is the formal version of section six's point: IRR is a useful second number and a poor rule.</p>
+
+  <p>The stronger practical reason to keep the year-by-year table on screen, rather than a single NPV, is that people are bad at future money in a specific and measurable way. Thaler found the implied discount rate people apply falls sharply as the delay lengthens, so a single constant rate does not describe how anyone actually feels about it (Thaler, 1981, <em>Economics Letters</em>, 8(3), 201–207). Frederick, Loewenstein and O'Donoghue's review of the field found implied annual rates in the published literature ranging from below zero to many thousand percent, depending only on how the question was asked (Frederick, Loewenstein, &amp; O'Donoghue, 2002, <em>Journal of Economic Literature</em>, 40(2), 351–401). A reader shown one NPV has to trust your rate. A reader shown the schedule and three rates can find their own.</p>
+
+  <p>The prequestions under each heading are deliberate. Attempting an answer before receiving one improves learning of that specific material across sixty-four studies (Bisra, Liu, Nesbit, Salimi, &amp; Winne, 2018, <em>Educational Psychology Review</em>, 30(3), 703–725). Guessing what <code>10/100</code> returns, before section four told you, is why that one will still be with you the next time you write a rate into a query.</p>
+
+  <h2>Using this on your own numbers</h2>
+
+  <p>Rebuilding every capital model in the company is not a job anyone will thank you for. Do this instead, in order.</p>
+
+  <ol>
+    <li><strong>Show the schedule, not just the NPV.</strong> Year, cash flow, factor, present value. Four columns, and it makes every other check on this list possible.</li>
+    <li><strong>Verify the year-0 row.</strong> It should be negative, and its present value should equal its cash flow exactly. If it does not, your factors or your labels are wrong.</li>
+    <li><strong>Check the rate reached the query as a decimal.</strong> Run <code>SELECT POWER(1 + your_rate, 5)</code> on its own. If it returns 1, the rate vanished, and section four has the fix.</li>
+    <li><strong>Put the rate in the output.</strong> A column or a header, not a comment in the code. An NPV without its rate cannot be checked by the person reading it.</li>
+    <li><strong>Run it at two more rates, one above and one below.</strong> This is one more query and it converts a number into a range, which is what the estimate always was.</li>
+    <li><strong>Find where the sign changes and report that as the approximate IRR.</strong> If the decision is close, take the exact figure from a spreadsheet, and say which method you used.</li>
+  </ol>
+
+  <p>If you have paper nearby, one optional drawing locks the core idea in. Draw the figure from the top of this page from memory: five outlined bars getting taller left to right, five solid bars in front of them getting shorter, and the point where the two trends cross. Label one axis with the years. If your solid bars grow along with the outlines, the discounting has not landed yet, and the page is still open.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Excel, Tableau, and the working habits around them.</div>
+
+  <h2>The whole thing on one screen</h2>
+
+  <p>This is the retrieval sheet. Cover the right column, work down the left, and say each answer out loud before you check it.</p>
+
+  <table>
+    <tr><th>Concept</th><th>What it is</th></tr>
+    <tr><td>Time value of money</td><td>Today's dollar can be invested, so it is worth more than tomorrow's.</td></tr>
+    <tr><td>Discounting</td><td>Dividing a future amount back to what it is worth today.</td></tr>
+    <tr><td>Discount factor</td><td>(1 + rate) raised to the power of the year. At 10%, year 5 is 1.6105.</td></tr>
+    <tr><td>Present value</td><td>Cash flow ÷ discount factor. 190,000 in year 5 is 117,975 today.</td></tr>
+    <tr><td>The year-0 rule</td><td>Factor is 1, so today's money is undiscounted. Anything to the power 0 is 1.</td></tr>
+    <tr><td>Net present value</td><td>Every year's present value added up, including the negative cost.</td></tr>
+    <tr><td>The word "net"</td><td>The upfront cost is in there. Without it you have a present value, not an NPV.</td></tr>
+    <tr><td>The decision rule</td><td>Above zero, it beats the required return. Below zero, it does not.</td></tr>
+    <tr><td>The worked answer</td><td>-500,000 then 150k to 190k over five years is +137,236 at 10%.</td></tr>
+    <tr><td>The rate trap</td><td>Writing 10/100 gives 0, every factor becomes 1, and NPV returns the raw sum.</td></tr>
+    <tr><td>The partial shift</td><td>Inflows labelled 0 to 4 gave 200,960 instead of 137,236, and flipped a reject.</td></tr>
+    <tr><td>The whole shift</td><td>Everything one year late divides NPV by 1.10. Wrong value, safe decision.</td></tr>
+    <tr><td>The missing cost</td><td>Filtering out year 0 gave 637,236. Overstated by exactly the cost.</td></tr>
+    <tr><td>Rate sensitivity</td><td>Same project: +137,236 at 10%, +60,575 at 15%, -2,347 at 20%.</td></tr>
+    <tr><td>IRR</td><td>The rate where NPV is zero. 19.80% here. Needs iteration, so not SQL.</td></tr>
+    <tr><td>Payback</td><td>3.11 years undiscounted, 3.84 discounted. Ignores everything after.</td></tr>
+    <tr><td>Cash, not profit</td><td>Depreciation is an expense and not a cash flow. Convert before discounting.</td></tr>
+    <tr><td>The deliverable</td><td>The schedule, the rate, and NPV at two other rates beside it.</td></tr>
+  </table>
+
+  <div class="note"><strong>The one habit to keep.</strong> If you take nothing else from this page, never present an NPV without the discount rate next to it, in the output rather than in the code. The rate is the only part of the calculation that was a judgement, it is the part most likely to be wrong, and it is the part the person reading is best placed to correct. If a query fights back in a way this page does not cover, there is a general <a href="../technical-tenacity/">diagnosis loop for being stuck</a>.</div>
+
+  <p>One last thought, and I would genuinely like other people's answers. The first discounted model I built used a rate somebody had typed into a spreadsheet four years earlier, and nobody in the company could say where it came from. What is the oldest unexplained assumption still running in a model you rely on?</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Fisher, I. (1930). <em>The Theory of Interest: As Determined by Impatience to Spend Income and Opportunity to Invest It</em>. Macmillan.</li>
+    <li>Hirshleifer, J. (1958). On the theory of optimal investment decision. <em>Journal of Political Economy</em>, 66(4), 329–352.</li>
+    <li>Thaler, R. (1981). Some empirical evidence on dynamic inconsistency. <em>Economics Letters</em>, 8(3), 201–207.</li>
+    <li>Frederick, S., Loewenstein, G., &amp; O'Donoghue, T. (2002). Time discounting and time preference: A critical review. <em>Journal of Economic Literature</em>, 40(2), 351–401.</li>
+    <li>Bisra, K., Liu, Q., Nesbit, J. C., Salimi, F., &amp; Winne, P. H. (2018). Inducing self-explanation: A meta-analysis. <em>Educational Psychology Review</em>, 30(3), 703–725.</li>
+  </ul>
+
+  <div class="book">
+    <strong>The NPV query ran, returned a plausible number, and did no discounting at all.</strong>
+    <p><em>SQL for Analysts</em> is 458 pages, including the arithmetic rules that decide whether your rate survives the trip into the query.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/sql-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-net-present-value-npv'})">SQL for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Practice this with a query editor in front of you.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> has a Financial Analysis unit that works NPV on a cash-flow table, alongside the P&amp;L, margins, ratios and variance lessons. Worked examples, flash cards, and a mock exam sit with them. If you would rather type than read, <a href="../../drill/">SQL Drill</a> hands you one runnable query at a time. Nothing to install, no account needed.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../gross-vs-operating-vs-net-margin/">Gross, Operating and Net Margin</a> · <a href="../liquidity-and-leverage-ratios/">Liquidity and Leverage Ratios</a> · <a href="../contribution-margin-break-even/">Contribution Margin and Break-Even</a> · <a href="../budget-vs-actual-variance/">Budget vs Actual Variance</a> · <a href="../sql-running-total/">Running Totals in SQL</a> · <a href="../sql-case-expression/">The SQL CASE Expression</a> · <a href="../sql-dates/">SQL Date Functions</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../forecast-accuracy/">Forecast Accuracy</a> · <a href="../moving-averages/">Moving Averages</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../report-vs-analysis/">Report vs Analysis</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../../sql/">SQL Kit</a> · <a href="../../forecasting/">Forecasting Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <p style="margin:14px 0 0"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
