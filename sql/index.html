@@ -232,6 +232,10 @@ p strong{color:var(--text)}
 /* Under a wrong answer it sits inside an existing block, so it drops the rule
    above it and tucks in tighter. */
 .kit-guide-miss{margin-top:10px;padding-top:0;border-top:0}
+/* The standing one sits OUTSIDE the stage card, below the actions, so it reads
+   as a footnote to the whole step rather than part of the task. A size down
+   from the others: it is there to be found, not to be noticed. */
+.kit-guide-stage{margin-top:16px;font-size:12.5px}
 .ral-body{padding:16px 18px}
 .ral-say{font-size:14px;font-style:italic;color:var(--clay-800);background:var(--clay-50);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:9px 13px 9px 11px;margin-bottom:14px;line-height:1.55;display:flex;gap:7px;align-items:flex-start}
 .ral-say .lucide{width:15px;height:15px;color:var(--accent);flex-shrink:0;margin-top:3px}
@@ -372,6 +376,14 @@ p strong{color:var(--text)}
 .terminal-results td{padding:4px 12px 4px 0;color:var(--stone-100)}
 .terminal-error{color:var(--red)}
 .terminal-info{color:var(--stone-400);font-style:italic} /* fixed primitive: the terminal surface is always dark, so semantic --muted goes near-invisible in light mode */
+/* Same trap, missed on the buttons. .btn-ghost paints var(--muted) text and a
+   var(--border) outline, which in light mode are #52525B on the #18181B action
+   bar — 2.4:1, under half the 4.5:1 minimum, and Hint / Show answer / Clear sat
+   there unreadable. The terminal chrome is dark in BOTH themes, so it gets fixed
+   dark-surface colours instead of the page's. */
+.terminal-actions .btn-ghost,.terminal-toolbar .btn-ghost{color:var(--stone-300);border-color:var(--stone-500);background:rgba(255,255,255,.05)}
+.terminal-actions .btn-ghost:hover,.terminal-toolbar .btn-ghost:hover{color:#fff;border-color:var(--stone-300);background:rgba(255,255,255,.12)}
+.terminal-actions .btn-ghost[disabled]{opacity:.5;cursor:default}
 
 /* FLASHCARDS */
 .flashcard-outer{perspective:1000px;height:200px;margin:20px 0;cursor:pointer}
@@ -3865,9 +3877,23 @@ function _drillGuideLid(type, idx){
 }
 // kind 'miss'  = shown under a wrong answer, while the learner still wants it.
 // kind 'close' = shown on the Done card, when the lesson is behind them.
+// kind 'stage' = the standing one, under every step of the lesson. The guide
+//   used to be reachable from the opening stage and the Done card only, so a
+//   learner standing on Try, Build or Check had to walk backwards to find it.
+//   It stays a link and never expands into the "What this is" block, which is
+//   still stage 0 only on purpose: help that carries a novice starts costing
+//   that same person once they know it (Kalyuga, Ayres, Chandler & Sweller
+//   2003). An offer taken on demand does not charge the learner who ignores it.
 function guideLinkHTML(lid, kind){
   const g = LESSON_GUIDE[lid];
   if(!g) return '';
+  // One link to one page, once. A wrong answer prints its own copy right where
+  // the learner is already reading, so the standing one steps aside instead of
+  // repeating the same destination two lines below it.
+  if(kind === 'miss'){
+    const standing = document.getElementById('kit-guide-stage');
+    if(standing) standing.style.display = 'none';
+  }
   const href = `../guides/${g[0]}/`;
   const body = kind === 'miss'
     ? `Still fuzzy? <a href="${href}" target="_blank" rel="noopener">${g[1]}</a> walks through this one.`
@@ -5873,7 +5899,7 @@ async function renderLabAgg(){
           <div style="display:flex;gap:8px">
             <button class="btn btn-primary btn-sm" onclick="runAggQuery(${_aggTaskIdx})">▶ Run</button>
             <button class="btn btn-ghost btn-sm" id="agg-hint-btn" onclick="toggleAggHint()"><i data-lucide="lightbulb" style="width:13px;height:13px;vertical-align:-2px"></i> Hint</button>
-            <button class="btn btn-ghost btn-sm" style="opacity:.55;font-size:11px" onclick="showLabAnswer('agg-editor',AGG_TASKS[${_aggTaskIdx}].answer)"><i data-lucide="clipboard" style="width:13px;height:13px;vertical-align:-2px"></i> Show answer</button>
+            <button class="btn btn-ghost btn-sm" onclick="showLabAnswer('agg-editor',AGG_TASKS[${_aggTaskIdx}].answer)"><i data-lucide="clipboard" style="width:13px;height:13px;vertical-align:-2px"></i> Show answer</button>
           </div>
           <div style="display:flex;gap:8px">
             ${_aggTaskIdx > 0 ? `<button class="btn btn-ghost btn-sm" onclick="_aggTaskIdx=${_aggTaskIdx-1};renderLabAgg()">← Prev</button>` : ''}
