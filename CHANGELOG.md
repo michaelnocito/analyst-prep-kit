@@ -9,6 +9,21 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [2.3.0] — 2026-08-11 — Every lesson now opens by saying what the thing is
+
+### Added
+- **The "What this is" block is on all 48 lessons.** It was on 7. The other 41 were written to the same three-row shape: what it is, how you use it and where it goes, and one ordinary-life comparison. Mike singled the format out as "great concise info" when he read the first ones, which is the whole reason it got finished rather than left as a Unit 0 flourish. The three rows sit above the directive on the Worked Example stage, so the first thing on the card is a plain sentence and not a story about a manager.
+- **The clause strip is now on 47 of the 48.** Where the lesson really is about a clause position, it is a real query's clause order with this lesson's keyword lit up (`SELECT › FROM › WHERE › GROUP BY › **HAVING**`), so "it goes straight after GROUP BY" is shown and not only said. Where the lesson is a concept rather than a position, it is a short workflow strip instead: the migration pipeline for all eight of Unit 5 (`Profile › Cleanse › **Map** › Load › Reconcile`), the P&L cascade for 701, `Rank › **Accumulate** › Cross 80%` for Pareto. Temp Tables vs Views is the one lesson with no strip, because a lesson that compares two tools has no single position to point at and a made-up strip would be decoration.
+
+### Notes on the writing
+Plain words, one idea per sentence, and the analogy row carries no SQL vocabulary at all, which is the constraint that makes it worth reading. Nothing new was invented for these: each block was written off the lesson's own worked example, so the strip matches the query directly underneath it. Guide links were left to fall back to the `LESSON_GUIDE` map rather than being set per lesson, so there is still one place to change a guide slug, and the five Unit 7 lessons with no honest guide match still show no link.
+
+Grounded in the same evidence as the original block: signalling raises comprehension and transfer (Richter, Scheiter & Eitel 2016, *Educational Research Review* 17:19-36), with the largest effect for low prior knowledge, and nothing decorative was added, because interesting-but-irrelevant graphics measurably reduce learning (Rey 2012; Sundararajan & Adesope 2020).
+
+Verified on localhost:4201: all 48 lessons walked at stage 0, 48 of 48 render three filled rows, 47 strips each with exactly one highlighted chip, console clean and no errors thrown. Both themes resolve real accent tokens on the highlighted chip. No horizontal overflow on any of the 48 at 375px.
+
+---
+
 ## [2.2.1] — 2026-08-11 — A new card starts at the top of itself, and the browser stops offering the answers
 
 ### Fixed
