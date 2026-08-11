@@ -9,6 +9,26 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [2.2.0] — 2026-08-11 — Unit 0 is orientation, results tables are back on, and the two adverts earn their space
+
+### Changed
+- **Unit 0 is now orientation only**, per Mike: "unit 0 should simply be what is sql, how is it used, why learn it, what to expect from the rest of the kit." New lesson 100, *What SQL Is, and Why It Is Worth Your Time*, opens the kit. **Set Up a SQL Database moved out of Unit 0 to a new closing Unit 9, "Put It On Your Own Data."** Putting an install job at step two was a wall in front of a beginner who had not yet written a query; it belongs at the end, when there is finally something worth querying. Its story and close text were rewritten for the new position. 48 lessons, ten units.
+- **Every lesson's result table is on.** 46 tables had been authored, shipped and gated behind `show:true` since 2026-08-03, so not one of them had ever rendered. Mike: "every query built in any card should show a results table, those query results are where it really sticks." `show:false` still suppresses one explicitly; absent now means show. All 48 lessons render a visual panel on the Example stage.
+- **The kit-page About block is now the guide list only.** Mike wanted the reference links kept and the "About this kit" prose gone. Stated cost: that prose was the 738-2,305 readable characters that took these sixteen URLs off ~250 each, so the pages are much thinner to a crawler again. `h`, `p` and `units` stay in the generator, unused, so it is one edit to put back. The landing-only toggle from 2.1.1 came out with the prose it was written for.
+
+### Added
+- **The "What this is" block is signalled instead of being three grey sentences.** Mike read it, called the writing good, and glossed straight over it, which is a formatting failure. Each of the three facts now gets its own icon, an uppercase label above the sentence rather than run into it, and the analogy row is tinted amber and italic because it is the one row that is not literally true. A new **clause strip** shows where the lesson's keyword sits in a real query (`SELECT › FROM › **WHERE** › ORDER BY`), so "it goes after FROM" is shown rather than only said. Grounded in Richter, Scheiter & Eitel (2016, *Educational Research Review* 17:19-36): signalling raises comprehension and transfer (r = .17) and the effect is largest for low prior knowledge. Deliberately not decorative: Rey (2012) and Sundararajan & Adesope (2020) both find interesting-but-irrelevant pictures measurably reduce learning, so every mark here carries information.
+- Explain blocks added to lessons 100, 101, 104, 3 and 105. **Still only 7 of 48 lessons have one** — the remaining 41 are the next content job.
+- **The book card now shows a page out of the book** instead of an empty banner: a real line the book covers plus the plain-words read-out that is the format being sold, styled as a torn-out page with a folded corner and a page number. Nine samples, one per title. Shaped as content rather than as an advert on purpose: readers look past anything in an ad-shaped slot even when it holds what they were looking for (Benway 1998, *Proc. Human Factors & Ergonomics Society* 42(5):463-467), so making it more banner-like would have made it less read.
+
+### Fixed
+- Lesson 101 promised "next: the grain", which is in Unit 2. It now hands off to the first real query.
+- The SQL slice of the hub search index was regenerated from the shipped page (47 to 48 lessons) and the `?v=` cache buster bumped to 8.
+
+Verified on localhost:4201: all 48 lessons render at all 5 stages with zero errors and all 48 show a visual panel; both themes read correct tokens; the book card stacks at 375px with no horizontal scroll; console clean.
+
+---
+
 ## [2.1.1] — 2026-08-11 — The About block belongs to the landing screen, not every screen
 
 ### Fixed

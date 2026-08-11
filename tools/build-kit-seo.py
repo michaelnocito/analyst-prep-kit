@@ -8,24 +8,29 @@
 # sixteen, finds nothing worth keeping, and files them under "Crawled, currently
 # not indexed", which is exactly what Search Console was reporting.
 #
-# The fix. A visible "About this kit" section appended near the end of <body>,
+# The fix. A visible "Related guides" section appended near the end of <body>,
 # before apk-footer.js appends the book card and the footer. It is real content
 # in the HTML, so a crawler gets it on the first fetch with no rendering.
 #
+# Two rounds of Mike, same day, and the second one narrowed it:
+#   1. "That text does not need to be on every screen/lesson card in the kit."
+#   2. "I wanted to keep the reference guide list but do away with info About
+#      this kit, so put that back."
+# So the About heading, the two paragraphs and the What-is-inside list are gone,
+# and what ships is the guide list plus its two footer links. It is short enough
+# now that it does not need hiding on the inner screens, so the landing-only
+# toggle that answered round 1 came out with the prose it was written for.
+#
 # Why it is VISIBLE and not hidden. Text served to crawlers and hidden from
 # people is cloaking, and it is the kind of thing that gets a site demoted
-# rather than promoted. This block is plain, honest orientation that a first
-# time visitor genuinely benefits from, sitting at the bottom where it does not
-# cover the app. Do not "optimise" it by hiding it on arrival.
+# rather than promoted. Do not "optimise" this by hiding it.
 #
-# It IS taken off the other screens (Mike, 2026-08-11: "that text does not need
-# to be on every screen/lesson card in the kit"). The block lives at the end of
-# <body>, outside the app's container, so it survived every re-render and sat
-# under every lesson, drill and settings page as furniture. TOGGLE below hides
-# it once the visitor navigates off the landing screen and brings it back when
-# they return. That is not the hidden-text trick: nothing is served to a crawler
-# that a person on the same URL does not see. The page as fetched shows it,
-# unhidden, with no interaction and no script needed to reveal it.
+# What that costs, stated plainly so nobody has to rediscover it. The prose was
+# 738-2,305 readable characters per page and it is what took these sixteen URLs
+# off ~250 characters each. Guide titles are real text and real internal links,
+# so the pages are not back to zero, but they are much thinner than they were.
+# `h`, `p` and `units` are still carried in KITS below, accurate and unused, so
+# putting the prose back is one edit in block_for().
 #
 # Why not inject into the app's own container. Three different shells are in use
 # here (<main id="main">, <div id="app">, and the view-* pages), each wiped at a
@@ -64,45 +69,8 @@ CSS = """<style>
 .apk-about li{margin:3px 0}
 .apk-about a{color:var(--accent,#C5511F);text-decoration:none}
 .apk-about a:hover{text-decoration:underline}
-.apk-about[hidden]{display:none}
+.apk-about h3:first-child{margin-top:0}
 </style>"""
-
-# Landing-screen only. Four shells are in use across these sixteen pages and
-# each names its current screen differently, so the check walks them in order
-# and stops at the first one the page actually has:
-#
-#   .view.active         stats, tableau, chart-literacy, forecasting, interview
-#   currentView          sql, powerbi
-#   VIEW.name            projects
-#   state.view           final, and the five cert kits
-#
-# A page with none of them (viz, simulator) has no second screen to be wrong on,
-# so it keeps the block up. Those globals are top-level `let`/`const` in each
-# kit's own classic script, which puts them in the same global lexical scope
-# this script reads, hence the bare identifiers and the try/except-style guards.
-#
-# The observer watches childList only, so setting `hidden` (an attribute) cannot
-# retrigger it, and the value guard makes a loop impossible either way.
-SCRIPT = """<script>
-(function(){
-  var about=document.querySelector('.apk-about');
-  if(!about) return;
-  function onLanding(){
-    var v=document.querySelector('.view.active');
-    if(v) return v.id==='view-home';
-    try{ if(typeof currentView==='string') return currentView==='home'; }catch(e){}
-    try{ if(typeof VIEW==='object'&&VIEW&&VIEW.name) return VIEW.name==='home'; }catch(e){}
-    try{ if(typeof state==='object'&&state&&typeof state.view==='string') return state.view==='home'; }catch(e){}
-    return true;
-  }
-  function sync(){ var h=!onLanding(); if(about.hidden!==h) about.hidden=h; }
-  var t;
-  new MutationObserver(function(){ clearTimeout(t); t=setTimeout(sync,60); })
-    .observe(document.body,{childList:true,subtree:true});
-  window.addEventListener('hashchange',sync);
-  sync();
-})();
-</script>"""
 
 # Every claim below was read off the page it describes on 2026-08-11: the unit
 # names come from each kit's own DATA, the counts from its meta description.
@@ -343,17 +311,22 @@ KITS = {
 
 
 def block_for(slug, kit):
-    """Build the static section for one kit."""
-    out = [START, CSS, '<section class="apk-about">', f'  <h2>{kit["h"]}</h2>']
-    for para in kit["p"]:
-        out.append(f"  <p>{para}</p>")
+    """Build the static section for one kit.
 
-    out.append("  <h3>What is inside</h3>")
-    out.append("  <ul>")
-    for u in kit["units"]:
-        out.append(f"    <li>{u}</li>")
-    out.append("  </ul>")
+    Mike, 2026-08-11: "I wanted to keep the reference guide list but do away
+    with info About this kit." So the heading, the two paragraphs and the
+    What-is-inside list are no longer emitted, and the block is the guide list
+    plus its two footer links. `h`, `p` and `units` stay in KITS below: they are
+    accurate, they cost nothing to carry, and reinstating them is one edit here
+    if the crawl numbers say the text was doing work after all.
 
+    Consequence to be honest about: this drops each page back to roughly the
+    readable-text length that got these sixteen URLs filed under "Crawled,
+    currently not indexed" in the first place. Guide titles are real text and
+    real internal links, so it is not zero, but it is not 738-2,305 characters
+    of prose either.
+    """
+    out = [START, CSS, '<section class="apk-about">']
     out.append("  <h3>Related guides</h3>")
     out.append("  <ul>")
     for g in kit["guides"]:
@@ -364,7 +337,6 @@ def block_for(slug, kit):
 
     out.append('  <p><a href="../guides/">Browse all guides</a> · <a href="../">All kits</a></p>')
     out.append("</section>")
-    out.append(SCRIPT)
     out.append(END)
     return "\n".join(out)
 
