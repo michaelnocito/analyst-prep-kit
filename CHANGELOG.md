@@ -9,6 +9,92 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.11.0] — 2026-08-12 — Tableau gets the content pass
+
+Fourth kit in the content train, and the one that arrived worst on the metric
+that matters most.
+
+**44 of 64 pick-one items — 69% of the kit — gave the answer away by length.**
+Quiz was 88% longest-is-right, build 75%. For comparison: Excel 25 of 102, Python
+39 of 84, Power BI 31 of 78. A learner who had read nothing scored near the top
+of this kit on answer length alone. All 44 were rewritten so the correct option
+sits at distractor weight, with the reasoning moved into each item's `exp`, where
+it is read after answering rather than before. **Over the band 44 → 0,
+longest-is-right 52 (81%) → 31 (48%)** — the biggest swing of any kit so far.
+
+One of them could not be fixed by shortening: on L1 the correct answer is
+"Columns shelf", which is the actual name of the thing and cannot be trimmed. The
+distractor was lengthened instead, so the longest option is now a wrong one.
+
+**"What this is" now opens all 32 lessons.** Three rows: what the thing is, where
+it shows up in a real job, and one ordinary-life comparison. Opening stage only,
+above the directive, because support that helps a novice starts costing that same
+person once they know the material (Kalyuga, Ayres, Chandler & Sweller 2003,
+*Educational Psychologist* 38(1):23-31). No guide row inside the block — this kit
+already puts `guideLinkHTML` under every stage and every practice step.
+
+The comparison row carries **no domain vocabulary at all** — an 82-word banned
+list (shelf, pill, mark, measure, dimension, sheet, set, line, size, sort…),
+enforced as a regex in the applier and again in the walker. It refused a row that
+said "shelves", which was then rewritten. The 32 `compare` fields were harvested
+into these rows and deleted in the same splice.
+
+**The result panel stays ON, the same call as Power BI.** 21 of the 32 panels
+mock the Tableau screen itself, 5 are the raw table a chart is built from, and 6
+draw the actual chart. That is the artifact being taught. `show:false` is the way
+out; no lesson needs it.
+
+`9d43ede` split as on the three kits before it: topic half N/A (0 drill items
+carry a topic), glyph half missing and applied. `d236a84` scanned clean — 49
+ordering surfaces, 194 pieces, no piece opening with an ordinal. Vocabulary was
+already at parity at 2 strays, as Python's was.
+
+### Measured, before → after
+
+| measure | before | after |
+|---|---|---|
+| longest-is-right | 52 of 64 (81%) | 31 (48%) |
+| over the 20% band | 44 | 0 |
+| vocabulary strays | 2 | 2 (already parity) |
+| "What this is" blocks | 0 | 32 of 32 |
+| dead `compare` fields | 32 | 0 |
+| ordering answer leaks | 0 of 194 | 0 of 194 |
+| CSS orphans | 49 | 49 |
+| route to a guide | 18 of 32 | 18 of 32 (already present) |
+
+`headless-test` 24/24 across all kits, `de-test tableau` 23/1 (the known
+`../guides/${g[0]}/` template limitation), `syntax-gate` 6/6 blocks clean.
+
+New `walk-tableau.mjs`: **265 renders, 2,161 forward controls pressed, 0 errors**
+(Power BI 299/2,512 across 39 lessons; this kit has 32).
+
+**The walker found its own bug before it found anything else, which is the
+point.** Tableau does not render everything into one node: the lesson stages
+write to `#view-lessons` but `renderGuidedStep()` writes to `#view-practice`. The
+first port read only `#view-lessons`, so every practice-step assertion was
+inspecting stale lesson HTML and reporting a clean run — it claimed 0 of 41
+practice steps carried the guide link, which looked like a product defect and was
+not. With the per-surface reader wired, it is 16, and the leak assertion now
+fires 41 times when deliberately broken instead of 0. Same failure family as the
+`renderLesson()` note below.
+
+Two other shape traps, both caught by crashing rather than by passing: the drill
+`PARSONS` store `{pieces, ans:[strings]}` while the lesson `parsons` store
+`{lines, answer:[indices]}` — so each surface is checked against the comparator
+the running kit actually uses, and `pieces` is verified separately as data the
+drill never reads. And `renderLesson()` takes no argument; it reads
+`lessonState.id`, so a walker that calls `renderLesson(id)` re-renders the
+previous lesson every time and reports success.
+
+Unlike Power BI, the "explain above the directive" check is **live at runtime
+here** — Tableau's stage 0 does render a directive, so the two appear together.
+The template-level assertion was added anyway and both were negative-tested.
+
+Left alone, deliberately: `.v2-compare-grid`, `.v2-compare-col-head` and
+`.v2-compare-code` are pre-existing orphans from a Compare stage never built.
+
+---
+
 ## [3.10.0] — 2026-08-12 — Power BI gets the content pass
 
 Third kit in the content train, and the first one where all six steps found real
