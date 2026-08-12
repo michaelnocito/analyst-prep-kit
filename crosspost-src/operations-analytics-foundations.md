@@ -6,6 +6,8 @@ The short version: operations analytics is the study of how work moves through a
 
 One idea decides more of your operations work than any other, so it gets the picture. Work arrives, waits, gets done, and leaves. How much is in progress and how long each item takes are two different spans over that same picture, and they are locked to each other.
 
+> _The original carries a diagram here. In words: A left-to-right process diagram. On the far left an arrow labelled "arriving" points into a row of three small stacked boxes labelled "waiting", representing a queue. An arrow leads from the queue into a single larger rounded box labelled "working", representing the person or machine doing the job. A final arrow leads out of that box to the right and is labelled "done". Above the queue and the working box, a bracket in a strong accent colour spans both and is labelled "in progress", showing that work in progress includes everything waiting as well as everything actively being worked on. Below, a second bracket in the same accent colour spans from the arrival arrow all the way to the exit arrow and is labelled "time in system", showing that the time an item experiences covers its whole journey, waiting included, not just the part where somebody is working on it. The two brackets deliberately cover different spans of the same picture._
+
 **What this page is, and what it is not.** This is the concept layer: what each number is and what question it answers. It is not a course in a particular tool. The calculations here are all division and subtraction, and they run in a spreadsheet or in SQL equally well.
 
 ## 1. What this field is called, and what a process is

@@ -6,6 +6,8 @@ The short version: `WHERE` filters rows before grouping. `HAVING` filters groups
 
 One idea decides everything else here, so it gets the picture. Grouping happens in the middle of the query, and the two filters sit on opposite sides of it.
 
+> _The original carries a diagram here. In words: A left-to-right pipeline in four stages. Stage one is a column of eight individual row boxes. Stage two is a gate labelled WHERE, through which six rows pass and two are crossed out and stopped. Stage three shows the surviving six rows collapsing into three group boxes, one holding three rows, one holding two rows, and one holding a single row. Stage four is a second gate labelled HAVING, through which the group of three and the group of two pass, while the group holding only one row is crossed out and stopped. The result at the far right is two groups. The picture shows that WHERE acts on individual rows before any grouping exists, and HAVING acts on whole groups after they have been formed, which is why the two filters cannot be swapped._
+
 **The worked example is real.** Every number on this page comes from a published portfolio project: 82,956 games from the Steam catalogue, with review counts, ratings and genres. The queries run against the full dataset at [Steam Hidden Gems on GitHub](https://github.com/michaelnocito/steam-hidden-gems). If `SELECT` and `WHERE` are also new, start with [SQL foundations](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-foundations/) and come back.
 
 ## 1. What GROUP BY actually does to your rows

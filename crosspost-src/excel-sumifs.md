@@ -6,6 +6,8 @@ The short version: `SUMIFS` is a filter and a sum in one move. It takes the colu
 
 One picture carries the idea. Rows pass through one gate per condition, and only the survivors get added.
 
+> _The original carries a diagram here. In words: A left-to-right pipeline. On the left is a column of eight individual row boxes representing sales rows. They flow toward a first vertical gate labelled East. Five rows pass through and three are crossed out and stopped at the gate. The five survivors flow to a second vertical gate labelled Feb. Two rows pass through and three are crossed out and stopped. The two surviving rows flow into a single box on the right marked with a summation sign, and the two merge into one output value. The picture shows that each criteria pair in SUMIFS is a gate that every row must pass, that gates stack left to right with AND logic, and that only rows surviving every gate reach the sum._
+
 **The worked example is small on purpose.** Sixteen sales rows, four columns, sitting in A1 to D17: Region in column A, Month in B, Rep in C, Amount in D. Every result on this page was computed against this exact table, twice, by different methods. Row 17 has a blank region, and that blank is deliberate: it is the trap in section 6.
 
 | Region | Month | Rep | Amount |

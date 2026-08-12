@@ -4,6 +4,8 @@ Here is what you do. Give every calculated column a name with `AS`. Give every t
 
 **The short version.** An alias is a name you invent. `AS` on a column changes the label on the output and nothing else. A nickname on a table lets you say which table a column belongs to.
 
+> _The original carries a diagram here. In words: Two small name tags sit on the left. The first tag, labelled g, has an arrow pointing to a database table labelled gem_page. The second tag, labelled avg_score, has an arrow pointing to the header cell of a results grid. Neither tag changes the thing it points at; each one is only a shorter or clearer way to refer to it._
+
 ## What a column alias changes
 
 Before the answer: if you write `SELECT title AS gem FROM gem_page`, has anything in the `gem_page` table changed?
@@ -99,6 +101,8 @@ This is the part that produces a real error message on a query that looks correc
 The name is right there, four lines up. PostgreSQL says it does not exist. MySQL says `Unknown column 'total_votes' in 'where clause'`. Both are telling you the truth, and the reason is about order.
 
 A database does not run a query top to bottom the way you read it. It runs the clauses in a fixed order of its own, and `SELECT` comes late in that order:
+
+> _The original carries a diagram here. In words: A left-to-right track shows the order a database runs a query: FROM, then WHERE, then GROUP BY, then SELECT, then ORDER BY. A name tag is created at the SELECT stage. An arrow pointing backwards from that tag to WHERE is crossed out, because WHERE has already run. An arrow pointing forwards from the tag to ORDER BY has a tick, because ORDER BY has not run yet._
 
 So the rule falls out on its own. `WHERE` runs before `SELECT`, so when the filter is being applied the name `total_votes` has not been invented yet. `ORDER BY` runs after `SELECT`, so by then the name exists and you can sort by it:
     

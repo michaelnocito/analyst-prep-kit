@@ -6,6 +6,8 @@ The short version: variance is actual minus budget. On a revenue line, positive 
 
 The sign flip is the trap people fall into first, so it gets the picture.
 
+> _The original carries a diagram here. In words: Two panels, each showing a pair of vertical bars rising from a shared baseline. In the left panel, labeled revenue, a shorter bar marked budget stands next to a taller bar marked actual. The extra height of the actual bar above the budget level is shaded in the accent color and marked with the letter F and a check mark, because collecting more revenue than budgeted is favorable. In the right panel, labeled cost, the bars have the same shapes: a shorter budget bar next to a taller actual bar. But here the extra height above budget is shaded in the warning color and marked with the letter U and a cross, because spending more than budgeted is unfavorable. A dashed horizontal line runs across each panel at the budget height. The two panels are geometrically identical, and only the meaning of the line decides whether the overshoot is good or bad. That is why the sign of a variance cannot be read without knowing the line type._
+
 **Every number on this page is verified.** The worked example is a small department's month, eight lines, shown in full below. Every variance, percentage, subtotal, and walk step was computed in a script before it went on the page, so you can check any cell by hand and it will agree.
 
 ## 1. The variance formula, and the sign trap

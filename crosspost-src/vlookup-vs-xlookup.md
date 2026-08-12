@@ -6,6 +6,8 @@ The short version: write XLOOKUP for anything new. Learn to read VLOOKUP anyway,
 
 The core difference is one picture. VLOOKUP counts its way to a column position. XLOOKUP points at two columns directly.
 
+> _The original carries a diagram here. In words: Two versions of the same four-column table, side by side. On the left, labelled VLOOKUP, an arrow starts at the first column and hops across the column headers counting 1, 2, 3, landing on the third column. Below it, a new column has been inserted into the middle of the table, drawn in a warning colour. The same 1, 2, 3 count now lands on that new inserted column instead, marked with a cross, because the count is blind to what the columns contain. On the right, labelled XLOOKUP, two arrows point directly at named columns: one at the ID column being searched, one at the answer column being returned. The same inserted column appears below, but both arrows still point at the same two columns, marked with a check, because a pointed-at column keeps its identity when the table changes shape. The picture shows that a counted position breaks when the table changes and a direct reference does not._
+
 **The worked example is small on purpose.** Ten employees, four columns, every result on this page computed and checked against this exact table. Here it is, sitting in cells A1 to D11, with EmpID in column A, Name in B, Department in C, and Salary in D.
 
 | EmpID | Name        | Department | Salary |

@@ -104,25 +104,63 @@ Comment marks lose their meaning inside quotes. A database reading a quoted stri
 
 That matters when you are searching text that contains dashes, or storing snippets of code in a table. Nothing you write inside quotes can accidentally comment out the rest of your query.
 
-Block comments also do not nest. The first `*/` closes the block, whatever came before it:
+In most databases block comments also do not nest. The first `*/` closes the block, whatever came before it:
     
     
     /* outer /* inner */ this part is now code */
 
-The block ends at the first `*/`, so `this part is now code */` is handed to the database as SQL and fails. If you need to hide a stretch that already contains a block comment, put `--` at the front of every line instead. Most editors do that for a whole selection with one shortcut.
+The block ends at the first `*/`, so `this part is now code */` is handed to the database as SQL and fails. If you need to hide a stretch that already contains a block comment, put `--` at the front of every line instead. Your editor will do that for a whole selection in one keystroke, and the next section has the keys.
+
+## How to comment out multiple lines at once
+
+Typing `--` at the front of thirty lines is not a job for a person. Every SQL editor has a shortcut that does it to whatever you have selected. Highlight the lines, press the keys, and each line gets its own `--`.
+
+Reach for this instead of wrapping the stretch in `/* */`. A line comment on every line still works when the stretch already contains a block comment, and a block comment does not.
+
+| Editor                       | Comment what you selected                            | Undo it                     |
+|------------------------------|------------------------------------------------------|-----------------------------|
+| SQL Server Management Studio | `Ctrl`+`K`, then `Ctrl`+`C`                          | `Ctrl`+`K`, then `Ctrl`+`U` |
+| MySQL Workbench              | `Ctrl`+`/` (`Cmd`+`/` on Mac)                        | The same keys again         |
+| DBeaver                      | `Ctrl`+`/` for lines, `Ctrl`+`Shift`+`/` for a block | The same keys again         |
+| pgAdmin 4                    | `Ctrl`+`/` (`Cmd`+`/` on Mac)                        | The same keys again         |
+| VS Code                      | `Ctrl`+`/` (`Cmd`+`/` on Mac)                        | The same keys again         |
+
+Two of those behave differently from the rest, and both catch people out.
+
+SSMS is the odd one. It is not a single chord, it is two presses in a row. Hold `Ctrl`, tap `K`, tap `C`. Nothing appears to happen after the `K`, which is where most people give up and assume the shortcut is wrong.
+
+MySQL Workbench is the other. On several builds the shortcut is wired to the divide key on the number pad rather than the forward slash on the main keyboard. On a laptop with no number pad, hold `Ctrl` and `Fn` together and press the key that doubles as divide. This has been an open bug for years, so it is your keyboard, not your SQL.
 
 ## Differences between databases
 
 The two standard forms work everywhere. Two smaller things do not travel.
 
-| Thing                 | Where it works                                | What to do                                     |
-|-----------------------|-----------------------------------------------|------------------------------------------------|
-| `--` line comment     | Every major database                          | Use it freely                                  |
-| `/* */` block comment | Every major database                          | Use it freely                                  |
-| `#` line comment      | MySQL and MariaDB only                        | Use `--` instead, so the query survives a move |
-| An unclosed `/*`      | Tolerated by some engines, rejected by others | Always close the block                         |
+| Thing                       | Where it works                                       | What to do                                     |
+|-----------------------------|------------------------------------------------------|------------------------------------------------|
+| `--` line comment           | Every major database                                 | Use it freely                                  |
+| `/* */` block comment       | Every major database                                 | Use it freely                                  |
+| `#` line comment            | MySQL and MariaDB only                               | Use `--` instead, so the query survives a move |
+| `--` with no space after it | Fine nearly everywhere, but MySQL rejects it         | Always put a space after the two dashes        |
+| Nested `/* */` blocks       | PostgreSQL only                                      | Do not rely on it if the query might move      |
+| An unclosed `/*`            | SQLite runs it to the end of input, others reject it | Always close the block                         |
 
-If you are writing SQL you might reuse somewhere else, stay on `--` and `/* */` and close every block. That is the portable set.
+Two of those are worth a second look, because both are the kind of thing that works on your machine and fails on someone else's.
+
+MySQL is stricter about `--` than everyone else. It wants at least one space or tab after the second dash. `--note` is a syntax error in MySQL and a perfectly good comment almost everywhere else, so get in the habit of the space and the question never comes up.
+
+PostgreSQL is the one database where block comments nest, which its own documentation says is the standard behaviour and the rest of the world's is not. In Postgres the example above hides the whole line, because the outer `/*` waits for its matching `*/`. Write SQL that depends on that and it breaks the day it is run anywhere else.
+
+If you are writing SQL you might reuse somewhere else, stay on `--` with a space, use `/* */` without nesting it, and close every block. That is the portable set.
+
+The full breakdown per engine, including what SQLite does with a block you forgot to close, is in [SQL comment syntax by database](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comment-syntax-by-database/).
+
+## The other thing called a comment
+
+One more meaning is worth knowing about, because it is a different feature with almost the same name.
+
+`COMMENT ON TABLE` does not hide code. It is a statement you run, and it stores a description inside the database, attached to the table, where a colleague who has never seen your query file can still read it. That is covered in [COMMENT ON TABLE](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comment-on-table/).
+
+Quick way to tell which one you need. Trying to stop a line from running: `--`. Trying to record what a column means so it outlives your script: `COMMENT ON`.
 
 ## What a comment should actually say
 
@@ -134,15 +172,16 @@ The thing a reader genuinely cannot recover from the code is _why anyone asked t
 
 ## Cheat sheet
 
-| You want to                                 | Write                                            | Watch for                                    |
-|---------------------------------------------|--------------------------------------------------|----------------------------------------------|
-| Hide the rest of a line                     | `-- your note`                                   | Nothing after it on that line survives       |
-| Hide several lines                          | `/* your note */`                                | Close it, and do not nest it                 |
-| Add a note to the end of a line             | `SELECT id -- note`                              | Long lines get hard to read                  |
-| Comment out one column                      | Front-load the comma, then `-- , name`           | Trailing commas leave a syntax error         |
-| Comment out one condition                   | Front-load the `AND`, then `-- AND status = 'x'` | A dangling `AND` leaves the query unfinished |
-| Hide a block that already has `/* */` in it | `--` on every line                               | Blocks do not nest                           |
-| Write a comment other databases will accept | `--` or `/* */`                                  | `#` is MySQL only                            |
+| You want to                                 | Write                                            | Watch for                                      |
+|---------------------------------------------|--------------------------------------------------|------------------------------------------------|
+| Hide the rest of a line                     | `-- your note`                                   | Nothing after it on that line survives         |
+| Hide several lines                          | `/* your note */`                                | Close it, and do not nest it                   |
+| Add a note to the end of a line             | `SELECT id -- note`                              | Long lines get hard to read                    |
+| Comment out one column                      | Front-load the comma, then `-- , name`           | Trailing commas leave a syntax error           |
+| Comment out one condition                   | Front-load the `AND`, then `-- AND status = 'x'` | A dangling `AND` leaves the query unfinished   |
+| Hide a block that already has `/* */` in it | `--` on every line                               | Blocks do not nest                             |
+| Comment out many lines at once              | Select them, then `Ctrl`+`/`                     | SSMS is different: `Ctrl`+`K`, then `Ctrl`+`C` |
+| Write a comment other databases will accept | `--` or `/* */`                                  | `#` is MySQL only                              |
 
 ## The one habit to keep
 

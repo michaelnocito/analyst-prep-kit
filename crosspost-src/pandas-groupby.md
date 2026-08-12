@@ -6,6 +6,8 @@ The short version: `groupby` splits the table into one mini-table per key value,
 
 The split-apply-combine shape is the one idea everything else on this page hangs from, so it gets the picture.
 
+> _The original carries a diagram here. In words: A left-to-right pipeline in three stages. On the left, one table of seven stacked rows, where three rows share one shading, two rows share a second shading, one row has a third shading, and one row at the bottom is drawn hollow with a dashed border, meaning its key is missing. Arrows split the table into three separate mini-tables in the middle, one per shading: a three-row table, a two-row table, and a one-row table. The hollow dashed row's arrow stops at a dashed cross, showing it was dropped rather than assigned to any group. From each mini-table an arrow passes through a small function box and collapses it into a single summary row. On the right the three summary rows stack into one small result table with one row per group. The dropped dashed row never reaches the result._
+
 **Every output on this page is real.** One 14-row sales table, printed in full below, and every result was produced by running the code with pandas. If you already group in SQL, this page is the pandas half of a pair: [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/) is the same idea in its original home, and I will point at the twin moves as they come up.
 
 Here is the whole dataset. Fourteen orders, a region, a category, and an amount. Two things are deliberately imperfect, because real data always is: order 1008 has a missing amount, and orders 1013 and 1014 have a missing region.

@@ -6,6 +6,8 @@ The short version: a set does not remove rows. It labels every row IN or OUT, an
 
 One idea decides everything else here, so it gets the picture. It is the difference between removing rows and labelling them.
 
+> _The original carries a diagram here. In words: The picture is in two halves, each starting from the same column of eight rows. In the upper half, labelled filter, three rows pass through and five are crossed out and discarded, leaving a single short result of three rows. In the lower half, labelled set, none of the rows are discarded. Instead all eight rows continue, sorted into two labelled stacks side by side, one marked IN holding three rows and one marked OUT holding five rows. A bracket beneath the two stacks shows that the total is still eight. The contrast shows that filtering reduces the data to one group, while a set keeps all the data and divides it into two comparable groups._
+
 **This is on the certification.** Sets sit in Domain 2, Exploring and Analyzing Data, which is 37% of the exam and the largest domain on it. The [Tableau Desktop Foundations kit](https://michaelnocito.github.io/analyst-prep-kit/tableau-cert/) has practice questions on sets, and the ones people get wrong are almost always about reuse and about fixed against dynamic, both covered below.
 
 ## 1. What a set actually is

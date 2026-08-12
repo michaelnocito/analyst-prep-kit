@@ -6,6 +6,8 @@ The short version: Tableau has about eight ideas in it, and every screen in the 
 
 One idea decides more of your Tableau experience than any other, so it gets the picture. Every field you drag is either blue or green. Blue cuts the view into separate buckets. Green draws a continuous axis. Same data, same shelf, two completely different charts.
 
+> _The original carries a diagram here. In words: Two charts sit side by side, both built from the same single field of order dates. On the left, the field is shown as a blue capsule, and the chart underneath it is four separate bars standing apart from one another, each sitting under its own header label along the bottom: Q1, Q2, Q3, Q4. Gaps separate the bars, showing that a blue field cuts the view into discrete buckets. On the right, the same field is shown as a green capsule, and the chart underneath it is a single unbroken line rising and falling across a continuous axis marked with tick marks rather than headers. No gaps appear anywhere in the right-hand chart, showing that a green field produces one continuous axis instead of separate buckets._
+
 **What this page is, and what it is not.** This is the concept layer: what each thing is and what it does. It is not a click-by-click build. If you want the hands-on version, the companion guide walks you through [building a Tableau dashboard and story on a real dataset](https://michaelnocito.github.io/analyst-prep-kit/guides/build-a-tableau-dashboard/), step by step, and publishing it. Working through that once alongside this once is the fastest route through both.
 
 ## 1. The four ideas everything else sits on
@@ -85,6 +87,8 @@ Now picture your own work. If you had a sales table in a database and a target s
 Before the explanation: you filter a view down to the top ten products, then apply a second filter for one region. Do you get the top ten products in that region?
 
 You do not, and the reason is the order of operations. Tableau applies filters in a fixed sequence, and each one only sees what survived the ones above it. Knowing the sequence is what turns "the filter did something weird" into "of course it did".
+
+> _The original carries a diagram here. In words: Six stacked bands run down the page, each one narrower than the one above it, forming a funnel. From top to bottom the bands are labelled: extract, data source, context, dimension, measure, table calculation. A downward arrow runs along the left side of the stack. The narrowing shows that each filter only sees the rows left over by every filter above it, and the table calculation filter at the bottom sees the smallest set of all._
 
 Reading the picture from the top down: an **extract filter** decides which rows even make it into your local copy. A **data source filter** trims what the workbook can see at all. A **context filter** is a normal filter you promote, and promoting it makes everything below it run on the reduced set. **Dimension filters** are your ordinary "Region equals West" filters. **Measure filters** run after aggregation, because a filter on "sum of sales above ten thousand" cannot run until the sum exists. **Table calculation filters** run last, on the already-built table.
 

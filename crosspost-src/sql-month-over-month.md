@@ -6,6 +6,8 @@ The short version: growth is this month minus last month, divided by last month.
 
 That last distinction is the one that bites, so it gets the picture.
 
+> _The original carries a diagram here. In words: Two side-by-side panels, each a vertical column of month rows. In the left panel the rows are January, February, March, and then May, because April is missing from the data. Curved arrows run from each row up to the row above it: February points to January, March points to February, and May points to March. The May-to-March arrow is drawn in a warning color with a cross beside it, because May is being compared to March, skipping the missing April. In the right panel the same months appear but a dashed April row has been inserted between March and May. Now the arrow from May points to April, and every arrow connects true calendar neighbors. A check mark sits beside the May-to-April arrow. The picture shows that LAG connects adjacent rows, so growth is only month-over-month when every calendar month has a row._
+
 **The worked example is real.** Every query on this page ran in SQLite against the twelve-row orders table shown below, and every output is pasted from the run. SQLite has had window functions since version 3.25, so you can reproduce all of it on your own machine today. If grouping itself is new, read [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/) first and come back.
 
 Here is the whole dataset. Twelve orders, five months, and no orders at all in April. That empty April is on purpose, because it is the star of trap number three.

@@ -6,6 +6,8 @@ The short version: comparison across categories takes a bar. Change over time ta
 
 One picture carries the fork, so it comes first.
 
+> _The original carries a diagram here. In words: A decision fork. On the left, a single rounded node contains the question: compare what? Four lines branch from it to four small chart pictures on the right, stacked vertically. The first branch, labelled categories, leads to a miniature bar chart with four vertical bars of different heights. The second branch, labelled time, leads to a miniature line chart with a single rising line over an axis. The third branch, labelled relationship, leads to a miniature scatter plot of dots drifting upward to the right. The fourth branch, labelled parts, leads to a miniature horizontal stacked bar divided into segments, drawn next to a small crossed-out pie, meaning that for part-of-whole comparisons a bar is preferred over a pie. The picture says that the single question of what the reader must compare selects one of four chart types._
+
 **Every number on this page is computed.** The example tables are shown in full, and every total, percentage, and correlation was verified by running the arithmetic in Python before it went on the page.
 
 ## 1. The one question, and the decision table

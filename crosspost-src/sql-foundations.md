@@ -6,6 +6,8 @@ The short version: SQL is one sentence with six parts, and every part answers a 
 
 One idea decides more of your SQL experience than any other, so it gets the picture. You write a query in one order. The database runs it in a different order. Almost every confusing SQL error is that gap.
 
+> _The original carries a diagram here. In words: Two columns of stacked boxes face each other. The left column, headed "you write", lists the clauses in typing order from top to bottom: SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT. The right column, headed "it runs", lists the same clauses in execution order: FROM, WHERE, GROUP BY, HAVING, SELECT, ORDER BY, LIMIT. Curved lines connect each clause on the left to the same clause on the right. Six of the seven lines run roughly straight across. One line, the one belonging to SELECT, is drawn in a strong accent color and sweeps steeply downward from the very top of the left column to the fifth position on the right, showing that SELECT is written first but runs almost last, after grouping has already happened._
+
 **What this page is, and what it is not.** This is the concept layer: what each piece is and what it does. It is not a typing course. If you want reps, the companion drill hands you thirteen runnable queries that each add one thing to the last. Working through that once alongside this once is the fastest route through both.
 
 ## 1. Tables, rows, and the one word that prevents most mistakes

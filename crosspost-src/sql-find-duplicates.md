@@ -6,6 +6,8 @@ The short version: group by the columns that define a duplicate, keep the groups
 
 One picture carries the whole method. Rows that share a key collapse into buckets, and the buckets holding more than one row are your duplicates.
 
+> _The original carries a diagram here. In words: A left-to-right picture in three stages. Stage one is a column of eight row boxes. Three of them carry the same small square marker, and two others share a different marker, showing that they hold the same key value. Stage two shows the rows collapsed into five buckets: one bucket holds the three matching rows, one holds the two matching rows, and three buckets hold a single row each. The two buckets holding more than one row are outlined in a warm warning color and labelled with their counts, three and two. Stage three shows only those two flagged buckets passing through to the result. The picture shows that grouping rows by their key makes every duplicate visible as a bucket whose count is above one, while unique rows form buckets of one and drop away._
+
 **The worked example is real.** Every number on this page comes from a 14-row customers table I built with three duplicates seeded on purpose, and every query was run against it in SQLite before its output was pasted here. The table is small enough to check by eye, which is the point: you can confirm every result yourself. If `GROUP BY` itself is new, read [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/) first and come back.
 
 Here is the table. Fourteen rows, and the signup system has misbehaved in three different ways.

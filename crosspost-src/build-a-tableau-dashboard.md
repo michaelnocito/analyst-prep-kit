@@ -6,6 +6,8 @@ Four small sheets, rather than a wall of charts, because a dashboard has to argu
 
 **Dashboard vs Story, in one line.** A **dashboard** puts several charts on one screen so someone can explore. A **story** is a sequence of views with captions, clicked through in order, so someone is walked to a conclusion. Build both: the dashboard is what a hiring manager glances at, the story is what proves you can think.
 
+> _The original carries a diagram here. In words: Four separate worksheets stack on the left: a big single number, a set of vertical bars, a set of horizontal bars, and a scatter of circles. An arrow points right to one dashboard panel that holds all four of them arranged on a single screen: the number across the top, the two bar charts side by side in the middle, the scatter along the bottom. A second arrow points right to three story cards numbered one, two and three, each showing one of those views with a caption line above it._
+
 **The worked example.** Every instruction below is written against a real, free dataset: the [Telco Customer Churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn) file on Kaggle, 7,043 customers, one row each. A finished analysis of it, including the Python script that shapes the data, is public at [telco-churn-analysis](https://github.com/michaelnocito/telco-churn-analysis). Swap in your own dataset and the steps do not change, only the field names do.
 
 ## Step 1: Shape the data before you open Tableau

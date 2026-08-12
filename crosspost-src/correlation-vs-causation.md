@@ -6,6 +6,8 @@ The short version: a correlation is one fact with four possible stories behind i
 
 One picture carries the whole idea, so it comes first. The same observed link between X and Y, and the four stories that could each have produced it.
 
+> _The original carries a diagram here. In words: Four panels side by side, each showing the same two boxes labelled X and Y. In the first panel a solid arrow points from X to Y, meaning X causes Y. In the second panel the solid arrow points the other way, from Y to X, meaning Y causes X. In the third panel a third box labelled Z sits above the pair in a warning colour, with two solid arrows running down from Z to X and from Z to Y, while the direct line between X and Y is dashed and crossed out, meaning a third thing drives both and the link between X and Y is not a real causal link. In the fourth panel there is no arrow at all between X and Y, only a small scatter of dots between them, meaning the pattern is chance in a small sample. All four panels would produce the same observed correlation, which is why the correlation alone cannot pick between them._
+
 **Every number on this page is computed.** The worked example is a 12-row table you can see in full, and every correlation on the page was produced by running the shown code on that table. If reading data with pandas is new, [SQL and Python for analysts](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-and-python/) covers the setup and comes back here in ten minutes.
 
 ## 1. The three explanations, and the quiet fourth

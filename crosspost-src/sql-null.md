@@ -6,6 +6,8 @@ The short version: NULL means unknown, not zero and not empty text. A comparison
 
 That yes-only gate is the one idea under everything on this page, so it gets the picture.
 
+> _The original carries a diagram here. In words: A left-to-right picture of six rows approaching a gate labelled WHERE. Each row carries the answer its comparison produced: two rows answer yes, two rows answer no, and two rows carry a question mark meaning unknown, because their compared value was NULL. Beyond the gate there are three paths. The yes path continues through to the result, holding two rows. The no path is stopped at the gate. The unknown path is drawn separately in a warning color, and it is also stopped at the gate, landing in the same discard area as the no rows. The picture shows that a comparison in SQL can answer yes, no, or unknown, and that the WHERE gate lets only yes rows pass, so unknown rows disappear from the result exactly as if they had answered no._
+
 **The worked example is real.** Every number on this page comes from a 10-row support-tickets table with NULLs seeded on purpose, and every query was run against it in SQLite before its output was pasted here. The table is small enough to check by eye. If `SELECT` and `WHERE` are new, start with [SQL foundations](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-foundations/) and come back.
 
 Here is the table. Ten tickets. Three are missing their close time, two are missing their region, and two have no assignee.

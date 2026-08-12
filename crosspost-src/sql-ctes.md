@@ -6,6 +6,8 @@ The short version: a CTE is a named temporary result you define before the main 
 
 One idea decides everything else here, so it gets the picture. Each named step takes the previous step's rows and narrows them, and every arrow has a row count you can read.
 
+> _The original carries a diagram here. In words: Four boxes arranged left to right, each connected to the next by an arrow, and each box smaller in height than the one before it. The first box is labelled all games and holds 82,956. An arrow leads to the second box, labelled rated, holding 10,507. An arrow leads to the third box, labelled well liked, holding 3,454. An arrow leads to the fourth box, labelled overlooked, holding 663. A final arrow leads to a result marker holding 175. Above each arrow is a small tick mark, showing that the row count can be read and checked at every step rather than only at the end. The shrinking boxes show a funnel in which every stage is visible and countable._
+
 **The worked example is real.** Every number on this page comes from a published portfolio project: finding the genuinely overlooked games in a catalogue of 82,956, at [Steam Hidden Gems on GitHub](https://github.com/michaelnocito/steam-hidden-gems). The steps below are the actual definition that produced the 175-game list. If `GROUP BY` is new, read [GROUP BY and HAVING](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-having/) first, because step three here depends on it.
 
 ## 1. What a CTE is, in one query

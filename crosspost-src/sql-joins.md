@@ -6,6 +6,8 @@ The short version: a join can drop rows that found no match, and duplicate rows 
 
 One idea decides everything else here, so it gets the picture. A join does not add columns to your table. It builds a new table, and you have to work out its row count yourself.
 
+> _The original carries a diagram here. In words: Three games listed on the left are matched to review rows listed in the middle. The first game, Parabox, connects by a single line to one review of 12 hours, and appears once in the result column on the right. The second game, Maj'Eyal, connects by three lines to three separate reviews of 174, 96 and 310 hours, and appears three times in the result column, its name repeated on each row. The third game, Until Then, has a line that ends in a cross because no review matches it, and it does not appear in the result column at all. The result column therefore holds four rows, while neither of the two original tables had four rows._
+
 **The worked example is real.** Every number on this page comes from a published portfolio project: a list of 175 games joined to a table of 41,154,794 player reviews. The queries run against the full datasets at [Steam Hidden Gems on GitHub](https://github.com/michaelnocito/steam-hidden-gems). If joins are the only thing here that is new, and clauses like `GROUP BY` and `HAVING` are too, start with [SQL foundations](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-foundations/) and come back.
 
 ## 1. What a join actually does to your rows

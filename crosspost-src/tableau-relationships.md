@@ -6,6 +6,8 @@ The short version: a join flattens two tables into one before you start. A relat
 
 One idea decides everything else here, so it gets the picture. It is the difference between combining the data once, up front, and combining it per question.
 
+> _The original carries a diagram here. In words: The picture is in two halves. The upper half, labelled join, shows two small tables merging through a funnel into a single wide flat table of six rows, in which a value from the smaller table is repeated on every row, shown as the same shaded cell appearing six times. A single arrow leads from that one flat table to a single chart. The lower half, labelled relationship, shows the same two small tables side by side, connected by a curved flexible line and never merged. Three separate arrows lead from that pair to three different charts, indicating that each view generates its own query against the tables. The contrast shows that a join produces one fixed combined table used by everything, while a relationship keeps the tables intact and combines them differently for each view._
+
 **This is on the certification.** Relationships arrived in Tableau 2020.2 and are the default today. The Salesforce Certified Tableau Desktop Foundations exam currently tests on Tableau 2022.3, so the relationship model is in scope, not optional history. The [Tableau Desktop Foundations kit](https://michaelnocito.github.io/analyst-prep-kit/tableau-cert/) has practice questions on it.
 
 ## 1. What the noodle is

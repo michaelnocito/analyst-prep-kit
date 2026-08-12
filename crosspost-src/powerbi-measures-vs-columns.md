@@ -6,6 +6,8 @@ The short version: a calculated column is computed once per row when the data lo
 
 The whole fork is a question of when the arithmetic runs, so that is the one idea the picture carries.
 
+> _The original carries a diagram here. In words: Two panels side by side. The left panel is labelled "load, once" and shows a refresh arrow feeding a data table of four rows; the table has an extra shaded column bolted onto its right edge, drawn with a lock on it, meaning the values were computed during the single load step and are now frozen in storage. The right panel is labelled "click, every time" and shows a slicer with one of two buttons pressed, an arrow from the slicer to a formula card, and an arrow from the formula card to a result card, drawn as a repeating loop. The contrast is the timing: the calculated column on the left ran once before anyone opened the report and cannot react to the slicer, while the measure on the right reruns inside the current filters on every click._
+
 **Every number here is hand-checkable.** DAX only runs inside Power BI, so this page uses a four-row table and shows the arithmetic beside every claim, in the style 100 ÷ 600 = 16.7%. If a number on this page does not match the arithmetic printed next to it, I got it wrong and you caught it.
 
 ## 1. The fork, and the one question that decides it

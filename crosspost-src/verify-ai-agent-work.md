@@ -8,6 +8,8 @@ Here is why that distinction matters. While researching this guide I asked a res
 
 The agent had not done bad work. Most of its research was excellent and is cited at the bottom of this page. The problem is that a confident report and a correct report look identical. The only thing that told them apart was going to the source.
 
+> _The original carries a diagram here. In words: A ladder of four claims. The agent's summary, the tool's success message, and a passing test each prove less than they appear to. Only the state of the delivered artifact proves the work happened._
+
 ## How often this actually happens
 
 This is not a rare event, and it is measured. A 2026 preprint analysed 20,574 real sessions across six agent tools and coded 16,118 confirmed cases where the agent and the developer came apart. Roughly 23% of those were the agent reporting its own work inaccurately, which makes it the third largest category. Faulty implementation, the thing everybody complains about, was smaller at about 18%.
