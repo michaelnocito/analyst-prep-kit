@@ -9,6 +9,107 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.12.0] — 2026-08-12 — Stats gets the content pass, and the train is complete
+
+Sixth and last kit in the content train. **Every kit has now had this pass.**
+
+**Stats arrived worst of all six on the metric that matters most.** 27 of its 32
+pick-one items — 84% of the kit — gave the answer away by length, and both
+surfaces were 88% longest-is-right. For comparison: Excel 25 of 102, Python 39 of
+84, Power BI 31 of 78, Tableau 44 of 64. The worst single item was L11's quiz, a
+100-character correct answer against a 33-character longest distractor: three
+times the length, and a learner who had read nothing could pick it blind. All 27
+were rewritten so the correct option sits at distractor weight, with the
+reasoning moved into each item's `explain`, where it is read after answering
+rather than before. **Over the band 27 → 0, longest-is-right 28 (88%) → 8 (25%)**
+— the lowest finishing figure of any kit in the train.
+
+Six of them could not be fixed by shortening the answer alone, because the
+correct option was the only one that named two things. On L102 all three
+distractors were "X for both" while the answer was "Mean/median for Revenue;
+count/proportion for Region" — the shape gave it away before the words did. All
+four options were rebuilt into the same two-part form, so the item now requires
+reading both halves rather than spotting the only long one. L4, L5, L6, L7 and L9
+were rebalanced the same way, which made every one of them a better item and not
+merely a shorter one.
+
+**"What this is" now opens all 16 lessons.** Three rows: what the thing is, where
+it shows up in a real job, and one ordinary-life comparison. Opening stage only,
+above the directive, because support that helps a novice starts costing that same
+person once they know the material (Kalyuga, Ayres, Chandler & Sweller 2003,
+*Educational Psychologist* 38(1):23-31). No guide row inside the block — the kit
+already puts `guideLinkHTML` under every stage and every practice step, so a row
+there would be the same offer twice in one viewport.
+
+The comparison row carries no domain vocabulary at all: a 90-word banned list
+(mean, median, spread, sample, population, null, p-value, skew, test, random…)
+enforced as a regex in the applier and again in the walker. Stats needed the
+constraint more than any other kit, because a dozen lessons already open with an
+analogy of their own — a soup pot, a courtroom, a race, a weather forecast — and
+the easy failure was to restate one of those. Every one of the 16 comparisons is
+new to the kit and to the other five: a school register, a shelf of books by
+thickness, two ovens set to the same temperature, shells picked off a beach, a
+smoke alarm, a coin deciding which garden beds get the fertilizer. The 16
+`compare` fields were harvested into these rows and deleted in the same splice.
+
+The result panel stays **on** for all 16, the same call as Power BI and Tableau,
+with the gate inverted to `show:false` as the way out. Here the panel *is* the
+artifact being taught — the curve, the scatter, the interval bar, the shape of
+the thing the lesson is about. No lesson needs the way out.
+
+Two shapes on this kit differ from the other five and would each have passed a
+copied check for the wrong reason. Its `unit` is a **number**, not a string, so
+the other appliers' `unit:"` key matches nothing here. And it already calls its
+quiz explanation field `explain`, so the lesson-level `explain:{is,use,like}`
+this pass adds makes any count of the bare string `explain:` read 76 → 92 and
+prove nothing. Both are asserted on `explain:{is:` instead, which is 0 before and
+16 after, with the quiz-level count confirmed unmoved at 76.
+
+`9d43ede` split as on the four kits before it — topic half N/A (0 drill items
+carry a topic), glyph half missing and applied. `d236a84` scanned clean as a
+regression check: 28 ordering surfaces, 72 pieces, none opening with an ordinal.
+`a62bb18` was already present. Vocabulary was already at parity — 1 stray against
+SQL's 2, and it is the same flashcard `← Prev / Next →` pager SQL carries.
+
+Measured, before → after:
+
+| measure | before | after |
+| --- | --- | --- |
+| longest-is-right | 28 of 32 (88%) | 8 (25%) |
+| over the 20% band | 27 | 0 |
+| vocabulary strays | 1 | 1 (already parity) |
+| "What this is" blocks | 0 | 16 of 16 |
+| dead `compare` fields | 16 | 0 |
+| ordering answer leaks | 0 of 72 | 0 of 72 |
+| CSS orphans | 19 | 19 |
+| route to a guide | 10 of 16 | 10 of 16 (already present) |
+
+`headless-test` 24/24 across all kits, `de-test stats` 23/1 (the known
+`../guides/${g[0]}` template limitation), `syntax-gate` 5/5 blocks.
+
+`walk-stats.mjs` extended with the four content assertions: **323 renders, 1,031
+forward controls pressed, 0 errors** (up from 211 renders on the same 1,031
+presses — the block is prose and adds no control to press). All seven new
+assertions were negative-tested by breaking the kit on a copy, and a
+`negtest-stats.mjs` now keeps them honest: remove the splice, leave the block on
+every stage, move it below the directive, slip a banned word into a comparison,
+restore a harvested `compare`, lengthen a correct answer, delete the result
+glyph — 7 of 7 caught, and the walker stays green on none of them.
+
+Browser-verified at 1280x900 with `clientWidth` asserted non-zero: the three rows
+render at stage 0 and nowhere else across three lessons, the block sits above the
+directive by both DOM order and geometry, the guide link stands on all six stages
+of the lessons that have one, the result panel appears on the worked example
+only, both the ✓ and ✕ glyphs render as real pseudo-elements, and horizontal
+overflow is 0 measured by attempting the scroll. Both themes resolve: the key
+text stays brighter than the row text in each.
+
+Left alone: `.v2-compare-grid`, `.v2-compare-col-head` and `.v2-compare-code` are
+pre-existing orphans from a Compare stage never built, as on the four kits before
+this one.
+
+---
+
 ## [3.11.0] — 2026-08-12 — Tableau gets the content pass
 
 Fourth kit in the content train, and the one that arrived worst on the metric
