@@ -9,6 +9,99 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.10.0] — 2026-08-12 — Power BI gets the content pass
+
+Third kit in the content train, and the first one where all six steps found real
+work. Excel and Python each arrived already holding two or three of them; Power
+BI arrived holding one.
+
+**The answer-length cue was the worst of any kit.** 31 of 78 pick-one items had a
+correct answer more than 20% longer than its longest distractor, and on the worst
+of them the giveaway was 3.4x. A learner who has read nothing can score well above
+chance on a set like that. Every one of the 31 was rewritten so the correct option
+sits at distractor weight, with the reasoning moved into the item's `exp`, where
+it is read after answering instead of before. Over the band 31 → 0, and
+longest-is-right 49 of 78 (63%) → 36 (46%) — past Python's 49%.
+
+Replacement was per OPTION STRING, asserted to match exactly once each, never per
+options array — the trap Excel exposed, where the correct answer is stored twice
+and rewriting one copy silently breaks the other.
+
+**"What this is" now opens all 39 lessons.** Three rows: what the thing is, where
+it shows up in a real job, and one ordinary-life comparison. Opening stage only,
+above the directive, because support that helps a novice starts costing that same
+person once they know the material (Kalyuga, Ayres, Chandler & Sweller 2003,
+*Educational Psychologist* 38(1):23-31). No guide row inside the block: this kit
+already puts `guideLinkHTML` under every stage and every practice step, so a
+fourth link in one viewport would be the same offer made twice.
+
+The comparison row carries **no domain vocabulary at all** — an 84-word banned
+list (measure, model, filter, table, row, total, count, type…) enforced as a
+regex assertion in the applier and again in the walker. Two rows failed that gate
+on the first run and were rewritten. Without the constraint the row degrades into
+a third restatement of the first two.
+
+The 39 `compare` fields were **harvested into those rows and deleted in the same
+splice**. Good prose, but never in a fixed shape, which is exactly why it should
+feed the three fixed rows rather than become a fourth.
+
+**The result panel stays ON here — the opposite of SQL.** SQL turned it off
+because it restated what the query obviously returned. On this kit 34 of the 39
+panels are a mock of the Power BI screen itself (the canvas, the Fields pane,
+Applied Steps) and the other 5 are the visual the measure produces. That is the
+artifact being taught, and no amount of reading the DAX tells a learner what the
+report looks like. `show:false` is the per-lesson way out; no lesson needs it.
+
+**One real answer leak, found by measurement.** Lesson 103's ordering exercise
+numbered its own four lines "1." to "4." — the same defect `d236a84` fixed on SQL
+lesson 100, which is why that step is a verify and not a port. The numbers are
+gone and the order is still recoverable by reasoning: you cannot keep rows before
+you have rows, and you cannot add up survivors before filtering. All 51 ordering
+surfaces and 199 pieces now scan clean.
+
+`9d43ede` split the same way it did on Excel and Python: the topic half is N/A
+(0 of 36 drill items carry a topic field), the glyph half was missing and applied
+— `.quiz-opt.correct/wrong::after` so a result does not depend on telling green
+from red.
+
+Vocabulary: 4 strays → 2, exact parity with SQL. The fill and ordering pagers said
+a bare "Next →"; they now name their destination through `fwdLabel(STEP_ASK…)`.
+The two that remain are the flashcard pager and Reset, which SQL also carries.
+
+### Measured, before → after
+
+| measure | before | after |
+|---|---|---|
+| longest-is-right | 49 of 78 (63%) | 36 (46%) |
+| over the 20% band | 31 | 0 |
+| vocabulary strays | 4 | 2 |
+| "What this is" blocks | 0 | 39 of 39 |
+| dead `compare` fields | 39 | 0 |
+| ordering answer leaks | 4 pieces (L103) | 0 of 199 |
+| CSS orphans | 29 | 29 |
+| route to a guide | 31 of 39 | 31 of 39 (already present) |
+
+`headless-test` 24/24 across all kits, `de-test powerbi` 25/1 (the known
+`../guides/${g[0]}/` template limitation), `syntax-gate` 4/4 blocks clean.
+
+New `walk-powerbi.mjs`: **299 renders, 2,512 forward controls pressed, 0 errors** —
+fewer renders than Python's 323 because the kit is 39 lessons rather than 42, and
+more presses. It confirms the block at stage 0 and no other stage, the guide link
+across 217 stage renders and 24 practice steps, both ordering surfaces winnable
+(39/39 and 12/12), 36 drill screens and 9 views clean. "Explain above the
+directive" is asserted against the TEMPLATE, not the output, because stage 0 has
+a null directive and the two never render together — the runtime check would pass
+vacuously. That assertion was negative-tested.
+
+Left alone, deliberately: `.v2-compare-grid` and `.v2-compare-col-head` are
+pre-existing orphans from a Compare stage never built, so deleting them would be
+sweeping someone else's diff. And `guidedSeqFor` maps only `fills` and `parsons`,
+dropping 12 linked bug drills from the guided path — identical in SQL, Python and
+Excel, so it is the kit-family design, not a Power BI regression. Bug drills
+remain reachable from the Practice tab.
+
+---
+
 ## [3.9.0] — 2026-08-12 — Python gets the content pass
 
 Second kit in the content train. Same six steps as Excel, and this time the
