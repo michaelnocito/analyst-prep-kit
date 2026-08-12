@@ -9,6 +9,105 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.8.0] — 2026-08-12 — Excel gets the content pass, and the content train starts
+
+First kit in the content train, after the structure train finished on all five.
+Groups B and D of the seventeen SQL-only commits: the "What this is" block, the
+longest-answer audit, the one vocabulary, the topic-label and ordering-chip
+checks, and the route from a lesson to its guide.
+
+Two things about Excel were not in the plan and set the size of this pass. The
+longest-answer audit had been **counting half of Excel**: the generic script
+reads `{opts, ans:<index>}`, and an Excel `build` item is `{choices, ans:"<the
+string>"}`, so 51 of the kit's 102 multiple-choice items were invisible to it.
+The real baseline was 102 items, 44 (43%) longest-is-right, 25 over the band —
+not the 51 / 26 / 13 the plan carried. The other four kits' item counts equal
+lessons × 2, so only Excel was undercounted. And Excel was the one kit that
+`6f45261` skipped: it had **no route from a lesson to a guide at all**, so 34
+Excel guides sat on the same domain with nothing pointing at them.
+
+### Added
+- **"What this is", written for all 51 lessons.** Three rows under the title:
+  what the thing is, how you use it and where it shows up in a job, and one
+  ordinary-life comparison. The comparison row carries no Excel vocabulary at
+  all — that constraint is what stops it becoming a third restatement, and it is
+  asserted by the walker rather than trusted. Opening stage only: support that
+  helps a novice starts costing that same person once they know the material
+  (Kalyuga, Ayres, Chandler & Sweller 2003, Educational Psychologist 38(1):23-31).
+  Verified in the browser as 51/51 present at stage 0 and 0 leaks past it.
+- **A route from a lesson to its guide, which this kit never had.** Its own
+  lesson-to-guide map, 42 of 51 lessons across 30 distinct guides, with the link
+  standing under every middle stage and every practice step, inside the "What
+  this is" block on the opening stage, and on the Done card. The nine lessons
+  with no honest match carry nothing, verified in the browser: a link that does
+  not answer the question the learner arrived with is worse than no link. All 30
+  guide URLs were fetched and returned 200.
+- **A structure walker for Excel** (`walk-excel.mjs`, ported from the Stats one)
+  and a **vocabulary counter** (`vocab-count.mjs`), both in apk-headless. The
+  walker asserts the three things this pass changed — explain at stage 0 and no
+  other stage, the guide link under the middle stages, a grid only where
+  `viz.show` opted it back in. **406 renders, 2,550 forward controls pressed, 0
+  ReferenceErrors, 0 `undefined` leaks.** Stats's run was 211 / 1,031.
+
+### Changed
+- **The longest answer stopped being the right answer.** 25 items were more than
+  20% longer than their longest distractor, so "pick the longest" scored without
+  reading the question. The reasoning was not deleted, it moved to `exp`, which
+  in nearly every case already said the thing the option was over-explaining;
+  where trimming alone was not enough the short distractors came up to the same
+  grammatical frame instead. **Over the 20% band 25 → 0. Longest-is-right 44
+  (43%) → 32 (31%)**, which is below SQL's post-fix 48%. The 15 items whose
+  answer is *shorter* than the longest distractor are a different thing and were
+  left alone.
+- **L16's Build had two right answers.** Fixing its length surfaced it: the stem
+  asked "which formula?" and offered `=SUMIF(D2:D10,"West",B2:B10)`, which
+  computes exactly the same total as the SUMPRODUCT it was a distractor for. The
+  stem now asks for the SUMPRODUCT form and all three options are SUMPRODUCT,
+  differing only in which array is compared. Two defensible answers is worse than
+  the cue it was fixed for.
+- **One word per concept.** Measured on control labels rather than on prose, so
+  the count means "controls carrying the wrong word": the flashcard pager was a
+  bare `→` where every other kit says `Next →`, and the Pivot Lab said "Clear
+  All" where this kit's own ordering drill says "Clear". **3 → 2**, and both
+  remaining are same-kind pagers, which is exactly what SQL left after `8bda2b6`.
+- **The lesson grid is opt-in, and 43 of 51 opted back in.** `efed124` turned
+  SQL's result panel off for every lesson because it restated what the query
+  plainly said. Excel's panel is not the same thing — it shows the sheet the
+  formula lives in, with an address, a formula bar and the result filled down
+  neighbouring rows. It stays off on the 8 lessons whose grid is a data display
+  whose caption is only a title (602, 603, 604, 605, 702, 706, 803, 804).
+- **The dead `compare` field is gone from all 51 lessons.** Nothing read it and
+  nothing had for a long time — the `.v2-compare` CSS belongs to the separate
+  attempt-versus-answer surface. Rather than delete a paragraph of real content
+  per lesson, each one was used as source material for that lesson's three rows
+  and then removed, in the same splice.
+- **A wrong answer carries a mark, not only a colour.** `9d43ede`'s glyph on
+  `.quiz-opt.correct` / `.wrong`, which the structure pass had not brought over,
+  so the result no longer depends on seeing hue.
+
+### Fixed
+- **Four ordering exercises could never be completed.** Found by the new walker,
+  not on any list. L802's Try stage had `"> 1"` in its pieces and `" > 1"` — with
+  a leading space — in its answer, so the comparison could never pass. PARSONS
+  13, 15 and 17 each had a piece pool smaller than the answer they were checked
+  against: two missing commas, a missing second `C2:C10`, and a missing closing
+  bracket. All four now supply exactly what the answer needs. **Ordering winnable:
+  Try 50/51 → 51/51, drill 19/22 → 22/22.**
+
+### Verified
+- `headless-test.mjs` 24/24 across all kits, `render-smoke.mjs` clean.
+- CSS orphans 29 before, 29 after, identical — this pass introduced none, and the
+  29 pre-existing ones were deliberately not swept.
+- Browser walk on the real DOM: explain at stage 0 only, guide link on stages
+  1-4 and every practice step, Done card carries the "Go deeper" variant, grid on
+  the worked example only, 0 horizontal overflow, 0 console errors, and the block
+  legible in both themes.
+- `de-test.mjs` has no `excel` config and never had: this kit keeps `reinforces`
+  inline on each lesson where the other five use a side map, so the harness's
+  coverage check does not apply. Noted rather than worked around.
+
+---
+
 ## [3.7.0] — 2026-08-12 — Stats gets the SQL prototype's flow, and the structure train finishes
 
 Fifth and last kit in the parity train, after Excel, Python, Power BI and
