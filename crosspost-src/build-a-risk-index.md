@@ -139,6 +139,8 @@ The part worth carrying to all of them is the sentence at the top. The rule belo
 
 ---
 
-*The full version of this guide lives on my site: [Build a Risk Index That Colors Itself](https://michaelnocito.github.io/analyst-prep-kit/guides/build-a-risk-index/).*
+*Originally published on Analyst Prep Kit: [Build a Risk Index That Colors Itself](https://michaelnocito.github.io/analyst-prep-kit/guides/build-a-risk-index/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

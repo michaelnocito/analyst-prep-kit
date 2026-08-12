@@ -282,6 +282,8 @@ One last thought, and I would genuinely like other people's answers. The first t
 
 ---
 
-*The full version of this guide lives on my site: [Standard Deviation in Everyday Words: What It Measures and How to Read It](https://michaelnocito.github.io/analyst-prep-kit/guides/standard-deviation/).*
+*Originally published on Analyst Prep Kit: [Standard Deviation in Everyday Words: What It Measures and How to Read It](https://michaelnocito.github.io/analyst-prep-kit/guides/standard-deviation/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

@@ -111,6 +111,8 @@ How long did your answer at the top take, the one about decoding `$H$2:$H$83000`
 
 ---
 
-*The full version of this guide lives on my site: [Name Your Data So Your Formulas Stop Breaking](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-name-your-data/).*
+*Originally published on Analyst Prep Kit: [Name Your Data So Your Formulas Stop Breaking](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-name-your-data/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

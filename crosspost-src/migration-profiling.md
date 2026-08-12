@@ -78,6 +78,8 @@ What is the worst thing you have found in a source system once you actually look
 
 ---
 
-*The full version of this guide lives on my site: [Stage 2: Profile the Source](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-profiling/).*
+*Originally published on Analyst Prep Kit: [Stage 2: Profile the Source](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-profiling/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

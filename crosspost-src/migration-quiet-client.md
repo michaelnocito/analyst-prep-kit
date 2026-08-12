@@ -83,6 +83,8 @@ What has actually worked for you when someone stopped replying?
 
 ---
 
-*The full version of this guide lives on my site: [When the Client Goes Quiet](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-quiet-client/).*
+*Originally published on Analyst Prep Kit: [When the Client Goes Quiet](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-quiet-client/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

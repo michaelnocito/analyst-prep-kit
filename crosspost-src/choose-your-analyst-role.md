@@ -214,6 +214,8 @@ Which of the nine did you pick, and what did the last five job adverts for it ac
 
 ---
 
-*The full version of this guide lives on my site: [Your First Analysis Is the Role You Are Targeting](https://michaelnocito.github.io/analyst-prep-kit/guides/choose-your-analyst-role/).*
+*Originally published on Analyst Prep Kit: [Your First Analysis Is the Role You Are Targeting](https://michaelnocito.github.io/analyst-prep-kit/guides/choose-your-analyst-role/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

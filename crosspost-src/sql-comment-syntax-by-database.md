@@ -107,6 +107,8 @@ Which database are you actually writing in today, and does the SQL you are writi
 
 ---
 
-*The full version of this guide lives on my site: [SQL Comment Syntax by Database: MySQL, PostgreSQL, SQL Server, SQLite, Oracle](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comment-syntax-by-database/).*
+*Originally published on Analyst Prep Kit: [SQL Comment Syntax by Database: MySQL, PostgreSQL, SQL Server, SQLite, Oracle](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comment-syntax-by-database/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

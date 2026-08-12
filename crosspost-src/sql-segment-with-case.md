@@ -298,6 +298,8 @@ One last thought, and I would genuinely like other people's answers. The one I r
 
 ---
 
-*The full version of this guide lives on my site: [Customer Segmentation in SQL With CASE WHEN](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-segment-with-case/).*
+*Originally published on Analyst Prep Kit: [Customer Segmentation in SQL With CASE WHEN](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-segment-with-case/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

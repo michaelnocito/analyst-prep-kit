@@ -83,6 +83,8 @@ One honest caveat so this doesn't curdle into hustle-culture: tenacity is a meth
 
 ---
 
-*The full version of this guide lives on my site: [Technical Tenacity: What to Do When the Tools Fight Back](https://michaelnocito.github.io/analyst-prep-kit/guides/technical-tenacity/).*
+*Originally published on Analyst Prep Kit: [Technical Tenacity: What to Do When the Tools Fight Back](https://michaelnocito.github.io/analyst-prep-kit/guides/technical-tenacity/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

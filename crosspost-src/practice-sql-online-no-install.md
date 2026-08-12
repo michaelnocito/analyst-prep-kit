@@ -161,6 +161,8 @@ One last thought, and I would genuinely like other people's answers. The thing t
 
 ---
 
-*The full version of this guide lives on my site: [How to Practice SQL Online With Nothing Installed (And Where Your Data Goes)](https://michaelnocito.github.io/analyst-prep-kit/guides/practice-sql-online-no-install/).*
+*Originally published on Analyst Prep Kit: [How to Practice SQL Online With Nothing Installed (And Where Your Data Goes)](https://michaelnocito.github.io/analyst-prep-kit/guides/practice-sql-online-no-install/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

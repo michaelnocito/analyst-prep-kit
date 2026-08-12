@@ -96,6 +96,8 @@ How has your workplace handled the gap when a system changed over?
 
 ---
 
-*The full version of this guide lives on my site: [Stage 7: Freeze, Cutover, Bridge](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cutover/).*
+*Originally published on Analyst Prep Kit: [Stage 7: Freeze, Cutover, Bridge](https://michaelnocito.github.io/analyst-prep-kit/guides/migration-cutover/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

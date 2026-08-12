@@ -47,6 +47,8 @@ You might hope intuition could stand in for measurement. The research says the o
 
 ---
 
-*The full version of this guide lives on my site: [Data-Driven Thresholds: Picking Cutoffs You Can Defend](https://michaelnocito.github.io/analyst-prep-kit/guides/data-driven-thresholds/).*
+*Originally published on Analyst Prep Kit: [Data-Driven Thresholds: Picking Cutoffs You Can Defend](https://michaelnocito.github.io/analyst-prep-kit/guides/data-driven-thresholds/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

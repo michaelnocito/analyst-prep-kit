@@ -123,6 +123,8 @@ Pick the table you have explained out loud most often this year. That explanatio
 
 ---
 
-*The full version of this guide lives on my site: [COMMENT ON TABLE: How to Store a Table Description in the Database Itself](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comment-on-table/).*
+*Originally published on Analyst Prep Kit: [COMMENT ON TABLE: How to Store a Table Description in the Database Itself](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-comment-on-table/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

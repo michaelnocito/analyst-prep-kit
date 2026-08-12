@@ -84,6 +84,8 @@ Go read the corners of the last pivot you shipped. What does each Values box say
 
 ---
 
-*The full version of this guide lives on my site: [Excel Just Summed Your ID Numbers and Said Nothing](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sum-of-id-trap/).*
+*Originally published on Analyst Prep Kit: [Excel Just Summed Your ID Numbers and Said Nothing](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sum-of-id-trap/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

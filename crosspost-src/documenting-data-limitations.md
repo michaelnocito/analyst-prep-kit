@@ -86,6 +86,8 @@ Write it as you work, not at the end. Each entry takes a minute while the issue 
 
 ---
 
-*The full version of this guide lives on my site: [Your Data Is Never Fully Clean, and Analysts Ship Anyway](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/).*
+*Originally published on Analyst Prep Kit: [Your Data Is Never Fully Clean, and Analysts Ship Anyway](https://michaelnocito.github.io/analyst-prep-kit/guides/documenting-data-limitations/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

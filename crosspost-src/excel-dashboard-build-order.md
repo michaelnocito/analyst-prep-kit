@@ -144,6 +144,8 @@ What's the step you named at the start, the one you'd normally leave until last?
 
 ---
 
-*The full version of this guide lives on my site: [Build a Dashboard in This Order: Correct, Then Clear, Then Compelling](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/).*
+*Originally published on Analyst Prep Kit: [Build a Dashboard in This Order: Correct, Then Clear, Then Compelling](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-dashboard-build-order/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

@@ -307,6 +307,8 @@ One last thought, and I would genuinely like other people's answers. The first p
 
 ---
 
-*The full version of this guide lives on my site: [How to Make a Pivot Table, and Read the Answer It Gives You](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-tables/).*
+*Originally published on Analyst Prep Kit: [How to Make a Pivot Table, and Read the Answer It Gives You](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-pivot-tables/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

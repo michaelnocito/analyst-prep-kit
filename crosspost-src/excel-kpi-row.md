@@ -90,6 +90,8 @@ Try the audit on the last dashboard you shipped: click its biggest number. Formu
 
 ---
 
-*The full version of this guide lives on my site: [Four Numbers Across the Top Do More Than Four Charts](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-kpi-row/).*
+*Originally published on Analyst Prep Kit: [Four Numbers Across the Top Do More Than Four Charts](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-kpi-row/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

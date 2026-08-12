@@ -95,6 +95,8 @@ It takes about ten minutes. It is the difference between "the join ran" and "the
 
 ---
 
-*The full version of this guide lives on my site: [Entity Resolution: One Real Thing, Many Messy Names](https://michaelnocito.github.io/analyst-prep-kit/guides/entity-resolution/).*
+*Originally published on Analyst Prep Kit: [Entity Resolution: One Real Thing, Many Messy Names](https://michaelnocito.github.io/analyst-prep-kit/guides/entity-resolution/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

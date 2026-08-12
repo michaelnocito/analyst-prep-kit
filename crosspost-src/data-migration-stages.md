@@ -92,6 +92,8 @@ Which of the eight do you think gets skipped most often on the jobs you have see
 
 ---
 
-*The full version of this guide lives on my site: [The Eight Stages of a Data Migration](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/).*
+*Originally published on Analyst Prep Kit: [The Eight Stages of a Data Migration](https://michaelnocito.github.io/analyst-prep-kit/guides/data-migration-stages/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

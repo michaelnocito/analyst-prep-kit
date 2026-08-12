@@ -119,6 +119,8 @@ Back to your answer from the top: who found your last wrong formula, you or some
 
 ---
 
-*The full version of this guide lives on my site: [Check Your Work Before Anyone Else Does](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/).*
+*Originally published on Analyst Prep Kit: [Check Your Work Before Anyone Else Does](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-check-your-work/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

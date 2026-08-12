@@ -286,6 +286,8 @@ One last thought, and I would genuinely like other people's answers. The first o
 
 ---
 
-*The full version of this guide lives on my site: [Percentiles, the IQR and the 1.5 Outlier Rule: How to Flag a Bad Row](https://michaelnocito.github.io/analyst-prep-kit/guides/percentiles-iqr-outliers/).*
+*Originally published on Analyst Prep Kit: [Percentiles, the IQR and the 1.5 Outlier Rule: How to Flag a Bad Row](https://michaelnocito.github.io/analyst-prep-kit/guides/percentiles-iqr-outliers/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

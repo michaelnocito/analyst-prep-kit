@@ -86,6 +86,8 @@ Which "what about just..." question do people ask about your current page? That 
 
 ---
 
-*The full version of this guide lives on my site: [Make One Control Drive Every Chart on the Page](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-slicers/).*
+*Originally published on Analyst Prep Kit: [Make One Control Drive Every Chart on the Page](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-slicers/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

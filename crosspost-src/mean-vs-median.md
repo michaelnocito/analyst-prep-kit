@@ -260,6 +260,8 @@ One last thought, and I would genuinely like other people's answers. The first m
 
 ---
 
-*The full version of this guide lives on my site: [Mean vs Median: When to Use Each, and When the Answer Changes](https://michaelnocito.github.io/analyst-prep-kit/guides/mean-vs-median/).*
+*Originally published on Analyst Prep Kit: [Mean vs Median: When to Use Each, and When the Answer Changes](https://michaelnocito.github.io/analyst-prep-kit/guides/mean-vs-median/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

@@ -232,6 +232,8 @@ One last thought, and I would genuinely like other people's answers. My worst NU
 
 ---
 
-*The full version of this guide lives on my site: [NULL in SQL: Why = NULL Finds Nothing and What to Write Instead](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/).*
+*Originally published on Analyst Prep Kit: [NULL in SQL: Why = NULL Finds Nothing and What to Write Instead](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-null/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

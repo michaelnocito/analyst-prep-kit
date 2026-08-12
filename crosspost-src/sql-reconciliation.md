@@ -280,6 +280,8 @@ One last thought, and I would genuinely like other people's answers. The one I r
 
 ---
 
-*The full version of this guide lives on my site: [How to Reconcile Two Tables in SQL When the Row Counts Match](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-reconciliation/).*
+*Originally published on Analyst Prep Kit: [How to Reconcile Two Tables in SQL When the Row Counts Match](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-reconciliation/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

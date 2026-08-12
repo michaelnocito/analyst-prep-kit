@@ -287,6 +287,8 @@ One last thought, and I would genuinely like other people's answers. The version
 
 ---
 
-*The full version of this guide lives on my site: [Row-Level Security in Power BI: Who Gets Filtered and Who Does Not](https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-row-level-security/).*
+*Originally published on Analyst Prep Kit: [Row-Level Security in Power BI: Who Gets Filtered and Who Does Not](https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-row-level-security/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

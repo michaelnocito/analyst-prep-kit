@@ -105,6 +105,8 @@ Which cell in your current workbook has a typed unit in it right now? Go press C
 
 ---
 
-*The full version of this guide lives on my site: [Show the Unit Without Breaking the Number](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-custom-number-formats/).*
+*Originally published on Analyst Prep Kit: [Show the Unit Without Breaking the Number](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-custom-number-formats/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

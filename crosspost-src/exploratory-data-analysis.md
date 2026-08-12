@@ -121,6 +121,8 @@ Treating an exploratory find as a proven fact is the analytical version of convi
 
 ---
 
-*The full version of this guide lives on my site: [Why Exploratory Data Analysis Matters](https://michaelnocito.github.io/analyst-prep-kit/guides/exploratory-data-analysis/).*
+*Originally published on Analyst Prep Kit: [Why Exploratory Data Analysis Matters](https://michaelnocito.github.io/analyst-prep-kit/guides/exploratory-data-analysis/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

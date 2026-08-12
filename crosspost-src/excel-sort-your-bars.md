@@ -73,6 +73,8 @@ The chart you pictured at the top: what was its order claiming, and how long did
 
 ---
 
-*The full version of this guide lives on my site: [Sort Your Bar Chart or It Means Nothing](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sort-your-bars/).*
+*Originally published on Analyst Prep Kit: [Sort Your Bar Chart or It Means Nothing](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-sort-your-bars/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

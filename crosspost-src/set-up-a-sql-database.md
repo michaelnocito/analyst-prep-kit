@@ -104,6 +104,8 @@ And if the file itself is huge (millions of rows, gigabytes on disk), the same d
 
 ---
 
-*The full version of this guide lives on my site: [How to Set Up a SQL Database for Beginners](https://michaelnocito.github.io/analyst-prep-kit/guides/set-up-a-sql-database/).*
+*Originally published on Analyst Prep Kit: [How to Set Up a SQL Database for Beginners](https://michaelnocito.github.io/analyst-prep-kit/guides/set-up-a-sql-database/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

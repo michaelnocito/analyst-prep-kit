@@ -169,6 +169,8 @@ One last thought, and I'd like other people's answers. The thing that changed my
 
 ---
 
-*The full version of this guide lives on my site: [Your Tableau Dashboard Needs Two or Three Views, Not Eight](https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-sheets-to-dashboard/).*
+*Originally published on Analyst Prep Kit: [Your Tableau Dashboard Needs Two or Three Views, Not Eight](https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-sheets-to-dashboard/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

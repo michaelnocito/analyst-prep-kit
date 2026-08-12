@@ -83,6 +83,8 @@ Your answer from the near-miss section, the share of $20+ games that could ever 
 
 ---
 
-*The full version of this guide lives on my site: [The Finding That Was Just Your Own Definition](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-circular-findings/).*
+*Originally published on Analyst Prep Kit: [The Finding That Was Just Your Own Definition](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-circular-findings/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

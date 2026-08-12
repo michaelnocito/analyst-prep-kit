@@ -254,6 +254,8 @@ One last thought, and I would genuinely like other people's answers. The first m
 
 ---
 
-*The full version of this guide lives on my site: [Gross vs Operating vs Net Margin: What Each One Tells You](https://michaelnocito.github.io/analyst-prep-kit/guides/gross-vs-operating-vs-net-margin/).*
+*Originally published on Analyst Prep Kit: [Gross vs Operating vs Net Margin: What Each One Tells You](https://michaelnocito.github.io/analyst-prep-kit/guides/gross-vs-operating-vs-net-margin/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

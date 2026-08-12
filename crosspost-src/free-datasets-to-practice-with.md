@@ -179,6 +179,8 @@ One last thought, and I would genuinely like other people's answers. I once spen
 
 ---
 
-*The full version of this guide lives on my site: [Where to Find Free Datasets to Practice With (And How to Pick One)](https://michaelnocito.github.io/analyst-prep-kit/guides/free-datasets-to-practice-with/).*
+*Originally published on Analyst Prep Kit: [Where to Find Free Datasets to Practice With (And How to Pick One)](https://michaelnocito.github.io/analyst-prep-kit/guides/free-datasets-to-practice-with/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

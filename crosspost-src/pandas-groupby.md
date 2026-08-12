@@ -319,6 +319,8 @@ One last thought, and I would genuinely like other people's answers. The first t
 
 ---
 
-*The full version of this guide lives on my site: [pandas GroupBy: How to Summarize a DataFrame Without Losing Track of Your Rows](https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-groupby/).*
+*Originally published on Analyst Prep Kit: [pandas GroupBy: How to Summarize a DataFrame Without Losing Track of Your Rows](https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-groupby/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

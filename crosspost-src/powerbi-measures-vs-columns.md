@@ -197,6 +197,8 @@ One last thought, and I would genuinely like other people's answers. My first ma
 
 ---
 
-*The full version of this guide lives on my site: [Calculated Column vs Measure in Power BI: The Rule That Decides](https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-measures-vs-columns/).*
+*Originally published on Analyst Prep Kit: [Calculated Column vs Measure in Power BI: The Rule That Decides](https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-measures-vs-columns/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

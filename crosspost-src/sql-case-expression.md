@@ -194,6 +194,8 @@ Which column in your own data would you least like to discover had been quietly 
 
 ---
 
-*The full version of this guide lives on my site: [The SQL CASE Expression, Explained for Beginners](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-expression/).*
+*Originally published on Analyst Prep Kit: [The SQL CASE Expression, Explained for Beginners](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-expression/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

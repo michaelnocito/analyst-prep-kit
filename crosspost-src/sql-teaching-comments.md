@@ -245,6 +245,8 @@ If you are starting a project rather than fixing one, write the WHY header _befo
 
 ---
 
-*The full version of this guide lives on my site: [How to Comment SQL So It Teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-teaching-comments/).*
+*Originally published on Analyst Prep Kit: [How to Comment SQL So It Teaches](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-teaching-comments/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

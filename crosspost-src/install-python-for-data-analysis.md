@@ -231,6 +231,8 @@ One last thought, and I would genuinely like other people's answers. I lost an e
 
 ---
 
-*The full version of this guide lives on my site: [How to Install Python for Data Analysis (And Why pip install Then Fails)](https://michaelnocito.github.io/analyst-prep-kit/guides/install-python-for-data-analysis/).*
+*Originally published on Analyst Prep Kit: [How to Install Python for Data Analysis (And Why pip install Then Fails)](https://michaelnocito.github.io/analyst-prep-kit/guides/install-python-for-data-analysis/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

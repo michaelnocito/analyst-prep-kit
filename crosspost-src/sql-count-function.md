@@ -168,6 +168,8 @@ Leading a project write-up with "the dataset has 83,201 games across 41 genres, 
 
 ---
 
-*The full version of this guide lives on my site: [COUNT in SQL, Explained for Beginners](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-function/).*
+*Originally published on Analyst Prep Kit: [COUNT in SQL, Explained for Beginners](https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-function/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

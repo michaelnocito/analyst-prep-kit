@@ -92,6 +92,8 @@ Your prediction from the top: did you say 8053? And which of your own columns ar
 
 ---
 
-*The full version of this guide lives on my site: [The Dialog That Quietly Deletes Your Zip Codes](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-csv-import-leading-zeros/).*
+*Originally published on Analyst Prep Kit: [The Dialog That Quietly Deletes Your Zip Codes](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-csv-import-leading-zeros/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

@@ -233,6 +233,8 @@ One last thought, and I would genuinely like other people's answers. My temperat
 
 ---
 
-*The full version of this guide lives on my site: [Correlation vs Causation: The Three Explanations for Any Pattern](https://michaelnocito.github.io/analyst-prep-kit/guides/correlation-vs-causation/).*
+*Originally published on Analyst Prep Kit: [Correlation vs Causation: The Three Explanations for Any Pattern](https://michaelnocito.github.io/analyst-prep-kit/guides/correlation-vs-causation/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

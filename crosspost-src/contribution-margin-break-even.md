@@ -267,6 +267,8 @@ Last thing, and this one I am genuinely asking. The first product I ever recomme
 
 ---
 
-*The full version of this guide lives on my site: [Contribution Margin and Break-Even: The Fixed Cost That Does Not Belong in the Unit](https://michaelnocito.github.io/analyst-prep-kit/guides/contribution-margin-break-even/).*
+*Originally published on Analyst Prep Kit: [Contribution Margin and Break-Even: The Fixed Cost That Does Not Belong in the Unit](https://michaelnocito.github.io/analyst-prep-kit/guides/contribution-margin-break-even/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

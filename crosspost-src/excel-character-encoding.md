@@ -88,6 +88,8 @@ Run the ten-second audit right now on the biggest imported file you have open th
 
 ---
 
-*The full version of this guide lives on my site: [The Names Came In as Gibberish and Excel Said Nothing](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-character-encoding/).*
+*Originally published on Analyst Prep Kit: [The Names Came In as Gibberish and Excel Said Nothing](https://michaelnocito.github.io/analyst-prep-kit/guides/excel-character-encoding/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*

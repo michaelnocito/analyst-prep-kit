@@ -216,6 +216,8 @@ All three papers below are arXiv preprints. None carried a journal reference or 
 
 ---
 
-*The full version of this guide lives on my site: [How to Verify an AI Agent Actually Did the Work](https://michaelnocito.github.io/analyst-prep-kit/guides/verify-ai-agent-work/).*
+*Originally published on Analyst Prep Kit: [How to Verify an AI Agent Actually Did the Work](https://michaelnocito.github.io/analyst-prep-kit/guides/verify-ai-agent-work/)*
+
+*Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
 *If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*
