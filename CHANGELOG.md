@@ -9,6 +9,98 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.9.0] — 2026-08-12 — Python gets the content pass
+
+Second kit in the content train. Same six steps as Excel, and this time the
+audit tooling already existed, so the whole pass fit in one chat again.
+
+Python arrived in better shape than Excel on two of the six steps and much worse
+on a third. It already had the route from a lesson to its guide — `guideLinkHTML`
+under every stage and every practice step — so `a62bb18` needed nothing. Its
+vocabulary was already at parity: 2 strays, both pagers, exactly the kind SQL
+deliberately left. But its multiple choice was the worst of any kit measured so
+far by count: **39 of 84 items over the 20% band**, against Excel's 25 of 102.
+
+### Added
+- **"What this is", written for all 42 lessons.** Three rows under the title:
+  what the thing is, how you use it and where it shows up in a job, and one
+  ordinary-life comparison. The comparison row carries no Python vocabulary at
+  all — no `column`, `row`, `library`, `merge`, `type`, `code` — and that is
+  asserted by the walker against a 44-word list rather than trusted. Opening
+  stage only: support that helps a novice starts costing that same person once
+  they know the material (Kalyuga, Ayres, Chandler & Sweller 2003, Educational
+  Psychologist 38(1):23-31). 42/42 present at stage 0, 0 leaks past it.
+- **No guide row inside the block, unlike SQL's version.** SQL puts the guide
+  link inside `explain`; this kit already stands `kit-guide` under every stage
+  and every practice step, so a row in the block would be the same offer made
+  twice in one viewport. 27 of 42 lessons are mapped, 189 stage renders carry
+  the link.
+- **A structure walker for Python** (`walk-python.mjs`, ported from the Excel
+  one) in apk-headless. Four things changed in the port: the stage setter
+  (`setPyStage`/`getPyStage`), the guide marker (`class="kit-guide"`, no id, and
+  under *every* stage here rather than the middle ones), the ordering field
+  names, and the result panel's eyebrow. **323 renders, 2,073 forward controls
+  pressed, 0 ReferenceErrors, 0 `undefined` leaks.** Excel's run was 406 / 2,550,
+  Stats's 211 / 1,031; Python is a smaller kit with a deliberately shorter
+  guided path.
+
+### Changed
+- **The longest answer stopped being the right answer.** 39 items were more than
+  20% longer than their longest distractor — the worst count of any kit so far.
+  The reasoning was not deleted, it moved to `exp`, which nearly always already
+  said the thing the option was over-explaining; where trimming alone was not
+  enough the short distractors came up to the same grammatical frame instead.
+  **Over the 20% band 39 → 0. Longest-is-right 57 (68%) → 41 (49%)**, which
+  lands on SQL's own post-fix 48%. The 5 items whose answer is *shorter* than the
+  longest distractor are a different thing and were left alone, unchanged at 5.
+- **The result panel is opt-in, and 40 of 42 opted back in.** `efed124` turned
+  SQL's off everywhere because it restated what the query plainly said. Python is
+  the opposite case: the panel shows what the code *prints*, which someone still
+  learning to read Python cannot derive from the code — `print(type(x))` giving
+  `<class 'str'>` is the whole of lesson 102. It stays off only on 601 and 606,
+  whose panel is a bare grid with no caption saying what it shows.
+- **The dead `compare` field is gone from all 42 lessons.** Nothing rendered it.
+  Rather than delete a paragraph of real content per lesson, each one was used as
+  source material for that lesson's three rows and then removed, in the same
+  splice.
+- **A wrong answer carries a mark, not only a colour.** `9d43ede`'s glyph on
+  `.quiz-opt.correct` / `.wrong`, which this kit had as hue only, so the result
+  no longer depends on telling green from red.
+
+### Verified
+- `headless-test.mjs` 24/24 across all kits; `de-test.mjs python` 25/1, the one
+  failure being the known `../guides/${g[0]}/` template-expression limitation,
+  unchanged from before this pass.
+- **`9d43ede`'s topic-label half does not apply here**, measured the same way as
+  Excel: 0 of 70 drill items carry a topic field, and `_drillHead()` returns `''`
+  inside the guided path, so nothing named a topic above a problem. Only its
+  glyph half applied.
+- **`d236a84` verified, not ported.** `Ord.html` renders bare chips; asserted
+  with `/>\s*1[.)]/` against real output rather than read. Both ordering surfaces
+  are winnable — lesson Try 42/42, standalone drill 14/14 — each checked against
+  its own comparator, since the lesson stores indices and the drill stores piece
+  strings resolved through `_parsAnswerOrder`.
+- CSS orphans 25 before, 25 after. The three new `.lx` selectors are all
+  referenced; the pre-existing 25 (including `.v2-compare-grid` and
+  `.v2-compare-col-head`, from a Compare stage never built) were deliberately not
+  swept, since this pass did not orphan them.
+- Browser walk on the real DOM at 1265px and 375px: explain at stage 0 only,
+  guide link on all six stages with `../guides/pandas-read-csv/` resolving, the
+  output panel on the worked example only, 0 horizontal overflow measured by
+  attempting the scroll, and the block legible in both themes (light row
+  `rgb(82,82,91)` on `rgb(255,255,255)`, dark `rgb(195,199,206)` on
+  `rgb(24,24,27)`, accent rule sky-400).
+
+### Not changed, deliberately
+- **The guided path still drops three of its five drill types.** `guidedSeqFor`
+  keeps only `fills` and `parsons` — 29 steps, not the ~70 `LESSON_DRILLS` maps —
+  and the walker's low step count surfaced it. It is deliberate and documented in
+  the source with its citation (Monsell 2003): a card, a prose diagnosis and a
+  fix-the-fault item each switch the machinery without switching the topic. Left
+  alone.
+
+---
+
 ## [3.8.0] — 2026-08-12 — Excel gets the content pass, and the content train starts
 
 First kit in the content train, after the structure train finished on all five.
