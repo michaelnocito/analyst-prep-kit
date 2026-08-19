@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LIKE in SQL: Wildcards and Pattern Matching, for Beginners &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Beginner guide to SQL LIKE: what the % and _ wildcards do, how moving the wildcard changes the question, case sensitivity by database, the over-matching trap, NOT LIKE, escaping a literal percent sign, and why LIKE '%text%' gets slow.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-like-pattern-matching/">
+<meta property="og:title" content="LIKE in SQL, Explained for Beginners">
+<meta property="og:description" content="What % and _ actually do, how wildcard placement changes the question, case sensitivity by database, and the over-matching trap that silently doubles your results.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-like-pattern-matching.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-like-pattern-matching/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-like-pattern-matching.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "LIKE in SQL, Explained for Beginners",
+  "description": "Beginner guide to SQL LIKE: what the % and _ wildcards do, how moving the wildcard changes the question, case sensitivity by database, the over-matching trap, NOT LIKE, escaping a literal percent sign, and why LIKE '%text%' gets slow.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-like-pattern-matching/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-like-pattern-matching/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-19",
+  "dateModified": "2026-08-19",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-like-pattern-matching.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "LIKE in SQL, Explained for Beginners",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-like-pattern-matching/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../sql/">SQL Kit</a></p>
+  <h1>LIKE in SQL: Pattern Matching for Beginners</h1>
+  <p class="meta">The tool for searching inside a text column, not just matching it &middot; Part of the <a href="../../">Analyst Prep Kit</a></p>
+  <p class="byline" style="color:#52525B;font-size:14px;margin:-2px 0 18px">By <a href="../../about.html" rel="author" style="color:#0E7490">Michael Nocito</a>, data analyst &middot; Updated <time datetime="2026-08-19">August 19, 2026</time></p>
+
+  <p>Most of the time you ask SQL for an exact value. <code>WHERE status = 'Active'</code> is a closed question with a yes or no answer. But a lot of real columns do not hold one tidy value. They hold a sentence, a product name with a code stuck on the front, an email address, or a list of tags jammed into a single cell. For those you need a looser question, and <code>LIKE</code> is how you ask it. It is a small piece of syntax with exactly two moving parts, and once those click you can search inside text instead of only matching it.</p>
+
+  <div class="note"><strong>The one-sentence version.</strong> <code>=</code> asks "is this value exactly this?" <code>LIKE</code> asks "does this value match this shape?" The shape is written with two wildcards: <code>%</code> stands for any run of characters including none, and <code>_</code> stands for exactly one character.</div>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>Why equals asks a stricter question than you want</li>
+      <li>The two wildcards, % and _</li>
+      <li>Where you put the % is the whole question</li>
+      <li>NOT LIKE, and finding what is missing</li>
+      <li>Case sensitivity, which changes by database</li>
+      <li>The over-matching trap</li>
+      <li>Searching a column that holds a list</li>
+      <li>Matching a literal % or _</li>
+      <li>Why LIKE '%text%' gets slow</li>
+      <li>A LIKE cheat sheet</li>
+    </ol>
+  </div>
+
+  <h2>Why equals asks a stricter question than you want</h2>
+  <p>Take a <code>products</code> table with a <code>name</code> column:</p>
+  <table>
+    <tr><th>id</th><th>name</th></tr>
+    <tr><td>1</td><td>Blue Cotton Shirt</td></tr>
+    <tr><td>2</td><td>Shirt Stay Clips</td></tr>
+    <tr><td>3</td><td>Red Wool Sweater</td></tr>
+    <tr><td>4</td><td>Shirt</td></tr>
+  </table>
+  <p>You want the shirts. The obvious thing fails:</p>
+  <pre><code>SELECT name
+FROM products
+WHERE name = 'Shirt';</code></pre>
+  <p>That returns one row, id 4, because <code>=</code> compares the whole value start to finish. <code>Blue Cotton Shirt</code> is not the same string as <code>Shirt</code>, so it is excluded, and correctly so. Equals is doing its job. It is just the wrong question.</p>
+  <p>The question you actually have is "does the name contain the word Shirt anywhere in it?" That is a pattern, and patterns are what <code>LIKE</code> is for:</p>
+  <pre><code>SELECT name
+FROM products
+WHERE name LIKE '%Shirt%';</code></pre>
+  <p>Three rows come back: <code>Blue Cotton Shirt</code>, <code>Shirt Stay Clips</code>, and <code>Shirt</code>.</p>
+
+  <h2>The two wildcards, % and _</h2>
+  <p>Everything <code>LIKE</code> can do comes from two characters.</p>
+  <table>
+    <tr><th>Wildcard</th><th>Means</th><th>Example</th><th>Matches</th></tr>
+    <tr><td><code>%</code></td><td>Any run of characters, including none at all</td><td><code>'S%'</code></td><td><code>S</code>, <code>Sam</code>, <code>Sweater</code></td></tr>
+    <tr><td><code>_</code></td><td>Exactly one character, no more, no fewer</td><td><code>'S_m'</code></td><td><code>Sam</code>, <code>Sum</code>, but not <code>Steam</code></td></tr>
+  </table>
+  <p>The "including none at all" part of <code>%</code> is the bit people miss. <code>'S%'</code> matches the single letter <code>S</code>, because <code>%</code> is allowed to stand for nothing. The underscore is not so forgiving. It demands a character be there.</p>
+  <p>Say this one out loud before you read the answer: what would <code>'_at'</code> match, and would <code>flat</code> be in the list? Commit to an answer first.</p>
+  <p>It matches three-character values ending in <code>at</code>, so <code>cat</code>, <code>hat</code>, <code>bat</code>. <code>flat</code> is out, because <code>_</code> covers one character and <code>flat</code> has two before the <code>at</code>. If you wanted both you would write <code>'%at'</code>.</p>
+  <p>You can mix them. <code>'A__-%'</code> matches a value that starts with <code>A</code>, has exactly two more characters, then a hyphen, then anything. That is a useful shape for product codes and account numbers, where the format is fixed but the content is not.</p>
+
+  <h2>Where you put the % is the whole question</h2>
+  <p>Same wildcard, four positions, four completely different questions. This is the table worth memorising:</p>
+  <table>
+    <tr><th>You write</th><th>You are asking</th><th>Matches "Blue Cotton Shirt"?</th></tr>
+    <tr><td><code>LIKE 'Shirt'</code></td><td>Is it exactly Shirt (same as <code>=</code>)</td><td>No</td></tr>
+    <tr><td><code>LIKE 'Blue%'</code></td><td>Does it start with Blue</td><td>Yes</td></tr>
+    <tr><td><code>LIKE '%Shirt'</code></td><td>Does it end with Shirt</td><td>Yes</td></tr>
+    <tr><td><code>LIKE '%Cotton%'</code></td><td>Does it contain Cotton anywhere</td><td>Yes</td></tr>
+  </table>
+  <p>A <code>LIKE</code> pattern with no wildcard in it is just a slower <code>=</code>. If you write <code>LIKE 'Shirt'</code> you have asked for an exact match and should use <code>=</code> instead, which is clearer to whoever reads the query next.</p>
+  <div class="note"><strong>Read the pattern left to right, in words.</strong> <code>'%Cotton%'</code> reads as "anything, then Cotton, then anything." <code>'Blue%'</code> reads as "Blue, then anything." If you can say the pattern as a sentence, you will not put the percent signs in the wrong place.</div>
+
+  <h2>NOT LIKE, and finding what is missing</h2>
+  <p>Put <code>NOT</code> in front and you get the opposite set:</p>
+  <pre><code>SELECT name
+FROM products
+WHERE name NOT LIKE '%Shirt%';</code></pre>
+  <p>That returns the rows with no <code>Shirt</code> in them. This is more useful than it first looks, because "which rows do <em>not</em> fit the expected shape" is one of the most productive questions in data cleaning. Emails with no at sign, product codes missing their prefix, a text column where some rows hold a list and some do not. <code>NOT LIKE</code> finds the odd ones out.</p>
+  <div class="note"><strong>One catch worth knowing now.</strong> A row where the column is <code>NULL</code> is returned by neither <code>LIKE</code> nor <code>NOT LIKE</code>. NULL means unknown, and SQL will not claim an unknown value matches or fails to match a pattern. If you want the blanks too, ask for them: <code>WHERE name NOT LIKE '%Shirt%' OR name IS NULL</code>. The full story is in <a href="../sql-null/">NULL in SQL</a>.</div>
+
+  <h2>Case sensitivity, which changes by database</h2>
+  <p>Whether <code>'%shirt%'</code> finds <code>Blue Cotton Shirt</code> depends on which database you are sitting in. This surprises people who move between two of them, so it is worth checking once rather than assuming.</p>
+  <table>
+    <tr><th>Database</th><th>Is LIKE case sensitive?</th><th>How to force insensitive</th></tr>
+    <tr><td>SQLite</td><td>No for plain A-Z letters, yes for accented and non-English ones</td><td>Already insensitive for A-Z</td></tr>
+    <tr><td>PostgreSQL</td><td>Yes</td><td>Use <code>ILIKE</code></td></tr>
+    <tr><td>MySQL</td><td>Depends on the column collation, usually no</td><td>Usually already insensitive</td></tr>
+    <tr><td>SQL Server</td><td>Depends on the collation, usually no</td><td>Usually already insensitive</td></tr>
+  </table>
+  <p>The portable move, if you want the same answer everywhere, is to flatten both sides yourself:</p>
+  <pre><code>SELECT name
+FROM products
+WHERE LOWER(name) LIKE '%shirt%';</code></pre>
+  <p>That works in every database listed above, at the cost of a little speed. See the last section for why.</p>
+
+  <h2>The over-matching trap</h2>
+  <p>Predict this one before reading on. You search a genre column with <code>LIKE '%Video%'</code>. What comes back?</p>
+  <p>In a real Steam games dataset, that pattern matches both <code>Video Production</code> and <code>360 Video</code>, because both contain those five letters. That may be exactly what you wanted, or it may quietly double your result set.</p>
+  <p><code>%</code> does not know about word boundaries. It matches letters, not meaning. Some classics:</p>
+  <table>
+    <tr><th>Pattern</th><th>You meant</th><th>You also get</th></tr>
+    <tr><td><code>'%art%'</code></td><td>art</td><td>cart, start, Bart, particle</td></tr>
+    <tr><td><code>'%man%'</code></td><td>man</td><td>manage, human, Germany</td></tr>
+    <tr><td><code>'%IT%'</code></td><td>the IT department</td><td>credit, exit, monitor (where LIKE is case insensitive)</td></tr>
+  </table>
+  <p>The fix is to give the pattern more to hold on to. If the values are separated by a known character, include it: <code>'%, Sales%'</code> is far more precise than <code>'%Sales%'</code>. The next section shows the reliable version of that trick.</p>
+
+  <h2>Searching a column that holds a list</h2>
+  <p>This is where analysts reach for <code>LIKE</code> most often. Some columns pack several values into one cell, separated by commas:</p>
+  <table>
+    <tr><th>name</th><th>genres</th></tr>
+    <tr><td>Game A</td><td>Action,Indie,RPG</td></tr>
+    <tr><td>Game B</td><td>Casual,Indie</td></tr>
+    <tr><td>Game C</td><td>RPG</td></tr>
+  </table>
+  <p><code>=</code> is useless here, because almost no cell holds only <code>RPG</code>. <code>LIKE</code> handles it without any splitting:</p>
+  <pre><code>SELECT name
+FROM games
+WHERE genres LIKE '%RPG%';</code></pre>
+  <p>That finds Game A and Game C, whether the tag sits first, last, or buried in the middle.</p>
+  <p>The precise version guards against the over-matching trap. Wrap the value in the separator on both sides, then search for the separated tag:</p>
+  <pre><code>SELECT name
+FROM games
+WHERE ',' || genres || ',' LIKE '%,RPG,%';</code></pre>
+  <p>The <code>||</code> glues text together, so <code>Action,Indie,RPG</code> temporarily becomes <code>,Action,Indie,RPG,</code>. Now every tag has a comma on both sides, including the first and last, and the pattern <code>'%,RPG,%'</code> can only match a whole tag. A genre called <code>RPGMaker</code> would no longer be a false hit. Use <code>CONCAT(',', genres, ',')</code> instead of <code>||</code> in MySQL and SQL Server.</p>
+  <p>That column shape causes more trouble than just searching, including a distinct count that comes back wrong and never says so. <a href="../sql-multi-value-column/">One Cell, Many Values</a> covers the whole problem.</p>
+
+  <h2>Matching a literal % or _</h2>
+  <p>Every so often the character you are hunting for is a wildcard. Searching a notes column for an actual percent sign with <code>LIKE '%%%'</code> matches every row, which is not useful. Declare an escape character and mark the literal one:</p>
+  <pre><code>SELECT note
+FROM feedback
+WHERE note LIKE '%!%%' ESCAPE '!';</code></pre>
+  <p>Read that pattern as: anything, then a real percent sign (the one after the <code>!</code>), then anything. The <code>ESCAPE '!'</code> at the end is what tells SQL that <code>!</code> is the marker. You can pick any character for the job as long as it does not appear in your data. The same applies to a literal underscore, which matters more than you would think, because underscores are everywhere in column names and product codes.</p>
+
+  <h2>Why LIKE '%text%' gets slow</h2>
+  <p>An index on a text column works like the index at the back of a book: entries sorted alphabetically, so the database can jump straight to the right place. That works when you know how the value starts.</p>
+  <table>
+    <tr><th>Pattern</th><th>Can an index help?</th><th>Why</th></tr>
+    <tr><td><code>'Blue%'</code></td><td>Yes</td><td>Everything starting with Blue is filed together</td></tr>
+    <tr><td><code>'%Shirt'</code></td><td>No</td><td>The start is unknown, so there is nowhere to jump to</td></tr>
+    <tr><td><code>'%Cotton%'</code></td><td>No</td><td>Same problem, every row has to be read and checked</td></tr>
+  </table>
+  <p>On a few thousand rows this is invisible. On tens of millions it is the difference between an instant answer and a coffee break. It is not a reason to avoid <code>'%text%'</code>, it is a reason to know why the query got slow when the table grew. If you need fast searching inside text at scale, that is a full text search index, a different tool. <a href="../sql-indexing-for-analysts/">Indexing for Analysts</a> covers what an index can and cannot do.</p>
+  <p>The same logic explains the cost of <code>LOWER(name) LIKE ...</code> from earlier. Wrapping the column in a function means the index on that column no longer applies, because the index stores the original values, not the lowercased ones.</p>
+
+  <h2>A LIKE cheat sheet</h2>
+  <table>
+    <tr><th>You want&hellip;</th><th>Write</th></tr>
+    <tr><td>Contains a word</td><td><code>LIKE '%word%'</code></td></tr>
+    <tr><td>Starts with</td><td><code>LIKE 'word%'</code></td></tr>
+    <tr><td>Ends with</td><td><code>LIKE '%word'</code></td></tr>
+    <tr><td>Exactly this</td><td><code>= 'word'</code>, not LIKE</td></tr>
+    <tr><td>Does not contain</td><td><code>NOT LIKE '%word%'</code></td></tr>
+    <tr><td>Exactly one unknown character</td><td><code>LIKE 'A_C'</code></td></tr>
+    <tr><td>A fixed format, like three letters then a dash</td><td><code>LIKE '___-%'</code></td></tr>
+    <tr><td>Case insensitive everywhere</td><td><code>LOWER(col) LIKE '%word%'</code></td></tr>
+    <tr><td>Case insensitive in PostgreSQL</td><td><code>ILIKE '%word%'</code></td></tr>
+    <tr><td>One whole tag from a comma separated list</td><td><code>',' || col || ',' LIKE '%,tag,%'</code></td></tr>
+    <tr><td>A literal percent sign</td><td><code>LIKE '%!%%' ESCAPE '!'</code></td></tr>
+  </table>
+  <div class="note"><strong>Say it out loud before you run it.</strong> Read your pattern left to right as a sentence, swapping "anything" in for every <code>%</code>. If the sentence you say is not the question you meant to ask, the percent signs are in the wrong place. That one habit prevents most <code>LIKE</code> mistakes.</div>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Tableau, data migration, and the working habits around them.</div>
+
+  <div class="book">
+    <strong>You wrote LIKE '%art%' and got back cart, start and Bart, and no error said a word.</strong>
+    <p><em>SQL for Analysts</em> is 458 pages of the working answers, with the odd cases spelled out instead of skipped.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/sql-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-sql-like-pattern-matching'})">SQL for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Make WHERE, GROUP BY, JOIN, and the rest second nature.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> teaches the core of analyst SQL with worked examples, a live JOIN and Aggregation lab you run in the browser, flash cards, and a mock exam. Nothing to install.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit &rarr;</a>
+      <p style="margin:10px 0 0;font-size:15px">Or get right into it and learn by writing queries: <a href="../../drill/">open SQL Drill</a>, thirteen queries that each add one thing to the last.</p>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../sql-foundations/">SQL Foundations</a> &middot; <a href="../sql-like-pattern-matching/">LIKE and Wildcards</a> &middot; <a href="../sql-multi-value-column/">One Cell, Many Values</a> &middot; <a href="../sql-count-function/">COUNT in SQL</a> &middot; <a href="../sql-null/">NULL in SQL</a> &middot; <a href="../sql-group-by-having/">GROUP BY and HAVING</a> &middot; <a href="../sql-ctes/">SQL CTEs</a> &middot; <a href="../sql-window-functions/">Window Functions</a> &middot; <a href="../sql-joins/">SQL JOINs</a> &middot; <a href="../sql-case-expression/">The CASE Expression</a> &middot; <a href="../sql-find-duplicates/">Find Duplicates</a> &middot; <a href="../sql-indexing-for-analysts/">Indexing for Analysts</a> &middot; <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> &middot; <a href="../documenting-data-limitations/">Documenting Limitations</a> &middot; <a href="../entity-resolution/">Entity Resolution</a> &middot; <a href="../sql-teaching-comments/">Commenting SQL</a> &middot; <a href="../../drill/">SQL Drill</a> &middot; <a href="../../sql/">SQL Kit</a> &middot; <a href="../../projects/">Portfolio Projects</a>
+
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

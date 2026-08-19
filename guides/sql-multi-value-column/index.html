@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One Cell, Many Values: When a SQL Column Holds a List &mdash; Analyst Prep Kit</title>
+<meta name="description" content="A column storing Action,Indie,RPG in one cell silently breaks DISTINCT, COUNT and GROUP BY. How to spot it in a minute, why your distinct count came back in the thousands, and three ways to work with it, easiest first.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-multi-value-column/">
+<meta property="og:title" content="One Cell, Many Values: When a Column Holds a List">
+<meta property="og:description" content="Why a distinct count came back 2,923 when there are only 33 genres, the values that never appear alone, and three ways to handle a column that holds a list.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-multi-value-column.png">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-multi-value-column/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-multi-value-column.png">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .step h2{margin:0 0 8px;font-size:19px}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  .toc{font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:6px 0 4px;padding-left:22px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "One Cell, Many Values: When a Column Holds a List",
+  "description": "A column storing Action,Indie,RPG in one cell silently breaks DISTINCT, COUNT and GROUP BY. How to spot it in a minute, why your distinct count came back in the thousands, and three ways to work with it, easiest first.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-multi-value-column/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-multi-value-column/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-19",
+  "dateModified": "2026-08-19",
+  "image": "https://michaelnocito.github.io/analyst-prep-kit/assets/social/sql-multi-value-column.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "One Cell, Many Values: When a Column Holds a List",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-multi-value-column/"
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../sql/">SQL Kit</a></p>
+  <h1>One Cell, Many Values: When a Column Holds a List</h1>
+  <p class="meta">The column shape that makes DISTINCT lie to you &middot; Part of the <a href="../../">Analyst Prep Kit</a></p>
+  <p class="byline" style="color:#52525B;font-size:14px;margin:-2px 0 18px">By <a href="../../about.html" rel="author" style="color:#0E7490">Michael Nocito</a>, data analyst &middot; Updated <time datetime="2026-08-19">August 19, 2026</time></p>
+
+  <p>You ask a table for its list of categories, and the answer is 2,923. You were expecting about thirty. Nothing errored, nothing warned you, and the number is not a bug. It is the correct answer to a question you did not mean to ask. This happens when a column stores a <em>list</em> inside a single cell, and it quietly breaks <code>DISTINCT</code>, <code>COUNT</code>, and <code>GROUP BY</code> all at once. Here is how to spot it in under a minute, why the number came back wrong, and three ways to work with the column, easiest first.</p>
+
+  <div class="note"><strong>The one-sentence version.</strong> If a cell holds <code>Action,Indie,RPG</code> instead of one value, then <code>DISTINCT</code> counts unique <em>combinations</em>, not unique values, and every count built on top of it inherits the error.</div>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>The symptom: a distinct count that is far too big</li>
+      <li>Look at the values before you count them</li>
+      <li>Measure how widespread it is</li>
+      <li>Why DISTINCT gave you the wrong answer</li>
+      <li>The values that never appear alone</li>
+      <li>Three ways to work with it, easiest first</li>
+      <li>Which one to pick</li>
+      <li>Write it down as a limitation</li>
+      <li>Why the data looks like this</li>
+    </ol>
+  </div>
+
+  <p>The worked example throughout is a public Steam games dataset of 125,855 rows with a <code>Genres</code> column. Every number below is a real result from it, including the wrong one.</p>
+
+  <h2>The symptom: a distinct count that is far too big</h2>
+  <p>The opening move on any new column is to ask what values it holds:</p>
+  <pre><code>SELECT COUNT(DISTINCT Genres) AS genre_count
+FROM games_raw;</code></pre>
+  <p>The answer came back <strong>2,923</strong>. A digital storefront does not have 2,923 genres. It has a menu of a few dozen that a developer picks from.</p>
+  <p>That gap between the number you got and the number you expected is the single most valuable signal in this whole guide. It is not an inconvenience to route around, it is the finding. Whenever a distinct count on a categorical column comes back in the thousands, stop, because the column is almost certainly not holding what you think it is.</p>
+
+  <h2>Look at the values before you count them</h2>
+  <p>Before theorising, look. A count tells you how many, never what:</p>
+  <pre><code>SELECT DISTINCT Genres
+FROM games_raw
+LIMIT 20;</code></pre>
+  <table>
+    <tr><th>Genres</th></tr>
+    <tr><td>Adventure</td></tr>
+    <tr><td>Casual</td></tr>
+    <tr><td>Casual,Indie,Simulation</td></tr>
+    <tr><td>Action,Early Access</td></tr>
+    <tr><td>Action,Adventure</td></tr>
+    <tr><td>Simulation,Strategy</td></tr>
+  </table>
+  <p>There it is. Some cells hold one genre and some hold three, separated by commas. The column is not storing a genre, it is storing a list of genres as a piece of text.</p>
+  <div class="note"><strong>The habit worth stealing.</strong> Look first, measure second. If you measure first, you can only ever confirm or deny the thing you already suspected, and the thing you did not suspect stays invisible. Twenty rows of eyeballing is the cheapest step in analysis and it catches problems no summary statistic will report. The <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> guide builds the rest of that opening routine.</div>
+
+  <h2>Measure how widespread it is</h2>
+  <p>Twenty rows is an impression. Turn it into evidence, because the answer decides how much work you are in for. If a handful of rows hold lists, that is a small cleanup. If nearly all of them do, the shape of the column is the problem:</p>
+  <pre><code>SELECT COUNT(DISTINCT Genres) AS values_with_a_comma
+FROM games_raw
+WHERE Genres LIKE '%,%';</code></pre>
+  <p><strong>2,898</strong> of the 2,923 distinct values contain a comma. That is 99 percent. This is not an edge case in the data, it is the data.</p>
+  <p>(<code>LIKE '%,%'</code> reads as "anything, then a comma, then anything." If that syntax is new, <a href="../sql-like-pattern-matching/">LIKE and Wildcards</a> covers it.)</p>
+
+  <h2>Why DISTINCT gave you the wrong answer</h2>
+  <p><code>DISTINCT</code> did exactly what it promises. It returned each different value in the column once. The problem is that a "value" here is a whole comma separated string, and it has no idea the commas mean anything:</p>
+  <table>
+    <tr><th>Cell contents</th><th>What DISTINCT sees</th></tr>
+    <tr><td><code>Indie</code></td><td>One value</td></tr>
+    <tr><td><code>Casual,Indie</code></td><td>A different value</td></tr>
+    <tr><td><code>Casual,Indie,Simulation</code></td><td>A third, different value</td></tr>
+  </table>
+  <p>Three rows in your result, and the word <code>Indie</code> is in all three. So 2,923 is not the number of genres. It is the number of unique <em>combinations</em> of genres that at least one game uses. That is a real fact about the data, it just is not the fact anybody asked for.</p>
+  <p>The same distortion runs through every aggregate you build on the column. <code>GROUP BY Genres</code> makes 2,923 groups, most with a handful of games in them. A bar chart of it is unreadable. A percentage share computed from it is wrong, because a game tagged with three genres is counted once, in a bucket of its own, rather than once per genre.</p>
+
+  <h2>The values that never appear alone</h2>
+  <p>Here is the trap that catches people who think they have solved it. Flip the comma filter around and you get the cells holding exactly one genre, which are genre names standing on their own:</p>
+  <pre><code>SELECT DISTINCT Genres
+FROM games_raw
+WHERE Genres NOT LIKE '%,%'
+ORDER BY Genres;</code></pre>
+  <p>That returns <strong>24</strong> rows, and they look right. Action, Adventure, Casual, Indie, RPG, Racing, Simulation, Sports, Strategy, and so on. It is tempting to call that the genre list and move on.</p>
+  <p>It is incomplete, and nothing in the result says so. A value that is only ever applied <em>alongside</em> another one will sit inside the 2,898 lists and never once appear on its own. Probe for one:</p>
+  <pre><code>SELECT DISTINCT Genres
+FROM games_raw
+WHERE Genres LIKE '%Gore%';</code></pre>
+  <p><strong>132</strong> combinations come back, and not one of them is <code>Gore</code> by itself. <code>Gore</code> is real, it is used, and the 24 row list missed it completely. Splitting the column properly turns up <strong>33</strong> distinct values, so nine of them never stand alone.</p>
+  <div class="note"><strong>The general rule.</strong> Filtering a list column to the rows with one item gives you the values that <em>can</em> appear alone, not the values that <em>exist</em>. Those are different sets, and the difference is silent. Treat that 24 as a first draft to check, never as the answer.</div>
+
+  <h2>Three ways to work with it, easiest first</h2>
+
+  <div class="step">
+    <h2>1. Do not split it, filter it with LIKE</h2>
+    <p>If your real question is "show me the RPGs," you never needed the full genre list. Ask whether the cell contains the tag:</p>
+    <pre><code>SELECT Name, Price
+FROM games_raw
+WHERE Genres LIKE '%RPG%';</code></pre>
+    <p>This works whether the tag sits first, last, or in the middle. It needs no new syntax beyond the wildcards, and for most day to day filtering it is the right answer. Guard against matching part of a longer word by wrapping the value in commas first:</p>
+    <pre><code>SELECT Name, Price
+FROM games_raw
+WHERE ',' || Genres || ',' LIKE '%,RPG,%';</code></pre>
+    <p><strong>Good for:</strong> filtering to one or two known categories. <strong>Not good for:</strong> counting games per genre across all of them, which would mean writing one query per genre.</p>
+  </div>
+
+  <div class="step">
+    <h2>2. Match against a list you already have</h2>
+    <p>If the categories come from a fixed menu, you often have that menu somewhere, or can write it down once. Put it in a small table and join with a pattern:</p>
+    <pre><code>SELECT g.genre, COUNT(*) AS games
+FROM genre_list AS g
+JOIN games_raw AS r
+  ON ',' || r.Genres || ',' LIKE '%,' || g.genre || ',%'
+GROUP BY g.genre
+ORDER BY games DESC;</code></pre>
+    <p>This gives a proper count per genre without any string surgery, and it has a quiet advantage: because the list is yours, a genre with zero games still shows up when you switch to a <code>LEFT JOIN</code>, which a split can never tell you.</p>
+    <p><strong>Good for:</strong> a known, stable set of categories. <strong>Not good for:</strong> discovering categories you did not know were in there, which is the exact problem the 24 row list had.</p>
+  </div>
+
+  <div class="step">
+    <h2>3. Split the list into one row per value</h2>
+    <p>The complete answer. Break each list apart so one game with three genres becomes three rows, then group normally. Standard SQL has no split function, so this walks the text one comma at a time:</p>
+    <pre><code>WITH RECURSIVE split(genre, rest) AS (
+  SELECT '', Genres || ','
+  FROM games_raw
+  WHERE Genres IS NOT NULL AND Genres &lt;&gt; ''
+  UNION ALL
+  SELECT substr(rest, 1, instr(rest, ',') - 1),
+         substr(rest, instr(rest, ',') + 1)
+  FROM split
+  WHERE rest &lt;&gt; ''
+)
+SELECT trim(genre) AS genre,
+       COUNT(*) AS games
+FROM split
+WHERE trim(genre) &lt;&gt; ''
+GROUP BY lower(trim(genre))
+ORDER BY games DESC;</code></pre>
+    <p>Reading it in words: start each game off with an empty genre and its full list with a comma glued on the end, so the last item has a delimiter too. Then repeatedly cut at the first comma, keeping the piece before it and carrying the rest forward, until nothing is left. <code>instr</code> finds the position of the comma and <code>substr</code> cuts the text. <a href="../sql-ctes/">SQL CTEs</a> explains the <code>WITH</code> block itself.</p>
+    <p>That returns 33 genres with a game count each, and it is the version you would put in a report.</p>
+    <p><strong>Good for:</strong> counts per category, charts, anything needing the complete set. <strong>Not good for:</strong> a first look, since it is the most syntax for the least immediate payoff.</p>
+    <div class="note"><strong>Most databases have a shortcut.</strong> The recursive version above works everywhere, which is why it is worth seeing once, but you rarely need it: PostgreSQL has <code>unnest(string_to_array(genres, ','))</code>, SQL Server has <code>STRING_SPLIT(genres, ',')</code>, MySQL 8 has <code>JSON_TABLE</code>, BigQuery has <code>UNNEST(SPLIT(genres, ','))</code>, and DuckDB has <code>unnest(str_split(genres, ','))</code>. Check yours before writing the long form.</div>
+  </div>
+
+  <h2>Which one to pick</h2>
+  <table>
+    <tr><th>Your question</th><th>Use</th></tr>
+    <tr><td>Show me the rows in one category</td><td>LIKE filter</td></tr>
+    <tr><td>How many rows in each of a few known categories</td><td>LIKE filter, or the list join</td></tr>
+    <tr><td>How many rows in every category</td><td>Split, or the list join</td></tr>
+    <tr><td>What categories even exist in here</td><td>Split, it is the only one that discovers</td></tr>
+    <tr><td>A chart of category share</td><td>Split, and say in the caption that rows count once per category</td></tr>
+  </table>
+  <p>That last row matters and gets skipped. Once you split, a game tagged with three genres appears in three rows, so the genre counts add up to more than the number of games. Nothing is wrong, but a reader will assume the parts sum to the whole unless you tell them otherwise.</p>
+
+  <h2>Write it down as a limitation</h2>
+  <p>A multi value column is exactly the kind of thing that belongs in your write up rather than buried in a query. It changes what your numbers mean. Three lines cover it:</p>
+  <ul>
+    <li><strong>What the column actually holds.</strong> "The Genres field stores a comma separated list, so a game can carry several genres."</li>
+    <li><strong>How you handled it.</strong> "Genres were split to one row per game per genre before counting."</li>
+    <li><strong>What that does to the totals.</strong> "Games with several genres are counted once in each, so genre counts sum to more than the 125,855 games."</li>
+  </ul>
+  <p>There is a second thing worth flagging in this particular dataset, and it is the kind of detail that separates a real analysis from a tutorial. Those 33 values are not all genres. <code>Gore</code>, <code>Violent</code>, <code>Nudity</code> and <code>Sexual Content</code> are content warnings. <code>Accounting</code>, <code>Photo Editing</code> and <code>Video Production</code> are software categories, not games at all. The field mixes several kinds of label into one column, so "top genre" is a misleading headline unless you decide which of the 33 count and say which you dropped. <a href="../documenting-data-limitations/">Documenting Data Limitations</a> covers writing that section without undermining your own work.</p>
+
+  <h2>Why the data looks like this</h2>
+  <p>It helps to know this is a known shape with a known name, not a mess somebody made by accident. A database is described as being in <em>first normal form</em> when every cell holds a single value. A column packing a list into one cell breaks that rule, and the textbook fix is a separate small table with one row per pairing:</p>
+  <table>
+    <tr><th>game_id</th><th>genre</th></tr>
+    <tr><td>101</td><td>Action</td></tr>
+    <tr><td>101</td><td>Indie</td></tr>
+    <tr><td>101</td><td>RPG</td></tr>
+    <tr><td>102</td><td>Casual</td></tr>
+  </table>
+  <p>With that table, counting per genre is an ordinary <code>GROUP BY</code> and none of this guide is needed. So why does the flat version keep turning up? Because analysts receive data rather than design it. Exports flatten. Spreadsheets get typed by hand. APIs return an array and whoever wrote the CSV joined it with commas. Survey tools write "select all that apply" answers into one field as a matter of course.</p>
+  <p>You will meet this column shape in tags, skills, categories, region lists, product options, and multi select survey questions. Once you have recognised it once, you recognise it everywhere, and the first thing you will do on any new categorical column is look at twenty rows before you count them.</p>
+
+  <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Tableau, data migration, and the working habits around them.</div>
+
+  <div class="book">
+    <strong>DISTINCT returned 2,923 categories, the real answer was 33, and nothing flagged the difference.</strong>
+    <p><em>SQL for Analysts</em> is 458 pages of the working answers, with the odd cases spelled out instead of skipped.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/sql-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-sql-multi-value-column'})">SQL for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Make WHERE, GROUP BY, JOIN, and the rest second nature.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> teaches the core of analyst SQL with worked examples, a live JOIN and Aggregation lab you run in the browser, flash cards, and a mock exam. Nothing to install.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit &rarr;</a>
+      <p style="margin:10px 0 0;font-size:15px">Or get right into it and learn by writing queries: <a href="../../drill/">open SQL Drill</a>, thirteen queries that each add one thing to the last.</p>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../sql-foundations/">SQL Foundations</a> &middot; <a href="../sql-like-pattern-matching/">LIKE and Wildcards</a> &middot; <a href="../sql-multi-value-column/">One Cell, Many Values</a> &middot; <a href="../sql-count-function/">COUNT in SQL</a> &middot; <a href="../sql-null/">NULL in SQL</a> &middot; <a href="../sql-group-by-having/">GROUP BY and HAVING</a> &middot; <a href="../sql-ctes/">SQL CTEs</a> &middot; <a href="../sql-window-functions/">Window Functions</a> &middot; <a href="../sql-joins/">SQL JOINs</a> &middot; <a href="../sql-case-expression/">The CASE Expression</a> &middot; <a href="../sql-find-duplicates/">Find Duplicates</a> &middot; <a href="../sql-indexing-for-analysts/">Indexing for Analysts</a> &middot; <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> &middot; <a href="../documenting-data-limitations/">Documenting Limitations</a> &middot; <a href="../entity-resolution/">Entity Resolution</a> &middot; <a href="../sql-teaching-comments/">Commenting SQL</a> &middot; <a href="../../drill/">SQL Drill</a> &middot; <a href="../../sql/">SQL Kit</a> &middot; <a href="../../projects/">Portfolio Projects</a>
+
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
