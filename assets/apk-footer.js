@@ -26,12 +26,12 @@
     'margin-left:auto;margin-right:auto}';
   document.head.appendChild(css);
 
-  // SQL-only cross-sell: the prompt pack is a SQL product, so it appears on the
+  // SQL-only cross-sell: the comment system is a SQL product, so it appears on the
   // SQL surfaces and nowhere else rather than on every kit's footer.
   var SQL_KITS = { sql: 1, 'sql-dry-run': 1 };
   var packLink = SQL_KITS[kit]
-    ? '<a class="apk-eco-pack" href="https://michaelnocito.gumroad.com/l/sql-prompt-pack" ' +
-      'target="_blank" rel="noopener">SQL Teaching-Comment Prompt Pack ↗</a>' +
+    ? '<a class="apk-eco-pack" href="https://michaelnocito.gumroad.com/l/sql-comment-system" ' +
+      'target="_blank" rel="noopener">The SQL Comment System ↗</a>' +
       '<span class="apk-eco-sep">·</span>'
     : '';
 
@@ -58,7 +58,7 @@
   if (pack) {
     pack.addEventListener('click', function () {
       if (window.gtag) {
-        gtag('event', 'prompt_pack_click', { kit: kit });
+        gtag('event', 'comment_system_click', { kit: kit });
       }
     });
   }
