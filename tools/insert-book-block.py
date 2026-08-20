@@ -40,7 +40,8 @@ BLOCK = (
  '  <div class="book">\n'
  '    <strong>{hook}</strong>\n'
  '    <p><em>{title}</em> is {pages} pages, {what}.</p>\n'
- '    <a class="booklink" href="https://michaelnocito.gumroad.com/l/{bslug}" target="_blank" rel="noopener"'
+ '    <a class="booklink" href="https://michaelnocito.gumroad.com/l/{bslug}'
+ '?utm_source=analyst-prep-kit&utm_medium=guide&utm_campaign={bslug}" target="_blank" rel="noopener"'
  ' onclick="if(window.gtag)gtag(\'event\',\'guide_book_click\',{{kit:\'guide-{slug}\'}})">{title}, {price} &rarr;</a>\n'
  '  </div>\n\n'
 )

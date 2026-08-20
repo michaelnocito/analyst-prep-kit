@@ -30,7 +30,8 @@
   // SQL surfaces and nowhere else rather than on every kit's footer.
   var SQL_KITS = { sql: 1, 'sql-dry-run': 1 };
   var packLink = SQL_KITS[kit]
-    ? '<a class="apk-eco-pack" href="https://michaelnocito.gumroad.com/l/sql-comment-system" ' +
+    ? '<a class="apk-eco-pack" href="https://michaelnocito.gumroad.com/l/sql-comment-system' +
+      '?utm_source=analyst-prep-kit&utm_medium=cross-sell&utm_campaign=sql-comment-system" ' +
       'target="_blank" rel="noopener">The SQL Comment System ↗</a>' +
       '<span class="apk-eco-sep">·</span>'
     : '';
@@ -224,7 +225,8 @@
     '<div class="apk-book-body">' +
     '<strong>' + book.hook + '</strong>' +
     '<p><em>' + book.title + '</em> is ' + book.pages + ' pages, ' + book.what + '.</p>' +
-    '<a class="apk-book-link" href="https://michaelnocito.gumroad.com/l/' + book.slug + '" ' +
+    '<a class="apk-book-link" href="https://michaelnocito.gumroad.com/l/' + book.slug +
+    '?utm_source=analyst-prep-kit&utm_medium=kit-hub&utm_campaign=' + book.slug + '" ' +
     'target="_blank" rel="noopener">' + book.title + ', ' + book.price + ' &rarr;</a>' +
     '</div>';
   document.body.insertBefore(b, f);
