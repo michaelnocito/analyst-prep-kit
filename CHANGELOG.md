@@ -9,6 +9,19 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.20.0] — 2026-08-21 — Plan-mode focus: one direction, forward
+
+Mike, on the drill screenshot: "too many move forward, backward or submit
+buttons … we are guiding them then letting them loose." In plan mode
+(?from=plan) the wander surfaces now hide for the sitting. Drill: track
+switcher (#ladders + blurb), break timer, Back, start-over, and the site
+crumb all hidden; the per-drill guide link, Run, Next drill, Results/Database
+and the plan pill remain. Kit: the site nav (#nav) and every "← Lessons"
+button hidden via injected CSS; in-lesson stage flow, guide links and the
+pill remain. Guides keep their full chrome by design (Mike: guides and ads
+stay clickable). Kit-native and drill-native visitors see no change — every
+hide is gated on the query string. Parse gates green.
+
 ## [3.19.0] — 2026-08-21 — Real Test run 010: all twelve findings fixed
 
 Full fix pass on the playtest of the plan walk (findings rt010a–rt010l; the
