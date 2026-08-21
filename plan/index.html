@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Three-Day SQL Plan &middot; Analyst Prep Kit</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E7490'/%3E%3Crect x='8' y='9' width='16' height='3' rx='1.5' fill='%23fff'/%3E%3Crect x='8' y='15' width='16' height='3' rx='1.5' fill='%23fff' opacity='.75'/%3E%3Crect x='8' y='21' width='10' height='3' rx='1.5' fill='%23fff' opacity='.5'/%3E%3C/svg%3E">
+<meta name="description" content="Answer two questions and get a three-day SQL plan for the analyst role you want. Short days, real queries you type yourself, and the reasoning behind every step.">
+<!--
+  THREE-DAY PLAN BUILDER, v1. SQL only, with analysis twists per role.
+
+  What this page is: a router, not a course. It asks two questions, hands back a
+  hand-authored three-day plan, and every step links to something that already
+  exists (a kit lesson deep link, a drill ladder, a guide) or, where honesty
+  requires it, off-site (real job posts on day three of the interview plan).
+
+  Rules it lives by:
+  1. Every plan step says WHY it is there. The reasoning is the product.
+  2. Each day fits inside an hour. A plan that asks for more gets abandoned.
+  3. Steps deep-link where deep links exist: sql/#lesson-<id>, drill/?ladder=<slug>.
+  4. Progress is per plan combo (level:role), saved in this browser, so switching
+     answers never wipes a plan already in motion.
+  5. The next unchecked step is always visible in the bottom bar.
+
+  Deliberately NOT here in v1: Excel and the other kits (SQL proves the format
+  first), accounts, AI generation. The plans are hand-authored data below.
+-->
+<style>
+  :root{
+    --bg:#F5F7F8; --ink:#09090B; --muted:#52525B; --accent:#0E7490;
+    --line:#E4E7EA; --card:#FFFFFF; --ok:#15803D; --okbg:#F0FAF3; --okline:#BBE3C8;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --pad:18px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.65 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--accent)}
+  .shell{max-width:860px;margin:0 auto;padding:14px 20px 110px}
+  .crumb{font-size:13.5px;margin:0 0 8px;color:var(--muted)}
+  .crumb a{text-decoration:none}
+  h1{font-size:27px;line-height:1.2;margin:0}
+  .lead{font-size:15.5px;color:var(--muted);max-width:70ch;margin:6px 0 0}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:var(--pad);margin:14px 0 0}
+  .card h2{font-size:19px;margin:0 0 2px}
+  .card .sub{color:var(--muted);font-size:14.5px;margin:0 0 12px}
+
+  /* The two questions. Chips, one row each, tap-only. */
+  .qlabel{font:700 12px/1 inherit;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--muted);margin:14px 0 8px}
+  .qlabel:first-of-type{margin-top:2px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{background:var(--bg);border:1px solid var(--line);border-radius:999px;
+    padding:10px 15px;font:inherit;font-size:14.5px;cursor:pointer;min-height:44px;
+    color:var(--ink)}
+  .chip:hover{border-color:var(--accent)}
+  .chip[aria-pressed="true"]{background:rgba(14,116,144,.09);border-color:var(--accent);
+    color:var(--accent);font-weight:600}
+  .pickrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:16px 0 0;
+    padding-top:14px;border-top:1px solid var(--line)}
+  .pickrow p{margin:0;font-size:14px;color:var(--muted);flex:1 1 260px}
+  .btn-random{background:var(--card);border:1px solid var(--accent);color:var(--accent);
+    border-radius:10px;padding:10px 16px;font:600 14.5px/1 inherit;cursor:pointer;min-height:44px}
+  .btn-random:hover{background:rgba(14,116,144,.07)}
+
+  /* Plan header: what you said, and how the plan was thought through. */
+  .planhead{border-left:4px solid var(--accent)}
+  .planhead .said{font-size:14.5px;color:var(--muted);margin:0 0 10px}
+  .planhead .said b{color:var(--ink)}
+  .planhead .logic{margin:0;font-size:15px;max-width:72ch}
+  .progressline{margin:12px 0 0;font-size:14px;color:var(--muted)}
+  .progressline b{color:var(--ok)}
+
+  /* Day cards */
+  .day{position:relative}
+  .day.done{background:var(--okbg);border-color:var(--okline)}
+  .day .dtag{font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 4px}
+  .day.done .dtag::after{content:' \2713  done';color:var(--ok)}
+  .day h3{font-size:19px;margin:0}
+  .day .goal{color:var(--muted);font-size:14.5px;margin:4px 0 12px}
+  .steps{list-style:none;margin:0;padding:0}
+  .step{display:flex;gap:12px;align-items:flex-start;padding:11px 0;
+    border-top:1px solid var(--line)}
+  .step input[type=checkbox]{width:21px;height:21px;margin:3px 0 0;accent-color:var(--accent);
+    cursor:pointer;flex:none}
+  .step .body{min-width:0}
+  .step .what{font-size:15.5px;font-weight:600}
+  .step .what a{text-decoration-thickness:1px}
+  .step .time{font:600 12px/1 var(--mono);color:var(--muted);background:var(--bg);
+    border:1px solid var(--line);border-radius:6px;padding:3px 6px;margin-left:8px;
+    white-space:nowrap;vertical-align:2px}
+  .step .why{font-size:14px;color:var(--muted);margin:3px 0 0;max-width:66ch}
+  .step.checked .what{color:var(--muted);font-weight:500}
+  .step.checked .what a{color:var(--muted)}
+
+  /* The thinking box: the reasoning, shown, not hidden. */
+  .thinking{background:rgba(14,116,144,.06);border:1px solid rgba(14,116,144,.25);
+    border-radius:10px;padding:12px 14px;margin:14px 0 0}
+  .thinking .t{font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 5px}
+  .thinking p{margin:0;font-size:14.5px;max-width:68ch}
+
+  /* Win card */
+  .win{border-left:4px solid var(--ok)}
+  .win h3{font-size:19px;margin:0 0 6px}
+  .win .say{background:var(--okbg);border:1px solid var(--okline);border-radius:10px;
+    padding:12px 14px;font-size:15.5px;font-weight:600;margin:0 0 12px;max-width:68ch}
+  .win .next{font-size:14.5px;color:var(--muted);margin:0;max-width:70ch}
+
+  /* Next-up bar: the one directive, always visible once a plan exists. */
+  #nextbar{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:50;
+    background:var(--ink);color:#fff;border-radius:12px;padding:11px 16px;
+    box-shadow:0 6px 24px rgba(9,9,11,.3);max-width:min(720px,calc(100vw - 28px));
+    display:flex;gap:12px;align-items:center;cursor:pointer;border:0;font:inherit;
+    text-align:left}
+  #nextbar[hidden]{display:none}
+  #nextbar .k{font:700 10.5px/1 inherit;letter-spacing:.08em;text-transform:uppercase;
+    color:#7DD3E8;white-space:nowrap}
+  #nextbar .v{font-size:14.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap}
+  #nextbar.complete{background:var(--ok)}
+  #nextbar.complete .k{color:#CFF3DA}
+
+  footer{margin:26px 0 0;font-size:13.5px;color:var(--muted)}
+  @media (max-width:600px){
+    .chip{flex:1 1 100%;text-align:left}
+    .btn-random{width:100%}
+    .step .time{display:inline-block;margin:4px 0 0 0}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <p class="crumb"><a href="../">&larr; All kits</a> &middot; Three-Day Plan</p>
+  <h1>A three-day SQL plan, built around your goal</h1>
+  <p class="lead">Answer two questions. You get three short days of work, each inside an
+  hour, and every step tells you why it is there. Day three ends with a win you can say
+  out loud.</p>
+
+  <div class="card" id="picker">
+    <h2>Two questions</h2>
+    <p class="sub">Pick one answer in each row. The plan builds itself below.</p>
+    <p class="qlabel">Where is your SQL right now?</p>
+    <div class="chips" id="levelChips" role="group" aria-label="Where is your SQL right now?"></div>
+    <p class="qlabel">What kind of work do you want it for?</p>
+    <div class="chips" id="roleChips" role="group" aria-label="What kind of work do you want it for?"></div>
+    <div class="pickrow">
+      <p>No idea what to pick? Let the planner deal you a hand. Every combination is a
+      real plan.</p>
+      <button type="button" class="btn-random" id="randomBtn">Deal a random plan</button>
+    </div>
+  </div>
+
+  <div id="plan"></div>
+
+  <footer>Part of the <a href="../">Analyst Prep Kit</a>. Your picks and checked-off steps
+  save in this browser, so the plan is waiting when you come back.</footer>
+</div>
+
+<button type="button" id="nextbar" hidden>
+  <span class="k" id="nbK">Next up</span>
+  <span class="v" id="nbV"></span>
+</button>
+
+<noscript><p style="max-width:860px;margin:20px auto;padding:0 20px">This planner needs
+JavaScript. Without it, start with the <a href="../sql/">SQL kit</a> or the
+<a href="../guides/">how-to guides</a>.</p></noscript>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const KEY = 'apk-plan-v1';
+
+/* ── the two answers ──────────────────────────────────────────────────────── */
+
+const LEVELS = {
+  brandnew: {
+    chip: 'Brand new. Never written a query.',
+    said: 'you are brand new to SQL'
+  },
+  basics: {
+    chip: 'I can SELECT and filter. Then it gets shaky.',
+    said: 'you know the opening moves and it gets shaky after that'
+  },
+  interview: {
+    chip: 'An interview or screen is coming.',
+    said: 'you have an interview or screen coming'
+  },
+  onthejob: {
+    chip: 'I use it at work. I want the analyst layer.',
+    said: 'you already use SQL at work and want the analyst layer'
+  }
+};
+
+const ROLES = {
+  data:      { chip: 'Data analyst, general',      said: 'general data analyst work',
+               noun: 'a data analyst' },
+  marketing: { chip: 'Marketing or product',       said: 'marketing or product work',
+               noun: 'a marketing or product analyst' },
+  finance:   { chip: 'Finance or revenue',         said: 'finance or revenue work',
+               noun: 'a finance analyst' },
+  ops:       { chip: 'Operations or business',     said: 'operations or business work',
+               noun: 'an operations analyst' },
+  unsure:    { chip: 'Not sure yet',               said: 'work you have not picked yet, which is fine',
+               noun: 'an analyst' }
+};
+
+/* Each role's analysis twist: the question that role actually gets asked, and the
+   two guides that teach the pattern behind it. Unsure borrows the general pair and
+   adds an orientation read on day one. */
+const TWISTS = {
+  data: {
+    q: 'Which category performs best, and is the gap real or noise?',
+    g1: { href:'../guides/sql-segment-with-case/', label:'Segment rows with CASE',
+          why:'Splitting rows into named buckets is the most reused move in analyst SQL.' },
+    g2: { href:'../guides/sql-find-duplicates/', label:'Find duplicates in SQL',
+          why:'The first question a good analyst asks of any table: is anything counted twice?' }
+  },
+  marketing: {
+    q: 'Which step of the signup funnel loses the most people?',
+    g1: { href:'../guides/sql-funnel-analysis/', label:'Funnel analysis in SQL',
+          why:'The funnel is the marketing question. This is the query shape behind it.' },
+    g2: { href:'../guides/sql-cohort-retention/', label:'Cohort retention in SQL',
+          why:'Retention by signup month is the other chart every marketing team lives in.' }
+  },
+  finance: {
+    q: 'Which month actually grew, and by how much?',
+    g1: { href:'../guides/sql-month-over-month/', label:'Month-over-month change in SQL',
+          why:'Growth versus last period is the finance question, and it has a standard query shape.' },
+    g2: { href:'../guides/sql-running-total/', label:'Running totals in SQL',
+          why:'Cumulative revenue against a target is a one-window-function trick worth owning.' }
+  },
+  ops: {
+    q: 'Which records do not match between the two systems?',
+    g1: { href:'../guides/sql-reconciliation/', label:'Reconciliation queries in SQL',
+          why:'Operations work is two systems disagreeing. This is how you find where.' },
+    g2: { href:'../guides/sql-find-duplicates/', label:'Find duplicates in SQL',
+          why:'Duplicate records are the usual culprit behind numbers that will not tie out.' }
+  }
+};
+TWISTS.unsure = TWISTS.data;
+
+/* ── the plans ─────────────────────────────────────────────────────────────
+   plan(levelKey, roleKey) returns {logic, days:[{title, goal, steps, thinking}], win}.
+   A step: {what (html), time, why}. Links go to real surfaces:
+   lesson deep links sql/#lesson-<id>, drill ladders drill/?ladder=<slug>, guides. */
+
+function lesson(id, title){ return '<a href="../sql/#lesson-'+id+'">'+title+'</a>'; }
+function ladder(slug, text){ return '<a href="../drill/?ladder='+slug+'">'+text+'</a>'; }
+function guide(g){ return '<a href="'+g.href+'">'+g.label+'</a>'; }
+
+function buildPlan(lv, rk){
+  const role = ROLES[rk], tw = TWISTS[rk];
+  const unsureStep = {
+    what: 'Bonus read: <a href="../guides/what-is-data-analysis/">What is data analysis?</a>',
+    time: '8 min',
+    why: 'You said you are not sure where to point this yet. This is the job, described plainly, so the next two days have a direction.'
+  };
+
+  if (lv === 'brandnew') return {
+    logic: 'The plan gets your hands on a real query on day one and keeps every session '+
+      'inside an hour. Explanations come right after you have typed something, not before. '+
+      'That order is deliberate: doing first is what makes the explanation land.',
+    days: [
+      { title:'Run your first query',
+        goal:'Type a real query and watch real rows come back.',
+        steps: [
+          { what: lesson(100,'What SQL Is, and Why It Is Worth Your Time'), time:'10 min',
+            why:'Ten minutes of orientation so the words in the next step mean something.' },
+          { what: lesson(1,'SELECT &amp; FROM'), time:'15 min',
+            why:'The one pattern every query on earth starts with.' },
+          { what: ladder('music-country','SQL Drill, first three rungs'), time:'10 min',
+            why:'Typing it yourself is what makes it stick. Reading alone will not.' }
+        ].concat(rk==='unsure' ? [unsureStep] : []),
+        thinking:'Most SQL plans start with two days of theory. Yours starts at a keyboard, '+
+          'because the fastest way to believe you can do this is to watch rows come back '+
+          'from a query you typed.' },
+      { title:'Ask sharper questions',
+        goal:'Keep only the rows you care about, then put the best ones on top.',
+        steps: [
+          { what: lesson(2,'WHERE'), time:'15 min',
+            why:'Filtering is what turns a data dump into an answer.' },
+          { what: lesson(3,'ORDER BY &amp; LIMIT'), time:'12 min',
+            why:'Top ten lists are half of analyst work. This is the whole trick.' },
+          { what: ladder('music-country','SQL Drill, next three rungs'), time:'10 min',
+            why:'Same ladder as yesterday. Each rung is the last one plus one new thing.' }
+        ],
+        thinking:'Day one proved you can pull data. Day two adds the two moves that '+
+          'answer real questions: filter the rows, then sort what is left. Everything '+
+          'fancier than this is built on top of these.' },
+      { title:'Answer one real question end to end',
+        goal:'Climb the ladder to its final answer, then say what the answer means.',
+        steps: [
+          { what: ladder('music-country','Finish the SQL Drill ladder'), time:'20 min',
+            why:'The last rungs combine everything from the first two days into one real answer.' },
+          { what:'Write one plain sentence: what did the final query find?', time:'5 min',
+            why:'Saying the result in words is the analyst half of the job. The query is only the tool.' },
+          { what:'Look ahead: '+guide(tw.g1), time:'8 min',
+            why:'A skim, not a study session. This is the kind of question '+role.noun+
+                ' answers with SQL, so you can see where the road goes.' }
+        ],
+        thinking:'A finished ladder beats ten started tutorials. The win below is true '+
+          'the moment you check the last box, and it is the sentence that makes the next '+
+          'step feel obvious instead of scary.' }
+    ],
+    win: {
+      say:'I pulled a real answer out of a real database, with SQL I typed myself.',
+      next:'Keep the streak: the <a href="../sql/">SQL kit</a> continues from exactly here, '+
+        'and <a href="../guides/sample-database-for-sql-practice/">this guide</a> sets you up '+
+        'with a practice database of your own.'
+    }
+  };
+
+  if (lv === 'basics') return {
+    logic: 'You already have SELECT and WHERE, so the plan skips them. It spends all '+
+      'three days on the two jumps that make SQL feel hard, grouping and joining, and '+
+      'makes you type both against real tables until they feel routine.',
+    days: [
+      { title:'From rows to answers',
+        goal:'Learn the move behind most analyst questions: how many, per what.',
+        steps: [
+          { what: lesson(5,'COUNT, SUM &amp; GROUP BY'), time:'15 min',
+            why:'Most real questions are counts and sums per category. This is that move.' },
+          { what: ladder('grouping','GROUP BY drill ladder'), time:'20 min',
+            why:'Typed reps on real data, one added clause per rung.' }
+        ].concat(rk==='unsure' ? [unsureStep] : []),
+        thinking:'You said it gets shaky after the basics. The single biggest jump in '+
+          'usefulness is GROUP BY, so it gets a full day of reps before anything new '+
+          'is added on top.' },
+      { title:'JOINs without fear',
+        goal:'Match rows across two tables and keep the row count honest.',
+        steps: [
+          { what: lesson(4,'INNER JOIN'), time:'15 min',
+            why:'One idea: match rows on a key. Everything else is a variation.' },
+          { what: lesson(6,'LEFT JOIN &amp; NULLs'), time:'15 min',
+            why:'The variation analysts actually use, plus the NULL trap it creates.' },
+          { what: ladder('joins','JOINs drill ladder, a data migration'), time:'20 min',
+            why:'Migrations punish every JOIN mistake instantly, which is exactly why they teach JOINs well.' }
+        ],
+        thinking:'JOINs are where most people decide SQL is hard. They are one idea '+
+          'wearing four costumes. A day of typing them against tables that punish '+
+          'mistakes turns fear into routine.' },
+      { title:'The combined move',
+        goal:'Group, join, and filter the groups, in one query.',
+        steps: [
+          { what: lesson(7,'HAVING &amp; Duplicates'), time:'15 min',
+            why:'Filtering groups is the last piece of the core. Duplicates are where it earns rent.' },
+          { what:'Read: '+guide(tw.g1), time:'10 min',
+            why: tw.g1.why },
+          { what:'In the drill, answer this in one query: '+tw.q, time:'15 min',
+            why:'A role-shaped question, answered end to end, is the proof the shaky feeling is gone.' }
+        ],
+        thinking:'Day three combines the two jumps on a question phrased the way '+
+          role.noun+' would actually hear it. Answering it in one query is the '+
+          'whole point of the three days.' }
+    ],
+    win: {
+      say:'I can group, join, and filter groups. That is the working core of analyst SQL.',
+      next:'The <a href="../sql/">SQL kit</a> picks up from here with dates, subqueries and '+
+        'window functions. '+guide(tw.g2)+' is a strong next read for '+role.said+'.'
+    }
+  };
+
+  if (lv === 'interview') return {
+    logic: 'Screens reward the common patterns done quickly and said clearly. So the plan '+
+      'drills the classics on realistic data, adds the one advanced topic interviewers '+
+      'love, and spends the last day rehearsing out loud with a clock running.',
+    days: [
+      { title:'Drill the classics',
+        goal:'Make GROUP BY and filtering fast on the dataset screens love.',
+        steps: [
+          { what: ladder('telco','Telco churn drill ladder'), time:'25 min',
+            why:'Churn is the classic screen dataset. These are the exact query shapes screens ask for.' },
+          { what:'Read: <a href="../guides/sql-group-by-having/">GROUP BY and HAVING</a>', time:'10 min',
+            why:'The WHERE versus HAVING question shows up in almost every SQL screen.' }
+        ].concat(rk==='unsure' ? [unsureStep] : []),
+        thinking:'Interview SQL is not exotic. It leans on grouping, joining and one '+
+          'window function. The plan spends its time making the common things fast, '+
+          'not the rare things possible.' },
+      { title:'The two showstoppers',
+        goal:'Window functions and JOIN edge cases, the places screens separate candidates.',
+        steps: [
+          { what: lesson(10,'Window Functions'), time:'20 min',
+            why:'Rank within group is the question that ends most screens. This is that tool.' },
+          { what:'Read: <a href="../guides/sql-window-functions/">Window functions, explained</a>', time:'10 min',
+            why:'A second pass in different words. Window functions land on the second pass.' },
+          { what:'Read: '+guide(tw.g1), time:'10 min',
+            why:'Role screens flavor their questions. For '+role.said+', this is the flavor: '+tw.q },
+        ],
+        thinking:'Day one made the common patterns fast. Day two adds the one topic that '+
+          'separates a pass from a strong pass, then ties it to the way your target '+
+          'role phrases its questions.' },
+      { title:'Rehearse out loud',
+        goal:'Practice saying it with a clock, because that is the actual test.',
+        steps: [
+          { what:'<a href="https://michaelnocito.github.io/sql-dry-run/" target="_blank" rel="noopener">SQL Dry Run</a>, one timed sitting', time:'20 min',
+            why:'Knowing it and saying it under a clock are different skills. This trains the second one.' },
+          { what:'<a href="../interview/">Interview kit</a>, the SQL questions', time:'15 min',
+            why:'The follow-up questions interviewers actually ask, with the shape of a strong answer.' },
+          { what:'Open three real job posts for the role. Write down every SQL word they use.', time:'10 min',
+            why:'The posting is the syllabus. If a word keeps appearing and feels foggy, that is tomorrow morning’s review.' }
+        ],
+        thinking:'Nobody fails a screen for a missing semicolon. They fail rehearsable '+
+          'things: freezing on a follow-up, or rambling. Day three buys rehearsal, the '+
+          'cheapest confidence there is.' }
+    ],
+    win: {
+      say:'I have a rehearsed walkthrough I can deliver with the clock running.',
+      next:'Between now and the interview, one telco ladder rep per day keeps the hands '+
+        'warm. The <a href="../interview/">Interview kit</a> covers the non-SQL rounds too.'
+    }
+  };
+
+  /* onthejob */
+  return {
+    logic: 'You can already write queries, so the plan works the layer above syntax: '+
+      'trusting the table before you build on it, structuring queries other people can '+
+      'read, and turning rows into a metric you can defend in a meeting.',
+    days: [
+      { title:'Trust the table first',
+        goal:'Prove the table is what you think it is before building anything on it.',
+        steps: [
+          { what: lesson(102,'The Grain of a Table'), time:'10 min',
+            why:'What one row represents is the most important question in analytics, and the least asked.' },
+          { what: lesson(12,'Reconciliation Queries'), time:'15 min',
+            why:'Gaps, dupes and mismatches: the checks that catch wrong numbers before your boss does.' },
+          { what:'Read: '+guide(tw.g2), time:'10 min',
+            why: tw.g2.why }
+        ].concat(rk==='unsure' ? [unsureStep] : []),
+        thinking:'Senior analysts are not faster typists. They are harder to fool. '+
+          'Day one is the checking habit that makes every number you ship after '+
+          'this more trustworthy.' },
+      { title:'Queries people can read',
+        goal:'CTEs for structure, window functions for the questions plain GROUP BY cannot reach.',
+        steps: [
+          { what: lesson(11,'CTEs'), time:'15 min',
+            why:'Named steps turn a two-hundred-line query into a readable pipeline. Reviewers notice.' },
+          { what: lesson(10,'Window Functions'), time:'20 min',
+            why:'Rank, running totals and change-over-time without collapsing the rows.' },
+          { what:'Read: '+guide(tw.g1), time:'10 min',
+            why: tw.g1.why }
+        ],
+        thinking:'The analyst layer is legibility. A correct query nobody can follow '+
+          'still costs the team time. CTEs plus window functions are the two tools '+
+          'that make hard questions readable.' },
+      { title:'A metric, end to end',
+        goal:'Build a scored metric from raw rows, then defend it in three sentences.',
+        steps: [
+          { what: ladder('steam','Steam hidden gems drill ladder'), time:'25 min',
+            why:'A real scoring analysis: thresholds from percentiles, not vibes. The full analyst move.' },
+          { what:'Write a three-sentence memo: what you measured, what you found, what you would do next. Frame it on: '+tw.q, time:'10 min',
+            why:'If it cannot survive three sentences, it will not survive a meeting.' }
+        ],
+        thinking:'A metric you built and can defend beats a longer course you watched. '+
+          'The memo step matters most: the writing is where you find out whether the '+
+          'metric actually holds.' }
+    ],
+    win: {
+      say:'I built a metric from raw rows and can defend every step of it.',
+      next:'The <a href="../sql/">SQL kit’s</a> later units go deeper on migration checks and '+
+        'financial analysis, and <a href="../projects/">Project Studio</a> turns this three-day '+
+        'habit into a portfolio piece.'
+    }
+  };
+}
+
+/* ── state ────────────────────────────────────────────────────────────────── */
+
+let S = { level:null, role:null, done:{} };
+try { S = Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch(e){}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+function comboKey(){ return S.level + ':' + S.role; }
+function doneMap(){ return S.done[comboKey()] || {}; }
+
+/* ── render ───────────────────────────────────────────────────────────────── */
+
+function chipRow(el, defs, sel, onPick){
+  el.innerHTML = '';
+  Object.keys(defs).forEach(k => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.textContent = defs[k].chip;
+    b.setAttribute('aria-pressed', String(k === sel));
+    b.addEventListener('click', () => onPick(k));
+    el.appendChild(b);
+  });
+}
+
+function renderChips(){
+  chipRow($('levelChips'), LEVELS, S.level, k => { S.level = k; save(); renderAll('picked'); });
+  chipRow($('roleChips'),  ROLES,  S.role,  k => { S.role  = k; save(); renderAll('picked'); });
+}
+
+function stepId(d, s){ return 'd' + d + 's' + s; }
+
+function renderPlan(how){
+  const box = $('plan');
+  if (!S.level || !S.role){
+    box.innerHTML = '';
+    updateNextBar(null);
+    return;
+  }
+  const p = buildPlan(S.level, S.role);
+  const dm = doneMap();
+  let total = 0, checked = 0;
+  let html = '<div class="card planhead">' +
+    '<h2>Your three days</h2>' +
+    '<p class="said">You said: <b>' + LEVELS[S.level].said + '</b>, for <b>' +
+      ROLES[S.role].said + '</b>.</p>' +
+    '<p class="logic"><b>How this plan was thought through:</b> ' + p.logic + '</p>' +
+    '<p class="progressline" id="progressline"></p>' +
+    '</div>';
+
+  p.days.forEach((day, di) => {
+    let stepsHtml = '';
+    day.steps.forEach((st, si) => {
+      const id = stepId(di, si);
+      const on = !!dm[id];
+      total++; if (on) checked++;
+      stepsHtml +=
+        '<li class="step' + (on ? ' checked' : '') + '" id="row-' + id + '">' +
+        '<input type="checkbox" id="cb-' + id + '" data-sid="' + id + '"' +
+          (on ? ' checked' : '') + ' aria-label="Mark step done">' +
+        '<div class="body"><div class="what"><label for="cb-' + id + '">' + st.what +
+        '</label><span class="time">' + st.time + '</span></div>' +
+        '<p class="why">' + st.why + '</p></div></li>';
+    });
+    const dayDone = day.steps.every((st, si) => dm[stepId(di, si)]);
+    html += '<div class="card day' + (dayDone ? ' done' : '') + '">' +
+      '<p class="dtag">Day ' + (di + 1) + '</p>' +
+      '<h3>' + day.title + '</h3>' +
+      '<p class="goal">' + day.goal + '</p>' +
+      '<ul class="steps">' + stepsHtml + '</ul>' +
+      '<div class="thinking"><p class="t">The thinking</p><p>' + day.thinking + '</p></div>' +
+      '</div>';
+  });
+
+  html += '<div class="card win"><h3>The day-three win</h3>' +
+    '<p class="say">&ldquo;' + p.win.say + '&rdquo;</p>' +
+    '<p class="next">' + p.win.next + '</p></div>';
+
+  box.innerHTML = html;
+
+  box.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const k = comboKey();
+      if (!S.done[k]) S.done[k] = {};
+      if (cb.checked) S.done[k][cb.dataset.sid] = true;
+      else delete S.done[k][cb.dataset.sid];
+      save();
+      renderPlan('recheck');
+      if (window.gtag){
+        gtag('event', 'plan_step', { level:S.level, role:S.role, step:cb.dataset.sid, on:cb.checked ? 1 : 0 });
+        const dm2 = doneMap();
+        if (Object.keys(dm2).length === total) gtag('event', 'plan_complete', { level:S.level, role:S.role });
+      }
+    });
+  });
+
+  $('progressline').innerHTML = checked === 0
+    ? 'Nothing checked off yet. Day 1 is below, and the next step stays pinned to the bottom of the screen.'
+    : (checked === total
+      ? '<b>All ' + total + ' steps done.</b> The win at the bottom of the page is yours to say out loud.'
+      : 'You have finished <b>' + checked + ' of ' + total + '</b> steps. The plan remembers, so leaving and coming back is part of the design.');
+
+  updateNextBar(p);
+  if (how === 'picked' || how === 'random'){
+    if (window.gtag) gtag('event', 'plan_built', { level:S.level, role:S.role, how:how });
+  }
+}
+
+function updateNextBar(p){
+  const bar = $('nextbar');
+  if (!p){ bar.hidden = true; return; }
+  const dm = doneMap();
+  let found = null;
+  p.days.some((day, di) => day.steps.some((st, si) => {
+    if (!dm[stepId(di, si)]){ found = { di:di, si:si, st:st }; return true; }
+    return false;
+  }));
+  bar.hidden = false;
+  if (!found){
+    bar.className = 'complete';
+    $('nbK').textContent = 'Plan complete';
+    $('nbV').textContent = 'Deal a random plan, or open the full SQL kit';
+    bar.onclick = () => { window.scrollTo({ top:0, behavior:'smooth' }); };
+    return;
+  }
+  bar.className = '';
+  $('nbK').textContent = 'Next up · Day ' + (found.di + 1);
+  const tmp = document.createElement('div');
+  tmp.innerHTML = found.st.what;
+  $('nbV').textContent = tmp.textContent;
+  const id = 'row-' + stepId(found.di, found.si);
+  bar.onclick = () => {
+    const row = $(id);
+    if (row) row.scrollIntoView({ behavior:'smooth', block:'center' });
+  };
+}
+
+function renderAll(how){
+  renderChips();
+  renderPlan(how);
+}
+
+$('randomBtn').addEventListener('click', () => {
+  const lks = Object.keys(LEVELS), rks = Object.keys(ROLES);
+  let lv = lks[Math.floor(Math.random() * lks.length)];
+  let rk = rks[Math.floor(Math.random() * rks.length)];
+  // A re-deal should always feel like a re-deal: never hand back the same pair.
+  if (lv === S.level && rk === S.role){
+    lv = lks[(lks.indexOf(lv) + 1) % lks.length];
+  }
+  S.level = lv; S.role = rk; save();
+  renderAll('random');
+  const head = document.querySelector('.planhead');
+  if (head) head.scrollIntoView({ behavior:'smooth', block:'start' });
+});
+
+renderAll(S.level && S.role ? 'resume' : 'first');
+</script>
+</body>
+</html>

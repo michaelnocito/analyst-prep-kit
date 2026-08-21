@@ -9,6 +9,21 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.13.0] — 2026-08-20 — Three-Day SQL Plan builder
+
+New section `plan/`: answer two questions (where your SQL is now, what kind of
+analyst work you want it for) and get a hand-authored three-day plan. Four
+starting points by five role flavors, each day inside an hour. Every step links
+to an existing surface (SQL kit lesson deep links, drill ladders, guides; the
+interview plan's day three points at real job posts) and carries a visible
+"why" line; each day ends with a "The thinking" box that explains the plan's
+reasoning. "Deal a random plan" re-rolls the pair and never repeats the current
+one. Per-step checkboxes save per level:role combo in `localStorage`
+(`apk-plan-v1`), so switching answers never wipes a plan in motion; a pinned
+bottom bar always shows the next unchecked step. Hub gets a "Start with a plan"
+group at the top of the Other-ways card; `plan/` added to the sitemap. GA
+events: `plan_built`, `plan_step`, `plan_complete`.
+
 ## [3.12.0] — 2026-08-12 — Stats gets the content pass, and the train is complete
 
 Sixth and last kit in the content train. **Every kit has now had this pass.**
