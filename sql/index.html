@@ -6163,9 +6163,22 @@ initKitWithSync();
 // "new to this?" links on technical plan steps)
 (function(){
   // #lesson-<id>-restart (PrepLoop sittings) resets the saved stage first so the lesson opens at the beginning
-  const m = (location.hash||'').match(/^#lesson-(\d+)(-restart)?$/);
+  // #lesson-<id>-plan (Plan Builder sittings) also opens at stage 1, but WITHOUT touching
+  // doneLessons: a plan link must never erase a completion the learner earned in the kit.
+  const m = (location.hash||'').match(/^#lesson-(\d+)(-restart|-plan)?$/);
   const l = m && DATA.LESSONS.find(x=>x.id===+m[1]);
-  if(l){ if(m[2]) v2ResetLesson(l.id); else navigate('lesson', l.id); }
+  if(l){
+    if(m[2]==='-restart') v2ResetLesson(l.id);
+    else if(m[2]==='-plan'){
+      state.lessonStage = state.lessonStage||{};
+      delete state.lessonStage[l.id];
+      delete _v2ParsAttempt[l.id];
+      delete _v2ParsWasWrong[l.id];
+      saveState();
+      navigate('lesson', l.id);
+    }
+    else navigate('lesson', l.id);
+  }
   else navigate('home');
 })();
 // Arrived from the SQL Path round (`?from=path`): show one persistent way back to it.
@@ -6176,11 +6189,12 @@ initKitWithSync();
 // any other way ever sees it.
 (function(){
   try {
-    if(new URLSearchParams(location.search).get('from') !== 'path') return;
+    const src = new URLSearchParams(location.search).get('from');
+    if(src !== 'path' && src !== 'plan') return;
     const bar = document.createElement('a');
-    bar.href = '../path/';
-    bar.textContent = '← Back to the SQL Path round';
-    bar.setAttribute('aria-label', 'Back to the SQL Path round');
+    bar.href = src === 'plan' ? '../plan/' : '../path/';
+    bar.textContent = src === 'plan' ? '← Back to your plan' : '← Back to the SQL Path round';
+    bar.setAttribute('aria-label', bar.textContent.slice(2));
     bar.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:16px;' +
       'z-index:1200;background:var(--accent,#0E7490);color:#fff;text-decoration:none;' +
       'font:600 14px/1 system-ui,sans-serif;padding:12px 18px;border-radius:999px;' +

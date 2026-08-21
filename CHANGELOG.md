@@ -9,6 +9,25 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.16.0] — 2026-08-21 — Plan sittings separated from kit progress
+
+Mike's flow finding: plan lesson links used plain `#lesson-<id>` deep links,
+which resume wherever the kit left off — a plan visitor with old partial
+progress landed mid-lesson or at the end, and once inside the kit there was
+no road back to the plan's next step. Fix reuses the kit's own mechanisms
+instead of duplicating lesson content (the `path/` header comment records why
+rebuilds are wrong: a second copy to keep in sync). (1) New kit deep-link
+mode `#lesson-<id>-plan`: opens the lesson at stage 1 every time by clearing
+that lesson's saved stage + parsons attempt, but NEVER touches `doneLessons`
+— unlike `-restart`, a plan link can't erase a completion earned in the kit.
+(2) The kit's `?from=path` return pill now also handles `?from=plan` ("← Back
+to your plan" → `../plan/`). (3) `drill/index.html` gets the same opt-in
+pill (drill links keep resume on purpose — "next three rungs" means it).
+(4) Plan page: `lesson()`/`ladder()` emit the new URL forms, and the plan
+header states the behavior ("lesson links here always open at the top…").
+Parse gates 3/3 + 5/5 + 3/3; hash-regex matrix verified (plan/restart/plain/
+no-match).
+
 ## [3.15.0] — 2026-08-21 — Plan certificate page
 
 New `plan/certificate/`: a completion certificate rendered entirely from the
