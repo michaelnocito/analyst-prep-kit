@@ -1148,17 +1148,30 @@ Promise.all(LADDERS[SLUG].files.map(loadScript))
     document.body.appendChild(bar);
 
     let i0 = null, target = null, stopped = false, lastRungArmed = false;
+    // The sitting clock. Never on screen while typing (the drill bible bans timers);
+    // it only speaks at the stop, as part of the reward, and rides home in the URL.
+    const t0 = Date.now();
+    function statHref(n){
+      const secs = Math.max(1, Math.round((Date.now() - t0) / 1000));
+      return doneHref + (doneHref.indexOf('?') > -1 ? '&' : '?') + 's=' + secs + '&n=' + n;
+    }
     function armLastRung(){
       if(lastRungArmed) return;
       lastRungArmed = true;
-      bar.href = doneHref;
       bar.textContent = '✓ Final rung. Finish it, then tap here';
       bar.style.background = '#15803D';
+      bar.onclick = function(e){
+        e.preventDefault();
+        location.href = statHref(Math.max(1, i - i0 + 1));
+      };
     }
     function hardStop(n){
       if(stopped) return;
       stopped = true;
-      bar.href = doneHref;
+      const href = statHref(n);
+      const secs = Math.max(1, Math.round((Date.now() - t0) / 1000));
+      const mins = Math.max(1, Math.round(secs / 60));
+      bar.href = href;
       bar.textContent = '✓ Step done. Back to your plan';
       bar.style.background = '#15803D';
       const ov = document.createElement('div');
@@ -1168,10 +1181,12 @@ Promise.all(LADDERS[SLUG].files.map(loadScript))
         '<div style="background:#fff;border-radius:14px;max-width:430px;padding:24px;' +
           'font:15px/1.55 system-ui,sans-serif;color:#09090B;box-shadow:0 20px 60px rgba(9,9,11,.35)">' +
         '<p style="font:700 19px/1.3 system-ui,sans-serif;margin:0 0 8px">Stop here. Those were your rungs for today.</p>' +
-        '<p style="margin:0 0 16px;color:#52525B">' + n + ' rung' + (n===1?'':'s') + ' done, exactly what the ' +
+        '<p style="margin:0 0 6px;color:#52525B">' + n + ' rung' + (n===1?'':'s') + ' done, exactly what the ' +
           'plan asked for. The ladder saves your spot, and tomorrow&rsquo;s step starts right here.</p>' +
+        '<p style="margin:0 0 16px;font:600 14px/1.5 system-ui,sans-serif;color:#15803D">' +
+          n + ' rung' + (n===1?'':'s') + ' in ' + mins + ' minute' + (mins===1?'':'s') + '.</p>' +
         '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
-        '<a href="' + doneHref + '" style="display:inline-block;background:#15803D;color:#fff;' +
+        '<a href="' + href + '" style="display:inline-block;background:#15803D;color:#fff;' +
           'text-decoration:none;font:600 15px/1 system-ui,sans-serif;padding:13px 18px;' +
           'border-radius:10px">✓ Back to the plan, box checked</a>' +
         '<button type="button" style="background:none;border:0;color:#52525B;' +

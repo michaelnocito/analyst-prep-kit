@@ -9,6 +9,27 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.18.0] — 2026-08-21 — Sittings are timed, saved, and raced against yourself
+
+Mike on the stop screen: "this screen is a nice reward … give me more data, how
+fast did they do it, let them race themselves, accuracy, save it all." Design
+constraint honored: the drill bible bans visible timers, so NOTHING counts down
+anywhere — the clock runs silently and only speaks at the stop, after the work
+(post-hoc informational reward, the safe zone of the rewards literature).
+Kit plan-mode: sitting clock from arrival + per-lesson miss baseline; the stop
+overlay now says "Done in 12 minutes, nothing missed. A clean run." (or "N
+retries along the way") and the return URL carries `s=<secs>&miss=<n>`. Drill
+plan-mode: sitting clock; hard-stop overlay adds "3 rungs in 8 minutes"; return
+carries `s=&n=`; final-rung green pill computes time at tap. Plan page: sitting
+records saved to `S.stats[combo][step]` and bests to `S.best[combo:step]` —
+both SURVIVE "Start this plan over" (the reset copy now says so), which is what
+makes re-running a plan a race against your last run. Completed tool steps show
+a green chip ("yours: 12m · clean · best 9m"), the plan header adds a pace line
+("Timed steps so far: 20m against the plan's 25 min estimate"), beating a best
+toasts "Personal best, Xs faster than your last run", and plan_autocheck now
+carries s/miss/rungs/pb so GA4 accumulates population timing data. Verified
+in-browser: chips, pace line, day counters, parse gates 3/3+5/5+3/3.
+
 ## [3.17.0] — 2026-08-21 — The plan loop closes: do the step, get stopped, box checks itself
 
 Mike's second flow finding: separation wasn't enough — lessons chain so easily

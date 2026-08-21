@@ -160,6 +160,7 @@
   .step .time{font:600 12px/1 var(--mono);color:var(--muted);background:var(--bg);
     border:1px solid var(--line);border-radius:6px;padding:3px 6px;margin-left:8px;
     white-space:nowrap;vertical-align:2px}
+  .step .time.act{color:var(--ok);background:var(--okbg);border-color:var(--okline)}
   .step .why{font-size:14px;color:var(--muted);margin:3px 0 0;max-width:66ch}
   .step.checked .what{color:var(--muted);font-weight:500}
   .step.checked .what a{color:var(--muted)}
@@ -974,7 +975,8 @@ function buildPlan(lv, rk, nDays){
 /* ── state ───────────────────────────────────────────────────────────────── */
 
 let S = { level:null, role:null, days:null, anchor:null,
-          done:{}, skips:{}, celebrated:{}, badges:{}, lastCheckDate:null };
+          done:{}, skips:{}, celebrated:{}, badges:{}, lastCheckDate:null,
+          stats:{}, best:{} };
 try { S = Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch(e){}
 /* v1 -> v2 migration: old combo keys were level:role (implicitly 3 days). */
 (function(){
@@ -1080,6 +1082,7 @@ function renderChips(){
 }
 
 function stepId(d, s){ return 'd' + d + 's' + s; }
+function fmtT(secs){ return secs < 60 ? secs + 's' : Math.max(1, Math.round(secs / 60)) + 'm'; }
 function skippedDay(){ const v = S.skips[comboKey()]; return (v === 0 || v) ? v : null; }
 function hasSkipToken(){ return S.days > 3; }
 
@@ -1157,13 +1160,23 @@ function renderPlan(how){
       /* Tool links carry the step id back and forth: out via &ret=, home via ?ckd=,
          so the tool can check this exact box on return. */
       const what = st.what.replace(/from=plan/g, 'from=plan&amp;ret=' + id);
+      /* The race-yourself chip: last sitting's time, and the standing best when it
+         beats it. Recorded invisibly by the tool, shown only after the work. */
+      const rec = (S.stats[comboKey()] || {})[id];
+      const bs = S.best[comboKey() + ':' + id];
+      let actChip = '';
+      if (rec && rec.s){
+        actChip = '<span class="time act">yours: ' + fmtT(rec.s) +
+          (rec.miss === 0 ? ' · clean' : '') +
+          (bs && bs < rec.s ? ' · best ' + fmtT(bs) : '') + '</span>';
+      }
       stepsHtml +=
         '<li class="step' + (on ? ' checked' : '') + '" id="row-' + id + '">' +
         '<input type="checkbox" id="cb-' + id + '" data-sid="' + id + '" data-day="' + di + '"' +
           (st.gen ? ' data-gen="1"' : '') + (on ? ' checked' : '') +
           ' aria-label="Mark step done">' +
         '<div class="body"><div class="what"><label for="cb-' + id + '">' + what +
-        '</label><span class="time">' + st.time + '</span></div>' +
+        '</label><span class="time">' + st.time + '</span>' + actChip + '</div>' +
         '<p class="why">' + st.why + '</p></div></li>';
     });
     html += '<div class="card day' + (dayDone[di] ? ' done' : '') + '">' +
@@ -1249,7 +1262,8 @@ function renderPlan(how){
     if (!armed){
       armed = true;
       rb.textContent = 'This clears the ' + checked + ' checked steps and the skip for the ' +
-        comboName + '. Other plans and your wins stay. Click again to clear.';
+        comboName + '. Other plans, your wins and your times stay, so a fresh run races '+
+        'this one. Click again to clear.';
       return;
     }
     delete S.done[comboKey()];
@@ -1273,6 +1287,22 @@ function renderPlan(how){
       ? '<b>All ' + eTotal + ' steps done.</b> The final-day win is yours to say out loud.'
       : 'You are at <b>' + eChecked + ' of ' + eTotal + '</b> steps, setup included. The plan '+
         'remembers, so leaving and coming back is part of the design.');
+  /* Pace, measured against the plan's own estimates, timed steps only. */
+  (function(){
+    const sk = S.stats[comboKey()] || {};
+    let actS = 0, estMin = 0;
+    p.days.forEach((day, di) => {
+      if (di === skp) return;
+      day.steps.forEach((st, si) => {
+        const rec = sk[stepId(di, si)];
+        if (rec && rec.s){ actS += rec.s; estMin += parseInt(st.time, 10) || 0; }
+      });
+    });
+    if (actS > 0){
+      $('progressline').innerHTML += ' Timed steps so far: <b>' + fmtT(actS) +
+        '</b> of work against the plan&rsquo;s ' + estMin + ' min estimate for them.';
+    }
+  })();
 
   updateNextBar(p);
 
@@ -1412,7 +1442,9 @@ renderAll(S.level && S.role && S.days ? 'resume' : 'first');
     const q = new URLSearchParams(location.search);
     const ckd = q.get('ckd');
     if (!ckd) return;
-    q.delete('ckd');
+    const secs = Math.max(0, parseInt(q.get('s'), 10) || 0);
+    const missRaw = q.get('miss'), rungsRaw = q.get('n');
+    q.delete('ckd'); q.delete('s'); q.delete('miss'); q.delete('n');
     history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q.toString() : ''));
     if (!S.level || !S.role || !S.days || !/^d\d+s\d+$/.test(ckd)) return;
     const m = ckd.match(/^d(\d+)s(\d+)$/);
@@ -1424,6 +1456,22 @@ renderAll(S.level && S.role && S.days ? 'resume' : 'first');
     if (!S.done[k]) S.done[k] = {};
     const already = !!S.done[k][ckd];
     S.done[k][ckd] = true;
+    /* Save the sitting: time, misses (lessons), rungs (drill). Kept through resets,
+       so a fresh run of the same plan races this one. */
+    let pbLine = '';
+    if (secs > 0){
+      if (!S.stats[k]) S.stats[k] = {};
+      const rec = { s: secs, at: todayStr() };
+      if (missRaw !== null && missRaw !== '') rec.miss = Math.max(0, parseInt(missRaw, 10) || 0);
+      if (rungsRaw !== null && rungsRaw !== '') rec.n = Math.max(0, parseInt(rungsRaw, 10) || 0);
+      S.stats[k][ckd] = rec;
+      const bk = k + ':' + ckd;
+      const prev = S.best[bk];
+      if (!prev || secs < prev){
+        S.best[bk] = secs;
+        if (prev) pbLine = ' <b>Personal best</b>, ' + fmtT(prev - secs) + ' faster than your last run.';
+      }
+    }
     if (!already){
       award('first');
       if (st.gen) award('saidit');
@@ -1432,11 +1480,15 @@ renderAll(S.level && S.role && S.days ? 'resume' : 'first');
     }
     save();
     renderPlan('recheck');
-    if (!already){
+    if (!already || pbLine){
       const tmp = document.createElement('div');
       tmp.innerHTML = st.what;
-      showToast('<b>&#10003; Checked off:</b> ' + tmp.textContent + '. The next step is lit below.');
-      if (window.gtag) gtag('event', 'plan_autocheck', { level:S.level, role:S.role, days:S.days, step:ckd });
+      showToast('<b>&#10003; Checked off:</b> ' + tmp.textContent +
+        (secs > 0 ? ' &middot; ' + fmtT(secs) : '') + '.' + pbLine +
+        (pbLine ? '' : ' The next step is lit below.'));
+      if (window.gtag) gtag('event', 'plan_autocheck', { level:S.level, role:S.role, days:S.days,
+        step:ckd, s:secs || undefined, miss:(missRaw!==null&&missRaw!=='')?parseInt(missRaw,10):undefined,
+        rungs:(rungsRaw!==null&&rungsRaw!=='')?parseInt(rungsRaw,10):undefined, pb:pbLine?1:0 });
     }
     setTimeout(() => {
       const bar = $('nextbar');
