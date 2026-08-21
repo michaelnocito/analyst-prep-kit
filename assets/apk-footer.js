@@ -30,8 +30,7 @@
   // SQL surfaces and nowhere else rather than on every kit's footer.
   var SQL_KITS = { sql: 1, 'sql-dry-run': 1 };
   var packLink = SQL_KITS[kit]
-    ? '<a class="apk-eco-pack" href="https://michaelnocito.gumroad.com/l/sql-comment-system' +
-      '?utm_source=analyst-prep-kit&utm_medium=cross-sell&utm_campaign=sql-comment-system" ' +
+    ? '<a class="apk-eco-pack" href="https://gumroad.com/u/tp54avpj" ' +
       'target="_blank" rel="noopener">The SQL Comment System ↗</a>' +
       '<span class="apk-eco-sep">·</span>'
     : '';
