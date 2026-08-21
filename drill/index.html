@@ -900,6 +900,9 @@ function run(){
   $('out').innerHTML = table(res);
   markReady(matched);
   handOff(matched);
+  // Real Test rt010e: after a matching Run, "Next drill" must be visible without a hunt —
+  // it was measured 169px above the viewport at the moment it became the thing to press.
+  if(matched) $('next').scrollIntoView({block:'nearest'});
 }
 
 // ── the celebration ─────────────────────────────────────────────────────────
@@ -1137,6 +1140,13 @@ Promise.all(LADDERS[SLUG].files.map(loadScript))
     const ret = qs.get('ret') || '';
     const doneHref = '../plan/' + (ret && /^d\d+s\d+$/.test(ret) ? '?ckd=' + encodeURIComponent(ret) : '');
     const rungsRaw = qs.get('rungs') || 'end';
+    // Real Test rt010a: a step that promises "the first three" must start at drill one.
+    // ?fresh=1 clears this ladder's saved position BEFORE the async loader reads it, so
+    // the sitting opens at the top regardless of any earlier wandering.
+    if(qs.get('fresh') === '1'){
+      try { localStorage.setItem(KEY, '0'); } catch(e){}
+      i = 0;
+    }
     const bar = document.createElement('a');
     bar.href = '../plan/';
     bar.textContent = '← Back to your plan';
@@ -1158,7 +1168,7 @@ Promise.all(LADDERS[SLUG].files.map(loadScript))
     function armLastRung(){
       if(lastRungArmed) return;
       lastRungArmed = true;
-      bar.textContent = '✓ Final rung. Finish it, then tap here';
+      bar.textContent = '✓ Last drill. Finish it, then tap here';
       bar.style.background = '#15803D';
       bar.onclick = function(e){
         e.preventDefault();
@@ -1180,27 +1190,47 @@ Promise.all(LADDERS[SLUG].files.map(loadScript))
       ov.innerHTML =
         '<div style="background:#fff;border-radius:14px;max-width:430px;padding:24px;' +
           'font:15px/1.55 system-ui,sans-serif;color:#09090B;box-shadow:0 20px 60px rgba(9,9,11,.35)">' +
-        '<p style="font:700 19px/1.3 system-ui,sans-serif;margin:0 0 8px">Stop here. Those were your rungs for today.</p>' +
-        '<p style="margin:0 0 6px;color:#52525B">' + n + ' rung' + (n===1?'':'s') + ' done, exactly what the ' +
-          'plan asked for. The ladder saves your spot, and tomorrow&rsquo;s step starts right here.</p>' +
+        '<p style="font:700 19px/1.3 system-ui,sans-serif;margin:0 0 8px">Stop here. Those were your drills for today.</p>' +
+        '<p style="margin:0 0 6px;color:#52525B">' + n + ' drill' + (n===1?'':'s') + ' done, exactly what the ' +
+          'plan asked for. This page saves your spot, and tomorrow&rsquo;s step starts right here.</p>' +
         '<p style="margin:0 0 16px;font:600 14px/1.5 system-ui,sans-serif;color:#15803D">' +
-          n + ' rung' + (n===1?'':'s') + ' in ' + mins + ' minute' + (mins===1?'':'s') + '.</p>' +
+          n + ' drill' + (n===1?'':'s') + ' in ' + mins + ' minute' + (mins===1?'':'s') + '.</p>' +
         '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
         '<a href="' + href + '" style="display:inline-block;background:#15803D;color:#fff;' +
           'text-decoration:none;font:600 15px/1 system-ui,sans-serif;padding:13px 18px;' +
           'border-radius:10px">✓ Back to the plan, box checked</a>' +
         '<button type="button" style="background:none;border:0;color:#52525B;' +
           'font:600 14px/1 system-ui,sans-serif;padding:13px 8px;cursor:pointer;' +
-          'text-decoration:underline">One more rung anyway</button>' +
+          'text-decoration:underline">One more drill anyway</button>' +
         '</div></div>';
+      // Real Test rt010h: dialog semantics, focus in, Tab trapped, Escape closes.
+      const card = ov.firstElementChild;
+      card.setAttribute('role','dialog');
+      card.setAttribute('aria-modal','true');
+      card.setAttribute('aria-label','Plan step complete');
       ov.querySelector('button').onclick = function(){ ov.remove(); };
+      ov.addEventListener('keydown', function(ev){
+        if(ev.key === 'Escape'){ ov.remove(); return; }
+        if(ev.key !== 'Tab') return;
+        const f = Array.prototype.slice.call(ov.querySelectorAll('a,button'));
+        const at = f.indexOf(document.activeElement);
+        ev.preventDefault();
+        f[ev.shiftKey ? (at <= 0 ? f.length - 1 : at - 1)
+                      : (at >= f.length - 1 ? 0 : at + 1)].focus();
+      });
       document.body.appendChild(ov);
+      ov.querySelector('a').focus();
     }
-    const iv = setInterval(function(){
+    let iCand = null;
+    function checkNow(){
       try {
         if(typeof LADDER === 'undefined' || !LADDER || !LADDER.drills || !db) return;
         const len = LADDER.drills.length;
         if(i0 === null){
+          // Lock the start index only once it holds still for two ticks: the async
+          // loader restores the saved position moments after `db` appears, and locking
+          // too early counts the whole scope from the wrong floor (Real Test rt010d).
+          if(iCand === null || iCand !== i){ iCand = i; return; }
           i0 = i;
           if(rungsRaw === 'half') target = Math.ceil(len / 2);
           else if(/^\d+$/.test(rungsRaw)) target = i0 + parseInt(rungsRaw, 10);
@@ -1210,7 +1240,12 @@ Promise.all(LADDERS[SLUG].files.map(loadScript))
         if(target !== null && i >= target){ clearInterval(iv); hardStop(i - i0); return; }
         if(target === null && i === len - 1) armLastRung();
       } catch(e){}
-    }, 700);
+    }
+    const iv = setInterval(checkNow, 700);
+    // The boundary check also runs synchronously on the press that crosses it, so the
+    // stop arrives WITH the boundary, not up to 700ms behind it (Real Test rt010d).
+    const _origNext = $('next').onclick;
+    $('next').onclick = function(){ if(_origNext) _origNext(); checkNow(); };
   } catch(e){}
 })();
 </script>

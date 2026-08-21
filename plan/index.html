@@ -164,6 +164,12 @@
   .step .why{font-size:14px;color:var(--muted);margin:3px 0 0;max-width:66ch}
   .step.checked .what{color:var(--muted);font-weight:500}
   .step.checked .what a{color:var(--muted)}
+  /* The one step to do next, actually lit (Real Test rt010k). */
+  .step.next{box-shadow:inset 3px 0 0 var(--accent);background:rgba(14,116,144,.04);
+    padding-left:10px;border-radius:4px}
+  .nexttag{font:700 10px/1 inherit;letter-spacing:.06em;text-transform:uppercase;
+    color:#fff;background:var(--accent);border-radius:5px;padding:3px 6px;
+    margin-right:7px;vertical-align:2px}
 
   .thinking{background:rgba(14,116,144,.06);border:1px solid rgba(14,116,144,.25);
     border-radius:10px;padding:12px 14px;margin:14px 0 0}
@@ -452,16 +458,20 @@ TWISTS.unsure = TWISTS.data;
      end of a lesson they half-did once);
    - ?from=plan makes the kit and the drill show one fixed "Back to your plan"
      pill, so step one never swallows the learner before step two.
-   Drill links deliberately DO resume ladder position: day 2 says "next three
-   rungs" and means it. */
+   Drill links deliberately DO resume position unless fresh=1: day 2 says "three
+   more drills" and means three more from where day 1 stopped. */
 function lesson(id, title){ return '<a href="../sql/?from=plan#lesson-'+id+'-plan">'+title+'</a>'; }
-/* rungs: how far this sitting goes. '3' = three rungs past wherever the ladder
-   resumes, 'half' = through the first half, omitted = to the final rung. The
-   drill raises the stop itself and walks the learner back with the box checked. */
-function ladder(slug, text, rungs){
-  return '<a href="../drill/?ladder='+slug+'&amp;from=plan'+(rungs ? '&amp;rungs='+rungs : '')+'">'+text+'</a>';
+/* rungs: how far this sitting goes. '3' = three drills past wherever the set
+   resumes, 'half' = through the first half, omitted = to the final drill. fresh
+   restarts the set at drill one, for steps that promise "the first". The drill
+   page raises the stop itself and walks the learner back with the box checked. */
+function ladder(slug, text, rungs, fresh){
+  return '<a href="../drill/?ladder='+slug+'&amp;from=plan'+(rungs ? '&amp;rungs='+rungs : '')+
+    (fresh ? '&amp;fresh=1' : '')+'">'+text+'</a>';
 }
-function guide(g){ return '<a href="'+g.href+'">'+g.label+'</a>'; }
+/* Guides get the return token too: they have no completion event, so on the guide
+   the pill itself is the stop and the box-check (Real Test rt010b). */
+function guide(g){ return '<a href="'+g.href+'?from=plan">'+g.label+'</a>'; }
 
 function warmup(){
   return { what:'Warm-up: retype yesterday’s last query from memory, then run it and peek.',
@@ -470,7 +480,7 @@ function warmup(){
 }
 
 const UNSURE_STEP = {
-  what:'Bonus read: <a href="../guides/what-is-data-analysis/">What is data analysis?</a>',
+  what:'Bonus read: <a href="../guides/what-is-data-analysis/?from=plan">What is data analysis?</a>',
   time:'8 min',
   why:'You said you are not sure where to point this yet. This is the job, described plainly, so the rest of the plan has a direction.'
 };
@@ -490,7 +500,7 @@ function sevenDays(lv, rk){
             why:'Ten minutes of orientation so the words in the next step mean something.' },
           { what: lesson(1,'SELECT &amp; FROM'), time:'15 min',
             why:'Before you open it, guess: which of the two words picks the table, and which picks the columns? Hold the guess; the lesson settles it.' },
-          { what: ladder('music-country','SQL Drill, first three rungs','3'), time:'10 min',
+          { what: ladder('music-country','SQL Drill, the first three drills','3',true), time:'10 min',
             why:'Typing it yourself is what makes it stick. Reading alone will not.' }
         ].concat(rk==='unsure' ? [UNSURE_STEP] : []),
         thinking:'Most SQL plans start with two days of theory. Yours starts at a keyboard, '+
@@ -503,24 +513,24 @@ function sevenDays(lv, rk){
             why:'Before you open it, guess: does a filter change which rows come back, or which columns? The lesson settles it.' },
           { what: lesson(3,'ORDER BY &amp; LIMIT'), time:'12 min',
             why:'Top ten lists are half of analyst work. This is the whole trick.' },
-          { what: ladder('music-country','SQL Drill, next three rungs','3'), time:'10 min',
-            why:'Same ladder as yesterday. Each rung is the last one plus one new thing.' }
+          { what: ladder('music-country','SQL Drill, three more drills','3'), time:'10 min',
+            why:'Same set as yesterday. Each drill is the last one plus one new thing.' }
         ],
         thinking:'Day one proved you can pull data. Day two adds the two moves that '+
           'answer real questions: filter the rows, then sort what is left. Everything '+
           'fancier is built on these.' },
       { title:'Answer one real question end to end',
-        goal:'Climb the ladder to its final answer, then say what the answer means.',
+        goal:'Take the drills to their final answer, then say what the answer means.',
         steps:[ warmup(),
-          { what: ladder('music-country','Finish the SQL Drill ladder'), time:'20 min',
-            why:'The last rungs combine everything from the first two days into one real answer.' },
+          { what: ladder('music-country','SQL Drill, finish the set'), time:'20 min',
+            why:'The last drills combine everything from the first two days into one real answer.' },
           { what:'Write one plain sentence: what did the final query find?', time:'5 min', gen:true,
             why:'Saying the result in words is the analyst half of the job. The query is only the tool.' },
           { what:'Look ahead: '+guide(tw.g1), time:'8 min',
             why:'A skim, not a study session. This is the kind of question '+role.noun+
                 ' answers with SQL, so you can see where the road goes.' }
         ],
-        thinking:'A finished ladder beats ten started tutorials. The win is true the '+
+        thinking:'A finished drill set beats ten started tutorials. The win is true the '+
           'moment you check the last box, and it makes the next step feel obvious '+
           'instead of scary.' },
       { title:'Count things',
@@ -528,18 +538,18 @@ function sevenDays(lv, rk){
         steps:[ warmup(),
           { what: lesson(5,'COUNT, SUM &amp; GROUP BY'), time:'15 min',
             why:'Before you open it: if you group sales by country, how many rows come back, one per sale or one per country? The lesson settles it.' },
-          { what: ladder('grouping','GROUP BY drill ladder, first half','half'), time:'20 min',
-            why:'Typed reps on real data, one added clause per rung.' }
+          { what: ladder('grouping','GROUP BY drills, the first half','half',true), time:'20 min',
+            why:'Typed reps on real data, one added clause per drill.' }
         ],
         thinking:'Days one to three made you dangerous with single rows. Almost every '+
           'question a team actually asks is about groups: totals per month, counts per '+
           'product. This is the promotion.' },
       { title:'Group like an analyst',
-        goal:'Finish the grouping ladder, and learn the question that guards every table.',
+        goal:'Finish the GROUP BY drills, and learn the question that guards every table.',
         steps:[ warmup(),
           { what: lesson(102,'The Grain of a Table'), time:'10 min',
             why:'What one row represents is the most important question in analytics, and the least asked.' },
-          { what: ladder('grouping','Finish the GROUP BY ladder'), time:'20 min',
+          { what: ladder('grouping','GROUP BY drills, the second half'), time:'20 min',
             why:'The back half mixes filters and groups together, which is where real queries live.' }
         ],
         thinking:'Grain sounds abstract until the day a table has one row per order line '+
@@ -550,19 +560,19 @@ function sevenDays(lv, rk){
         steps:[ warmup(),
           { what: lesson(4,'INNER JOIN'), time:'15 min',
             why:'One idea: match rows on a key. Everything else is a variation.' },
-          { what: ladder('joins','JOINs drill ladder, first half','half'), time:'20 min',
+          { what: ladder('joins','JOIN drills, the first half','half',true), time:'20 min',
             why:'The drill is a data migration, where every JOIN mistake shows up instantly.' }
         ],
         thinking:'JOINs are where most people decide SQL is hard. They are one idea '+
           'wearing four costumes. You meet them on day six, after groups, because a '+
           'JOIN gone wrong shows up as group totals that doubled.' },
       { title:'The full picture',
-        goal:'Keep unmatched rows, finish the ladder, and claim the seven-day win.',
+        goal:'Keep unmatched rows, finish the drills, and claim the seven-day win.',
         steps:[ warmup(),
           { what: lesson(6,'LEFT JOIN &amp; NULLs'), time:'15 min',
             why:'Before you open it: if a customer has no orders, does an INNER JOIN show them? The lesson settles it, and the answer is why LEFT JOIN exists.' },
-          { what: ladder('joins','Finish the JOINs ladder'), time:'20 min',
-            why:'The final rungs are real migration checks. This is working analyst SQL.' },
+          { what: ladder('joins','JOIN drills, the second half'), time:'20 min',
+            why:'The final drills are real migration checks. This is working analyst SQL.' },
           { what:'Answer in one query, then in one sentence: '+tw.q, time:'10 min', gen:true,
             why: tw.fork }
         ],
@@ -600,7 +610,7 @@ function sevenDays(lv, rk){
       { title:'Groups, back under your fingers',
         goal:'Rebuild the how-many-per-what reflex.',
         steps:[ warmup(),
-          { what: ladder('grouping','GROUP BY drill ladder'), time:'25 min',
+          { what: ladder('grouping','GROUP BY drills'), time:'25 min',
             why:'Grouping is usually the first thing rust takes. It comes back the same way it went in: reps.' },
           { what: lesson(7,'HAVING &amp; Duplicates'), time:'12 min',
             why:'Before you open it: which filters groups, WHERE or HAVING? If you hesitated, this is the read.' }
@@ -611,7 +621,7 @@ function sevenDays(lv, rk){
       { title:'Prove it still works',
         goal:'Joins, then one real answer end to end.',
         steps:[ warmup(),
-          { what: ladder('joins','JOINs drill ladder'), time:'25 min',
+          { what: ladder('joins','JOIN drills'), time:'25 min',
             why:'The drill is a data migration, where a wrong JOIN shows up instantly. Fast, honest feedback for a comeback.' },
           { what:'Write one plain sentence: what did the final query find?', time:'5 min', gen:true,
             why:'The sentence is the proof the skill is back, not just the syntax.' }
@@ -624,7 +634,7 @@ function sevenDays(lv, rk){
         steps:[ warmup(),
           { what: lesson(10,'Window Functions'), time:'20 min',
             why:'Rank within group, without collapsing rows. If your SQL predates window functions, this is the single highest-value update.' },
-          { what:'Read: <a href="../guides/sql-window-functions/">Window functions, explained</a>', time:'10 min',
+          { what:'Read: <a href="../guides/sql-window-functions/?from=plan">Window functions, explained</a>', time:'10 min',
             why:'A second pass in different words. Window functions land on the second pass.' }
         ],
         thinking:'A comeback is also a chance to upgrade. Window functions are the '+
@@ -635,16 +645,16 @@ function sevenDays(lv, rk){
         steps:[ warmup(),
           { what: lesson(11,'CTEs'), time:'15 min',
             why:'Named steps turn a long query into a readable pipeline. Reviewers notice.' },
-          { what: ladder('telco','Telco churn ladder, first half','half'), time:'20 min',
+          { what: ladder('telco','Telco churn drills, the first half','half',true), time:'20 min',
             why:'A realistic business dataset to point the rebuilt skills at.' }
         ],
         thinking:'Skill is back; now structure. WITH-clauses barely existed in many '+
           'older SQL educations, and they are the difference between a query you '+
           'wrote and a query someone else can maintain.' },
       { title:'A real business question',
-        goal:'Finish the churn ladder and read the answer like an analyst.',
+        goal:'Finish the churn drills and read the answer like an analyst.',
         steps:[ warmup(),
-          { what: ladder('telco','Finish the Telco churn ladder'), time:'25 min',
+          { what: ladder('telco','Telco churn drills, the second half'), time:'25 min',
             why:'Churn is a full-dress business problem: groups, filters and rates in one place.' },
           { what:'Read: '+guide(tw.g1), time:'10 min',
             why: tw.g1.why }
@@ -669,7 +679,7 @@ function sevenDays(lv, rk){
       5:'My SQL is back, and it came back upgraded: window functions and CTEs are in the kit now.',
       7:'I went from rusty to answering a real business question in one query and one sentence.'
     },
-    next:'Keep the hands warm: one <a href="../drill/">drill</a> ladder a week holds it. '+
+    next:'Keep the hands warm: one <a href="../drill/">drill</a> session a week holds it. '+
       'The <a href="../sql/">SQL kit</a> fills any gap the drills expose.'
   };
 
@@ -683,8 +693,8 @@ function sevenDays(lv, rk){
         steps:[
           { what: lesson(5,'COUNT, SUM &amp; GROUP BY'), time:'15 min',
             why:'Before you open it: group sales by country and you get one row per what, sale or country? Hold your answer; the lesson settles it.' },
-          { what: ladder('grouping','GROUP BY drill ladder'), time:'20 min',
-            why:'Typed reps on real data, one added clause per rung.' }
+          { what: ladder('grouping','GROUP BY drills'), time:'20 min',
+            why:'Typed reps on real data, one added clause per drill.' }
         ].concat(rk==='unsure' ? [UNSURE_STEP] : []),
         thinking:'You said it gets shaky after the basics. The single biggest jump in '+
           'usefulness is GROUP BY, so it gets a full day of reps before anything new '+
@@ -696,7 +706,7 @@ function sevenDays(lv, rk){
             why:'One idea: match rows on a key. Everything else is a variation.' },
           { what: lesson(6,'LEFT JOIN &amp; NULLs'), time:'15 min',
             why:'The variation analysts actually use, plus the NULL trap it creates.' },
-          { what: ladder('joins','JOINs drill ladder, a data migration'), time:'20 min',
+          { what: ladder('joins','JOIN drills, a data migration'), time:'20 min',
             why:'Migrations punish every JOIN mistake instantly, which is exactly why they teach JOINs well.' }
         ],
         thinking:'JOINs are where most people decide SQL is hard. They are one idea '+
@@ -742,7 +752,7 @@ function sevenDays(lv, rk){
         steps:[ warmup(),
           { what: lesson(10,'Window Functions'), time:'20 min',
             why:'Rank within group is the question that ends most interviews and starts most dashboards.' },
-          { what:'Read: <a href="../guides/sql-window-functions/">Window functions, explained</a>', time:'10 min',
+          { what:'Read: <a href="../guides/sql-window-functions/?from=plan">Window functions, explained</a>', time:'10 min',
             why:'A second pass in different words. Window functions land on the second pass.' }
         ],
         thinking:'This is the last big idea in everyday analyst SQL. It goes on day '+
@@ -751,7 +761,7 @@ function sevenDays(lv, rk){
       { title:'Capstone: a real dataset, your question',
         goal:'Take the whole toolkit to a business dataset and bring back a finding.',
         steps:[ warmup(),
-          { what: ladder('telco','Telco churn drill ladder'), time:'25 min',
+          { what: ladder('telco','Telco churn drills'), time:'25 min',
             why:'Churn mixes groups, filters, rates and judgment. It is the exam that does not feel like one.' },
           { what:'Answer in one query, then one sentence: '+tw.q, time:'10 min', gen:true,
             why: tw.fork }
@@ -778,9 +788,9 @@ function sevenDays(lv, rk){
       { title:'Drill the classics',
         goal:'Make GROUP BY and filtering fast on the dataset screens love.',
         steps:[
-          { what: ladder('telco','Telco churn drill ladder'), time:'25 min',
+          { what: ladder('telco','Telco churn drills'), time:'25 min',
             why:'Churn is the classic screen dataset. These are the exact query shapes screens ask for.' },
-          { what:'Read: <a href="../guides/sql-group-by-having/">GROUP BY and HAVING</a>', time:'10 min',
+          { what:'Read: <a href="../guides/sql-group-by-having/?from=plan">GROUP BY and HAVING</a>', time:'10 min',
             why:'Before you read it: could you say the difference between WHERE and HAVING out loud right now? That question shows up in almost every screen.' }
         ].concat(rk==='unsure' ? [UNSURE_STEP] : []),
         thinking:'Interview SQL is not exotic. It leans on grouping, joining and one '+
@@ -791,7 +801,7 @@ function sevenDays(lv, rk){
         steps:[ warmup(),
           { what: lesson(10,'Window Functions'), time:'20 min',
             why:'Rank within group is the question that ends most screens. This is that tool.' },
-          { what:'Read: <a href="../guides/sql-window-functions/">Window functions, explained</a>', time:'10 min',
+          { what:'Read: <a href="../guides/sql-window-functions/?from=plan">Window functions, explained</a>', time:'10 min',
             why:'A second pass in different words. Window functions land on the second pass.' },
           { what:'Read: '+guide(tw.g1), time:'10 min',
             why:'Role screens flavor their questions. For '+role.said+', this is the flavor: '+tw.q }
@@ -804,7 +814,7 @@ function sevenDays(lv, rk){
         steps:[ warmup(),
           { what:'<a href="https://michaelnocito.github.io/sql-dry-run/" target="_blank" rel="noopener">SQL Dry Run</a>, one timed sitting', time:'20 min',
             why:'Knowing it and saying it under a clock are different skills. This trains the second one.' },
-          { what:'<a href="../interview/">Interview kit</a>, the SQL questions', time:'15 min',
+          { what:'<a href="../interview/?from=plan">Interview kit</a>, the SQL questions', time:'15 min',
             why:'The follow-up questions interviewers actually ask, with the shape of a strong answer.' },
           { what:'Open three real job posts for the role. Write down every SQL word they use.', time:'10 min', gen:true,
             why:'The posting is the syllabus. A word that keeps appearing and feels foggy is tomorrow’s review.' }
@@ -826,7 +836,7 @@ function sevenDays(lv, rk){
       { title:'A second dataset',
         goal:'Transfer: same skills, unfamiliar tables.',
         steps:[ warmup(),
-          { what: ladder('steam','Steam hidden gems drill ladder'), time:'25 min',
+          { what: ladder('steam','Steam hidden gems drills'), time:'25 min',
             why:'A different domain forces you to read a schema cold, which is minute one of every screen.' }
         ],
         thinking:'Fluency on one dataset can be memorization in disguise. A second '+
@@ -845,7 +855,7 @@ function sevenDays(lv, rk){
       { title:'Polish, then stop',
         goal:'Light reps, the role story, and an early finish.',
         steps:[ warmup(),
-          { what:'<a href="../interview/">Interview kit</a>: revisit the questions you marked hardest', time:'15 min',
+          { what:'<a href="../interview/?from=plan">Interview kit</a>: revisit the questions you marked hardest', time:'15 min',
             why:'Second passes on your own weak spots beat first passes on new material.' },
           { what:'Reread your job-post word list. Say one sentence about each word, out loud.', time:'10 min', gen:true,
             why:'If you can say a sentence about it, you can survive a follow-up about it.' }
@@ -859,7 +869,7 @@ function sevenDays(lv, rk){
       5:'The classics are fast, the showstoppers are covered, and my judgment answers are ready.',
       7:'I walk in rehearsed: two timed mocks done, misses rewritten, and a sentence ready for every word in the posting.'
     },
-    next:'Between now and the interview, one <a href="../drill/?ladder=telco">telco ladder</a> '+
+    next:'Between now and the interview, one <a href="../drill/?ladder=telco">telco drill</a> '+
       'rep a day keeps the hands warm. The <a href="../interview/">Interview kit</a> covers '+
       'the non-SQL rounds too.'
   };
@@ -899,7 +909,7 @@ function sevenDays(lv, rk){
       { title:'A metric, end to end',
         goal:'Build a scored metric from raw rows, then defend it in three sentences.',
         steps:[ warmup(),
-          { what: ladder('steam','Steam hidden gems drill ladder'), time:'25 min',
+          { what: ladder('steam','Steam hidden gems drills'), time:'25 min',
             why:'A real scoring analysis: thresholds from percentiles, not vibes. The full analyst move.' },
           { what:'Write a three-sentence memo: what you measured, what you found, what you would do next. Frame it on: '+tw.q, time:'10 min', gen:true,
             why: tw.fork }
@@ -923,7 +933,7 @@ function sevenDays(lv, rk){
         steps:[ warmup(),
           { what: lesson(15,'SQL Indexing'), time:'15 min',
             why:'Before you open it: does an index speed up reading, writing, both or neither? The answer decides when to ask for one.' },
-          { what:'Read: <a href="../guides/sql-temp-tables-vs-views/">Temp tables vs views</a>', time:'10 min',
+          { what:'Read: <a href="../guides/sql-temp-tables-vs-views/?from=plan">Temp tables vs views</a>', time:'10 min',
             why:'Where to put the middle steps of a big analysis is a daily judgment call. This is the decision, laid out.' }
         ],
         thinking:'The analyst layer includes knowing when the database, not the query, '+
@@ -932,7 +942,7 @@ function sevenDays(lv, rk){
       { title:'The second metric',
         goal:'Same move, new muscle: build the role metric on a second dataset.',
         steps:[ warmup(),
-          { what: ladder('telco','Telco churn drill ladder'), time:'25 min',
+          { what: ladder('telco','Telco churn drills'), time:'25 min',
             why:'Churn is a rate metric with a denominator argument built in, which makes it perfect defense practice.' },
           { what:'One sentence, out loud: what would you challenge about this metric?', time:'5 min', gen:true,
             why:'Defending a metric starts with attacking it yourself, first, in private.' }
@@ -943,7 +953,7 @@ function sevenDays(lv, rk){
       { title:'Ship it',
         goal:'Turn the week into a portfolio piece with a scope and a memo.',
         steps:[ warmup(),
-          { what:'<a href="../projects/">Project Studio</a>: scope a small project around this week’s metric', time:'20 min',
+          { what:'<a href="../projects/?from=plan">Project Studio</a>: scope a small project around this week’s metric', time:'20 min',
             why:'A scoped project outlives the plan. This is where the week compounds instead of evaporating.' },
           { what:'Write the final memo: three sentences, framed on '+tw.q, time:'10 min', gen:true,
             why:'The memo is the deliverable. Everything else this week was the supply chain behind it.' }
@@ -1099,7 +1109,7 @@ function renderPlan(how){
   const skp = skippedDay();
   const anchorPhrase = S.anchor ? ANCHORS[S.anchor].phrase : null;
 
-  let total = 0, checked = 0;
+  let total = 0, checked = 0, nextAssigned = false;
   const dayDone = [];
   p.days.forEach((day, di) => {
     if (di === skp){ dayDone.push(true); return; }
@@ -1170,12 +1180,16 @@ function renderPlan(how){
           (rec.miss === 0 ? ' · clean' : '') +
           (bs && bs < rec.s ? ' · best ' + fmtT(bs) : '') + '</span>';
       }
+      const isNext = !on && !nextAssigned;
+      if (isNext) nextAssigned = true;
+      const plainLabel = st.what.replace(/<[^>]*>/g, '').replace(/"/g, '&quot;');
       stepsHtml +=
-        '<li class="step' + (on ? ' checked' : '') + '" id="row-' + id + '">' +
+        '<li class="step' + (on ? ' checked' : '') + (isNext ? ' next' : '') + '" id="row-' + id + '">' +
         '<input type="checkbox" id="cb-' + id + '" data-sid="' + id + '" data-day="' + di + '"' +
           (st.gen ? ' data-gen="1"' : '') + (on ? ' checked' : '') +
-          ' aria-label="Mark step done">' +
-        '<div class="body"><div class="what"><label for="cb-' + id + '">' + what +
+          ' aria-label="Mark done: ' + plainLabel + '">' +
+        '<div class="body"><div class="what">' + (isNext ? '<span class="nexttag">Next</span>' : '') +
+        '<label for="cb-' + id + '">' + what +
         '</label><span class="time">' + st.time + '</span>' + actChip + '</div>' +
         '<p class="why">' + st.why + '</p></div></li>';
     });
@@ -1318,6 +1332,12 @@ function renderPlan(how){
 
   if (how === 'picked' || how === 'random'){
     if (window.gtag) gtag('event', 'plan_built', { level:S.level, role:S.role, days:S.days, how:how });
+  }
+  /* Real Test rt010f + rt010l: the press that builds the plan must show the plan,
+     and a returning learner lands on their checklist, not the questionnaire. */
+  if (how === 'picked' || how === 'resume'){
+    const head = document.querySelector('.planhead');
+    if (head) head.scrollIntoView({ behavior: how === 'picked' ? 'smooth' : 'auto', block:'start' });
   }
 }
 

@@ -58,7 +58,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
 a{color:var(--accent);text-decoration:none}
 
 /* NAV */
-nav{background:var(--surf);border-bottom:1px solid var(--border);padding:0 18px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;position:sticky;top:0;z-index:100;height:56px}
+nav{background:var(--surf);border-bottom:1px solid var(--border);padding:0 18px;display:flex;align-items:center;gap:4px;flex-wrap:nowrap;overflow-x:auto;position:sticky;top:0;z-index:100;height:56px}
 .nav-brand{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--text);margin-right:6px;white-space:nowrap;display:inline-flex;align-items:center;gap:9px;letter-spacing:var(--tracking-tight)}
 .nav-logo{color:var(--accent);background:var(--surf2);width:30px;height:30px;display:inline-grid;place-items:center;border-radius:9px;flex-shrink:0}
 .nav-logo .lucide{width:17px;height:17px}
@@ -649,7 +649,7 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
   <button class="nav-btn" onclick="navigate('labs')">Lab</button>
   <button class="nav-btn" onclick="navigate('cards')">Cards</button>
   <button class="nav-btn" onclick="navigate('glossary')">Glossary</button>
-  <a class="nav-btn" href="../drill/" style="text-decoration:none" title="Type real queries against a real database, one rung at a time"><i data-lucide="keyboard" style="width:15px;height:15px;vertical-align:-3px"></i> Drill</a>
+  <a class="nav-btn" href="../drill/" style="text-decoration:none" title="Type real queries against a real database, one drill at a time"><i data-lucide="keyboard" style="width:15px;height:15px;vertical-align:-3px"></i> Drill</a>
   <a class="nav-btn" href="../final/#exam-sql" style="text-decoration:none" title="Test yourself on SQL — the Final Exam's SQL section"><i data-lucide="clipboard-check" style="width:15px;height:15px;vertical-align:-3px"></i> Exam</a>
   <span class="user-email" id="userEmail" style="display:none"></span>
   <button class="signin-btn" id="loginBtn" onclick="openAuthModal()" style="display:none">Sign in</button>
@@ -3331,6 +3331,10 @@ function v2QuizAnswer(lid, chosen){
     </div>${guideLinkHTML(lid,'miss')}`);
     if(window.lucide) lucide.createIcons();
   }
+  // Real Test rt010e: on a verdict, the next action (Continue / Try again) must be on
+  // screen at the moment the verdict lands, not 50px below the fold behind the guide card.
+  const _act = wrap.querySelector('.row.mt .btn-primary');
+  if(_act) _act.scrollIntoView({block:'nearest'});
 }
 
 function v2QuizRetry(lid){
@@ -6327,8 +6331,32 @@ initKitWithSync();
               'font:600 14px/1 system-ui,sans-serif;padding:13px 8px;cursor:pointer;' +
               'text-decoration:underline">Stay in the kit anyway</button>' +
             '</div></div>';
-          ov.querySelector('button').onclick = function(){ ov.remove(); };
+          // Real Test rt010h: the stop must exist for a screen reader too — dialog
+          // semantics, focus moved in, Tab trapped inside, Escape closes, page inert.
+          const card = ov.firstElementChild;
+          card.setAttribute('role','dialog');
+          card.setAttribute('aria-modal','true');
+          card.setAttribute('aria-label','Plan step complete');
+          const mainEl = document.getElementById('main'), navEl = document.getElementById('nav');
+          function closeOv(){
+            ov.remove();
+            if(mainEl) mainEl.inert = false;
+            if(navEl) navEl.inert = false;
+          }
+          ov.querySelector('button').onclick = closeOv;
+          ov.addEventListener('keydown', function(ev){
+            if(ev.key === 'Escape'){ closeOv(); return; }
+            if(ev.key !== 'Tab') return;
+            const f = Array.prototype.slice.call(ov.querySelectorAll('a,button'));
+            const at = f.indexOf(document.activeElement);
+            ev.preventDefault();
+            f[ev.shiftKey ? (at <= 0 ? f.length - 1 : at - 1)
+                          : (at >= f.length - 1 ? 0 : at + 1)].focus();
+          });
           document.body.appendChild(ov);
+          if(mainEl) mainEl.inert = true;
+          if(navEl) navEl.inert = true;
+          ov.querySelector('a').focus();
         };
       }
     }

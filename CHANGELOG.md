@@ -9,6 +9,36 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.19.0] — 2026-08-21 — Real Test run 010: all twelve findings fixed
+
+Full fix pass on the playtest of the plan walk (findings rt010a–rt010l; the
+run's §5h scores were lesson 1, drill 9, guide 12 of a possible 15-worst).
+(1) rt010b: new `assets/plan-return.js` — guides have no completion event, so
+the pill IS the stop and the box-check ("✓ Done here? Back to your plan, box
+checked", carries ckd + sitting seconds); injected into the 12 plan-linked
+guides + interview/ + projects/, and the plan's guide/interview/projects step
+links now carry ?from=plan (SQL Dry Run stays new-tab). (2) rt010a: drill
+`?fresh=1` clears the ladder's saved position before the async loader reads
+it — "the first three drills" now starts at drill one; plan passes fresh on
+its four "first…" steps. (3) rt010c/d: drill start-index locks only after
+holding still two ticks (kills the restore race that counted scope from the
+wrong floor), and the boundary check also runs synchronously on the Next
+press so the stop arrives WITH the boundary, not 700ms behind it. (4) rt010e:
+kit quiz verdicts scroll the Continue/Try-again button into view; drill
+scrolls "Next drill" into view on a matching Run. (5) rt010f/l: building the
+plan scrolls to the plan; a returning learner lands on their checklist.
+(6) rt010g: one vocabulary — "rungs"/"ladder" purged from all plan copy and
+both stop overlays ("drills", "the set"); kit nav tooltip updated. (7) rt010h:
+both stop overlays are real dialogs — role/aria-modal, focus moved in, Tab
+trapped, Escape closes, kit main+nav inert. (8) rt010i: checkboxes announce
+"Mark done: <step text>". (9) rt010j: kit nav flex-wrap:wrap + fixed 56px
+height (the exact v1.99.2 known-bad pattern) → nowrap + overflow-x:auto, so
+Sign in stops stealing clicks at 788px. (10) rt010k: the next step actually
+lights up — accent NEXT tag + inset bar on the first unchecked step.
+Real Test canon §5h gains the run's cross-check (return-passing over
+scope-failing is the most dangerous cell). Parse gates green on all four
+scripts.
+
 ## [3.18.0] — 2026-08-21 — Sittings are timed, saved, and raced against yourself
 
 Mike on the stop screen: "this screen is a nice reward … give me more data, how
