@@ -181,10 +181,32 @@ input[type=range]{accent-color:var(--accent);width:150px;cursor:pointer}
    the next step, so it never gets button weight or accent fill. It sits
    OUTSIDE the stage card, below the actions, so it reads as a footnote to the
    step rather than part of the task. */
-.kit-guide{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.55;color:var(--txt2);margin-top:16px;padding-top:12px;border-top:1px solid var(--bord)}
-.kit-guide .lucide{width:15px;height:15px;flex:0 0 auto;margin-top:2px;color:var(--accent)}
-.kit-guide a{color:var(--accent);font-weight:600;text-decoration:none}
-.kit-guide a:hover{text-decoration:underline}
+/* The long-form guide behind a lesson. It used to be a grey footnote line and
+   got walked past: a title with no reason attached gives a learner no way to
+   price the detour, so the offer never got taken. It is now a card carrying an
+   eyebrow, the guide's own heading, and one line of what is inside it, and the
+   whole card is the link. The teaser is the part that earns the click, so it
+   names a concrete thing in that guide (a number, a trap, a result) and is
+   written from the guide's own content, never from a promise.
+   Still ONE card, still opt-in, still below the actions: nothing about the next
+   step moved (CURRICULUM_STANDARD, directive always visible). Help taken on
+   demand costs nothing to the learner who walks past it (Kalyuga, Ayres,
+   Chandler & Sweller 2003). */
+.kit-guide{display:flex;gap:11px;align-items:flex-start;text-decoration:none;margin-top:16px;padding:11px 13px;background:color-mix(in srgb,var(--accent) 8%,transparent);border:1px solid color-mix(in srgb,var(--accent) 28%,transparent);border-left:3px solid var(--accent);border-radius:0 var(--r2,8px) var(--r2,8px) 0;transition:background .15s,border-color .15s}
+.kit-guide:hover{background:color-mix(in srgb,var(--accent) 15%,transparent);border-color:color-mix(in srgb,var(--accent) 48%,transparent)}
+.kit-guide .kg-ico{width:17px;height:17px;flex:0 0 auto;margin-top:2px;color:var(--accent);display:block}
+.kit-guide .kg-ico svg,.kit-guide .kg-go svg{width:100%;height:100%;display:block}
+.kit-guide .kg-body{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}
+.kit-guide .kg-eyebrow{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.kit-guide .kg-title{font-size:13.5px;font-weight:700;color:var(--text);line-height:1.4}
+.kit-guide .kg-teaser{font-size:12.5px;line-height:1.5;color:var(--dim)}
+.kit-guide .kg-go{width:15px;height:15px;flex:0 0 auto;align-self:center;color:var(--accent);opacity:.6;transition:transform .15s,opacity .15s;display:block}
+.kit-guide:hover .kg-go{transform:translateX(3px);opacity:1}
+/* Inside the "What this is" block it is already the last row, so it drops the
+   gap it needs when it stands on its own under a step. */
+.kit-guide.lx-guide{margin-top:12px;border-left-width:1px;border-left-color:color-mix(in srgb,var(--accent) 28%,transparent);border-radius:var(--r2,8px)}
+.kit-guide.kit-guide-miss{margin-top:10px}
+@media(max-width:520px){.kit-guide .kg-go{display:none}}
 /* ↑ ↓ nudge controls on a placed piece - thumb-sized, touch is the primary input */
 .pars-move{display:flex;gap:4px;flex:0 0 auto}
 .pars-move button{font:inherit;line-height:1;min-width:36px;min-height:36px;padding:0;color:inherit;background:var(--surf);border:1px solid var(--bord);border-radius:6px;cursor:pointer}
@@ -3082,6 +3104,44 @@ function finishUnitBoundary(unit, nextLid){
 // A lesson with no honest match is left out on purpose. A link that does not
 // answer the question the learner arrived with is worse than no link, so the
 // row is absent rather than pointed at something adjacent.
+// Why each guide is worth the click, one line per guide, keyed by slug so the
+// lessons that share a guide share its teaser and it is written down once.
+// Every line is taken from that guide's own content: the number it works, the
+// trap it names, the result it lands. A teaser that promises what the page does
+// not deliver costs more than no teaser, because the next three go unread too.
+const GUIDE_TEASER = {
+  "ab-testing-for-analysts":                 "Peeking at a running test twenty times turns a 5% false alarm rate into 24%.",
+  "confidence-intervals":                    "Three ways people read \"95% confident\" that are all wrong, and the one that is right.",
+  "correlation-vs-causation":                "r = 0.86 drops to 0.10 once you hold one hidden column still.",
+  "mean-vs-median":                          "One mistyped order moves the mean 337.50 and the median 30.",
+  "p-values":                                "Two regions differ by 168.50, and p is 0.36. What that sentence does not mean.",
+  "percentiles-iqr-outliers":                "The IQR fence that flags a mistyped row, and why Excel, SQL and pandas disagree.",
+  "standard-deviation":                      "Why the divisor is 15 and not 16, and what 236.81 actually tells you."
+};
+
+// One card, one shape, everywhere the guide is offered. `kind` changes the
+// eyebrow and nothing else: 'stage' stands under a lesson step, 'miss' prints
+// under a wrong answer while the learner still wants it, 'lx' is the last row
+// of the "What this is" block, and 'close' sits on the Done card.
+function guideCardHTML(slug, label, kind){
+  kind = kind || 'close';
+  const t = GUIDE_TEASER[slug];
+  const eyebrow = kind === 'miss'  ? 'Still fuzzy? Read this'
+                : kind === 'close' ? 'Go deeper'
+                : 'Full guide';
+  const cls = kind === 'lx' ? 'kit-guide lx-guide' : 'kit-guide kit-guide-' + kind;
+  const id  = kind === 'stage' ? ' id="kit-guide-stage"' : '';
+  return `<a${id} class="${cls}" href="../guides/${slug}/" target="_blank" rel="noopener">`
+    + `<span class="kg-ico"><i data-lucide="book-open"></i></span>`
+    + `<span class="kg-body">`
+    +   `<span class="kg-eyebrow">${eyebrow}</span>`
+    +   `<span class="kg-title">${label}</span>`
+    +   (t ? `<span class="kg-teaser">${t}</span>` : '')
+    + `</span>`
+    + `<span class="kg-go"><i data-lucide="arrow-right"></i></span>`
+    + `</a>`;
+}
+
 const LESSON_GUIDE = {
   // Unit 1: Describing Data
   1:  ['mean-vs-median',           'Mean vs median'],
@@ -3105,7 +3165,7 @@ const LESSON_GUIDE = {
 function guideLinkHTML(lid){
   const g = LESSON_GUIDE[lid];
   if(!g) return '';
-  return `<div class="kit-guide"><i data-lucide="book-open"></i><span>Full guide: <a href="../guides/${g[0]}/" target="_blank" rel="noopener">${g[1]}</a></span></div>`;
+  return guideCardHTML(g[0], g[1], 'stage');
 }
 
 // The SAME frame the lesson stages use, in the same slots: back control,

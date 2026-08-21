@@ -427,8 +427,6 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
 .lx>div:last-child{margin-bottom:0}
 .lx-k{font-weight:700;color:var(--text)}
 .lx-like{font-style:italic}
-.lx-guide{font-size:12.5px;padding-top:8px;border-top:1px solid var(--border);margin-top:9px}
-.lx-guide a{color:var(--accent);font-weight:600}
 
 /* STAGE BAR — one unbroken run of dots from the first lesson stage to the last
    practice step. Practice dots are rings, so you can see where the reading
@@ -447,10 +445,32 @@ body.sprint-on .sc-supporting:hover{opacity:.85;transition:opacity .15s}
    the next step, so it never gets button weight or accent fill. It sits
    OUTSIDE the stage card, below the actions, so it reads as a footnote to the
    step rather than part of the task. */
-.kit-guide{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.55;color:var(--dim);margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
-.kit-guide .lucide{width:15px;height:15px;flex:0 0 auto;margin-top:2px;color:var(--accent)}
-.kit-guide a{color:var(--accent);font-weight:600;text-decoration:none}
-.kit-guide a:hover{text-decoration:underline}
+/* The long-form guide behind a lesson. It used to be a grey footnote line and
+   got walked past: a title with no reason attached gives a learner no way to
+   price the detour, so the offer never got taken. It is now a card carrying an
+   eyebrow, the guide's own heading, and one line of what is inside it, and the
+   whole card is the link. The teaser is the part that earns the click, so it
+   names a concrete thing in that guide (a number, a trap, a result) and is
+   written from the guide's own content, never from a promise.
+   Still ONE card, still opt-in, still below the actions: nothing about the next
+   step moved (CURRICULUM_STANDARD, directive always visible). Help taken on
+   demand costs nothing to the learner who walks past it (Kalyuga, Ayres,
+   Chandler & Sweller 2003). */
+.kit-guide{display:flex;gap:11px;align-items:flex-start;text-decoration:none;margin-top:16px;padding:11px 13px;background:color-mix(in srgb,var(--accent) 8%,transparent);border:1px solid color-mix(in srgb,var(--accent) 28%,transparent);border-left:3px solid var(--accent);border-radius:0 var(--r2,8px) var(--r2,8px) 0;transition:background .15s,border-color .15s}
+.kit-guide:hover{background:color-mix(in srgb,var(--accent) 15%,transparent);border-color:color-mix(in srgb,var(--accent) 48%,transparent)}
+.kit-guide .kg-ico{width:17px;height:17px;flex:0 0 auto;margin-top:2px;color:var(--accent);display:block}
+.kit-guide .kg-ico svg,.kit-guide .kg-go svg{width:100%;height:100%;display:block}
+.kit-guide .kg-body{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}
+.kit-guide .kg-eyebrow{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.kit-guide .kg-title{font-size:13.5px;font-weight:700;color:var(--text);line-height:1.4}
+.kit-guide .kg-teaser{font-size:12.5px;line-height:1.5;color:var(--dim)}
+.kit-guide .kg-go{width:15px;height:15px;flex:0 0 auto;align-self:center;color:var(--accent);opacity:.6;transition:transform .15s,opacity .15s;display:block}
+.kit-guide:hover .kg-go{transform:translateX(3px);opacity:1}
+/* Inside the "What this is" block it is already the last row, so it drops the
+   gap it needs when it stands on its own under a step. */
+.kit-guide.lx-guide{margin-top:12px;border-left-width:1px;border-left-color:color-mix(in srgb,var(--accent) 28%,transparent);border-radius:var(--r2,8px)}
+.kit-guide.kit-guide-miss{margin-top:10px}
+@media(max-width:520px){.kit-guide .kg-go{display:none}}
 .v2-stage-card h3{margin:0 0 12px;font-size:15px}
 .v2-stage-card h3 .lucide{width:16px;height:16px;color:var(--accent);vertical-align:-2px;margin-right:6px}
 
@@ -3673,7 +3693,7 @@ function lessonExplainHTML(l){
   // so the slug and its label are never written down twice and cannot drift.
   const g = e.guide ? [e.guide, e.guideLabel || l.title] : LESSON_GUIDE[l.id];
   const guide = g
-    ? `<div class="lx-guide"><a href="../guides/${g[0]}/" target="_blank" rel="noopener">Full guide: ${g[1]}</a></div>`
+    ? guideCardHTML(g[0], g[1], 'lx')
     : '';
   return `<div class="lx">
       ${e.is  ? `<div><span class="lx-k">What it is.</span> ${e.is}</div>` : ''}
@@ -4010,6 +4030,67 @@ function guidedSeqFor(lessonId){
 // answer the question the learner arrived with is worse than no link, so the
 // row is absent rather than pointed at something adjacent. That is why 101,
 // 104, 1, 23, 24, 606, 703, 704 and 804 carry nothing.
+// Why each guide is worth the click, one line per guide, keyed by slug so the
+// lessons that share a guide share its teaser and it is written down once.
+// Every line is taken from that guide's own content: the number it works, the
+// trap it names, the result it lands. A teaser that promises what the page does
+// not deliver costs more than no teaser, because the next three go unread too.
+const GUIDE_TEASER = {
+  "budget-vs-actual-variance":               "A variance of +$11,800 on a cost line is bad news. Here is the sign convention that says so.",
+  "contribution-margin-break-even":          "Put fixed cost inside the unit and a 750-unit break-even reads as 12,000.",
+  "correlation-vs-causation":                "r = 0.86 drops to 0.10 once you hold one hidden column still.",
+  "defining-metrics":                        "Turn \"active user\" into something two people would count the same way.",
+  "entity-resolution":                       "One artist under seven names. The normalisation rules, and when NOT to merge.",
+  "excel-absolute-vs-relative-references":   "Why the first row is right and the copied column is wrong. The four F4 states, in order.",
+  "excel-check-your-work":                   "Wrong Excel does not crash. It hands you a confident number. Two COUNTIF cells catch it.",
+  "excel-clean-messy-data":                  "The invisible space TRIM will not remove, and the 865 it quietly took off a total.",
+  "excel-conditional-formatting":            "One formula rule and one dollar sign light up a whole row from one column's value.",
+  "excel-data-validation":                   "Your dropdown has a hole in it: an ordinary paste wipes the rule entirely.",
+  "excel-dates":                             "A date is the number 46027 wearing a format. Spot a fake one in two seconds.",
+  "excel-dynamic-arrays":                    "One formula, many cells. FILTER, UNIQUE and SORT, plus what #SPILL! is telling you.",
+  "excel-if-family":                         "One question sorts the whole IF family: am I labelling a row or measuring a column?",
+  "excel-iferror":                           "IFERROR catches every error, not just yours. Hiding four rows moved a margin 8.9 points.",
+  "excel-ifs-vs-nested-if":                  "Write the bands in the wrong order and 3,710 of revenue lands in the wrong label, with no error.",
+  "excel-index-match":                       "One inserted column turns 22 into Northlight. INDEX MATCH is why it does not.",
+  "excel-month-over-month":                  "The calendar table that turns a missing month into a zero instead of a fake spike.",
+  "excel-name-your-data":                    "Formulas that read like sentences, fill themselves down, and survive new rows.",
+  "excel-pick-the-chart":                    "Say the question's verb out loud and the chart picks itself.",
+  "excel-pivot-table-question":              "Rows is what you group by. Values is what you count. Write the sentence, place the halves.",
+  "excel-pivot-tables":                      "Four clicks to a summary, then the five settings that decide whether it is right.",
+  "excel-power-query":                       "Click it once, replay it on every file after. Unpivot, merge, append, refresh.",
+  "excel-remove-duplicates":                 "The columns you tick ARE the definition of duplicate, and the dialog deletes silently.",
+  "excel-slicers":                           "Report Connections is the moment a spreadsheet turns into a dashboard.",
+  "excel-sumifs":                            "SUMIF and SUMIFS put the sum range in opposite places. Plus the check that catches a bad total.",
+  "excel-sumproduct":                        "The weighted average it exists for, and where it still beats SUMIFS.",
+  "excel-tables":                            "One keystroke moves the edges of your data. Calculated columns, Total row, naming rules.",
+  "exploratory-data-analysis":               "Anscombe's quartet and the Datasaurus prove your summary stats can lie.",
+  "gross-vs-operating-vs-net-margin":        "Averaging monthly margins misses by 3.1 points, and one SQL division quietly returns 0.",
+  "percentiles-iqr-outliers":                "The IQR fence that flags a mistyped row, and why Excel, SQL and pandas disagree."
+};
+
+// One card, one shape, everywhere the guide is offered. `kind` changes the
+// eyebrow and nothing else: 'stage' stands under a lesson step, 'miss' prints
+// under a wrong answer while the learner still wants it, 'lx' is the last row
+// of the "What this is" block, and 'close' sits on the Done card.
+function guideCardHTML(slug, label, kind){
+  kind = kind || 'close';
+  const t = GUIDE_TEASER[slug];
+  const eyebrow = kind === 'miss'  ? 'Still fuzzy? Read this'
+                : kind === 'close' ? 'Go deeper'
+                : 'Full guide';
+  const cls = kind === 'lx' ? 'kit-guide lx-guide' : 'kit-guide kit-guide-' + kind;
+  const id  = kind === 'stage' ? ' id="kit-guide-stage"' : '';
+  return `<a${id} class="${cls}" href="../guides/${slug}/" target="_blank" rel="noopener">`
+    + `<span class="kg-ico"><i data-lucide="book-open"></i></span>`
+    + `<span class="kg-body">`
+    +   `<span class="kg-eyebrow">${eyebrow}</span>`
+    +   `<span class="kg-title">${label}</span>`
+    +   (t ? `<span class="kg-teaser">${t}</span>` : '')
+    + `</span>`
+    + `<span class="kg-go"><i data-lucide="arrow-right"></i></span>`
+    + `</a>`;
+}
+
 const LESSON_GUIDE = {
   // Unit 0: Before You Type a Formula
   102: ['excel-absolute-vs-relative-references', 'Absolute vs relative references'],
@@ -4072,14 +4153,7 @@ const LESSON_GUIDE = {
 function guideLinkHTML(lid, kind){
   const g = LESSON_GUIDE[lid];
   if(!g) return '';
-  const href = `../guides/${g[0]}/`;
-  const body = kind === 'miss'
-    ? `Still fuzzy? <a href="${href}" target="_blank" rel="noopener">${g[1]}</a> walks through this one.`
-    : kind === 'stage'
-    ? `Full guide: <a href="${href}" target="_blank" rel="noopener">${g[1]}</a>`
-    : `Go deeper: <a href="${href}" target="_blank" rel="noopener">${g[1]}</a>`;
-  const id = kind === 'stage' ? ' id="kit-guide-stage"' : '';
-  return `<div${id} class="kit-guide kit-guide-${kind}"><i data-lucide="book-open"></i><span>${body}</span></div>`;
+  return guideCardHTML(g[0], g[1], kind);
 }
 
 function startGuided(lessonId){

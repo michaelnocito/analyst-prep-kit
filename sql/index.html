@@ -221,21 +221,39 @@ p strong{color:var(--text)}
 .lx-slot span{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:5px;background:var(--surf2);color:var(--muted);border:1px solid var(--border)}
 .lx-slot span.on{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:700}
 .lx-slot i{font-style:normal;color:var(--muted);opacity:.5;font-size:11px}
-.lx-guide{font-size:12.5px;padding-top:9px;border-top:1px solid var(--border);margin-top:11px}
-.lx-guide a{color:var(--accent);font-weight:600}
 /* The long-form guide behind a lesson. Quiet by default: it is an offer, not
    the next step, so it never gets button weight or accent fill. */
-.kit-guide{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.55;color:var(--muted);margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
-.kit-guide .lucide{width:15px;height:15px;flex:0 0 auto;margin-top:2px;color:var(--accent)}
-.kit-guide a{color:var(--accent);font-weight:600;text-decoration:none}
-.kit-guide a:hover{text-decoration:underline}
+/* The long-form guide behind a lesson. It used to be a grey footnote line and
+   got walked past: a title with no reason attached gives a learner no way to
+   price the detour, so the offer never got taken. It is now a card carrying an
+   eyebrow, the guide's own heading, and one line of what is inside it, and the
+   whole card is the link. The teaser is the part that earns the click, so it
+   names a concrete thing in that guide (a number, a trap, a result) and is
+   written from the guide's own content, never from a promise.
+   Still ONE card, still opt-in, still below the actions: nothing about the next
+   step moved (CURRICULUM_STANDARD, directive always visible). Help taken on
+   demand costs nothing to the learner who walks past it (Kalyuga, Ayres,
+   Chandler & Sweller 2003). */
+.kit-guide{display:flex;gap:11px;align-items:flex-start;text-decoration:none;margin-top:16px;padding:11px 13px;background:color-mix(in srgb,var(--accent) 8%,transparent);border:1px solid color-mix(in srgb,var(--accent) 28%,transparent);border-left:3px solid var(--accent);border-radius:0 var(--r2,8px) var(--r2,8px) 0;transition:background .15s,border-color .15s}
+.kit-guide:hover{background:color-mix(in srgb,var(--accent) 15%,transparent);border-color:color-mix(in srgb,var(--accent) 48%,transparent)}
+.kit-guide .kg-ico{width:17px;height:17px;flex:0 0 auto;margin-top:2px;color:var(--accent);display:block}
+.kit-guide .kg-ico svg,.kit-guide .kg-go svg{width:100%;height:100%;display:block}
+.kit-guide .kg-body{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}
+.kit-guide .kg-eyebrow{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.kit-guide .kg-title{font-size:13.5px;font-weight:700;color:var(--text);line-height:1.4}
+.kit-guide .kg-teaser{font-size:12.5px;line-height:1.5;color:var(--muted)}
+.kit-guide .kg-go{width:15px;height:15px;flex:0 0 auto;align-self:center;color:var(--accent);opacity:.6;transition:transform .15s,opacity .15s;display:block}
+.kit-guide:hover .kg-go{transform:translateX(3px);opacity:1}
+/* Inside the "What this is" block it is already the last row, so it drops the
+   gap it needs when it stands on its own under a step. */
+.kit-guide.lx-guide{margin-top:12px;border-left-width:1px;border-left-color:color-mix(in srgb,var(--accent) 28%,transparent);border-radius:var(--r2,8px)}
+.kit-guide.kit-guide-miss{margin-top:10px}
+@media(max-width:520px){.kit-guide .kg-go{display:none}}
 /* Under a wrong answer it sits inside an existing block, so it drops the rule
    above it and tucks in tighter. */
-.kit-guide-miss{margin-top:10px;padding-top:0;border-top:0}
 /* The standing one sits OUTSIDE the stage card, below the actions, so it reads
    as a footnote to the whole step rather than part of the task. A size down
    from the others: it is there to be found, not to be noticed. */
-.kit-guide-stage{margin-top:16px;font-size:12.5px}
 .ral-body{padding:16px 18px}
 .ral-say{font-size:14px;font-style:italic;color:var(--clay-800);background:var(--clay-50);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:9px 13px 9px 11px;margin-bottom:14px;line-height:1.55;display:flex;gap:7px;align-items:flex-start}
 .ral-say .lucide{width:15px;height:15px;color:var(--accent);flex-shrink:0;margin-top:3px}
@@ -2295,7 +2313,7 @@ function lessonExplainHTML(l){
   const slug = e.guide || (g && g[0]);
   const label = e.guideLabel || (g && g[1]) || l.title;
   const guide = slug
-    ? `<div class="lx-guide"><a href="../guides/${slug}/" target="_blank" rel="noopener">Full guide: ${label}</a></div>`
+    ? guideCardHTML(slug, label, 'lx')
     : '';
   return `<div class="lx">
       ${lxRow('lx-is',   'crosshair', 'What it is',      e.is)}
@@ -3796,6 +3814,71 @@ function targetCardHTML(){
 // a reader that these links do not pay off, and then they stop reading them.
 // Unit 7 (Financial Analysis) was mostly blank for that reason until the four
 // missing guides were written on 2026-08-11. Every lesson is now mapped.
+// Why each guide is worth the click, one line per guide, keyed by slug so the
+// lessons that share a guide share its teaser and it is written down once.
+// Every line is taken from that guide's own content: the number it works, the
+// trap it names, the result it lands. A teaser that promises what the page does
+// not deliver costs more than no teaser, because the next three go unread too.
+const GUIDE_TEASER = {
+  "budget-vs-actual-variance":               "A variance of +$11,800 on a cost line is bad news. Here is the sign convention that says so.",
+  "contribution-margin-break-even":          "Put fixed cost inside the unit and a 750-unit break-even reads as 12,000.",
+  "correlation-vs-causation":                "r = 0.86 drops to 0.10 once you hold one hidden column still.",
+  "data-driven-thresholds":                  "Pick cutoffs from the distribution instead of guessing, and defend them when asked.",
+  "defining-metrics":                        "Turn \"active user\" into something two people would count the same way.",
+  "exploratory-data-analysis":               "Anscombe's quartet and the Datasaurus prove your summary stats can lie.",
+  "gross-vs-operating-vs-net-margin":        "Averaging monthly margins misses by 3.1 points, and one SQL division quietly returns 0.",
+  "liquidity-and-leverage-ratios":           "A 2.40 current ratio that is still $200,000 short of paying the bills.",
+  "migration-cleaning":                      "What you fix by rule, what goes on the exception list, and why that list is a gate.",
+  "migration-field-mapping":                 "Nothing moves until the map is signed off. Here is what each row of it needs.",
+  "migration-profiling":                     "Seven checks on every extract, and what each one tells you about the timeline.",
+  "migration-uat":                           "Give named records, not open invitations. What counts as a pass, and how to get it in writing.",
+  "net-present-value-npv":                   "The same cash flows are worth +$137,236 at 10% and -$2,347 at 20%.",
+  "percentiles-iqr-outliers":                "The IQR fence that flags a mistyped row, and why Excel, SQL and pandas disagree.",
+  "set-up-a-sql-database":                   "Two desktop tools, no server, no install headaches, first query in minutes.",
+  "sql-case-expression":                     "Why the order of your WHEN clauses changes the answer, and why = NULL never matches.",
+  "sql-cohort-retention":                    "Two definitions of \"retained\" give 50% and 33% from the same data.",
+  "sql-count-function":                      "COUNT(*), COUNT(col) and COUNT(DISTINCT col) disagree the moment a NULL shows up.",
+  "sql-ctes":                                "Name one step and you can run it on its own. Worked on 82,956 real games.",
+  "sql-dates":                               "The half-open range, the month that never becomes a row, and two engines that disagree.",
+  "sql-find-duplicates":                     "The GROUP BY HAVING pattern that lists every duplicate, and a ten-second test for any table.",
+  "sql-foundations":                         "Every core SQL idea in the order they build on each other, start to finish.",
+  "sql-funnel-analysis":                     "One step converts at 100% while overall conversion is 30%. Here is why.",
+  "sql-group-by-having":                     "The one line that stops a category of eleven records from topping your chart.",
+  "sql-indexing-for-analysts":               "90.9 ms to 0.2 ms on half a million rows, and the three ways to lose an index you have.",
+  "sql-joins":                               "The silent delete and the silent multiply, and the two counts that catch each one.",
+  "sql-month-over-month":                    "One skipped month makes SQL report a fake 30.6% drop.",
+  "sql-null":                                "WHERE assignee = NULL returns 0 of 10 rows, every time. Plus the NOT IN trap.",
+  "sql-reconciliation":                      "Both tables had 16 rows and differed by 400. Here is how you find where.",
+  "sql-running-total":                       "The default window frame quietly lumps ties together. ROWS against RANGE, on real data.",
+  "sql-segment-with-case":                   "The clause order that deletes a whole segment, and the gap that creates a NULL one.",
+  "sql-subqueries":                          "The four places a subquery can go, and the NOT IN that returns nothing at all.",
+  "sql-temp-tables-vs-views":                "467.6 ms against 0.0 ms, and only one of them was still right after the data changed.",
+  "sql-window-functions":                    "Add a number to every row without collapsing any of them. ROW_NUMBER, RANK, LAG."
+};
+
+// One card, one shape, everywhere the guide is offered. `kind` changes the
+// eyebrow and nothing else: 'stage' stands under a lesson step, 'miss' prints
+// under a wrong answer while the learner still wants it, 'lx' is the last row
+// of the "What this is" block, and 'close' sits on the Done card.
+function guideCardHTML(slug, label, kind){
+  kind = kind || 'close';
+  const t = GUIDE_TEASER[slug];
+  const eyebrow = kind === 'miss'  ? 'Still fuzzy? Read this'
+                : kind === 'close' ? 'Go deeper'
+                : 'Full guide';
+  const cls = kind === 'lx' ? 'kit-guide lx-guide' : 'kit-guide kit-guide-' + kind;
+  const id  = kind === 'stage' ? ' id="kit-guide-stage"' : '';
+  return `<a${id} class="${cls}" href="../guides/${slug}/" target="_blank" rel="noopener">`
+    + `<span class="kg-ico"><i data-lucide="book-open"></i></span>`
+    + `<span class="kg-body">`
+    +   `<span class="kg-eyebrow">${eyebrow}</span>`
+    +   `<span class="kg-title">${label}</span>`
+    +   (t ? `<span class="kg-teaser">${t}</span>` : '')
+    + `</span>`
+    + `<span class="kg-go"><i data-lucide="arrow-right"></i></span>`
+    + `</a>`;
+}
+
 const LESSON_GUIDE = {
   // Unit 0: Orientation
   100:['sql-foundations',          'SQL foundations, start to finish'],
@@ -3902,17 +3985,7 @@ function guideLinkHTML(lid, kind){
     const standing = document.getElementById('kit-guide-stage');
     if(standing) standing.style.display = 'none';
   }
-  const href = `../guides/${g[0]}/`;
-  const body = kind === 'miss'
-    ? `Still fuzzy? <a href="${href}" target="_blank" rel="noopener">${g[1]}</a> walks through this one.`
-    // Word for word what the opening stage calls it. A user test on 2026-08-11
-    // stopped to check it was the right page when the kit label, the footer
-    // label and the heading were three different names for one guide.
-    : kind === 'stage'
-    ? `Full guide: <a href="${href}" target="_blank" rel="noopener">${g[1]}</a>`
-    : `Go deeper: <a href="${href}" target="_blank" rel="noopener">${g[1]}</a>`;
-  const id = kind === 'stage' ? ' id="kit-guide-stage"' : '';
-  return `<div${id} class="kit-guide kit-guide-${kind}"><i data-lucide="book-open"></i><span>${body}</span></div>`;
+  return guideCardHTML(g[0], g[1], kind);
 }
 
 // ── Unit-boundary "Make it stick" labs (playtest Batch 3) ──────────────────

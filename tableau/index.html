@@ -201,10 +201,32 @@ p{line-height:1.6;color:var(--dim);margin-bottom:10px}
    the next step, so it never gets button weight or accent fill. It sits
    OUTSIDE the stage card, below the actions, so it reads as a footnote to the
    step rather than part of the task. */
-.kit-guide{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.55;color:var(--dim);margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
-.kit-guide .lucide{width:15px;height:15px;flex:0 0 auto;margin-top:2px;color:var(--accent)}
-.kit-guide a{color:var(--accent);font-weight:600;text-decoration:none}
-.kit-guide a:hover{text-decoration:underline}
+/* The long-form guide behind a lesson. It used to be a grey footnote line and
+   got walked past: a title with no reason attached gives a learner no way to
+   price the detour, so the offer never got taken. It is now a card carrying an
+   eyebrow, the guide's own heading, and one line of what is inside it, and the
+   whole card is the link. The teaser is the part that earns the click, so it
+   names a concrete thing in that guide (a number, a trap, a result) and is
+   written from the guide's own content, never from a promise.
+   Still ONE card, still opt-in, still below the actions: nothing about the next
+   step moved (CURRICULUM_STANDARD, directive always visible). Help taken on
+   demand costs nothing to the learner who walks past it (Kalyuga, Ayres,
+   Chandler & Sweller 2003). */
+.kit-guide{display:flex;gap:11px;align-items:flex-start;text-decoration:none;margin-top:16px;padding:11px 13px;background:color-mix(in srgb,var(--accent) 8%,transparent);border:1px solid color-mix(in srgb,var(--accent) 28%,transparent);border-left:3px solid var(--accent);border-radius:0 var(--r2,8px) var(--r2,8px) 0;transition:background .15s,border-color .15s}
+.kit-guide:hover{background:color-mix(in srgb,var(--accent) 15%,transparent);border-color:color-mix(in srgb,var(--accent) 48%,transparent)}
+.kit-guide .kg-ico{width:17px;height:17px;flex:0 0 auto;margin-top:2px;color:var(--accent);display:block}
+.kit-guide .kg-ico svg,.kit-guide .kg-go svg{width:100%;height:100%;display:block}
+.kit-guide .kg-body{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}
+.kit-guide .kg-eyebrow{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.kit-guide .kg-title{font-size:13.5px;font-weight:700;color:var(--text);line-height:1.4}
+.kit-guide .kg-teaser{font-size:12.5px;line-height:1.5;color:var(--dim)}
+.kit-guide .kg-go{width:15px;height:15px;flex:0 0 auto;align-self:center;color:var(--accent);opacity:.6;transition:transform .15s,opacity .15s;display:block}
+.kit-guide:hover .kg-go{transform:translateX(3px);opacity:1}
+/* Inside the "What this is" block it is already the last row, so it drops the
+   gap it needs when it stands on its own under a step. */
+.kit-guide.lx-guide{margin-top:12px;border-left-width:1px;border-left-color:color-mix(in srgb,var(--accent) 28%,transparent);border-radius:var(--r2,8px)}
+.kit-guide.kit-guide-miss{margin-top:10px}
+@media(max-width:520px){.kit-guide .kg-go{display:none}}
 /* "What this is" — three plain sentences under the title, opening stage only.
    Quiet card, accent rule down the left, so it reads as orientation rather than
    as a task. */
@@ -3849,6 +3871,48 @@ function finishUnitBoundary(unit, nextLid){
 // row is absent rather than pointed at something adjacent. That is why the
 // build-this-chart lessons carry nothing: the chart-choice guide answers which
 // chart to pick, not how to build the one you already picked.
+// Why each guide is worth the click, one line per guide, keyed by slug so the
+// lessons that share a guide share its teaser and it is written down once.
+// Every line is taken from that guide's own content: the number it works, the
+// trap it names, the result it lands. A teaser that promises what the page does
+// not deliver costs more than no teaser, because the next three go unread too.
+const GUIDE_TEASER = {
+  "build-a-tableau-dashboard":               "Four sheets, one rate calculation, and a dashboard published to your portfolio.",
+  "choose-the-right-chart":                  "One question picks the chart for you. A decision table, and why a nine-slice pie fails.",
+  "connect-tableau-to-your-data":            "The dimension and measure split happens on connect, and it decides what every chart can do.",
+  "install-tableau-public":                  "Two free apps, almost the same name, and only one can publish to your portfolio.",
+  "tableau-aliases":                         "Make the chart say East instead of E, and know which fields can never have one.",
+  "tableau-concepts":                        "Every core Tableau idea the Foundations exam tests, in one pass.",
+  "tableau-hierarchies":                     "Drop one field on another and every view using it gets drill controls.",
+  "tableau-relationships":                   "The noodle is not a join. Here is why your totals stopped inflating.",
+  "tableau-sets":                            "A set does not remove rows. It labels every row IN or OUT so you can compare halves.",
+  "tableau-sheets-to-dashboard":             "Tableau's own guidance: two or three views. How to pick which sheets survive.",
+  "tableau-sorts":                           "One question separates the four sort options: does it re-evaluate on new data?"
+};
+
+// One card, one shape, everywhere the guide is offered. `kind` changes the
+// eyebrow and nothing else: 'stage' stands under a lesson step, 'miss' prints
+// under a wrong answer while the learner still wants it, 'lx' is the last row
+// of the "What this is" block, and 'close' sits on the Done card.
+function guideCardHTML(slug, label, kind){
+  kind = kind || 'close';
+  const t = GUIDE_TEASER[slug];
+  const eyebrow = kind === 'miss'  ? 'Still fuzzy? Read this'
+                : kind === 'close' ? 'Go deeper'
+                : 'Full guide';
+  const cls = kind === 'lx' ? 'kit-guide lx-guide' : 'kit-guide kit-guide-' + kind;
+  const id  = kind === 'stage' ? ' id="kit-guide-stage"' : '';
+  return `<a${id} class="${cls}" href="../guides/${slug}/" target="_blank" rel="noopener">`
+    + `<span class="kg-ico"><i data-lucide="book-open"></i></span>`
+    + `<span class="kg-body">`
+    +   `<span class="kg-eyebrow">${eyebrow}</span>`
+    +   `<span class="kg-title">${label}</span>`
+    +   (t ? `<span class="kg-teaser">${t}</span>` : '')
+    + `</span>`
+    + `<span class="kg-go"><i data-lucide="arrow-right"></i></span>`
+    + `</a>`;
+}
+
 const LESSON_GUIDE = {
   // Unit 0: Before You Drag
   21: ['tableau-concepts',            'Tableau concepts, start to finish'],
@@ -3883,7 +3947,7 @@ const LESSON_GUIDE = {
 function guideLinkHTML(lid){
   const g = LESSON_GUIDE[lid];
   if(!g) return '';
-  return `<div class="kit-guide"><i data-lucide="book-open"></i><span>Full guide: <a href="../guides/${g[0]}/" target="_blank" rel="noopener">${g[1]}</a></span></div>`;
+  return guideCardHTML(g[0], g[1], 'stage');
 }
 
 // Stable frame: the header row, progress dots, and the uniform bottom Back/Next
