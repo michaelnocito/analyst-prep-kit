@@ -9,6 +9,28 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.15.0] — 2026-08-21 — Plan certificate page
+
+New `plan/certificate/`: a completion certificate rendered entirely from the
+URL (`?level=&role=&days=&name=&d=`), so every certificate IS a shareable
+permanent link back to the site (the freeCodeCamp mechanic; engagement
+rationale per Goli, Chintagunta & Sriram 2022). Name is typed on the page,
+saved to `localStorage['apk-plan-name']`, and written into the link live via
+replaceState. Card lists the skills the plan actually contained (SKILLS map,
+cumulative by 3/5/7 — kept in step with the day content in plan/index.html),
+the plan name, date, and an honest self-reported-completion verify line
+linking back to the builder. Actions, all user-initiated: copy link, print /
+save as PDF (@media print strips everything but the card), and LinkedIn's
+standard add-to-profile URL prefilled with certUrl pointing at the
+certificate (each saved cert = a standing backlink). Empty state (no/invalid
+params) explains the page and routes to the builder. Plan page wiring:
+completion popup gains a primary "Get your certificate" button; completed
+plans keep a permanent certificate link in the win card (certHref uses the
+celebration date, so revisits keep the original completion date). GA:
+cert_view (empty/full), cert_name_set, cert_copy_link, cert_linkedin,
+cert_print. Sitemap +certificate/. Parse gates green; empty state verified
+in-browser, full render verified live post-push.
+
 ## [3.14.0] — 2026-08-20 — Plan Builder v2: 3/5/7 days, wins, research-grounded
 
 `plan/` rebuilt on the research pass (canon audit + primary-literature review;
