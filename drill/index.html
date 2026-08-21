@@ -1123,14 +1123,20 @@ Promise.all(LADDERS[SLUG].files.map(loadScript))
   })
   .catch(e => { $('adds').textContent = 'This ladder failed to load: ' + e.message; });
 
-// Arrived from the Plan Builder (`?from=plan`): show one persistent way back to the plan.
-// Same fix, same reason as the SQL kit's `?from=path` pill (user test, 2026-07-29): a
-// learner sent here by a plan step needs exactly one obvious road back to step two, or
-// the session quietly ends inside the tool. Opt-in via the query string; nobody arriving
-// any other way ever sees it.
+// Arrived from the Plan Builder (`?from=plan`): a persistent way back to the plan, plus a
+// SITTING SCOPE (Mike playtest, 2026-08-21: "we just drop them where they left off").
+// The plan step says how many rungs today via ?rungs= — an integer means "this many
+// rungs past wherever you start", `half` means "through the first half of the ladder",
+// and `end` (the default) means "to the final rung". Hitting the boundary raises a hard
+// stop that walks the learner back with ?ckd=<step> so the plan checks its own box.
+// Opt-in via the query string; nobody arriving any other way ever sees any of it.
 (function(){
   try {
-    if(new URLSearchParams(location.search).get('from') !== 'plan') return;
+    const qs = new URLSearchParams(location.search);
+    if(qs.get('from') !== 'plan') return;
+    const ret = qs.get('ret') || '';
+    const doneHref = '../plan/' + (ret && /^d\d+s\d+$/.test(ret) ? '?ckd=' + encodeURIComponent(ret) : '');
+    const rungsRaw = qs.get('rungs') || 'end';
     const bar = document.createElement('a');
     bar.href = '../plan/';
     bar.textContent = '← Back to your plan';
@@ -1140,6 +1146,56 @@ Promise.all(LADDERS[SLUG].files.map(loadScript))
       'font:600 14px/1 system-ui,sans-serif;padding:12px 18px;border-radius:999px;' +
       'box-shadow:0 6px 20px rgba(0,0,0,.28)';
     document.body.appendChild(bar);
+
+    let i0 = null, target = null, stopped = false, lastRungArmed = false;
+    function armLastRung(){
+      if(lastRungArmed) return;
+      lastRungArmed = true;
+      bar.href = doneHref;
+      bar.textContent = '✓ Final rung. Finish it, then tap here';
+      bar.style.background = '#15803D';
+    }
+    function hardStop(n){
+      if(stopped) return;
+      stopped = true;
+      bar.href = doneHref;
+      bar.textContent = '✓ Step done. Back to your plan';
+      bar.style.background = '#15803D';
+      const ov = document.createElement('div');
+      ov.style.cssText = 'position:fixed;inset:0;background:rgba(9,9,11,.5);z-index:1300;' +
+        'display:flex;align-items:center;justify-content:center;padding:20px';
+      ov.innerHTML =
+        '<div style="background:#fff;border-radius:14px;max-width:430px;padding:24px;' +
+          'font:15px/1.55 system-ui,sans-serif;color:#09090B;box-shadow:0 20px 60px rgba(9,9,11,.35)">' +
+        '<p style="font:700 19px/1.3 system-ui,sans-serif;margin:0 0 8px">Stop here. Those were your rungs for today.</p>' +
+        '<p style="margin:0 0 16px;color:#52525B">' + n + ' rung' + (n===1?'':'s') + ' done, exactly what the ' +
+          'plan asked for. The ladder saves your spot, and tomorrow&rsquo;s step starts right here.</p>' +
+        '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+        '<a href="' + doneHref + '" style="display:inline-block;background:#15803D;color:#fff;' +
+          'text-decoration:none;font:600 15px/1 system-ui,sans-serif;padding:13px 18px;' +
+          'border-radius:10px">✓ Back to the plan, box checked</a>' +
+        '<button type="button" style="background:none;border:0;color:#52525B;' +
+          'font:600 14px/1 system-ui,sans-serif;padding:13px 8px;cursor:pointer;' +
+          'text-decoration:underline">One more rung anyway</button>' +
+        '</div></div>';
+      ov.querySelector('button').onclick = function(){ ov.remove(); };
+      document.body.appendChild(ov);
+    }
+    const iv = setInterval(function(){
+      try {
+        if(typeof LADDER === 'undefined' || !LADDER || !LADDER.drills || !db) return;
+        const len = LADDER.drills.length;
+        if(i0 === null){
+          i0 = i;
+          if(rungsRaw === 'half') target = Math.ceil(len / 2);
+          else if(/^\d+$/.test(rungsRaw)) target = i0 + parseInt(rungsRaw, 10);
+          else target = null; // 'end'
+          if(target !== null && target > len - 1) target = null; // started too close to the top
+        }
+        if(target !== null && i >= target){ clearInterval(iv); hardStop(i - i0); return; }
+        if(target === null && i === len - 1) armLastRung();
+      } catch(e){}
+    }, 700);
   } catch(e){}
 })();
 </script>

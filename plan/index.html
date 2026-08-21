@@ -454,7 +454,12 @@ TWISTS.unsure = TWISTS.data;
    Drill links deliberately DO resume ladder position: day 2 says "next three
    rungs" and means it. */
 function lesson(id, title){ return '<a href="../sql/?from=plan#lesson-'+id+'-plan">'+title+'</a>'; }
-function ladder(slug, text){ return '<a href="../drill/?ladder='+slug+'&amp;from=plan">'+text+'</a>'; }
+/* rungs: how far this sitting goes. '3' = three rungs past wherever the ladder
+   resumes, 'half' = through the first half, omitted = to the final rung. The
+   drill raises the stop itself and walks the learner back with the box checked. */
+function ladder(slug, text, rungs){
+  return '<a href="../drill/?ladder='+slug+'&amp;from=plan'+(rungs ? '&amp;rungs='+rungs : '')+'">'+text+'</a>';
+}
 function guide(g){ return '<a href="'+g.href+'">'+g.label+'</a>'; }
 
 function warmup(){
@@ -484,7 +489,7 @@ function sevenDays(lv, rk){
             why:'Ten minutes of orientation so the words in the next step mean something.' },
           { what: lesson(1,'SELECT &amp; FROM'), time:'15 min',
             why:'Before you open it, guess: which of the two words picks the table, and which picks the columns? Hold the guess; the lesson settles it.' },
-          { what: ladder('music-country','SQL Drill, first three rungs'), time:'10 min',
+          { what: ladder('music-country','SQL Drill, first three rungs','3'), time:'10 min',
             why:'Typing it yourself is what makes it stick. Reading alone will not.' }
         ].concat(rk==='unsure' ? [UNSURE_STEP] : []),
         thinking:'Most SQL plans start with two days of theory. Yours starts at a keyboard, '+
@@ -497,7 +502,7 @@ function sevenDays(lv, rk){
             why:'Before you open it, guess: does a filter change which rows come back, or which columns? The lesson settles it.' },
           { what: lesson(3,'ORDER BY &amp; LIMIT'), time:'12 min',
             why:'Top ten lists are half of analyst work. This is the whole trick.' },
-          { what: ladder('music-country','SQL Drill, next three rungs'), time:'10 min',
+          { what: ladder('music-country','SQL Drill, next three rungs','3'), time:'10 min',
             why:'Same ladder as yesterday. Each rung is the last one plus one new thing.' }
         ],
         thinking:'Day one proved you can pull data. Day two adds the two moves that '+
@@ -522,7 +527,7 @@ function sevenDays(lv, rk){
         steps:[ warmup(),
           { what: lesson(5,'COUNT, SUM &amp; GROUP BY'), time:'15 min',
             why:'Before you open it: if you group sales by country, how many rows come back, one per sale or one per country? The lesson settles it.' },
-          { what: ladder('grouping','GROUP BY drill ladder, first half'), time:'20 min',
+          { what: ladder('grouping','GROUP BY drill ladder, first half','half'), time:'20 min',
             why:'Typed reps on real data, one added clause per rung.' }
         ],
         thinking:'Days one to three made you dangerous with single rows. Almost every '+
@@ -544,7 +549,7 @@ function sevenDays(lv, rk){
         steps:[ warmup(),
           { what: lesson(4,'INNER JOIN'), time:'15 min',
             why:'One idea: match rows on a key. Everything else is a variation.' },
-          { what: ladder('joins','JOINs drill ladder, first half'), time:'20 min',
+          { what: ladder('joins','JOINs drill ladder, first half','half'), time:'20 min',
             why:'The drill is a data migration, where every JOIN mistake shows up instantly.' }
         ],
         thinking:'JOINs are where most people decide SQL is hard. They are one idea '+
@@ -629,7 +634,7 @@ function sevenDays(lv, rk){
         steps:[ warmup(),
           { what: lesson(11,'CTEs'), time:'15 min',
             why:'Named steps turn a long query into a readable pipeline. Reviewers notice.' },
-          { what: ladder('telco','Telco churn ladder, first half'), time:'20 min',
+          { what: ladder('telco','Telco churn ladder, first half','half'), time:'20 min',
             why:'A realistic business dataset to point the rebuilt skills at.' }
         ],
         thinking:'Skill is back; now structure. WITH-clauses barely existed in many '+
@@ -1026,16 +1031,19 @@ const BADGES = {
              line:'Finished plans from two different starting points. That is range, and it shows.' }
 };
 let toastTimer = null;
+function showToast(html){
+  const t = $('toast');
+  t.innerHTML = html;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, 6000);
+}
 function award(id){
   if (S.badges[id]) return;
   S.badges[id] = todayStr();
   save();
   renderShelf();
-  const t = $('toast');
-  t.innerHTML = '<b>Win: ' + BADGES[id].name + '.</b> ' + BADGES[id].line;
-  t.hidden = false;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.hidden = true; }, 6000);
+  showToast('<b>Win: ' + BADGES[id].name + '.</b> ' + BADGES[id].line);
   if (window.gtag) gtag('event', 'plan_badge', { badge:id });
 }
 function renderShelf(){
@@ -1113,9 +1121,9 @@ function renderPlan(how){
       (S.anchor === 'varies'
         ? ' One honest note: days without a named time slot get skipped more. If a slot exists, claim it.'
         : (anchorPhrase ? ' You named a time. People who decide when, not just what, follow through at measurably higher rates. It is why the planner asked.' : '')) +
-      ' One more thing: lesson links here always open at the top of the lesson, separate '+
-      'from any progress you have inside the kit, and every page they open carries one '+
-      'button straight back to this plan.' +
+      ' One more thing: every linked step opens at its own top, separate from any other '+
+      'progress in the kit. Do the step, and the tool itself calls the stop, walks you '+
+      'back here, and checks the box. Then the next step lights up below.' +
     '</p>' +
     '<div class="pbar" role="img" aria-label="' + pct + ' percent complete"><span style="width:' + pct + '%"></span></div>' +
     '<p class="progressline" id="progressline"></p>' +
@@ -1141,20 +1149,26 @@ function renderPlan(how){
       return;
     }
     let stepsHtml = '';
+    let dCnt = 0;
     day.steps.forEach((st, si) => {
       const id = stepId(di, si);
       const on = !!dm[id];
+      if (on) dCnt++;
+      /* Tool links carry the step id back and forth: out via &ret=, home via ?ckd=,
+         so the tool can check this exact box on return. */
+      const what = st.what.replace(/from=plan/g, 'from=plan&amp;ret=' + id);
       stepsHtml +=
         '<li class="step' + (on ? ' checked' : '') + '" id="row-' + id + '">' +
         '<input type="checkbox" id="cb-' + id + '" data-sid="' + id + '" data-day="' + di + '"' +
           (st.gen ? ' data-gen="1"' : '') + (on ? ' checked' : '') +
           ' aria-label="Mark step done">' +
-        '<div class="body"><div class="what"><label for="cb-' + id + '">' + st.what +
+        '<div class="body"><div class="what"><label for="cb-' + id + '">' + what +
         '</label><span class="time">' + st.time + '</span></div>' +
         '<p class="why">' + st.why + '</p></div></li>';
     });
     html += '<div class="card day' + (dayDone[di] ? ' done' : '') + '">' +
-      '<p class="dtag">Day ' + (di + 1) + dtagWhen + '</p>' +
+      '<p class="dtag">Day ' + (di + 1) + dtagWhen + ' &middot; ' + dCnt + ' of ' +
+        day.steps.length + '</p>' +
       '<h3>' + day.title + '</h3>' +
       '<p class="goal">' + day.goal + '</p>' +
       '<ul class="steps">' + stepsHtml + '</ul>' +
@@ -1388,6 +1402,48 @@ $('randomBtn').addEventListener('click', () => {
 });
 
 renderAll(S.level && S.role && S.days ? 'resume' : 'first');
+
+/* A tool finished a plan step and sent the learner home with ?ckd=<stepId>:
+   check that exact box, thank them, and light up the next step. This is the
+   click -> do the thing -> back to the checklist -> repeat loop; the manual
+   checkbox stays for the read-and-write steps that have no tool to confirm them. */
+(function(){
+  try {
+    const q = new URLSearchParams(location.search);
+    const ckd = q.get('ckd');
+    if (!ckd) return;
+    q.delete('ckd');
+    history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q.toString() : ''));
+    if (!S.level || !S.role || !S.days || !/^d\d+s\d+$/.test(ckd)) return;
+    const m = ckd.match(/^d(\d+)s(\d+)$/);
+    const p = buildPlan(S.level, S.role, S.days);
+    const day = p.days[+m[1]];
+    const st = day && day.steps[+m[2]];
+    if (!st) return;
+    const k = comboKey();
+    if (!S.done[k]) S.done[k] = {};
+    const already = !!S.done[k][ckd];
+    S.done[k][ckd] = true;
+    if (!already){
+      award('first');
+      if (st.gen) award('saidit');
+      if (S.lastCheckDate && S.lastCheckDate !== todayStr()) award('comeback');
+      S.lastCheckDate = todayStr();
+    }
+    save();
+    renderPlan('recheck');
+    if (!already){
+      const tmp = document.createElement('div');
+      tmp.innerHTML = st.what;
+      showToast('<b>&#10003; Checked off:</b> ' + tmp.textContent + '. The next step is lit below.');
+      if (window.gtag) gtag('event', 'plan_autocheck', { level:S.level, role:S.role, days:S.days, step:ckd });
+    }
+    setTimeout(() => {
+      const bar = $('nextbar');
+      if (!bar.hidden && typeof bar.onclick === 'function') bar.onclick();
+    }, 250);
+  } catch(e){}
+})();
 </script>
 </body>
 </html>

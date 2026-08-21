@@ -9,6 +9,31 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.17.0] — 2026-08-21 — The plan loop closes: do the step, get stopped, box checks itself
+
+Mike's second flow finding: separation wasn't enough — lessons chain so easily
+that nobody says "Stop! You've completed the first item on your checklist",
+the drill just resumes wherever it left off with no sitting boundary, and the
+plan screen doesn't reflect what's actually complete. The loop is now: click a
+step → do exactly that step's scope → the TOOL raises a hard stop → one tap
+back → the plan checks its own box and lights the next step. (1) SQL kit: in
+plan mode, `markDone('doneLessons', id)` is wrapped (fires on replays too,
+since the call happens even when the array already has the id) — on the target
+lesson's completion, a stop overlay ("Stop here. That was your plan step.")
+offers "Back to the plan, box checked" (→ `../plan/?ckd=<step>`) or "Stay in
+the kit anyway"; the pill turns green. (2) Drill: plan links now carry a
+sitting scope `?rungs=` — integer = N rungs past wherever the ladder resumes,
+`half` = through the first half, default = to the final rung. Boundary hit →
+same hard stop ("Those were your rungs for today", with "One more rung
+anyway"); final-rung mode arms the pill green instead (last-rung completion
+isn't detectable without hooking run()). (3) Plan page: step links carry
+`&ret=<stepId>` out; `?ckd=` back auto-checks that exact box (validated
+against the current combo), fires the badge/comeback logic, toasts "Checked
+off: …", strips the param, and scrolls to the next unchecked step. Day tags
+now show "Day N · x of y" so the screen states what's done and what's left;
+planhead describes the loop. Manual checkboxes remain for read/write steps
+with no tool to confirm them. Parse gates 3/3 + 5/5 + 3/3.
+
 ## [3.16.0] — 2026-08-21 — Plan sittings separated from kit progress
 
 Mike's flow finding: plan lesson links used plain `#lesson-<id>` deep links,
