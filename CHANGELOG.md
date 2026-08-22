@@ -9,6 +9,46 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.21.0] — 2026-08-22 — Eight new certification prep kits
+
+A sweep for certifications worth preparing for, then a kit for each one that
+survived it. The suite goes from five cert kits to thirteen.
+
+New kits, each the docusign-clm-cert shell with its own content, storage key
+and practice exam:
+
+| Kit | Exam | Real exam facts | Study points | Practice Qs |
+|---|---|---|---|---|
+| `docusign-clm-workflow-cert/` | Docusign CLM Workflow Pro | 40 items, 80%, untimed, free | 70 | 44 |
+| `docusign-clm-implementation-cert/` | Docusign CLM Implementation Pro | 50 items, 80%, untimed, free | 86 | 50 |
+| `docusign-org-cert/` | Docusign Organization Management Pro | 20 items, 80%, untimed, free | 84 | 40 |
+| `azure-data-cert/` | Microsoft DP-900 Azure Data Fundamentals | 45 min, 700 of 1000, $99 | 72 | 48 |
+| `alteryx-cert/` | Alteryx Foundation Micro-Credential | 40 items, 1 hour, open book, free | 71 | 40 |
+| `ga4-cert/` | Google Analytics (GA4) certification | reported 50 items, 75 min, 80% | 73 | 50 |
+| `databricks-cert/` | Databricks Lakehouse Platform Fundamentals | 25 items, untimed, $20 public | 71 | 40 |
+| `excel-expert-cert/` | Microsoft MO-211 Excel Expert | 23 to 27 tasks, 50 min, 700, $100 | 73 | 45 |
+
+**Every exam fact was read off the vendor's own page**, because the tableau-cert
+audit taught us that blog facts are wrong. Where a vendor publishes weights
+(DP-900, MO-211) the kit shows the official ranges and says they are official.
+Where a vendor publishes none (all three Docusign badges, Alteryx's split,
+GA4, Databricks) the kit says out loud that the areas are our study budget.
+
+**GA4 is the honest exception.** Skillshop needs a Google sign-in, so its exam
+facts could not be read off the official page. Every number on that kit is
+labelled "as reported" and a callout says Skillshop is right if it differs.
+
+Ruled out and why, so nobody re-researches them: LinkedIn Skill Assessments and
+Indeed Assessments are both discontinued. Tableau Data Analyst, Databricks Data
+Analyst Associate, SnowPro, Qlik, Smartsheet and monday.com are $175 to $399
+exams. HubSpot, Amplitude and Pendo are course-completion certificates with no
+published exam outline.
+
+Also here: hub grid and progress registry carry all eight, sitemap has the eight
+URLs, `tools/build-kit-seo.py` gained an entry per kit, and MO-211's domain
+weights were normalised onto the DP-900 pattern (numeric `weight` for the bar,
+`range` string for the label) so no kit ships a dash.
+
 ## [3.20.0] — 2026-08-21 — Plan-mode focus: one direction, forward
 
 Mike, on the drill screenshot: "too many move forward, backward or submit
