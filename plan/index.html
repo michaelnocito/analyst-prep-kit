@@ -189,6 +189,7 @@
   .thinking[open] .t{margin:0 0 5px}
   .thinking p{margin:0;font-size:14.5px;max-width:68ch}
   /* Finer-points fold in the plan header: same quiet treatment */
+  .howlinks{margin:8px 0 0;font-size:14.5px;max-width:72ch}
   .finer{margin:8px 0 0}
   .finer summary{font-size:13.5px;color:var(--muted);cursor:pointer}
   .finer p{margin:6px 0 0;font-size:14px;color:var(--muted);max-width:70ch}
@@ -252,12 +253,24 @@
 
   /* Next-up bar. The page's one directive: text set LARGER than body copy on
      purpose (canon: the directive is visually dominant). */
-  #nextbar{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:50;
-    background:var(--ink);color:#fff;border-radius:12px;padding:13px 18px;
-    box-shadow:0 6px 24px rgba(9,9,11,.3);max-width:min(720px,calc(100vw - 28px));
+  /* Real Test rt012a: the bar was one fixed, fully opaque button spanning 85% of a
+     375px screen. Everything under it was a dead click — step links, a checkbox, the
+     skip control. The wrapper is now click-through (pointer-events:none) and only the
+     pill itself takes clicks, the pill carries a dismiss, and the whole thing hides
+     itself whenever the step it points at is already on screen. */
+  #nextwrap{position:fixed;left:0;right:0;bottom:14px;z-index:50;display:flex;
+    justify-content:center;align-items:center;gap:8px;padding:0 14px;
+    pointer-events:none}
+  #nextwrap[hidden]{display:none}
+  #nextbar{pointer-events:auto;background:var(--ink);color:#fff;border-radius:12px;
+    padding:13px 18px;box-shadow:0 6px 24px rgba(9,9,11,.3);
+    max-width:min(660px,calc(100vw - 74px));
     display:flex;gap:12px;align-items:center;cursor:pointer;border:0;font:inherit;
     text-align:left}
-  #nextbar[hidden]{display:none}
+  #nbClose{pointer-events:auto;flex:none;width:38px;height:38px;border-radius:50%;
+    background:var(--ink);color:#fff;border:0;cursor:pointer;font-size:15px;
+    box-shadow:0 6px 24px rgba(9,9,11,.3);line-height:1}
+  #nbClose:hover{background:#000}
   #nextbar .k{font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;
     color:#7DD3E8;white-space:nowrap}
   #nextbar .v{font-size:17px;font-weight:700;overflow:hidden;text-overflow:ellipsis;
@@ -352,10 +365,13 @@
   and wins save in this browser, so the plan is waiting when you come back.</footer>
 </main>
 
-<button type="button" id="nextbar" hidden>
-  <span class="k" id="nbK">Next up</span>
-  <span class="v" id="nbV"></span>
-</button>
+<div id="nextwrap" hidden>
+  <button type="button" id="nextbar">
+    <span class="k" id="nbK">Next up</span>
+    <span class="v" id="nbV"></span>
+  </button>
+  <button type="button" id="nbClose" aria-label="Hide the next-step bar" title="Hide this bar">&#10005;</button>
+</div>
 
 <div id="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="popTitle">
   <div class="popup" id="popup">
@@ -1045,6 +1061,8 @@ function todayStr(){ return new Date().toISOString().slice(0, 10); }
     if (lv && LEVELS[lv]){ S.level = lv; applied = true; }
     if (rk && ROLES[rk]){ S.role  = rk; applied = true; }
     if (nd && DAYS_OPTS[nd]){ S.days = nd; applied = true; }
+    const wh = q.get('when');
+    if (wh && ANCHORS[wh]){ S.anchor = wh; applied = true; }
     /* Persist immediately. A permalink used to set the plan in memory only, so the
        first tool hop (guide, lesson, drill) came back to ?ckd= with nothing saved:
        the plan vanished and the box never checked. localStorage is the source of
@@ -1057,6 +1075,7 @@ function syncUrl(){
   try {
     const q = new URLSearchParams(location.search);
     q.set('level', S.level); q.set('role', S.role); q.set('days', S.days);
+    if (S.anchor) q.set('when', S.anchor); else q.delete('when');
     history.replaceState(null, '', location.pathname + '?' + q.toString());
   } catch(e){}
 }
@@ -1115,7 +1134,7 @@ function finishedLevels(){
 
 /* The questionnaire folds to one line once a plan exists. Not persisted: a fresh
    visit with a saved plan starts folded; Change reopens it for this visit. */
-let pickerOpen = !(S.level && S.role && S.days);
+let pickerOpen = !(S.level && S.role && S.days && S.anchor);
 
 function chipRow(el, defs, sel, onPick){
   el.innerHTML = '';
@@ -1128,7 +1147,7 @@ function chipRow(el, defs, sel, onPick){
   });
 }
 function picked(){
-  if (S.level && S.role && S.days) pickerOpen = false;
+  if (S.level && S.role && S.days && S.anchor) pickerOpen = false;
   save();
   renderAll('picked');
 }
@@ -1138,8 +1157,13 @@ function renderChips(){
   chipRow($('daysChips'),  DAYS_OPTS, S.days, k => { S.days = parseInt(k,10); picked(); });
   chipRow($('anchorChips'), ANCHORS, S.anchor, k => { S.anchor = k; picked(); });
   const havePlan = !!(S.level && S.role && S.days);
-  $('picker').classList.toggle('collapsed', havePlan && !pickerOpen);
-  if (havePlan){
+  const allFour = havePlan && !!S.anchor;
+  $('picker').classList.toggle('collapsed', allFour && !pickerOpen);
+  const sub = document.querySelector('#picker > .sub');
+  if (sub) sub.textContent = (havePlan && !S.anchor)
+    ? 'One question left: when in the day will you actually do it? Your plan is already built below.'
+    : 'Pick one answer in each row. The plan builds itself below.';
+  if (allFour){
     $('picksum').innerHTML = '<p>Your picks: <b>' + LEVELS[S.level].chip.split('.')[0] +
       '</b> &middot; <b>' + ROLES[S.role].chip + '</b> &middot; <b>' + S.days + ' days</b>' +
       (S.anchor ? ' &middot; <b>' + ANCHORS[S.anchor].chip.toLowerCase() + '</b>' : '') + '</p>' +
@@ -1171,6 +1195,11 @@ function renderPlan(how){
   const dm = doneMap();
   const skp = skippedDay();
   const anchorPhrase = S.anchor ? ANCHORS[S.anchor].phrase : null;
+  const anchorNote = S.anchor === 'varies'
+    ? 'You said it depends on the day. One honest note: days without a named time slot get '+
+      'skipped more often than days with one. If a slot does exist, claim it.'
+    : (anchorPhrase ? 'You named a time. People who decide when, not just what, follow through '+
+      'at measurably higher rates. It is why the planner asked.' : null);
 
   let total = 0, checked = 0, nextAssigned = false;
   const dayDone = [];
@@ -1185,7 +1214,11 @@ function renderPlan(how){
   });
   const allDone = dayDone.every(Boolean);
   /* Endowed progress, honestly: the two setup picks count, and the copy says why. */
-  const eTotal = total + 2, eChecked = checked + 2;
+  /* Real Test rt012b: this used to credit 2 setup steps and say "naming your rhythm ...
+     they are done" even when no rhythm had been named. Endowed progress only works if
+     the stamps are real, so an unanswered question four is not counted. */
+  const setupDone = 1 + (S.anchor ? 1 : 0);
+  const eTotal = total + setupDone, eChecked = checked + setupDone;
   const pct = Math.round(100 * eChecked / eTotal);
 
   let html = '<div class="card planhead">' +
@@ -1194,14 +1227,11 @@ function renderPlan(how){
       ROLES[S.role].said + '</b>' +
       (anchorPhrase ? ', working <b>' + anchorPhrase + '</b>' : '') + '.</p>' +
     '<p class="logic"><b>How this plan was thought through:</b> ' + p.logic + '</p>' +
-    '<details class="finer"><summary>The finer points: your time slot, and how the links behave</summary><p>' +
-      (S.anchor === 'varies'
-        ? 'One honest note: days without a named time slot get skipped more. If a slot exists, claim it. '
-        : (anchorPhrase ? 'You named a time. People who decide when, not just what, follow through at measurably higher rates. It is why the planner asked. ' : '')) +
-      'Every linked step opens at its own top, separate from any other '+
-      'progress in the kit. Do the step, and the tool itself calls the stop, walks you '+
-      'back here, and checks the box. Then the next step lights up below.' +
-    '</p></details>' +
+    '<p class="howlinks"><b>How the links work:</b> every linked step opens at its own top, '+
+      'separate from any other progress in the kit. Do the step, and the tool itself calls '+
+      'the stop, brings you back here, and checks the box for you.</p>' +
+    (anchorNote ? '<details class="finer"><summary>Why the planner asked when you would do it</summary><p>' +
+      anchorNote + '</p></details>' : '') +
     '<div class="pbar" role="img" aria-label="' + pct + ' percent complete"><span style="width:' + pct + '%"></span></div>' +
     '<p class="progressline" id="progressline"></p>' +
     '<div class="headrow">' +
@@ -1263,7 +1293,8 @@ function renderPlan(how){
       '<h3>' + day.title + '</h3>' +
       '<p class="goal">' + day.goal + '</p>' +
       '<ul class="steps">' + stepsHtml + '</ul>' +
-      '<details class="thinking"><summary class="t">The thinking</summary><p>' + day.thinking + '</p></details>' +
+      '<details class="thinking"><summary class="t">The thinking behind Day ' + (di + 1) +
+        '</summary><p>' + day.thinking + '</p></details>' +
       (hasSkipToken() && skp === null && !dayDone[di]
         ? '<p class="skiprow">Life happening today? <button type="button" data-skip="' + di + '">Use the emergency skip on this day</button></p>'
         : '') +
@@ -1359,8 +1390,11 @@ function renderPlan(how){
   });
 
   $('progressline').innerHTML = checked === 0
-    ? 'You start at <b>2 of ' + eTotal + '</b>: picking the plan and naming your rhythm were '+
-      'real steps, and they are done. A bar already moving is easier to keep moving.'
+    ? 'You start at <b>' + setupDone + ' of ' + eTotal + '</b>: ' +
+      (setupDone === 2
+        ? 'picking the plan and naming your rhythm were real steps, and they are done.'
+        : 'picking the plan was a real step, and it is done. Name a time above and that is two.') +
+      ' A bar already moving is easier to keep moving.'
     : (allDone
       ? '<b>All ' + eTotal + ' steps done.</b> The final-day win is yours to say out loud.'
       : 'You are at <b>' + eChecked + ' of ' + eTotal + '</b> steps, setup included. The plan '+
@@ -1459,9 +1493,28 @@ $('popCopy').addEventListener('click', () => {
   }
 });
 
+let nbTargetId = null, nbDismissed = false, nbTick = false;
+function nbWrap(){ return $('nextwrap'); }
+function hideNextBar(){ nbWrap().hidden = true; }
+function showNextBar(){ if (!nbDismissed) nbWrap().hidden = false; }
+/* If the step the bar points at is already on screen, the step IS the directive and
+   the bar is just something covering the page. Hide it until it is needed again. */
+function nbSyncVisibility(){
+  if (nbDismissed || !nbTargetId) return;
+  const row = $(nbTargetId);
+  if (!row) return;
+  const r = row.getBoundingClientRect();
+  nbWrap().hidden = r.top >= 0 && r.bottom <= window.innerHeight - 76;
+}
+window.addEventListener('scroll', function(){
+  if (nbTick) return;
+  nbTick = true;
+  requestAnimationFrame(function(){ nbTick = false; nbSyncVisibility(); });
+}, { passive:true });
+
 function updateNextBar(p){
   const bar = $('nextbar');
-  if (!p){ bar.hidden = true; return; }
+  if (!p){ nbTargetId = null; hideNextBar(); return; }
   const dm = doneMap();
   const skp = skippedDay();
   let found = null;
@@ -1472,8 +1525,9 @@ function updateNextBar(p){
       return false;
     });
   });
-  bar.hidden = false;
+  showNextBar();
   if (!found){
+    nbTargetId = null;
     bar.className = 'complete';
     $('nbK').textContent = 'Plan complete';
     $('nbV').textContent = 'Pick the next plan, or deal a random hand';
@@ -1486,11 +1540,17 @@ function updateNextBar(p){
   tmp.innerHTML = found.st.what;
   $('nbV').textContent = tmp.textContent;
   const id = 'row-' + stepId(found.di, found.si);
+  nbTargetId = id;
   bar.onclick = () => {
     const row = $(id);
     if (row) row.scrollIntoView({ behavior:'smooth', block:'center' });
   };
+  nbSyncVisibility();
 }
+$('nbClose').addEventListener('click', () => {
+  nbDismissed = true;
+  hideNextBar();
+});
 
 function renderAll(how){
   renderChips();
@@ -1577,7 +1637,7 @@ renderAll(S.level && S.role && S.days ? 'resume' : 'first');
     }
     setTimeout(() => {
       const bar = $('nextbar');
-      if (!bar.hidden && typeof bar.onclick === 'function') bar.onclick();
+      if (typeof bar.onclick === 'function') bar.onclick();
     }, 250);
   } catch(e){}
 })();
