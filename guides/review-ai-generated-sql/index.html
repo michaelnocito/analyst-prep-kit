@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Review AI-Generated SQL Before You Trust the Number &mdash; Analyst Prep Kit</title>
+<meta name="description" content="AI-written SQL usually runs, and running is not the same as right. Five checks that catch the wrong number: join fan-out, NULL in the filter, WHERE vs HAVING, the denominator, and the read-back. Every example run on a real table.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/review-ai-generated-sql/">
+<meta property="og:title" content="How to Review AI-Generated SQL Before You Trust the Number">
+<meta property="og:description" content="AI SQL usually runs, and running is not the same as right. Five checks that catch the wrong number, each one run on a real table.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/review-ai-generated-sql/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Review AI-Generated SQL Before You Trust the Number",
+  "description": "AI-written SQL usually runs, and running is not the same as right. Five checks that catch the wrong number: join fan-out, NULL in the filter, WHERE vs HAVING, the denominator, and the read-back.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/review-ai-generated-sql/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/review-ai-generated-sql/"
+  },
+  "author": { "@type": "Person", "name": "Michael Nocito", "url": "https://michaelnocito.github.io" },
+  "publisher": { "@type": "Person", "name": "Michael Nocito" },
+  "inLanguage": "en",
+  "datePublished": "2026-08-21",
+  "dateModified": "2026-08-21"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Analyst Prep Kit", "item": "https://michaelnocito.github.io/analyst-prep-kit/" },
+    { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/" },
+    { "@type": "ListItem", "position": 3, "name": "How to Review AI-Generated SQL", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/review-ai-generated-sql/" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Can you trust SQL written by AI?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not without reviewing it. On the BIRD benchmark, the strongest model of 2023 produced SQL whose results matched the correct answer 54.89 percent of the time, against 92.96 percent for human engineers. The queries usually run. Running is not the same as right, so the reviewer's job is checking the number, not the syntax." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does AI-generated SQL run but give a wrong number?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Because the common failures are all valid SQL. A join that duplicates rows, a NOT IN that meets a NULL, a filter placed after grouping instead of before it, and a wrong denominator all execute without any error. The database only checks grammar. It cannot check intent." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do you check an AI-written SQL query?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Five checks, cheapest first. Count rows before and after every join. Look for NULL in every column a filter touches, especially NOT IN. Ask whether each filter sits in WHERE or HAVING, and whether that is where the question needs it. Name the denominator of every average and percentage. Then make the AI read the query back clause by clause against the question you actually asked." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is join fan-out?",
+      "acceptedAnswer": { "@type": "Answer", "text": "A join multiplies rows when the key on the other side appears more than once. An order with two refund rows becomes two rows after joining to refunds, so summing the order amount counts it twice. The result is a total that is silently too high. The check is to compare row counts before and after the join." }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a></p>
+  <h1>How to Review AI-Generated SQL Before You Trust the Number</h1>
+  <p class="meta">Michael Nocito · Updated August 2026 · Every query on this page was run before it was published</p>
+
+  <p>An AI assistant will write you a query in ten seconds, the query will run, and the number that comes back will look completely reasonable. This page gives you the five checks that tell you whether that number is right. They take about two minutes, they need no tools beyond the database you already have, and they catch the four mistakes AI-written SQL actually makes.</p>
+
+  <p>The order matters. The checks are arranged cheapest first, so the first one costs a single row count and the last one costs a short conversation. Most wrong queries fall to the first two.</p>
+
+  <p><strong>The short version.</strong> A query that runs has only passed a grammar check. The number is right when the rows, the filters and the denominator match the question you asked.</p>
+
+  <figure>
+    <svg viewBox="0 0 640 150" role="img" aria-labelledby="gapdesc" xmlns="http://www.w3.org/2000/svg">
+      <desc id="gapdesc">A query flows through two gates. The first gate, labeled "it ran", has a tick: the database checked the grammar. Between the first gate and the second gate, labeled "it is right", sits a gap bridged by five small ticks representing the five checks. The database takes the query to the first gate only. The five checks are what carry it to the second.</desc>
+      <rect x="10" y="55" width="120" height="44" rx="10" fill="#FFFFFF" stroke="#E4E7EA"/>
+      <text x="70" y="82" text-anchor="middle" font-size="15" fill="#09090B">query</text>
+      <path d="M134 77 h44" stroke="#52525B" stroke-width="2"/>
+      <rect x="182" y="55" width="120" height="44" rx="10" fill="#E0F2F7" stroke="#0E7490"/>
+      <text x="242" y="75" text-anchor="middle" font-size="14" fill="#09090B">it ran</text>
+      <text x="242" y="93" text-anchor="middle" font-size="15" fill="#0E7490">&#10003;</text>
+      <path d="M306 77 h30" stroke="#52525B" stroke-width="2" stroke-dasharray="5 5"/>
+      <g font-size="14" fill="#0E7490">
+        <text x="346" y="63">&#10003;</text><text x="366" y="83">&#10003;</text><text x="386" y="63">&#10003;</text><text x="406" y="83">&#10003;</text><text x="426" y="63">&#10003;</text>
+      </g>
+      <text x="391" y="112" text-anchor="middle" font-size="12.5" fill="#52525B">five checks</text>
+      <path d="M446 77 h30" stroke="#52525B" stroke-width="2" stroke-dasharray="5 5"/>
+      <rect x="482" y="55" width="146" height="44" rx="10" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+      <text x="555" y="82" text-anchor="middle" font-size="14" fill="#09090B">it is right</text>
+    </svg>
+    <figcaption>The database only takes a query as far as the first gate.</figcaption>
+  </figure>
+
+  <h2>Why a query that runs can still be wrong</h2>
+  <p>Before the list: what do you think the database actually checks when it accepts a query?</p>
+  <p>Grammar. That is the whole list. Spell a table name wrong and you get an error. Sum the wrong column, join in a way that doubles rows, or filter after grouping when the question needed it before, and you get a clean result set with a wrong number in it. Every mistake on this page is valid SQL.</p>
+  <p>AI assistants add one specific difficulty: their queries are fluent. The aliases are tidy, the formatting is clean, and the shape looks like something a careful person wrote. Fluency reads as correctness, and it is not the same thing. Treat an AI query the way you would treat a first draft from a new colleague: with respect, and with the row counts open.</p>
+
+  <h2>The table the examples run on</h2>
+  <p>Everything below runs on one small shop dataset, so every number can be checked by hand. Thirteen orders in July, five customers, and a <code>refunds</code> table where two orders were refunded in two parts. Eleven of the thirteen orders are completed; one is refunded, one is pending. There is also a <code>staff_accounts</code> table listing internal accounts, and it contains one NULL row, because real lookup tables usually do.</p>
+  <p>The gross value of the eleven completed orders is 1,605. Total refunds are 275. Hold on to those two numbers.</p>
+
+  <h2>Check 1: count the rows before you trust the sum</h2>
+  <p>Before the answer: eleven completed orders, five refund rows. After a LEFT JOIN from orders to refunds, does the query see eleven rows, or more?</p>
+  <p>Here is the query an assistant wrote for "net revenue from completed orders":</p>
+  <pre><code>SELECT SUM(o.amount) - SUM(COALESCE(r.refund_amount, 0)) AS net_revenue
+FROM orders o
+LEFT JOIN refunds r ON r.order_id = o.order_id
+WHERE o.status = 'completed';</code></pre>
+  <p>It runs. It returns <strong>1,830</strong>. The right answer is <strong>1,330</strong>, which you already know, because 1,605 minus 275 is 1,330.</p>
+  <p>The join is the problem. Two orders were each refunded in two parts, so each of those orders matches two refund rows. The join turns eleven rows into thirteen, and <code>SUM(o.amount)</code> counts those two orders twice: 2,105 instead of 1,605. The extra 500 is exactly the value of the two double-counted orders. This is called fan-out: a join multiplies rows whenever the key on the other side appears more than once.</p>
+  <p>The check costs two counts:</p>
+  <pre><code>SELECT COUNT(*) FROM orders WHERE status = 'completed';        -- 11
+
+SELECT COUNT(*)
+FROM orders o LEFT JOIN refunds r ON r.order_id = o.order_id
+WHERE o.status = 'completed';                                   -- 13</code></pre>
+  <p>That one comparison decides it. If the second number grew, the join fanned out and every SUM or AVG over the left table's columns is suspect. If it held, the join is safe and you move on.</p>
+
+  <h2>Check 2: look for NULL in every filter</h2>
+  <p>The next request was "the same revenue, excluding staff accounts". The assistant wrote:</p>
+  <pre><code>SELECT SUM(amount)
+FROM orders
+WHERE status = 'completed'
+  AND customer_id NOT IN (SELECT customer_id FROM staff_accounts);</code></pre>
+  <p>This returns <strong>NULL</strong>, from zero rows. Not a smaller number. Nothing.</p>
+  <p>Say out loud why one NULL in <code>staff_accounts</code> could empty the whole result, before reading on.</p>
+  <p>Here is the mechanism. <code>NOT IN</code> asks, for each order, "is this customer different from every value in the list?" One of the values in the list is NULL, and SQL cannot say whether anything is different from NULL. The comparison comes back unknown, unknown is not true, and no row survives. One NULL row in a lookup table silently empties the result.</p>
+  <p>The fix is either to keep NULL out of the list, or to use <code>NOT EXISTS</code>, which does not have this behavior:</p>
+  <pre><code>SELECT SUM(amount)
+FROM orders o
+WHERE o.status = 'completed'
+  AND NOT EXISTS (SELECT 1 FROM staff_accounts s
+                  WHERE s.customer_id = o.customer_id);   -- 1,395</code></pre>
+  <p>The reviewer's habit: for every column a filter touches, ask what happens to that filter when the column is NULL. The same blindness sinks <code>= NULL</code>, which is covered in <a href="../sql-null/">NULL in SQL</a>.</p>
+
+  <h2>Check 3: ask where the filter sits, WHERE or HAVING</h2>
+  <p>The request was "customers who spent more than 400 on completed orders". Which condition should remove rows before the grouping, and which should test the finished totals?</p>
+  <p>The assistant's version:</p>
+  <pre><code>SELECT c.name, SUM(o.amount) AS total
+FROM orders o
+JOIN customers c ON c.customer_id = o.customer_id
+GROUP BY c.name
+HAVING SUM(o.amount) &gt; 400;</code></pre>
+  <p>It returns three customers: Ellis at 450, Diaz at 420, Boone at 420. The right answer is <strong>Ellis alone</strong>. Diaz only crosses 400 because a pending order was counted. Boone only crosses it because a refunded order was counted. The query never filtered on status, so the grouping summed everything.</p>
+  <p>The reviewed version filters rows first, then tests the totals:</p>
+  <pre><code>SELECT c.name, SUM(o.amount) AS total
+FROM orders o
+JOIN customers c ON c.customer_id = o.customer_id
+WHERE o.status = 'completed'
+GROUP BY c.name
+HAVING SUM(o.amount) &gt; 400;                        -- Ellis, 450</code></pre>
+  <p>The rule to review against: <code>WHERE</code> decides which rows are allowed into the groups, <code>HAVING</code> decides which finished groups are allowed into the result. An AI query that mentions a status, a date range or a segment only in <code>HAVING</code>, or not at all, deserves a second look. The full mechanics are in <a href="../sql-group-by-having/">GROUP BY and HAVING</a>.</p>
+
+  <h2>Check 4: name the denominator</h2>
+  <p>The request was "average order value for completed orders". Two queries, both fluent, both running clean:</p>
+  <pre><code>-- version A
+SELECT AVG(amount) FROM orders WHERE status = 'completed';
+
+-- version B
+SELECT AVG(cust_avg) FROM (
+  SELECT AVG(amount) AS cust_avg
+  FROM orders
+  WHERE status = 'completed'
+  GROUP BY customer_id
+);</code></pre>
+  <p>Version A returns <strong>145.91</strong>. Version B returns <strong>152.50</strong>. Neither is broken. They divide by different things. A divides the total by eleven orders. B averages five per-customer averages, which hands a customer with three small orders the same weight as a customer with two large ones.</p>
+  <p>Which one is right depends entirely on the question. "What does a typical order look like" is A. "What does a typical customer's order look like" is B. The assistant picked one without asking, because it had to pick something. The reviewer's question is always the same: <em>divided by what?</em> If you cannot answer it from the query, the query is not done. The same trap in spreadsheet form is in <a href="../excel-pivot-percentages/">percentages and pivot tables</a>.</p>
+
+  <h2>Check 5: make the AI read the query back</h2>
+  <p>The four checks above are mechanical. The last one catches everything else, and it uses the assistant itself.</p>
+  <p>Ask it to restate, clause by clause, what the query does and why each clause serves the question you asked. Not a summary. One line per clause, in the query's own order. A wrong paraphrase points at the wrong clause with surprising reliability, because the model has to commit to a claim about each piece instead of describing the whole.</p>
+  <p>This is the same read-out-loud block from <a href="../sql-teaching-comments/">the teaching-comment format</a>, used as a review tool. The reviewed query from Check 1 looks like this when it carries its comment:</p>
+  <pre><code>/* WHY: Net July revenue from completed orders.
+   Refunds arrive in parts, so refunds are totaled
+   per order BEFORE the join. Joining the raw refunds
+   table doubles multi-refund orders (13 rows vs 11). */
+
+WITH refund_totals AS (
+  SELECT order_id, SUM(refund_amount) AS refunded
+  FROM refunds
+  GROUP BY order_id
+)
+SELECT SUM(o.amount) - SUM(COALESCE(rt.refunded, 0)) AS net_revenue
+FROM orders o
+LEFT JOIN refund_totals rt ON rt.order_id = o.order_id
+WHERE o.status = 'completed';                       -- 1,330</code></pre>
+  <p>Picture the last query an AI wrote for you at work. Walk it through Check 1 in your head: what would the row count be before its join, and after? If you cannot answer from memory, that is the query to run the checks on tomorrow.</p>
+
+  <h2>Edge cases worth knowing</h2>
+  <p><code>DISTINCT</code> inside an aggregate is a signal, not a fix. When an AI writes <code>SUM(DISTINCT amount)</code>, it usually met fan-out and silenced the symptom. Two different orders for 75 collapse into one, and the total is wrong in a new direction. Pre-aggregate in a CTE instead, as in Check 5.</p>
+  <p>Sometimes fan-out is the point. Joining orders to line items <em>should</em> multiply rows, because the question lives at line level. The check is not "did rows grow", it is "did rows grow when the question did not ask them to".</p>
+  <p>The NULL behavior of <code>NOT IN</code> is standard SQL, not a quirk of one engine. SQLite, PostgreSQL, MySQL and SQL Server all do it. Fixing it by cleaning the lookup table works until the next import adds a NULL back. <code>NOT EXISTS</code> stays fixed.</p>
+
+  <h2>Where this comes from</h2>
+  <p>The premise of this page, that AI SQL runs but is often wrong, is measured, not anecdotal. On the BIRD benchmark, 12,751 questions over 95 real databases, the strongest model tested in 2023 reached 54.89 percent execution accuracy. Human engineers reached 92.96 percent on the same questions. Execution accuracy means the query's result matched the correct result, so nearly every failure in that gap is a query that ran and returned a wrong answer (Li et al., 2023, <em>Advances in Neural Information Processing Systems</em> 36, Datasets and Benchmarks track). Models have improved since, and the gap has narrowed, not closed. The checks on this page are aimed at the failure modes that benchmark surfaced: wrong joins, wrong filters, wrong aggregation grain.</p>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Put the five checks somewhere you can see them: rows, NULL, WHERE/HAVING, denominator, read-back.</li>
+    <li>For one week, run Checks 1 and 2 on every AI query before you use its number. They cost a minute.</li>
+    <li>When a check fails, do not patch the symptom. Ask the assistant to explain the failing clause, then fix the cause.</li>
+    <li>Keep the WHY header on the fixed query, so the next reader inherits the reasoning and not just the SQL.</li>
+    <li>Do not try to retrofit every AI query already in your files. That is a miserable job. Review them as they come back up, one at a time.</li>
+  </ol>
+  <p>If you have paper nearby, sketch the orders and refunds tables from Check 1 and draw one line from each completed order to its refund rows. The two orders that get two lines are the whole story of fan-out, and having drawn it once, you will see it in a query before you run it.</p>
+
+  <h2>Cheat sheet</h2>
+  <table>
+    <tr><th>Check</th><th>Run or ask</th><th>Failing looks like</th></tr>
+    <tr><td>1. Rows</td><td><code>COUNT(*)</code> before and after each join</td><td>Row count grew; sums over the left table inflated</td></tr>
+    <tr><td>2. NULL</td><td>What is NULL in each filtered column?</td><td><code>NOT IN</code> returns nothing; <code>= NULL</code> matches nothing</td></tr>
+    <tr><td>3. Filter seat</td><td>Is each condition in WHERE or HAVING, and should it be?</td><td>Status or date named only after grouping, or missing</td></tr>
+    <tr><td>4. Denominator</td><td>Divided by what?</td><td>Average of averages; percentage of the wrong whole</td></tr>
+    <tr><td>5. Read-back</td><td>One line per clause, against the question</td><td>A clause the paraphrase gets wrong or skips</td></tr>
+  </table>
+
+  <h2>The one habit to keep</h2>
+  <p>Count the rows before and after every join. It is the cheapest check on the page, it catches the most expensive mistake, and it works on human SQL exactly as well as it works on the machine's.</p>
+
+  <p>What is the most recent number an AI handed you that you passed along without checking, and which of the five would have caught it if it was wrong?</p>
+
+  <div class="note"><strong>Every number here was run before it was published.</strong> The dataset is small on purpose, so you can rebuild it and check each result by hand. The 1,830, the empty result, the three-customer list and both averages are real outputs, not illustrations.</div>
+
+  <div class="book">
+    <strong>The checks catch the wrong number. A standard stops it being written.</strong>
+    <p><em>The SQL Comment System</em> is the two-mode commenting standard, a 12-point scoring rubric, and an agent for Claude or ChatGPT that reviews every query, including the ones the AI wrote, against it.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/sql-comment-system?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=review-ai-sql" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','comment_system_click',{kit:'guide-review-ai-generated-sql'})">The SQL Comment System, $29 &rarr;</a>
+  </div>
+
+  <p style="font-size:13px;color:var(--muted);margin:14px 0 0;line-height:1.6">Want the wider skill rather than the checklist? <em>SQL for Analysts</em> reads queries line by line in everyday words, which is the habit these checks are built from. <a href="https://michaelnocito.gumroad.com/l/sql-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=sql-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-review-ai-generated-sql'})">SQL for Analysts, $19 &rarr;</a></p>
+
+  <div class="cta">
+    <strong>Write the queries, do not just review them.</strong>
+    <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> covers SELECT, WHERE, JOIN and GROUP BY with worked examples, practice and a mock exam, all in the browser. If you have no database to practice on yet, start by <a href="../set-up-a-sql-database/">setting one up in fifteen minutes</a>.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+    <p style="margin:10px 0 0;font-size:15px">Or type them yourself one at a time: <a href="../../drill/">open SQL Drill</a>, thirteen queries that each add one thing to the last.</p>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-null/">NULL in SQL</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-teaching-comments/">Commenting SQL So It Teaches</a> · <a href="../sql-comments/">How to Comment in SQL</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-find-duplicates/">Find Duplicate Rows</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../../drill/">SQL Drill</a> · <a href="../../sql/">SQL Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> · <a href="../../contact.html">Contact</a> · <a href="../../privacy.html">Privacy</a> · <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
