@@ -26,7 +26,7 @@
   gtag('config', 'G-6C09BL3WH1');
 </script>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SQL Plan Builder &middot; Analyst Prep Kit</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E7490'/%3E%3Crect x='8' y='9' width='16' height='3' rx='1.5' fill='%23fff'/%3E%3Crect x='8' y='15' width='16' height='3' rx='1.5' fill='%23fff' opacity='.75'/%3E%3Crect x='8' y='21' width='10' height='3' rx='1.5' fill='%23fff' opacity='.5'/%3E%3C/svg%3E">
 <meta name="description" content="Answer a few questions and get a three, five, or seven day SQL plan for the analyst role you want. Short days, real queries you type yourself, and the reasoning behind every step.">
@@ -118,6 +118,17 @@
   .pickrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:16px 0 0;
     padding-top:14px;border-top:1px solid var(--line)}
   .pickrow p{margin:0;font-size:14px;color:var(--muted);flex:1 1 260px}
+  /* Collapsed picker: once a plan exists, the questionnaire folds to one line so the
+     checklist is the page (user-intent standard: returners land on their stuff). */
+  #picker.collapsed > h2,#picker.collapsed > .sub,#picker.collapsed .qlabel,
+  #picker.collapsed .chips,#picker.collapsed .pickrow{display:none}
+  .picksum{display:none;align-items:center;gap:10px;flex-wrap:wrap}
+  #picker.collapsed .picksum{display:flex}
+  .picksum p{margin:0;font-size:14.5px;flex:1 1 260px}
+  .picksum p b{color:var(--accent)}
+  .btn-change{background:var(--card);border:1px solid var(--line);color:var(--ink);
+    border-radius:10px;padding:9px 14px;font:600 14px/1 inherit;cursor:pointer;min-height:44px}
+  .btn-change:hover{border-color:var(--accent);color:var(--accent)}
   .btn-random{background:var(--card);border:1px solid var(--accent);color:var(--accent);
     border-radius:10px;padding:10px 16px;font:600 14.5px/1 inherit;cursor:pointer;min-height:44px}
   .btn-random:hover{background:rgba(14,116,144,.07)}
@@ -172,10 +183,15 @@
     margin-right:7px;vertical-align:2px}
 
   .thinking{background:rgba(14,116,144,.06);border:1px solid rgba(14,116,144,.25);
-    border-radius:10px;padding:12px 14px;margin:14px 0 0}
-  .thinking .t{font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;
-    color:var(--accent);margin:0 0 5px}
+    border-radius:10px;padding:10px 14px;margin:14px 0 0}
+  .thinking .t{font:700 11px/1.5 inherit;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent);cursor:pointer}
+  .thinking[open] .t{margin:0 0 5px}
   .thinking p{margin:0;font-size:14.5px;max-width:68ch}
+  /* Finer-points fold in the plan header: same quiet treatment */
+  .finer{margin:8px 0 0}
+  .finer summary{font-size:13.5px;color:var(--muted);cursor:pointer}
+  .finer p{margin:6px 0 0;font-size:14px;color:var(--muted);max-width:70ch}
 
   .skiprow{margin:12px 0 0;font-size:13.5px;color:var(--muted)}
   .skiprow button{font:inherit;font-size:13.5px;color:var(--warm);background:none;
@@ -251,8 +267,8 @@
 
   /* The receipts: why the planner works this way */
   .receipts{margin:26px 0 0}
-  .receipts h2{font-size:17px;margin:0 0 6px}
-  .receipts ul{margin:0;padding-left:20px}
+  .receipts summary{font:700 17px/1.4 inherit;cursor:pointer;margin:0 0 6px}
+  .receipts ul{margin:6px 0 0;padding-left:20px}
   .receipts li{font-size:14px;color:var(--muted);margin:0 0 7px;max-width:76ch}
   .receipts li b{color:var(--ink)}
 
@@ -261,6 +277,11 @@
     .chip{flex:1 1 100%;text-align:left}
     .btn-random{width:100%}
     .step .time{display:inline-block;margin:4px 0 0 0}
+  }
+  /* Touch targets gated on touch, not width (GAME_BIBLE mobile standard) */
+  @media (pointer:coarse){
+    .resetlink,.skiprow button,.btn-reveal{min-height:44px}
+    .step input[type=checkbox]{width:24px;height:24px}
   }
 </style>
 </head>
@@ -279,6 +300,7 @@
   </div>
 
   <div class="card" id="picker">
+    <div class="picksum" id="picksum"></div>
     <h2>Four questions</h2>
     <p class="sub">Pick one answer in each row. The plan builds itself below.</p>
     <p class="qlabel">Where is your SQL right now?</p>
@@ -299,7 +321,8 @@
   <div id="plan"></div>
 
   <section class="receipts">
-    <h2>Why the planner works the way it does</h2>
+    <details>
+    <summary>Why the planner works the way it does</summary>
     <ul>
       <li><b>It asks when, not just what.</b> People who wrote down a date and a time for
       a task followed through at meaningfully higher rates than people who just intended
@@ -322,6 +345,7 @@
       yesterday's query back out of your head is retrieval practice, the most reliable
       finding in learning science.</li>
     </ul>
+    </details>
   </section>
 
   <footer>Part of the <a href="../">Analyst Prep Kit</a>. Your picks, checked-off steps
@@ -1083,6 +1107,10 @@ function finishedLevels(){
 
 /* ── render ──────────────────────────────────────────────────────────────── */
 
+/* The questionnaire folds to one line once a plan exists. Not persisted: a fresh
+   visit with a saved plan starts folded; Change reopens it for this visit. */
+let pickerOpen = !(S.level && S.role && S.days);
+
 function chipRow(el, defs, sel, onPick){
   el.innerHTML = '';
   Object.keys(defs).forEach(k => {
@@ -1093,11 +1121,31 @@ function chipRow(el, defs, sel, onPick){
     el.appendChild(b);
   });
 }
+function picked(){
+  if (S.level && S.role && S.days) pickerOpen = false;
+  save();
+  renderAll('picked');
+}
 function renderChips(){
-  chipRow($('levelChips'), LEVELS, S.level, k => { S.level = k; save(); renderAll('picked'); });
-  chipRow($('roleChips'),  ROLES,  S.role,  k => { S.role  = k; save(); renderAll('picked'); });
-  chipRow($('daysChips'),  DAYS_OPTS, S.days, k => { S.days = parseInt(k,10); save(); renderAll('picked'); });
-  chipRow($('anchorChips'), ANCHORS, S.anchor, k => { S.anchor = k; save(); renderAll('picked'); });
+  chipRow($('levelChips'), LEVELS, S.level, k => { S.level = k; picked(); });
+  chipRow($('roleChips'),  ROLES,  S.role,  k => { S.role  = k; picked(); });
+  chipRow($('daysChips'),  DAYS_OPTS, S.days, k => { S.days = parseInt(k,10); picked(); });
+  chipRow($('anchorChips'), ANCHORS, S.anchor, k => { S.anchor = k; picked(); });
+  const havePlan = !!(S.level && S.role && S.days);
+  $('picker').classList.toggle('collapsed', havePlan && !pickerOpen);
+  if (havePlan){
+    $('picksum').innerHTML = '<p>Your picks: <b>' + LEVELS[S.level].chip.split('.')[0] +
+      '</b> &middot; <b>' + ROLES[S.role].chip + '</b> &middot; <b>' + S.days + ' days</b>' +
+      (S.anchor ? ' &middot; <b>' + ANCHORS[S.anchor].chip.toLowerCase() + '</b>' : '') + '</p>' +
+      '<button type="button" class="btn-change" id="changeBtn">Change answers</button>';
+    $('changeBtn').addEventListener('click', () => {
+      pickerOpen = true;
+      renderChips();
+      $('picker').scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+  } else {
+    $('picksum').innerHTML = '';
+  }
 }
 
 function stepId(d, s){ return 'd' + d + 's' + s; }
@@ -1139,14 +1187,15 @@ function renderPlan(how){
     '<p class="said">You said: <b>' + LEVELS[S.level].said + '</b>, for <b>' +
       ROLES[S.role].said + '</b>' +
       (anchorPhrase ? ', working <b>' + anchorPhrase + '</b>' : '') + '.</p>' +
-    '<p class="logic"><b>How this plan was thought through:</b> ' + p.logic +
+    '<p class="logic"><b>How this plan was thought through:</b> ' + p.logic + '</p>' +
+    '<details class="finer"><summary>The finer points: your time slot, and how the links behave</summary><p>' +
       (S.anchor === 'varies'
-        ? ' One honest note: days without a named time slot get skipped more. If a slot exists, claim it.'
-        : (anchorPhrase ? ' You named a time. People who decide when, not just what, follow through at measurably higher rates. It is why the planner asked.' : '')) +
-      ' One more thing: every linked step opens at its own top, separate from any other '+
+        ? 'One honest note: days without a named time slot get skipped more. If a slot exists, claim it. '
+        : (anchorPhrase ? 'You named a time. People who decide when, not just what, follow through at measurably higher rates. It is why the planner asked. ' : '')) +
+      'Every linked step opens at its own top, separate from any other '+
       'progress in the kit. Do the step, and the tool itself calls the stop, walks you '+
       'back here, and checks the box. Then the next step lights up below.' +
-    '</p>' +
+    '</p></details>' +
     '<div class="pbar" role="img" aria-label="' + pct + ' percent complete"><span style="width:' + pct + '%"></span></div>' +
     '<p class="progressline" id="progressline"></p>' +
     '<div class="headrow">' +
@@ -1208,7 +1257,7 @@ function renderPlan(how){
       '<h3>' + day.title + '</h3>' +
       '<p class="goal">' + day.goal + '</p>' +
       '<ul class="steps">' + stepsHtml + '</ul>' +
-      '<div class="thinking"><p class="t">The thinking</p><p>' + day.thinking + '</p></div>' +
+      '<details class="thinking"><summary class="t">The thinking</summary><p>' + day.thinking + '</p></details>' +
       (hasSkipToken() && skp === null && !dayDone[di]
         ? '<p class="skiprow">Life happening today? <button type="button" data-skip="' + di + '">Use the emergency skip on this day</button></p>'
         : '') +
@@ -1454,6 +1503,7 @@ $('randomBtn').addEventListener('click', () => {
   }
   S.level = lv; S.role = rk; S.days = nd;
   if (!S.anchor) S.anchor = 'varies';
+  pickerOpen = false;
   save();
   renderAll('random');
   const head = document.querySelector('.planhead');
