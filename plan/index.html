@@ -1041,9 +1041,15 @@ function todayStr(){ return new Date().toISOString().slice(0, 10); }
   try {
     const q = new URLSearchParams(location.search);
     const lv = q.get('level'), rk = q.get('role'), nd = parseInt(q.get('days'), 10);
-    if (lv && LEVELS[lv]) S.level = lv;
-    if (rk && ROLES[rk]) S.role = rk;
-    if (nd && DAYS_OPTS[nd]) S.days = nd;
+    let applied = false;
+    if (lv && LEVELS[lv]){ S.level = lv; applied = true; }
+    if (rk && ROLES[rk]){ S.role  = rk; applied = true; }
+    if (nd && DAYS_OPTS[nd]){ S.days = nd; applied = true; }
+    /* Persist immediately. A permalink used to set the plan in memory only, so the
+       first tool hop (guide, lesson, drill) came back to ?ckd= with nothing saved:
+       the plan vanished and the box never checked. localStorage is the source of
+       truth for the round trip, so a shared link has to write to it on arrival. */
+    if (applied) save();
   } catch(e){}
 })();
 function syncUrl(){
