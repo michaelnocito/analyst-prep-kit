@@ -26,14 +26,33 @@
     'margin-left:auto;margin-right:auto}';
   document.head.appendChild(css);
 
-  // SQL-only cross-sell: the comment system is a SQL product, so it appears on the
-  // SQL surfaces and nowhere else rather than on every kit's footer.
-  var SQL_KITS = { sql: 1, 'sql-dry-run': 1 };
-  var packLink = SQL_KITS[kit]
-    ? '<a class="apk-eco-pack" href="https://gumroad.com/u/tp54avpj" ' +
-      'target="_blank" rel="noopener">The SQL Comment System ↗</a>' +
-      '<span class="apk-eco-sep">·</span>'
-    : '';
+  /* ----------------------------------------------------------
+     Paid cross-sells in the footer line. Both are opt-in by kit
+     rather than sitewide: a product only appears on the surfaces
+     where a reader is already doing that product's work.
+
+       The SQL Comment System ($29) -> the SQL surfaces.
+       The Data Analyst OS ($49)    -> SQL and Excel, the two kits
+                                       whose readers are doing the
+                                       job the OS runs workflows for.
+
+     Each fires its own GA4 event so the two funnels stay separable.
+     ---------------------------------------------------------- */
+  var CROSS = [
+    { kits: { sql: 1, 'sql-dry-run': 1 },
+      cls: 'apk-eco-pack', ev: 'comment_system_click',
+      slug: 'sql-comment-system', label: 'The SQL Comment System' },
+    { kits: { sql: 1, 'sql-dry-run': 1, excel: 1 },
+      cls: 'apk-eco-os', ev: 'analyst_os_click',
+      slug: 'analyst-os', label: 'The Data Analyst OS' }
+  ];
+
+  var packLink = CROSS.filter(function (c) { return c.kits[kit]; }).map(function (c) {
+    return '<a class="' + c.cls + '" href="https://michaelnocito.gumroad.com/l/' + c.slug +
+      '?utm_source=analyst-prep-kit&utm_medium=kit-footer&utm_campaign=' + c.slug + '" ' +
+      'target="_blank" rel="noopener">' + c.label + ' ↗</a>' +
+      '<span class="apk-eco-sep">·</span>';
+  }).join('');
 
   var f = document.createElement('footer');
   f.className = 'apk-eco-footer';
@@ -54,14 +73,15 @@
     }
   });
 
-  var pack = f.querySelector('.apk-eco-pack');
-  if (pack) {
-    pack.addEventListener('click', function () {
+  CROSS.forEach(function (c) {
+    var a = f.querySelector('.' + c.cls);
+    if (!a) return;
+    a.addEventListener('click', function () {
       if (window.gtag) {
-        gtag('event', 'comment_system_click', { kit: kit });
+        gtag('event', c.ev, { kit: kit });
       }
     });
-  }
+  });
 
   /* ----------------------------------------------------------
      Book card. Sits directly above the footer on the kit hubs.
