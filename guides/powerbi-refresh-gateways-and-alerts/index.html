@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power BI Scheduled Refresh, Gateways and Data Alerts &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Eight scheduled refreshes a day on shared capacity, 48 on Premium, and a gateway only when the source is not reachable from the cloud. Plus the merge that drags a cloud source through the gateway, and where alerts actually live.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-refresh-gateways-and-alerts/">
+<meta property="og:title" content="Power BI Scheduled Refresh, Gateways and Data Alerts">
+<meta property="og:description" content="Eight refreshes a day on shared capacity, 48 on Premium. When you need a gateway, when you do not, and the one query shape that changes the answer.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-refresh-gateways-and-alerts/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Power BI Scheduled Refresh, Gateways and Data Alerts",
+  "description": "How many refreshes you get, when a gateway is required, and what data alerts can and cannot watch.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-refresh-gateways-and-alerts/",
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-refresh-gateways-and-alerts/" },
+  "author": { "@type": "Person", "name": "Michael Nocito", "url": "https://michaelnocito.github.io" },
+  "publisher": { "@type": "Person", "name": "Michael Nocito" },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Analyst Prep Kit", "item": "https://michaelnocito.github.io/analyst-prep-kit/" },
+    { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/" },
+    { "@type": "ListItem", "position": 3, "name": "Refresh, Gateways and Alerts", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-refresh-gateways-and-alerts/" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How many times a day can a Power BI dataset refresh?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Power BI limits semantic models on shared capacity to eight scheduled daily refreshes, and the quota resets at 12:01 AM local time. On Premium capacity, Premium Per User or Fabric capacity you can schedule up to 48 a day. Manual Refresh now operations do not count against the eight." }
+    },
+    {
+      "@type": "Question",
+      "name": "When do I need an on-premises data gateway?",
+      "acceptedAnswer": { "@type": "Answer", "text": "When Power BI cannot reach the source over a direct network connection, which means anything sitting inside your own network, such as a SQL Server in the office or a file on a network share. Cloud sources such as Azure SQL Database do not require a gateway if Power BI can connect to them directly." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does DirectQuery need a scheduled refresh?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Only Import mode semantic models require a source data refresh, because only Import mode copies the data into Power BI. DirectQuery, Direct Lake and live connection models query the source with every interaction instead." }
+    },
+    {
+      "@type": "Question",
+      "name": "Where can you set a data alert in Power BI?",
+      "acceptedAnswer": { "@type": "Answer", "text": "On dashboard tiles only, and only on tiles pinned from report visuals that are gauges, KPIs or cards. Alerts cannot be set in Power BI Desktop. Only you can see the alerts you set, even on a dashboard you share, and they only fire on refreshed data." }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../powerbi/">Power BI Kit</a></p>
+  <h1>Power BI Scheduled Refresh, Gateways and Data Alerts</h1>
+  <p class="meta">Michael Nocito · Updated August 2026 · Limits and behaviour checked against Microsoft's own documentation, linked at the end</p>
+
+  <p>This page answers the three questions that decide whether a published report stays useful: how often your data can update, what has to be installed for it to reach your sources, and how somebody gets told when a number crosses a line. The headline numbers are eight scheduled refreshes a day on shared capacity and 48 on Premium, and the gateway rule is simpler than it sounds.</p>
+
+  <p>What you do: check your storage mode first, because only Import mode needs a refresh at all. Then set the schedule in the semantic model's settings, add a gateway only if the source lives inside your network, and put alerts on dashboard tiles rather than reports.</p>
+
+  <p><strong>The short version.</strong> Import mode refreshes on a schedule. A gateway is only for sources the cloud cannot reach. Alerts watch dashboard tiles.</p>
+
+  <figure>
+    <svg viewBox="0 0 640 200" role="img" aria-labelledby="gwdesc" xmlns="http://www.w3.org/2000/svg">
+      <desc id="gwdesc">The Power BI service is drawn as a cloud on the right. Two sources sit on the left. The top source, labelled cloud database, connects to the service with a direct line. The bottom source sits inside a box labelled your network, and its line to the service passes through a small labelled gateway box on the boundary of that box. A third line shows a query that merges both sources, and it is drawn going through the gateway as well.</desc>
+      <rect x="16" y="86" width="200" height="98" rx="10" fill="#F1F3F5" stroke="#E4E7EA"/>
+      <text x="116" y="176" text-anchor="middle" font-size="12" fill="#52525B">your network</text>
+      <rect x="36" y="100" width="110" height="34" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
+      <text x="91" y="122" text-anchor="middle" font-size="12" fill="#09090B">SQL Server</text>
+      <rect x="36" y="24" width="110" height="34" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
+      <text x="91" y="46" text-anchor="middle" font-size="12" fill="#09090B">Azure SQL</text>
+      <path d="M152 41 C 300 41, 340 60, 452 66" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+      <text x="290" y="32" text-anchor="middle" font-size="11.5" fill="#0E7490">no gateway needed</text>
+      <rect x="216" y="100" width="66" height="34" rx="8" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/>
+      <text x="249" y="122" text-anchor="middle" font-size="11.5" fill="#09090B">gateway</text>
+      <path d="M152 117 h60" stroke="#52525B" stroke-width="2" fill="none"/>
+      <path d="M286 117 C 380 117, 400 96, 452 88" stroke="#52525B" stroke-width="2" fill="none"/>
+      <path d="M470 40 C 520 20, 590 30, 600 62 C 626 66, 626 104, 596 108 L 476 108 C 446 104, 444 62, 470 40 Z" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+      <text x="536" y="82" text-anchor="middle" font-size="12.5" fill="#09090B">Power BI service</text>
+    </svg>
+    <figcaption>The gateway only sits on the line the cloud cannot reach on its own.</figcaption>
+  </figure>
+
+  <h2>Only one storage mode needs refreshing</h2>
+  <p>Before the table: your report is slow to update. Is a refresh schedule even the right fix?</p>
+  <p>Only if you are in Import mode. Microsoft's own wording is blunt: only Import mode semantic models require a source data refresh, because only that type imports data. Everything else queries the source as people use the report.</p>
+  <table>
+    <tr><th>Storage mode</th><th>Needs a scheduled refresh</th><th>Where the data lives</th></tr>
+    <tr><td>Import</td><td>Yes</td><td>Copied into the semantic model</td></tr>
+    <tr><td>DirectQuery</td><td>No</td><td>At the source, queried on every interaction</td></tr>
+    <tr><td>Direct Lake</td><td>No</td><td>Read from the lake</td></tr>
+    <tr><td>Live connection to Analysis Services</td><td>No</td><td>At the source</td></tr>
+    <tr><td>Push</td><td>No</td><td>Pushed in by something else</td></tr>
+  </table>
+  <p>Say out loud what that means for a stale number in a DirectQuery report. If nothing is imported, a refresh schedule cannot help, so a stale number is either cached visuals in an open browser or something at the source. Reload the report rather than hunting for a refresh setting that does nothing.</p>
+
+  <h2>Eight a day, or 48</h2>
+  <p>First: your stakeholder asks for hourly data. How many scheduled refreshes can you promise on a normal Pro workspace?</p>
+  <p>Eight. Power BI limits semantic models on shared capacity to eight scheduled daily refreshes, stored against the local time zone you pick on the settings page, with the quota resetting at 12:01 AM local time. On Premium capacity, Premium Per User or a Fabric capacity, the limit is 48.</p>
+  <table>
+    <tr><th>Capacity</th><th>Scheduled refreshes per day</th><th>Maximum refresh duration</th></tr>
+    <tr><td>Shared</td><td>8</td><td>2 hours</td></tr>
+    <tr><td>Premium, PPU or Fabric</td><td>48</td><td>5 hours</td></tr>
+  </table>
+  <p>Three practical notes on top of that. A manual <strong>Refresh now</strong> does not count against the eight, so you can always update on demand while you are working. The shared-capacity limit does apply to refreshes triggered through the REST API, not just the ones on the schedule. And with the XMLA endpoint enabled for read-write on Premium, programmatic refreshes are effectively unlimited, subject to the capacity's own resources.</p>
+  <p>So "eight a day" is really "every three hours, at times you choose", which is usually the honest answer to an hourly request on a Pro licence.</p>
+
+  <h2>When you need a gateway, and when you do not</h2>
+  <p>Before the rule: which of these needs a gateway, a SQL Server in your office or an Azure SQL database?</p>
+  <p>The office one. The rule is about reachability, not about the technology: if Power BI cannot access the source over a direct network connection, you must configure a gateway connection before you can enable a refresh schedule or run an on-demand refresh. Semantic models using cloud sources such as Azure SQL Database do not require a gateway, as long as Power BI can connect directly.</p>
+  <p>There are three kinds, and the names matter on an exam and in a procurement conversation.</p>
+  <table>
+    <tr><th>Type</th><th>Who it serves</th><th>Notes</th></tr>
+    <tr><td>On-premises data gateway</td><td>Multiple users, multiple sources</td><td>The standard choice, and what Microsoft recommends over personal mode</td></tr>
+    <tr><td>On-premises data gateway (personal mode)</td><td>One user, no sharing</td><td>Power BI only, for when you are the only person publishing</td></tr>
+    <tr><td>Virtual network data gateway</td><td>Multiple users, sources behind a virtual network</td><td>A Microsoft managed service, nothing to install</td></tr>
+  </table>
+  <p>Now the part that turns a working refresh into a broken one, and it is the best question on this page. <strong>A semantic model can only use a single gateway connection</strong>, so every on-premises source it touches has to be on the same gateway. And if one query merges or appends data from a gateway-connected source and a cloud source, Power BI switches to the gateway connection for the cloud source as well.</p>
+  <p>Picture that happening. Your Azure SQL table refreshed fine for a year. Somebody merges it with a spreadsheet on a network share, and now the cloud source is going through the gateway too, and it fails on credentials nobody configured. The fix is either to add a data source definition for the cloud source to the gateway, or to tick "Allow user's cloud data sources to refresh through this gateway cluster".</p>
+  <p>Worth knowing before you ask an admin for anything: gateway permissions are managed separately from workspace roles. A Contributor can schedule refresh through a gateway, but only if a gateway admin has added the data source and given them permission to use it.</p>
+
+  <h2>Data alerts live on dashboard tiles, and only yours are yours</h2>
+  <p>First: you want an email when open tickets cross 100. Where do you set it up?</p>
+  <p>On a dashboard tile, not in the report. Alerts can only be set on tiles pinned from report visuals, and only on <strong>gauges, KPIs and cards</strong>. They are not available in Power BI Desktop at all.</p>
+  <p>The rest of the behaviour, in the order it bites:</p>
+  <ul>
+    <li><strong>Only you can see the alerts you set</strong>, even if you share the dashboard, and the dashboard owner cannot see the alerts you set on your view of their dashboard. An alert is a personal notification, not a team one.</li>
+    <li><strong>Alerts only work on refreshed data.</strong> When data refreshes, Power BI checks whether a threshold was crossed. Static data never triggers anything, and neither does an unchanged value.</li>
+    <li><strong>You choose how often you can be told</strong>, at most once an hour or once every 24 hours, and the notification goes to your Notification center with an optional email.</li>
+    <li><strong>Numeric only</strong>, and not on card tiles showing a date or time measure.</li>
+    <li><strong>250 alerts</strong> across all your models is the cap.</li>
+  </ul>
+  <p>Compare that with a subscription, which sends a snapshot of a report or dashboard on a schedule whether or not anything changed. Alerts are conditional and personal; subscriptions are scheduled and can be sent to other people. If a manager wants "tell me when", that is an alert they set for themselves. If they want "send me it every Monday", that is a subscription, and you can set it up for them.</p>
+  <p>For alerting rules that belong to a team rather than a person, Microsoft points at Fabric Activator alerts on reports rather than dashboard alerts, which is where that need has moved.</p>
+
+  <h2>Edge cases worth knowing</h2>
+  <p><strong>A rename at the source fails the refresh in the service.</strong> If a column or table is renamed or removed upstream, refresh fails, because the service does not do a schema refresh. Fix it in Desktop and republish.</p>
+  <p><strong>A refresh can succeed and still be wrong.</strong> Power BI logs a warning when a refresh completes but hits a non-fatal problem, such as a measure referencing a column that no longer exists. The data updates, the affected calculations return errors or blanks, and the status is not a failure. Check the refresh history, not just your inbox.</p>
+  <p><strong>OneDrive refresh is a separate thing.</strong> Reports built on a file in OneDrive or SharePoint Online sync about every hour, and that sync tracks the file's item ID. Copying a new file over the old one creates a different ID and silently breaks the link; upload and replace instead.</p>
+  <p><strong>Refresh times use the time zone on the settings page.</strong> The eight slots are stored against the local time zone you chose, which is the thing to check when a refresh is mysteriously an hour out twice a year.</p>
+
+  <h2>Why the limits are shaped this way</h2>
+  <p>A scheduled refresh is not free. It reads the whole source, rebuilds the model, and invalidates the cached query results that make reports feel instant, which Power BI then has to rebuild.</p>
+  <p>That is why the refresh count is capacity based rather than licence based: it is a queue on somebody's hardware. Shared capacity is shared, so it gets eight slots and a two hour ceiling. A capacity you paid for gets 48 and five hours because you are the one absorbing the cost.</p>
+  <p>The same logic explains why alerts only fire on refreshed data. There is no process sitting and watching your number. The check happens as part of a refresh, which means the fastest an alert can possibly be is the speed of your schedule. Promising a stakeholder a real-time alert on an eight-refresh schedule is promising something the architecture cannot do.</p>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Check the storage mode of your model before touching any refresh setting. If it is not Import, the schedule is not your problem.</li>
+    <li>Count how often the source data genuinely changes. Most daily reports are refreshed more often than the data underneath them moves.</li>
+    <li>Space your eight slots around when people actually read the report, not evenly. One before the morning meeting is worth three overnight.</li>
+    <li>Before merging a cloud source with an on-premises one in a single query, check the gateway's cloud-source setting, or plan the failure into your afternoon.</li>
+    <li>Set your own alert on the number you get asked about most. It is the cheapest early warning you will ever build, and nobody else has to know it exists.</li>
+    <li>Read the refresh history once a week. Warnings are not failures and nobody emails you about them.</li>
+  </ol>
+  <p>If you have paper nearby, draw your model's sources as boxes and put a line around the ones inside your network. Everything inside that line shares one gateway, and anything joining across the line is the query to look at first when refresh breaks.</p>
+
+  <h2>Cheat sheet</h2>
+  <table>
+    <tr><th>Question</th><th>Answer</th></tr>
+    <tr><td>Refreshes a day, shared capacity</td><td>8 scheduled, resetting 12:01 AM local time</td></tr>
+    <tr><td>Refreshes a day, Premium, PPU or Fabric</td><td>48 scheduled</td></tr>
+    <tr><td>Does Refresh now count</td><td>No, manual on-demand refreshes are outside the eight</td></tr>
+    <tr><td>Which modes need refresh</td><td>Import only</td></tr>
+    <tr><td>Gateway needed</td><td>When Power BI cannot reach the source directly, so on-premises and virtual network sources</td></tr>
+    <tr><td>Gateway not needed</td><td>Cloud sources Power BI can connect to directly</td></tr>
+    <tr><td>Gateways per semantic model</td><td>One connection, so all on-premises sources on the same gateway</td></tr>
+    <tr><td>Alerts, where</td><td>Dashboard tiles pinned from card, KPI or gauge visuals</td></tr>
+    <tr><td>Alerts, who sees them</td><td>Only the person who set them</td></tr>
+    <tr><td>Scheduled email regardless of value</td><td>A subscription, not an alert</td></tr>
+  </table>
+
+  <h2>The one habit to keep</h2>
+  <p>Before promising anybody a refresh frequency, say out loud which capacity the workspace is on. Eight and 48 are different products, and the gap between them is where most disappointed stakeholders live.</p>
+
+  <p>What is the refresh schedule on your most-read report, and when did you last check that all eight slots actually ran?</p>
+
+  <div class="note"><strong>Sources.</strong> Limits and behaviour here come from Microsoft's own documentation: <a href="https://learn.microsoft.com/en-us/power-bi/connect-data/refresh-data" target="_blank" rel="noopener">Data refresh in Power BI</a>, <a href="https://learn.microsoft.com/en-us/power-bi/connect-data/service-gateway-onprem" target="_blank" rel="noopener">On-premises data gateway</a> and <a href="https://learn.microsoft.com/en-us/power-bi/create-reports/service-set-data-alerts" target="_blank" rel="noopener">Set data alerts in the Power BI service</a>. Capacity limits change, so check the current article before quoting a number in a meeting.</div>
+
+  <div class="book">
+    <strong>A report nobody can trust the freshness of is a report nobody uses twice.</strong>
+    <p><em>Power BI for Analysts</em> is 187 pages on the whole path from source to reader, including the parts that only show up after you publish.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/power-bi-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=powerbi-refresh-gateways-and-alerts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-powerbi-refresh-gateways-and-alerts'})">Power BI for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Practice this where it is marked.</strong>
+    <p style="margin:6px 0 0">The <a href="../../powerbi/">Power BI Kit</a> covers the model, DAX and report building with worked examples in the browser. Gateways and data alerts are questions 45 and 48 of the <a href="../../powerbi-cert/">PL-300 practice drill</a>.</p>
+    <a class="btn" href="../../powerbi/">Open the Power BI Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="../powerbi-publish-workspace-to-app/">Workspaces and Apps</a> · <a href="../powerbi-row-level-security/">Row-Level Security</a> · <a href="../powerbi-slicers-filters-and-interactions/">Slicers and Interactions</a> · <a href="../powerbi-drillthrough-and-bookmarks/">Drillthrough and Bookmarks</a> · <a href="../powerbi-star-schema/">Star Schema</a> · <a href="../sql-indexing-for-analysts/">Indexing for Analysts</a> · <a href="../../powerbi/">Power BI Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> · <a href="../../contact.html">Contact</a> · <a href="../../privacy.html">Privacy</a> · <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
