@@ -128,15 +128,29 @@ Ranked by how many kits the hole appears in.
 2. **Power BI domains 3 and 4** — `powerbi-cert` q29-q50, originally **22 of 50
    questions with one guide between them**. Being split by exam domain, one
    guide per batch. Remaining sub-items in the order I would take them:
-   - ⬜ **Domain 3, visuals and interactions** — q31-q41. Slicers vs the Filters
-     pane, cross-filtering defaults, drillthrough, bookmarks, decomposition
-     tree and the AI visuals, conditional formatting, forecasting, sync
-     slicers, binning, phone layout. Probably two guides, not one.
-   - ⬜ **Domain 4, the Service and sharing** — q42-q44, q49, q50. Workspace to
-     app, workspace roles, report vs dashboard, endorsement and labels, and
-     why app consumers still see yesterday's version until you update the app.
-   - ⬜ **Domain 4, refresh and gateways** — q45, q48. On-premises data gateway,
-     scheduled refresh, data alerts.
+   - 🟨 **Domain 3, visuals and interactions** — q31-q41. TWO BUILT 2026-08-23:
+     `powerbi-slicers-filters-and-interactions` (q31, q32, q39) and
+     `powerbi-drillthrough-and-bookmarks` (q33, q34). STILL OPEN: q35-q38, q40,
+     q41, which are the no-DAX analysis panes — Analyze/explain the increase,
+     the AI visuals (key influencers, decomposition tree, Q&A), conditional
+     formatting, the Analytics pane forecast, groups and bins, mobile layout.
+     That is one more guide and it needs its own doc-verification pass.
+   - ✅ **Domain 4, the Service and sharing** — BUILT 2026-08-23 as
+     `powerbi-publish-workspace-to-app`, wired into q42, q43, q44, q49, q50.
+     The claim is the two-step release: the workspace is a staging area, the app
+     is a snapshot, and "changes aren't live in the app until you publish again"
+     is Microsoft's own wording. Carries the four-role capability table, the
+     Admin-delegated "Allow contributors to update the app" setting, the fact
+     that Members cannot change an existing user's role, and endorsement as a
+     signal that grants no permissions.
+   - ✅ **Domain 4, refresh and gateways** — BUILT 2026-08-23 as
+     `powerbi-refresh-gateways-and-alerts`, wired into q45 and q48. Eight
+     scheduled refreshes a day on shared capacity against 48 on Premium/PPU/
+     Fabric, only Import mode needs refresh at all, the gateway rule is
+     reachability not technology, one gateway connection per semantic model, and
+     the merge that drags a cloud source through the gateway. Alerts: dashboard
+     tiles only, card/KPI/gauge only, visible only to the person who set them,
+     250 cap, and they can never beat the refresh schedule.
    - ✅ **Row-level security** — BUILT 2026-08-10 as
      `powerbi-row-level-security`, wired into `powerbi-cert` q46 and q47. One
      fact: RLS binds Viewers and app consumers only, never workspace Admin,
@@ -222,3 +236,21 @@ visible on the card, so a well-written card leaves the keyword layer almost
 empty and the search box cannot find the page by its real terms.
 
 Search-index cache version is now `?v=12` in `index.html`.
+
+
+## 2026-08-23, Power BI batch
+
+Four guides, no Power BI Desktop on this machine, so **every fact was verified
+against Microsoft Learn before drafting** rather than from memory. Source URLs
+are printed in a Sources note at the bottom of each page, which is the pattern
+to keep for any guide about a product we cannot run locally.
+
+Two corrections went back into `powerbi-cert/index.html` because the docs
+disagreed with the kit's own explain text:
+- **q32** said the default interaction is cross-highlighting. The docs say
+  visuals cross-filter AND cross-highlight by default, and line charts, scatter
+  charts and maps can only be cross-filtered.
+- **q43** implied only Member and above can touch the app. An Admin can delegate
+  app UPDATES to Contributors; publishing still cannot be delegated.
+
+Search-index cache version is now `?v=13`. Guide count 159.
