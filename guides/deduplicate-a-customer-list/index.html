@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Deduplicate a Customer List: The Survivorship Rules &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Finding the duplicates is the easy half. The hard half is deciding which record survives and what happens to the fields on the losing row. Survivorship rules, the merge log, and the four checks that prove nobody vanished.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/deduplicate-a-customer-list/">
+<meta property="og:title" content="Deduplicating a Customer List Without Losing Anybody">
+<meta property="og:description" content="Which record wins, and what happens to the other one field by field. Survivorship, written down.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/deduplicate-a-customer-list/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Deduplicating a Customer List Without Losing Anybody",
+  "description": "Finding the duplicates is the easy half. The hard half is deciding which record survives and what happens to the fields on the losing row. Survivorship rules, the merge log, and the four checks that prove nobody vanished.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/deduplicate-a-customer-list/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/deduplicate-a-customer-list/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Deduplicate a Customer List",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/deduplicate-a-customer-list/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I decide which duplicate record to keep?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Write survivorship rules before you merge: most recently updated wins for contact details, earliest created wins for the customer since date, non-blank beats blank on every field, and the record with activity beats the one without. Apply them field by field, not row by row."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I delete duplicate customer records?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Mark them merged and keep them, with a pointer to the surviving id. Orders, invoices and tickets refer to the old ids, and deleting the row orphans them."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I prove the deduplication did not lose data?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Four counts: total records before and after plus merged, total revenue before and after, count of child records with a valid parent, and a sample of merged pairs reviewed by hand. Revenue must be identical, since merging customers moves orders but does not delete them."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is a golden record?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The single surviving version of an entity, assembled field by field from the duplicates according to the survivorship rules. It is often not identical to any of the original rows, which is why the rules and the log matter."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../sql/">SQL Kit</a></p>
+  <h1>Deduplicating a Customer List Without Losing Anybody</h1>
+  <p class="meta">Michael Nocito &middot; Updated August 2026 &middot; Every number on this page was worked before it was published</p>
+
+  <p>You have found 340 duplicate customers. The instinct is to keep the newest and delete the rest, and it is wrong twice: the newest record often has the emptiest fields, and deleting rows breaks everything that points at them.</p>
+
+  <p>What you do: write the survivorship rules first, merge field by field, keep the losing rows marked rather than deleted, and prove with four counts that nothing was lost.</p>
+
+  <p><strong>The short version.</strong> The surviving record is usually not one of the original rows. It is assembled from them.</p>
+
+  <h2>The three duplicates you will find</h2>
+  <table>
+    <tr><th>Kind</th><th>Example</th><th>Merge?</th></tr>
+    <tr><td>Exact</td><td>Same name, email, address, twice</td><td>Yes, safely</td></tr>
+    <tr><td>Near</td><td>Acme Ltd and ACME Limited, same postcode</td><td>Yes, after review</td></tr>
+    <tr><td>Same person, different role</td><td>Same email, one billing contact, one site contact</td><td>No. These are two relationships.</td></tr>
+  </table>
+  <p>The third row is where damage is done. A rule that merges on email address alone will collapse two legitimate contacts into one and quietly lose a relationship that somebody in the business depends on.</p>
+
+  <h2>Survivorship rules, field by field</h2>
+  <p>Write these down before running anything. They are business decisions, not technical ones, and they need somebody to own them:</p>
+  <table>
+    <tr><th>Field</th><th>Rule</th><th>Why</th></tr>
+    <tr><td>Customer id</td><td>Lowest, the oldest record</td><td>The most external references point at it</td></tr>
+    <tr><td>Customer since</td><td>Earliest across the set</td><td>The relationship is as old as its oldest record</td></tr>
+    <tr><td>Email, phone, address</td><td>Most recently updated non-blank</td><td>Contact details go stale, not the reverse</td></tr>
+    <tr><td>Legal name</td><td>The one matching the registration number</td><td>An external authority beats an internal guess</td></tr>
+    <tr><td>Account manager</td><td>From the record with recent activity</td><td>Activity is evidence of the live relationship</td></tr>
+    <tr><td>Marketing consent</td><td>The most restrictive value</td><td>Never widen a consent by merging</td></tr>
+    <tr><td>Notes</td><td>Concatenate all of them</td><td>Free text is cheap and losing it is not</td></tr>
+  </table>
+  <p>The consent row is not optional. Merging a record that opted out into one that opted in, and keeping the permissive value, creates a compliance problem out of a data-tidying exercise.</p>
+
+  <div class="note"><strong>Non-blank beats blank, on every field.</strong> This one rule recovers more data than the rest put together, because the usual pattern is a newer, sparser record created by a form and an older, richer one created by a person.</div>
+
+  <h2>Picking the survivor in SQL</h2>
+  <pre><code>WITH ranked AS (
+  SELECT customer_id, match_key, updated_at, created_at,
+         ROW_NUMBER() OVER (PARTITION BY match_key
+                            ORDER BY created_at ASC, customer_id ASC) AS rn
+  FROM customers
+)
+SELECT match_key,
+       MIN(CASE WHEN rn = 1 THEN customer_id END) AS surviving_id
+FROM ranked
+GROUP BY match_key
+HAVING COUNT(*) &gt; 1;</code></pre>
+  <p><code>ROW_NUMBER</code> is the right function here rather than <code>RANK</code>, because a tie must still produce exactly one survivor. The tie-breaker on <code>customer_id</code> is what guarantees it, and it also makes the result reproducible, which matters when you re-run the job. The three ranking functions are compared in <a href="../sql-rank-vs-dense-rank-vs-row-number/">RANK vs DENSE_RANK vs ROW_NUMBER</a>.</p>
+  <p>Then assemble the surviving values field by field, taking the first non-blank in your chosen order rather than everything from the surviving row.</p>
+
+  <h2>Never delete the losers</h2>
+  <pre><code>ALTER TABLE customers ADD COLUMN merged_into INT;
+ALTER TABLE customers ADD COLUMN merged_at    DATE;</code></pre>
+  <p>Set <code>merged_into</code> on the losing rows and filter them out of reporting views. Everything keeps working: an old order pointing at customer 4102 still resolves, and it can be followed to the survivor. A deleted row leaves an orphan, and orphans are how a revenue total loses a few percent between two reports.</p>
+
+  <h2>The four checks that prove nothing was lost</h2>
+  <ol>
+    <li><strong>Record count.</strong> Active after plus merged equals total before. Exactly.</li>
+    <li><strong>Revenue.</strong> Total revenue after equals total before, to the penny. Merging customers moves orders between parents; it never removes an order.</li>
+    <li><strong>Orphans.</strong> Count child rows whose parent id is not in the customer table. It must be zero, before and after.</li>
+    <li><strong>Sample review.</strong> Twenty merged pairs read by a human, including five from the high-confidence band that nobody would normally check.</li>
+  </ol>
+  <pre><code>-- check 3, the one that catches a delete you did not mean
+SELECT COUNT(*) FROM orders o
+WHERE NOT EXISTS (SELECT 1 FROM customers c
+                  WHERE c.customer_id = o.customer_id);</code></pre>
+  <p><code>NOT EXISTS</code> rather than <code>NOT IN</code>, for the reason set out in <a href="../sql-anti-join/">the anti-join</a>: one NULL and <code>NOT IN</code> returns zero rows, which reads as a clean result.</p>
+
+  <h2>The merge log</h2>
+  <p>One row per merge: losing id, surviving id, match key, method, score, who approved it, when. It is what lets you answer "why are these two the same customer" six months later, and it is what makes an incorrect merge reversible instead of permanent.</p>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Write the survivorship rules and get them agreed by whoever owns the customer relationship, not by whoever owns the database.</li>
+    <li>Run the whole process on a copy first, and compare the four checks between copy and original.</li>
+    <li>Require two matching fields before any automatic merge.</li>
+    <li>Mark, never delete. Add the two columns before you start.</li>
+    <li>Review a sample of automatic merges as well as the manual band.</li>
+  </ol>
+
+  <h2>The one habit to keep</h2>
+  <p>Reconcile the money. Record counts change on purpose during deduplication, so they cannot tell you whether something went wrong. Revenue must not change at all, which makes it the check that actually catches mistakes.</p>
+
+  <p>If a merge in your CRM turns out to be wrong tomorrow, could anybody undo it?</p>
+
+  <div class="note"><strong>Every query here was written to run.</strong> The ROW_NUMBER tie-break on customer_id is what makes the survivor deterministic across re-runs, which is the property most deduplication scripts quietly lack.</div>
+
+  <div class="book">
+    <strong>A merge you cannot reverse is a decision you can never revisit.</strong>
+    <p><em>The Data Migration Playbook</em> is the stage-by-stage record of a real migration: profiling, mapping, dry runs, UAT, cutover and hypercare, with the checks that catch a bad load before the client does.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/data-migration-playbook?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=data-migration-playbook" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-deduplicate-a-customer-list'})">The Data Migration Playbook, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Deduplication is a migration problem wearing a spreadsheet costume.</strong>
+    <p style="margin:6px 0 0"><a href="../migration-cleaning/">Migration cleaning</a> covers the same work at scale, <a href="../entity-resolution/">entity resolution</a> covers deciding what is the same thing, and <a href="../sql-find-duplicates/">finding duplicate rows</a> is the query.</p>
+    <a class="btn" href="../migration-cleaning/">Read Migration Cleaning &rarr;</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../sql-find-duplicates/">Find Duplicate Rows</a> &middot; <a href="../entity-resolution/">Entity Resolution</a> &middot; <a href="../fuzzy-matching-names/">Fuzzy Matching Names</a> &middot; <a href="../migration-cleaning/">Migration Cleaning</a> &middot; <a href="../sql-rank-vs-dense-rank-vs-row-number/">RANK vs ROW_NUMBER</a> &middot; <a href="../../sql/">SQL Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

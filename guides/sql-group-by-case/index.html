@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL GROUP BY CASE WHEN: Grouping by a Calculated Band &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Group by a band you invent in the query, without adding a column to the table. Where the CASE goes, why repeating it in the GROUP BY is the safe form, and the band that vanishes because nothing landed in it.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-case/">
+<meta property="og:title" content="GROUP BY with CASE: Grouping by a Rule Instead of a Column">
+<meta property="og:description" content="Eight orders grouped into three bands that exist only in the query. Where the CASE goes, and why.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-case/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "GROUP BY with CASE: Grouping by a Rule Instead of a Column",
+  "description": "Group by a band you invent in the query, without adding a column to the table. Where the CASE goes, why repeating it in the GROUP BY is the safe form, and the band that vanishes because nothing landed in it.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-case/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-case/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "GROUP BY with CASE",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-group-by-case/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Can you use CASE in a GROUP BY?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Put the same CASE expression in both the SELECT and the GROUP BY, or group by the column position such as GROUP BY 1. Grouping by the alias works in MySQL and PostgreSQL but not in SQL Server, so repeating the expression is the portable form."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I group by a range of values in SQL?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Write a CASE expression that turns the value into a band name, select it, and group by it. The bands exist only in the query, so no column has to be added to the table."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why is one of my bands missing from the results?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because GROUP BY only returns bands that at least one row landed in. An empty band produces no row at all rather than a zero. Join to a small list of band names if the report must always show every band."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I group by CASE and by a real column at the same time?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Put both in the SELECT and both in the GROUP BY. The result has one row per combination that actually occurs, which is often far fewer than the number of possible combinations."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../sql/">SQL Kit</a></p>
+  <h1>GROUP BY with CASE: Grouping by a Rule Instead of a Column</h1>
+  <p class="meta">Michael Nocito &middot; Updated August 2026 &middot; Every query on this page was run before it was published</p>
+
+  <p>The table has an amount. The report wants small, medium and large. Nobody is going to add a band column to the source table, and they should not: the boundaries change more often than the data does.</p>
+
+  <p>What you do: write the rule as a <code>CASE</code> in the <code>SELECT</code>, and repeat it in the <code>GROUP BY</code>. The band exists for the length of the query and nowhere else.</p>
+
+  <p><strong>The short version.</strong> Group by the expression, not by the alias, and your query runs on every database.</p>
+
+  <h2>The table</h2>
+  <pre><code>CREATE TABLE orders(order_id INT, customer_id INT, amount INT, status TEXT);
+INSERT INTO orders VALUES
+(101,1,120,'shipped'),(102,1,80,'shipped'),(103,2,200,'cancelled'),
+(104,2,50,'shipped'),(105,3,300,'shipped'),(106,4,90,'pending'),
+(107,4,60,'shipped'),(108,5,150,'cancelled');</code></pre>
+
+  <h2>The query</h2>
+  <pre><code>SELECT CASE WHEN amount &gt;= 200 THEN 'large'
+            WHEN amount &gt;= 100 THEN 'medium'
+            ELSE 'small' END AS band,
+       COUNT(*)   AS orders,
+       SUM(amount) AS total
+FROM orders
+GROUP BY CASE WHEN amount &gt;= 200 THEN 'large'
+              WHEN amount &gt;= 100 THEN 'medium'
+              ELSE 'small' END
+ORDER BY total DESC;</code></pre>
+  <table>
+    <tr><th>band</th><th>orders</th><th>total</th></tr>
+    <tr><td>large</td><td>2</td><td>500</td></tr>
+    <tr><td>small</td><td>4</td><td>280</td></tr>
+    <tr><td>medium</td><td>2</td><td>270</td></tr>
+  </table>
+  <p>Two orders of 200 and 300 make large. Two of 120 and 150 make medium. The remaining four, 80, 50, 90 and 60, make small. Eight rows in, three rows out, and 500 + 280 + 270 = 1,050, which is the full table total. That addition is the check worth doing every time.</p>
+
+  <h2>Where the CASE can go, by database</h2>
+  <table>
+    <tr><th>Form</th><th>Works on</th><th>Note</th></tr>
+    <tr><td>Repeat the expression in GROUP BY</td><td>Everything</td><td>Verbose, and portable</td></tr>
+    <tr><td><code>GROUP BY 1</code></td><td>Postgres, MySQL, SQLite, Snowflake, BigQuery</td><td>Short. Breaks silently if you reorder the SELECT.</td></tr>
+    <tr><td><code>GROUP BY band</code>, the alias</td><td>MySQL, Postgres</td><td>Not SQL Server or Oracle</td></tr>
+    <tr><td>A CTE that defines the band, then group it</td><td>Everything</td><td>Best for anything reused</td></tr>
+  </table>
+  <p>The CTE version is the one to prefer as soon as the rule appears more than once:</p>
+  <pre><code>WITH banded AS (
+  SELECT order_id, amount,
+         CASE WHEN amount &gt;= 200 THEN 'large'
+              WHEN amount &gt;= 100 THEN 'medium'
+              ELSE 'small' END AS band
+  FROM orders
+)
+SELECT band, COUNT(*) AS orders, SUM(amount) AS total
+FROM banded
+GROUP BY band
+ORDER BY total DESC;</code></pre>
+  <p>The rule is written once, so it cannot drift between the <code>SELECT</code> and the <code>GROUP BY</code>. Two copies of a rule that must agree is exactly the kind of thing that gets half-edited six months later.</p>
+
+  <div class="note"><strong>The order of the WHENs decides the answer.</strong> <code>CASE</code> stops at the first match, so a 300 hits <code>&gt;= 200</code> and never sees the later branches. Reverse the two conditions and everything above 100 becomes medium, including the 300, with no error. That failure is worked in full in <a href="../sql-case-overlapping-conditions/">overlapping CASE conditions</a>.</div>
+
+  <h2>The band that disappears</h2>
+  <p>Add a fourth band for anything at or above 500 and the query returns three rows, not four. <code>GROUP BY</code> reports the groups that exist in the data; a band nothing landed in produces no row rather than a zero.</p>
+  <p>For a report that must always show every band, supply the list and join to it:</p>
+  <pre><code>WITH bands(band, sort_order) AS (
+  VALUES ('small',1), ('medium',2), ('large',3), ('huge',4)
+),
+banded AS (
+  SELECT CASE WHEN amount &gt;= 500 THEN 'huge'
+              WHEN amount &gt;= 200 THEN 'large'
+              WHEN amount &gt;= 100 THEN 'medium'
+              ELSE 'small' END AS band,
+         amount
+  FROM orders
+)
+SELECT b.band,
+       COUNT(x.amount)              AS orders,
+       COALESCE(SUM(x.amount), 0)   AS total
+FROM bands b
+LEFT JOIN banded x ON x.band = b.band
+GROUP BY b.band, b.sort_order
+ORDER BY b.sort_order;</code></pre>
+  <p>Now huge appears with 0 and 0. Note <code>COUNT(x.amount)</code> rather than <code>COUNT(*)</code>: after a LEFT JOIN the unmatched band still produces one row, and <code>COUNT(*)</code> would report 1 for a band containing nothing.</p>
+
+  <h2>Sorting bands in a sensible order</h2>
+  <p>Alphabetical order puts large before medium before small, which is meaningless. Two ways to fix it:</p>
+  <pre><code>-- sort by a number, hide the number
+ORDER BY CASE WHEN amount &gt;= 200 THEN 3
+              WHEN amount &gt;= 100 THEN 2
+              ELSE 1 END DESC
+
+-- or carry a sort_order column alongside the band, as above</code></pre>
+  <p>The second is better in anything that gets reused, because the ordering rule lives next to the band definition rather than in a third copy of the same conditions.</p>
+
+  <h2>Grouping by a rule and a column together</h2>
+  <pre><code>SELECT status,
+       CASE WHEN amount &gt;= 200 THEN 'large'
+            WHEN amount &gt;= 100 THEN 'medium'
+            ELSE 'small' END AS band,
+       COUNT(*) AS orders
+FROM orders
+GROUP BY status,
+         CASE WHEN amount &gt;= 200 THEN 'large'
+              WHEN amount &gt;= 100 THEN 'medium'
+              ELSE 'small' END
+ORDER BY status, band;</code></pre>
+  <p>One row per combination that occurs. With three statuses and three bands there are nine possible rows and considerably fewer real ones, which is normal and worth stating on the report so nobody reads a missing combination as a zero.</p>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Check that your band totals sum to the ungrouped total. It is one extra query and it catches a missing <code>ELSE</code>.</li>
+    <li>Move any rule used more than once into a CTE, so there is a single definition.</li>
+    <li>Write the boundary policy in a comment: does a value equal to the boundary go up or down?</li>
+    <li>Decide whether empty bands must appear, and if so build the band list explicitly.</li>
+    <li>Give bands a deliberate sort order rather than accepting alphabetical.</li>
+  </ol>
+
+  <h2>The one habit to keep</h2>
+  <p>Ask where the rule lives. A band written inside a query is invisible to everyone who does not read the query, so if the same rule appears in a spreadsheet and a dashboard as well, it will eventually disagree with itself. One definition, in one place, referenced everywhere.</p>
+
+  <p>How many places in your reporting define what counts as a large order?</p>
+
+  <div class="note"><strong>Every number here was run before it was published.</strong> Eight orders band into large 2 rows and 500, medium 2 rows and 270, small 4 rows and 280, and those three totals sum to the table total of 1,050.</div>
+
+  <div class="book">
+    <strong>A grouping rule written in the query is a rule nobody outside the query can see.</strong>
+    <p><em>SQL for Analysts</em> is 458 pages that read queries line by line in everyday words, so a result that came back wrong has somewhere to be traced instead of being retyped until it looks better.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/sql-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=sql-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-sql-group-by-case'})">SQL for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Practise the grouping, not just the syntax.</strong>
+    <p style="margin:6px 0 0"><a href="../sql-group-by-having/">GROUP BY and HAVING</a> covers the basics, <a href="../sql-case-overlapping-conditions/">CASE with overlapping conditions</a> covers the order of the WHENs, and <a href="../../drill/">SQL Drill</a> gives you the reps.</p>
+    <a class="btn" href="../sql-group-by-having/">Read GROUP BY and HAVING &rarr;</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../sql-group-by-having/">GROUP BY and HAVING</a> &middot; <a href="../sql-case-expression/">The CASE Expression</a> &middot; <a href="../sql-case-overlapping-conditions/">Overlapping CASE Conditions</a> &middot; <a href="../sql-count-case-when/">COUNT with CASE WHEN</a> &middot; <a href="../sql-segment-with-case/">Segmenting with CASE</a> &middot; <a href="../../drill/">SQL Drill</a> &middot; <a href="../../sql/">SQL Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

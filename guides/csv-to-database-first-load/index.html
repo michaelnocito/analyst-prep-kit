@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Load a CSV Into a Database: Types, Keys and the Row Count &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Import tools guess types, and their guesses turn IDs into numbers and dates into text. The five decisions to make before loading, the three checks after, and the staging table that makes the whole thing reversible.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/csv-to-database-first-load/">
+<meta property="og:title" content="Loading Your First CSV Into a Database Without Ruining the Data">
+<meta property="og:description" content="Load into text columns first, check, then cast. The order that keeps leading zeros alive.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/csv-to-database-first-load/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Loading Your First CSV Into a Database Without Ruining the Data",
+  "description": "Import tools guess types, and their guesses turn IDs into numbers and dates into text. The five decisions to make before loading, the three checks after, and the staging table that makes the whole thing reversible.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/csv-to-database-first-load/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/csv-to-database-first-load/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Loading Your First CSV",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/csv-to-database-first-load/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I import a CSV into SQLite?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "In the sqlite3 shell: .mode csv, then .import --skip 1 orders.csv orders after creating the table with the types you want. Creating the table first is what stops the importer guessing."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why did my ID column lose its leading zeros?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because the importer decided the column was numeric, and 00042 as a number is 42. Create the column as TEXT before importing, or import everything as text and cast afterwards."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I let the import tool create the table?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Only for a quick look. For anything you will keep, create the table yourself so you control the types, because a guessed type is silently applied to every row."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I know the import worked?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Three checks: the row count matches the file, no column is entirely null, and one known value is present and correct. Run all three before building anything on top."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../sql/">SQL Kit</a></p>
+  <h1>Loading Your First CSV Into a Database Without Ruining the Data</h1>
+  <p class="meta">Michael Nocito &middot; Updated August 2026 &middot; Every number on this page was worked before it was published</p>
+
+  <p>The import runs, it says it succeeded, and the data is now subtly different from the file. Postcodes lost their leading zeros, dates became text, a column with one stray word became text for every row, and a total row from the bottom of the export is now a record.</p>
+
+  <p>What you do: create the table yourself, load everything as text, check, then cast into a clean table. It is one extra step and it makes the whole load reversible.</p>
+
+  <p><strong>The short version.</strong> Let the importer move the data. Do not let it decide the types.</p>
+
+  <h2>Five decisions before you load</h2>
+  <table>
+    <tr><th>Decision</th><th>Wrong answer costs you</th></tr>
+    <tr><td>Which columns are text, not numbers</td><td>Leading zeros, and IDs above 15 digits</td></tr>
+    <tr><td>Which column is the key</td><td>You find out later it is not unique</td></tr>
+    <tr><td>What date format the file uses</td><td>A third of the rows silently wrong</td></tr>
+    <tr><td>What encoding it is in</td><td>Names arriving as Ã© and Â£</td></tr>
+    <tr><td>Whether the file has junk rows</td><td>A total row becomes a record</td></tr>
+  </table>
+  <p>Answer all five by looking at the file before touching the database. Open the first thousand rows in a text editor, not in Excel, because Excel will have already changed some of them by the time you look. That peek command is in <a href="../open-a-large-csv/">opening a large CSV</a>.</p>
+
+  <h2>The staging pattern</h2>
+  <p>Two tables. One holds everything as text exactly as it arrived; the other holds the typed, cleaned version. It sounds like extra work and it takes about four minutes.</p>
+  <pre><code>-- 1. staging: every column TEXT, nothing can be lost
+CREATE TABLE orders_raw (
+  order_id   TEXT,
+  customer   TEXT,
+  order_date TEXT,
+  amount     TEXT,
+  status     TEXT
+);
+
+-- 2. import into it (sqlite3 shell)
+.mode csv
+.import --skip 1 orders.csv orders_raw
+
+-- 3. look before casting
+SELECT COUNT(*) FROM orders_raw;
+SELECT * FROM orders_raw LIMIT 10;
+SELECT order_date FROM orders_raw
+WHERE order_date NOT LIKE '____-__-__' LIMIT 20;</code></pre>
+  <p>That third query is the one that earns the pattern. It lists the values that are not in the expected shape, before any conversion has thrown them away.</p>
+  <pre><code>-- 4. cast into the real table, deliberately
+CREATE TABLE orders (
+  order_id   TEXT PRIMARY KEY,
+  customer   TEXT,
+  order_date DATE,
+  amount     REAL,
+  status     TEXT
+);
+
+INSERT INTO orders
+SELECT TRIM(order_id),
+       TRIM(customer),
+       DATE(order_date),
+       CAST(REPLACE(REPLACE(amount, ',', ''), '£', '') AS REAL),
+       LOWER(TRIM(status))
+FROM orders_raw
+WHERE order_id IS NOT NULL AND order_id &lt;&gt; '';</code></pre>
+  <p>Every transformation is visible and every one is a decision you made. If a cast fails or produces nulls, the raw table is still there and nothing has to be re-downloaded.</p>
+
+  <div class="note"><strong>Keep order_id as TEXT.</strong> Even when it looks numeric. IDs are labels rather than quantities: you never add two of them, you do sometimes need the leading zeros, and anything above 15 digits loses precision as a number. The same argument applies in Excel, in <a href="../excel-csv-import-leading-zeros/">leading zeros on import</a>.</div>
+
+  <h2>The three checks after loading</h2>
+  <pre><code>-- 1. row count against the file
+SELECT COUNT(*) FROM orders;          -- compare with wc -l, minus the header
+
+-- 2. no column silently empty
+SELECT SUM(CASE WHEN order_date IS NULL THEN 1 ELSE 0 END) AS null_dates,
+       SUM(CASE WHEN amount     IS NULL THEN 1 ELSE 0 END) AS null_amounts
+FROM orders;
+
+-- 3. a value you can verify by eye
+SELECT * FROM orders WHERE order_id = '00042';</code></pre>
+  <p>The second one catches a failed cast, which is the most common way a load goes wrong while reporting success. A column that is entirely null after a cast means the source format did not match what you assumed, every time.</p>
+
+  <h2>The other tools</h2>
+  <table>
+    <tr><th>Tool</th><th>Command</th></tr>
+    <tr><td>SQLite shell</td><td><code>.mode csv</code> then <code>.import --skip 1 file.csv table</code></td></tr>
+    <tr><td>DB Browser for SQLite</td><td>File, Import, Table from CSV file</td></tr>
+    <tr><td>DuckDB</td><td><code>CREATE TABLE t AS SELECT * FROM read_csv_auto('file.csv')</code></td></tr>
+    <tr><td>PostgreSQL</td><td><code>\copy orders FROM 'file.csv' CSV HEADER</code></td></tr>
+    <tr><td>pandas</td><td><code>df.to_sql('orders', con, if_exists='append', index=False)</code></td></tr>
+  </table>
+  <p>DuckDB's <code>read_csv_auto</code> is unusually good at guessing, and you can override any column with the <code>types</code> argument when the guess is wrong. Postgres <code>\copy</code> runs client side, which matters because the plain <code>COPY</code> command needs the file to be on the server.</p>
+
+  <h2>When the file will arrive every month</h2>
+  <ol>
+    <li>Write the load as a script, never as a sequence of clicks.</li>
+    <li>Put the source file name and the load date into a column, so any row can be traced back.</li>
+    <li>Load into staging, run the checks, and only then replace or append to the clean table.</li>
+    <li>Keep the raw files. Storage is cheap and a re-load is the only real recovery.</li>
+    <li>Log the row count of every load in a small table. Drift shows up as a number, not a feeling.</li>
+  </ol>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Create the table yourself for the next file you load, rather than letting the tool do it.</li>
+    <li>Add the staging step once and see how much it catches on a file you thought was clean.</li>
+    <li>Run the three checks and write the numbers into the project notes.</li>
+    <li>Make every ID column text, and check one known ID afterwards.</li>
+    <li>Turn a repeated import into a script the first time you do it twice.</li>
+  </ol>
+
+  <h2>The one habit to keep</h2>
+  <p>Count the rows in the file before you import and after. It takes ten seconds, it is the only way to notice a truncated or partial load, and it is the number you will want when somebody asks whether the data is complete.</p>
+
+  <p>Do you know the row count of the last file you loaded into anything?</p>
+
+  <div class="note"><strong>Written from the tools as they ship.</strong> The SQLite dot commands, DuckDB read_csv_auto, the Postgres client-side copy and pandas to_sql are all current.</div>
+
+  <div class="book">
+    <strong>An import that succeeded is not the same as an import that is correct.</strong>
+    <p><em>SQL for Analysts</em> is 458 pages that read queries line by line in everyday words, so a result that came back wrong has somewhere to be traced instead of being retyped until it looks better.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/sql-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=sql-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-csv-to-database-first-load'})">SQL for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>The load step is where most data problems are created.</strong>
+    <p style="margin:6px 0 0"><a href="../set-up-a-sql-database/">Setting up a SQL database</a> covers the tool, <a href="../data-quality-checks/">the data quality checks</a> cover what to run afterwards, and <a href="../database-setup-for-analysts/">database setup</a> covers which one to install.</p>
+    <a class="btn" href="../data-quality-checks/">Read the Data Quality Checks &rarr;</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> &middot; <a href="../database-setup-for-analysts/">Database Setup</a> &middot; <a href="../data-quality-checks/">Data Quality Checks</a> &middot; <a href="../excel-csv-import-leading-zeros/">Leading Zeros on Import</a> &middot; <a href="../excel-character-encoding/">Character Encoding</a> &middot; <a href="../sql-reconciliation/">Reconciling Row Counts</a> &middot; <a href="../../sql/">SQL Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

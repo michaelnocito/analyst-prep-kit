@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL Self Join: How to Join the Same Table Twice &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Employees and their managers live in one table, so the join has two copies of it. Why aliases stop being optional, why the inner version loses the people at the top, and the pair query that returns every pair twice.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-self-join/">
+<meta property="og:title" content="Joining a Table to Itself: Managers, Pairs and the Same Table Twice">
+<meta property="og:description" content="Eight employees, one table, joined to itself. Inner returns 6 rows, LEFT returns 8.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-self-join/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Joining a Table to Itself: Managers, Pairs and the Same Table Twice",
+  "description": "Employees and their managers live in one table, so the join has two copies of it. Why aliases stop being optional, why the inner version loses the people at the top, and the pair query that returns every pair twice.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-self-join/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-self-join/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "The Self Join",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-self-join/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I join a table to itself in SQL?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "List the table twice with two different aliases and join them on the columns that relate one row to another: SELECT e.name, m.name FROM employees e JOIN employees m ON m.emp_id = e.manager_id. The aliases are what make the two copies distinguishable."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why do I need aliases in a self join?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because both copies have identical column names. Without aliases the database cannot tell which emp_id you mean, and it raises an ambiguous column error. With them, e and m are effectively two separate tables."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my self join lose rows?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "An inner join drops any row whose partner does not exist. On an employee table, that means everyone with no manager: the chief executive and anybody unassigned. Use a LEFT JOIN to keep them, with NULL in the manager columns."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I find pairs of rows in the same table?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Join the table to itself on the shared attribute and add a condition such as a.id < b.id to keep each pair once. Without that condition you get every pair twice plus each row matched with itself."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../sql/">SQL Kit</a></p>
+  <h1>Joining a Table to Itself: Managers, Pairs and the Same Table Twice</h1>
+  <p class="meta">Michael Nocito &middot; Updated August 2026 &middot; Every query on this page was run before it was published</p>
+
+  <p>Employees and their managers are both employees, so both live in the same table. To show a name next to a manager name you have to join that table to itself, which feels wrong the first few times and is completely ordinary.</p>
+
+  <p>What you do: write the table twice with two aliases, and treat them as two separate tables from then on. On the eight employees below, the inner version returns 6 rows and the LEFT version returns 8.</p>
+
+  <p><strong>The short version.</strong> A self join is a normal join. The only new thing is that you must name the two copies.</p>
+
+  <h2>The table</h2>
+  <pre><code>CREATE TABLE employees(emp_id INT, name TEXT, manager_id INT, dept TEXT, salary INT);
+INSERT INTO employees VALUES
+(1,'Alvarez',NULL,'Exec',120000),
+(2,'Brennan',1,'Sales',72000),
+(3,'Cho',1,'Sales',68000),
+(4,'Diaz',2,'Sales',54000),
+(5,'Ellis',2,'Sales',51000),
+(6,'Fowler',3,'Support',49000),
+(7,'Grant',NULL,'Support',47000),
+(8,'Hale',3,'Support',45000);</code></pre>
+  <p><code>manager_id</code> points at an <code>emp_id</code> in the same table. Alvarez has no manager, and so does Grant, which turns out to matter.</p>
+
+  <h2>The query</h2>
+  <pre><code>SELECT e.name AS employee, m.name AS manager
+FROM employees e
+LEFT JOIN employees m ON m.emp_id = e.manager_id
+ORDER BY e.emp_id;</code></pre>
+  <table>
+    <tr><th>employee</th><th>manager</th></tr>
+    <tr><td>Alvarez</td><td>NULL</td></tr>
+    <tr><td>Brennan</td><td>Alvarez</td></tr>
+    <tr><td>Cho</td><td>Alvarez</td></tr>
+    <tr><td>Diaz</td><td>Brennan</td></tr>
+    <tr><td>Ellis</td><td>Brennan</td></tr>
+    <tr><td>Fowler</td><td>Cho</td></tr>
+    <tr><td>Grant</td><td>NULL</td></tr>
+    <tr><td>Hale</td><td>Cho</td></tr>
+  </table>
+  <p>Read the join clause as the sentence it is: the manager copy's <code>emp_id</code> equals the employee copy's <code>manager_id</code>. Getting that the wrong way round is the single most common self join error, and it produces a result that looks fine until you notice the hierarchy is upside down.</p>
+
+  <h2>Inner or LEFT: 6 rows against 8</h2>
+  <pre><code>SELECT COUNT(*) FROM employees e JOIN employees m ON m.emp_id = e.manager_id;
+-- 6
+
+SELECT COUNT(*) FROM employees e LEFT JOIN employees m ON m.emp_id = e.manager_id;
+-- 8</code></pre>
+  <p>The inner join silently loses Alvarez and Grant, because neither has a manager row to match. On a headcount report that is a two-person error out of eight, and it is invisible: the output is a perfectly normal-looking list.</p>
+  <p>The rule generalises. Any self join up a hierarchy loses the top of it, and any self join down a hierarchy loses the bottom. Decide which end you are prepared to drop, and if the answer is neither, use <code>LEFT JOIN</code>.</p>
+
+  <div class="note"><strong>Grant is the interesting row.</strong> Alvarez has no manager because they run the company. Grant has no manager because nobody set the field. Both come back NULL, and the query cannot tell them apart. That is a data quality finding, and it is the kind that only surfaces when somebody joins the table to itself.</div>
+
+  <h2>Finding pairs in one table</h2>
+  <p>The other main use: rows that share something. Colleagues in the same department, orders from the same customer on the same day, duplicate records.</p>
+  <pre><code>SELECT a.name, b.name, a.dept
+FROM employees a
+JOIN employees b ON b.dept = a.dept
+WHERE a.emp_id &lt; b.emp_id;</code></pre>
+  <p>The <code>WHERE</code> line does two jobs and both are essential. Without it, every person is matched with themselves, and every genuine pair appears twice in both orders. With <code>a.emp_id &lt; b.emp_id</code>, each pair is returned exactly once and no row pairs with itself.</p>
+  <p>Sales has Brennan, Cho, Diaz and Ellis, which gives 6 pairs. Support has Fowler, Grant and Hale, which gives 3. Exec has one person and gives none. Nine rows, and the arithmetic is the check: n people in a department produce n(n-1)/2 pairs.</p>
+
+  <h2>Three more shapes worth knowing</h2>
+  <table>
+    <tr><th>Question</th><th>Shape</th></tr>
+    <tr><td>Who earns more than their manager</td><td>Self join, then <code>WHERE e.salary &gt; m.salary</code></td></tr>
+    <tr><td>Two levels up</td><td>Join the table three times: employee, manager, manager's manager</td></tr>
+    <tr><td>The whole chain, any depth</td><td>A recursive CTE, <code>WITH RECURSIVE</code></td></tr>
+  </table>
+  <p>On this data, Brennan earns 72,000 and their manager Alvarez earns 120,000, so nobody out-earns their manager. Change one number and the query finds it, which is what makes it a useful audit rather than a puzzle.</p>
+  <p>Three levels is the practical limit for repeated joins. Beyond that, or when the depth varies, you need recursion, and that is a different page.</p>
+
+  <h2>The mistakes, in the order they happen</h2>
+  <ol>
+    <li><strong>No aliases.</strong> The database cannot resolve <code>emp_id</code> and raises an ambiguous column error. This one is loud, which makes it the best of the five.</li>
+    <li><strong>The join condition reversed.</strong> No error. The hierarchy comes out inverted.</li>
+    <li><strong>Inner join up a hierarchy.</strong> No error. The top of the tree disappears.</li>
+    <li><strong>No inequality on a pair query.</strong> Every pair twice, plus self-matches, so counts double.</li>
+    <li><strong>Single-letter aliases everywhere.</strong> Legal, and unreadable in six months. Use <code>emp</code> and <code>mgr</code> rather than <code>a</code> and <code>b</code> when the two copies mean different things.</li>
+  </ol>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Find a table in your database that points at itself: a manager id, a parent category, a replaces-this-record id. It is more common than people expect.</li>
+    <li>Write the LEFT JOIN version first, count the NULLs, and ask whether each one is a real top-of-tree or a missing value.</li>
+    <li>Compare the inner and LEFT counts every time. The difference is the number of rows the inner version would have hidden.</li>
+    <li>Name your aliases after the role, not after the alphabet.</li>
+    <li>On any pair query, check the count against n(n-1)/2 before believing it.</li>
+  </ol>
+
+  <h2>The one habit to keep</h2>
+  <p>Say the join clause out loud as a sentence about roles: the manager row's id equals the employee row's manager id. A self join has no natural table names to lean on, so the sentence is the only thing keeping the direction straight.</p>
+
+  <p>Which table in your database has a column pointing back at its own key?</p>
+
+  <div class="note"><strong>Every number here was run before it was published.</strong> Eight employees. Inner join returns 6 rows, LEFT JOIN returns 8, and the department pair query returns 9.</div>
+
+  <div class="book">
+    <strong>The self join is the moment aliases stop being style and start being the query.</strong>
+    <p><em>SQL for Analysts</em> is 458 pages that read queries line by line in everyday words, so a result that came back wrong has somewhere to be traced instead of being retyped until it looks better.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/sql-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=sql-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-sql-self-join'})">SQL for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Write the joins rather than reading about them.</strong>
+    <p style="margin:6px 0 0"><a href="../sql-joins/">SQL JOINs explained</a> covers the four types, <a href="../sql-join-duplicate-rows/">why a join duplicates rows</a> covers what happens when the key is not unique, and <a href="../../drill/">SQL Drill</a> gives you one runnable query at a time.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit &rarr;</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../sql-joins/">SQL JOINs</a> &middot; <a href="../sql-join-duplicate-rows/">Why a Join Duplicates Rows</a> &middot; <a href="../sql-anti-join/">The Anti-Join</a> &middot; <a href="../sql-aliasing/">Aliasing</a> &middot; <a href="../sql-subqueries/">Subqueries</a> &middot; <a href="../../drill/">SQL Drill</a> &middot; <a href="../../sql/">SQL Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

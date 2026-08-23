@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connect Power BI to a SQL Database: Import vs DirectQuery &mdash; Analyst Prep Kit</title>
+<meta name="description" content="The connection dialog asks one question that decides everything afterwards. What Import and DirectQuery each mean for refresh, speed and DAX, the credentials that work on your laptop and not in the Service, and the gateway.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/connect-power-bi-to-a-database/">
+<meta property="og:title" content="Connecting Power BI to a Database: Import or DirectQuery, and What Breaks Later">
+<meta property="og:description" content="Import or DirectQuery is not a preference. It decides refresh, speed and which DAX you can write.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/connect-power-bi-to-a-database/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Connecting Power BI to a Database: Import or DirectQuery, and What Breaks Later",
+  "description": "The connection dialog asks one question that decides everything afterwards. What Import and DirectQuery each mean for refresh, speed and DAX, the credentials that work on your laptop and not in the Service, and the gateway.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/connect-power-bi-to-a-database/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/connect-power-bi-to-a-database/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Connect Power BI to a Database",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/connect-power-bi-to-a-database/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the difference between Import and DirectQuery in Power BI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Import copies the data into the model, so reports are fast and the data is as fresh as the last refresh. DirectQuery leaves the data in the source and sends a query for every visual interaction, so the data is current and the report is slower."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which should I choose, Import or DirectQuery?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Import unless something forces you not to. The forcing reasons are data that must be current to the minute, a dataset too large for the model, or a security requirement that data must not be copied."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my database connection work in Power BI Desktop but not in the Service?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because the Service cannot reach a database inside your network. It needs an on-premises data gateway, and the credentials have to be set separately in the dataset settings in the Service."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I write SQL in the connection or use Power Query?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Prefer a view in the database or plain table selection, so query folding works. A hand-written SQL statement in the connector blocks folding, meaning later Power Query steps are processed locally rather than by the database."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../powerbi/">Power BI Kit</a></p>
+  <h1>Connecting Power BI to a Database: Import or DirectQuery, and What Breaks Later</h1>
+  <p class="meta">Michael Nocito &middot; Updated August 2026 &middot; Every number on this page was worked before it was published</p>
+
+  <p>Get Data, SQL Server, type the server name, and then a dialog asks whether you want Import or DirectQuery. It looks like a technical detail. It decides how fast your report is, how fresh the data is, which DAX you are allowed to write, and what happens when you publish.</p>
+
+  <p>What you do: choose Import unless a specific requirement forbids it, connect to views rather than to hand-written SQL, and set up the gateway before you promise anybody a refresh.</p>
+
+  <p><strong>The short version.</strong> Import copies the data. DirectQuery borrows it, every click.</p>
+
+  <h2>The two modes</h2>
+  <table>
+    <tr><th></th><th>Import</th><th>DirectQuery</th></tr>
+    <tr><td>Where the data lives</td><td>In the model file</td><td>In the source</td></tr>
+    <tr><td>Speed</td><td>Fast, in-memory and compressed</td><td>As fast as the source, per interaction</td></tr>
+    <tr><td>Freshness</td><td>As of the last refresh</td><td>Current</td></tr>
+    <tr><td>Size limits</td><td>Bounded by the model size limit</td><td>Effectively none</td></tr>
+    <tr><td>DAX available</td><td>All of it</td><td>A restricted set</td></tr>
+    <tr><td>Load on the database</td><td>Once per refresh</td><td>Every visual, every filter</td></tr>
+    <tr><td>Works offline</td><td>Yes</td><td>No</td></tr>
+  </table>
+  <p>The DAX restriction is the one people meet last and mind most. Several time intelligence and table functions are unavailable or slow in DirectQuery, so a measure that works in a demo file fails in the real report.</p>
+
+  <h3>Choose DirectQuery when</h3>
+  <ol>
+    <li>The data genuinely must be current to the minute, and somebody can name the decision that requires it.</li>
+    <li>The table is far too large to import, and pre-aggregating is not possible.</li>
+    <li>A security rule says the data may not be copied out of the source system.</li>
+  </ol>
+  <p>Those are the three. "It feels more real time" is not one, and it costs the audience several seconds on every click.</p>
+  <p>Composite models let you mix the two: import the dimensions, DirectQuery the very large fact table. That is the right answer more often than either mode alone, and it is worth knowing before you commit a whole report to DirectQuery.</p>
+
+  <h2>Connecting well</h2>
+  <ol>
+    <li><strong>Connect to views, not to raw tables,</strong> where you can. A view is a contract: the database owner can change the underlying tables without breaking your report.</li>
+    <li><strong>Do not paste SQL into the connector</strong> unless you must. Native SQL blocks query folding, so every later Power Query step is done locally instead of by the database. See <a href="../powerbi-refresh-errors/">refresh errors</a> for what that costs.</li>
+    <li><strong>Select only the columns you need.</strong> Model size is driven by columns and their cardinality far more than by rows, and a high-cardinality text column such as a free-text note can dominate the file.</li>
+    <li><strong>Filter early,</strong> in the source or the first query step, so folding pushes it back to the database.</li>
+    <li><strong>Use a parameter for the server and database names,</strong> so moving from test to production is one edit rather than twelve.</li>
+  </ol>
+
+  <div class="note"><strong>Check that folding survives.</strong> Right click the last step in Power Query and look at View Native Query. If it is available, the database is doing the work. If it is greyed out, folding broke at or before that step, and everything after it is being processed on your machine, row by row.</div>
+
+  <h2>Credentials, and the gateway</h2>
+  <p>This is where most published reports fail. Desktop uses your Windows or database credentials on your machine; the Service has its own separate credential store and no route into your network.</p>
+  <ol>
+    <li>Publish the report.</li>
+    <li>In the Service, open the dataset settings and set Data source credentials.</li>
+    <li>For any source inside your network, install the on-premises data gateway on a machine that stays on.</li>
+    <li>Map the data source in the gateway configuration, matching the server and database names exactly as they appear in the file. A mismatch here is the usual cause of a gateway that is installed and still not used.</li>
+    <li>Set the refresh schedule, and turn on failure notifications.</li>
+  </ol>
+  <p>A gateway on a personal laptop works and will fail every time the laptop sleeps. If the report matters, the gateway belongs on a server.</p>
+
+  <h2>Security</h2>
+  <ul>
+    <li>Use a read-only account for reporting. A report has no reason to be able to write.</li>
+    <li>Prefer a service account over a personal one, or the report breaks when somebody leaves.</li>
+    <li>Remember that an imported model contains the data. Anyone with access to the report file has the rows, whatever the source system permits.</li>
+    <li>Row-level security is applied in the model, not in the source, unless you deliberately pass the user identity through. See <a href="../powerbi-row-level-security/">row-level security</a>.</li>
+  </ul>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Check the storage mode on your current report. It is shown in the status bar at the bottom right.</li>
+    <li>If it is DirectQuery, ask which of the three reasons applies. If none does, test an Import version and compare the click response.</li>
+    <li>Ask your database owner for views rather than table access, and explain that it lets them refactor safely.</li>
+    <li>Remove columns you do not use and watch the file size fall.</li>
+    <li>Set up the gateway and credentials before promising a refresh schedule, not after the first failure email.</li>
+  </ol>
+
+  <h2>The one habit to keep</h2>
+  <p>Ask where the query will run. That single question explains report speed, refresh failures, database load and half the DAX restrictions, and it is the question the connection dialog was really asking.</p>
+
+  <p>Do you know which mode your most-used report is in?</p>
+
+  <div class="note"><strong>Written from the tools as they ship.</strong> Storage mode in the status bar, View Native Query, composite models, the on-premises data gateway and Service credential settings are all current Power BI features.</div>
+
+  <div class="book">
+    <strong>Choosing the storage mode is the biggest decision in the connection dialog and the one nobody explains.</strong>
+    <p><em>Power BI for Analysts</em> is 187 pages that take filter context apart one modifier at a time, so a measure stops being a guess about what Power BI was filtering when it ran.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/power-bi-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=power-bi-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-connect-power-bi-to-a-database'})">Power BI for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Get the model right and the report is easy.</strong>
+    <p style="margin:6px 0 0"><a href="../powerbi-star-schema/">The star schema</a> covers the shape to build, and <a href="../powerbi-refresh-errors/">refresh errors</a> covers what goes wrong later. The <a href="../../powerbi/">Power BI Kit</a> has the drills.</p>
+    <a class="btn" href="../powerbi-star-schema/">Read The Star Schema &rarr;</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../powerbi-refresh-errors/">Refresh Errors</a> &middot; <a href="../powerbi-star-schema/">Star Schema</a> &middot; <a href="../import-a-csv-into-power-bi/">Import a CSV</a> &middot; <a href="../database-setup-for-analysts/">Database Setup</a> &middot; <a href="../connect-excel-to-a-database/">Connect Excel to a Database</a> &middot; <a href="../../powerbi/">Power BI Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

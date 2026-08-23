@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power BI Many-to-Many: Why It Happens and What to Do &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Power BI lets you create a many-to-many relationship, and then the totals stop adding up. Why the grain is the real problem, the bridge table that fixes it properly, and the three symptoms that identify it.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-many-to-many/">
+<meta property="og:title" content="Many-to-Many Relationships in Power BI, and Why the Totals Go Strange">
+<meta property="og:description" content="Duplicate keys on both sides. The bridge table that fixes it, and the totals that tell you it is broken.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-many-to-many/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Many-to-Many Relationships in Power BI, and Why the Totals Go Strange",
+  "description": "Power BI lets you create a many-to-many relationship, and then the totals stop adding up. Why the grain is the real problem, the bridge table that fixes it properly, and the three symptoms that identify it.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-many-to-many/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-many-to-many/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Many-to-Many Relationships",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/powerbi-many-to-many/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a many-to-many relationship in Power BI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A relationship where the key repeats on both tables, so neither side identifies a single row on the other. Power BI allows it, but filtering becomes ambiguous and totals can double count or fail to filter at all."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I fix a many-to-many relationship?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Add a bridge table holding the distinct keys, then relate both tables to it one-to-many. The bridge becomes the single source of the key, and both relationships are unambiguous."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why do my Power BI totals not add up to the sum of the rows?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because the total is computed over the whole filter context, not by adding the visible rows. With a many-to-many relationship, a row can be counted in two categories and once at the total, so the parts exceed the whole."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is a bidirectional filter the same as many-to-many?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No, but they cause similar trouble. Bidirectional filtering lets the filter travel both ways along a relationship, which can create ambiguous paths in a model with several tables. Use it sparingly and prefer CROSSFILTER inside a specific measure."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../powerbi/">Power BI Kit</a></p>
+  <h1>Many-to-Many Relationships in Power BI, and Why the Totals Go Strange</h1>
+  <p class="meta">Michael Nocito &middot; Updated August 2026 &middot; Every number on this page was worked before it was published</p>
+
+  <p>You drag two tables together, Power BI announces a many-to-many relationship, and you click through it. The visuals work. Then somebody notices that the region totals add to more than the company total.</p>
+
+  <p>What you do: add a bridge table. Many-to-many is almost always a sign that a table is missing from the model, not that you need a cleverer relationship setting.</p>
+
+  <p><strong>The short version.</strong> Every relationship should have one side where the key appears exactly once.</p>
+
+  <h2>What actually happens</h2>
+  <p>Suppose <code>Sales</code> has a <code>product_code</code> that repeats, and <code>ProductNotes</code> also has <code>product_code</code> repeated because there is one row per note. Neither side is unique, so when a filter is applied Power BI cannot tell which rows on the far side it means.</p>
+  <p>The consequences are three, and they are the diagnosis:</p>
+  <table>
+    <tr><th>Symptom</th><th>What it means</th></tr>
+    <tr><td>Category totals exceed the grand total</td><td>Rows are counted in more than one category</td></tr>
+    <tr><td>A slicer changes one visual and not another</td><td>The filter is not travelling the path you assumed</td></tr>
+    <tr><td>A blank row appears in a slicer or a table</td><td>Keys exist on one side with no match on the other</td></tr>
+  </table>
+  <p>That third one is worth knowing on sight. Power BI adds a blank member to a dimension when the fact table contains keys the dimension does not have, so a blank in a slicer is a referential integrity finding, exactly as in <a href="../data-quality-checks/">the data quality checks</a>.</p>
+
+  <h2>The bridge table</h2>
+  <p>The fix is a small table of the distinct keys, related one-to-many in both directions:</p>
+  <pre><code>Products = DISTINCT(UNION(
+    SELECTCOLUMNS(Sales,        "product_code", Sales[product_code]),
+    SELECTCOLUMNS(ProductNotes, "product_code", ProductNotes[product_code])
+))</code></pre>
+  <p>Then relate <code>Products[product_code]</code> to each of the other tables, one to many, filtering from <code>Products</code> outward. Now every relationship has a unique side, filters flow in one direction, and totals behave.</p>
+  <p>Better still, build the bridge upstream in the source or in Power Query rather than as a DAX table, so the model has one fewer moving part and the key list can be reviewed by a person.</p>
+
+  <div class="note"><strong>The real question is the grain.</strong> A many-to-many warning usually means you are joining two fact tables directly. Two facts at different grains do not belong to each other; they both belong to a shared dimension. That is the whole idea behind <a href="../powerbi-star-schema/">the star schema</a>.</div>
+
+  <h2>The legitimate many-to-many cases</h2>
+  <p>Some business relationships genuinely are many-to-many, and the bridge is still the answer:</p>
+  <table>
+    <tr><th>Situation</th><th>Bridge holds</th></tr>
+    <tr><td>Customers belong to several segments</td><td>One row per customer and segment</td></tr>
+    <tr><td>Products appear in several categories</td><td>One row per product and category</td></tr>
+    <tr><td>Invoices paid by several payments</td><td>One row per invoice and payment, with an allocation</td></tr>
+    <tr><td>Employees on several projects</td><td>One row per employee and project, with a share</td></tr>
+  </table>
+  <p>In every one of these, a fact can legitimately count in two categories, so the categories will add to more than the total. That is not a bug, and it must be stated on the visual. A subtitle reading "customers can appear in more than one segment, so the segments sum to more than the total" prevents the entire conversation.</p>
+  <p>Where an allocation exists, use it: a payment split across two invoices should carry a percentage on the bridge, and the measure multiplies by it. Then the parts do sum to the whole, honestly.</p>
+
+  <h2>Bidirectional filtering</h2>
+  <p>Setting a relationship to filter both ways looks like a shortcut around the whole problem. It creates two new risks: ambiguous filter paths once a third table joins the model, and performance costs on large tables.</p>
+  <p>Prefer a one-way model plus a targeted measure where you genuinely need the reverse direction:</p>
+  <pre><code>Customers with sales =
+CALCULATE(
+    DISTINCTCOUNT(Customers[customer_id]),
+    CROSSFILTER(Sales[customer_id], Customers[customer_id], BOTH)
+)</code></pre>
+  <p>That turns a model-wide setting into a decision made in one measure, where it can be read and changed by whoever maintains it.</p>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Open Model view and look at every relationship line. Any marked with an asterisk on both ends is a many-to-many.</li>
+    <li>For each, ask which table should own the key list. That table is your bridge, and it may already exist.</li>
+    <li>Check every slicer for a blank member. Each one is a key mismatch worth chasing upstream.</li>
+    <li>Test the totals: put the category breakdown and the grand total on one page and confirm they agree, or state why they do not.</li>
+    <li>Replace bidirectional relationships with <code>CROSSFILTER</code> inside the measures that need it.</li>
+  </ol>
+
+  <h2>The one habit to keep</h2>
+  <p>Before creating any relationship, ask which side has the key exactly once. If the answer is neither, the model is missing a table, and adding it now is much cheaper than explaining the totals later.</p>
+
+  <p>Does the grand total on your main page equal the sum of the rows above it?</p>
+
+  <div class="note"><strong>Written from the tools as they ship.</strong> The asterisk notation on relationship lines, the blank dimension member, and CROSSFILTER are all standard Power BI behaviour.</div>
+
+  <div class="book">
+    <strong>Many-to-many is not a relationship type. It is a missing table.</strong>
+    <p><em>Power BI for Analysts</em> is 187 pages that take filter context apart one modifier at a time, so a measure stops being a guess about what Power BI was filtering when it ran.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/power-bi-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=power-bi-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-powerbi-many-to-many'})">Power BI for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>The model shape decides everything downstream.</strong>
+    <p style="margin:6px 0 0"><a href="../powerbi-star-schema/">The star schema</a> is the shape to aim for, and <a href="../powerbi-measures-vs-columns/">measures against calculated columns</a> covers what to build once the model is right.</p>
+    <a class="btn" href="../powerbi-star-schema/">Read The Star Schema &rarr;</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../powerbi-star-schema/">Star Schema</a> &middot; <a href="../powerbi-measures-vs-columns/">Measures vs Columns</a> &middot; <a href="../powerbi-calculate/">CALCULATE</a> &middot; <a href="../sql-joins/">SQL JOINs</a> &middot; <a href="../powerbi-filter-vs-slicer/">Filters vs Slicers</a> &middot; <a href="../../powerbi/">Power BI Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

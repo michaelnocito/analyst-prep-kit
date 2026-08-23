@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tableau Calculated Fields: Row Level, Aggregate, LOD and Table Calc &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Four kinds of calculation that look alike in the editor and behave completely differently. Which one runs per row, which per mark, which ignores your filters, and the error message that tells you which you have written by accident.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-calculated-fields/">
+<meta property="og:title" content="Calculated Fields in Tableau: The Four Kinds and How to Tell Them Apart">
+<meta property="og:description" content="Row level, aggregate, level of detail, table calculation. Four kinds, one editor, very different results.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-calculated-fields/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Calculated Fields in Tableau: The Four Kinds and How to Tell Them Apart",
+  "description": "Four kinds of calculation that look alike in the editor and behave completely differently. Which one runs per row, which per mark, which ignores your filters, and the error message that tells you which you have written by accident.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-calculated-fields/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-calculated-fields/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Tableau Calculated Fields",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/tableau-calculated-fields/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What are the types of calculated field in Tableau?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Four: row level, which runs once per row of data; aggregate, which runs once per mark after grouping; level of detail expressions, which compute at a grain you specify; and table calculations, which run on the result table after everything else."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does Tableau say cannot mix aggregate and non-aggregate arguments?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because one part of the formula returns one value per mark and another returns one per row, and there is no single grain for the result. Wrap the row-level part in an aggregation, usually SUM, MIN or ATTR, or move the whole thing to row level."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is a FIXED level of detail expression?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A calculation computed at a grain you name, independent of what is on the view. {FIXED [Customer]: SUM([Sales])} gives total sales per customer even when the view shows regions. It ignores dimension filters unless they are added to context."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I calculate a ratio as SUM(a)/SUM(b) or AVG(a/b)?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "SUM(a)/SUM(b) in nearly all cases. Averaging row-level ratios weights every row equally regardless of size, which gives a different and usually wrong answer."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../tableau/">Tableau Kit</a></p>
+  <h1>Calculated Fields in Tableau: The Four Kinds and How to Tell Them Apart</h1>
+  <p class="meta">Michael Nocito &middot; Updated August 2026 &middot; Every number on this page was worked before it was published</p>
+
+  <p>The calculation editor looks the same for all of them, which is the problem. Four kinds of calculation, one dialog, and the only way to tell which one you have written is to know what the parts do.</p>
+
+  <p>What you do: decide the grain before you type. Per row, per mark, per named grain, or across the finished table.</p>
+
+  <p><strong>The short version.</strong> The question is always at what grain does this run.</p>
+
+  <h2>1. Row level</h2>
+  <p>Runs once per row of the underlying data, before any grouping.</p>
+  <pre><code>[Profit] / [Sales]
+IF [Status] = "Cancelled" THEN 0 ELSE [Amount] END
+DATEDIFF('day', [Ordered], [Shipped])</code></pre>
+  <p>Use these for classifying and cleaning: a flag column, a band, a difference between two dates on the same row. They behave like a new column in the source, and Tableau will aggregate them for you when they land on a shelf.</p>
+  <p>The trap: <code>AVG([Profit]/[Sales])</code> averages the per-row ratios. On rows of very different sizes that is not the profit margin, it is the average of margins, and it can be several points away from the real answer.</p>
+
+  <h2>2. Aggregate</h2>
+  <p>Runs once per mark, after Tableau has grouped by whatever is on the view.</p>
+  <pre><code>SUM([Profit]) / SUM([Sales])
+COUNTD([Customer])
+MIN([Order Date])</code></pre>
+  <p>This is where a ratio belongs. <code>SUM([Profit])/SUM([Sales])</code> is the true margin at every level of aggregation, and it re-computes correctly when you change what is on the view.</p>
+
+  <div class="note"><strong>The error message is a diagnosis.</strong> "Cannot mix aggregate and non-aggregate arguments" means half your formula runs per row and half per mark. Wrap the row-level half in <code>SUM</code>, <code>MIN</code> or <code>ATTR</code>. <code>ATTR</code> is the honest one for text: it returns the value if it is the same for every row in the mark, and an asterisk if it is not, which is information rather than a guess.</div>
+
+  <h2>3. Level of detail expressions</h2>
+  <p>Computed at a grain you specify, in braces, independent of the view.</p>
+  <table>
+    <tr><th>Keyword</th><th>Means</th><th>Typical use</th></tr>
+    <tr><td><code>FIXED</code></td><td>This grain, ignoring the view</td><td>Customer total shown on a region chart</td></tr>
+    <tr><td><code>INCLUDE</code></td><td>The view grain plus these dimensions</td><td>Average of per-customer totals</td></tr>
+    <tr><td><code>EXCLUDE</code></td><td>The view grain minus these dimensions</td><td>Percent of a total that ignores one dimension</td></tr>
+  </table>
+  <pre><code>{FIXED [Customer]: SUM([Sales])}
+{INCLUDE [Customer]: SUM([Sales])}
+{EXCLUDE [Region]: SUM([Sales])}</code></pre>
+  <p>The classic use is a cohort or a first-order date: <code>{FIXED [Customer]: MIN([Order Date])}</code> gives every row the customer's first order date, which is the foundation of any retention view.</p>
+  <p><code>FIXED</code> runs before dimension filters, which is the single most common surprise in Tableau. If a filtered view shows an unfiltered denominator, put the filter in context. That sequence is set out in <a href="../tableau-filter-order-of-operations/">the order of operations</a>.</p>
+
+  <h2>4. Table calculations</h2>
+  <p>Run last, on the table of results the view has already produced.</p>
+  <pre><code>RUNNING_SUM(SUM([Sales]))
+INDEX()
+SUM([Sales]) / TOTAL(SUM([Sales]))
+LOOKUP(SUM([Sales]), -1)</code></pre>
+  <p>Because they operate on the result table, they depend on how the table is laid out, which is what Compute Using controls. Change the view and a table calculation can change meaning without you editing it. That property is covered in <a href="../tableau-table-calculations/">table calculations</a>.</p>
+
+  <h2>Choosing between them</h2>
+  <table>
+    <tr><th>You want</th><th>Kind</th><th>Example</th></tr>
+    <tr><td>A flag or band per row</td><td>Row level</td><td><code>IF [Days] &gt; 30 THEN "Late" ELSE "On time" END</code></td></tr>
+    <tr><td>A ratio at any level</td><td>Aggregate</td><td><code>SUM([Profit])/SUM([Sales])</code></td></tr>
+    <tr><td>Each customer's first order date</td><td>FIXED</td><td><code>{FIXED [Customer]: MIN([Order Date])}</code></td></tr>
+    <tr><td>Rank within the view</td><td>Table calc</td><td><code>RANK(SUM([Sales]))</code></td></tr>
+    <tr><td>Difference from last month</td><td>Table calc</td><td><code>ZN(SUM([Sales]) - LOOKUP(SUM([Sales]), -1))</code></td></tr>
+    <tr><td>Average order size per customer</td><td>INCLUDE</td><td><code>AVG({INCLUDE [Customer]: SUM([Sales])})</code></td></tr>
+  </table>
+
+  <h2>Habits that make calculations maintainable</h2>
+  <ol>
+    <li><strong>Name them for what they mean,</strong> not for what they do. <code>Margin</code>, not <code>Calc1</code> and not <code>SUM Profit over SUM Sales</code>.</li>
+    <li><strong>Put a comment at the top</strong> with <code>//</code>. Two lines saying what grain it runs at and why saves the next person an hour.</li>
+    <li><strong>Build in steps.</strong> Three small named calculations beat one long nested one, and each can be dropped on a sheet and checked.</li>
+    <li><strong>Check every calculation against a number you know,</strong> at two different levels of aggregation. Many calculation bugs are correct at one level and wrong at another.</li>
+    <li><strong>Use <code>ZN</code> around anything that can be null</strong> in an arithmetic chain, or one missing month quietly empties a running total.</li>
+  </ol>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Open a workbook you inherited and classify every calculated field into one of the four kinds.</li>
+    <li>Find any <code>AVG</code> of a row-level ratio and compare it to the <code>SUM</code> over <code>SUM</code> version. Note the gap.</li>
+    <li>Check every <code>FIXED</code> against the filters that ought to affect it.</li>
+    <li>Add a two-line comment to your five most-used calculations.</li>
+    <li>Validate one calculation at the row level and again at the total. Agreement at both is the test.</li>
+  </ol>
+
+  <h2>The one habit to keep</h2>
+  <p>Say the grain out loud before typing: per row, per mark, per customer, or across the table. Every Tableau calculation question is that question wearing different clothes.</p>
+
+  <p>Which kind is the calculation you rely on most, and does it respect your filters?</p>
+
+  <div class="note"><strong>Written from the tool as it ships.</strong> The four calculation kinds, the mixed-argument error and the LOD keywords are all standard Tableau Desktop behaviour.</div>
+
+  <div class="book">
+    <strong>Cannot mix aggregate and non-aggregate arguments is Tableau telling you which kind you wrote.</strong>
+    <p><em>Tableau for Analysts</em> is 110 pages on how Tableau actually thinks: dimensions against measures, relationships against joins, sets, and level of detail. Enough that you stop dragging fields until it looks right.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/tableau-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=tableau-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-tableau-calculated-fields'})">Tableau for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Calculations are where Tableau stops being drag and drop.</strong>
+    <p style="margin:6px 0 0"><a href="../tableau-table-calculations/">Table calculations</a> covers the fourth kind in depth, and <a href="../tableau-filter-order-of-operations/">the order of operations</a> explains when each one runs.</p>
+    <a class="btn" href="../tableau-table-calculations/">Read Table Calculations &rarr;</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../tableau-table-calculations/">Table Calculations</a> &middot; <a href="../tableau-filter-order-of-operations/">Filter Order</a> &middot; <a href="../tableau-concepts/">Tableau Concepts</a> &middot; <a href="../tableau-relationships/">Relationships</a> &middot; <a href="../build-a-tableau-dashboard/">Build a Tableau Dashboard</a> &middot; <a href="../../tableau/">Tableau Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

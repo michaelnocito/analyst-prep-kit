@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL COUNT CASE WHEN: Conditional Counts in One Query &mdash; Analyst Prep Kit</title>
+<meta name="description" content="One pass over the table, several counts side by side. Why COUNT ignores NULL and SUM does not, the ELSE 0 that turns a count of 5 into a count of 8, and the FILTER clause that says it more clearly.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-case-when/">
+<meta property="og:title" content="COUNT with CASE WHEN: Counting Some of the Rows Without Filtering the Rest Away">
+<meta property="og:description" content="COUNT(CASE WHEN ... THEN 1 END) returns 5. Add ELSE 0 and it returns 8, with no error.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-case-when/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "COUNT with CASE WHEN: Counting Some of the Rows Without Filtering the Rest Away",
+  "description": "One pass over the table, several counts side by side. Why COUNT ignores NULL and SUM does not, the ELSE 0 that turns a count of 5 into a count of 8, and the FILTER clause that says it more clearly.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-case-when/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-case-when/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "COUNT with CASE WHEN",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-count-case-when/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I count rows matching a condition in SQL?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "COUNT(CASE WHEN condition THEN 1 END). Rows that fail the condition produce NULL, and COUNT ignores NULL, so only the matching rows are counted. Leave the ELSE out."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does COUNT(CASE WHEN ... ELSE 0 END) count everything?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because 0 is a value, not a NULL, and COUNT counts values. With ELSE 0 every row produces something countable, so the result is the total row count. Use SUM if you want to keep the ELSE 0, or drop the ELSE and keep COUNT."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I use SUM or COUNT with CASE?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Either works if written correctly. SUM(CASE WHEN c THEN 1 ELSE 0 END) and COUNT(CASE WHEN c THEN 1 END) both return the number of matching rows. Pick one and use it everywhere, so a stray ELSE is visible as a mistake."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the FILTER clause in SQL?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A clearer way to write a conditional aggregate: COUNT(*) FILTER (WHERE status = shipped), with the value quoted as normal. It is standard SQL and is supported by PostgreSQL and SQLite. SQL Server and MySQL still need the CASE form."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../sql/">SQL Kit</a></p>
+  <h1>COUNT with CASE WHEN: Counting Some of the Rows Without Filtering the Rest Away</h1>
+  <p class="meta">Michael Nocito &middot; Updated August 2026 &middot; Every query on this page was run before it was published</p>
+
+  <p>You need shipped orders, cancelled orders and total orders in one result. Running three queries and pasting the answers together works and does not survive a change of date range. The one-query version puts a condition inside the aggregate.</p>
+
+  <p>What you do: <code>COUNT(CASE WHEN condition THEN 1 END)</code>, with no <code>ELSE</code>. On the eight orders below, that returns 5 shipped. Add <code>ELSE 0</code> and the same query returns 8.</p>
+
+  <p><strong>The short version.</strong> COUNT counts values and ignores NULL. That single fact is the whole technique.</p>
+
+  <h2>The table</h2>
+  <pre><code>CREATE TABLE orders(order_id INT, customer_id INT, amount INT, status TEXT);
+INSERT INTO orders VALUES
+(101,1,120,'shipped'),(102,1,80,'shipped'),(103,2,200,'cancelled'),
+(104,2,50,'shipped'),(105,3,300,'shipped'),(106,4,90,'pending'),
+(107,4,60,'shipped'),(108,5,150,'cancelled');</code></pre>
+  <p>Eight orders: five shipped, two cancelled, one pending. Total amount 1,050.</p>
+
+  <h2>The query</h2>
+  <pre><code>SELECT
+  COUNT(*)                                          AS all_orders,
+  COUNT(CASE WHEN status = 'shipped'   THEN 1 END)  AS shipped,
+  COUNT(CASE WHEN status = 'cancelled' THEN 1 END)  AS cancelled,
+  SUM(CASE WHEN status = 'shipped' THEN amount ELSE 0 END) AS shipped_value
+FROM orders;</code></pre>
+  <table>
+    <tr><th>all_orders</th><th>shipped</th><th>cancelled</th><th>shipped_value</th></tr>
+    <tr><td>8</td><td>5</td><td>2</td><td>610</td></tr>
+  </table>
+  <p>One pass over the table, four answers, and every one of them respects whatever <code>WHERE</code> clause you add later. That is the practical advantage over three separate queries: the filters can never drift apart.</p>
+
+  <h2>The ELSE that breaks it</h2>
+  <pre><code>COUNT(CASE WHEN status = 'shipped' THEN 1 END)          -- 5, correct
+COUNT(CASE WHEN status = 'shipped' THEN 1 ELSE 0 END)   -- 8, wrong</code></pre>
+  <p>A <code>CASE</code> with no matching <code>WHEN</code> and no <code>ELSE</code> returns NULL, and <code>COUNT</code> skips NULLs. Write <code>ELSE 0</code> and every row now produces a zero, which is a value, so <code>COUNT</code> counts all eight.</p>
+  <p>No error, no warning, and the number is still plausible. This is the most common mistake in conditional aggregation and it survives review easily, because <code>ELSE 0</code> looks like defensive good practice.</p>
+
+  <table>
+    <tr><th>Written</th><th>Returns</th><th>Why</th></tr>
+    <tr><td><code>COUNT(CASE WHEN c THEN 1 END)</code></td><td>5</td><td>Non-matching rows are NULL, skipped</td></tr>
+    <tr><td><code>COUNT(CASE WHEN c THEN 1 ELSE 0 END)</code></td><td>8</td><td>0 is a value and gets counted</td></tr>
+    <tr><td><code>SUM(CASE WHEN c THEN 1 ELSE 0 END)</code></td><td>5</td><td>Adds one per match</td></tr>
+    <tr><td><code>SUM(CASE WHEN c THEN 1 END)</code></td><td>5</td><td>SUM ignores NULL too</td></tr>
+  </table>
+  <p>Three of those four are right. The recommendation is to pick one form and use it consistently, because then a stray <code>ELSE</code> looks wrong on sight instead of looking careful.</p>
+
+  <div class="note"><strong>The check that catches it.</strong> Your conditional counts should add up to the total, once every category is covered. Here 5 shipped plus 2 cancelled plus 1 pending equals 8. If a conditional count equals the total exactly, look for an <code>ELSE</code>.</div>
+
+  <h2>Rates, in the same query</h2>
+  <pre><code>SELECT
+  COUNT(*) AS orders,
+  COUNT(CASE WHEN status = 'shipped' THEN 1 END) AS shipped,
+  ROUND(100.0 * COUNT(CASE WHEN status = 'shipped' THEN 1 END) / COUNT(*), 1)
+    AS shipped_pct
+FROM orders;
+-- 8, 5, 62.5</code></pre>
+  <p>The <code>100.0</code> matters. In databases with integer division, <code>5 / 8</code> is 0, and the rate comes back as zero for every row. Multiply by a decimal first, or cast one side.</p>
+  <p>Guard the denominator too. <code>COUNT(*)</code> cannot be zero when a row exists, but a conditional denominator can be, and a division by zero either errors or returns NULL depending on the engine. <code>NULLIF(denominator, 0)</code> makes the behaviour the same everywhere.</p>
+
+  <h2>Combined with GROUP BY</h2>
+  <pre><code>SELECT customer_id,
+       COUNT(*) AS orders,
+       COUNT(CASE WHEN status = 'shipped'   THEN 1 END) AS shipped,
+       COUNT(CASE WHEN status = 'cancelled' THEN 1 END) AS cancelled
+FROM orders
+GROUP BY customer_id
+ORDER BY customer_id;</code></pre>
+  <p>This is the shape that makes conditional counts worth learning: one row per customer, several measures across the columns, and no self joins or repeated subqueries. It is the SQL equivalent of a pivot table, and it is how most report tables are actually produced.</p>
+
+  <h2>The FILTER clause, where you have it</h2>
+  <pre><code>SELECT
+  COUNT(*)                                   AS orders,
+  COUNT(*) FILTER (WHERE status = 'shipped') AS shipped,
+  SUM(amount) FILTER (WHERE status = 'shipped') AS shipped_value
+FROM orders;</code></pre>
+  <p>Standard SQL, supported by PostgreSQL and SQLite. It says exactly what it means and has no <code>ELSE</code> to get wrong. SQL Server and MySQL do not support it, so the <code>CASE</code> form remains the portable answer and is worth being fluent in regardless.</p>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Find a report built from several near-identical queries and collapse it into one with conditional aggregates.</li>
+    <li>Search your saved queries for <code>COUNT(CASE</code> and check every one for an <code>ELSE</code>.</li>
+    <li>Add the sanity check: the category counts must sum to the total.</li>
+    <li>Multiply by <code>100.0</code> in every rate, and wrap denominators in <code>NULLIF</code>.</li>
+    <li>Use <code>FILTER</code> where your database supports it, and note in a comment why the other queries do not.</li>
+  </ol>
+
+  <h2>The one habit to keep</h2>
+  <p>Ask what a non-matching row produces. NULL and skipped, or 0 and counted. Every conditional aggregate in SQL comes down to that question, and the answer changes with the function you wrapped it in.</p>
+
+  <p>Is there a conditional count in your reporting that happens to equal the total row count?</p>
+
+  <div class="note"><strong>Every number here was run before it was published.</strong> Eight orders: COUNT with no ELSE returns 5, with ELSE 0 returns 8, shipped value is 610, and the shipped rate is 62.5 percent.</div>
+
+  <div class="book">
+    <strong>One stray ELSE turns a conditional count into a row count, and nothing complains.</strong>
+    <p><em>SQL for Analysts</em> is 458 pages that read queries line by line in everyday words, so a result that came back wrong has somewhere to be traced instead of being retyped until it looks better.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/sql-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=sql-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-sql-count-case-when'})">SQL for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Type the queries, do not just read them.</strong>
+    <p style="margin:6px 0 0"><a href="../sql-count-function/">COUNT in SQL</a> covers the function itself, <a href="../sql-case-expression/">the CASE expression</a> covers the other half, and <a href="../../drill/">SQL Drill</a> hands you one runnable query at a time.</p>
+    <a class="btn" href="../../drill/">Open SQL Drill &rarr;</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../sql-count-function/">COUNT in SQL</a> &middot; <a href="../sql-case-expression/">The CASE Expression</a> &middot; <a href="../sql-group-by-case/">GROUP BY with CASE</a> &middot; <a href="../sql-null/">NULL in SQL</a> &middot; <a href="../sql-group-by-having/">GROUP BY and HAVING</a> &middot; <a href="../../drill/">SQL Drill</a> &middot; <a href="../../sql/">SQL Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

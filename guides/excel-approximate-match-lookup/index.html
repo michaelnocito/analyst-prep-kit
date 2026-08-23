@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Approximate Match Lookup in Excel: Bands and Brackets Done Right &mdash; Analyst Prep Kit</title>
+<meta name="description" content="One lookup table replaces seven nested IFs. The rule that makes it work, why the bounds must be sorted ascending, and the off-by-one that puts a score of exactly 70 in the wrong band.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-approximate-match-lookup/">
+<meta property="og:title" content="Approximate Match Lookups: Grades, Tax Bands and Anything With Cut-Offs">
+<meta property="og:description" content="Seven nested IFs become one lookup and a table. The sort rule that makes it safe.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-approximate-match-lookup/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Approximate Match Lookups: Grades, Tax Bands and Anything With Cut-Offs",
+  "description": "One lookup table replaces seven nested IFs. The rule that makes it work, why the bounds must be sorted ascending, and the off-by-one that puts a score of exactly 70 in the wrong band.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-approximate-match-lookup/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-approximate-match-lookup/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Approximate Match Lookups",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-approximate-match-lookup/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is an approximate match lookup?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A lookup that finds the largest value less than or equal to what you searched for, instead of an exact hit. It is how grade boundaries, tax brackets, discount tiers and any banded rule are implemented with one small table."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I do a banded lookup in Excel?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Build a table of lower bounds sorted ascending with the label beside each, then use =INDEX(labels, MATCH(value, bounds, 1)) or =VLOOKUP(value, table, 2, TRUE). MATCH type 1 and VLOOKUP TRUE both mean approximate."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my approximate match return the wrong band?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nearly always because the bounds are not sorted ascending. Approximate match assumes sorted data and stops at the first value that is too big, so an unsorted table returns whatever it happened to reach, with no error."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should the band table hold lower bounds or upper bounds?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Lower bounds, sorted ascending, starting at the smallest possible value. That way every value has a home and the boundary rule is unambiguous: a value equal to a bound gets that band."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../excel/">Excel Kit</a></p>
+  <h1>Approximate Match Lookups: Grades, Tax Bands and Anything With Cut-Offs</h1>
+  <p class="meta">Michael Nocito &middot; Updated August 2026 &middot; Every number on this page was worked before it was published</p>
+
+  <p>Scores turn into grades. Amounts turn into tax bands. Order sizes turn into discount tiers. Every one of these is a rule with cut-offs, and almost every one gets written first as a stack of nested <code>IF</code>s that nobody can review.</p>
+
+  <p>What you do: put the cut-offs in a two-column table, sorted ascending, and look the value up with an approximate match. The rule becomes something a colleague can read, and changing it means editing a cell.</p>
+
+  <p><strong>The short version.</strong> Lower bounds, ascending, no gaps. Then one lookup does the whole rule.</p>
+
+  <h2>The band table</h2>
+  <table>
+    <tr><th>Lower bound</th><th>Grade</th></tr>
+    <tr><td>0</td><td>F</td></tr>
+    <tr><td>50</td><td>D</td></tr>
+    <tr><td>60</td><td>C</td></tr>
+    <tr><td>70</td><td>B</td></tr>
+    <tr><td>80</td><td>A</td></tr>
+  </table>
+  <p>Five rows. Each says: from this number upward, until the next row, the answer is this. The first row starts at 0 so that every possible score has a band, which is the detail that stops the formula erroring on a low value.</p>
+  <pre><code>=INDEX($F$2:$F$6, MATCH(B2, $E$2:$E$6, 1))</code></pre>
+  <p>Or the older form, which needs the label to be to the right of the bound:</p>
+  <pre><code>=VLOOKUP(B2, $E$2:$F$6, 2, TRUE)</code></pre>
+  <p>The <code>1</code> in <code>MATCH</code> and the <code>TRUE</code> in <code>VLOOKUP</code> are the same instruction: find the largest value that is less than or equal to this, and give me its position.</p>
+
+  <h2>Worked, including the boundary</h2>
+  <table>
+    <tr><th>Score</th><th>Largest bound not above it</th><th>Grade</th></tr>
+    <tr><td>92</td><td>80</td><td>A</td></tr>
+    <tr><td>80</td><td>80</td><td>A</td></tr>
+    <tr><td>79.5</td><td>70</td><td>B</td></tr>
+    <tr><td>70</td><td>70</td><td>B</td></tr>
+    <tr><td>69.9</td><td>60</td><td>C</td></tr>
+    <tr><td>0</td><td>0</td><td>F</td></tr>
+  </table>
+  <p>A score of exactly 70 gets a B. That is a decision, not an accident: with lower bounds, a value equal to a bound belongs to that band. If your policy says 70 is a C, the bound must be 70.01, or better, 71 if scores are whole numbers. Write the policy in a cell next to the table so nobody has to reverse-engineer it from the numbers.</p>
+
+  <div class="note"><strong>Sorting is not cosmetic here.</strong> Approximate match walks the list assuming it climbs. Put 80 above 50 and the formula returns a plausible, wrong band and raises nothing. This is the single most damaging silent error in Excel modelling, because the output still looks like a grade.</div>
+
+  <h2>The four rules</h2>
+  <ol>
+    <li><strong>Sort the bounds ascending.</strong> Then protect that: put the table on its own sheet and lock it.</li>
+    <li><strong>Start at the lowest possible value,</strong> usually 0 or a large negative number if the measure can go below zero. Otherwise the smallest values return <code>#N/A</code>.</li>
+    <li><strong>No gaps.</strong> Each row's bound is where the previous band ends. Bands defined as "50 to 59" invite a value of 59.5 that belongs nowhere.</li>
+    <li><strong>Exact match is a different function.</strong> If the key is a category rather than a number, you want <code>MATCH(...,0)</code>, and the two must never be mixed up in one workbook.</li>
+  </ol>
+
+  <h2>Progressive brackets are not the same problem</h2>
+  <p>A tax band that says "40 percent on the part above 50,270" is not a lookup, it is a cumulative calculation. A single approximate match gives you the <em>rate</em> that applies at the top; it does not give you the tax. For that you need a cumulative column in the band table:</p>
+  <table>
+    <tr><th>Lower bound</th><th>Rate</th><th>Tax on everything below this bound</th></tr>
+    <tr><td>0</td><td>0%</td><td>0</td></tr>
+    <tr><td>12,570</td><td>20%</td><td>0</td></tr>
+    <tr><td>50,270</td><td>40%</td><td>7,540</td></tr>
+  </table>
+  <pre><code>=cum_tax + (income - lower_bound) * rate</code></pre>
+  <p>With the three lookups pulling <code>rate</code>, <code>lower_bound</code> and <code>cum_tax</code> from the same matched row. An income of 60,000 gives 7,540 + (60,000 - 50,270) x 40 percent = 7,540 + 3,892 = 11,432. Those figures are illustrative; take the current thresholds from the tax authority, and keep them in the table where they can be updated in one place each April.</p>
+
+  <h2>Why not nested IFs</h2>
+  <table>
+    <tr><th>Nested IF</th><th>Band table</th></tr>
+    <tr><td>Rule is invisible in a formula bar</td><td>Rule is five rows anyone can read</td></tr>
+    <tr><td>Changing a cut-off means editing every copy</td><td>Change one cell</td></tr>
+    <tr><td>Adding a band means rewriting the formula</td><td>Insert a row</td></tr>
+    <tr><td>Order of conditions can hide a branch</td><td>Sorted bounds make overlap impossible</td></tr>
+    <tr><td>No audit trail</td><td>The table can carry a change log</td></tr>
+  </table>
+  <p>The overlapping-branch failure is the same one that shows up in SQL, worked in <a href="../sql-case-overlapping-conditions/">CASE with overlapping conditions</a>. A sorted band table cannot have that bug, which is a real argument for the table beyond tidiness.</p>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Find your longest nested <code>IF</code> and count the cut-offs in it. That count is the number of rows in its replacement table.</li>
+    <li>Build the table on its own sheet, sorted ascending, starting at the lowest possible value.</li>
+    <li>Write the boundary policy in words next to it: does a value equal to the cut-off go up or down?</li>
+    <li>Rebuild the column with <code>INDEX MATCH</code> and reconcile every row against the old formula before deleting it.</li>
+    <li>Add a change log row with the date and who approved the cut-offs. Banded rules are exactly the thing people query six months later.</li>
+  </ol>
+
+  <h2>The one habit to keep</h2>
+  <p>Put the rule where it can be reviewed. A cut-off inside a formula is a decision only its author can see, and the person who needs to check it is usually the one without access to the formula bar.</p>
+
+  <p>Where do your grade or tier boundaries live right now, and who could read them without asking you?</p>
+
+  <div class="note"><strong>Every number here was worked before it was published.</strong> 7,540 + (60,000 - 50,270) x 0.40 = 11,432. The bracket figures are illustrative; check the current ones before using them.</div>
+
+  <div class="book">
+    <strong>A rule that lives in a table can be reviewed. A rule buried in a nested IF cannot.</strong>
+    <p><em>Excel for Analysts</em> is 378 pages that read every formula and dialog one at a time, so the workbook stops being a place where numbers appear and becomes one you can check.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/excel-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=excel-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-excel-approximate-match-lookup'})">Excel for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>The rule belongs in a column, not in a formula.</strong>
+    <p style="margin:6px 0 0"><a href="../build-a-risk-index/">Building a risk index</a> takes this pattern all the way to a scored, banded, self-colouring model. <a href="../excel-ifs-vs-nested-if/">IFS against nested IF</a> covers when a formula is still the right answer.</p>
+    <a class="btn" href="../build-a-risk-index/">Read Build a Risk Index &rarr;</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../excel-index-match/">INDEX MATCH</a> &middot; <a href="../excel-ifs-vs-nested-if/">IFS vs Nested IF</a> &middot; <a href="../build-a-risk-index/">Build a Risk Index</a> &middot; <a href="../vlookup-vs-xlookup/">VLOOKUP vs XLOOKUP</a> &middot; <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> &middot; <a href="../../excel/">Excel Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two-Way Lookup in Excel: INDEX MATCH MATCH and XLOOKUP Nested &mdash; Analyst Prep Kit</title>
+<meta name="description" content="A grid with regions down the side and months across the top, and you need the cell where they meet. Three ways to write it, why INDEX with two MATCHes survives inserted rows, and the trap in using it on a report nobody controls.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-two-way-lookup/">
+<meta property="og:title" content="Two-Way Lookup: Finding a Value by Row and Column at Once">
+<meta property="og:description" content="Region down the side, month across the top. Three ways to get the cell where they meet.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-two-way-lookup/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Two-Way Lookup: Finding a Value by Row and Column at Once",
+  "description": "A grid with regions down the side and months across the top, and you need the cell where they meet. Three ways to write it, why INDEX with two MATCHes survives inserted rows, and the trap in using it on a report nobody controls.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-two-way-lookup/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-two-way-lookup/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Two-Way Lookup",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-two-way-lookup/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I look up a value by row and column in Excel?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use INDEX with two MATCH functions: =INDEX(grid, MATCH(row_key, row_headers, 0), MATCH(col_key, col_headers, 0)). The first MATCH finds the row number, the second finds the column number, and INDEX returns the intersection."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can XLOOKUP do a two-way lookup?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, by nesting one inside the other: =XLOOKUP(row_key, row_headers, XLOOKUP(col_key, col_headers, grid)). The inner one returns a whole column, and the outer one picks the row from it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the SUMIFS alternative to a two-way lookup?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "If the data is long rather than a grid, =SUMIFS(Amount, Region, $A2, Month, B$1) does the same job and tolerates duplicates by summing them, which a lookup cannot."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my two-way lookup break when rows are inserted?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because a hard-coded row or column number moved. MATCH computes the position each time, so it survives insertions. Hard numbers, such as the col_index_num of a VLOOKUP, do not."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../excel/">Excel Kit</a></p>
+  <h1>Two-Way Lookup: Finding a Value by Row and Column at Once</h1>
+  <p class="meta">Michael Nocito &middot; Updated August 2026 &middot; Every number on this page was worked before it was published</p>
+
+  <p>Regions down the left, months across the top, numbers in the middle. Somebody wants the value for South in March, and they want it to keep working when a region is added.</p>
+
+  <p>What you do: <code>INDEX</code> with two <code>MATCH</code>es. It is the version that survives edits to the grid, and it is the one worth committing to muscle memory.</p>
+
+  <p><strong>The short version.</strong> One MATCH for the row, one for the column, INDEX returns where they cross.</p>
+
+  <h2>The grid</h2>
+  <table>
+    <tr><th></th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th></tr>
+    <tr><td>North</td><td>10,200</td><td>10,900</td><td>11,400</td><td>10,700</td></tr>
+    <tr><td>South</td><td>7,300</td><td>7,050</td><td>7,600</td><td>7,900</td></tr>
+    <tr><td>East</td><td>11,800</td><td>11,200</td><td>12,000</td><td>11,650</td></tr>
+    <tr><td>West</td><td>5,900</td><td>6,400</td><td>6,100</td><td>6,800</td></tr>
+  </table>
+  <p>Say the labels are in A2:A5, the months in B1:E1 and the numbers in B2:E5. South and Mar should return 7,600.</p>
+
+  <h2>The three ways to write it</h2>
+  <h3>INDEX with two MATCHes, the one to learn</h3>
+  <pre><code>=INDEX($B$2:$E$5,
+        MATCH($G$1, $A$2:$A$5, 0),
+        MATCH($G$2, $B$1:$E$1, 0))</code></pre>
+  <p>G1 holds the region, G2 the month. The first <code>MATCH</code> returns 2 for South, the second returns 3 for Mar, and <code>INDEX</code> returns the value at row 2, column 3 of the grid, which is 7,600. Both zeros mean exact match, and both are essential.</p>
+  <p>Insert a region or reorder the months and the formula still works, because nothing about the position is written into it.</p>
+
+  <h3>Nested XLOOKUP, if you have it</h3>
+  <pre><code>=XLOOKUP($G$1, $A$2:$A$5,
+         XLOOKUP($G$2, $B$1:$E$1, $B$2:$E$5))</code></pre>
+  <p>The inner lookup returns the whole March column as an array, and the outer one picks South's row out of it. Shorter to read, and it only runs on Microsoft 365 and Excel 2021 and later. See <a href="../xlookup-not-available/">XLOOKUP is not available</a> before you put it in a shared file.</p>
+
+  <h3>SUMIFS, when the data is long</h3>
+  <pre><code>=SUMIFS(Data[Amount], Data[Region], $G$1, Data[Month], $G$2)</code></pre>
+  <p>This is the version to want. It needs the data in a long shape, one row per region and month, and in exchange it handles duplicates by summing them, returns 0 rather than an error for a missing combination, and lets you add a third or fourth condition without changing the shape of the formula.</p>
+
+  <div class="note"><strong>The honest recommendation.</strong> If you own the data, unpivot the grid with <a href="../excel-power-query/">Power Query</a> and use <code>SUMIFS</code>. Two-way lookups exist mostly because somebody was handed a grid they were not allowed to change. That is a real situation, which is why the rest of this page exists.</div>
+
+  <h2>The traps</h2>
+  <table>
+    <tr><th>Trap</th><th>Symptom</th><th>Fix</th></tr>
+    <tr><td>Grid range does not align with the header ranges</td><td>Off-by-one values, no error</td><td>Grid rows must match the label range exactly</td></tr>
+    <tr><td>Missing the 0 in MATCH</td><td>Wrong value, silently</td><td>Type the 0 every time</td></tr>
+    <tr><td>Ranges not locked</td><td>Errors appearing lower down</td><td>F4 on every range, or use table names</td></tr>
+    <tr><td>Merged header cells</td><td>MATCH finds nothing</td><td>Unmerge. Merged cells break most functions.</td></tr>
+    <tr><td>Duplicate row labels</td><td>Silently returns the first</td><td>Use SUMIFS, which adds them up</td></tr>
+    <tr><td>Header stored as text, key as a date</td><td>#N/A on every column</td><td>Make both the same type</td></tr>
+  </table>
+  <p>The last one bites on month headers constantly. A header typed as <code>Mar</code> is text, and a cell holding a real date formatted as <code>Mar</code> is a number. They look identical and never match. Test with <code>=ISTEXT(B1)</code>.</p>
+
+  <h2>Making it a real interface</h2>
+  <ol>
+    <li>Put the two keys in labelled cells at the top, not inside the formula.</li>
+    <li>Give both cells a data validation list drawn from the headers, so a typo becomes impossible. See <a href="../excel-data-validation/">data validation</a>.</li>
+    <li>Add a not-found message: <code>=IFERROR(the formula, "no such combination")</code>, once you know why it would fail.</li>
+    <li>Colour the two input cells differently from everything else. Inputs and outputs looking the same is how a reported number gets typed over.</li>
+  </ol>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Find the grids in your workbooks and ask which ones you are allowed to reshape. Reshape those.</li>
+    <li>For the rest, replace any hard-coded column numbers with <code>MATCH</code>, and note how many formulas that immunises against an inserted column.</li>
+    <li>Check every header row for merged cells and for text-against-date mismatches.</li>
+    <li>Move lookup keys into labelled input cells with validation lists.</li>
+    <li>Where duplicates are possible, use <code>SUMIFS</code> rather than a lookup, so two matching rows produce a sum instead of a silent first-match.</li>
+  </ol>
+
+  <h2>The one habit to keep</h2>
+  <p>Ask whether the grid is a shape for reading or a shape for storing. Grids are excellent to look at and poor to compute from, and most two-way lookup problems are really a storage shape that should have been long.</p>
+
+  <p>How many of your formulas contain a column number typed by hand?</p>
+
+  <div class="note"><strong>Every number here was worked before it was published.</strong> South and Mar is row 2, column 3 of the grid, which is 7,600.</div>
+
+  <div class="book">
+    <strong>A grid is a shape for reading, not a shape for calculating from.</strong>
+    <p><em>Excel for Analysts</em> is 378 pages that read every formula and dialog one at a time, so the workbook stops being a place where numbers appear and becomes one you can check.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/excel-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=excel-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-excel-two-way-lookup'})">Excel for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>The better answer is usually to unpivot the grid.</strong>
+    <p style="margin:6px 0 0"><a href="../excel-power-query/">Power Query</a> turns a grid into a long table in two clicks, after which a normal <code>SUMIFS</code> does the job. <a href="../excel-index-match/">INDEX MATCH</a> covers the one-way version.</p>
+    <a class="btn" href="../excel-power-query/">Read Power Query &rarr;</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../excel-index-match/">INDEX MATCH</a> &middot; <a href="../vlookup-vs-xlookup/">VLOOKUP vs XLOOKUP</a> &middot; <a href="../excel-power-query/">Power Query</a> &middot; <a href="../excel-sumifs/">SUMIFS</a> &middot; <a href="../lookup-returns-na/">When a Lookup Returns #N/A</a> &middot; <a href="../../excel/">Excel Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

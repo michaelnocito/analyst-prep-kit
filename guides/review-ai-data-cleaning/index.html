@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Review an AI Data Cleaning Script &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Cleaning code deletes rows, fills blanks and rewrites categories, and every one of those is a decision about the truth. The six operations to look for, what each one hides, and the before-and-after counts that make the damage visible.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/review-ai-data-cleaning/">
+<meta property="og:title" content="Reviewing a Cleaning Script Before It Touches Your Data">
+<meta property="og:description" content="dropna, fillna, replace, astype, drop_duplicates, clip. What each one quietly decides for you.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/review-ai-data-cleaning/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Reviewing a Cleaning Script Before It Touches Your Data",
+  "description": "Cleaning code deletes rows, fills blanks and rewrites categories, and every one of those is a decision about the truth. The six operations to look for, what each one hides, and the before-and-after counts that make the damage visible.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/review-ai-data-cleaning/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/review-ai-data-cleaning/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Review a Cleaning Script",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/review-ai-data-cleaning/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What should I check in a data cleaning script?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Every operation that removes or changes rows: dropna, drop_duplicates, filters, fillna, replace, type casts and clipping. For each one, record how many rows or values it changed, and whether the change is a fact or an assumption."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is dropna safe?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It is safe only when you know what the missing values mean. Dropping rows with a missing region removes a group with something in common, so the remaining data is no longer a random sample of the original. Count what it removes before deciding."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should missing numbers be filled with zero?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Only if missing genuinely means none. If missing means not recorded, a zero is a fabricated observation that will be averaged, summed and charted as if it were measured. Leave it missing and say so."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I prove a cleaning script did not damage the data?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Print the row count, the null count per column and the distinct count of each key column, both before and after. A short table of those three numbers is the evidence, and it takes four lines of code."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../guides/">All Guides</a></p>
+  <h1>Reviewing a Cleaning Script Before It Touches Your Data</h1>
+  <p class="meta">Michael Nocito &middot; Updated August 2026 &middot; Every number on this page was worked before it was published</p>
+
+  <p>A cleaning script is a list of decisions about what your data means, written as code. Drop these rows. Treat this blank as a zero. Assume these two spellings are the same company. Every one of those is defensible in some situation and wrong in others, and none of them raises an error.</p>
+
+  <p>What you do: for each operation, record what it changed and decide whether it is a fact or an assumption. Assumptions go in the write-up.</p>
+
+  <p><strong>The short version.</strong> Print the counts before and after. The counts are the review.</p>
+
+  <h2>The measurement harness</h2>
+  <p>Before reviewing any step, add this around the script. Four lines, and they turn a silent transformation into an auditable one:</p>
+  <pre><code>def snapshot(df, label):
+    print(label, 'rows', len(df))
+    print(df.isna().sum())
+    print('distinct ids', df['customer_id'].nunique())
+
+snapshot(raw, 'before')
+clean = clean_it(raw)
+snapshot(clean, 'after')</code></pre>
+  <p>If the row count moved, something was dropped. If a null count went to zero, something was filled. If the distinct id count moved, identities were merged or split. Those three numbers describe most of what a cleaning script does.</p>
+
+  <h2>The six operations, and what each one decides</h2>
+  <h3>1. dropna</h3>
+  <pre><code>df = df.dropna()          # every column, any null, row gone</code></pre>
+  <p>The version with no arguments is the one to challenge. It drops a row if <em>any</em> column is null, including columns your analysis never uses. On a wide table that can remove most of the data. Check the count, then narrow it: <code>dropna(subset=['amount'])</code> at least states which column mattered.</p>
+  <p>The deeper question is what missing means. Missing at random is a nuisance. Missing because a field is only filled for one type of customer is a group being deleted, and the analysis afterwards is about a different population than the one you were asked about.</p>
+
+  <h3>2. fillna</h3>
+  <pre><code>df['amount'] = df['amount'].fillna(0)</code></pre>
+  <p>This creates data. A zero will be summed, averaged and plotted exactly like a measured zero, and nothing downstream can tell them apart. Fill with 0 only when missing means none. If missing means not recorded, leave it and let the aggregation skip it, or fill with a sentinel and record the count.</p>
+  <p>Median and mean fills carry the same warning with a friendlier face: they shrink variance and pull every group toward the middle, so any spread measure computed afterwards is understated.</p>
+
+  <h3>3. replace and category mapping</h3>
+  <pre><code>df['region'] = df['region'].replace({'Nrth': 'North', 'N': 'North'})</code></pre>
+  <p>Each mapping is a claim that two labels mean the same thing. Usually true, occasionally not: <code>N</code> might be North, or it might be New, or it might be a system default. Ask where the mapping came from. If the answer is that it was inferred from similarity, it needs checking against a real reference list. That is the subject of <a href="../entity-resolution/">entity resolution</a>.</p>
+  <p>Print the value counts before and after. A category that goes from 900 rows to 4,000 is either a good merge or a bad one, and the number is what starts the conversation.</p>
+
+  <h3>4. Type casts</h3>
+  <pre><code>df['id'] = df['id'].astype(int)
+df['date'] = pd.to_datetime(df['date'])</code></pre>
+  <p>Casting an ID to a number destroys leading zeros permanently, and any ID longer than 15 digits loses precision. Date parsing without an explicit format guesses, and the classic failure is a day-first file read as month-first, which silently swaps 3 March and 1 April style values while raising nothing on the days above 12.</p>
+  <pre><code>pd.to_datetime(df['date'], format='%d/%m/%Y', errors='raise')</code></pre>
+  <p><code>errors='coerce'</code> is worth a careful look wherever you see it: it turns unparseable dates into nulls, which the next <code>dropna</code> then deletes. Two innocent-looking lines, and the rows with the odd date format are gone.</p>
+
+  <h3>5. drop_duplicates</h3>
+  <pre><code>df = df.drop_duplicates(subset=['customer_id'], keep='first')</code></pre>
+  <p>Which one is first depends entirely on the sort order, and if the frame was not sorted deliberately, the row that survives is arbitrary. If the duplicates differ in any column, you have chosen a value at random. Sort explicitly by the column that decides, usually a timestamp, and say in the write-up that the latest record wins.</p>
+
+  <h3>6. Clipping and outlier removal</h3>
+  <pre><code>df = df[df['amount'] &lt; df['amount'].quantile(0.99)]</code></pre>
+  <p>This removes the top one percent by construction, whether or not those rows are errors. On revenue data the top one percent is often the customers that matter most. Removing an outlier is only legitimate when you can say what makes it wrong, not merely that it is large. See <a href="../percentiles-iqr-outliers/">percentiles and the outlier rule</a>.</p>
+
+  <div class="note"><strong>The order of operations matters as much as the operations.</strong> Deduplicating before filtering gives a different answer from filtering before deduplicating, whenever the filter can remove one of a pair. Ask why the steps are in the order they are in.</div>
+
+  <h2>The review, as a table you fill in</h2>
+  <table>
+    <tr><th>Step</th><th>Rows before</th><th>Rows after</th><th>Fact or assumption</th><th>Goes in the write-up?</th></tr>
+    <tr><td>dropna(subset=amount)</td><td>41,208</td><td>40,955</td><td>Assumption</td><td>Yes, 253 rows</td></tr>
+    <tr><td>replace region spellings</td><td>40,955</td><td>40,955</td><td>Assumption</td><td>Yes, list the mappings</td></tr>
+    <tr><td>drop_duplicates on order_id</td><td>40,955</td><td>40,901</td><td>Fact, if ids are unique by design</td><td>Yes, 54 rows</td></tr>
+    <tr><td>cast date</td><td>40,901</td><td>40,901</td><td>Fact, format was explicit</td><td>No</td></tr>
+  </table>
+  <p>Four rows of table, and the analysis now has a provenance section instead of a claim that the data was cleaned.</p>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Add the snapshot function to every cleaning script you run, including short ones.</li>
+    <li>Never accept a bare <code>dropna()</code>. Ask which column mattered and how many rows it cost.</li>
+    <li>Challenge every <code>fillna(0)</code> with the question: does missing mean none here?</li>
+    <li>Give every date parse an explicit format, and treat <code>errors='coerce'</code> as something to justify.</li>
+    <li>Publish the before-and-after counts alongside the result. It is the cheapest credibility you will ever buy.</li>
+  </ol>
+
+  <h2>The one habit to keep</h2>
+  <p>Keep the raw file. Cleaning should always be a script that runs from an untouched source, never an edit to the only copy. That single rule means every decision on this page is reversible, which is what makes reviewing them worth doing.</p>
+
+  <p>Could you re-run your last cleaning script from the original file today and get the same output?</p>
+
+  <div class="note"><strong>The counts in the review table are illustrative.</strong> The point is the shape of the table: four columns, one row per operation, and a decision recorded against each.</div>
+
+  <div class="book">
+    <strong>Cleaning is not tidying. Every step is a judgement about what the data means.</strong>
+    <p><em>Python for Analysts</em> is a working analyst pandas book: read a file, fix its types, group it, join it, and check the answer before anyone else sees it.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/python-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=python-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-review-ai-data-cleaning'})">Python for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>The counts are the review.</strong>
+    <p style="margin:6px 0 0"><a href="../pandas-fillna-dropna/">fillna and dropna</a> covers the missing-value decisions in detail, <a href="../pandas-duplicates/">drop_duplicates</a> the deduplication ones, and <a href="../documenting-data-limitations/">documenting data limitations</a> is where the results belong.</p>
+    <a class="btn" href="../pandas-fillna-dropna/">Read fillna and dropna &rarr;</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../pandas-fillna-dropna/">fillna and dropna</a> &middot; <a href="../pandas-duplicates/">Dropping Duplicates</a> &middot; <a href="../documenting-data-limitations/">Documenting Data Limitations</a> &middot; <a href="../data-quality-checks/">Data Quality Checks</a> &middot; <a href="../verify-ai-agent-work/">Verify AI Agent Work</a> &middot; <a href="../../python/">Python Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

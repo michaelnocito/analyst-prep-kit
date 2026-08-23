@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Quality Checks: Eight Queries to Run Before Reporting &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Eight checks that take ten minutes and catch the errors that otherwise get found in the meeting: row count, key uniqueness, nulls, ranges, dates, referential integrity, category drift, and the total against a known number.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/data-quality-checks/">
+<meta property="og:title" content="The Data Quality Checks to Run Before Anybody Sees the Numbers">
+<meta property="og:description" content="Eight checks, ten minutes, run before every report. The list, with the query for each.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/data-quality-checks/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "The Data Quality Checks to Run Before Anybody Sees the Numbers",
+  "description": "Eight checks that take ten minutes and catch the errors that otherwise get found in the meeting: row count, key uniqueness, nulls, ranges, dates, referential integrity, category drift, and the total against a known number.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/data-quality-checks/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/data-quality-checks/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Data Quality Checks",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/data-quality-checks/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What are basic data quality checks?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Row count against the source, uniqueness of the key, null rates per column, value ranges, date sanity, referential integrity, category drift against the previous load, and one total reconciled to a number from another system."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I check for duplicate keys in SQL?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "SELECT key, COUNT(*) FROM table GROUP BY key HAVING COUNT(*) > 1. Any rows returned mean the column you thought was unique is not, and every join through it is multiplying rows."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is referential integrity?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Every child row pointing at a parent that exists. An order whose customer id is not in the customer table is an orphan, and it will disappear from any report that joins the two, without warning."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How often should data quality checks run?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Every load, automatically, with the results stored. A single run tells you today looks fine. A stored history tells you the null rate on a column went from 2 percent to 30 percent last Tuesday, which is the finding you actually need."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../sql/">SQL Kit</a></p>
+  <h1>The Data Quality Checks to Run Before Anybody Sees the Numbers</h1>
+  <p class="meta">Michael Nocito &middot; Updated August 2026 &middot; Every number on this page was worked before it was published</p>
+
+  <p>Every analyst has had the meeting where somebody else finds the error. It is almost never a subtle one. It is a duplicated key, a missing week, or a category that got renamed upstream, and all of them are caught by checks that take ten minutes to run.</p>
+
+  <p>What you do: run these eight before you build anything, store the results, and compare them against the last run.</p>
+
+  <p><strong>The short version.</strong> Ten minutes at the start beats an hour in the meeting, every time.</p>
+
+  <h2>1. Row count against the source</h2>
+  <pre><code>SELECT COUNT(*) FROM orders;</code></pre>
+  <p>Compare with the source system's own count. This is the single most valuable check and the most often skipped. It catches truncated files, failed loads, and a filter somebody added last month. The Excel version of the same trap is in <a href="../excel-row-limit/">the row limit</a>: a file cut at 1,048,576 rows looks entirely normal.</p>
+
+  <h2>2. Is the key actually unique</h2>
+  <pre><code>SELECT order_id, COUNT(*) AS n
+FROM orders
+GROUP BY order_id
+HAVING COUNT(*) &gt; 1
+ORDER BY n DESC;</code></pre>
+  <p>If this returns anything, every join through <code>order_id</code> is multiplying rows and every sum downstream is inflated. Test the key you are about to join on, not just the primary key, since the join key is often a business column with no constraint on it.</p>
+
+  <h2>3. Nulls per column</h2>
+  <pre><code>SELECT COUNT(*) AS rows,
+       SUM(CASE WHEN region   IS NULL THEN 1 ELSE 0 END) AS null_region,
+       SUM(CASE WHEN amount   IS NULL THEN 1 ELSE 0 END) AS null_amount,
+       SUM(CASE WHEN order_dt IS NULL THEN 1 ELSE 0 END) AS null_date
+FROM orders;</code></pre>
+  <p>What matters is not the number today but the change since last load. A column that has always been 2 percent null and is suddenly 30 percent null means something changed upstream, and nobody will have told you.</p>
+
+  <h2>4. Ranges and impossible values</h2>
+  <pre><code>SELECT MIN(amount), MAX(amount), AVG(amount),
+       SUM(CASE WHEN amount &lt; 0 THEN 1 ELSE 0 END) AS negatives,
+       SUM(CASE WHEN amount = 0 THEN 1 ELSE 0 END) AS zeros
+FROM orders;</code></pre>
+  <p>Look for the placeholder values that systems use for missing: -1, 0, 999, 9999, and the date 1900-01-01. Each of those will be averaged into your results as if it were real. A quantity of 99,999 is not an outlier, it is a data entry convention.</p>
+
+  <h2>5. Date sanity</h2>
+  <pre><code>SELECT MIN(order_dt), MAX(order_dt) FROM orders;
+
+SELECT strftime('%Y-%m', order_dt) AS month, COUNT(*)
+FROM orders GROUP BY 1 ORDER BY 1;</code></pre>
+  <p>The second query is the one to read carefully. A missing month, or one with a tenth of the usual volume, is a failed load rather than a quiet trading period. Future dates and dates before the business existed both indicate parsing problems, usually a day-first file read as month-first.</p>
+
+  <h2>6. Referential integrity</h2>
+  <pre><code>SELECT COUNT(*) AS orphan_orders
+FROM orders o
+WHERE NOT EXISTS (SELECT 1 FROM customers c
+                  WHERE c.customer_id = o.customer_id);</code></pre>
+  <p>Orphans vanish from any inner join, silently, taking their revenue with them. That is why two reports on the same data can differ by a few percent with neither being obviously wrong. <code>NOT EXISTS</code> rather than <code>NOT IN</code>, for the NULL reason in <a href="../sql-anti-join/">the anti-join</a>.</p>
+
+  <h2>7. Category drift</h2>
+  <pre><code>SELECT region, COUNT(*) FROM orders GROUP BY region ORDER BY 2 DESC;</code></pre>
+  <p>Read the whole list, including the small values at the bottom. New categories appear when a system is reconfigured; old ones stop appearing when a rename happens upstream. A grouped report will happily show two rows where there should be one, and it will look like a real split.</p>
+
+  <h2>8. Reconcile one total to something external</h2>
+  <p>The finance ledger, last month's published report, the source system's own dashboard. One number, agreed to the penny or explained. Everything above tests the data against itself; this is the only check that tests it against the world.</p>
+
+  <div class="note"><strong>Store the results, do not just read them.</strong> Write each run into a small table with a timestamp. The value of these checks is in the comparison between runs, and a number you looked at once and did not keep cannot be compared with anything.</div>
+
+  <h2>The ten-minute routine</h2>
+  <table>
+    <tr><th>#</th><th>Check</th><th>Fails when</th></tr>
+    <tr><td>1</td><td>Row count</td><td>Load truncated or filtered</td></tr>
+    <tr><td>2</td><td>Key uniqueness</td><td>Joins will fan out</td></tr>
+    <tr><td>3</td><td>Null rates</td><td>Upstream field stopped being filled</td></tr>
+    <tr><td>4</td><td>Ranges</td><td>Placeholders treated as values</td></tr>
+    <tr><td>5</td><td>Date span and per-month counts</td><td>Missing period, bad parsing</td></tr>
+    <tr><td>6</td><td>Orphans</td><td>Rows disappear in a join</td></tr>
+    <tr><td>7</td><td>Category list</td><td>Renames split a group in two</td></tr>
+    <tr><td>8</td><td>External reconciliation</td><td>Everything internal agreed and was still wrong</td></tr>
+  </table>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Save the eight queries as one script per source, with the table names filled in.</li>
+    <li>Run it before you build, not after somebody asks a question.</li>
+    <li>Write the results into a log table with a date, so drift becomes visible.</li>
+    <li>Put the row count and the reconciliation into the report itself, as a footnote. It changes how the report is received.</li>
+    <li>When a check fails, tell the person who owns the source. Silent workarounds mean the same failure arrives every month forever.</li>
+  </ol>
+
+  <h2>The one habit to keep</h2>
+  <p>Check before you build. The work is identical either way; the difference is whether you find the problem or somebody else does, and that difference is most of what people mean when they say an analyst is reliable.</p>
+
+  <p>Which of these eight would fail on the data you used most recently?</p>
+
+  <div class="note"><strong>Every query here was written to run.</strong> The date functions are SQLite; use DATE_TRUNC in Postgres, FORMAT or CONVERT in SQL Server, and DATE_FORMAT in MySQL.</div>
+
+  <div class="book">
+    <strong>The errors that damage a reputation are the ordinary ones, found by somebody else.</strong>
+    <p><em>SQL for Analysts</em> is 458 pages that read queries line by line in everyday words, so a result that came back wrong has somewhere to be traced instead of being retyped until it looks better.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/sql-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=sql-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-data-quality-checks'})">SQL for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Run these before the report, not after the question.</strong>
+    <p style="margin:6px 0 0"><a href="../migration-profiling/">Profiling a source system</a> is the deeper version of the same checks, and <a href="../exploratory-data-analysis/">exploratory data analysis</a> is what you do once the data passes them.</p>
+    <a class="btn" href="../migration-profiling/">Read Profiling a Source &rarr;</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../migration-profiling/">Migration Profiling</a> &middot; <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> &middot; <a href="../sql-reconciliation/">Reconciling Row Counts</a> &middot; <a href="../sql-find-duplicates/">Find Duplicate Rows</a> &middot; <a href="../documenting-data-limitations/">Documenting Data Limitations</a> &middot; <a href="../../sql/">SQL Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

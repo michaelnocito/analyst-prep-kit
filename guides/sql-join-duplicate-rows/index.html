@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL Join Duplicate Rows: Fan-Out, and the Fix &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Eight orders worth 1,050 become 730 across six rows after a join, and the sum of five orders reads 730 instead of 610. What fan-out is, the count that detects it in ten seconds, and the three correct fixes.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-join-duplicate-rows/">
+<meta property="og:title" content="Why Your JOIN Duplicated the Rows and the Total Is Too High">
+<meta property="og:description" content="One order with two payments doubles its own amount. 610 becomes 730, and nothing errors.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-join-duplicate-rows/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Why Your JOIN Duplicated the Rows and the Total Is Too High",
+  "description": "Eight orders worth 1,050 become 730 across six rows after a join, and the sum of five orders reads 730 instead of 610. What fan-out is, the count that detects it in ten seconds, and the three correct fixes.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-join-duplicate-rows/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-join-duplicate-rows/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Why a Join Duplicates Rows",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-join-duplicate-rows/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Why does my SQL join return duplicate rows?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because the key is not unique on the other side. One order with two payment rows produces two joined rows, one per payment. The join is behaving correctly; the assumption that the other table had one row per key was wrong."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why is my SUM too high after a join?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because the joined rows repeat the value from the one side. An order of 120 that matched two payments contributes 240 to the sum. This is called fan-out, and it inflates every aggregate downstream except COUNT DISTINCT."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I stop a join from duplicating rows?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Aggregate the many side before joining, use a subquery or CTE that returns one row per key, or use EXISTS when you only need to know whether a match exists. Adding DISTINCT is the fix that usually hides the problem rather than solving it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I detect fan-out?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Count rows before and after the join. If the count grew, the join multiplied rows. Then check the other table for duplicate keys with GROUP BY key HAVING COUNT(*) > 1."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../sql/">SQL Kit</a></p>
+  <h1>Why Your JOIN Duplicated the Rows and the Total Is Too High</h1>
+  <p class="meta">Michael Nocito &middot; Updated August 2026 &middot; Every query on this page was run before it was published</p>
+
+  <p>The query ran, the numbers came back, and revenue is higher than finance says it should be. Nothing errored. Somewhere in the query a join matched one row against several, and every value on the one side got counted more than once.</p>
+
+  <p>What you do: count the rows before and after the join. If the count grew, you have fan-out, and every sum in the query is wrong.</p>
+
+  <p><strong>The short version.</strong> A join multiplies rows whenever the key repeats on the other side.</p>
+
+  <h2>The two tables</h2>
+  <pre><code>CREATE TABLE orders(order_id INT, customer_id INT, amount INT, status TEXT);
+INSERT INTO orders VALUES
+(101,1,120,'shipped'),(102,1,80,'shipped'),(103,2,200,'cancelled'),
+(104,2,50,'shipped'),(105,3,300,'shipped'),(106,4,90,'pending'),
+(107,4,60,'shipped'),(108,5,150,'cancelled');
+
+CREATE TABLE payments(payment_id INT, order_id INT, amount INT);
+INSERT INTO payments VALUES
+(1,101,60),(2,101,60),(3,102,80),(4,104,50),(5,105,300),(6,107,60);</code></pre>
+  <p>Eight orders totalling 1,050. Six payments. Order 101 was paid in two instalments of 60, which is the only unusual thing in the data and it is enough.</p>
+
+  <h2>The query that goes wrong</h2>
+  <pre><code>SELECT COUNT(*), SUM(o.amount)
+FROM orders o
+JOIN payments p ON p.order_id = o.order_id;
+-- 6 rows, 730</code></pre>
+  <p>Five orders have payments: 101, 102, 104, 105 and 107. Their true total is 120 + 80 + 50 + 300 + 60 = <strong>610</strong>. The query says 730, because order 101 appears twice and contributes its 120 twice.</p>
+  <p>Six rows for five orders. That single extra row is the whole error, and 730 is a plausible enough number that nobody questions it until it is compared with something.</p>
+
+  <h2>Detecting it in ten seconds</h2>
+  <pre><code>SELECT COUNT(*) FROM orders;                        -- 8
+SELECT COUNT(*) FROM orders o
+JOIN payments p ON p.order_id = o.order_id;         -- 6, from 5 orders
+
+SELECT order_id, COUNT(*) FROM payments
+GROUP BY order_id HAVING COUNT(*) &gt; 1;              -- 101, 2</code></pre>
+  <p>The last query is the one to keep. It names the key that repeats, which turns "the numbers are too high" into "order 101 has two payment rows", and that is a sentence somebody can act on.</p>
+
+  <div class="note"><strong>Fan-out compounds.</strong> Join three tables where two of them fan out and the multiplication is 2 x 3, not 2 + 3. That is how a total ends up six times too high, and it is why the row count should be checked after each join rather than only at the end.</div>
+
+  <h2>The three correct fixes</h2>
+  <h3>1. Aggregate the many side first</h3>
+  <pre><code>SELECT o.order_id, o.amount, COALESCE(p.paid, 0) AS paid
+FROM orders o
+LEFT JOIN (
+    SELECT order_id, SUM(amount) AS paid
+    FROM payments
+    GROUP BY order_id
+) p ON p.order_id = o.order_id;</code></pre>
+  <p>The subquery returns one row per order, so the join cannot multiply anything. Order 101 arrives as a single row with 120 paid. This is the default answer and the one to reach for first.</p>
+
+  <h3>2. Use EXISTS when you only need to know whether a match exists</h3>
+  <pre><code>SELECT COUNT(*), SUM(amount)
+FROM orders o
+WHERE EXISTS (SELECT 1 FROM payments p WHERE p.order_id = o.order_id);
+-- 5 rows, 610</code></pre>
+  <p>Five orders, 610. <code>EXISTS</code> asks a yes or no question, so it cannot duplicate a row however many payments there are. If you are joining only to filter, this is both correct and usually faster.</p>
+
+  <h3>3. Aggregate with the right function</h3>
+  <pre><code>SELECT COUNT(DISTINCT o.order_id) AS orders,
+       SUM(p.amount)               AS paid
+FROM orders o
+JOIN payments p ON p.order_id = o.order_id;</code></pre>
+  <p>Sum the column from the <em>many</em> side, which has one row per payment and is therefore not duplicated, and count distinct on the one side. Mixing them up is where this fix goes wrong: <code>SUM(o.amount)</code> is still 730 no matter what you count.</p>
+
+  <h2>Why DISTINCT is not the fix</h2>
+  <pre><code>SELECT SUM(DISTINCT o.amount) FROM ...   -- wrong, and quietly so</code></pre>
+  <p><code>SELECT DISTINCT</code> removes duplicate rows, which looks like it solves the problem and does not. Two different orders of exactly 60 are collapsed into one, so the total is now too low. And it cannot help at all when the duplicated rows differ in any column, which they usually do once you select a few more fields.</p>
+  <p>Reaching for <code>DISTINCT</code> to fix a total is the clearest sign that the grain of the query has not been decided. Decide it instead: one row per order, or one row per payment, and build to that.</p>
+
+  <h2>The habit that prevents it</h2>
+  <table>
+    <tr><th>Before joining, ask</th><th>Then</th></tr>
+    <tr><td>What is one row of my result?</td><td>Write it down. That is the grain.</td></tr>
+    <tr><td>Is the join key unique on the other side?</td><td>Check with GROUP BY and HAVING</td></tr>
+    <tr><td>Did the row count grow?</td><td>Count before and after every join</td></tr>
+    <tr><td>Does my total match a known number?</td><td>Reconcile to something external</td></tr>
+  </table>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Take a query you rely on and count the rows after each join. Add them as a comment in the query.</li>
+    <li>Run the duplicate-key check on every table you join to. Uniqueness is an assumption until it is tested.</li>
+    <li>Replace any <code>DISTINCT</code> that was added to fix a total with a pre-aggregated subquery.</li>
+    <li>Where a join exists only to filter, rewrite it as <code>EXISTS</code>.</li>
+    <li>Reconcile the total against a number from another system, which is the only check that catches fan-out you did not think to look for.</li>
+  </ol>
+
+  <h2>The one habit to keep</h2>
+  <p>Say what one row of the result represents before you write the <code>FROM</code>. Fan-out is not really a join problem; it is what happens when a query is written without deciding its grain.</p>
+
+  <p>Does the report you send most often join to a table whose key you have never tested for uniqueness?</p>
+
+  <div class="note"><strong>Every number here was run before it was published.</strong> Eight orders totalling 1,050. The join returns 6 rows and a SUM of 730, where the five matched orders truly total 610.</div>
+
+  <div class="book">
+    <strong>A total that is too high by exactly one row is the hardest kind of wrong to notice.</strong>
+    <p><em>SQL for Analysts</em> is 458 pages that read queries line by line in everyday words, so a result that came back wrong has somewhere to be traced instead of being retyped until it looks better.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/sql-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=sql-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-sql-join-duplicate-rows'})">SQL for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Count before you sum.</strong>
+    <p style="margin:6px 0 0"><a href="../sql-joins/">SQL JOINs explained</a> covers the four types, <a href="../sql-reconciliation/">reconciling row counts</a> is the check, and <a href="../../drill/">SQL Drill</a> gives you the reps.</p>
+    <a class="btn" href="../sql-joins/">Read SQL JOINs &rarr;</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../sql-joins/">SQL JOINs</a> &middot; <a href="../sql-self-join/">The Self Join</a> &middot; <a href="../sql-reconciliation/">Reconciling Row Counts</a> &middot; <a href="../sql-find-duplicates/">Find Duplicate Rows</a> &middot; <a href="../sql-subqueries/">Subqueries</a> &middot; <a href="../../drill/">SQL Drill</a> &middot; <a href="../../sql/">SQL Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

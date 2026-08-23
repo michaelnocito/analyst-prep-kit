@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>matplotlib Basics for Analysts: Figure, Axes, and Six Lines &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Figure and axes, one plot call, and four lines of labelling. Why the object-oriented form is worth learning first, the defaults to change once, and how to save a chart somebody can paste into a document.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/matplotlib-basics-for-analysts/">
+<meta property="og:title" content="Charts in Python Without the Cargo Cult: The Six Lines That Matter">
+<meta property="og:description" content="fig, ax = plt.subplots() and five more lines. The object form, and why it scales.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/matplotlib-basics-for-analysts/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Charts in Python Without the Cargo Cult: The Six Lines That Matter",
+  "description": "Figure and axes, one plot call, and four lines of labelling. Why the object-oriented form is worth learning first, the defaults to change once, and how to save a chart somebody can paste into a document.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/matplotlib-basics-for-analysts/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/matplotlib-basics-for-analysts/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "matplotlib Basics",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/matplotlib-basics-for-analysts/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Should I use plt.plot or the object-oriented interface?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use fig, ax = plt.subplots() and call methods on ax. The pyplot state machine works for one quick chart and becomes ambiguous the moment there are two, because plt acts on whichever axes was current."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I save a matplotlib chart properly?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "fig.savefig(\"chart.png\", dpi=200, bbox_inches=\"tight\"). The dpi makes it readable when pasted into a document, and bbox_inches stops the labels being cut off."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I plot straight from a pandas DataFrame?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "df.plot(ax=ax, kind=\"bar\") passes the plot into axes you control, so you keep the labelling and formatting methods. Calling df.plot() alone creates its own figure and is harder to build on."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why are my axis labels cut off?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The saved bounding box is the figure, not the labels. Pass bbox_inches=\"tight\" to savefig, or call fig.tight_layout() before saving."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../python/">Python Kit</a></p>
+  <h1>Charts in Python Without the Cargo Cult: The Six Lines That Matter</h1>
+  <p class="meta">Michael Nocito &middot; Updated August 2026 &middot; Every number on this page was worked before it was published</p>
+
+  <p>Most matplotlib code is copied, and most of it is copied from a state-machine style that works for one chart and stops making sense with two. Six lines cover almost everything an analyst needs, and they are worth typing from memory.</p>
+
+  <p>What you do: make a figure and axes, plot onto the axes, label everything, save with a bounding box.</p>
+
+  <p><strong>The short version.</strong> <code>fig</code> is the page, <code>ax</code> is the chart on it. Call methods on <code>ax</code>.</p>
+
+  <h2>The six lines</h2>
+  <pre><code>import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(figsize=(8, 4.5))
+ax.bar(totals.index, totals.values, color='#0E7490')
+ax.set_title('East sells most, West sells least')
+ax.set_ylabel('Revenue')
+ax.spines[['top', 'right']].set_visible(False)
+fig.savefig('revenue.png', dpi=200, bbox_inches='tight')</code></pre>
+  <p>That is a chart somebody can paste into a document without apologising for it. Line by line: a figure of a sensible aspect ratio, one plot call, a title that says the finding, a unit on the axis, two borders removed, and a save that does not clip the labels.</p>
+
+  <h2>Why the object form</h2>
+  <pre><code># state machine: acts on whichever axes is current
+plt.plot(x, y)
+plt.title('...')
+
+# object oriented: says which axes it means
+fig, ax = plt.subplots()
+ax.plot(x, y)
+ax.set_title('...')</code></pre>
+  <p>With one chart the two are equivalent. With two, the state-machine version depends on which axes is current at that moment, which is decided by the order of the calls and by anything pandas did on the way. The object form has no ambiguity, and it is what every larger example eventually uses anyway.</p>
+  <p>Note the naming: the pyplot function is <code>title</code>, the axes method is <code>set_title</code>. That <code>set_</code> prefix trips people up when converting old code.</p>
+
+  <h2>Several charts</h2>
+  <pre><code>fig, axes = plt.subplots(1, 2, figsize=(11, 4), sharey=True)
+
+axes[0].bar(jan.index, jan.values)
+axes[0].set_title('January')
+
+axes[1].bar(feb.index, feb.values)
+axes[1].set_title('February')
+
+fig.suptitle('January outsold February by more than two to one')
+fig.tight_layout()</code></pre>
+  <p><code>sharey=True</code> is the important argument. Two charts side by side with different y scales invite exactly the comparison they cannot support, which is the small-multiples version of the problem in <a href="../dual-axis-charts/">dual axis charts</a>.</p>
+
+  <h2>Plotting from pandas</h2>
+  <pre><code>totals = df.groupby('region')['amount'].sum().sort_values()
+
+fig, ax = plt.subplots(figsize=(7, 4))
+totals.plot(kind='barh', ax=ax, color='#0E7490')
+ax.set_xlabel('Revenue')
+ax.set_title('East is 3 times West')</code></pre>
+  <p>Passing <code>ax=ax</code> is what keeps you in control: pandas draws onto your axes and you keep every labelling method. Sorting before plotting is the other half, since a chart in alphabetical order asks the reader to do the ranking themselves.</p>
+
+  <h2>The defaults worth changing once</h2>
+  <table>
+    <tr><th>Default</th><th>Change to</th><th>Why</th></tr>
+    <tr><td>Box on all four sides</td><td>Remove top and right</td><td>Less ink, same information</td></tr>
+    <tr><td>Small default font</td><td>11 or 12</td><td>Charts get pasted and shrunk</td></tr>
+    <tr><td>No thousands separator</td><td>A comma formatter</td><td>1200000 is unreadable</td></tr>
+    <tr><td>Default figure size</td><td>8 x 4.5 for a slide</td><td>Matches a widescreen layout</td></tr>
+    <tr><td>Ten-colour cycle</td><td>One colour, or two</td><td>Colour should mean something</td></tr>
+  </table>
+  <pre><code>ax.yaxis.set_major_formatter(
+    plt.matplotlib.ticker.StrMethodFormatter('{x:,.0f}'))
+
+plt.rcParams.update({'font.size': 11, 'axes.spines.top': False,
+                     'axes.spines.right': False, 'figure.dpi': 110})</code></pre>
+  <p>Put the <code>rcParams</code> block at the top of your notebook template and every chart in the file inherits it, which is how a set of charts starts looking like one set rather than nine.</p>
+
+  <h2>Labelling the bars</h2>
+  <pre><code>bars = ax.bar(totals.index, totals.values, color='#0E7490')
+ax.bar_label(bars, fmt='{:,.0f}', padding=3)
+ax.get_yaxis().set_visible(False)</code></pre>
+  <p>Once every bar carries its number, the axis is redundant ink and can go. That is often the cleanest chart on a slide: labelled bars, a title stating the finding, and nothing else.</p>
+
+  <h2>Saving</h2>
+  <pre><code>fig.savefig('chart.png', dpi=200, bbox_inches='tight')
+fig.savefig('chart.svg', bbox_inches='tight')   # scales, for print</code></pre>
+  <p><code>dpi=200</code> for anything that will be looked at, <code>bbox_inches='tight'</code> always. SVG when the chart will be resized, since it stays sharp. And close figures in a loop with <code>plt.close(fig)</code>, or a long-running script accumulates them in memory.</p>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Convert one existing chart from <code>plt.</code> calls to the <code>fig, ax</code> form. It is a mechanical change and it makes the next one easier.</li>
+    <li>Put a <code>rcParams</code> block at the top of your template today.</li>
+    <li>Give every chart a title that states the finding, not the contents.</li>
+    <li>Sort before plotting, unless the categories have a natural order.</li>
+    <li>Save with <code>bbox_inches="tight"</code> and check the file rather than the notebook preview.</li>
+  </ol>
+
+  <h2>The one habit to keep</h2>
+  <p>Write the title first. It settles what the chart is for, and it often reveals that the chart you were about to draw was not the one that shows it.</p>
+
+  <p>Would your last Python chart survive being pasted into a document with no explanation?</p>
+
+  <div class="note"><strong>Written from the library as it ships.</strong> The <code>set_</code> prefixed axes methods, <code>bar_label</code>, <code>StrMethodFormatter</code> and <code>bbox_inches</code> are all current matplotlib.</div>
+
+  <div class="book">
+    <strong>A chart with no title and a default axis is a chart that has to be explained out loud.</strong>
+    <p><em>Charts and Visualization</em> is the chart-choosing book: what each shape can carry, what it quietly distorts, and how to label it so the reader reaches your finding without being told.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/charts-and-visualization?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=charts-and-visualization" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-matplotlib-basics-for-analysts'})">Charts and Visualization, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>The chart choice matters more than the library.</strong>
+    <p style="margin:6px 0 0"><a href="../choose-the-right-chart/">Choosing the right chart</a> and <a href="../chart-titles-that-say-the-finding/">chart titles</a> apply whatever you draw with. The <a href="../../python/">Python Kit</a> covers the pandas side.</p>
+    <a class="btn" href="../choose-the-right-chart/">Read Choose the Right Chart &rarr;</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../choose-the-right-chart/">Choose the Right Chart</a> &middot; <a href="../chart-titles-that-say-the-finding/">Chart Titles</a> &middot; <a href="../chart-axis-start-at-zero/">Should the Axis Start at Zero</a> &middot; <a href="../pandas-groupby/">pandas groupby</a> &middot; <a href="../how-charts-mislead/">How Charts Mislead</a> &middot; <a href="../../python/">Python Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

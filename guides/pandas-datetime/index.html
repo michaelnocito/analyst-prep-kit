@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pandas to_datetime: Formats, Day First, and Grouping by Month &mdash; Analyst Prep Kit</title>
+<meta name="description" content="The same string parses to two different dates depending on one argument, and neither raises an error. How to parse explicitly, what dayfirst really does, and the accessor methods that make grouping by month one line.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-datetime/">
+<meta property="og:title" content="Dates in pandas: Parsing Them Once, Properly">
+<meta property="og:description" content="03/04/2026 parses to 4 March or 3 April depending on one argument. Neither errors.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-datetime/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Dates in pandas: Parsing Them Once, Properly",
+  "description": "The same string parses to two different dates depending on one argument, and neither raises an error. How to parse explicitly, what dayfirst really does, and the accessor methods that make grouping by month one line.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-datetime/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-datetime/"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Michael Nocito",
+    "url": "https://michaelnocito.github.io"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Michael Nocito"
+  },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Analyst Prep Kit",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Dates in pandas",
+      "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/pandas-datetime/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I convert a column to dates in pandas?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "pd.to_datetime(df[\"date\"], format=\"%d/%m/%Y\"). Pass the format explicitly whenever you know it, because inference is a guess that can succeed on the wrong interpretation."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does dayfirst do in pandas to_datetime?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It tells the parser to read ambiguous strings as day/month/year rather than month/day/year. Without it, 03/04/2026 parses as 4 March 2026; with dayfirst=True it parses as 3 April 2026. Both run without error."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I group by month in pandas?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Either df.groupby(df[\"date\"].dt.to_period(\"M\")) for period labels, or resample(\"MS\") on a datetime index. to_period keeps the label readable; resample fills in months with no rows, which is often what a report needs."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does errors=\"coerce\" do?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It turns unparseable values into NaT instead of raising. That is useful when you intend to count the failures, and dangerous when a later dropna quietly deletes those rows."
+      }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">&larr; All Kits</a> &middot; <a href="../../python/">Python Kit</a></p>
+  <h1>Dates in pandas: Parsing Them Once, Properly</h1>
+  <p class="meta">Michael Nocito &middot; Updated August 2026 &middot; Every number on this page was worked before it was published</p>
+
+  <p>Dates are the column that breaks a pipeline silently. A wrong number errors or looks absurd. A wrong date looks like a date, sits in the right column, sorts, and is only wrong on the days that could not be a month.</p>
+
+  <p>What you do: parse once, at load, with an explicit format, and count what failed.</p>
+
+  <p><strong>The short version.</strong> If you did not state the format, the parser guessed, and it never tells you which way.</p>
+
+  <h2>The demonstration</h2>
+  <pre><code>import pandas as pd
+
+s = pd.Series(['03/04/2026', '11/12/2026'])
+
+pd.to_datetime(s)                          # 2026-03-04, 2026-11-12
+pd.to_datetime(s, format='%d/%m/%Y')       # 2026-04-03, 2026-12-11</code></pre>
+  <p>The same two strings, two different results. Left to itself, pandas read them month first. With the format stated, they are day first. Neither call raised anything, and both produced valid dates.</p>
+  <p>On a real file this is worse than it looks. Days above 12 are unambiguous and parse correctly either way, so only the first twelve days of each month are affected. Roughly a third of your rows are wrong, scattered, and the column still sorts and charts perfectly.</p>
+
+  <div class="note"><strong>The tell.</strong> Group by month and look at the distribution. A file parsed the wrong way round tends to produce a strange concentration in the first twelve days of every month, or months that stop at day 12. Both are visible in ten seconds and invisible in the raw column.</div>
+
+  <h2>Parsing at load</h2>
+  <pre><code>df = pd.read_csv('orders.csv',
+                 parse_dates=['order_date'],
+                 date_format='%d/%m/%Y')</code></pre>
+  <p>Doing it in <code>read_csv</code> rather than afterwards means every later step sees a real datetime, and it removes the window in which somebody writes a comparison against a string and gets a sort that runs alphabetically.</p>
+  <p>The format codes worth knowing: <code>%Y</code> four-digit year, <code>%y</code> two-digit, <code>%m</code> month number, <code>%b</code> short month name, <code>%B</code> full month name, <code>%d</code> day, <code>%H:%M:%S</code> time. ISO strings, <code>2026-08-23</code>, need no format at all and are unambiguous everywhere, which is why they are worth insisting on from any system you can influence.</p>
+
+  <h2>Counting the failures</h2>
+  <pre><code>parsed = pd.to_datetime(df['order_date'], format='%d/%m/%Y', errors='coerce')
+bad = parsed.isna() &amp; df['order_date'].notna()
+print(bad.sum())
+print(df.loc[bad, 'order_date'].head(10))</code></pre>
+  <p><code>errors='coerce'</code> turns failures into <code>NaT</code> rather than stopping the script, which is right only if you then look at them. Printing the ten offending strings usually identifies the problem instantly: a second format in the same file, a footer row, or a placeholder such as <code>0000-00-00</code>.</p>
+  <p>The dangerous pattern is <code>coerce</code> followed later by <code>dropna()</code>, which deletes exactly the rows whose dates were unusual. That is one of the six operations to challenge in <a href="../review-ai-data-cleaning/">reviewing a cleaning script</a>.</p>
+
+  <h2>The accessor, which is where the value is</h2>
+  <pre><code>d = df['order_date']
+
+d.dt.year          # 2026
+d.dt.month         # 4
+d.dt.day_name()    # 'Friday'
+d.dt.quarter       # 2
+d.dt.to_period('M')          # 2026-04
+d.dt.days_in_month
+(d.max() - d.min()).days     # span in days</code></pre>
+  <p><code>.dt</code> only exists once the column is a real datetime, which makes it a useful test: if <code>.dt</code> raises an attribute error, the column is still text however much it looks like a date.</p>
+
+  <h2>Grouping by month, two ways</h2>
+  <pre><code># labels, only the months that occur
+df.groupby(df['order_date'].dt.to_period('M'))['amount'].sum()
+
+# a continuous axis, including months with no rows
+df.set_index('order_date').resample('MS')['amount'].sum()</code></pre>
+  <p>The difference matters for reporting. <code>to_period</code> returns only months that have data, so a month with no orders is missing from the result and a chart joins straight across it. <code>resample</code> inserts it as zero, which is usually what a time series needs, and is exactly the gap discussed in <a href="../up-and-to-the-right-chart/">reading a rising line</a>.</p>
+
+  <h2>Date arithmetic</h2>
+  <pre><code>df['days_to_ship'] = (df['shipped_date'] - df['order_date']).dt.days
+
+cutoff = pd.Timestamp('2026-01-01')
+df[df['order_date'] &gt;= cutoff]
+
+df['order_date'] + pd.DateOffset(months=1)   # calendar-aware
+df['order_date'] + pd.Timedelta(days=30)     # exactly 30 days</code></pre>
+  <p>The last two are not the same and the difference bites at month ends. <code>DateOffset(months=1)</code> from 31 January gives 28 February; <code>Timedelta(days=30)</code> gives 2 March. Choose deliberately and say which one the business rule means.</p>
+
+  <h2>Time zones, briefly</h2>
+  <p>A naive timestamp has no zone and comparing it with an aware one raises. If any part of your data is zone-aware, make all of it aware and store in UTC:</p>
+  <pre><code>d.dt.tz_localize('Europe/London').dt.tz_convert('UTC')</code></pre>
+  <p>The reporting consequence to know about: an event at 23:30 UTC belongs to a different local day, so daily counts can differ by a whole day's worth of rows depending on which zone the grouping used. Say in the report which zone the days are in.</p>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Add <code>format=</code> to every <code>to_datetime</code> call you own. It is a one-line change per call and it removes a whole class of silent error.</li>
+    <li>After parsing, print the min and max and the count by month. Two lines, and they catch a wrong-way parse.</li>
+    <li>Count the coerced failures and look at ten of them rather than dropping them.</li>
+    <li>Ask any system you control for ISO dates. It is the cheapest data quality improvement available.</li>
+    <li>Decide whether your monthly report needs empty months shown, and pick <code>resample</code> or <code>to_period</code> accordingly.</li>
+  </ol>
+
+  <h2>The one habit to keep</h2>
+  <p>Check the parsed dates before using them. Min, max, and a count by month. Ten seconds, and it is the only reliable way to catch a date column that parsed successfully and wrongly.</p>
+
+  <p>Do you know which way round the dates in your main file were read?</p>
+
+  <div class="note"><strong>Every result here was run before it was published,</strong> on pandas 3.0.2. <code>pd.to_datetime(pd.Series(["03/04/2026"]))</code> returns 2026-03-04, and the same call with <code>format="%d/%m/%Y"</code> returns 2026-04-03.</div>
+
+  <div class="book">
+    <strong>A date parsed the wrong way is wrong on only two thirds of the rows, which is why nobody notices.</strong>
+    <p><em>Python for Analysts</em> is a working analyst pandas book: read a file, fix its types, group it, join it, and check the answer before anyone else sees it.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/python-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=python-for-analysts" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-pandas-datetime'})">Python for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Fix types at load, not later.</strong>
+    <p style="margin:6px 0 0"><a href="../pandas-read-csv/">read_csv</a> covers the load step, <a href="../review-ai-data-cleaning/">reviewing a cleaning script</a> covers the decisions, and <a href="../sql-dates/">dates in SQL</a> is the database-side version.</p>
+    <a class="btn" href="../pandas-read-csv/">Read read_csv &rarr;</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">&larr; Analyst Prep Kit</a> &middot; <a href="../pandas-read-csv/">pandas read_csv</a> &middot; <a href="../sql-dates/">Dates in SQL</a> &middot; <a href="../excel-dates/">Dates in Excel</a> &middot; <a href="../pandas-groupby/">pandas groupby</a> &middot; <a href="../review-ai-data-cleaning/">Review a Cleaning Script</a> &middot; <a href="../../python/">Python Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> &middot; <a href="../../contact.html">Contact</a> &middot; <a href="../../privacy.html">Privacy</a> &middot; <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
