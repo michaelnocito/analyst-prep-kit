@@ -29,3 +29,269 @@
      and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
      crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Excel Text Functions: LEFT, RIGHT, MID, LEN and TEXTJOIN &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Slice a code apart and glue values together. MID, LEFT, RIGHT and LEN with a worked example, why counting characters breaks the day a code gets longer, and the FIND version that does not.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-text-functions/">
+<meta property="og:title" content="Excel Text Functions: LEFT, RIGHT, MID, LEN and TEXTJOIN">
+<meta property="og:description" content="MID(A2,4,3) returns WES until somebody sends USA-WEST-2026, when it returns -WE. The fix is to find the separator instead of counting characters.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-text-functions/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Excel Text Functions: LEFT, RIGHT, MID, LEN and TEXTJOIN",
+  "description": "Slice a code apart and glue values together, and the reason a fixed character count breaks the day a code gets longer.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-text-functions/",
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-text-functions/" },
+  "author": { "@type": "Person", "name": "Michael Nocito", "url": "https://michaelnocito.github.io" },
+  "publisher": { "@type": "Person", "name": "Michael Nocito" },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Analyst Prep Kit", "item": "https://michaelnocito.github.io/analyst-prep-kit/" },
+    { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/" },
+    { "@type": "ListItem", "position": 3, "name": "Excel Text Functions", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-text-functions/" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the difference between LEFT, RIGHT and MID in Excel?",
+      "acceptedAnswer": { "@type": "Answer", "text": "LEFT takes characters from the start, RIGHT takes them from the end, and MID takes them from a position you name. LEFT and RIGHT need one number, how many characters. MID needs two, where to start and how many to take, so MID(A2,4,3) on US-WES-2024 returns WES." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I extract text between two dashes in Excel?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use FIND to locate the separators instead of counting characters: MID(A2,FIND(\"-\",A2)+1,FIND(\"-\",A2,FIND(\"-\",A2)+1)-FIND(\"-\",A2)-1). It returns WES from US-WES-2024 and WEST from USA-WEST-2026, where a fixed MID(A2,4,3) returns -WE on the second one. In Microsoft 365, TEXTBEFORE(TEXTAFTER(A2,\"-\"),\"-\") does the same job in one readable line." }
+    },
+    {
+      "@type": "Question",
+      "name": "What does LEN do in Excel?",
+      "acceptedAnswer": { "@type": "Answer", "text": "LEN counts characters, including spaces. It takes one argument. Its most useful job is finding invisible whitespace: LEN of a cell reading Alvarez returned 9 while LEN of TRIM of the same cell returned 7, which proves two trailing spaces are there before you spend an afternoon on a lookup that will not match." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I join text with commas in Excel?",
+      "acceptedAnswer": { "@type": "Answer", "text": "TEXTJOIN(delimiter, ignore_empty, range) puts the delimiter between every value and can skip blanks. TEXTJOIN(\", \",TRUE,A2:A5) returns the four codes separated by commas. CONCAT glues the same range with nothing between the values, and the ampersand operator makes you type the separator every time." }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../excel/">Excel Kit</a></p>
+  <h1>Excel Text Functions: LEFT, RIGHT, MID, LEN and TEXTJOIN</h1>
+  <p class="meta">Michael Nocito · Updated August 2026 · Every result on this page was run in Excel before it was published</p>
+
+  <p>Half of data cleaning is pulling one piece out of a code and gluing pieces back together. This page covers the five functions that do it, with the results printed, and then shows the version that keeps working when the codes change shape. That last part is the difference between a formula you write once and a formula you fix every quarter.</p>
+
+  <p>What you do: <code>MID</code> to take from the middle, <code>LEFT</code> and <code>RIGHT</code> from the ends, <code>LEN</code> to count, <code>TEXTJOIN</code> to glue a range back together with a separator. Then, the moment your codes are not all the same length, replace the counted positions with <code>FIND</code>.</p>
+
+  <p><strong>The short version.</strong> These functions cut and join text by position. Positions you counted by eye break; positions you found with <code>FIND</code> do not.</p>
+
+  <figure>
+    <svg viewBox="0 0 640 180" role="img" aria-labelledby="txtdesc" xmlns="http://www.w3.org/2000/svg">
+      <desc id="txtdesc">The code US-WES-2024 drawn as eleven character boxes numbered one to eleven. A bracket under boxes one to two is labelled LEFT, a bracket under boxes four to six is labelled MID, and a bracket under boxes eight to eleven is labelled RIGHT. A line across the whole row is labelled LEN. Below it the longer code USA-WEST-2026 is drawn the same way, and the MID bracket drawn at the same fixed positions four to six now covers a dash and two letters instead of the region code.</desc>
+      <g font-size="14" fill="#09090B" text-anchor="middle">
+        <g id="r1">
+          <rect x="60" y="20" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="73" y="38">U</text>
+          <rect x="88" y="20" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="101" y="38">S</text>
+          <rect x="116" y="20" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="129" y="38">-</text>
+          <rect x="144" y="20" width="26" height="26" rx="4" fill="#E0F2F7" stroke="#0E7490"/><text x="157" y="38">W</text>
+          <rect x="172" y="20" width="26" height="26" rx="4" fill="#E0F2F7" stroke="#0E7490"/><text x="185" y="38">E</text>
+          <rect x="200" y="20" width="26" height="26" rx="4" fill="#E0F2F7" stroke="#0E7490"/><text x="213" y="38">S</text>
+          <rect x="228" y="20" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="241" y="38">-</text>
+          <rect x="256" y="20" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="269" y="38">2</text>
+          <rect x="284" y="20" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="297" y="38">0</text>
+          <rect x="312" y="20" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="325" y="38">2</text>
+          <rect x="340" y="20" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="353" y="38">4</text>
+        </g>
+      </g>
+      <g stroke="#0E7490" stroke-width="2" fill="none"><path d="M144 52 v6 h82 v-6"/></g>
+      <text x="185" y="74" text-anchor="middle" font-size="12" fill="#0E7490">MID(A2,4,3)</text>
+      <text x="420" y="38" font-size="13" fill="#52525B">&rarr; WES</text>
+      <g font-size="14" fill="#09090B" text-anchor="middle">
+        <rect x="60" y="100" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="73" y="118">U</text>
+        <rect x="88" y="100" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="101" y="118">S</text>
+        <rect x="116" y="100" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="129" y="118">A</text>
+        <rect x="144" y="100" width="26" height="26" rx="4" fill="#E0F2F7" stroke="#0E7490"/><text x="157" y="118">-</text>
+        <rect x="172" y="100" width="26" height="26" rx="4" fill="#E0F2F7" stroke="#0E7490"/><text x="185" y="118">W</text>
+        <rect x="200" y="100" width="26" height="26" rx="4" fill="#E0F2F7" stroke="#0E7490"/><text x="213" y="118">E</text>
+        <rect x="228" y="100" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="241" y="118">S</text>
+        <rect x="256" y="100" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="269" y="118">T</text>
+        <rect x="284" y="100" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="297" y="118">-</text>
+        <rect x="312" y="100" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="325" y="118">2</text>
+        <rect x="340" y="100" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="353" y="118">0</text>
+        <rect x="368" y="100" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="381" y="118">2</text>
+        <rect x="396" y="100" width="26" height="26" rx="4" fill="#FFFFFF" stroke="#E4E7EA"/><text x="409" y="118">6</text>
+      </g>
+      <g stroke="#0E7490" stroke-width="2" fill="none"><path d="M144 132 v6 h82 v-6"/></g>
+      <text x="185" y="154" text-anchor="middle" font-size="12" fill="#0E7490">MID(A6,4,3)</text>
+      <text x="450" y="118" font-size="13" fill="#52525B">&rarr; -WE</text>
+    </svg>
+    <figcaption>Same formula, one longer code. The window does not move with the data.</figcaption>
+  </figure>
+
+  <h2>The five functions, with results</h2>
+  <p>Before the table: A2 holds <code>US-WES-2024</code>. How many characters is that, counting the dashes?</p>
+  <p>Eleven. Here is each function on that one cell, run in Excel.</p>
+  <table>
+    <tr><th>Formula</th><th>Returns</th><th>What it does</th></tr>
+    <tr><td><code>=LEFT(A2,3)</code></td><td>US-</td><td>Three characters from the start, dash included</td></tr>
+    <tr><td><code>=MID(A2,4,3)</code></td><td>WES</td><td>Three characters starting at position 4</td></tr>
+    <tr><td><code>=RIGHT(A2,4)</code></td><td>2024</td><td>Four characters from the end</td></tr>
+    <tr><td><code>=LEN(A2)</code></td><td>11</td><td>Counts every character, spaces included</td></tr>
+    <tr><td><code>=TEXTJOIN(", ",TRUE,A2:A5)</code></td><td>US-WES-2024, US-EAS-2024, CA-CEN-2025, MX-NOR-2023</td><td>Glues a range with a separator</td></tr>
+  </table>
+  <p>Two details in there catch people. <code>LEFT(A2,3)</code> returns <code>US-</code> with the dash, because <code>LEFT</code> counts characters and has no idea a dash is special. And <code>LEN</code> takes one argument only, which is what makes <code>=LEN(A2,3)</code> a wrong answer rather than a slower one.</p>
+  <p><code>MID</code> reads as start and length: begin at 4, take 3. Everything else about text slicing in Excel is those two numbers, either typed by you or worked out by another formula.</p>
+
+  <h2>The day the codes get longer</h2>
+  <p>First: the same <code>=MID(A2,4,3)</code> runs against a new code, <code>USA-WEST-2026</code>. What does it return?</p>
+  <p><strong><code>-WE</code></strong>. Not an error, not a blank. Three characters starting at position 4, exactly as instructed, and now those three characters are a dash and two letters. <code>LEFT(A6,3)</code> returns <code>USA</code>, which happens to be right, and <code>RIGHT(A6,4)</code> returns <code>2026</code>, also right. Only the middle one breaks, and it breaks into something that looks like data.</p>
+  <p>Say why this is worse than an error before reading on. An error stops a report. A value like <code>-WE</code> flows into a pivot table and shows up as a region nobody has ever heard of, months later, in front of somebody else.</p>
+  <p>The fix is to stop counting and start looking. <code>FIND</code> returns the position of a character, so the formula can work out the boundaries itself.</p>
+  <pre><code>=MID(A2, FIND("-",A2)+1, FIND("-",A2,FIND("-",A2)+1) - FIND("-",A2) - 1)</code></pre>
+  <table>
+    <tr><th>Cell</th><th>Holds</th><th>Fixed <code>MID(x,4,3)</code></th><th>The <code>FIND</code> version</th></tr>
+    <tr><td>A2</td><td>US-WES-2024</td><td>WES</td><td>WES</td></tr>
+    <tr><td>A6</td><td>USA-WEST-2026</td><td>-WE</td><td>WEST</td></tr>
+  </table>
+  <p>Read the formula in three parts and it stops being frightening. <code>FIND("-",A2)</code> is 3, so start at 4. <code>FIND("-",A2,FIND("-",A2)+1)</code> is the second dash at 7. Seven minus three minus one is three characters to take. On the longer code the same three parts return 4, 9 and 4, and it takes four characters instead.</p>
+  <p>In Microsoft 365 there is a version you can read at a glance:</p>
+  <pre><code>=TEXTBEFORE(TEXTAFTER(A2,"-"),"-")</code></pre>
+  <p>It returned <code>WES</code> on the short code and <code>WEST</code> on the long one, same as the <code>FIND</code> version. <code>TEXTAFTER</code> takes everything after the first dash, <code>TEXTBEFORE</code> then takes everything before the next one. If your Excel has these functions, use them, and keep the <code>FIND</code> version for workbooks that have to open in older builds.</p>
+
+  <h2>LEN, and the two spaces nobody can see</h2>
+  <p>Before the example: a lookup on a name column keeps returning <code>#N/A</code> even though the name is clearly there in both sheets. What is the first thing to check?</p>
+  <p>Whether the cell holds what it appears to. A cell reading <code>Alvarez</code> returned <code>LEN</code> of <strong>9</strong>, and <code>LEN(TRIM(A7))</code> returned <strong>7</strong>. There are two trailing spaces in it, and nothing on screen will ever show you that.</p>
+  <pre><code>=LEN(A7)-LEN(TRIM(A7))     ' how many extra spaces are in this cell</code></pre>
+  <p>Run that down a column before you debug a single lookup. Any number above zero means whitespace, and whitespace means an exact match will fail. The full cleanup routine, including the non-breaking space that <code>TRIM</code> cannot remove, is in <a href="../excel-clean-messy-data/">cleaning messy data</a>.</p>
+  <p>This is <code>LEN</code>'s real job. Counting characters for a slice is the textbook use, and finding the invisible difference between two cells that look identical is the one you will use every week.</p>
+
+  <h2>Joining: TEXTJOIN, CONCAT and the ampersand</h2>
+  <p>First: you need all the codes in A2:A5 in one cell, separated by commas, with blanks skipped. Which function is built for that?</p>
+  <p><code>TEXTJOIN</code>, and it is the only one of the three that takes a separator and a skip-blanks switch.</p>
+  <table>
+    <tr><th>Formula</th><th>Returns</th></tr>
+    <tr><td><code>=TEXTJOIN(", ",TRUE,A2:A5)</code></td><td>US-WES-2024, US-EAS-2024, CA-CEN-2025, MX-NOR-2023</td></tr>
+    <tr><td><code>=CONCAT(A2:A5)</code></td><td>US-WES-2024US-EAS-2024CA-CEN-2025MX-NOR-2023</td></tr>
+  </table>
+  <p>The arguments are delimiter, then TRUE or FALSE for ignoring empty cells, then the range. TRUE is what you want almost always, because it stops a gap in the data producing two commas in a row.</p>
+  <p><code>CONCAT</code> takes a range but no separator, so it runs everything together. The ampersand, as in <code>=A2&amp;", "&amp;A3</code>, works fine for two or three cells and becomes unreadable at ten. Use <code>TEXTJOIN</code> for a range, an ampersand for a couple of pieces, and <code>CONCAT</code> rarely.</p>
+  <p>Picture the last time you needed a comma separated list of ids to paste into a query or a ticket. That is a <code>TEXTJOIN</code> and about fifteen seconds.</p>
+
+  <h2>Edge cases worth knowing</h2>
+  <p><strong>Text functions return text, even when it looks like a number.</strong> <code>=ISNUMBER(RIGHT(A2,4))</code> returns FALSE. Multiply by 1 and <code>=ISNUMBER(RIGHT(A2,4)*1)</code> returns TRUE. So a year pulled out with <code>RIGHT</code> will not sort or filter as a number until you convert it, which is the same problem covered in <a href="../excel-paste-special/">Paste Special</a>.</p>
+  <p><strong><code>FIND</code> is case sensitive, <code>SEARCH</code> is not.</strong> <code>=SEARCH("wes",A2)</code> returned 4. <code>=FIND("wes",A2)</code> returned <code>#VALUE!</code>, because the cell holds <code>WES</code> in capitals. <code>SEARCH</code> also accepts the wildcards <code>?</code> and <code>*</code>. Use <code>SEARCH</code> unless case is part of what you are matching.</p>
+  <p><strong>A missing character is an error, not a zero.</strong> Both <code>FIND</code> and <code>SEARCH</code> return <code>#VALUE!</code> when the thing is not there, so any formula built on them needs wrapping: <code>=IFERROR(your_formula,"")</code>. That is covered in <a href="../excel-iferror/">IFERROR</a>.</p>
+  <p><strong>Ask for more characters than exist and you get what there is.</strong> <code>LEFT</code> and <code>RIGHT</code> do not complain if you ask for 50 characters from an eight character cell. <code>MID</code> starting past the end returns empty text. Neither is an error, so neither will tell you the data changed.</p>
+  <p><strong>Text to Columns and Flash Fill do the same job without formulas.</strong> Splitting on a delimiter once, for a one-off cleanup, is faster on the Data tab. Formulas earn their place when the file arrives again next month.</p>
+
+  <h2>Why position-based formulas break</h2>
+  <p>Every one of these functions works on positions, and a position is a fact about one particular value rather than about your data.</p>
+  <p>When you write <code>MID(A2,4,3)</code>, you are not saying "the region code". You are saying "characters four to six", and those happen to be the region code in the rows you were looking at when you wrote it. The formula has no idea what a region code is, so it cannot notice when one stops being three letters long.</p>
+  <p><code>FIND</code> changes what the formula is anchored to. It says "the part between the separators", which is a fact about the format rather than about one row. Formats change less often than values do, which is why the <code>FIND</code> version survives the day somebody adds a country with a longer code.</p>
+  <p>The general habit underneath: when a formula contains a number you counted by looking at the data, ask what makes that number true, and whether the data can stop making it true without telling you.</p>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Find every formula in your workbook with a typed position in it, like <code>MID(x,4,3)</code> or <code>LEFT(x,2)</code>. Those are the ones that break quietly.</li>
+    <li>For each one, ask whether every value in the column really has that shape. Sort the column by length with <code>=LEN()</code> and look at both ends.</li>
+    <li>Rewrite anything that fails the length test with <code>FIND</code>, or with <code>TEXTBEFORE</code> and <code>TEXTAFTER</code> if your Excel has them.</li>
+    <li>Wrap anything using <code>FIND</code> or <code>SEARCH</code> in <code>IFERROR</code>, so a missing separator shows as blank rather than as <code>#VALUE!</code> across the report.</li>
+    <li>Before debugging any failed lookup, run <code>=LEN(cell)-LEN(TRIM(cell))</code> on both sides. It takes ten seconds and it is the cause more often than anything else.</li>
+  </ol>
+  <p>If you have paper nearby, write out one of your own codes and number the characters underneath it. Then write the numbers your formulas assume. Seeing the assumed positions next to the real ones is usually enough to spot which formula is one bad export from being wrong.</p>
+
+  <h2>Cheat sheet</h2>
+  <table>
+    <tr><th>You want</th><th>Formula</th><th>Note</th></tr>
+    <tr><td>The first n characters</td><td><code>=LEFT(A2,n)</code></td><td>Counts characters, not parts</td></tr>
+    <tr><td>The last n characters</td><td><code>=RIGHT(A2,n)</code></td><td>Returns text, even for digits</td></tr>
+    <tr><td>n characters from position p</td><td><code>=MID(A2,p,n)</code></td><td>Start first, then how many</td></tr>
+    <tr><td>How long is this cell</td><td><code>=LEN(A2)</code></td><td>One argument only</td></tr>
+    <tr><td>Hidden spaces</td><td><code>=LEN(A2)-LEN(TRIM(A2))</code></td><td>Anything above 0 breaks a lookup</td></tr>
+    <tr><td>The part between two dashes</td><td><code>=MID(A2,FIND("-",A2)+1,FIND("-",A2,FIND("-",A2)+1)-FIND("-",A2)-1)</code></td><td>Survives codes of different lengths</td></tr>
+    <tr><td>The same, in Microsoft 365</td><td><code>=TEXTBEFORE(TEXTAFTER(A2,"-"),"-")</code></td><td>Readable, and newer builds only</td></tr>
+    <tr><td>A range joined with commas</td><td><code>=TEXTJOIN(", ",TRUE,A2:A20)</code></td><td>TRUE skips blanks</td></tr>
+    <tr><td>Where is this character</td><td><code>=SEARCH("x",A2)</code></td><td><code>FIND</code> for case sensitive</td></tr>
+  </table>
+
+  <h2>The one habit to keep</h2>
+  <p>Never type a position into a text formula without checking the length of the whole column first. A counted position is a promise about data you have not seen yet, and the day it breaks it returns something that looks like an answer.</p>
+
+  <p>Which code column in your workbooks comes from a system somebody else controls, and what happens to your formulas the week they add a longer code?</p>
+
+  <div class="note"><strong>Every result here was run in Excel before it was published.</strong> The WES, the -WE, the 9 and the 7, the FALSE that became TRUE, and both joined strings are real outputs.</div>
+
+  <div class="book">
+    <strong>Text cleanup is where most Excel afternoons actually go.</strong>
+    <p><em>Excel for Analysts</em> is 378 pages on the everyday work: what a cell really holds, why an import misbehaves, and the formulas that keep working when the file changes shape.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/excel-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=excel-text-functions" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-excel-text-functions'})">Excel for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Practice this where it is marked.</strong>
+    <p style="margin:6px 0 0">The <a href="../../excel/">Excel Kit</a> covers formulas, cleanup, pivot tables and charts with worked examples and a mock exam, in the browser. Text slicing and TEXTJOIN are questions 29 and 30 of the <a href="../../excel-cert/">MO-210 practice drill</a>.</p>
+    <a class="btn" href="../../excel/">Open the Excel Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="../excel-clean-messy-data/">Clean Messy Data</a> · <a href="../excel-iferror/">IFERROR</a> · <a href="../excel-paste-special/">Paste Special</a> · <a href="../excel-count-counta-countblank/">COUNT vs COUNTA vs COUNTBLANK</a> · <a href="../excel-csv-import-leading-zeros/">CSV Leading Zeros</a> · <a href="../vlookup-vs-xlookup/">VLOOKUP vs XLOOKUP</a> · <a href="../excel-dynamic-arrays/">Dynamic Arrays</a> · <a href="../../excel/">Excel Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> · <a href="../../contact.html">Contact</a> · <a href="../../privacy.html">Privacy</a> · <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
