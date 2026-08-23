@@ -69,6 +69,8 @@ const ALIASES = [
   { test: /csv-import-leading-zeros/,                 add: 'text to columns import wizard postcode postal code dropped zero product code' },
   { test: /iferror|index-match|vlookup-vs-xlookup/,   add: '#n/a #ref #value na error not found no match' },
   { test: /excel-circular-findings/,                  add: 'circular reasoning tautology begging the question not circular reference' },
+  { test: /sql-anti-join/,                             add: 'not in not exists left join is null missing rows never ordered no match unmatched except minus empty result orphan records anti join' },
+  { test: /sql-case-overlapping-conditions/,           add: 'when then else order of conditions first match wins segment segmentation buckets bands priority flags mutually exclusive unreachable branch' },
   { test: /sql-rank-vs-dense-rank/,                     add: 'tie ties tied leaderboard standings top n per group dedupe deduplicate keep latest row partition over window ntile percent_rank skipped numbers 1 1 3' },
   { test: /excel-clean-messy-data/,                   add: 'nbsp non-breaking whitespace invisible character' },
   { test: /excel-power-query/,                        add: 'get and transform m query editor unpivot refresh' },

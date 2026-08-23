@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CASE WHEN With Overlapping Conditions in SQL &mdash; Analyst Prep Kit</title>
+<meta name="description" content="When two WHEN conditions can both be true, CASE takes the first one and says nothing. Moving one line doubled the VIP count from 2 to 4 on the same ten customers. How to spot an overlap, how to test for it, and when to use flag columns instead.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-overlapping-conditions/">
+<meta property="og:title" content="CASE WHEN With Overlapping Conditions in SQL">
+<meta property="og:description" content="Two WHEN conditions that can both be true means the order is the answer. The same ten customers, one line moved, and the VIP count goes from 2 to 4.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-overlapping-conditions/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "CASE WHEN With Overlapping Conditions in SQL",
+  "description": "When two WHEN conditions can both be true, CASE takes the first one and says nothing. Moving one line doubled the VIP count from 2 to 4 on the same ten customers.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-overlapping-conditions/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-overlapping-conditions/"
+  },
+  "author": { "@type": "Person", "name": "Michael Nocito", "url": "https://michaelnocito.github.io" },
+  "publisher": { "@type": "Person", "name": "Michael Nocito" },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Analyst Prep Kit", "item": "https://michaelnocito.github.io/analyst-prep-kit/" },
+    { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/" },
+    { "@type": "ListItem", "position": 3, "name": "CASE WHEN With Overlapping Conditions", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-case-overlapping-conditions/" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What happens when two CASE WHEN conditions are both true?",
+      "acceptedAnswer": { "@type": "Answer", "text": "CASE takes the first branch that is true, in the order you wrote them, and stops. It does not warn you, it does not error, and no row is counted twice. The other true conditions are simply never reached, so the order of the WHEN lines is part of the logic rather than a matter of style." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does the order of WHEN clauses in SQL matter?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, whenever two conditions can be true for the same row. On the ten-customer table in this guide, moving the VIP rule above the new-customer rule changed the VIP count from 2 to 4 and the new count from 4 to 2. Nothing about the data changed, only the order of two lines." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I check a CASE expression for overlapping conditions?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Write one flag column per rule instead of one label, using CASE WHEN rule THEN 1 ELSE 0 END for each. Any row where two flags are 1 is a row your labelled version had to choose for. Also count rows per label: a label with zero rows usually means an earlier condition made it unreachable." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does a CASE branch return no rows at all?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Because an earlier condition already covers everything it would have matched. WHEN spend >= 100 placed above WHEN spend >= 500 makes the second branch unreachable, since every row over 500 is also over 100. The query runs, the label exists in the SQL, and it never appears in the output." }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a></p>
+  <h1>CASE WHEN With Overlapping Conditions in SQL</h1>
+  <p class="meta">Michael Nocito · Updated August 2026 · Every query on this page was run before it was published</p>
+
+  <p>This page gives you a two line test that tells you whether a <code>CASE</code> expression is quietly deciding something on your behalf. It matters because overlapping conditions do not error and do not double count. They pick one answer, and the answer is whichever line you happened to write first. On the ten customers below, moving a single line changed the VIP count from 2 to 4.</p>
+
+  <p>What you do: write one flag column per rule, then count the rows where two flags are 1. Those are the rows your labelled version had to choose for. If that number is not zero, the order of your <code>WHEN</code> lines is a business decision, and somebody should have made it on purpose.</p>
+
+  <p><strong>The short version.</strong> <code>CASE</code> stops at the first true condition. So when two conditions can both be true, the order is the logic.</p>
+
+  <figure>
+    <svg viewBox="0 0 640 200" role="img" aria-labelledby="ovdesc" xmlns="http://www.w3.org/2000/svg">
+      <desc id="ovdesc">One customer row meets two rules at once. Two overlapping circles are drawn, one labelled new and one labelled VIP, and the customer sits in the overlap where both are true. Two arrows leave the overlap, one to a box reading new and one to a box reading VIP, and only one arrow is solid. Which arrow is solid is decided by which WHEN line was written first.</desc>
+      <circle cx="150" cy="100" r="66" fill="#E0F2F7" stroke="#0E7490" opacity="0.75"/>
+      <circle cx="238" cy="100" r="66" fill="#E0F2F7" stroke="#0E7490" opacity="0.75"/>
+      <text x="112" y="105" text-anchor="middle" font-size="14" fill="#09090B">new</text>
+      <text x="276" y="105" text-anchor="middle" font-size="14" fill="#09090B">VIP</text>
+      <circle cx="194" cy="100" r="7" fill="#09090B"/>
+      <text x="194" y="182" text-anchor="middle" font-size="13" fill="#52525B">Hale</text>
+      <path d="M201 92 L 430 58" stroke="#0E7490" stroke-width="2.5" fill="none"/>
+      <path d="M201 108 L 430 142" stroke="#A1A1AA" stroke-width="2" stroke-dasharray="5 5" fill="none"/>
+      <rect x="436" y="38" width="150" height="40" rx="10" fill="#FFFFFF" stroke="#0E7490" stroke-width="2"/>
+      <text x="511" y="63" text-anchor="middle" font-size="15" fill="#09090B">new</text>
+      <rect x="436" y="122" width="150" height="40" rx="10" fill="#FFFFFF" stroke="#E4E7EA"/>
+      <text x="511" y="147" text-anchor="middle" font-size="15" fill="#A1A1AA">VIP</text>
+    </svg>
+    <figcaption>Hale meets both rules. The solid arrow is whichever WHEN came first.</figcaption>
+  </figure>
+
+  <h2>The table the examples run on</h2>
+  <p>Ten customers, three columns that matter: what they have spent, when they signed up, and when they last ordered. Today is 23 August 2026 for every calculation on this page.</p>
+  <pre><code>CREATE TABLE customers(name TEXT, spend INT, signed_on TEXT, last_order TEXT);
+
+INSERT INTO customers VALUES
+('Alvarez',1400,'2026-08-14','2026-08-20'),
+('Brennan',1250,'2025-02-03','2026-08-18'),
+('Cho',      90,'2026-08-09','2026-08-09'),
+('Diaz',    620,'2025-11-20','2026-03-02'),
+('Ellis',  2100,'2024-06-01','2026-02-11'),
+('Fowler',  310,'2026-08-01','2026-08-16'),
+('Grant',   180,'2025-09-14','2026-04-30'),
+('Hale',   1050,'2026-08-20','2026-08-21'),
+('Iyer',    460,'2025-05-05','2026-08-12'),
+('Jansen',  NULL,'2025-07-07','2026-01-15');</code></pre>
+  <p>Three segment rules, the kind any marketing team asks for. New means signed up in the last 30 days. VIP means spend of 1000 or more. At risk means no order in over 90 days. Every one of them is reasonable on its own.</p>
+
+  <h2>Two rules, one customer, and no error</h2>
+  <p>Before the query: Hale signed up on 20 August and has spent 1050. Which of the three rules does Hale meet?</p>
+  <p>Two of them. Hale is new and Hale is a VIP. Nothing in SQL objects to that, because <code>CASE</code> is not checking your rules against each other. It walks the <code>WHEN</code> lines from the top, takes the first one that is true, and stops.</p>
+  <pre><code>SELECT name, spend,
+       CASE WHEN julianday('2026-08-23') - julianday(signed_on) &lt;= 30 THEN 'new'
+            WHEN spend &gt;= 1000                                       THEN 'vip'
+            WHEN julianday('2026-08-23') - julianday(last_order) &gt; 90 THEN 'at risk'
+            ELSE 'active'
+       END AS segment
+FROM customers;</code></pre>
+  <p>Hale comes back as <strong>new</strong>. Not because Hale is more new than VIP, but because the new line is above the VIP line. That is the whole mechanism, and everything else on this page follows from it.</p>
+  <p>Two conditions that can both be true for one row are called overlapping. Two conditions that cannot are called mutually exclusive. Bands built off one column, such as under 500 and 500 or more, are mutually exclusive, and their order genuinely does not matter. Rules built off different columns almost always overlap.</p>
+
+  <h2>Move one line, and the VIP count doubles</h2>
+  <p>First: if the VIP rule moves to the top, how many of the ten customers change segment?</p>
+  <p>Two of them, Alvarez and Hale, and that is enough to change every number a stakeholder reads. Here are both orderings counted, same data, same three rules.</p>
+  <table>
+    <tr><th>Segment</th><th>New rule first</th><th>VIP rule first</th></tr>
+    <tr><td>new</td><td>4</td><td>2</td></tr>
+    <tr><td>vip</td><td>2</td><td>4</td></tr>
+    <tr><td>at risk</td><td>3</td><td>3</td></tr>
+    <tr><td>active</td><td>1</td><td>1</td></tr>
+    <tr><td><strong>Total</strong></td><td><strong>10</strong></td><td><strong>10</strong></td></tr>
+  </table>
+  <p>The total is 10 both times, which is exactly why this survives review. Nothing is missing, nothing is duplicated, and the sum reconciles. A reconciliation check cannot see this problem at all, because both answers are internally consistent. Only the split moved.</p>
+  <p>Say this one out loud before reading on: if the VIP count doubled and the total did not change, where did the two extra VIPs come from? They came from the new segment, and they were always both things.</p>
+
+  <h2>The customer both versions hide</h2>
+  <p>Before the answer: Ellis has spent 2100 and last ordered on 11 February, over six months ago. What does Ellis get called?</p>
+  <p>VIP, in both orderings. Ellis is also at risk, and no version of this labelled query will ever say so, because the VIP line comes before the at risk line in both. A high spending customer who has stopped ordering is the single most useful row in this table, and the segmentation deletes that fact.</p>
+  <p>This is what a label costs. One column can hold one answer, so the moment your rules overlap, a label is a decision about which fact survives. Write the rules as separate columns and nothing has to be thrown away.</p>
+  <pre><code>SELECT name,
+       CASE WHEN julianday('2026-08-23') - julianday(signed_on) &lt;= 30 THEN 1 ELSE 0 END AS is_new,
+       CASE WHEN spend &gt;= 1000                                        THEN 1 ELSE 0 END AS is_vip,
+       CASE WHEN julianday('2026-08-23') - julianday(last_order) &gt; 90 THEN 1 ELSE 0 END AS is_at_risk
+FROM customers;</code></pre>
+  <table>
+    <tr><th>name</th><th><code>is_new</code></th><th><code>is_vip</code></th><th><code>is_at_risk</code></th></tr>
+    <tr><td>Alvarez</td><td>1</td><td>1</td><td>0</td></tr>
+    <tr><td>Brennan</td><td>0</td><td>1</td><td>0</td></tr>
+    <tr><td>Cho</td><td>1</td><td>0</td><td>0</td></tr>
+    <tr><td>Diaz</td><td>0</td><td>0</td><td>1</td></tr>
+    <tr><td>Ellis</td><td>0</td><td>1</td><td>1</td></tr>
+    <tr><td>Fowler</td><td>1</td><td>0</td><td>0</td></tr>
+    <tr><td>Grant</td><td>0</td><td>0</td><td>1</td></tr>
+    <tr><td>Hale</td><td>1</td><td>1</td><td>0</td></tr>
+    <tr><td>Iyer</td><td>0</td><td>0</td><td>0</td></tr>
+    <tr><td>Jansen</td><td>0</td><td>0</td><td>1</td></tr>
+  </table>
+  <p>Three rows carry two 1s: Alvarez, Ellis and Hale. Those are the three rows the labelled query had to choose for, and now you can see them instead of guessing. Ellis, the churning big spender, is one line of SQL away: <code>WHERE is_vip = 1 AND is_at_risk = 1</code>.</p>
+  <p>The flags also add up honestly. Four customers are VIPs by the rule, whichever ordering you use. The label said 2 in one version and 4 in the other because a label is a ranking of your rules, not a measurement of your customers.</p>
+
+  <h2>The branch that can never run</h2>
+  <p>First: which of these two labels will never appear in the output?</p>
+  <pre><code>SELECT name, spend,
+       CASE WHEN spend &gt;= 100 THEN 'over 100'
+            WHEN spend &gt;= 500 THEN 'over 500'
+            ELSE 'small'
+       END AS band
+FROM customers;</code></pre>
+  <p><code>over 500</code>, and the query runs clean. Every customer over 500 is also over 100, so the first line takes all of them. Eight rows come back as <code>over 100</code>, two as <code>small</code>, and <code>over 500</code> is zero rows. The label exists in the SQL and never once reaches the screen.</p>
+  <p>This is the same overlap in its most obvious form, and it has an easy detection: count the rows per label. A label with zero rows is either a rule nobody in your data meets, which is worth knowing, or a rule an earlier line made unreachable, which is a defect. Both are things you want to find before somebody asks why the report has no premium tier.</p>
+  <pre><code>SELECT segment, COUNT(*) AS rows_labelled
+FROM (SELECT ..., CASE ... END AS segment FROM customers)
+GROUP BY segment
+ORDER BY rows_labelled;</code></pre>
+
+  <h2>How to test any CASE in two minutes</h2>
+  <p>Three checks, and none of them needs a tool you do not already have.</p>
+  <ol>
+    <li><strong>Count the rows per label.</strong> A zero means an unreachable branch or a rule nobody meets. A label holding almost everything usually means a condition that is looser than intended.</li>
+    <li><strong>Rewrite the rules as flags and count the overlaps.</strong> <code>SELECT COUNT(*) FROM (...) WHERE is_new + is_vip + is_at_risk &gt; 1</code> returns 3 on this table. Anything above zero means the order of your <code>WHEN</code> lines is deciding outcomes.</li>
+    <li><strong>Move the lines and rerun.</strong> If the counts change, you have the proof. If they do not, your conditions are mutually exclusive and you can stop worrying about the order in this query.</li>
+  </ol>
+  <p>Then write the priority down in the query itself, because it is the part no future reader can recover from the code. A comment naming the order and the reason costs one line and saves the argument. The format is in <a href="../sql-teaching-comments/">how to comment SQL so it teaches</a>.</p>
+  <pre><code>/* WHY: Priority order is deliberate. A customer who is both new and a VIP is
+   counted as new, because the onboarding campaign owns them for 30 days.
+   3 of 10 customers meet more than one rule, so this order is the decision. */</code></pre>
+  <p>Picture the last segmentation you shipped. Two of its rules, side by side: can one customer meet both? If you cannot answer that from memory, that is the query to run the flag check on tomorrow.</p>
+
+  <h2>Edge cases worth knowing</h2>
+  <p><strong><code>NULL</code> never matches anything, so it lands in the <code>ELSE</code>.</strong> Jansen has no spend recorded. In the band example, <code>NULL &gt;= 100</code> is neither true nor false, so Jansen falls through to <code>small</code>, which reads as "spends very little" and actually means "we do not know". Give unknown its own branch: <code>WHEN spend IS NULL THEN 'unknown'</code>, first, before anything that tests the column. There is more on this behaviour in <a href="../sql-null/">NULL in SQL</a>.</p>
+  <p><strong>No <code>ELSE</code> means <code>NULL</code>, silently.</strong> A <code>CASE</code> that runs out of conditions returns <code>NULL</code> for that row rather than raising anything. Then <code>GROUP BY</code> gives you a blank segment in the report. Always write the <code>ELSE</code>, even when you believe it is unreachable, and put something readable in it like <code>'unclassified'</code>.</p>
+  <p><strong><code>BETWEEN</code> bands overlap at the seam.</strong> <code>BETWEEN 0 AND 10</code> and <code>BETWEEN 10 AND 20</code> both contain 10. In a <code>CASE</code> that does not double count, it just quietly hands 10 to the first band. Write bands with one inclusive end, such as <code>&lt; 10</code> then <code>&lt; 20</code>, and the seam stops being a decision.</p>
+  <p><strong>Cut-offs that live in the SQL have to be changed in the SQL.</strong> If the VIP threshold moves to 1200 next quarter, every query carrying that number needs finding. Once more than two or three queries share a rule set, put the bands in a small table and join to it instead.</p>
+  <p><strong>The first-match rule is standard, not an engine quirk.</strong> PostgreSQL, MySQL, SQL Server, SQLite and Oracle all evaluate <code>WHEN</code> clauses in order and stop at the first true one. Rewriting the same <code>CASE</code> on a different engine will not change what it does.</p>
+
+  <h2>Why it works this way</h2>
+  <p><code>CASE</code> is not a set of rules being weighed. It is a chain of if statements, and the first true one returns.</p>
+  <p>That design is deliberate, and it is what makes <code>CASE</code> safe to use for guarding against errors. Because evaluation stops at the first true branch, you can write <code>WHEN denominator = 0 THEN NULL WHEN ... THEN total / denominator</code> and the division never runs on the zero. If SQL evaluated every branch and then picked, that pattern would fail.</p>
+  <p>The cost of the same design is the subject of this page. A structure that stops early cannot tell you what it skipped. Nothing in the language knows that your three rules were meant to describe three different kinds of customer, so nothing can warn you when one customer is two of them. That check is yours, and the flag columns are how you run it.</p>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Open the <code>CASE</code> you use most. For each pair of conditions, ask whether one row can satisfy both.</li>
+    <li>If any pair can, rewrite the rules as flag columns once and count the rows with more than one flag set.</li>
+    <li>Decide which fact wins, with the person who owns the metric, not alone at your desk.</li>
+    <li>Write that decision as a comment above the <code>CASE</code>, naming the priority and the reason.</li>
+    <li>Keep the flag version. Labels are for reports, flags are for questions, and the flag query is where the interesting rows live.</li>
+    <li>Do not retrofit every <code>CASE</code> in the codebase this week. Start with the ones whose numbers get published.</li>
+  </ol>
+  <p>If you have paper nearby, draw two overlapping circles for any two rules from your own work and write in the middle what kind of customer sits there. If that space has a name, it probably deserves its own label.</p>
+
+  <h2>Cheat sheet</h2>
+  <table>
+    <tr><th>Situation</th><th>What SQL does</th><th>What you do</th></tr>
+    <tr><td>Two conditions both true</td><td>Takes the first, silently</td><td>Order the <code>WHEN</code> lines on purpose and comment why</td></tr>
+    <tr><td>A branch returns zero rows</td><td>Runs clean, label never appears</td><td>Count rows per label; check for an earlier looser condition</td></tr>
+    <tr><td>The column is <code>NULL</code></td><td>No condition matches, falls to <code>ELSE</code></td><td>Put <code>WHEN col IS NULL</code> first, with its own label</td></tr>
+    <tr><td>No <code>ELSE</code> written</td><td>Returns <code>NULL</code> for unmatched rows</td><td>Always write <code>ELSE 'unclassified'</code></td></tr>
+    <tr><td>You need both facts</td><td>A label can only hold one</td><td>One flag column per rule, 1 or 0</td></tr>
+    <tr><td>Bands from one column</td><td>Genuinely mutually exclusive</td><td>Order does not matter; still write them in one direction</td></tr>
+  </table>
+
+  <h2>The one habit to keep</h2>
+  <p>Before you write a <code>CASE</code>, take any two of its conditions and ask whether one row can meet both. If the answer is yes, you are not writing a classification. You are writing a priority list, and priority lists belong to the business, not to whoever typed the query.</p>
+
+  <p>Which segment in your reporting is defined by a rule that somebody else in the company defines differently, and does anyone know which order your query applies them in?</p>
+
+  <div class="note"><strong>Every number here was run before it was published.</strong> The ten rows above are the whole dataset. Paste the <code>CREATE TABLE</code> into SQLite and you will get the same 4 and 2, the same 2 and 4, and the same three double flagged customers.</div>
+
+  <div class="book">
+    <strong>The rules are the hard part. The SQL was never the hard part.</strong>
+    <p><em>Thinking Like an Analyst</em> is 64 pages on turning a request like "show me our VIPs" into a definition that survives being questioned, which is the work this page keeps running into.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/thinking-like-an-analyst?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=sql-case-overlapping-conditions" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-sql-case-overlapping-conditions'})">Thinking Like an Analyst, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Write the CASE, do not just read about it.</strong>
+    <p style="margin:6px 0 0">Start with the syntax in <a href="../sql-case-expression/">SQL CASE WHEN explained</a>, then build a full segmentation in <a href="../sql-segment-with-case/">customer segmentation with CASE</a>. The <a href="../../sql/">SQL Kit</a> covers SELECT, WHERE, JOIN and GROUP BY with practice and a mock exam, all in the browser.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+    <p style="margin:10px 0 0;font-size:15px">Or get the reps in: <a href="../../drill/">open SQL Drill</a> and type one runnable query at a time.</p>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="../sql-case-expression/">SQL CASE WHEN</a> · <a href="../sql-segment-with-case/">Segment With CASE</a> · <a href="../sql-null/">NULL in SQL</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-rank-vs-dense-rank-vs-row-number/">RANK vs DENSE_RANK vs ROW_NUMBER</a> · <a href="../sql-teaching-comments/">Commenting SQL So It Teaches</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../../drill/">SQL Drill</a> · <a href="../../sql/">SQL Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> · <a href="../../contact.html">Contact</a> · <a href="../../privacy.html">Privacy</a> · <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

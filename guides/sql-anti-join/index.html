@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Anti-Join in SQL: NOT EXISTS vs NOT IN vs LEFT JOIN IS NULL &mdash; Analyst Prep Kit</title>
+<meta name="description" content="Three ways to find the rows with no match, and one of them returns nothing at all when the other table holds a single NULL. The same question answered three times on eight customers, plus where the filter has to sit.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-anti-join/">
+<meta property="og:title" content="The Anti-Join in SQL: NOT EXISTS vs NOT IN vs LEFT JOIN IS NULL">
+<meta property="og:description" content="Three ways to find rows with no match. One NULL in the other table takes one of them from 3 rows to 0, with no error.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/sql-anti-join/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "The Anti-Join in SQL: NOT EXISTS vs NOT IN vs LEFT JOIN IS NULL",
+  "description": "Three ways to find the rows with no match, and one of them returns nothing at all when the other table holds a single NULL.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-anti-join/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-anti-join/"
+  },
+  "author": { "@type": "Person", "name": "Michael Nocito", "url": "https://michaelnocito.github.io" },
+  "publisher": { "@type": "Person", "name": "Michael Nocito" },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Analyst Prep Kit", "item": "https://michaelnocito.github.io/analyst-prep-kit/" },
+    { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/" },
+    { "@type": "ListItem", "position": 3, "name": "The Anti-Join in SQL", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/sql-anti-join/" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is an anti-join in SQL?",
+      "acceptedAnswer": { "@type": "Answer", "text": "An anti-join returns the rows in one table that have no matching row in another. Customers who never ordered, products never sold, employees with no timesheet. There is no ANTI JOIN keyword. You write it with NOT EXISTS, with NOT IN, or with a LEFT JOIN plus a test that the right side came back empty." }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I use NOT EXISTS or NOT IN?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use NOT EXISTS. It is the only one of the two that behaves the same whether or not the other table contains NULL. NOT IN returns zero rows the moment a single NULL appears in the list it checks against, with no error and no warning. On the eight-customer table in this guide, NOT EXISTS returns 3 rows and NOT IN returns 0." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I find rows in one table that are not in another?",
+      "acceptedAnswer": { "@type": "Answer", "text": "SELECT c.* FROM customers c WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.customer_id). The subquery does not need to select anything meaningful, because EXISTS only asks whether a row came back. Match on every column of the key if the key has more than one." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my LEFT JOIN IS NULL query return nothing?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Usually because a condition on the right-hand table sits in WHERE instead of in the ON clause. The LEFT JOIN fills the right side with NULL for unmatched rows, and then WHERE o.status = 'completed' throws those rows away, because NULL does not equal completed. Move any condition on the right-hand table up into the ON clause." }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../sql/">SQL Kit</a></p>
+  <h1>The Anti-Join in SQL: NOT EXISTS vs NOT IN vs LEFT JOIN IS NULL</h1>
+  <p class="meta">Michael Nocito · Updated August 2026 · Every query on this page was run before it was published</p>
+
+  <p>Customers who never ordered. Products never sold. Records that failed to migrate. All of those are one question: which rows in this table have no match in that one. This page gives you the three ways to write it, the one you should default to, and the reason the other two go wrong. On the eight customers below, two of the three return 3 rows and one returns nothing at all.</p>
+
+  <p>What you do: write it with <code>NOT EXISTS</code>. It is the only version that behaves the same whether or not the other table contains a <code>NULL</code>, and on modern engines it is as fast as the alternatives. The rest of this page shows what the other two do, because you will meet them in code somebody else wrote.</p>
+
+  <p><strong>The short version.</strong> An anti-join keeps the rows that found nothing. <code>NOT EXISTS</code> is the safe way to ask.</p>
+
+  <figure>
+    <svg viewBox="0 0 640 210" role="img" aria-labelledby="antidesc" xmlns="http://www.w3.org/2000/svg">
+      <desc id="antidesc">Six customer rows on the left and an orders table on the right. Three of the customer rows, Alvarez, Brennan and Cho, have an arrow reaching the orders table. The other three, Diaz, Fowler and Grant, have an arrow that stops in empty space with a cross on the end. Those three are the ones an anti-join returns, and they are the rows drawn with a heavier outline.</desc>
+      <text x="70" y="26" text-anchor="middle" font-size="13" fill="#52525B">customers</text>
+      <text x="470" y="26" text-anchor="middle" font-size="13" fill="#52525B">orders</text>
+      <g font-size="13" fill="#09090B" text-anchor="middle">
+        <rect x="20" y="40" width="100" height="22" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/><text x="70" y="56">Alvarez</text>
+        <rect x="20" y="68" width="100" height="22" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/><text x="70" y="84">Brennan</text>
+        <rect x="20" y="96" width="100" height="22" rx="6" fill="#FFFFFF" stroke="#E4E7EA"/><text x="70" y="112">Cho</text>
+        <rect x="20" y="124" width="100" height="22" rx="6" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/><text x="70" y="140">Diaz</text>
+        <rect x="20" y="152" width="100" height="22" rx="6" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/><text x="70" y="168">Fowler</text>
+        <rect x="20" y="180" width="100" height="22" rx="6" fill="#E0F2F7" stroke="#0E7490" stroke-width="2"/><text x="70" y="196">Grant</text>
+      </g>
+      <rect x="420" y="40" width="100" height="78" rx="8" fill="#FFFFFF" stroke="#E4E7EA"/>
+      <g stroke="#52525B" stroke-width="1.6" fill="none">
+        <path d="M124 51 L 418 60"/><path d="M124 79 L 418 74"/><path d="M124 107 L 418 92"/>
+      </g>
+      <g stroke="#0E7490" stroke-width="2" fill="none">
+        <path d="M124 135 L 250 135"/><path d="M124 163 L 250 163"/><path d="M124 191 L 250 191"/>
+      </g>
+      <g stroke="#0E7490" stroke-width="2.5">
+        <path d="M252 128 l14 14 M266 128 l-14 14"/>
+        <path d="M252 156 l14 14 M266 156 l-14 14"/>
+        <path d="M252 184 l14 14 M266 184 l-14 14"/>
+      </g>
+    </svg>
+    <figcaption>The three rows that reach nothing are the answer.</figcaption>
+  </figure>
+
+  <h2>The two tables the examples run on</h2>
+  <p>Eight customers and eight orders. Small enough that you can work the answer out yourself before any query runs.</p>
+  <pre><code>CREATE TABLE customers(customer_id INT, name TEXT, city TEXT);
+INSERT INTO customers VALUES
+(1,'Alvarez','North'),(2,'Brennan','North'),(3,'Cho','South'),(4,'Diaz','South'),
+(5,'Ellis','North'),(6,'Fowler','South'),(7,'Grant','North'),(8,'Hale','South');
+
+CREATE TABLE orders(order_id INT, customer_id INT, amount INT, status TEXT);
+INSERT INTO orders VALUES
+(101,1,120,'completed'),(102,1, 80,'completed'),(103,2, 50,'cancelled'),
+(104,3,300,'completed'),(105,5, 90,'completed'),(106,5, 40,'cancelled'),
+(107,8,200,'completed'),(108,NULL,60,'completed');</code></pre>
+  <p>Read the order rows and the answer is there. Customers 1, 2, 3, 5 and 8 appear. Customers 4, 6 and 7 do not, which is Diaz, Fowler and Grant. So the right answer to "who never ordered" is three people.</p>
+  <p>One more thing to notice, because the whole page turns on it: order 108 has a <code>NULL</code> customer. A web form let it through, or an import dropped the key. This is not a contrived row. Lookup tables and foreign key columns in real warehouses hold <code>NULL</code> all the time.</p>
+
+  <h2>NOT EXISTS, the one to default to</h2>
+  <p>Before the query: how many rows should this return?</p>
+  <p>Three, as worked out above. <code>NOT EXISTS</code> gets it.</p>
+  <pre><code>SELECT c.name
+FROM customers c
+WHERE NOT EXISTS (SELECT 1
+                  FROM orders o
+                  WHERE o.customer_id = c.customer_id);
+-- Diaz, Fowler, Grant</code></pre>
+  <p>Read it out loud and it says what it means. For each customer, look in orders for a row with this customer's id, and keep the customer if you find none.</p>
+  <p>The <code>SELECT 1</code> looks strange the first time. It is there because <code>EXISTS</code> never looks at what the subquery selected. It only asks whether any row came back at all, so the 1 is a placeholder. You can write <code>SELECT *</code> or <code>SELECT o.order_id</code> and get exactly the same result and the same plan.</p>
+  <p>The condition that links the two tables lives inside the subquery. That is what makes it a correlated subquery: it runs against each customer row rather than once for the whole query. If your key is two columns, both go in there, joined with <code>AND</code>.</p>
+
+  <h2>NOT IN, and the single NULL that empties it</h2>
+  <p>First: the same question with <code>NOT IN</code>. One order row has a <code>NULL</code> customer. What do you expect to come back?</p>
+  <pre><code>SELECT name
+FROM customers
+WHERE customer_id NOT IN (SELECT customer_id FROM orders);</code></pre>
+  <p><strong>Zero rows.</strong> Not an error, not a warning, not two rows instead of three. Nothing at all, and the query looks completely reasonable in a code review.</p>
+  <p>Here is the mechanism. <code>NOT IN</code> asks, for each customer, "is this id different from every value in that list?" One of the values is <code>NULL</code>, and SQL cannot say whether 4 is different from an unknown value. The comparison comes back unknown. Unknown is not true, so the row is not kept. That happens for every customer, so every customer is dropped.</p>
+  <p>Say why this makes the result empty rather than merely wrong before reading on. The reason is that the unknown comparison happens for all eight customers, not just for the one order with the missing key.</p>
+  <p>You can patch it by excluding the <code>NULL</code>, and the patch does work:</p>
+  <pre><code>SELECT name
+FROM customers
+WHERE customer_id NOT IN (SELECT customer_id
+                          FROM orders
+                          WHERE customer_id IS NOT NULL);
+-- Diaz, Fowler, Grant</code></pre>
+  <p>It works today, and it goes on working until the day somebody writes the same query without the guard. That is the argument for <code>NOT EXISTS</code> as a habit rather than as a rescue. It needs no guard, so there is nothing for the next person to forget.</p>
+  <div class="note"><strong><code>NOT IN</code> against a written out list is fine.</strong> <code>WHERE status NOT IN ('cancelled','refunded')</code> has no subquery and no <code>NULL</code> to meet, so it behaves exactly as it reads. The trap is <code>NOT IN</code> against a column, because a column can hold <code>NULL</code> and a list you typed cannot.</div>
+
+  <h2>LEFT JOIN with IS NULL, the older way</h2>
+  <p>Before the query: a <code>LEFT JOIN</code> keeps every customer and fills the order columns with <code>NULL</code> when there is no match. So which customers have <code>NULL</code> in <code>o.order_id</code> afterwards?</p>
+  <p>The three who never ordered. That is the whole trick, and it gives the right answer here.</p>
+  <pre><code>SELECT c.name
+FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.customer_id
+WHERE o.order_id IS NULL;
+-- Diaz, Fowler, Grant</code></pre>
+  <p>Two rules keep this version honest.</p>
+  <p><strong>Test a column that cannot be <code>NULL</code> in the real data.</strong> Test the joined key or the other table's primary key. If you test <code>o.amount</code> and some orders genuinely have no amount recorded, those customers join fine and still come back as unmatched. The query says "never ordered" and means "never ordered, or ordered with a blank amount".</p>
+  <p><strong>Any condition on the right-hand table belongs in <code>ON</code>, not in <code>WHERE</code>.</strong> This is the one that costs people an afternoon. Ask for customers with no <em>completed</em> order and the difference shows up:</p>
+  <pre><code>-- correct: the filter is part of what counts as a match
+SELECT c.name
+FROM customers c
+LEFT JOIN orders o
+  ON o.customer_id = c.customer_id AND o.status = 'completed'
+WHERE o.order_id IS NULL;
+-- Brennan, Diaz, Fowler, Grant   (4 rows)
+
+-- broken: the filter runs after the join has already filled in NULLs
+SELECT c.name
+FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.customer_id
+WHERE o.status = 'completed' AND o.order_id IS NULL;
+-- 0 rows</code></pre>
+  <p>The broken one returns nothing for a reason worth keeping. After the join, an unmatched customer has <code>NULL</code> in every order column, so <code>o.status = 'completed'</code> is unknown for exactly the rows you were trying to keep. The <code>WHERE</code> throws them out before <code>IS NULL</code> ever gets a look.</p>
+  <p>Brennan is the interesting row in the correct version. Brennan has an order, but it was cancelled, so Brennan belongs in a list of customers who have never completed a purchase. That is usually the list the business actually wanted.</p>
+  <p>The same question in <code>NOT EXISTS</code> needs no placement rule, because there is only one place the condition can go:</p>
+  <pre><code>SELECT c.name
+FROM customers c
+WHERE NOT EXISTS (SELECT 1 FROM orders o
+                  WHERE o.customer_id = c.customer_id
+                    AND o.status = 'completed');
+-- Brennan, Diaz, Fowler, Grant</code></pre>
+  <p>Picture your own two tables for a moment. If you joined them and counted the rows, would the count go up? If it would, the <code>LEFT JOIN</code> version is doing extra work it then has to undo, which is the next section.</p>
+
+  <h2>The three side by side</h2>
+  <table>
+    <tr><th>Written as</th><th>Rows returned</th><th>Breaks when</th><th>Extra care needed</th></tr>
+    <tr><td><code>NOT EXISTS</code></td><td>3</td><td>It does not</td><td>None</td></tr>
+    <tr><td><code>NOT IN</code> (subquery)</td><td>0</td><td>The other column holds any <code>NULL</code></td><td>Guard the subquery with <code>IS NOT NULL</code>, every time</td></tr>
+    <tr><td><code>LEFT JOIN</code> + <code>IS NULL</code></td><td>3</td><td>You test a nullable column, or filter in <code>WHERE</code></td><td>Test the key; keep right-table conditions in <code>ON</code></td></tr>
+  </table>
+  <p>Same table, same question, three answers. The middle row is not a small difference. It is a report that comes back empty and gets read as "nobody is missing", which is the most convincing wrong answer a query can give.</p>
+
+  <h2>Edge cases worth knowing</h2>
+  <p><strong>Speed is not the reason to choose between them.</strong> PostgreSQL and SQL Server both recognise <code>NOT EXISTS</code> and the <code>LEFT JOIN</code> pattern and run them as the same anti-join operation, so on an indexed key the plans usually match. <code>NOT IN</code> is the one an engine often cannot turn into an anti-join, precisely because of the <code>NULL</code> rule it has to honour. Correctness and speed point the same way here, which is a rare and pleasant thing.</p>
+  <p><strong>An index on the joined column matters more than the syntax.</strong> Whichever form you pick, the anti-join reads the second table once per candidate row, so an index on <code>orders.customer_id</code> is the difference between instant and slow on a big table. There is more in <a href="../sql-indexing-for-analysts/">indexing for analysts</a>.</p>
+  <p><strong>The <code>LEFT JOIN</code> version builds rows to throw away.</strong> A customer with 400 orders produces 400 joined rows, all discarded except the check. <code>NOT EXISTS</code> can stop at the first match it finds. On small tables nobody notices, and on a wide fact table it is worth knowing which one is doing more work.</p>
+  <p><strong>Keys with more than one column work the same.</strong> Put every part in the subquery, joined with <code>AND</code>. <code>NOT IN</code> gets harder here, which is another reason it is not the default.</p>
+  <p><strong><code>EXCEPT</code> answers a slightly different question.</strong> <code>SELECT customer_id FROM customers EXCEPT SELECT customer_id FROM orders</code> also finds the missing ids, and it removes duplicates while it does so. It is neat when you want only the key column. It is awkward when you want the rest of the customer row, because the two sides must have matching columns. Oracle calls the same operator <code>MINUS</code>.</p>
+  <p><strong>An empty second table is not an edge case.</strong> If <code>orders</code> holds no rows, an anti-join correctly returns every customer. The one that surprises people is the reverse: a <code>NOT IN</code> subquery returning no rows keeps everything, which is right, while the same subquery returning one <code>NULL</code> keeps nothing.</p>
+
+  <h2>Why the NULL rule exists</h2>
+  <p>None of this is a bug or an engine quirk. SQL has three truth values rather than two: true, false, and unknown. Any comparison with <code>NULL</code> produces unknown, because <code>NULL</code> means the value is not recorded, and nothing can be proved equal or unequal to a value nobody has.</p>
+  <p><code>WHERE</code> keeps a row only when its condition is true. Unknown is not true, so unknown rows are dropped, and they are dropped just as silently as false ones. That single rule explains everything on this page: the empty <code>NOT IN</code>, the broken <code>WHERE o.status = 'completed'</code>, and the reason <code>IS NULL</code> exists as its own operator rather than as <code>= NULL</code>.</p>
+  <p><code>NOT EXISTS</code> sidesteps the whole thing by never comparing values at the top level. It asks whether a set is empty, and a set is either empty or it is not. There is no third option to leak.</p>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>Search your queries for <code>NOT IN (SELECT</code>. Every hit is either already guarded with <code>IS NOT NULL</code> or is one bad import away from returning nothing.</li>
+    <li>Rewrite those as <code>NOT EXISTS</code>. It is a mechanical change and the result is identical on clean data, which makes it easy to verify.</li>
+    <li>For any <code>LEFT JOIN</code> plus <code>IS NULL</code> you keep, check two things: the tested column cannot be <code>NULL</code> in real data, and no condition on the right table sits in <code>WHERE</code>.</li>
+    <li>Sanity check every anti-join with arithmetic. Matched plus unmatched must equal the total. Here that is 5 plus 3 equals 8.</li>
+    <li>When a result comes back empty, do not report it as "none found" until you have run the count of the whole table. Empty is a result that deserves one more query.</li>
+  </ol>
+  <p>If you have paper nearby, draw the eight customers in one column and the orders in another, then draw a line from each order to its customer. The three customers no line reaches are the answer, and the order with no line at either end is the <code>NULL</code> that empties <code>NOT IN</code>.</p>
+
+  <h2>Cheat sheet</h2>
+  <table>
+    <tr><th>You want</th><th>Write</th><th>Watch for</th></tr>
+    <tr><td>Rows with no match</td><td><code>NOT EXISTS (SELECT 1 FROM b WHERE b.k = a.k)</code></td><td>Nothing. This is the default.</td></tr>
+    <tr><td>Rows with no match, older codebase</td><td><code>LEFT JOIN b ON b.k = a.k WHERE b.k IS NULL</code></td><td>Test the key, not a nullable column</td></tr>
+    <tr><td>Rows with no match of a certain kind</td><td>Put the condition in the <code>ON</code> clause, or inside <code>NOT EXISTS</code></td><td>In <code>WHERE</code> it returns zero rows</td></tr>
+    <tr><td>Just the missing key values</td><td><code>SELECT k FROM a EXCEPT SELECT k FROM b</code></td><td>Both sides need matching columns; <code>MINUS</code> on Oracle</td></tr>
+    <tr><td>To exclude a short fixed list</td><td><code>NOT IN ('a','b')</code></td><td>Safe: a typed list holds no <code>NULL</code></td></tr>
+    <tr><td>To exclude values from a column</td><td>Use <code>NOT EXISTS</code></td><td><code>NOT IN</code> returns nothing if that column has one <code>NULL</code></td></tr>
+  </table>
+
+  <h2>The one habit to keep</h2>
+  <p>When an anti-join returns zero rows, treat it as a question rather than an answer. Count the table, count the matches, and check they add up. An empty result is the one output that looks the same whether you asked correctly or not.</p>
+
+  <p>What is the last "nobody is missing" result you reported, and was it written with <code>NOT IN</code>?</p>
+
+  <div class="note"><strong>Every number here was run before it was published.</strong> Sixteen rows, two tables. Paste them into SQLite and you will get the same 0, the same 3, and the same 4.</div>
+
+  <div class="book">
+    <strong>The empty result is not the only answer that looks right and is not.</strong>
+    <p><em>SQL for Analysts</em> is 458 pages that read queries line by line in everyday words, so a result that came back wrong has somewhere to be traced instead of being retyped until it looks better.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/sql-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=sql-anti-join" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-sql-anti-join'})">SQL for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Write the joins, do not just read about them.</strong>
+    <p style="margin:6px 0 0">The four join types and what each one keeps are in <a href="../sql-joins/">SQL JOINs explained</a>, and the <code>NULL</code> rules behind this page are in <a href="../sql-null/">NULL in SQL</a>. The <a href="../../sql/">SQL Kit</a> covers SELECT, WHERE, JOIN and GROUP BY with practice and a mock exam, all in the browser.</p>
+    <a class="btn" href="../../sql/">Open the SQL Kit →</a>
+    <p style="margin:10px 0 0;font-size:15px">Or get the reps in: <a href="../../drill/">open SQL Drill</a> and type one runnable query at a time.</p>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-null/">NULL in SQL</a> · <a href="../sql-subqueries/">SQL Subqueries</a> · <a href="../sql-find-duplicates/">Find Duplicate Rows</a> · <a href="../sql-reconciliation/">Reconciling Row Counts</a> · <a href="../sql-indexing-for-analysts/">Indexing for Analysts</a> · <a href="../sql-rank-vs-dense-rank-vs-row-number/">RANK vs DENSE_RANK vs ROW_NUMBER</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../../drill/">SQL Drill</a> · <a href="../../sql/">SQL Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> · <a href="../../contact.html">Contact</a> · <a href="../../privacy.html">Privacy</a> · <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>
