@@ -7,7 +7,11 @@ winnability (tail terms we can own beat head terms we cannot).
 
 **Status key:** ✅ = built in the 2026-08-07 batch. Everything else is open.
 
-## Excel (biggest gap: 3 guides live, 11 kit units of material)
+## Excel (STALE LIST, kept as a record. Every slug below now exists as of 2026-08-23:
+## pivot-tables, index-match, iferror, tables, clean-messy-data, dates,
+## remove-duplicates, conditional-formatting, data-validation, power-query,
+## dynamic-arrays, ifs-vs-nested-if, sumproduct, month-over-month. Check
+## `ls guides/` before treating any line here as open work.)
 1. ✅ vlookup-vs-xlookup — "vlookup vs xlookup" — Excel Unit 1
 2. ✅ excel-sumifs — "sumifs multiple criteria" — Excel Unit 1
 3. excel-pivot-tables — "how to make a pivot table" — Excel Unit 2
@@ -161,12 +165,25 @@ Ranked by how many kits the hole appears in.
    `technical-tenacity`) do not cover any of the four.
 5. **Pandas selection** — `final` p2, p3. Boolean indexing and `.loc` vs
    `.iloc`. The pandas cluster jumps from `read_csv` straight to `groupby`.
-6. **The COUNT family** — `excel-cert` q26. COUNT vs COUNTA vs COUNTBLANK.
+6. ✅ **The COUNT family** — BUILT 2026-08-23 as `excel-count-counta-countblank`,
+   wired into `excel-cert` q26. One fact: the three read different properties of a
+   cell. One worked failure: a column cleaned with `=IF(A2="","",A2)` where COUNTA
+   returns 20 and COUNTBLANK returns 5 over the same 20 cells. Also the SUM that
+   reads 48,867.50 because one date is in the column. Original note:
+   `excel-cert` q26. COUNT vs COUNTA vs COUNTBLANK.
    `excel-if-family` is IF/COUNTIF/SUMIF and does not cover the split.
-7. **Paste Special** — `excel-cert` q11, q20. Formulas to values, transpose,
+7. ✅ **Paste Special** — BUILT 2026-08-23 as `excel-paste-special`, wired into
+   `excel-cert` q11 and q20. Values, transpose, formats, column widths, the
+   multiply-by-1 fix that takes a column from SUM 0 to SUM 1,480, and the plain
+   paste that wiped a validation rule off F2 while F3 kept its own. Original note:
+   `excel-cert` q11, q20. Formulas to values, transpose,
    formats. Only mention in the library is `excel-data-validation`, where a
    paste WIPES validation rules — the opposite topic.
-8. **Excel text functions** — `excel-cert` q29, q30. MID/LEFT/RIGHT/LEN and
+8. ✅ **Excel text functions** — BUILT 2026-08-23 as `excel-text-functions`,
+   wired into `excel-cert` q29 and q30. LEFT/RIGHT/MID/LEN/TEXTJOIN with results,
+   the fixed `MID(A2,4,3)` that returns `-WE` on a longer code, the FIND version
+   and the 365 `TEXTBEFORE(TEXTAFTER(...))` version, and `LEN`-minus-`LEN(TRIM())`
+   as the first check on a failing lookup. Original note: `excel-cert` q29, q30. MID/LEFT/RIGHT/LEN and
    TEXTJOIN. Nothing exists.
 9. **Power Query profiling and query management** — `powerbi-cert` q3, q9, q13.
    Column quality/distribution defaults, reference vs duplicate, Replace/Remove
@@ -188,3 +205,20 @@ explanations already do that job.
 - New guides go in `sitemap.xml` + `guides/index.html` cards; concept guides
   do NOT get home-page Reference cards (standing pattern).
 - Tail terms over head terms (HANDOFF-seo-42-guides.md §1 is the reasoning).
+
+
+## 2026-08-23 run
+
+Three SQL guides (`sql-rank-vs-dense-rank-vs-row-number`,
+`sql-case-overlapping-conditions`, `sql-anti-join`) and the three Excel cert
+holes above. Figures from real `sqlite3` runs and, for the Excel three, from
+driving Excel over COM (`New-Object -ComObject Excel.Application`). No
+LibreOffice on this machine, so COM is the only route; headless Chrome needs a
+FULL Windows path for `--screenshot` or it fails with access denied.
+
+**After adding any guide, also add an ALIASES rule in
+`tools/build-guide-index.js`.** The generated `data-kw` strips every word already
+visible on the card, so a well-written card leaves the keyword layer almost
+empty and the search box cannot find the page by its real terms.
+
+Search-index cache version is now `?v=12` in `index.html`.
