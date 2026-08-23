@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<!-- Google AdSense (Auto ads). Overlay formats (anchor, side rail, vignette)
+     and Ad intents are switched OFF in the AdSense dashboard on purpose. -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244244607936879"
+     crossorigin="anonymous"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COUNT vs COUNTA vs COUNTBLANK in Excel &mdash; Analyst Prep Kit</title>
+<meta name="description" content="COUNT counts numbers, COUNTA counts anything that is not empty, COUNTBLANK counts the empties. On one cleaned column COUNTA says 20 and COUNTBLANK says 5 over 20 cells, and both are right. Every figure run in Excel.">
+<link rel="canonical" href="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-count-counta-countblank/">
+<meta property="og:title" content="COUNT vs COUNTA vs COUNTBLANK in Excel">
+<meta property="og:description" content="Three functions, one column, three different totals. Including the cleaned column where COUNTA says 20 and COUNTBLANK says 5 over the same 20 cells.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://michaelnocito.github.io/analyst-prep-kit/guides/excel-count-counta-countblank/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{--bg:#F5F7F8;--ink:#09090B;--muted:#52525B;--accent:#0E7490;--line:#E4E7EA;--card:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 22px 80px}
+  a{color:var(--accent)}
+  h1{font-size:32px;line-height:1.25;margin:10px 0 6px}
+  h2{font-size:21px;margin:40px 0 10px}
+  h3{font-size:17px;margin:26px 0 6px}
+  .meta{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .crumb{font-size:14px}
+  .note{background:#E0F2F7;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:15px;margin:18px 0}
+  code{background:#F1F3F5;border-radius:5px;padding:1px 6px;font-size:14.5px}
+  pre{background:#18181B;color:#F5F7F8;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:14.5px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#E0F2F7}
+  .cta{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:18px 20px;margin:34px 0}
+  .cta a.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-weight:600;margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:18px;font-size:14px;color:var(--muted)}
+  .book{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 20px;margin:26px 0;font-size:15px;line-height:1.6}
+  .book strong{display:block;margin-bottom:8px}
+  .book p{margin:0;font-size:14px;color:var(--muted)}
+  .book a.booklink{display:inline-block;margin-top:12px;font-weight:600;color:var(--accent);text-decoration:none}
+  .book a.booklink:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+</style>
+<!-- SEO:JSONLD:START -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "COUNT vs COUNTA vs COUNTBLANK in Excel",
+  "description": "COUNT counts numbers, COUNTA counts anything that is not empty, COUNTBLANK counts the empties, and a cleaned column can make the last two disagree.",
+  "url": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-count-counta-countblank/",
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-count-counta-countblank/" },
+  "author": { "@type": "Person", "name": "Michael Nocito", "url": "https://michaelnocito.github.io" },
+  "publisher": { "@type": "Person", "name": "Michael Nocito" },
+  "inLanguage": "en",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Analyst Prep Kit", "item": "https://michaelnocito.github.io/analyst-prep-kit/" },
+    { "@type": "ListItem", "position": 2, "name": "Guides", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/" },
+    { "@type": "ListItem", "position": 3, "name": "COUNT vs COUNTA vs COUNTBLANK", "item": "https://michaelnocito.github.io/analyst-prep-kit/guides/excel-count-counta-countblank/" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the difference between COUNT and COUNTA in Excel?",
+      "acceptedAnswer": { "@type": "Answer", "text": "COUNT counts cells holding a number, and dates count because a date is a number. COUNTA counts every cell that is not empty, so text, TRUE and FALSE, error values and a cell holding only a space all count. On the twenty-cell column in this guide, COUNT returns 8 and COUNTA returns 15." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does COUNT ignore my text?",
+      "acceptedAnswer": { "@type": "Answer", "text": "By design. COUNT is built to count numeric values, so names, labels and numbers stored as text are skipped. A cell holding the text 1200 is skipped too, which is the version that surprises people, because it looks identical to the real number in the cell above it. Use COUNTA when you want every filled cell." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why do COUNTA and COUNTBLANK add up to more than the number of cells?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Because a formula that returns empty text counts in both. COUNTA sees a formula in the cell and counts it as filled. COUNTBLANK sees the empty text result and counts it as blank. On a cleaned 20-cell column, COUNTA returned 20 and COUNTBLANK returned 5, which adds to 25." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I count cells that are not empty in Excel?",
+      "acceptedAnswer": { "@type": "Answer", "text": "COUNTA(range) counts filled cells including formula results that look empty. COUNTIF(range,\"<>\") counts non-empty cells and also counts those formula results. To count only cells with real visible content, use SUMPRODUCT(--(TRIM(range)<>\"\")), which returned 14 where COUNTA returned 15, because one cell held nothing but spaces." }
+    }
+  ]
+}
+</script>
+<!-- SEO:JSONLD:END -->
+</head>
+<body>
+<main>
+  <p class="crumb"><a href="../../">← All Kits</a> · <a href="../../excel/">Excel Kit</a></p>
+  <h1>COUNT vs COUNTA vs COUNTBLANK in Excel</h1>
+  <p class="meta">Michael Nocito · Updated August 2026 · Every figure on this page was run in Excel before it was published</p>
+
+  <p>This page tells you which of the three counting functions answers the question you are actually asking, and how to check a count before you put it in front of anyone. The reason it matters: on the twenty-cell column below, <code>COUNT</code> returns 8, <code>COUNTA</code> returns 15, and on the cleaned version of the same column <code>COUNTA</code> returns 20 while <code>COUNTBLANK</code> returns 5. That is 25 answers from 20 cells, and nothing is broken.</p>
+
+  <p>What you do: pick by what you mean. Numbers only is <code>COUNT</code>. Anything filled in is <code>COUNTA</code>. Empties is <code>COUNTBLANK</code>. Then run one check, <code>COUNTA</code> plus <code>COUNTBLANK</code> against the size of the range, and read what the gap tells you.</p>
+
+  <p><strong>The short version.</strong> <code>COUNT</code> counts numbers. <code>COUNTA</code> counts filled cells. <code>COUNTBLANK</code> counts empty ones.</p>
+
+  <figure>
+    <svg viewBox="0 0 640 220" role="img" aria-labelledby="cntdesc" xmlns="http://www.w3.org/2000/svg">
+      <desc id="cntdesc">The same strip of ten cells drawn three times, once for each function, with the cells that function counts filled in. The COUNT strip fills only the four cells holding numbers. The COUNTA strip fills eight cells: the numbers, the two names, the text n slash a, the cell holding only spaces, and leaves the two truly empty cells unfilled. The COUNTBLANK strip fills only those two empty cells. The cell holding spaces is filled on the COUNTA strip and not on the COUNTBLANK strip, which is the point.</desc>
+      <g font-size="12.5" fill="#52525B">
+        <text x="12" y="42">COUNT</text><text x="12" y="112">COUNTA</text><text x="12" y="182">COUNTBLANK</text>
+      </g>
+      <g font-size="11" fill="#52525B" text-anchor="middle">
+        <text x="118" y="18">1200</text><text x="166" y="18">Alvarez</text><text x="214" y="18"></text><text x="262" y="18">0</text><text x="310" y="18">45.5</text><text x="358" y="18">n/a</text><text x="406" y="18"></text><text x="454" y="18">980</text><text x="502" y="18">"  "</text><text x="550" y="18">Brennan</text>
+      </g>
+      <g stroke="#0E7490">
+        <rect x="96" y="26" width="44" height="24" rx="5" fill="#0E7490"/><rect x="144" y="26" width="44" height="24" rx="5" fill="#FFFFFF"/><rect x="192" y="26" width="44" height="24" rx="5" fill="#FFFFFF"/><rect x="240" y="26" width="44" height="24" rx="5" fill="#0E7490"/><rect x="288" y="26" width="44" height="24" rx="5" fill="#0E7490"/><rect x="336" y="26" width="44" height="24" rx="5" fill="#FFFFFF"/><rect x="384" y="26" width="44" height="24" rx="5" fill="#FFFFFF"/><rect x="432" y="26" width="44" height="24" rx="5" fill="#0E7490"/><rect x="480" y="26" width="44" height="24" rx="5" fill="#FFFFFF"/><rect x="528" y="26" width="44" height="24" rx="5" fill="#FFFFFF"/>
+        <rect x="96" y="96" width="44" height="24" rx="5" fill="#0E7490"/><rect x="144" y="96" width="44" height="24" rx="5" fill="#0E7490"/><rect x="192" y="96" width="44" height="24" rx="5" fill="#FFFFFF"/><rect x="240" y="96" width="44" height="24" rx="5" fill="#0E7490"/><rect x="288" y="96" width="44" height="24" rx="5" fill="#0E7490"/><rect x="336" y="96" width="44" height="24" rx="5" fill="#0E7490"/><rect x="384" y="96" width="44" height="24" rx="5" fill="#FFFFFF"/><rect x="432" y="96" width="44" height="24" rx="5" fill="#0E7490"/><rect x="480" y="96" width="44" height="24" rx="5" fill="#0E7490"/><rect x="528" y="96" width="44" height="24" rx="5" fill="#0E7490"/>
+        <rect x="96" y="166" width="44" height="24" rx="5" fill="#FFFFFF"/><rect x="144" y="166" width="44" height="24" rx="5" fill="#FFFFFF"/><rect x="192" y="166" width="44" height="24" rx="5" fill="#0E7490"/><rect x="240" y="166" width="44" height="24" rx="5" fill="#FFFFFF"/><rect x="288" y="166" width="44" height="24" rx="5" fill="#FFFFFF"/><rect x="336" y="166" width="44" height="24" rx="5" fill="#FFFFFF"/><rect x="384" y="166" width="44" height="24" rx="5" fill="#0E7490"/><rect x="432" y="166" width="44" height="24" rx="5" fill="#FFFFFF"/><rect x="480" y="166" width="44" height="24" rx="5" fill="#FFFFFF"/><rect x="528" y="166" width="44" height="24" rx="5" fill="#FFFFFF"/>
+      </g>
+    </svg>
+    <figcaption>Same ten cells, three answers. Watch the cell holding two spaces.</figcaption>
+  </figure>
+
+  <h2>The column the examples run on</h2>
+  <p>Twenty cells, A2 to A21, holding a response column exactly as one arrives from a form export. Numbers, names, a date, some blanks, one cell holding two spaces, one number typed as text, and a TRUE.</p>
+  <table>
+    <tr><th>Cell</th><th>Holds</th><th>Cell</th><th>Holds</th></tr>
+    <tr><td>A2</td><td>1200</td><td>A12</td><td>4 July 2026 (a date)</td></tr>
+    <tr><td>A3</td><td>Alvarez</td><td>A13</td><td>300</td></tr>
+    <tr><td>A4</td><td>empty</td><td>A14</td><td>empty</td></tr>
+    <tr><td>A5</td><td>0</td><td>A15</td><td>Cho</td></tr>
+    <tr><td>A6</td><td>45.5</td><td>A16</td><td>75</td></tr>
+    <tr><td>A7</td><td>n/a</td><td>A17</td><td>empty</td></tr>
+    <tr><td>A8</td><td>empty</td><td>A18</td><td>1200, typed as text</td></tr>
+    <tr><td>A9</td><td>980</td><td>A19</td><td>TRUE</td></tr>
+    <tr><td>A10</td><td>two spaces</td><td>A20</td><td>60</td></tr>
+    <tr><td>A11</td><td>Brennan</td><td>A21</td><td>empty</td></tr>
+  </table>
+  <p>Nothing there is unusual. Every one of those cell types turns up in real exported data, and the two that look identical on screen, A2 and A18, are the ones the counting functions disagree about.</p>
+
+  <h2>The three functions on that column</h2>
+  <p>Before the numbers: how many of the twenty cells do you think <code>COUNT</code> returns?</p>
+  <table>
+    <tr><th>Formula</th><th>Result</th><th>What it counted</th></tr>
+    <tr><td><code>=COUNT(A2:A21)</code></td><td>8</td><td>Numbers only, and the date counts as one</td></tr>
+    <tr><td><code>=COUNTA(A2:A21)</code></td><td>15</td><td>Every cell that is not empty</td></tr>
+    <tr><td><code>=COUNTBLANK(A2:A21)</code></td><td>5</td><td>Every cell that is empty</td></tr>
+    <tr><td><code>=ROWS(A2:A21)</code></td><td>20</td><td>The size of the range</td></tr>
+  </table>
+  <p>The eight numbers are 1200, 0, 45.5, 980, the date, 300, 75 and 60. The seven filled cells <code>COUNT</code> skipped are the four names and labels, the two spaces, the text 1200, and TRUE.</p>
+  <p>Here 15 plus 5 is 20, which is what you want a count to do. That relationship holds until a formula gets involved, which is the next section and the reason this page exists.</p>
+  <p>Say out loud why <code>COUNT</code> skips A18 while counting A2, when both cells show 1200. The answer is that A18 holds text that happens to look like a number, and <code>COUNT</code> is checking what the value is, not what it looks like.</p>
+
+  <h2>The cleaned column where 20 plus 5 is 25</h2>
+  <p>First: column B cleans column A with <code>=IF(A2="","",A2)</code> copied down. Twenty cells, five of them showing nothing. What does <code>COUNTA(B2:B21)</code> return?</p>
+  <p><strong>20.</strong> Every cell in B holds a formula, so every cell is filled, including the five that display nothing at all.</p>
+  <table>
+    <tr><th>Formula</th><th>Column A (typed)</th><th>Column B (cleaned by formula)</th></tr>
+    <tr><td><code>COUNT</code></td><td>8</td><td>8</td></tr>
+    <tr><td><code>COUNTA</code></td><td>15</td><td>20</td></tr>
+    <tr><td><code>COUNTBLANK</code></td><td>5</td><td>5</td></tr>
+    <tr><td><code>COUNTA + COUNTBLANK</code></td><td>20</td><td>25</td></tr>
+  </table>
+  <p>Both functions are right, and they are answering different questions. <code>COUNTA</code> asks whether the cell has anything in it, and a formula is something. <code>COUNTBLANK</code> asks whether the cell is empty or shows empty text, and it treats <code>""</code> as empty on purpose, so the everyday cleaning trick does not litter your reports with false counts.</p>
+  <p>You can watch the two disagree on one cell. <code>=COUNTBLANK(B4)</code> returns 1, and <code>=ISBLANK(B4)</code> returns FALSE. <code>ISBLANK</code> means "truly empty", and B4 is a formula, so it is not.</p>
+  <p>This is the specific failure behind a report saying 20 responses when 15 people answered. A cleaning step ran, the column looks the same, and the headline count went up by five with nobody touching the data.</p>
+
+  <h2>Count what you actually mean</h2>
+  <p>Before the list: which formula counts the cells a human would call filled, ignoring both the empty formulas and the cell holding only spaces?</p>
+  <table>
+    <tr><th>You want</th><th>Formula</th><th>On this data</th></tr>
+    <tr><td>Numbers</td><td><code>=COUNT(A2:A21)</code></td><td>8</td></tr>
+    <tr><td>Anything filled</td><td><code>=COUNTA(A2:A21)</code></td><td>15</td></tr>
+    <tr><td>Empties</td><td><code>=COUNTBLANK(A2:A21)</code></td><td>5</td></tr>
+    <tr><td>Anything filled, formulas included</td><td><code>=COUNTIF(A2:A21,"&lt;&gt;")</code></td><td>15 on A, 20 on B</td></tr>
+    <tr><td>Real visible content only</td><td><code>=SUMPRODUCT(--(TRIM(A2:A21)&lt;&gt;""))</code></td><td>14</td></tr>
+    <tr><td>Cells matching a condition</td><td><code>=COUNTIF(A2:A21,"1200")</code></td><td>2</td></tr>
+  </table>
+  <p>Two of those deserve a sentence each.</p>
+  <p><code>SUMPRODUCT(--(TRIM(A2:A21)&lt;&gt;""))</code> returns 14 where <code>COUNTA</code> returns 15. The missing one is A10, the cell holding two spaces. <code>TRIM</code> strips the spaces, the result is empty text, and the cell drops out. That is usually the number a person means by "how many did we get".</p>
+  <p><code>COUNTIF(A2:A21,"1200")</code> returns 2, counting both the real number in A2 and the text in A18. <code>COUNTIF</code> compares what things look like rather than what they are, which makes it looser than <code>COUNT</code> and occasionally more useful. It is covered alongside its siblings in <a href="../excel-if-family/">IF vs COUNTIF vs SUMIF</a>.</p>
+  <p>Picture your own data for a moment. Take one column you count regularly and ask what is in it that you have never actually looked at: exported blanks, a cleaning formula, a stray total row. The count you publish is a claim about all of it.</p>
+
+  <h2>The related trap: what SUM does to the same column</h2>
+  <p><code>=SUM(A2:A21)</code> on that column returns <strong>48,867.50</strong>. The amounts add to 2,660.50. The extra 46,207 is the date in A12, because Excel stores a date as the number of days since 1900 and 4 July 2026 is day 46,207.</p>
+  <p><code>SUM</code> ignores text, so the names cost nothing, and it ignores the text 1200 too, which quietly leaves 1200 out of a total that should have had it. One stray date inflates the answer, and one number typed as text shrinks it. Both show as clean numbers with no error anywhere. The date behaviour is covered in <a href="../excel-dates/">Excel dates</a>, and the text-number problem in <a href="../excel-clean-messy-data/">cleaning messy data</a>.</p>
+
+  <h2>Edge cases worth knowing</h2>
+  <p><strong>Errors count as filled.</strong> A cell holding <code>#N/A</code> is counted by <code>COUNTA</code> and skipped by <code>COUNT</code>. It also poisons <code>SUM</code>, unlike text. If a count and a total disagree about which rows exist, look for errors first.</p>
+  <p><strong>TRUE and FALSE count as filled, not as numbers.</strong> <code>COUNTA</code> counts them, <code>COUNT</code> does not, even though they behave as 1 and 0 in arithmetic.</p>
+  <p><strong>A space is not a blank.</strong> A10 holds two spaces. <code>COUNTA</code> counts it, <code>COUNTBLANK</code> does not, and no amount of squinting at the screen will show you which cells are like this. <code>=LEN(A10)</code> returning 2 is how you prove it.</p>
+  <p><strong><code>COUNTBLANK</code> takes one range only.</strong> <code>COUNT</code> and <code>COUNTA</code> accept up to 255 arguments, so <code>=COUNTA(A2:A21,C2:C21)</code> is fine while the same shape fails on <code>COUNTBLANK</code>. Add two <code>COUNTBLANK</code> calls together instead.</p>
+  <p><strong>A filtered range still counts the hidden rows.</strong> None of the three respect a filter. <code>=SUBTOTAL(103,A2:A21)</code> is the visible-cells version of <code>COUNTA</code>, and <code>=SUBTOTAL(102,A2:A21)</code> is the visible version of <code>COUNT</code>.</p>
+
+  <h2>Why the split exists</h2>
+  <p>Excel keeps three separate ideas in a cell: whether it is empty, what type its value is, and what it looks like on screen. The three functions each read a different one of those.</p>
+  <p><code>COUNT</code> reads the type, so it answers "how many measurements do I have", which is the question behind an average or a total. That is why <code>AVERAGE</code> on this column divides by 8 and returns 6,108.44, using the same rule and the same eight cells.</p>
+  <p><code>COUNTA</code> reads emptiness, so it answers "how many rows did somebody fill in", which is the question behind a response rate.</p>
+  <p><code>COUNTBLANK</code> reads emptiness and display together, treating a formula's empty text as blank, so it answers "how much is still missing" in the way a person looking at the sheet would.</p>
+  <p>The three only look interchangeable because on a clean column of pure numbers they agree. Data does not stay clean, and the day it stops, they stop agreeing, which is when the difference reaches a report.</p>
+
+  <h2>How to apply this to your own work</h2>
+  <ol>
+    <li>On any column you count, put <code>=COUNTA(range)+COUNTBLANK(range)</code> next to <code>=ROWS(range)</code>. Equal is normal. Higher means formulas returning empty text. Lower would mean a range you did not select fully.</li>
+    <li>If <code>COUNT</code> and <code>COUNTA</code> differ by more than you expected, the gap is your text-and-blank problem in one number. Investigate the gap, not the column.</li>
+    <li>Use <code>SUMPRODUCT(--(TRIM(range)&lt;&gt;""))</code> when the number goes in front of a person. It is the count that matches what they would get by scrolling.</li>
+    <li>Label the count in the sheet with what it counts. "Responses (filled cells)" survives being read six months later. "Count" does not.</li>
+    <li>Do not go back and change every count in every workbook. Fix the ones whose numbers are published, starting with anything anyone reconciles against.</li>
+  </ol>
+  <p>If you have paper nearby, draw twenty boxes and mark each one with what it holds from the table above. Then tick the ones each function counts, one pass per function. Three passes over the same twenty boxes teaches the split faster than any table can.</p>
+
+  <h2>Cheat sheet</h2>
+  <table>
+    <tr><th>Function</th><th>Counts</th><th>Skips</th><th>Use it for</th></tr>
+    <tr><td><code>COUNT</code></td><td>Numbers, dates, times</td><td>Text, TRUE/FALSE, errors, blanks, numbers stored as text</td><td>How many measurements</td></tr>
+    <tr><td><code>COUNTA</code></td><td>Everything that is not empty, formulas included</td><td>Truly empty cells only</td><td>How many rows were filled in</td></tr>
+    <tr><td><code>COUNTBLANK</code></td><td>Empty cells and formulas returning ""</td><td>Everything else</td><td>How much is still missing</td></tr>
+    <tr><td><code>COUNTIF</code></td><td>Cells matching a condition, by appearance</td><td>Non-matching cells</td><td>How many of a particular thing</td></tr>
+    <tr><td><code>SUBTOTAL(103,…)</code></td><td>Filled visible cells</td><td>Rows hidden by a filter</td><td>Counting what is on screen</td></tr>
+  </table>
+
+  <h2>The one habit to keep</h2>
+  <p>Put <code>COUNTA</code> plus <code>COUNTBLANK</code> beside <code>ROWS</code> on any column you report a count from. It takes ten seconds, it needs no judgment, and the one time the three do not agree it will tell you something about your data that the column itself was hiding.</p>
+
+  <p>Which number in your current workbook is a count, and would you be able to say out loud, right now, exactly which cells it includes?</p>
+
+  <div class="note"><strong>Every figure here was run in Excel before it was published.</strong> The 8, the 15, the 5, the 20 and the 25 are real outputs from the twenty-cell column described above, not worked examples.</div>
+
+  <div class="book">
+    <strong>A count is only as good as your certainty about what is in the column.</strong>
+    <p><em>Excel for Analysts</em> is 378 pages on the everyday work around that: what a cell really holds, how exports lie, and which formula answers which question.</p>
+    <a class="booklink" href="https://michaelnocito.gumroad.com/l/excel-for-analysts?utm_source=analyst-prep-kit&amp;utm_medium=guide&amp;utm_campaign=excel-count-counta-countblank" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-excel-count-counta-countblank'})">Excel for Analysts, $19 &rarr;</a>
+  </div>
+
+  <div class="cta">
+    <strong>Practice this where it is marked.</strong>
+    <p style="margin:6px 0 0">The <a href="../../excel/">Excel Kit</a> covers formulas, cleanup, pivot tables and charts with worked examples and a mock exam, in the browser. The counting family is question 26 of the <a href="../../excel-cert/">MO-210 practice drill</a>.</p>
+    <a class="btn" href="../../excel/">Open the Excel Kit →</a>
+  </div>
+
+  <div data-apk-subscribe></div>
+  <footer>
+    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="../excel-if-family/">IF, COUNTIF and SUMIF</a> · <a href="../excel-clean-messy-data/">Clean Messy Data</a> · <a href="../excel-dates/">Excel Dates</a> · <a href="../excel-text-functions/">Excel Text Functions</a> · <a href="../excel-paste-special/">Paste Special</a> · <a href="../excel-sum-of-id-trap/">The SUM of ID Trap</a> · <a href="../excel-tables/">Excel Tables vs Ranges</a> · <a href="../vlookup-vs-xlookup/">VLOOKUP vs XLOOKUP</a> · <a href="../../excel/">Excel Kit</a>
+    <p style="margin:12px 0 0">If a guide here saved you an afternoon: <a href="https://buymeacoffee.com/michaelnocito">buy me a coffee</a>.</p>
+    <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> · <a href="../../contact.html">Contact</a> · <a href="../../privacy.html">Privacy</a> · <a href="../../terms.html">Terms</a></p>
+  </footer>
+</main>
+  <script src="../../assets/apk-subscribe.js" defer></script>
+</body>
+</html>

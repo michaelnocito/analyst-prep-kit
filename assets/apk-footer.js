@@ -38,18 +38,25 @@
 
      Each fires its own GA4 event so the two funnels stay separable.
      ---------------------------------------------------------- */
+  /* Each kit maps to a Gumroad UTM link code, not to 1. gumroad.com/u/<code>
+     redirects to the product carrying that link's utm tags, and Gumroad counts
+     the click and any sale against a NAMED row in
+     gumroad.com/dashboard/utm_links. Raw utm params on the product URL only
+     ever produce an "(auto-generated)" row, which is why footer traffic was
+     unreadable. The Analyst OS gets its own code per surface, so SQL readers
+     and Excel readers do not land in the same campaign.
+     ---------------------------------------------------------- */
   var CROSS = [
-    { kits: { sql: 1, 'sql-dry-run': 1 },
+    { kits: { sql: 'tp54avpj', 'sql-dry-run': 'tp54avpj' },
       cls: 'apk-eco-pack', ev: 'comment_system_click',
-      slug: 'sql-comment-system', label: 'The SQL Comment System' },
-    { kits: { sql: 1, 'sql-dry-run': 1, excel: 1 },
+      label: 'The SQL Comment System' },
+    { kits: { sql: 'uhy9o948', 'sql-dry-run': 'uhy9o948', excel: '1ifxmp5y' },
       cls: 'apk-eco-os', ev: 'analyst_os_click',
-      slug: 'analyst-os', label: 'The Data Analyst OS' }
+      label: 'The Data Analyst OS' }
   ];
 
   var packLink = CROSS.filter(function (c) { return c.kits[kit]; }).map(function (c) {
-    return '<a class="' + c.cls + '" href="https://michaelnocito.gumroad.com/l/' + c.slug +
-      '?utm_source=analyst-prep-kit&utm_medium=kit-footer&utm_campaign=' + c.slug + '" ' +
+    return '<a class="' + c.cls + '" href="https://gumroad.com/u/' + c.kits[kit] + '" ' +
       'target="_blank" rel="noopener">' + c.label + ' ↗</a>' +
       '<span class="apk-eco-sep">·</span>';
   }).join('');
