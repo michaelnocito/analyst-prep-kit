@@ -5096,6 +5096,125 @@ async function initAuthUI(){
 }
 setTimeout(initAuthUI,600);
 </script>
+
+<!-- APK:PLAN-MODE:START
+  Plan mode (?from=plan). Ported from the SQL kit, where the same block backs
+  /plan/. A plan sitting is one lesson, not a chain: the kit will happily hand
+  the learner straight to the next lesson, and the plan says otherwise. So
+  arriving with ?from=plan does three things and nothing else. It shows one
+  persistent way back. It hides the kit's own "Lessons" exits for the sitting,
+  so there is one direction, forward. And when the lesson is finished it stops
+  the learner with a dialog and a return link carrying ?ckd=<step>, which is how
+  the plan checks the box itself. Nobody arriving any other way sees any of it.
+-->
+<script>
+(function(){
+  try{
+    var q = new URLSearchParams(location.search);
+    if(q.get('from') !== 'plan') return;
+
+    var PLAN = 'plan/';
+    var bar = document.createElement('a');
+    bar.href = PLAN;
+    bar.textContent = '\u2190 Back to your plan';
+    bar.setAttribute('aria-label','Back to your plan');
+    bar.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:16px;' +
+      'z-index:1200;background:#15803D;color:#fff;text-decoration:none;' +
+      'font:600 14px/1 system-ui,sans-serif;padding:12px 18px;border-radius:999px;' +
+      'box-shadow:0 6px 20px rgba(0,0,0,.28)';
+    document.body.appendChild(bar);
+
+    /* One direction, forward: the site nav and every "Lessons" exit go for the sitting. */
+    var css = document.createElement('style');
+    css.textContent = 'nav{display:none!important}' +
+      '[onclick*="show(\u0027lessons\u0027)"]{display:none!important}';
+    document.head.appendChild(css);
+
+    var hm = (location.hash||'').match(/^#lesson-(\d+)/);
+    var tid = hm ? +hm[1] : null;
+    if(!tid) return;
+    var ret = q.get('ret') || '';
+    var doneHref = PLAN + (/^d\d+s\d+$/.test(ret) ? '?ckd=' + encodeURIComponent(ret) : '');
+
+    function isDone(){ try { return S.lessonsDone.indexOf(tid) > -1; } catch(e){ return false; } }
+    function missCount(){ try { return ((S.misses||{})[tid]||[]).length; } catch(e){ return 0; } }
+    function lessonTitle(){
+      try { return (DATA.LESSONS.find(function(x){ return x.id === tid; })||{}).title || ''; }
+      catch(e){ return ''; }
+    }
+    if(isDone()) return;  /* already complete on arrival: there is no stop to fire */
+
+    /* The kit marks a lesson done inside its own quiz handler, and each kit does
+       it differently. Watching the saved state is the one check that works in
+       both kits and survives either of them being refactored. */
+    var t0 = Date.now(), miss0 = missCount(), fired = false;
+    var poll = setInterval(function(){
+      if(fired || !isDone()) return;
+      fired = true; clearInterval(poll);
+      var secs = Math.max(1, Math.round((Date.now() - t0) / 1000));
+      var missN = Math.max(0, missCount() - miss0);
+      var statHref = doneHref + (doneHref.indexOf('?') > -1 ? '&' : '?') + 's=' + secs + '&miss=' + missN;
+      var mins = Math.max(1, Math.round(secs / 60));
+      var statLine = 'Done in ' + mins + ' minute' + (mins === 1 ? '' : 's') +
+        (missN === 0 ? ', nothing missed. A clean run.'
+                     : ', ' + missN + (missN === 1 ? ' retry' : ' retries') + ' along the way.');
+      var lt = lessonTitle();
+      bar.href = statHref;
+      bar.textContent = '\u2713 Step done. Back to your plan';
+      bar.style.background = '#15803D';
+
+      var ov = document.createElement('div');
+      ov.style.cssText = 'position:fixed;inset:0;background:rgba(9,9,11,.5);z-index:1300;' +
+        'display:flex;align-items:center;justify-content:center;padding:20px';
+      ov.innerHTML =
+        '<div style="background:#fff;border-radius:14px;max-width:430px;padding:24px;' +
+          'font:15px/1.55 system-ui,sans-serif;color:#09090B;box-shadow:0 20px 60px rgba(9,9,11,.35)">' +
+        '<p style="font:700 19px/1.3 system-ui,sans-serif;margin:0 0 8px">Stop here. That was your plan step.</p>' +
+        '<p style="margin:0 0 6px;color:#52525B">' + (lt ? '&ldquo;' + lt + '&rdquo; is done. ' : '') +
+          'The kit will happily chain you into the next lesson, and your plan says otherwise. ' +
+          'The checklist has your next move.</p>' +
+        '<p style="margin:0 0 16px;font:600 14px/1.5 system-ui,sans-serif;color:#15803D">' + statLine + '</p>' +
+        '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+        '<a href="' + statHref + '" style="display:inline-block;background:#15803D;color:#fff;' +
+          'text-decoration:none;font:600 15px/1 system-ui,sans-serif;padding:13px 18px;' +
+          'border-radius:10px">\u2713 Back to the plan, box checked</a>' +
+        '<button type="button" style="background:none;border:0;color:#52525B;' +
+          'font:600 14px/1 system-ui,sans-serif;padding:13px 8px;cursor:pointer;' +
+          'text-decoration:underline">Stay in the kit anyway</button>' +
+        '</div></div>';
+      /* The stop has to exist for a screen reader too: dialog semantics, focus
+         moved in, Tab trapped inside, Escape closes, the page behind inert. */
+      var card = ov.firstElementChild;
+      card.setAttribute('role','dialog');
+      card.setAttribute('aria-modal','true');
+      card.setAttribute('aria-label','Plan step complete');
+      var mainEl = document.getElementById('main') || document.querySelector('main');
+      var navEl = document.querySelector('nav');
+      function closeOv(){
+        ov.remove();
+        if(mainEl) mainEl.inert = false;
+        if(navEl) navEl.inert = false;
+      }
+      ov.querySelector('button').onclick = closeOv;
+      ov.addEventListener('keydown', function(ev){
+        if(ev.key === 'Escape'){ closeOv(); return; }
+        if(ev.key !== 'Tab') return;
+        var f = Array.prototype.slice.call(ov.querySelectorAll('a,button'));
+        var at = f.indexOf(document.activeElement);
+        ev.preventDefault();
+        f[ev.shiftKey ? (at <= 0 ? f.length - 1 : at - 1)
+                      : (at >= f.length - 1 ? 0 : at + 1)].focus();
+      });
+      document.body.appendChild(ov);
+      if(mainEl) mainEl.inert = true;
+      if(navEl) navEl.inert = true;
+      ov.querySelector('a').focus();
+    }, 400);
+  }catch(e){}
+})();
+</script>
+<!-- APK:PLAN-MODE:END -->
+
 </body>
 </html>
 
