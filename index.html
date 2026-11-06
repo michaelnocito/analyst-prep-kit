@@ -651,6 +651,104 @@ footer a:hover{color:var(--accent-d)}
   <a href="terms.html">Terms of Use</a>
 </footer>
 
+<script>
+/* ── Global search: lesson + glossary index (assets/search-index.json) + app tiles from the DOM ── */
+(function(){
+  let IX=null, items=[], sel=0;
+  const pal=document.getElementById('palette'), inp=document.getElementById('pal-input'), res=document.getElementById('pal-results');
+
+  function loadIx(){
+    if(IX) return Promise.resolve(IX);
+    // v2 adds the guides. Bump this whenever the index is rebuilt, or returning
+    // visitors keep a cached copy that cannot find the new entries.
+    return fetch('assets/search-index.json?v=14').then(r=>r.json()).then(j=>{IX=j; return j;}).catch(()=>({}));
+  }
+  // Tiles removed from the hub in the trim. Still searchable.
+  const REMOVED=[{"type": "app", "title": "SQL Plan Builder", "sub": "Four questions, then a 3, 5, or 7 day run", "href": "plan/"}, {"type": "app", "title": "Excel Plan Builder", "sub": "Four questions, then a 3, 5, or 7 day run", "href": "excel/plan/"}, {"type": "app", "title": "Tableau Plan Builder", "sub": "Four questions, then a 3, 5, or 7 day run", "href": "tableau/plan/"}, {"type": "app", "title": "Tableau Desktop Foundations", "sub": "Study + 45 Qs", "href": "tableau-cert/"}, {"type": "app", "title": "Power BI PL-300", "sub": "Study + 50 Qs", "href": "powerbi-cert/"}, {"type": "app", "title": "MOS Excel Associate", "sub": "Study + 35 Qs", "href": "excel-cert/"}, {"type": "app", "title": "Docusign eSignature Admin Pro", "sub": "Study + 40 Qs", "href": "docusign-cert/"}, {"type": "app", "title": "Docusign CLM Admin Pro", "sub": "Study + 44 Qs", "href": "docusign-clm-cert/"}, {"type": "app", "title": "Docusign CLM Workflow Pro", "sub": "Study + 44 Qs", "href": "docusign-clm-workflow-cert/"}, {"type": "app", "title": "Docusign CLM Implementation Pro", "sub": "Study + 50 Qs", "href": "docusign-clm-implementation-cert/"}, {"type": "app", "title": "Docusign Org Management Pro", "sub": "Study + 40 Qs", "href": "docusign-org-cert/"}, {"type": "app", "title": "Azure Data Fundamentals DP-900", "sub": "Study + 48 Qs", "href": "azure-data-cert/"}, {"type": "app", "title": "Alteryx Foundation", "sub": "Study + 40 Qs", "href": "alteryx-cert/"}, {"type": "app", "title": "Google Analytics (GA4)", "sub": "Study + 50 Qs", "href": "ga4-cert/"}, {"type": "app", "title": "Databricks Lakehouse Fundamentals", "sub": "Study + 40 Qs", "href": "databricks-cert/"}, {"type": "app", "title": "MOS Excel Expert MO-211", "sub": "Study + 45 Qs", "href": "excel-expert-cert/"}, {"type": "app", "title": "SQL Quest", "sub": "Tower defense", "href": "https://michaelnocito.github.io/sql-quest/"}, {"type": "app", "title": "SQL for Analysts", "sub": "Every query read line by line, and practice with the answers shown.", "href": "https://michaelnocito.gumroad.com/l/sql-for-analysts?utm_source=analyst-prep-kit&utm_medium=kit-hub&utm_campaign=sql-for-analysts"}, {"type": "app", "title": "Excel for Analysts", "sub": "Formulas built from the inside out, so you can rebuild a workbook you did not write.", "href": "https://michaelnocito.gumroad.com/l/excel-for-analysts?utm_source=analyst-prep-kit&utm_medium=kit-hub&utm_campaign=excel-for-analysts"}, {"type": "app", "title": "Python for Analysts", "sub": "The Python an analyst uses: load it, clean it, group it, explain it.", "href": "https://michaelnocito.gumroad.com/l/python-for-analysts?utm_source=analyst-prep-kit&utm_medium=kit-hub&utm_campaign=python-for-analysts"}, {"type": "app", "title": "Power BI for Analysts", "sub": "Including the filter context that decides what a measure returns.", "href": "https://michaelnocito.gumroad.com/l/power-bi-for-analysts?utm_source=analyst-prep-kit&utm_medium=kit-hub&utm_campaign=power-bi-for-analysts"}, {"type": "app", "title": "Tableau for Analysts", "sub": "How Tableau thinks, so you stop dragging fields until it looks right.", "href": "https://michaelnocito.gumroad.com/l/tableau-for-analysts?utm_source=analyst-prep-kit&utm_medium=kit-hub&utm_campaign=tableau-for-analysts"}, {"type": "app", "title": "Statistics for Analysts", "sub": "The statistics that come up in analyst work, with the traps named.", "href": "https://michaelnocito.gumroad.com/l/statistics-for-analysts?utm_source=analyst-prep-kit&utm_medium=kit-hub&utm_campaign=statistics-for-analysts"}, {"type": "app", "title": "Thinking Like an Analyst", "sub": "The judgment half of the job, from a vague question to an answerable one.", "href": "https://michaelnocito.gumroad.com/l/thinking-like-an-analyst?utm_source=analyst-prep-kit&utm_medium=kit-hub&utm_campaign=thinking-like-an-analyst"}, {"type": "app", "title": "The Data Migration Playbook", "sub": "Eight stages in order, for moving a client’s records without late surprises.", "href": "https://michaelnocito.gumroad.com/l/data-migration-playbook?utm_source=analyst-prep-kit&utm_medium=kit-hub&utm_campaign=data-migration-playbook"}, {"type": "app", "title": "Charts and Visualization", "sub": "Why an honest chart still gets misread, and what to change.", "href": "https://michaelnocito.gumroad.com/l/charts-and-visualization?utm_source=analyst-prep-kit&utm_medium=kit-hub&utm_campaign=charts-and-visualization"}, {"type": "app", "title": "Forecasting for Analysts", "sub": "Making a forecast you can defend, and saying how wrong it might be.", "href": "https://michaelnocito.gumroad.com/l/forecasting-for-analysts?utm_source=analyst-prep-kit&utm_medium=kit-hub&utm_campaign=forecasting-for-analysts"}];
+  function apps(){
+    // Two shapes: .kit-card (the arcade tiles) and .skill-item rows inside the
+    // Skills / Other-ways mega cards. Harvest both so search still finds apps.
+    return Array.from(document.querySelectorAll('.kit-card, .skill-item')).map(a=>({
+      type:'app',
+      title:(a.querySelector('.kit-name')||a.querySelector('.skill-name')||{}).textContent||'',
+      sub:(a.querySelector('.kit-why')||a.querySelector('.skill-meta')||{}).textContent||'',
+      href:a.getAttribute('href')
+    })).filter(x=>x.title).concat(REMOVED);
+  }
+  function search(q){
+    q=q.trim().toLowerCase();
+    if(!q) return [];
+    const words=q.split(/\s+/);
+    const hit=s=>{s=(s||'').toLowerCase(); return words.every(w=>s.includes(w));};
+    const out=[];
+    Object.entries(IX||{}).forEach(([key,kit])=>{
+      (kit.lessons||[]).forEach(l=>{
+        if(hit(l.t)||hit(l.u)) out.push({type:'lesson', kit:kit.name, title:l.t, sub:kit.name+' · '+l.u, href:kit.path+'#lesson-'+l.id, score:hit(l.t)?2:1});
+      });
+      (kit.gloss||[]).forEach(g=>{
+        if(hit(g.t)||hit(g.d)) out.push({type:'term', kit:kit.name, title:g.t, sub:g.d, href:kit.path, score:hit(g.t)?2:0.5});
+      });
+    });
+    // Guides live in a flat top-level array, not a kit, so they are matched
+    // here rather than in the loop above (which skips them: no lessons/gloss).
+    // Built by tools/build-search-index-guides.js from guides/index.html.
+    (IX.guides||[]).forEach(g=>{
+      if(hit(g.t)||hit(g.k)) out.push({type:'guide', kit:'Guide', title:g.t, sub:g.u, href:'guides/'+g.h+'/', score:hit(g.t)?2:1});
+    });
+    apps().forEach(a=>{ if(hit(a.title)||hit(a.sub)) out.push({...a, score:hit(a.title)?2:1}); });
+    out.sort((a,b)=>b.score-a.score || a.title.length-b.title.length);
+    return out.slice(0,30);
+  }
+  function render(){
+    if(!items.length){
+      res.innerHTML='<div class="pal-empty">'+(inp.value.trim()?'No matches. Try a shorter word — "join", "pivot", "null".':'Type to search every lesson, guide, glossary term and app.')+'</div>';
+      return;
+    }
+    const groups=[['lesson','Lessons'],['guide','Guides'],['term','Glossary'],['app','Apps & games']];
+    let html='', idx=0;
+    groups.forEach(([type,label])=>{
+      const g=items.filter(i=>i.type===type);
+      if(!g.length) return;
+      html+='<div class="pal-group">'+label+'</div>';
+      g.forEach(i=>{
+        const n=items.indexOf(i);
+        html+='<a class="pal-item'+(n===sel?' sel':'')+'" data-n="'+n+'" href="'+i.href+'">'
+          +'<div class="pi-title">'+(i.kit?'<span class="pi-chip">'+i.kit.replace(' Kit','').toUpperCase()+'</span>':'')+esc(i.title)+'</div>'
+          +(i.sub?'<div class="pi-sub">'+esc(i.sub)+'</div>':'')+'</a>';
+      });
+    });
+    res.innerHTML=html;
+    const s=res.querySelector('.pal-item.sel'); if(s) s.scrollIntoView({block:'nearest'});
+  }
+  function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function open(prefill){
+    pal.classList.add('open');
+    loadIx().then(()=>{ if(inp.value.trim()){items=search(inp.value); sel=0; render();} });
+    if(prefill){inp.value=prefill; loadIx().then(()=>{items=search(prefill); sel=0; render();});}
+    inp.focus(); if(window.lucide) lucide.createIcons();
+  }
+  function close(){pal.classList.remove('open'); inp.value=''; items=[]; sel=0;}
+
+  inp.addEventListener('input',()=>{loadIx().then(()=>{items=search(inp.value); sel=0; render();});});
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'){e.preventDefault(); sel=Math.min(sel+1,items.length-1); render();}
+    else if(e.key==='ArrowUp'){e.preventDefault(); sel=Math.max(sel-1,0); render();}
+    else if(e.key==='Enter'&&items[sel]){window.location.href=items[sel].href;}
+    else if(e.key==='Escape'){close();}
+  });
+  pal.addEventListener('click',e=>{if(e.target===pal)close();});
+  document.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault(); pal.classList.contains('open')?close():open();}
+    else if(e.key==='/'&&!pal.classList.contains('open')&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault(); open();}
+  });
+  const bar=document.getElementById('searchBar');
+  if(bar){
+    bar.addEventListener('click',()=>open());
+    bar.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); open();}});
+  }
+})();
+</script>
+
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>
 // ── Theme ──
