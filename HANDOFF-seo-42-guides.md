@@ -119,8 +119,8 @@ material and Mike has done the work:
 - entity resolution for beginners, record linkage beginners
 - documenting data limitations
 
-Migration is the strongest cluster by a distance. It is also the $29 book, so
-search traffic there lands on the highest priced product.
+Migration is the strongest cluster by a distance. It is also the free Playbook, so
+search traffic there lands on the longest single guide.
 
 ### 4.3 Cluster the internal links
 

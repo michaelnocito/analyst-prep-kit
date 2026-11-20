@@ -1321,13 +1321,13 @@ It was not only copy — `apk-pass.js` genuinely re-locked premium 365 days afte
   so anyone who redeemed under the old model keeps access permanently instead of
   being locked out. Do not reintroduce an expiry check.
 - Gate copy: "for your first year" → "once · no subscription"; strike line →
-  "Pay once, keep it — nothing renews"; buy buttons → "$5.55 once" / "$11.11 once".
+  "Pay once, keep it — nothing renews"; buy buttons → "$5.55 once" / "$11.11 once". (Superseded: there is no paid pass. Everything is free.)
 - `terms.html`: all three "one year" statements → permanent; Last-updated bumped.
 - Verified in-browser: a simulated buyer with an EXPIRED legacy `apk-pass-exp`
   still reads as a member; unlock clears the stale key; zero "year" left in the
   gate HTML or on the terms page; console clean.
 
-## [1.171.0] — 2026-07-21 — Pricing model: launch price is $11.11 ONE-TIME, not monthly
+## [1.171.0] — 2026-07-21 — Pricing model: launch price is $11.11 ONE-TIME, not monthly (superseded, no paid pass)
 
 - Decision (Mike, 2026-07-21, research-backed): no subscription. Interview prep is an
   episodic need (BLS median job search 11 weeks; education subscriptions churn worst;

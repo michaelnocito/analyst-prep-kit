@@ -213,8 +213,8 @@ worth an email. Do not respond to a bad rate by making the prompt louder.
   miss is not worth the address.
 - **Do not promise a cadence Mike will not keep.** "Occasionally" is honest and
   survivable. "Weekly" is a debt.
-- One pointer per page. If a page already has a book link and a Buy Me a Coffee
-  link, adding a third ask needs a decision, not a commit.
+- One pointer per page. If a page already has a book link and its Gumroad
+  tip line, adding a third ask needs a decision, not a commit.
 - Commit as Michael Nocito, no AI trailers (`feedback_solo_authorship`).
 - **Verify on the live URL, not on a green push**
   (`feedback_verify_deploy_not_push`). Submit a real address and confirm it

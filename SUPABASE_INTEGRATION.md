@@ -132,6 +132,8 @@ async function markDone(type, idx) {
 
 In `interview/index.html`, before rendering the paid content:
 
+> Historical, not in use: the paid pass was removed.
+
 ```javascript
 async function checkInterviewAccess() {
   const user = await getCurrentUser();

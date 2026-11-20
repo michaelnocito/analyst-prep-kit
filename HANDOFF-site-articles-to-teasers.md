@@ -179,7 +179,7 @@ Every trimmed guide ends with one pointer. One, not three.
 reads `guides/<slug>/index.html` and nothing else. As originally written, this
 handoff would have deleted the same words from the book it was trying to make
 worth buying. The Playbook would have dropped from 53 pages to roughly 30, and
-the $29 listing that promises 53 pages would have become false.
+the Gumroad listing that promises 53 pages would have become false.
 
 **The fix is in and tested.** A guide can now keep its full-length text in a
 book-source file outside this repo, at
@@ -245,7 +245,7 @@ See §10.
 - **No prose was cut.** These 16 were already written at 890 to 1,500 words
   against a 700 to 1,000 target, and those counts include the footer link row
   and the references. §4 covers this: already at target, pointer only.
-- The Playbook is **published** and buyable at $29. §7 is out of date on that.
+- The Playbook is published and free on Gumroad. §7 is out of date on that.
   Checked against the live Gumroad page, not the status code.
 - The book still builds at exactly 53 pages. No regression.
 

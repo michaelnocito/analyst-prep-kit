@@ -101,4 +101,4 @@ The sentence you wrote at the top: what was its verb, and is that the chart you 
 
 *Visit the site for more beginner data analysis guides and free resources: [the full guide archive](https://michaelnocito.github.io/analyst-prep-kit/guides/) covers SQL, Excel, Power BI, Tableau, Python and statistics, and the [practice kits](https://michaelnocito.github.io/analyst-prep-kit/) run in your browser with nothing to install.*
 
-*If it was useful: [Buy Me a Coffee](https://buymeacoffee.com/michaelnocito).*
+*Always free. Help keep the lights on: [tip the author on Gumroad](https://michaelnocito.gumroad.com/) if it helped.*

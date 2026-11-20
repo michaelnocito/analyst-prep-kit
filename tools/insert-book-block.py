@@ -12,19 +12,19 @@ import io, os, re, sys
 
 ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "guides")
 
-# Prices verified against the live Gumroad listings 2026-08-09.
+# Every book is free on Gumroad ($0 minimum).
 # Page counts are the 2026-08-09 rebuild.
 BOOKS = {
-    "excel":       ("Excel for Analysts",       "excel-for-analysts",       378, "$19"),
-    "sql":         ("SQL for Analysts",         "sql-for-analysts",         458, "$19"),
-    "python":      ("Python for Analysts",      "python-for-analysts",      203, "$19"),
-    "powerbi":     ("Power BI for Analysts",    "power-bi-for-analysts",    187, "$19"),
-    "tableau":     ("Tableau for Analysts",     "tableau-for-analysts",     128, "$19"),
-    "stats":       ("Statistics for Analysts",  "statistics-for-analysts",  123, "$19"),
-    "charts":      ("Charts and Visualization", "charts-and-visualization",  42, "$12"),
-    "forecasting": ("Forecasting for Analysts", "forecasting-for-analysts",  43, "$12"),
-    "thinking":    ("Thinking Like an Analyst", "thinking-like-an-analyst",  64, "$19"),
-    "migration":   ("The Data Migration Playbook", "data-migration-playbook", 63, "$29"),
+    "excel":       ("Excel for Analysts",       "excel-for-analysts",       378),
+    "sql":         ("SQL for Analysts",         "sql-for-analysts",         458),
+    "python":      ("Python for Analysts",      "python-for-analysts",      203),
+    "powerbi":     ("Power BI for Analysts",    "power-bi-for-analysts",    187),
+    "tableau":     ("Tableau for Analysts",     "tableau-for-analysts",     128),
+    "stats":       ("Statistics for Analysts",  "statistics-for-analysts",  123),
+    "charts":      ("Charts and Visualization", "charts-and-visualization",  42),
+    "forecasting": ("Forecasting for Analysts", "forecasting-for-analysts",  43),
+    "thinking":    ("Thinking Like an Analyst", "thinking-like-an-analyst",  64),
+    "migration":   ("The Data Migration Playbook", "data-migration-playbook", 63),
 }
 
 CSS = (
@@ -42,7 +42,8 @@ BLOCK = (
  '    <p><em>{title}</em> is {pages} pages, {what}.</p>\n'
  '    <a class="booklink" href="https://michaelnocito.gumroad.com/l/{bslug}'
  '?utm_source=analyst-prep-kit&utm_medium=guide&utm_campaign={bslug}" target="_blank" rel="noopener"'
- ' onclick="if(window.gtag)gtag(\'event\',\'guide_book_click\',{{kit:\'guide-{slug}\'}})">{title}, {price} &rarr;</a>\n'
+ ' onclick="if(window.gtag)gtag(\'event\',\'guide_book_click\',{{kit:\'guide-{slug}\'}})">Download the free guide here &rarr;</a>\n'
+ '    <p class="tipline" style="font-size:13px;color:var(--muted,#52525B);margin:10px 0 0;line-height:1.6">Always free. Help keep the lights on: <a href="https://michaelnocito.gumroad.com/" target="_blank" rel="noopener">tip the author on Gumroad</a> if it helped.</p>\n'
  '  </div>\n\n'
 )
 
@@ -65,7 +66,7 @@ BATCH = {
 def main():
     fails = []
     for slug, (bkey, hook, what) in BATCH.items():
-        title, bslug, pages, price = BOOKS[bkey]
+        title, bslug, pages = BOOKS[bkey]
         path = os.path.join(ROOT, slug, "index.html")
         if not os.path.exists(path):
             fails.append((slug, "no such guide")); continue
@@ -85,7 +86,7 @@ def main():
         if not m2:
             fails.append((slug, "no cta block")); continue
         block = BLOCK.format(hook=hook, what=what, slug=slug, title=title,
-                             bslug=bslug, pages=pages, price=price)
+                             bslug=bslug, pages=pages)
         src = src[:m2.start()] + block.replace("\n", nl) + src[m2.start():]
 
         with io.open(path, "w", encoding="utf-8", newline="") as f:

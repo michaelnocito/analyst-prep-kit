@@ -1,9 +1,8 @@
-"""Put the shared subscribe block on every guide, in place of the
-Buy Me a Coffee line.
+"""Put the shared subscribe block on every guide that lacks it.
 
-One ask per page is the rule. The guides already carry a book pointer, so
-the subscribe block takes the donate link's slot rather than becoming a
-third ask (HANDOFF-email-capture.md section 8).
+The block sits after the content, before the nav footer
+(HANDOFF-email-capture.md section 8). The old donate line it once
+replaced was removed sitewide on 2026-11-20.
 
 Safe to run twice: it skips any page already carrying the block.
 
@@ -15,8 +14,6 @@ import glob
 import os
 import sys
 
-BMC = ('<p style="margin-top:10px"><a href="https://buymeacoffee.com/michaelnocito" '
-       'target="_blank" rel="noopener">Buy Me a Coffee &#9749;</a></p>')
 SLOT = '<div data-apk-subscribe></div>'
 TAG = '<script src="../../assets/apk-subscribe.js" defer></script>'
 
@@ -31,14 +28,11 @@ for path in sorted(glob.glob(os.path.join("guides", "*", "index.html"))):
     if SLOT in html:
         skipped.append(f"{name}: already has the block")
         continue
-    if BMC not in html:
-        problems.append(f"{name}: no Buy Me a Coffee line to replace")
-        continue
     if "<footer>" not in html or "</body>" not in html:
         problems.append(f"{name}: no <footer> or </body> to anchor to")
         continue
 
-    out = html.replace(BMC, "")
+    out = html
     # The block sits after the content, before the nav footer.
     out = out.replace("<footer>", SLOT + "\n  <footer>", 1)
     out = out.replace("</body>", "  " + TAG + "\n</body>", 1)

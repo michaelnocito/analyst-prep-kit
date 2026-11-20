@@ -1,6 +1,6 @@
 /* ============================================================
    Analyst Prep Kit — shared support footer.
-   Injects a Grain-styled footer (GitHub · Buy Me a Coffee · All kits)
+   Injects a Grain-styled footer (GitHub · All kits)
    into every kit page and fires a GA4 `support_click` event so we can
    see which kit drives donations. One line to include per kit:
      <script src="../assets/apk-footer.js" defer></script>
@@ -27,12 +27,12 @@
   document.head.appendChild(css);
 
   /* ----------------------------------------------------------
-     Paid cross-sells in the footer line. Both are opt-in by kit
+     Free cross-links in the footer line. Both are opt-in by kit
      rather than sitewide: a product only appears on the surfaces
      where a reader is already doing that product's work.
 
-       The SQL Comment System ($29) -> the SQL surfaces.
-       The Data Analyst OS ($49)    -> SQL and Excel, the two kits
+       The SQL Comment System -> the SQL surfaces.
+       The Data Analyst OS        -> SQL and Excel, the two kits
                                        whose readers are doing the
                                        job the OS runs workflows for.
 
@@ -67,18 +67,10 @@
     packLink +
     '<a href="https://github.com/michaelnocito/analyst-prep-kit" target="_blank" rel="noopener">GitHub</a>' +
     '<span class="apk-eco-sep">·</span>' +
-    '<a class="apk-eco-coffee" href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee ☕</a>' +
-    '<span class="apk-eco-sep">·</span>' +
     '<a href="../">← All kits</a>' +
     '<span class="apk-eco-tm">Power BI and Excel are trademarks of Microsoft; Tableau is a trademark of Salesforce. ' +
     'Used for identification only. The Analyst Prep Kit is independent and not affiliated with or endorsed by these companies.</span>';
   document.body.appendChild(f);
-
-  f.querySelector('.apk-eco-coffee').addEventListener('click', function () {
-    if (window.gtag) {
-      gtag('event', 'support_click', { kit: kit, method: 'buymeacoffee' });
-    }
-  });
 
   CROSS.forEach(function (c) {
     var a = f.querySelector('.' + c.cls);
@@ -94,72 +86,72 @@
      Book card. Sits directly above the footer on the kit hubs.
      Opt-in by path segment: a kit with no entry here gets no
      card, which is why the app shells (drill, final, simulator)
-     stay clean. Prices verified against the live Gumroad
-     listings 2026-08-09; page counts are the 2026-08-09 rebuild.
+     stay clean. Every book is free on Gumroad ($0 minimum);
+     page counts are the 2026-08-09 rebuild.
      ---------------------------------------------------------- */
   var BOOKS = {
     excel: {
-      slug: 'excel-for-analysts', title: 'Excel for Analysts', price: '$19', pages: 378,
+      slug: 'excel-for-analysts', title: 'Excel for Analysts', pages: 378,
       hook: 'You can build the pivot. The stall comes when the Grand Total does not match the source column and nothing on screen says why.',
       what: 'every formula read argument by argument in plain words, with practice questions that print the answer and the reason it is right'
     },
     sql: {
-      slug: 'sql-for-analysts', title: 'SQL for Analysts', price: '$19', pages: 458,
+      slug: 'sql-for-analysts', title: 'SQL for Analysts', pages: 458,
       hook: 'You can write a SELECT. The stall comes when somebody says join those and tell me why the totals moved.',
       what: 'every query read line by line in plain words, with practice questions that print the answer and the reason it is right'
     },
     tableau: {
-      slug: 'tableau-for-analysts', title: 'Tableau for Analysts', price: '$19', pages: 128,
+      slug: 'tableau-for-analysts', title: 'Tableau for Analysts', pages: 128,
       hook: 'The chart draws itself. The stall comes when two sheets on the same data show two different totals.',
       what: 'relationships, level of detail and table calculations worked through one decision at a time'
     },
     python: {
-      slug: 'python-for-analysts', title: 'Python for Analysts', price: '$19', pages: 203,
+      slug: 'python-for-analysts', title: 'Python for Analysts', pages: 203,
       hook: 'The notebook runs clean. The stall comes when a merge quietly doubles your row count and the code never complains.',
       what: 'pandas read line by line in plain words, with the checks that catch a bad join before it reaches a chart'
     },
     powerbi: {
-      slug: 'power-bi-for-analysts', title: 'Power BI for Analysts', price: '$19', pages: 187,
+      slug: 'power-bi-for-analysts', title: 'Power BI for Analysts', pages: 187,
       hook: 'The visual loads. The stall comes when the measure and the column give two different numbers for the same thing.',
       what: 'DAX, the star schema and filter context explained in the order the questions actually arrive'
     },
     stats: {
-      slug: 'statistics-for-analysts', title: 'Statistics for Analysts', price: '$19', pages: 123,
+      slug: 'statistics-for-analysts', title: 'Statistics for Analysts', pages: 123,
       hook: 'You have the two averages. The stall comes when somebody asks whether the gap between them is real.',
       what: 'spread, p-values, confidence intervals and A/B tests written for people who have to present the answer'
     },
     forecasting: {
-      slug: 'forecasting-for-analysts', title: 'Forecasting for Analysts', price: '$12', pages: 43,
+      slug: 'forecasting-for-analysts', title: 'Forecasting for Analysts', pages: 43,
       hook: 'The line goes up. The stall comes when somebody asks how far ahead you are willing to say that out loud.',
       what: 'moving averages, seasonality and forecast accuracy, including how to state what the number cannot tell you'
     },
     'chart-literacy': {
-      slug: 'charts-and-visualization', title: 'Charts and Visualization', price: '$12', pages: 42,
+      slug: 'charts-and-visualization', title: 'Charts and Visualization', pages: 42,
       hook: 'The chart is accurate and still reads wrong to the room.',
       what: 'picking the mark, ordering the bars and cutting the axis, with the misleads shown side by side'
     },
     viz: {
-      slug: 'charts-and-visualization', title: 'Charts and Visualization', price: '$12', pages: 42,
+      slug: 'charts-and-visualization', title: 'Charts and Visualization', pages: 42,
       hook: 'The chart is accurate and still reads wrong to the room.',
       what: 'picking the mark, ordering the bars and cutting the axis, with the misleads shown side by side'
     },
     interview: {
-      slug: 'thinking-like-an-analyst', title: 'Thinking Like an Analyst', price: '$19', pages: 64,
+      slug: 'thinking-like-an-analyst', title: 'Thinking Like an Analyst', pages: 64,
       hook: 'You know the work. The interview asks you to say it out loud in ninety seconds.',
       what: 'the reasoning behind the answer, so you can talk through a problem instead of reciting a formula'
     },
     projects: {
-      slug: 'thinking-like-an-analyst', title: 'Thinking Like an Analyst', price: '$19', pages: 64,
+      slug: 'thinking-like-an-analyst', title: 'Thinking Like an Analyst', pages: 64,
       hook: 'A finished project is not the same as a project you can explain.',
       what: 'how an analyst frames a question, checks their own work and writes up what the numbers do not settle'
     },
     path: {
-      slug: 'thinking-like-an-analyst', title: 'Thinking Like an Analyst', price: '$19', pages: 64,
+      slug: 'thinking-like-an-analyst', title: 'Thinking Like an Analyst', pages: 64,
       hook: 'Tools are the easy half. The other half is knowing which question you are answering.',
       what: 'how an analyst frames a question, checks their own work and writes up what the numbers do not settle'
     },
     guides: {
-      slug: 'thinking-like-an-analyst', title: 'Thinking Like an Analyst', price: '$19', pages: 64,
+      slug: 'thinking-like-an-analyst', title: 'Thinking Like an Analyst', pages: 64,
       hook: 'Every guide here answers one question. The habit underneath them is the same one.',
       what: 'how an analyst frames a question, checks their own work and writes up what the numbers do not settle'
     }
@@ -233,6 +225,7 @@
     'font-size:11.5px;line-height:1.55;color:var(--text,var(--txt,var(--ink,#222)));white-space:pre-wrap;word-break:break-word}' +
     '.apk-book-pg .sy{display:block;margin-top:9px;padding-top:8px;border-top:1px solid var(--border,var(--bord,var(--line,#e0d9d2)));' +
     'font-size:12px;line-height:1.5;color:var(--muted,var(--dim,var(--txt2,#6B7280)));font-style:italic}' +
+    '.apk-book-tip{margin:10px 0 0;font-size:13px;opacity:.8}' +
     '.apk-book-pg .pn{position:absolute;bottom:5px;right:10px;font-size:10px;letter-spacing:.05em;' +
     'color:var(--muted,var(--dim,var(--txt2,#6B7280)));opacity:.7}' +
     '@media(min-width:660px){.apk-book.has-pg{grid-template-columns:minmax(0,1fr) 250px;align-items:start}' +
@@ -253,7 +246,8 @@
     '<p><em>' + book.title + '</em> is ' + book.pages + ' pages, ' + book.what + '.</p>' +
     '<a class="apk-book-link" href="https://michaelnocito.gumroad.com/l/' + book.slug +
     '?utm_source=analyst-prep-kit&utm_medium=kit-hub&utm_campaign=' + book.slug + '" ' +
-    'target="_blank" rel="noopener">' + book.title + ', ' + book.price + ' &rarr;</a>' +
+    'target="_blank" rel="noopener">Download the free guide here &rarr;</a>' +
+    '<p class="apk-book-tip">Always free. Help keep the lights on: <a href=\"https://michaelnocito.gumroad.com/\" target=\"_blank\" rel=\"noopener\">tip the author on Gumroad</a> if it helped.</p>' +
     '</div>';
   document.body.insertBefore(b, f);
 

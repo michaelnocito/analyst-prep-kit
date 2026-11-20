@@ -31,7 +31,8 @@ Existing block, from `guides/sql-foundations/index.html`:
   <strong>One-line statement of the moment the reader is stuck.</strong>
   <p><em>Book Title</em> is N pages, ...</p>
   <a class="booklink" href="https://michaelnocito.gumroad.com/l/<slug>" target="_blank" rel="noopener"
-     onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-<slug>'})">Book Title, $19 &rarr;</a>
+     onclick="if(window.gtag)gtag('event','guide_book_click',{kit:'guide-<slug>'})">Download the free guide here &rarr;</a>
+<p class="tipline" style="font-size:13px;color:var(--muted,#52525B);margin:10px 0 0;line-height:1.6">Always free. Help keep the lights on: <a href="https://michaelnocito.gumroad.com/" target="_blank" rel="noopener">tip the author on Gumroad</a> if it helped.</p>
 </div>
 ```
 
@@ -56,9 +57,7 @@ Hub pages get `hub_book_click` instead of `guide_book_click`.
 | Migration | The Data Migration Playbook | data-migration-playbook |
 | Career / method | Thinking Like an Analyst | thinking-like-an-analyst |
 
-Prices, confirmed on the live listings 2026-08-09: $19 for Excel, SQL, Tableau,
-Python, Power BI, Statistics and Thinking Like an Analyst. $12 for Forecasting
-and Charts and Visualization. $29 for the Data Migration Playbook.
+All books are free on Gumroad (pay what you want, $0 minimum).
 
 Open question, verify before Batch 9: whether pack-core, pack-bi and
 pack-everything are live listings with slugs. Memory has them built and staged
@@ -80,9 +79,7 @@ but the 07-31 handoff had them unlisted.
   - `statistics/` is a meta-refresh redirect to `stats/`. The real hub is
     `stats/`, which is where the card went. It was on the excluded list by
     mistake.
-  - Prices are all confirmed off the live listings: $19 for Excel, SQL,
-    Tableau, Python, Power BI, Statistics and Thinking; $12 for Forecasting
-    and Charts; $29 for the Playbook. No more guessing needed in later batches.
+  - All books are free on Gumroad ($0 minimum). Link text: Download the free guide here.
   - **The include had no version query**, so the CDN and every returning
     visitor kept the pre-batch file. The card was live in the repo and
     invisible on the site. Now `apk-footer.js?v=2` on all 18 pages.

@@ -19,9 +19,9 @@ plus the $7 SQL prompt pack. **Zero sales, all time.**
 |---|---|---|
 | Migration Gate Sign-off Sheet | `migration-toolkit/dist/Migration-Gate-Sign-off-Sheet.xlsx` | **$0**, the list builder |
 | The Data Migration Toolkit | `migration-toolkit/dist/Data-Migration-Toolkit-{TEMPLATE,WORKED-EXAMPLE}.xlsx` | ~$39, Mike to confirm |
-| Core Analyst Pack | `analyst-prep-kit/dist/pack-core.pdf` | $39 |
-| BI Tools Pack | `analyst-prep-kit/dist/pack-bi.pdf` | $39 |
-| The Complete Analyst Library | `analyst-prep-kit/dist/pack-everything.pdf` | $79 |
+| Core Analyst Pack | `analyst-prep-kit/dist/pack-core.pdf` | Free |
+| BI Tools Pack | `analyst-prep-kit/dist/pack-bi.pdf` | Free |
+| The Complete Analyst Library | `analyst-prep-kit/dist/pack-everything.pdf` | Free |
 
 Art for all of them is built: `cover-*.png` and `thumb-*.png` in each `dist/`.
 
@@ -131,8 +131,8 @@ Sites confirmed live on 2026-07-31:
 Mike has just been set up as a content creator and can boost a post. Treat it as
 a test with a budget cap, not a channel.
 
-- **Boost the free sheet, never the $29 book.** Cold Facebook traffic converting
-  on a $29 professional PDF is unlikely. Cold traffic giving an email for a
+- **Boost the free sheet first.** The Playbook is also free, but it is a long PDF
+  and cold traffic is less likely to download it. Cold traffic giving an email for a
   useful spreadsheet is plausible. The email is the asset.
 - **Cap it at $20 to $30.** Enough to learn, small enough that a null result
   costs nothing that matters.

@@ -46,7 +46,7 @@ next marginal hour belongs outside the site.
 
 ## 3. The one thing to lead with
 
-**The Data Migration Playbook, $29.**
+**The Data Migration Playbook (free).**
 
 Not SQL. Every SQL book competes with a thousand free tutorials and Mike has no
 authority advantage there. Migration is different:
@@ -54,7 +54,7 @@ authority advantage there. Migration is different:
 - there is no shelf of data migration playbooks
 - the buyer is a consultant or implementation analyst with a company card
 - Mike has ten years of doing it, which is the credential
-- it is the highest priced single at $29
+- it is the longest single guide
 - the material is genuinely his, not a rewrite of public knowledge
 
 Everything else is secondary this month. One product, one audience, one message.

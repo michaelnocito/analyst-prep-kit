@@ -85,5 +85,4 @@ Mike is **job-hunting first** (Data Migration Specialist, close). Traffic work i
 - Repo: github.com/michaelnocito/analyst-prep-kit (local: `C:\Users\Mike\Projects\analyst-prep-kit`)
 - GA4: `G-6C09BL3WH1` (kits + BMC, one property)
 - Personal site: https://michaelnocito.github.io (separate repo)
-- BMC: buymeacoffee.com/michaelnocito
 - Related memories: `project_freemium_ecosystem`, `project_sql_prep_kit_state`, `user_mike`, `feedback_no_em_dashes`, `feedback_solo_authorship`, `feedback_broad_audience_appeal`, `project_personal_site`.

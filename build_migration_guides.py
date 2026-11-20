@@ -148,7 +148,6 @@ def page(slug, h1, seo_title, desc, meta_line, body, refs):
   %(refs)s
   <footer>
     <a href="../../">&larr; Analyst Prep Kit</a> &middot; %(others)s
-    <p style="margin-top:10px"><a href="https://buymeacoffee.com/michaelnocito" target="_blank" rel="noopener">Buy Me a Coffee &#9749;</a></p>
   </footer>
 </main>
 </body>
