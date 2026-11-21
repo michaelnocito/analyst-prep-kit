@@ -87,7 +87,7 @@ Take the headline number below and guess before you read the split. A telecom co
 
 A telecom churn analysis opens on 26.5% churn. That is true, and useless for deciding anything. Splitting the same customers by how long they had been subscribed changed the story completely. Customers in their first year churn at 47%. The loyal core churns at 10%. And 91% of that at-risk group sits on month-to-month contracts.
 
-So the company does not have a churn problem. It has a first-year problem, and that is a different budget line. The [Telco Churn project](https://github.com/michaelnocito/telco-churn-analysis) shows the split-and-compare pass in pandas, from headline average to four personas to three recommendations.
+So the company does not have a churn problem. It has a first-year problem, and that is a different budget line. The [Telco Churn dashboard](https://public.tableau.com/app/profile/michael.nocito8651/viz/TelcoCustomerChurnRiskPersonas/Story1) shows the split-and-compare result, from headline average to four personas.
 
 The habit to keep: before an average leaves your notebook, cut it by the two or three variables most likely to be hiding a different population inside it.
 

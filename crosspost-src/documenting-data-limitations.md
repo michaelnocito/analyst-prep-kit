@@ -22,7 +22,7 @@ Every serious deliverable carries a section stating what the analysis can _not_ 
 
 You can read real ones in the wild. The [Steam Hidden Gems](https://github.com/michaelnocito/steam-hidden-gems) and [Streaming Hidden Gems](https://github.com/michaelnocito/streaming-hidden-gems) projects each carry a "Scope & Assumptions" section. They state which records were excluded and why, what the source data cannot see, and which cleaning decisions carry known costs.
 
-The [Telco Churn project](https://github.com/michaelnocito/telco-churn-analysis) shows the boundary-condition flavor in one paragraph. Its personas are tenure segments read from a single snapshot, not customers followed over time. So the write-up says plainly that the pattern is directionally reliable, and that a longitudinal cohort study would be needed to firm up the projected savings. Naming that before a reader finds it is what keeps the recommendation credible.
+The Telco Churn project shows the boundary-condition flavor in one paragraph. Its personas are tenure segments read from a single snapshot, not customers followed over time. So the write-up says plainly that the pattern is directionally reliable, and that a longitudinal cohort study would be needed to firm up the projected savings. Naming that before a reader finds it is what keeps the recommendation credible.
 
 What belongs in it:
 
