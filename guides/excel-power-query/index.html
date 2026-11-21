@@ -503,6 +503,85 @@ check on the sheet:  =ROWS(LongReport)   16     four regions x four months
     <li>Karpicke, J. D., &amp; Blunt, J. R. (2011). Retrieval practice produces more learning than elaborative studying with concept mapping. <em>Science</em>, 331(6018), 772–775.</li>
   </ul>
 
+
+  <section id="excel-power-query-vs-power-pivot" class="merged">
+  <h2>Power Query or Power Pivot: Which One Does the Thing You Are Trying to Do</h2>
+  <p>Two tools, both bolted onto Excel, both with Power in the name, and they do entirely different jobs. The confusion costs people months, because the wrong one turns a fifteen minute task into a week of nested formulas.</p>
+
+  <p>What you do: everything that changes the shape of the data goes in Power Query, before it lands. Everything that measures the data goes in Power Pivot, after it lands.</p>
+
+  <p><strong>The short version.</strong> Power Query is the kitchen. Power Pivot is the till.</p>
+
+  <h3>The dividing line</h3>
+  <table>
+    <tr><th></th><th>Power Query</th><th>Power Pivot</th></tr>
+    <tr><td>When it runs</td><td>On refresh, before the data lands</td><td>When a pivot or a formula is evaluated</td></tr>
+    <tr><td>Language</td><td>M</td><td>DAX</td></tr>
+    <tr><td>Works on</td><td>Rows and columns as they arrive</td><td>Tables already loaded, and relationships</td></tr>
+    <tr><td>Where you find it</td><td>Data tab, Get and Transform</td><td>Data tab, Manage Data Model</td></tr>
+    <tr><td>Output</td><td>A table, or a connection into the model</td><td>Measures and calculated columns</td></tr>
+  </table>
+
+  <h4>Power Query is best at these four</h4>
+  <ol>
+    <li><strong>Combining files.</strong> Point it at a folder and it appends every file in it. Twelve monthly extracts become one table, and next month's file joins automatically.</li>
+    <li><strong>Unpivoting.</strong> A report with twelve month columns becomes a long table with a month column, in two clicks. This is the single highest-value thing Power Query does, because almost all awkward Excel data is wide when it should be long.</li>
+    <li><strong>Cleaning that must repeat.</strong> Trim, split, change type, remove the top four junk rows. The steps are recorded, so next month you press refresh instead of remembering.</li>
+    <li><strong>Merging tables.</strong> A proper join with a chosen join type, rather than a lookup down a column.</li>
+  </ol>
+
+  <h4>Power Pivot is best at these four</h4>
+  <ol>
+    <li><strong>Relationships.</strong> Several tables joined once in a model, rather than lookups copied into every table.</li>
+    <li><strong>Measures reused everywhere.</strong> Define Revenue once and every pivot in the file uses that definition. When it changes, it changes in one place.</li>
+    <li><strong>Calculations that respond to filters.</strong> Share of total, year to date, same period last year. These are hard in a normal pivot and natural in DAX.</li>
+    <li><strong>More rows than a worksheet holds.</strong> The model is not the grid, so the million row limit from <a href="../handle-large-datasets/#excel-row-limit">the row limit page</a> does not apply.</li>
+  </ol>
+
+  <div class="note"><strong>The rule that resolves most arguments.</strong> If the answer changes when the user clicks a slicer, it is a measure and belongs in Power Pivot. If it is fixed the moment the data lands, do it in Power Query, where it is computed once instead of on every recalculation.</div>
+
+  <h3>The order of operations</h3>
+  <p>Power Query, then the Data Model, then measures, then the pivot. That order is not a preference, it is the flow of the data, and building against it is where slow workbooks come from.</p>
+  <pre><code>Source file  ->  Power Query (clean, reshape, combine)
+             ->  Data Model (tables plus relationships)
+             ->  DAX measures
+             ->  PivotTable / chart on the sheet</code></pre>
+  <p>The classic mistake is loading raw data to a sheet, then bolting 200,000 <code>SUMIFS</code> onto it. Every one of those recalculates constantly. Move the same work up into the query and it happens once per refresh.</p>
+
+  <h3>Which one fixes your problem</h3>
+  <table>
+    <tr><th>Problem</th><th>Tool</th></tr>
+    <tr><td>Twelve files to append every month</td><td>Power Query, from folder</td></tr>
+    <tr><td>Month names spread across columns</td><td>Power Query, unpivot</td></tr>
+    <tr><td>Same lookup pasted into four tables</td><td>Power Pivot, one relationship</td></tr>
+    <tr><td>Percent of total that respects slicers</td><td>Power Pivot, DAX measure</td></tr>
+    <tr><td>Workbook takes two minutes to open</td><td>Power Query, move work into the load</td></tr>
+    <tr><td>File is 3 million rows</td><td>Power Query into the model, no worksheet</td></tr>
+    <tr><td>Need last year's value beside this year's</td><td>Power Pivot, time intelligence</td></tr>
+    <tr><td>Ten junk rows at the top of every export</td><td>Power Query, remove top rows</td></tr>
+  </table>
+
+  <h3>Getting started with each</h3>
+  <p><strong>Power Query.</strong> Data, Get Data, From File. Do one transform, then look at the Applied Steps list on the right. That list is the whole idea: a recorded, editable, re-runnable recipe. Delete a step and the data goes back.</p>
+  <p><strong>Power Pivot.</strong> Data, Manage Data Model. Add tables, drag a key from one to another to build a relationship, then create a measure with <code>Revenue := SUM(Sales[Amount])</code>. If a measure returns the same number in every row of a pivot, the relationship is missing or pointing the wrong way.</p>
+
+  <h3>How to apply this to your own work</h3>
+  <ol>
+    <li>Open your slowest workbook and count the formulas that repeat down a column. Those are candidates for the query step.</li>
+    <li>Take the monthly file-combining job you do by hand and rebuild it as a folder query once. It pays for itself the first month.</li>
+    <li>Find any lookup column you have pasted into more than one table and replace it with a relationship.</li>
+    <li>Write down your three most-used calculations and turn them into measures with names people can say out loud.</li>
+    <li>After each change, refresh and check a total against the old version. Moving work between layers is exactly where numbers quietly shift.</li>
+  </ol>
+
+  <h3>The one habit to keep</h3>
+  <p>Ask where a calculation belongs before you write it. Load time or read time. That single question keeps the model clean and it is the same question you will answer again in Power BI, where the two tools are the same two tools with different names on the tabs.</p>
+
+  <p>What is the oldest repeated cleaning job in your week, and could a query do it once?</p>
+
+  <div class="note"><strong>Written from the tools as they ship.</strong> Power Query is Get and Transform on the Data tab in Excel 2016 and later; Power Pivot is Manage Data Model in the same tab.</div>
+  </section>
+
   <div class="book">
     <strong>The cleanup worked once, and next month you have to do all of it again by hand.</strong>
     <p><em>Excel for Analysts</em> is 378 pages, Power Query steps written out one at a time, so a refresh replaces the whole manual pass.</p>

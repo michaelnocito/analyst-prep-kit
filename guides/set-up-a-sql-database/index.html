@@ -138,7 +138,7 @@
 
   <p>You do not need to bring your own data. Step 1 gives you a file to download, and every query in this guide runs against it.</p>
 
-  <p>If you are still weighing up which engine to put on your machine, the one-question version of that decision is in <a href="../which-sql-database-to-install/">which SQL database should you install</a>. Everyone else can start at step 1.</p>
+  <p>If you are still weighing up which engine to put on your machine, the one-question version of that decision is in <a href="#which-sql-database-to-install">which SQL database should you install</a>. Everyone else can start at step 1.</p>
 
   <div class="toc">
     <strong>What you'll do</strong>
@@ -241,6 +241,186 @@
 
   <div class="note"><strong>More detail on this, and more like it.</strong> Every how-to sits in one place on the <a href="../">guides index</a>: SQL, Tableau, data migration, and the working habits around them.</div>
 
+
+  <section id="database-setup-for-analysts" class="merged">
+  <h2>Database Setup for Analysts: Which One, Installed How, and What to Do First</h2>
+  <p>Every analyst eventually needs a database of their own: somewhere to put a file that outgrew Excel, somewhere to practise, somewhere to keep a table that four spreadsheets currently disagree about.</p>
+
+  <p>What you do: pick by how fast you need to be querying, not by which name looks most professional on a CV. The SQL is nearly the same in all of them.</p>
+
+  <p><strong>The short version.</strong> Start with SQLite. Add DuckDB when the files get big. Learn Postgres when a job asks for it.</p>
+
+  <h3>The four options</h3>
+  <table>
+    <tr><th>Option</th><th>Minutes to first query</th><th>Genuinely for</th><th>Cost</th></tr>
+    <tr><td>SQLite</td><td>5</td><td>Learning, personal projects, one-file datasets</td><td>Free, no install on most systems</td></tr>
+    <tr><td>DuckDB</td><td>5</td><td>Analytical queries over large CSV and Parquet</td><td>Free</td></tr>
+    <tr><td>PostgreSQL</td><td>45</td><td>Anything with users, or a real application</td><td>Free, but it is a server</td></tr>
+    <tr><td>Hosted free tier</td><td>15</td><td>Sharing with someone else, or a portfolio piece</td><td>Free tier, then paid</td></tr>
+  </table>
+
+  <h4>SQLite</h4>
+  <p>A database is a single file. No server, no account, no port. Python ships with it, so <code>import sqlite3</code> works with nothing installed, and DB Browser for SQLite gives you a free graphical client if you would rather click than type.</p>
+  <p>The SQL is standard enough that everything you learn transfers. The things it does not have are the things a learner does not need yet: user accounts, concurrent writers, strict types.</p>
+
+  <h4>DuckDB</h4>
+  <p>Also a single file, also no server, and built for exactly the work analysts do: aggregate a lot of rows. It reads CSV and Parquet directly, so a large file can be queried before any import happens at all. If a file has beaten Excel, this is usually the shortest route to an answer, as in <a href="../handle-large-datasets/#open-a-large-csv">opening a large CSV</a>.</p>
+
+  <h4>PostgreSQL</h4>
+  <p>A proper database server. Users, permissions, concurrency, extensions, and the closest free thing to what a company runs. It is the right choice if you are working towards analytics engineering, and it is more setup than a beginner needs on day one. Step by step in <a href="../install-postgresql-for-beginners/">installing PostgreSQL</a>.</p>
+
+  <h4>A hosted free tier</h4>
+  <p>Supabase, Neon, Railway and similar give you a Postgres instance in a browser. Useful when something else needs to reach the database, or when a portfolio project should have a live link. The cautions are the ordinary ones: free tiers pause or expire, and anything you upload leaves your machine, so nothing confidential goes there.</p>
+
+  <div class="note"><strong>Almost nobody needs to install MySQL or SQL Server to learn.</strong> Both are excellent and both are servers, with the same setup cost as Postgres and no advantage for a person learning alone. Install the one your employer uses when your employer uses it.</div>
+
+  <h3>The five-minute SQLite start</h3>
+  <pre><code>python
+&gt;&gt;&gt; import sqlite3
+&gt;&gt;&gt; con = sqlite3.connect('analysis.db')
+&gt;&gt;&gt; con.execute("CREATE TABLE orders(order_id INT, region TEXT, amount INT)")
+&gt;&gt;&gt; con.execute("INSERT INTO orders VALUES (101,'North',120)")
+&gt;&gt;&gt; con.commit()
+&gt;&gt;&gt; con.execute("SELECT COUNT(*), SUM(amount) FROM orders").fetchall()
+[(1, 120)]</code></pre>
+  <p><code>commit()</code> is the line beginners miss. Without it the insert is not saved, and the table looks empty next time you connect.</p>
+  <p>For a graphical route: install DB Browser for SQLite, File, New Database, then File, Import, Table from CSV file. That covers the whole loop without typing any SQL, which is a reasonable way to start.</p>
+
+  <h3>The first five things to do once it runs</h3>
+  <ol>
+    <li><strong>Load one real file</strong> you actually care about. Practice data teaches syntax; your own data teaches analysis. The load step is in <a href="../csv-to-database-first-load/">loading your first CSV</a>.</li>
+    <li><strong>Count the rows</strong> and compare with the source. Every project starts here.</li>
+    <li><strong>Check the types.</strong> A column of numbers imported as text will sort 100 before 20 and sum to nothing.</li>
+    <li><strong>Write five questions in English</strong> before writing any SQL, then answer them one at a time.</li>
+    <li><strong>Save the queries in a file</strong>, with comments. A query you cannot find again was practice, not work.</li>
+  </ol>
+
+  <h3>Where the data goes</h3>
+  <p>Three habits that save a bad afternoon later:</p>
+  <ul>
+    <li>Keep the database file and the raw source files in the same project folder, with the raw files never edited.</li>
+    <li>Back up the database file by copying it. For SQLite and DuckDB that is the entire backup procedure.</li>
+    <li>Do not put a database file in a syncing folder that could write to it from two machines. That is how a file gets corrupted.</li>
+  </ul>
+
+  <h3>How to apply this to your own work</h3>
+  <ol>
+    <li>Install SQLite today and load one CSV you already use. Twenty minutes end to end.</li>
+    <li>Add DuckDB the first time a file is too big for Excel, rather than the third time.</li>
+    <li>Check the job adverts you are aiming at, and learn Postgres if they name it.</li>
+    <li>Keep a queries file per project from the start, so nothing has to be rewritten from memory.</li>
+    <li>Reconcile every load against a row count. It is the check that catches everything else.</li>
+  </ol>
+
+  <h3>The one habit to keep</h3>
+  <p>Load your own data early. A database with practice data in it teaches syntax. A database with your own data in it starts answering questions somebody is asking you, which is the point at which the tool stops being homework.</p>
+
+  <p>What is the file you would load first, if you had a database this afternoon?</p>
+
+  <div class="note"><strong>Written from the tools as they ship.</strong> Python includes sqlite3 in the standard library; DB Browser for SQLite, DuckDB and PostgreSQL are all free downloads.</div>
+  </section>
+
+
+  <section id="which-sql-database-to-install" class="merged">
+  <h2>Which SQL Database Should You Install?</h2>
+  <p class="byline" style="color:#52525B;font-size:14px;margin:-2px 0 18px">By <a href="../../about.html" rel="author" style="color:#0E7490">Michael Nocito</a>, data analyst · Published <time datetime="2026-08-07">August 7, 2026</time></p>
+
+  <p>If you want to write SQL against your own data today, install a file-based engine: <strong>SQLite</strong> if you are learning, <strong>DuckDB</strong> if your data is already in CSV files. Both give you the whole SQL language. Neither has a server to start, a port to open, or a password to set.</p>
+
+  <p>Install a server such as PostgreSQL, MySQL or SQL Server when, and only when, more than one person or program needs to read and write the same data at the same time. That is the whole decision. The rest of this page shows you how to check which side of it you are on, so you can stop reading in two minutes and go write a query.</p>
+
+  <div class="note"><strong>The short version.</strong> A file-based database is a file you open. A server database is a program you run. If nobody else is connecting to your data, you do not need the program.</div>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>The question that decides it</li>
+      <li>What "a file" and "a server" actually mean</li>
+      <li>SQLite, and why you may already have it</li>
+      <li>DuckDB, if your data is CSV files</li>
+      <li>When you genuinely do need a server</li>
+      <li>Does the SQL you learn transfer?</li>
+      <li>Cheat sheet</li>
+    </ol>
+  </div>
+
+  <h3>The question that decides it</h3>
+  <p>Before the answer: think about the data you want to query right now. How many people, other than you, need to change it while you are looking at it?</p>
+
+  <p>Here is the fork, laid out.</p>
+
+  <p><strong>The question.</strong> Does anything other than you need to read and write this data at the same time as you?</p>
+
+  <p><strong>Answer one: no.</strong> It is your data, on your machine, and you are the only one touching it. If that is true, a database that is a single file does everything you need. You skip accounts, ports, services and permissions, because there is nobody to keep out and nothing to coordinate.</p>
+
+  <p><strong>Answer two: yes.</strong> An application writes to it, or a team queries it, or it has to be reachable from another machine. If that is true, you need a server, because something has to sit in the middle and decide what happens when two callers arrive at once.</p>
+
+  <p><strong>What decides between them</strong> is not the size of your data and not how serious the work is. It is only whether there is a second caller.</p>
+
+  <p><strong>Why it matters</strong> is that installing a server first is where most people stall. Setting up PostgreSQL means a service, a superuser, a port, a client, and a connection string, and none of that teaches you any SQL. People spend an evening on it, hit an authentication error, and never get to the query. Starting with a file means your first <code>SELECT</code> runs in about fifteen minutes.</p>
+
+  <h3>What "a file" and "a server" actually mean</h3>
+  <p>These two words do a lot of work, so here is what each one is.</p>
+
+  <p><strong>A file-based database is a library your program loads.</strong> The engine runs inside whatever you are already running, and the whole database, tables and rows and indexes, is one file on disk. You can copy that file to a USB stick, email it, or put it in a folder. Nothing is running when you are not using it.</p>
+
+  <p><strong>A server database is a separate program that stays running.</strong> It starts when your computer starts and waits for connections. Your query does not read the data itself. It sends a request to that program, over a network connection, and the program reads the data and sends rows back.</p>
+
+  <p>Every difference people list between the two comes out of that one structural fact. Say why a server needs user accounts before reading on. It needs them because it accepts connections from callers it cannot see, so it has to be able to tell them apart. A file has no callers to tell apart. The file's permissions are the folder's permissions, and that is the end of it.</p>
+
+  <h3>SQLite, and why you may already have it</h3>
+  <p>SQLite is the file-based engine to reach for while you are learning. It is the most widely deployed database in the world, mostly because it is inside things rather than installed next to them: phones, browsers, desktop apps.</p>
+
+  <p>That includes Python. SQLite ships in Python's standard library, so if you have Python you already have a working SQL engine and did not install one. Two lines proves it:</p>
+  <pre><code>import sqlite3
+print(sqlite3.sqlite_version)</code></pre>
+  <p>On the machine this guide was written on, that prints <code>3.38.4</code>. Yours will differ, and any version will do.</p>
+
+  <p>For a window you can click around in rather than a script, DB Browser for SQLite is an open-source desktop app that opens the file, shows the tables, imports a CSV and runs queries. That combination, DB Browser plus one <code>.db</code> file, is the fastest route from nothing to a real query, and it is the one walked step by step in <a href="../set-up-a-sql-database/">how to set up a SQL database</a>.</p>
+
+  <h3>DuckDB, if your data is CSV files</h3>
+  <p>DuckDB is file-based like SQLite, and built for the shape of work analysts actually do: reading a lot of rows and summarizing them. The practical difference you will feel on day one is that it queries a CSV directly. There is no import step.</p>
+
+  <pre><code>import duckdb
+duckdb.sql("SELECT name, score FROM 'players.csv' WHERE score > 50")</code></pre>
+
+  <p>That runs against the file as it sits on disk. No table to create, no columns to declare, no load. For anyone who has been doing this in a spreadsheet and has a folder of exports, that is the shortest path from a CSV to a <code>GROUP BY</code> that exists.</p>
+
+  <p>Picture your own downloads folder. If the answer you want lives across three of those CSVs, this is the engine that gets you there without building anything first.</p>
+
+  <h3>When you genuinely do need a server</h3>
+  <p>Four situations, and they are all the same situation.</p>
+  <ul>
+    <li><strong>An application writes to the data while you read it.</strong> A web app, a scheduled job, anything with its own connection.</li>
+    <li><strong>Other people need to query it.</strong> Colleagues on their own machines, hitting the same data.</li>
+    <li><strong>It has to be reachable from somewhere else.</strong> Another server, a hosted tool, a dashboard product.</li>
+    <li><strong>The work requires a specific product.</strong> The job runs on SQL Server, so you practice on SQL Server. That is a real reason and it outranks everything above.</li>
+  </ul>
+  <p>When one of those is true, PostgreSQL is the usual choice for analysis work and MySQL is the usual choice behind web applications. If your workplace runs Microsoft, SQL Server with SQL Server Management Studio is what you will meet. Match the tool to the job you are aiming at, rather than to a general ranking.</p>
+
+  <h3>Does the SQL you learn transfer?</h3>
+  <p>Mostly, yes, and this is the part worth being precise about because it decides whether starting small costs you anything.</p>
+  <p><strong>What transfers unchanged:</strong> <code>SELECT</code>, <code>WHERE</code>, <code>JOIN</code>, <code>GROUP BY</code>, <code>HAVING</code>, <code>ORDER BY</code>, subqueries, <a href="../sql-ctes/">CTEs</a>, <a href="../sql-window-functions/">window functions</a>, <a href="../sql-case-expression/">CASE</a>, and <a href="../sql-comments/">both comment syntaxes</a>. That is the whole of analyst SQL and effectively all of what an interview will ask you.</p>
+  <p><strong>What does not transfer:</strong> function names around the edges. String handling, date maths and type conversion are named differently in each product. SQLite uses <code>INSTR</code> and <code>SUBSTR</code> where SQL Server uses <code>CHARINDEX</code> and <code>SUBSTRING</code>. You look those up when you meet them, and looking them up is what practitioners do anyway.</p>
+  <p>So the cost of learning on a file and moving to a server later is a handful of function names. The cost of trying to install a server first is often the whole first evening.</p>
+
+  <h3>Cheat sheet</h3>
+  <table>
+    <tr><th>Your situation</th><th>Install</th><th>Why</th></tr>
+    <tr><td>Learning SQL, data is yours alone</td><td>SQLite, with DB Browser</td><td>One file, no setup between you and the first query</td></tr>
+    <tr><td>Already have Python</td><td>Nothing</td><td>SQLite is in the standard library</td></tr>
+    <tr><td>Data is a folder of CSVs</td><td>DuckDB</td><td>Queries the CSV directly, no import step</td></tr>
+    <tr><td>Building a portfolio project</td><td>SQLite or DuckDB</td><td>The database file goes in the repo, so anyone can rerun your work</td></tr>
+    <tr><td>An app or a team writes to the data</td><td>PostgreSQL or MySQL</td><td>Something has to arbitrate concurrent writers</td></tr>
+    <tr><td>Preparing for a job that names a product</td><td>That product</td><td>The job's tools outrank any general ranking</td></tr>
+  </table>
+
+  <h3>The one habit to keep</h3>
+  <p>Choose the smallest thing that answers your question, and add machinery only when something breaks. Most analysis work never outgrows a file, and the evening you did not spend on a server install is an evening of writing queries.</p>
+
+  <p>What is stopping you from running a query on your own data right now: the tool, or not knowing which question to ask it?</p>
+  </section>
+
   <div class="book">
     <strong>The database is installed and empty, which is its own kind of stuck.</strong>
     <p><em>SQL for Analysts</em> is 458 pages, every query read line by line in plain words, so the empty database has somewhere to go.</p>
@@ -257,7 +437,7 @@
 
   <div data-apk-subscribe></div>
   <footer>
-    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="../which-sql-database-to-install/">Which Database to Install</a> &middot; <a href="../sql-comments/">How to Comment in SQL</a> &middot; <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../tableau-relationships/">Tableau Relationships</a> · <a href="../tableau-sets/">Tableau Sets</a> · <a href="../../drill/">SQL Drill</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../sql-teaching-comments/">Commenting SQL</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-case-expression/">SQL CASE Expression</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../sql-joins/">SQL JOINs</a> &middot; <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-aliasing/">SQL Aliases</a> &middot; <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
+    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="#which-sql-database-to-install">Which Database to Install</a> &middot; <a href="../sql-comments/">How to Comment in SQL</a> &middot; <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../tableau-relationships/">Tableau Relationships</a> · <a href="../tableau-sets/">Tableau Sets</a> · <a href="../../drill/">SQL Drill</a> · <a href="../what-is-data-analysis/">What Is Data Analysis?</a> · <a href="../sql-teaching-comments/">Commenting SQL</a> · <a href="../handle-large-datasets/">Handle Large Datasets</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../sql-case-expression/">SQL CASE Expression</a> · <a href="../sql-and-python/">SQL + Python</a> · <a href="../exploratory-data-analysis/">Exploratory Data Analysis</a> · <a href="../documenting-data-limitations/">Documenting Limitations</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../entity-resolution/">Entity Resolution</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../sql-joins/">SQL JOINs</a> &middot; <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../sql-aliasing/">SQL Aliases</a> &middot; <a href="../../sql/">SQL Kit</a> · <a href="../../projects/">Portfolio Projects</a>
     
   
     <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> · <a href="../../contact.html">Contact</a> · <a href="../../privacy.html">Privacy</a> · <a href="../../terms.html">Terms</a></p>

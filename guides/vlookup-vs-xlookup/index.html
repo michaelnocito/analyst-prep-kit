@@ -418,6 +418,78 @@
     <li>Roediger, H. L., &amp; Karpicke, J. D. (2006). Test-enhanced learning: Taking memory tests improves long-term retention. <em>Psychological Science</em>, 17(3), 249–255.</li>
   </ul>
 
+
+  <section id="xlookup-not-available" class="merged">
+  <h2>XLOOKUP Is Not Available: Why It Is Missing and What to Use Instead</h2>
+  <p>You write <code>=XLOOKUP(...)</code>, it works, you send the file, and a colleague replies with a screenshot of <code>#NAME?</code> and a formula that reads <code>=_xlfn.XLOOKUP(...)</code>. Nothing is broken. Their Excel does not contain that function.</p>
+
+  <p>What you do: use <code>INDEX</code> and <code>MATCH</code> for anything that will be opened by somebody whose version you do not control. It does the same jobs and it has worked since the nineties.</p>
+
+  <p><strong>The short version.</strong> <code>_xlfn.</code> in front of a function name means "this version has never heard of this function".</p>
+
+  <h3>Which versions have XLOOKUP</h3>
+  <table>
+    <tr><th>Version</th><th>XLOOKUP</th><th>Dynamic arrays</th></tr>
+    <tr><td>Microsoft 365</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Excel 2021, 2024</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Excel 2019</td><td>No</td><td>No</td></tr>
+    <tr><td>Excel 2016 and earlier</td><td>No</td><td>No</td></tr>
+    <tr><td>Excel on the web</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Excel for Mac 365</td><td>Yes</td><td>Yes</td></tr>
+  </table>
+  <p>To check your own: File, Account, and read the line under About Excel. If it says Microsoft 365, you have it. If it names a year, look that year up in the table.</p>
+  <p>The same rule applies to the other new functions people hit this with: <code>XMATCH</code>, <code>FILTER</code>, <code>UNIQUE</code>, <code>SORT</code>, <code>SEQUENCE</code>, <code>LET</code>, <code>TEXTSPLIT</code>, <code>TEXTBEFORE</code>. All of them fail the same way on Excel 2019 and earlier, with <code>_xlfn.</code> in front.</p>
+
+  <div class="note"><strong>Ticking the compatibility checker does not help here.</strong> Excel will warn you that a feature is unsupported when saving to an older format, but a modern function in an .xlsx file simply travels as a name the other version cannot resolve. The only real fix is not to use it, or to send values.</div>
+
+  <h3>The five jobs, translated</h3>
+  <table>
+    <tr><th>Job</th><th>XLOOKUP</th><th>Works everywhere</th></tr>
+    <tr><td>Look up by key</td><td><code>=XLOOKUP(A2,Ids,Names)</code></td><td><code>=INDEX(Names,MATCH(A2,Ids,0))</code></td></tr>
+    <tr><td>Look to the left</td><td>Same formula, no change</td><td><code>INDEX MATCH</code> does this natively too</td></tr>
+    <tr><td>Handle not found</td><td><code>=XLOOKUP(A2,Ids,Names,"none")</code></td><td><code>=IFERROR(INDEX(...),"none")</code></td></tr>
+    <tr><td>Banded lookup</td><td><code>=XLOOKUP(A2,Bounds,Bands,,-1)</code></td><td><code>=INDEX(Bands,MATCH(A2,Bounds,1))</code></td></tr>
+    <tr><td>Return several columns</td><td><code>=XLOOKUP(A2,Ids,B:D)</code></td><td>One <code>INDEX MATCH</code> per column</td></tr>
+  </table>
+  <p>The <code>MATCH</code> third argument is the one to be careful with. <code>0</code> means exact and is what you want almost always. <code>1</code> means largest value less than or equal, requires the list sorted ascending, and is how banded lookups such as tax brackets are built. That case is worked in <a href="../excel-approximate-match-lookup/">approximate match lookups</a>.</p>
+
+  <h3>Sending a file to a mixed-version team</h3>
+  <ol>
+    <li>Ask which version the recipients run, once, and write it down. It rarely changes.</li>
+    <li>Build with <code>INDEX MATCH</code> if any of them is 2019 or earlier.</li>
+    <li>If the file is a report rather than a model, paste values before sending. Nobody needs your formulas to read a number.</li>
+    <li>Avoid dynamic array functions in shared files entirely. Even where they open, a spilled range behaves differently, and older versions will not spill at all.</li>
+    <li>Test by opening your own file in Excel on the web, which is free and enforces its own function set.</li>
+  </ol>
+
+  <h3>If you have already been sent one</h3>
+  <p>You cannot make the function work, so you have three choices, in order of preference:</p>
+  <ol>
+    <li>Ask the sender for a values-only copy. Fastest, and usually all you needed.</li>
+    <li>Open the file in Excel on the web with a free Microsoft account. It supports XLOOKUP and will calculate the results, which you can then copy out.</li>
+    <li>Rewrite the formulas as <code>INDEX MATCH</code>. Find and Replace does most of the work if the pattern is consistent, but check every one: an XLOOKUP with a fourth argument has a not-found behaviour your replacement has to reproduce.</li>
+  </ol>
+
+  <h3>Why INDEX MATCH is worth learning anyway</h3>
+  <p>It is not a downgrade. It looks in any direction, it does not break when a column is inserted in the middle of the table, and the <code>MATCH</code> can be reused: compute the row number once in its own cell and have twelve <code>INDEX</code> formulas read it, which is faster than twelve independent lookups. The full treatment is in <a href="../excel-index-match/">INDEX MATCH</a>.</p>
+
+  <h3>How to apply this to your own work</h3>
+  <ol>
+    <li>Check File, Account today so you know what you are building on.</li>
+    <li>Ask your two most frequent recipients what version they run.</li>
+    <li>Search your shared workbooks for <code>XLOOKUP</code>, <code>FILTER</code> and <code>UNIQUE</code>, and convert the ones that leave your machine.</li>
+    <li>Keep one scratch sheet with your standard <code>INDEX MATCH</code> pattern in it, so writing it is copy and edit rather than recall.</li>
+    <li>Make paste-values the default for anything you send as a finished report.</li>
+  </ol>
+
+  <h3>The one habit to keep</h3>
+  <p>Build for the oldest version that will open the file. It costs a slightly longer formula and it removes an entire category of "it works on mine" from your week.</p>
+
+  <p>Do you know which Excel version the person who opens your files most often is running?</p>
+
+  <div class="note"><strong>Written from the shipped versions.</strong> XLOOKUP arrived with Microsoft 365 and is in Excel 2021 and later. Perpetual versions do not gain functions after release, so Excel 2019 will not get it.</div>
+  </section>
+
   <div class="book">
     <strong>The lookup works on your machine and breaks on the one that has an older Excel.</strong>
     <p><em>Excel for Analysts</em> is 378 pages, VLOOKUP, XLOOKUP and INDEX MATCH compared argument by argument, including where each one fails.</p>

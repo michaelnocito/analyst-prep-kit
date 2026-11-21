@@ -300,7 +300,7 @@ WHERE score > 5
   <p>MySQL is stricter about <code>--</code> than everyone else. It wants at least one space or tab after the second dash. <code>--note</code> is a syntax error in MySQL and a perfectly good comment almost everywhere else, so get in the habit of the space and the question never comes up.</p>
   <p>PostgreSQL is the one database where block comments nest, which its own documentation says is the standard behaviour and the rest of the world's is not. In Postgres the example above hides the whole line, because the outer <code>/*</code> waits for its matching <code>*/</code>. Write SQL that depends on that and it breaks the day it is run anywhere else.</p>
   <p>If you are writing SQL you might reuse somewhere else, stay on <code>--</code> with a space, use <code>/* */</code> without nesting it, and close every block. That is the portable set.</p>
-  <p>The full breakdown per engine, including what SQLite does with a block you forgot to close, is in <a href="../sql-comment-syntax-by-database/">SQL comment syntax by database</a>.</p>
+  <p>The full breakdown per engine, including what SQLite does with a block you forgot to close, is in <a href="#sql-comment-syntax-by-database">SQL comment syntax by database</a>.</p>
 
   <h2>The other thing called a comment</h2>
   <p>One more meaning is worth knowing about, because it is a different feature with almost the same name.</p>
@@ -334,6 +334,198 @@ WHERE score > 5
 
   <div class="note"><strong>Every example here was run before it was published.</strong> The error messages quoted are the real ones SQLite returns, not a description of them. Other engines phrase the same two failures differently.</div>
 
+
+  <section id="sql-comment-multiple-lines" class="merged">
+  <h2>Commenting Out Several Lines of SQL, and Uncommenting Them Again</h2>
+  <p>You are testing a long query and want to run it without the last three joins. Or you have written a note that runs over five lines. Both need several lines switched off at once, and SQL gives you two ways to do it that behave differently the moment they overlap.</p>
+
+  <p>What you do: use the editor shortcut to toggle <code>--</code> on every selected line. It is faster than typing a block comment and it cannot be broken by a comment already inside the selection.</p>
+
+  <p><strong>The short version.</strong> Block comments do not nest, so a <code>/*</code> inside your block does nothing and the first <code>*/</code> ends everything.</p>
+
+  <h3>The two syntaxes</h3>
+  <pre><code>-- a line comment. Everything after the two dashes, to the end of the line.
+
+/* a block comment.
+   It can run over
+   as many lines as you like. */</code></pre>
+  <p>Both are standard SQL and both work in PostgreSQL, MySQL, SQL Server, Oracle, SQLite, Snowflake and BigQuery. MySQL has one extra rule worth knowing: <code>--</code> must be followed by a space or a control character, so <code>--this</code> is not a comment there while <code>-- this</code> is. Writing the space always is the habit that avoids the whole question.</p>
+
+  <h3>The shortcut, by editor</h3>
+  <table>
+    <tr><th>Editor</th><th>Toggle line comment</th></tr>
+    <tr><td>DBeaver</td><td>Ctrl+/ (Cmd+/ on Mac)</td></tr>
+    <tr><td>VS Code, Azure Data Studio</td><td>Ctrl+/</td></tr>
+    <tr><td>DataGrip and the JetBrains IDEs</td><td>Ctrl+/, and Ctrl+Shift+/ for a block</td></tr>
+    <tr><td>SQL Server Management Studio</td><td>Ctrl+K then Ctrl+C to comment, Ctrl+K then Ctrl+U to uncomment</td></tr>
+    <tr><td>pgAdmin</td><td>Ctrl+/</td></tr>
+    <tr><td>MySQL Workbench</td><td>Ctrl+/</td></tr>
+    <tr><td>Oracle SQL Developer</td><td>Ctrl+/</td></tr>
+  </table>
+  <p>Select the lines, press the shortcut, and each line gets <code>--</code> at the front. Press it again and they come off. That toggle is the single most useful shortcut in a SQL editor and most people never find it.</p>
+
+  <h3>The nesting trap</h3>
+  <pre><code>/* switching this section off for now
+SELECT customer_id,
+       SUM(amount) AS total   /* only shipped orders */
+FROM orders
+WHERE status = 'shipped'
+GROUP BY customer_id
+*/</code></pre>
+  <p>This does not do what it looks like. The block ends at the <strong>first</strong> <code>*/</code>, which is the one after "only shipped orders". Everything from <code>FROM orders</code> onwards is live SQL again, and the trailing <code>*/</code> at the bottom is now a syntax error.</p>
+  <p>The database is not being awkward. Standard SQL block comments do not nest, and the scanner simply takes the first closing marker it meets. PostgreSQL is the one common exception: it does support nested block comments, which means a query that works there can fail everywhere else.</p>
+  <p>The defence is to use line comments for the outer switch-off, which is exactly what the editor shortcut produces:</p>
+  <pre><code>-- switching this section off for now
+-- SELECT customer_id,
+--        SUM(amount) AS total   /* only shipped orders */
+-- FROM orders
+-- WHERE status = 'shipped'
+-- GROUP BY customer_id</code></pre>
+  <p>Line comments cannot be closed early by anything, because their scope is the line.</p>
+
+  <div class="note"><strong>Comment out the line, not the clause.</strong> Removing a line from the middle of a <code>WHERE</code> can leave a dangling <code>AND</code>, so the query fails on the next line and the error points somewhere unhelpful. Write conditions with the operator at the start of each line and the problem disappears.</div>
+
+  <h3>Testing a query by switching parts off</h3>
+  <p>The technique that makes long queries manageable: comment out everything after the first join, run it, count the rows, then add one join back at a time and watch the count.</p>
+  <pre><code>SELECT COUNT(*)
+FROM orders o
+JOIN customers c ON c.customer_id = o.customer_id
+-- JOIN payments  p ON p.order_id    = o.order_id
+-- JOIN regions   r ON r.region_id   = c.region_id
+;</code></pre>
+  <p>Uncomment one line, re-run, compare. Any join that changes the count is either filtering rows or multiplying them, and both are worth knowing about before you sum anything. That is the detection method in <a href="../sql-joins/#sql-join-duplicate-rows">why a join duplicates rows</a>.</p>
+  <p>Put the semicolon on its own line while you are doing this. Then commenting out the last join does not also comment out the terminator.</p>
+
+  <h3>Leaving the good comments in</h3>
+  <p>The comments worth keeping are not the ones that repeat the SQL. They are the ones a reader cannot deduce:</p>
+  <pre><code>-- Excludes status 'test' because the ZZ accounts are load-test data.
+-- Confirmed with the ops team, 12 Aug 2026.
+WHERE status &lt;&gt; 'test'
+
+-- Amount is in pence in this table, unlike orders_v2.
+SELECT SUM(amount) / 100.0 AS pounds</code></pre>
+  <p>Why a row is excluded, which unit a column is in, who agreed a rule and when. A fuller method for writing these is in <a href="../sql-teaching-comments/">teaching comments</a>.</p>
+
+  <h3>How to apply this to your own work</h3>
+  <ol>
+    <li>Learn the toggle shortcut for the editor you use every day. It repays itself the first afternoon.</li>
+    <li>Use line comments for anything you intend to keep, and block comments only for temporary switching off.</li>
+    <li>Write conditions with <code>AND</code> at the start of the line so any single line can be commented out cleanly.</li>
+    <li>Add one join at a time and check the row count after each. It is the cheapest correctness check in SQL.</li>
+    <li>Before saving a query, delete the commented-out experiments. A file full of dead SQL is a file nobody can tell is current.</li>
+  </ol>
+
+  <h3>The one habit to keep</h3>
+  <p>Comment out to test, then delete rather than leaving it. Commented code has no way to say whether it is a note, an experiment or a rule that was turned off in a hurry, and six months later nobody can tell which.</p>
+
+  <p>How many commented-out lines are in the query you run most often?</p>
+
+  <div class="note"><strong>Written from the standard and the tools.</strong> Line and block comments are both standard SQL; block comments nest in PostgreSQL and not in the other major engines; MySQL requires a space after the two dashes.</div>
+  </section>
+
+
+  <section id="sql-comment-syntax-by-database" class="merged">
+  <h2>SQL Comment Syntax by Database</h2>
+  <p class="byline" style="color:#52525B;font-size:14px;margin:-2px 0 18px">By <a href="../../about.html" rel="author" style="color:#0E7490">Michael Nocito</a>, data analyst · Published <time datetime="2026-08-11">August 11, 2026</time></p>
+
+  <p>Two comment forms are part of the SQL language itself and work in every database you are likely to open. Everything else is a local dialect. This page is the table of what works where, and then the handful of differences that are worth actually knowing.</p>
+
+  <div class="note"><strong>The one-line answer.</strong> <code>--</code> hides the rest of a line and <code>/* */</code> hides a block, in every major database. <code>#</code> also hides the rest of a line, but only in MySQL and MariaDB.</div>
+
+  <h3>The table</h3>
+  <table>
+    <tr><th>Database</th><th><code>--</code> to end of line</th><th><code>/* */</code> block</th><th><code>#</code> to end of line</th></tr>
+    <tr><td>MySQL and MariaDB</td><td>Yes, but a space must follow</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>PostgreSQL</td><td>Yes</td><td>Yes, and blocks nest</td><td>No</td></tr>
+    <tr><td>SQL Server and T-SQL</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+    <tr><td>SQLite</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+    <tr><td>Oracle</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+  </table>
+  <p>If you write only <code>--</code> with a space after it and <code>/* */</code> that you always close, your comments will survive every move between these five. That is the whole portability rule.</p>
+
+  <div class="toc">
+    <strong>What's here</strong>
+    <ol>
+      <li>The table</li>
+      <li>Why anyone asks about a single character</li>
+      <li>MySQL is stricter about <code>--</code> than everyone else</li>
+      <li>PostgreSQL is the only one where blocks nest</li>
+      <li>SQLite will not tell you the block is open</li>
+      <li>SQL Server, and the shortcut people give up on</li>
+      <li>A comment that is not a comment</li>
+      <li>Cheat sheet</li>
+    </ol>
+  </div>
+
+  <h3>Why anyone asks about a single character</h3>
+  <p>There is a question that turns up in MySQL quizzes and practice exams, worded almost exactly like this: <em>what single character can be used to comment out the rest of a line in MySQL?</em></p>
+  <p>The answer is <code>#</code>.</p>
+  <pre><code>SELECT 1+1;   # this runs to the end of the line
+SELECT 1+1;   -- so does this, but that is two characters</code></pre>
+  <p>The question is testing one thing. MySQL has three comment forms, and only one of them is a single character. <code>--</code> is two. <code>/*</code> is two and needs a closing pair. <code>#</code> is one, so <code>#</code> is the answer.</p>
+  <p>Worth knowing for the quiz and worth ignoring afterwards. <code>#</code> is a comment marker in MySQL and MariaDB and nowhere else, so a query full of them stops being a comment the moment it lands in PostgreSQL. Use <code>--</code> in anything you might reuse.</p>
+
+  <h3>MySQL is stricter about <code>--</code> than everyone else</h3>
+  <p>This one costs people real time, because the error makes no sense until you know the rule.</p>
+  <p>MySQL requires whitespace after the second dash. Its documentation is explicit that the double-dash style needs the second dash followed by at least one whitespace or control character, such as a space or tab. So:</p>
+  <pre><code>-- this is a comment in MySQL
+--this is a syntax error in MySQL</code></pre>
+  <p>Almost every other database accepts both. That is why a script written in SQL Server or SQLite can fail on its first run in MySQL, on a line that looks obviously like a comment.</p>
+  <p>The fix is a habit, not a lookup. Always put a space after the two dashes. It reads better anyway, and the question never comes up again.</p>
+  <div class="note"><strong>Why the rule exists.</strong> MySQL needs to tell a comment apart from the subtraction of a negative number. <code>SELECT 5--3</code> is five minus negative three. Requiring the space keeps that arithmetic working.</div>
+
+  <h3>PostgreSQL is the only one where blocks nest</h3>
+  <p>Nearly every guide will tell you block comments do not nest, and for nearly every database that is correct. The first <code>*/</code> closes the block, whatever came before it, so this leaves stray code behind:</p>
+  <pre><code>/* outer /* inner */ this part is now code */</code></pre>
+  <p>PostgreSQL does not behave that way. Its documentation states that block comments nest, as specified in the SQL standard but unlike C, so that you can comment out larger blocks of code that might already contain block comments. In Postgres the line above is hidden completely, because the outer <code>/*</code> waits for its own matching <code>*/</code>.</p>
+  <p>This is genuinely useful when you want to switch off a chunk of a query that already has block comments in it. It is also a trap, because SQL that depends on it breaks the day someone runs it anywhere else. If the query might move, comment the stretch out with <code>--</code> on every line instead, which is one keystroke in every editor.</p>
+
+  <h3>SQLite will not tell you the block is open</h3>
+  <p>Forget a <code>*/</code> in most databases and you get an error. SQLite gives you nothing.</p>
+  <p>Its documentation says a C-style comment extends to the next <code>*/</code> pair or until the end of input, whichever comes first. An unterminated block is legal. The comment simply runs to the bottom of the file.</p>
+  <p>The symptom is a script that runs clean and does about a third of what you expected, with no error to explain the rest. If a SQLite script quietly stops doing things partway down, search it for a <code>/*</code> with no partner.</p>
+
+  <h3>SQL Server, and the shortcut people give up on</h3>
+  <p>Transact-SQL keeps it simple. Two hyphens for a line, <code>/* */</code> for a block, no <code>#</code>.</p>
+  <p>The part worth having is the shortcut, which Microsoft documents on the comment reference page itself. Select the lines, then:</p>
+  <table>
+    <tr><th>What you want</th><th>Keys</th></tr>
+    <tr><td>Comment the selected text</td><td><code>Ctrl</code>+<code>K</code>, then <code>Ctrl</code>+<code>C</code></td></tr>
+    <tr><td>Uncomment the selected text</td><td><code>Ctrl</code>+<code>K</code>, then <code>Ctrl</code>+<code>U</code></td></tr>
+  </table>
+  <p>It is two presses in a row, not one chord. Hold <code>Ctrl</code>, tap <code>K</code>, tap <code>C</code>. Nothing visibly happens after the <code>K</code>, which is exactly where most people conclude the shortcut is broken and go back to typing dashes by hand.</p>
+  <p>Every other editor on this list uses <code>Ctrl</code>+<code>/</code> instead. The full list of editor shortcuts is in <a href="../sql-comments/">how to comment in SQL</a>.</p>
+
+  <h3>A comment that is not a comment</h3>
+  <p>There is a second meaning of the word that catches people searching for this, and it is a completely different feature.</p>
+  <p><code>COMMENT ON TABLE</code> does not hide code. It stores a description inside the database, attached to the table, where anyone querying that database can read it. It survives after your query file is gone. That is covered separately in <a href="../sql-comment-on-table/">how to comment a table in SQL</a>.</p>
+  <p>The short way to tell which one you want: if you are trying to stop a line from running, you want <code>--</code>. If you are trying to explain to a colleague what a column means, you want <code>COMMENT ON</code>.</p>
+
+  <h3>Cheat sheet</h3>
+  <table>
+    <tr><th>Situation</th><th>What to write</th><th>Watch for</th></tr>
+    <tr><td>A comment that works anywhere</td><td><code>-- note</code></td><td>Keep the space after the dashes</td></tr>
+    <tr><td>A comment over several lines</td><td><code>/* note */</code></td><td>Close it, and do not nest it</td></tr>
+    <tr><td>A single-character comment in MySQL</td><td><code>#</code></td><td>MySQL and MariaDB only</td></tr>
+    <tr><td>Comment out many lines</td><td>Select them, <code>Ctrl</code>+<code>/</code></td><td>SSMS uses <code>Ctrl</code>+<code>K</code>, <code>Ctrl</code>+<code>C</code></td></tr>
+    <tr><td>Hide a stretch that already has <code>/* */</code> in it</td><td><code>--</code> on every line</td><td>Only PostgreSQL lets blocks nest</td></tr>
+    <tr><td>Describe a table for other people</td><td><code>COMMENT ON TABLE</code></td><td>A different feature entirely</td></tr>
+  </table>
+
+  <h3>The rule that covers all of it</h3>
+  <p>Write <code>--</code> with a space, write <code>/* */</code> and close it, and do not nest. Those three habits are correct in all five databases at once, so you never have to remember which one you are in.</p>
+
+  <p>Which database are you actually writing in today, and does the SQL you are writing need to run anywhere else?</p>
+
+  <div class="note"><strong>Where these claims come from.</strong> Each behaviour here was checked against the vendor's own documentation, not against other tutorials: the MySQL 8.4 manual for <code>#</code> and the whitespace rule, the PostgreSQL manual for nesting, the SQLite comment page for the unterminated block, and Microsoft Learn for the T-SQL shortcut.</div>
+
+  <div class="book">
+    <strong>Syntax is the part every tutorial covers. What goes inside the comment is the part that gets you reviewed.</strong>
+    <p><em>The SQL Comment System</em> is the two-mode standard, a 12-point scoring rubric, and an agent for Claude or ChatGPT that applies both to the queries you actually write.</p>
+    <a class="booklink" href="https://gumroad.com/u/m3zxbqx0" target="_blank" rel="noopener" onclick="if(window.gtag)gtag('event','comment_system_click',{kit:'guide-sql-comment-syntax-by-database'})">Download the free guide here &rarr;</a>
+  </div>
+  </section>
+
   <div class="book">
     <strong>Knowing where a comment goes is the easy half. Knowing what to put in it is the job.</strong>
     <p><em>The SQL Comment System</em> is the two-mode standard, a 12-point scoring rubric, and an agent for Claude or ChatGPT that applies both to the queries you actually write.</p>
@@ -352,7 +544,7 @@ WHERE score > 5
 
   <div data-apk-subscribe></div>
   <footer>
-    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="../sql-comment-syntax-by-database/">Comment Syntax by Database</a> · <a href="../sql-comment-on-table/">COMMENT ON TABLE</a> · <a href="../sql-teaching-comments/">Commenting SQL So It Teaches</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-case-expression/">SQL CASE</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../sql-aliasing/">SQL Aliases</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../which-sql-database-to-install/">Which Database to Install</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../../drill/">SQL Drill</a> · <a href="../../sql/">SQL Kit</a>
+    <a href="../../">← Analyst Prep Kit</a> &middot; <a href="#sql-comment-syntax-by-database">Comment Syntax by Database</a> · <a href="../sql-comment-on-table/">COMMENT ON TABLE</a> · <a href="../sql-teaching-comments/">Commenting SQL So It Teaches</a> · <a href="../sql-foundations/">SQL Foundations</a> · <a href="../sql-case-expression/">SQL CASE</a> · <a href="../sql-joins/">SQL JOINs</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-ctes/">SQL CTEs</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../sql-aliasing/">SQL Aliases</a> · <a href="../sql-count-function/">COUNT in SQL</a> · <a href="../set-up-a-sql-database/">Set Up a SQL Database</a> · <a href="../set-up-a-sql-database/#which-sql-database-to-install">Which Database to Install</a> · <a href="../git-for-analysts/">Git for Analysts</a> · <a href="../../drill/">SQL Drill</a> · <a href="../../sql/">SQL Kit</a>
   
     <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> · <a href="../../contact.html">Contact</a> · <a href="../../privacy.html">Privacy</a> · <a href="../../terms.html">Terms</a></p>
   </footer>

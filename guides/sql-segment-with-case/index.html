@@ -251,7 +251,7 @@ C5  | 1 |  60 | 2026-01-28</code></pre>
 
     <p>Twelve rows, and they sum to 2,430, which is the whole purchases table. Those three columns are the classic ingredients of a customer segmentation: how recently, how often, how much. You do not have to use all three, and you do have to compute them before you can band them.</p>
 
-    <p>Do this as a named step rather than nesting it, so the customer count can be checked on its own; the argument for that is in <a href="../sql-subqueries/">subquery against CTE</a>, and it matters here because everything downstream is divided by that count.</p>
+    <p>Do this as a named step rather than nesting it, so the customer count can be checked on its own; the argument for that is in <a href="../sql-ctes/#sql-subqueries">subquery against CTE</a>, and it matters here because everything downstream is divided by that count.</p>
   </div>
 
   <div class="step">
@@ -521,6 +521,129 @@ customers 12 in, 12 out;  spend 2,430 in, 2,430 out;  3 segments defined, 3 retu
     <li>McDaniel, M. A., Anderson, J. L., Derbish, M. H., &amp; Morrisette, N. (2007). Testing the testing effect in the classroom. <em>European Journal of Cognitive Psychology</em>, 19(4–5), 494–513.</li>
   </ul>
 
+
+  <section id="sql-group-by-case" class="merged">
+  <h2>GROUP BY with CASE: Grouping by a Rule Instead of a Column</h2>
+  <p>The table has an amount. The report wants small, medium and large. Nobody is going to add a band column to the source table, and they should not: the boundaries change more often than the data does.</p>
+
+  <p>What you do: write the rule as a <code>CASE</code> in the <code>SELECT</code>, and repeat it in the <code>GROUP BY</code>. The band exists for the length of the query and nowhere else.</p>
+
+  <p><strong>The short version.</strong> Group by the expression, not by the alias, and your query runs on every database.</p>
+
+  <h3>The table</h3>
+  <pre><code>CREATE TABLE orders(order_id INT, customer_id INT, amount INT, status TEXT);
+INSERT INTO orders VALUES
+(101,1,120,'shipped'),(102,1,80,'shipped'),(103,2,200,'cancelled'),
+(104,2,50,'shipped'),(105,3,300,'shipped'),(106,4,90,'pending'),
+(107,4,60,'shipped'),(108,5,150,'cancelled');</code></pre>
+
+  <h3>The query</h3>
+  <pre><code>SELECT CASE WHEN amount &gt;= 200 THEN 'large'
+            WHEN amount &gt;= 100 THEN 'medium'
+            ELSE 'small' END AS band,
+       COUNT(*)   AS orders,
+       SUM(amount) AS total
+FROM orders
+GROUP BY CASE WHEN amount &gt;= 200 THEN 'large'
+              WHEN amount &gt;= 100 THEN 'medium'
+              ELSE 'small' END
+ORDER BY total DESC;</code></pre>
+  <table>
+    <tr><th>band</th><th>orders</th><th>total</th></tr>
+    <tr><td>large</td><td>2</td><td>500</td></tr>
+    <tr><td>small</td><td>4</td><td>280</td></tr>
+    <tr><td>medium</td><td>2</td><td>270</td></tr>
+  </table>
+  <p>Two orders of 200 and 300 make large. Two of 120 and 150 make medium. The remaining four, 80, 50, 90 and 60, make small. Eight rows in, three rows out, and 500 + 280 + 270 = 1,050, which is the full table total. That addition is the check worth doing every time.</p>
+
+  <h3>Where the CASE can go, by database</h3>
+  <table>
+    <tr><th>Form</th><th>Works on</th><th>Note</th></tr>
+    <tr><td>Repeat the expression in GROUP BY</td><td>Everything</td><td>Verbose, and portable</td></tr>
+    <tr><td><code>GROUP BY 1</code></td><td>Postgres, MySQL, SQLite, Snowflake, BigQuery</td><td>Short. Breaks silently if you reorder the SELECT.</td></tr>
+    <tr><td><code>GROUP BY band</code>, the alias</td><td>MySQL, Postgres</td><td>Not SQL Server or Oracle</td></tr>
+    <tr><td>A CTE that defines the band, then group it</td><td>Everything</td><td>Best for anything reused</td></tr>
+  </table>
+  <p>The CTE version is the one to prefer as soon as the rule appears more than once:</p>
+  <pre><code>WITH banded AS (
+  SELECT order_id, amount,
+         CASE WHEN amount &gt;= 200 THEN 'large'
+              WHEN amount &gt;= 100 THEN 'medium'
+              ELSE 'small' END AS band
+  FROM orders
+)
+SELECT band, COUNT(*) AS orders, SUM(amount) AS total
+FROM banded
+GROUP BY band
+ORDER BY total DESC;</code></pre>
+  <p>The rule is written once, so it cannot drift between the <code>SELECT</code> and the <code>GROUP BY</code>. Two copies of a rule that must agree is exactly the kind of thing that gets half-edited six months later.</p>
+
+  <div class="note"><strong>The order of the WHENs decides the answer.</strong> <code>CASE</code> stops at the first match, so a 300 hits <code>&gt;= 200</code> and never sees the later branches. Reverse the two conditions and everything above 100 becomes medium, including the 300, with no error. That failure is worked in full in <a href="../sql-case-expression/#sql-case-overlapping-conditions">overlapping CASE conditions</a>.</div>
+
+  <h3>The band that disappears</h3>
+  <p>Add a fourth band for anything at or above 500 and the query returns three rows, not four. <code>GROUP BY</code> reports the groups that exist in the data; a band nothing landed in produces no row rather than a zero.</p>
+  <p>For a report that must always show every band, supply the list and join to it:</p>
+  <pre><code>WITH bands(band, sort_order) AS (
+  VALUES ('small',1), ('medium',2), ('large',3), ('huge',4)
+),
+banded AS (
+  SELECT CASE WHEN amount &gt;= 500 THEN 'huge'
+              WHEN amount &gt;= 200 THEN 'large'
+              WHEN amount &gt;= 100 THEN 'medium'
+              ELSE 'small' END AS band,
+         amount
+  FROM orders
+)
+SELECT b.band,
+       COUNT(x.amount)              AS orders,
+       COALESCE(SUM(x.amount), 0)   AS total
+FROM bands b
+LEFT JOIN banded x ON x.band = b.band
+GROUP BY b.band, b.sort_order
+ORDER BY b.sort_order;</code></pre>
+  <p>Now huge appears with 0 and 0. Note <code>COUNT(x.amount)</code> rather than <code>COUNT(*)</code>: after a LEFT JOIN the unmatched band still produces one row, and <code>COUNT(*)</code> would report 1 for a band containing nothing.</p>
+
+  <h3>Sorting bands in a sensible order</h3>
+  <p>Alphabetical order puts large before medium before small, which is meaningless. Two ways to fix it:</p>
+  <pre><code>-- sort by a number, hide the number
+ORDER BY CASE WHEN amount &gt;= 200 THEN 3
+              WHEN amount &gt;= 100 THEN 2
+              ELSE 1 END DESC
+
+-- or carry a sort_order column alongside the band, as above</code></pre>
+  <p>The second is better in anything that gets reused, because the ordering rule lives next to the band definition rather than in a third copy of the same conditions.</p>
+
+  <h3>Grouping by a rule and a column together</h3>
+  <pre><code>SELECT status,
+       CASE WHEN amount &gt;= 200 THEN 'large'
+            WHEN amount &gt;= 100 THEN 'medium'
+            ELSE 'small' END AS band,
+       COUNT(*) AS orders
+FROM orders
+GROUP BY status,
+         CASE WHEN amount &gt;= 200 THEN 'large'
+              WHEN amount &gt;= 100 THEN 'medium'
+              ELSE 'small' END
+ORDER BY status, band;</code></pre>
+  <p>One row per combination that occurs. With three statuses and three bands there are nine possible rows and considerably fewer real ones, which is normal and worth stating on the report so nobody reads a missing combination as a zero.</p>
+
+  <h3>How to apply this to your own work</h3>
+  <ol>
+    <li>Check that your band totals sum to the ungrouped total. It is one extra query and it catches a missing <code>ELSE</code>.</li>
+    <li>Move any rule used more than once into a CTE, so there is a single definition.</li>
+    <li>Write the boundary policy in a comment: does a value equal to the boundary go up or down?</li>
+    <li>Decide whether empty bands must appear, and if so build the band list explicitly.</li>
+    <li>Give bands a deliberate sort order rather than accepting alphabetical.</li>
+  </ol>
+
+  <h3>The one habit to keep</h3>
+  <p>Ask where the rule lives. A band written inside a query is invisible to everyone who does not read the query, so if the same rule appears in a spreadsheet and a dashboard as well, it will eventually disagree with itself. One definition, in one place, referenced everywhere.</p>
+
+  <p>How many places in your reporting define what counts as a large order?</p>
+
+  <div class="note"><strong>Every number here was run before it was published.</strong> Eight orders band into large 2 rows and 500, medium 2 rows and 270, small 4 rows and 280, and those three totals sum to the table total of 1,050.</div>
+  </section>
+
   <div class="book">
     <strong>The segments are defined in the query and nowhere written down.</strong>
     <p><em>SQL for Analysts</em> is 458 pages, CASE read branch by branch, so a segment definition is something you can hand to someone else.</p>
@@ -536,7 +659,7 @@ customers 12 in, 12 out;  spend 2,430 in, 2,430 out;  3 segments defined, 3 retu
 
   <div data-apk-subscribe></div>
   <footer>
-    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-case-expression/">The SQL CASE Expression</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../sql-cohort-retention/">Cohort Retention in SQL</a> · <a href="../sql-subqueries/">Subquery vs CTE</a> · <a href="../sql-temp-tables-vs-views/">Temp Table vs View</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../../sql/">SQL Kit</a> · <a href="../excel-ifs-vs-nested-if/">Nested IF vs IFS</a> · <a href="../build-a-risk-index/">Build a Risk Index</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../report-vs-analysis/">Report vs Analysis</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
+    <a href="../../">← Analyst Prep Kit</a> · <a href="../sql-case-expression/">The SQL CASE Expression</a> · <a href="../data-driven-thresholds/">Data-Driven Thresholds</a> · <a href="../sql-cohort-retention/">Cohort Retention in SQL</a> · <a href="../sql-ctes/#sql-subqueries">Subquery vs CTE</a> · <a href="../sql-temp-tables-vs-views/">Temp Table vs View</a> · <a href="../sql-group-by-having/">GROUP BY and HAVING</a> · <a href="../sql-window-functions/">Window Functions</a> · <a href="../../sql/">SQL Kit</a> · <a href="../excel-ifs-vs-nested-if/">Nested IF vs IFS</a> · <a href="../build-a-risk-index/">Build a Risk Index</a> · <a href="../defining-metrics/">Defining Metrics</a> · <a href="../report-vs-analysis/">Report vs Analysis</a> · <a href="../technical-tenacity/">Technical Tenacity</a> · <a href="../../projects/">Portfolio Projects</a>
   
     <p class="trust" style="margin:14px 0 0;font-size:14px"><a href="../../about.html">About the author</a> · <a href="../../contact.html">Contact</a> · <a href="../../privacy.html">Privacy</a> · <a href="../../terms.html">Terms</a></p>
   </footer>
