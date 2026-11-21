@@ -25,7 +25,7 @@ If you already have one, use it and skip ahead. If not, here is the file the res
 
 Before you move on, say out loud how many rows you expect to end up in the database. You just read the number. Holding on to it is what makes step 5 mean something.
 
-**Want different data?** Any CSV works, and the steps do not change. Two places that hand you one without an account: [vega-datasets](https://github.com/vega/vega-datasets/tree/main/data) has around twenty small, clean files, and [NYC Open Data](https://data.cityofnewyork.us/) has thousands of large real ones. If you pick your own, use your own table name everywhere this guide says `weather_raw`.
+**Want different data?** Any CSV works, and the steps do not change. Two places that hand you one without an account: [vega-datasets](https://github.com/vega/vega-datasets/tree/main/data) has around twenty small, clean files, and [NYC Open Data](https://www.nyc.gov/opendata) has thousands of large real ones. If you pick your own, use your own table name everywhere this guide says `weather_raw`.
 
 ## Step 2 — Install DB Browser for SQLite
 
