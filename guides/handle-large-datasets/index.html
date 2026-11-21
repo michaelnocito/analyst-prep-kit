@@ -243,6 +243,171 @@ GROUP BY app_id;</code></pre>
   <h2>When SQLite is not enough</h2>
   <p>SQLite comfortably handles many-gigabyte files, which covers almost everything you will meet while learning and building a portfolio. If you ever outgrow it, the next tools are <strong>DuckDB</strong> (built for fast analytics on big files) and <strong>pandas with <code>chunksize</code></strong> in Python (read a huge file in pieces). The mindset you just learned carries straight over: put it in a database, index the key, sample while you build, aggregate before you display.</p>
 
+
+  <section id="open-a-large-csv" class="merged">
+  <h2>How to Open a Large CSV Without Excel Falling Over</h2>
+  <p>A CSV arrives, it is 1.8GB, and Excel either refuses it or takes nine minutes and truncates it. The instinct is to find a bigger spreadsheet. The better move is to stop trying to look at all of it at once, because almost every question you have can be answered from the first thousand rows plus one aggregate.</p>
+
+  <p>What you do, in order: peek, count, sample, aggregate. Only load the whole thing if a real question needs every row.</p>
+
+  <p><strong>The short version.</strong> You need the columns and the size before you need the data.</p>
+
+  <h3>Step 1: peek at the top</h3>
+  <pre><code># Windows PowerShell
+Get-Content big.csv -TotalCount 1000 | Set-Content sample.csv
+
+# Git Bash, macOS, Linux
+head -n 1000 big.csv &gt; sample.csv</code></pre>
+  <p>Both read only the beginning, so a 50GB file behaves the same as a 5MB one. Open <code>sample.csv</code> in Excel and you have the column names, the date format, the delimiter, whether the file is quoted, and whether IDs have leading zeros. That is most of what you needed.</p>
+
+  <h3>Step 2: count the lines</h3>
+  <pre><code># PowerShell. ReadCount batches the reads, which matters on big files.
+(Get-Content big.csv -ReadCount 10000 | Measure-Object -Line).Lines
+
+# Git Bash
+wc -l big.csv</code></pre>
+  <p>Write the number down. It is the only way to prove later that an import loaded everything. Note that a count of lines is not always a count of records: a field containing a newline inside quotes makes them differ, which is one more reason to check totals rather than trusting the eye.</p>
+
+  <h3>Step 3: take a real sample, not the top</h3>
+  <p>The first thousand rows are not a sample. They are the oldest thousand, or whatever the export sorted by, and any pattern you spot in them may be an artefact of that order. For a genuine look:</p>
+  <pre><code>-- DuckDB
+SELECT * FROM 'big.csv' USING SAMPLE 1000 ROWS;</code></pre>
+  <pre><code># pandas, when the file fits in memory
+df.sample(1000, random_state=0)</code></pre>
+
+  <h3>Step 4: aggregate, and bring back only the summary</h3>
+  <p>DuckDB is the shortest route because there is no import step:</p>
+  <pre><code>SELECT strftime(order_date, '%Y-%m') AS month,
+       region,
+       COUNT(*)   AS orders,
+       SUM(amount) AS revenue
+FROM 'big.csv'
+GROUP BY 1, 2
+ORDER BY 1, 2;</code></pre>
+  <p>That turns millions of rows into a few dozen, which paste into Excel and behave. The setup is in <a href="../set-up-duckdb/">setting up DuckDB</a>.</p>
+  <p>The pandas equivalent, for a file that does not fit in memory, reads it in pieces:</p>
+  <pre><code>import pandas as pd
+totals = None
+for chunk in pd.read_csv('big.csv', chunksize=500_000,
+                         usecols=['order_date', 'region', 'amount']):
+    g = chunk.groupby('region')['amount'].sum()
+    totals = g if totals is None else totals.add(g, fill_value=0)
+print(totals)</code></pre>
+  <p><code>usecols</code> is doing most of the work there. Reading three columns instead of forty is often the difference between fitting in memory and not.</p>
+
+  <h3>The five tools, ranked by when to reach for them</h3>
+  <table>
+    <tr><th>Tool</th><th>Best at</th><th>Cost</th></tr>
+    <tr><td>head / Get-Content</td><td>Seeing the shape in two seconds</td><td>None, already installed</td></tr>
+    <tr><td>DuckDB</td><td>SQL over the file as it sits</td><td>One install, no import</td></tr>
+    <tr><td>SQLite</td><td>Questions you will ask repeatedly</td><td>An import, then it is fast forever</td></tr>
+    <tr><td>pandas</td><td>Cleaning as part of a pipeline</td><td>Memory, unless you chunk</td></tr>
+    <tr><td>A text editor built for size</td><td>Eyeballing a broken row</td><td>Reading only. No aggregation.</td></tr>
+  </table>
+  <p>On that last row: most editors load the whole file into memory and stop being useful in the hundreds of megabytes. Editors that stream, such as EmEditor or glogg, will open a multi-gigabyte file, and they are the right tool for exactly one job, which is looking at the row where an import failed.</p>
+
+  <div class="note"><strong>Check the encoding before you blame the data.</strong> If the peek shows names as Ã© or Â£, the file is UTF-8 being read as ANSI. That is a reading problem, not a corrupt file, and it is fixed at import: see <a href="../excel-character-encoding/">character encoding</a>.</div>
+
+  <h3>The delimiter and quoting checks</h3>
+  <ol>
+    <li>Open the sample in a plain text editor, not in Excel, and look at the raw first line.</li>
+    <li>Count the delimiters in line 1 and in a few random lines. They should match. A line with more is an unquoted comma inside a field.</li>
+    <li>Look for a byte order mark: the first column header appearing as <code>ï»¿id</code> means a UTF-8 BOM that some tools will treat as part of the name.</li>
+    <li>Check the line endings. A file written on Linux and opened in Notepad used to show as one long line. Anything modern handles it, but old importers still do not.</li>
+  </ol>
+
+  <h3>How to apply this to your own work</h3>
+  <ol>
+    <li>Put the peek command in a note somewhere you will find it. It is the single most used command on this page.</li>
+    <li>Count rows before and after every import, and keep both numbers in the workbook.</li>
+    <li>Install DuckDB the next time a file beats Excel, rather than the third time.</li>
+    <li>Ask the source system for an aggregated or filtered export. Half of all large-file work is unnecessary.</li>
+    <li>Never sample from the top when you are looking for data quality problems. Bad rows cluster, usually at the end.</li>
+  </ol>
+
+  <h3>The one habit to keep</h3>
+  <p>Look at the file before you load the file. Two commands, ten seconds, and they prevent nearly every import surprise that costs an afternoon.</p>
+
+  <p>Do you know the row count of the last extract you built a report on?</p>
+
+  <div class="note"><strong>Every command here was run before it was published.</strong> The PowerShell and Bash forms are the ones used on this machine, on Windows 11.</div>
+  </section>
+
+
+  <section id="excel-row-limit" class="merged">
+  <h2>This Data Set Is Too Large for the Grid: The Excel Row Limit and What to Do</h2>
+  <p>An Excel worksheet holds <strong>1,048,576</strong> rows and <strong>16,384</strong> columns. Those are 2^20 and 2^14, chosen when the file format was rewritten for Excel 2007, and they have not moved since. When a file has more rows than that, Excel tells you that the data set is too large for the grid and offers you a partial load.</p>
+
+  <p>What you do first: find out whether anything was actually lost, because a truncated file that looks complete is a much bigger problem than a warning message.</p>
+
+  <p><strong>The short version.</strong> If your row count is exactly 1,048,576, you are not looking at all your data.</p>
+
+  <h3>Check whether you lost rows</h3>
+  <ol>
+    <li>Press Ctrl+End. If the cursor lands on row 1,048,576, treat the file as truncated until proved otherwise.</li>
+    <li>Count the source rows without opening it. In PowerShell: <code>(Get-Content big.csv | Measure-Object -Line).Lines</code>. On a very large file, <code>Get-Content -ReadCount 10000</code> is faster.</li>
+    <li>Compare that count, minus one for the header, with what landed in the sheet.</li>
+    <li>Check the last date or ID in the sheet against the last one in the file. A truncated extract usually stops mid-period, which is the tell in any report built on top of it.</li>
+  </ol>
+
+  <div class="note"><strong>The silent version.</strong> Somebody opens a 3 million row CSV, clicks past the warning, saves as .xlsx and emails it round. The file now has exactly 1,048,576 rows and no warning attached. Any total computed from it is wrong by two thirds, and nothing on the screen says so. Row counts belong in your <a href="../excel-check-your-work/">check-your-work</a> routine for exactly this reason.</div>
+
+  <h3>The four routes out</h3>
+  <table>
+    <tr><th>Route</th><th>Effort</th><th>Use when</th></tr>
+    <tr><td>Aggregate before it reaches Excel</td><td>Low</td><td>You need totals, not rows. Most cases.</td></tr>
+    <tr><td>Power Query to the Data Model</td><td>Low</td><td>Staying in Excel, need a pivot over everything</td></tr>
+    <tr><td>DuckDB or SQLite</td><td>Medium</td><td>Repeated questions, joins, real filtering</td></tr>
+    <tr><td>pandas or Polars</td><td>Medium</td><td>It is a step in a pipeline you will re-run</td></tr>
+  </table>
+
+  <h4>Aggregate first</h4>
+  <p>The honest question is usually not about three million rows. It is about a few hundred summary rows. If the file comes from a system with an export screen, change the export to group by month and category before it lands. That solves the problem permanently and is the option people skip because it means asking somebody.</p>
+
+  <h4>Power Query to the Data Model</h4>
+  <p>Data, Get Data, From File, From Text/CSV, then <strong>Load To</strong> and choose <em>Only Create Connection</em> with <em>Add this data to the Data Model</em> ticked. The rows never touch a worksheet, so the million row limit does not apply. Build a PivotTable on the model and Excel aggregates over the whole file.</p>
+  <p>Two things to know. The model is compressed in memory, so a file that is 2GB on disk may hold in a few hundred megabytes, but 32-bit Excel will still run out at about 2GB of address space regardless. And the grid limit still applies to anything you drill through to.</p>
+
+  <h4>Query the file where it sits</h4>
+  <p>DuckDB reads a CSV directly with SQL and no import step:</p>
+  <pre><code>SELECT region, COUNT(*) AS rows, SUM(amount) AS total
+FROM 'big.csv'
+GROUP BY region
+ORDER BY total DESC;</code></pre>
+  <p>That returns a handful of rows you can paste into Excel. Setup takes minutes and is covered in <a href="../set-up-duckdb/">setting up DuckDB</a>. For anything you will ask more than twice, load it into SQLite instead and keep it.</p>
+
+  <h3>The column limit, and the reason you hit it</h3>
+  <p>16,384 columns sounds unreachable, and it gets hit by exactly one thing: pivoting a long table wide on a field with too many values. One column per customer, or per day over several years. That is a sign the shape is wrong rather than the limit being tight. Keep the data long and let the pivot do the widening at read time.</p>
+
+  <h3>Other limits worth knowing before you meet them</h3>
+  <table>
+    <tr><th>Limit</th><th>Value</th><th>Where it bites</th></tr>
+    <tr><td>Rows per sheet</td><td>1,048,576</td><td>Raw extracts</td></tr>
+    <tr><td>Columns per sheet</td><td>16,384</td><td>Over-pivoted tables</td></tr>
+    <tr><td>Characters in a cell</td><td>32,767</td><td>Free-text notes, JSON blobs</td></tr>
+    <tr><td>Characters shown in a cell</td><td>1,024</td><td>Text that looks cut off but is not</td></tr>
+    <tr><td>Digits of precision</td><td>15</td><td>Long IDs turning into 1.23457E+17</td></tr>
+    <tr><td>Selected pivot fields</td><td>16,384 items</td><td>Very high cardinality pivots</td></tr>
+  </table>
+  <p>The 15 digit one catches people constantly: paste a 16 digit account number into a General cell and the last digit becomes zero, permanently. Format the column as Text before pasting, the same defence as in <a href="../excel-csv-import-leading-zeros/">leading zeros on CSV import</a>.</p>
+
+  <h3>How to apply this to your own work</h3>
+  <ol>
+    <li>Add a row count to every workbook that starts from an import, and compare it to the source count. One cell, one habit.</li>
+    <li>When a file gets close to a million rows, stop opening it in Excel at all, even once.</li>
+    <li>Ask the system owner for an aggregated export before you build anything clever.</li>
+    <li>Learn the Data Model route once. It is fifteen minutes and it removes the limit for most reporting work.</li>
+    <li>Format ID columns as Text before any paste, and check the last digits of a few of them afterwards.</li>
+  </ol>
+
+  <h3>The one habit to keep</h3>
+  <p>Never trust a row count you did not compute. The count is the cheapest check in analysis and it catches truncation, duplicated joins and failed filters, all of which look perfectly fine on screen.</p>
+
+  <p>Does the workbook you rely on most say anywhere how many rows it started with?</p>
+
+  <div class="note"><strong>Every number here was worked before it was published.</strong> 2^20 = 1,048,576 rows and 2^14 = 16,384 columns, unchanged since the 2007 file format.</div>
+  </section>
+
   <div class="cta">
     <strong>Ready to put this to work?</strong>
     <p style="margin:6px 0 0">The <a href="../../sql/">SQL Kit</a> teaches the exact tools that tame big data: <code>JOIN</code>, <code>GROUP BY</code>, and aggregate functions, with worked examples, practice, and a mock exam. All in your browser, nothing to install.</p>
