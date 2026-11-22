@@ -1,0 +1,1628 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- GA owner opt-out: load any page with ?ga=off to stop being counted, ?ga=on to undo. -->
+<script>
+  (function () {
+    var localHost = location.protocol === 'file:' ||
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(location.hostname) ||
+      /^(192\.168\.|10\.)/.test(location.hostname);
+    var optedOut = false;
+    try {
+      var p = new URLSearchParams(location.search).get('ga');
+      if (p === 'off') localStorage.setItem('gaOptOut', '1');
+      else if (p === 'on') localStorage.removeItem('gaOptOut');
+      optedOut = localStorage.getItem('gaOptOut') === '1';
+    } catch (e) {}
+    if (localHost || optedOut) window['ga-disable-G-6C09BL3WH1'] = true;
+  })();
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C09BL3WH1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6C09BL3WH1');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Excel Plan Builder &middot; Analyst Prep Kit</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2315803D'/%3E%3Crect x='8' y='9' width='16' height='3' rx='1.5' fill='%23fff'/%3E%3Crect x='8' y='15' width='16' height='3' rx='1.5' fill='%23fff' opacity='.75'/%3E%3Crect x='8' y='21' width='10' height='3' rx='1.5' fill='%23fff' opacity='.5'/%3E%3C/svg%3E">
+<meta name="description" content="Answer a few questions and get a three, five, or seven day Excel plan for the analyst role you want. Short days, real formulas you type yourself, and the reasoning behind every step.">
+<!--
+  Excel Plan Builder, v1. A mirror of the SQL Plan Builder at /plan/, on purpose.
+
+  Everything below the content block, the CSS, the markup and every line of
+  planner logic, is copied from /plan/index.html byte for byte. Only two things
+  differ: the authored 7-day content for each of the five levels, and the
+  accent colour, so the three planners are not three identical teal pages. If
+  the planner behaviour needs a change, change /plan/index.html and re-run the
+  mirror, or make the same edit in all three. Do not let them fork.
+
+  The research the design rests on is unchanged and still stated in the visible
+  footer section: implementation intentions and a time anchor (Gollwitzer &
+  Sheeran 2006; Milkman et al. 2011), endowed progress (Nunes & Dreze 2006),
+  a hard goal with one explicit skip (Sharif & Shu 2017), no streaks
+  (Silverman & Barasch 2023), recognition after the fact rather than dangled
+  rewards (Deci, Koestner & Ryan 1999), and a retrieval warm-up every day
+  after the first.
+
+  Excel-specific decisions:
+  - No drill page exists for Excel, so the typing reps live in the kit's own
+    guided practice plus a your-own-file step every day. Opening a real workbook
+    is the rep that makes a formula usable at work rather than recognisable.
+  - Lesson links use ../?from=plan#lesson-<id>-restart. The -restart suffix
+    starts the lesson at the beginning for the sitting without erasing kit
+    progress, which is what -plan does on the SQL side.
+  - The role list drops the AI-training option the SQL planner carries. That
+    work is SQL-shaped, and offering it here would be a lie about the days.
+-->
+<style>
+  :root{
+    --bg:#F5F7F8; --ink:#09090B; --muted:#52525B; --accent:#15803D;
+    --line:#E4E7EA; --card:#FFFFFF; --ok:#15803D; --okbg:#F0FAF3; --okline:#BBE3C8;
+    --warm:#B45309; --warmbg:#FEF7ED;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --pad:18px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.65 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--accent)}
+  .shell{max-width:860px;margin:0 auto;padding:14px 20px 120px}
+  .crumb{font-size:13.5px;margin:0 0 8px;color:var(--muted)}
+  .crumb a{text-decoration:none}
+  h1{font-size:27px;line-height:1.2;margin:0}
+  .lead{font-size:15.5px;color:var(--muted);max-width:70ch;margin:6px 0 0}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:var(--pad);margin:14px 0 0}
+  .card h2{font-size:19px;margin:0 0 2px}
+  .card .sub{color:var(--muted);font-size:14.5px;margin:0 0 12px}
+
+  /* Wins shelf. Only rendered once at least one win exists. */
+  .shelf{display:none}
+  .shelf.has{display:block}
+  .shelf .chips{margin-top:4px}
+  .winchip{display:inline-flex;align-items:center;gap:7px;background:var(--okbg);
+    border:1px solid var(--okline);border-radius:999px;padding:7px 13px;
+    font-size:13.5px;font-weight:600;color:var(--ok);margin:0 6px 6px 0}
+  .winchip small{font-weight:500;color:var(--muted)}
+
+  /* The questions. Chips, one row each, tap-only. */
+  .qlabel{font:700 12px/1 inherit;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--muted);margin:14px 0 8px}
+  .qlabel:first-of-type{margin-top:2px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{background:var(--bg);border:1px solid var(--line);border-radius:999px;
+    padding:10px 15px;font:inherit;font-size:14.5px;cursor:pointer;min-height:44px;
+    color:var(--ink)}
+  .chip:hover{border-color:var(--accent)}
+  .chip[aria-pressed="true"]{background:rgba(21,128,61,.09);border-color:var(--accent);
+    color:var(--accent);font-weight:600}
+  .pickrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:16px 0 0;
+    padding-top:14px;border-top:1px solid var(--line)}
+  .pickrow p{margin:0;font-size:14px;color:var(--muted);flex:1 1 260px}
+  /* Collapsed picker: once a plan exists, the questionnaire folds to one line so the
+     checklist is the page (user-intent standard: returners land on their stuff). */
+  #picker.collapsed > h2,#picker.collapsed > .sub,#picker.collapsed .qlabel,
+  #picker.collapsed .chips,#picker.collapsed .pickrow{display:none}
+  .picksum{display:none;align-items:center;gap:10px;flex-wrap:wrap}
+  #picker.collapsed .picksum{display:flex}
+  .picksum p{margin:0;font-size:14.5px;flex:1 1 260px}
+  .picksum p b{color:var(--accent)}
+  .btn-change{background:var(--card);border:1px solid var(--line);color:var(--ink);
+    border-radius:10px;padding:9px 14px;font:600 14px/1 inherit;cursor:pointer;min-height:44px}
+  .btn-change:hover{border-color:var(--accent);color:var(--accent)}
+  .btn-random{background:var(--card);border:1px solid var(--accent);color:var(--accent);
+    border-radius:10px;padding:10px 16px;font:600 14.5px/1 inherit;cursor:pointer;min-height:44px}
+  .btn-random:hover{background:rgba(21,128,61,.07)}
+
+  /* Plan header */
+  .planhead{border-left:4px solid var(--accent)}
+  .planhead .said{font-size:14.5px;color:var(--muted);margin:0 0 10px}
+  .planhead .said b{color:var(--ink)}
+  .planhead .logic{margin:0;font-size:15px;max-width:72ch}
+  .pbar{height:10px;background:var(--bg);border:1px solid var(--line);border-radius:999px;
+    overflow:hidden;margin:12px 0 6px}
+  .pbar span{display:block;height:100%;background:var(--accent);border-radius:999px;
+    transition:width .35s ease;min-width:8px}
+  .progressline{margin:0;font-size:14px;color:var(--muted)}
+  .progressline b{color:var(--ok)}
+  .headrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0 0}
+  .token{font-size:13px;font-weight:600;color:var(--warm);background:var(--warmbg);
+    border:1px solid rgba(180,83,9,.35);border-radius:999px;padding:6px 12px}
+  .token.spent{color:var(--muted);background:var(--bg);border-color:var(--line);font-weight:500}
+  .resetlink{font-size:13px;color:var(--muted);background:none;border:0;cursor:pointer;
+    text-decoration:underline;padding:6px 0;font-family:inherit}
+
+  /* Day cards */
+  .day{position:relative}
+  .day.done{background:var(--okbg);border-color:var(--okline)}
+  .day.skipped{background:var(--bg)}
+  .day .dtag{font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 4px}
+  .day.done .dtag::after{content:' \2713  done';color:var(--ok)}
+  .day h3{font-size:19px;margin:0}
+  .day .goal{color:var(--muted);font-size:14.5px;margin:4px 0 12px}
+  .steps{list-style:none;margin:0;padding:0}
+  .step{display:flex;gap:12px;align-items:flex-start;padding:11px 0;
+    border-top:1px solid var(--line)}
+  .step input[type=checkbox]{width:21px;height:21px;margin:3px 0 0;accent-color:var(--accent);
+    cursor:pointer;flex:none}
+  .step .body{min-width:0}
+  .step .what{font-size:15.5px;font-weight:600}
+  .step .what a{text-decoration-thickness:1px}
+  .step .time{font:600 12px/1 var(--mono);color:var(--muted);background:var(--bg);
+    border:1px solid var(--line);border-radius:6px;padding:3px 6px;margin-left:8px;
+    white-space:nowrap;vertical-align:2px}
+  .step .time.act{color:var(--ok);background:var(--okbg);border-color:var(--okline)}
+  .step .why{font-size:14px;color:var(--muted);margin:3px 0 0;max-width:66ch}
+  .step.checked .what{color:var(--muted);font-weight:500}
+  .step.checked .what a{color:var(--muted)}
+  /* The one step to do next, actually lit (Real Test rt010k). */
+  .step.next{box-shadow:inset 3px 0 0 var(--accent);background:rgba(21,128,61,.04);
+    padding-left:10px;border-radius:4px}
+  .nexttag{font:700 10px/1 inherit;letter-spacing:.06em;text-transform:uppercase;
+    color:#fff;background:var(--accent);border-radius:5px;padding:3px 6px;
+    margin-right:7px;vertical-align:2px}
+
+  .thinking{background:rgba(21,128,61,.06);border:1px solid rgba(21,128,61,.25);
+    border-radius:10px;padding:10px 14px;margin:14px 0 0}
+  .thinking .t{font:700 11px/1.5 inherit;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent);cursor:pointer}
+  .thinking[open] .t{margin:0 0 5px}
+  .thinking p{margin:0;font-size:14.5px;max-width:68ch}
+  /* Finer-points fold in the plan header: same quiet treatment */
+  .howlinks{margin:8px 0 0;font-size:14.5px;max-width:72ch}
+  .finer{margin:8px 0 0}
+  .finer summary{font-size:13.5px;color:var(--muted);cursor:pointer}
+  .finer p{margin:6px 0 0;font-size:14px;color:var(--muted);max-width:70ch}
+
+  .skiprow{margin:12px 0 0;font-size:13.5px;color:var(--muted)}
+  .skiprow button{font:inherit;font-size:13.5px;color:var(--warm);background:none;
+    border:0;cursor:pointer;text-decoration:underline;padding:0}
+  .skipnote{margin:0;font-size:15px}
+  .skipnote b{color:var(--warm)}
+
+  /* Milestone strip after day 3 on longer runs */
+  .milestone{background:var(--okbg);border:1px solid var(--okline);border-radius:12px;
+    padding:14px var(--pad);margin:14px 0 0}
+  .milestone .t{font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ok);margin:0 0 4px}
+  .milestone p{margin:0;font-size:14.5px;max-width:68ch}
+
+  /* Win card */
+  .win{border-left:4px solid var(--ok)}
+  .win h3{font-size:19px;margin:0 0 6px}
+  .win .pre{font-size:14.5px;color:var(--muted);margin:0 0 10px;max-width:68ch}
+  .win .say{background:var(--okbg);border:1px solid var(--okline);border-radius:10px;
+    padding:12px 14px;font-size:15.5px;font-weight:600;margin:0 0 12px;max-width:68ch}
+  .win .say.hidden{display:none}
+  .win .next{font-size:14.5px;color:var(--muted);margin:0;max-width:70ch}
+  .btn-reveal{background:var(--card);border:1px solid var(--ok);color:var(--ok);
+    border-radius:10px;padding:9px 14px;font:600 14px/1 inherit;cursor:pointer;
+    margin:0 0 12px}
+
+  /* Completion popup */
+  #overlay{position:fixed;inset:0;background:rgba(9,9,11,.45);z-index:90;
+    display:flex;align-items:center;justify-content:center;padding:20px}
+  #overlay[hidden]{display:none}
+  .popup{background:var(--card);border-radius:14px;max-width:460px;width:100%;
+    padding:24px;box-shadow:0 20px 60px rgba(9,9,11,.35);position:relative;overflow:hidden}
+  .popup h2{margin:0 0 6px;font-size:21px}
+  .popup .sayline{background:var(--okbg);border:1px solid var(--okline);border-radius:10px;
+    padding:11px 13px;font-size:15px;font-weight:600;margin:10px 0}
+  .popup p{font-size:14.5px;margin:8px 0}
+  .popup .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .popup .btn{border-radius:10px;padding:11px 16px;font:600 14.5px/1 inherit;
+    cursor:pointer;min-height:44px;text-decoration:none;display:inline-flex;
+    align-items:center}
+  .popup .btn.primary{background:var(--accent);border:1px solid var(--accent);color:#fff}
+  .popup .btn.ghost{background:var(--card);border:1px solid var(--line);color:var(--ink)}
+  .confetti{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;
+    animation:fall 1.9s ease-in forwards;pointer-events:none}
+  @keyframes fall{
+    0%{transform:translateY(0) rotate(0deg);opacity:1}
+    100%{transform:translateY(560px) rotate(560deg);opacity:0}
+  }
+  @media (prefers-reduced-motion: reduce){ .confetti{display:none} }
+
+  /* Toast for a new win */
+  #toast{position:fixed;left:16px;bottom:16px;z-index:80;background:var(--card);
+    border:1px solid var(--okline);border-left:4px solid var(--ok);border-radius:10px;
+    padding:12px 16px;box-shadow:0 8px 30px rgba(9,9,11,.18);max-width:320px;
+    font-size:14px}
+  #toast[hidden]{display:none}
+  #toast b{color:var(--ok)}
+
+  /* Next-up bar. The page's one directive: text set LARGER than body copy on
+     purpose (canon: the directive is visually dominant). */
+  /* Real Test rt012a: the bar was one fixed, fully opaque button spanning 85% of a
+     375px screen. Everything under it was a dead click — step links, a checkbox, the
+     skip control. The wrapper is now click-through (pointer-events:none) and only the
+     pill itself takes clicks, the pill carries a dismiss, and the whole thing hides
+     itself whenever the step it points at is already on screen. */
+  #nextwrap{position:fixed;left:0;right:0;bottom:14px;z-index:50;display:flex;
+    justify-content:center;align-items:center;gap:8px;padding:0 14px;
+    pointer-events:none}
+  #nextwrap[hidden]{display:none}
+  #nextbar{pointer-events:auto;background:var(--ink);color:#fff;border-radius:12px;
+    padding:13px 18px;box-shadow:0 6px 24px rgba(9,9,11,.3);
+    max-width:min(660px,calc(100vw - 74px));
+    display:flex;gap:12px;align-items:center;cursor:pointer;border:0;font:inherit;
+    text-align:left}
+  #nbClose{pointer-events:auto;flex:none;width:38px;height:38px;border-radius:50%;
+    background:var(--ink);color:#fff;border:0;cursor:pointer;font-size:15px;
+    box-shadow:0 6px 24px rgba(9,9,11,.3);line-height:1}
+  #nbClose:hover{background:#000}
+  #nextbar .k{font:700 11px/1 inherit;letter-spacing:.08em;text-transform:uppercase;
+    color:#7DD3E8;white-space:nowrap}
+  #nextbar .v{font-size:17px;font-weight:700;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap}
+  #nextbar.complete{background:var(--ok)}
+  #nextbar.complete .k{color:#CFF3DA}
+
+  /* The receipts: why the planner works this way */
+  .receipts{margin:26px 0 0}
+  .receipts summary{font:700 17px/1.4 inherit;cursor:pointer;margin:0 0 6px}
+  .receipts ul{margin:6px 0 0;padding-left:20px}
+  .receipts li{font-size:14px;color:var(--muted);margin:0 0 7px;max-width:76ch}
+  .receipts li b{color:var(--ink)}
+
+  footer{margin:26px 0 0;font-size:13.5px;color:var(--muted)}
+  @media (max-width:600px){
+    .chip{flex:1 1 100%;text-align:left}
+    .btn-random{width:100%}
+    .step .time{display:inline-block;margin:4px 0 0 0}
+  }
+  /* Touch targets gated on touch, not width (GAME_BIBLE mobile standard) */
+  @media (pointer:coarse){
+    .resetlink,.skiprow button,.btn-reveal{min-height:44px}
+    .step input[type=checkbox]{width:24px;height:24px}
+  }
+</style>
+</head>
+<body>
+<main class="shell" data-listen-root>
+  <p class="crumb"><a href="../../">&larr; All kits</a> &middot; <a href="../">Excel kit</a> &middot; Excel Plan Builder</p>
+  <h1>A short Excel plan, built around your goal</h1>
+  <p class="lead">Answer four quick questions. You get three, five, or seven short days of
+  work, each inside an hour, and every step tells you why it is there. The last day ends
+  with a win you can say out loud.</p>
+
+  <div class="card shelf" id="shelf">
+    <h2>Your wins</h2>
+    <p class="sub">Earned, not given. They stay here between visits.</p>
+    <div class="chips" id="shelfChips"></div>
+  </div>
+
+  <div class="card" id="picker">
+    <div class="picksum" id="picksum"></div>
+    <h2>Four questions</h2>
+    <p class="sub">Pick one answer in each row. The plan builds itself below.</p>
+    <p class="qlabel">Where is your Excel right now?</p>
+    <div class="chips" id="levelChips" role="group" aria-label="Where is your Excel right now?"></div>
+    <p class="qlabel">What kind of work do you want it for?</p>
+    <div class="chips" id="roleChips" role="group" aria-label="What kind of work do you want it for?"></div>
+    <p class="qlabel">How long a run?</p>
+    <div class="chips" id="daysChips" role="group" aria-label="How long a run?"></div>
+    <p class="qlabel">When in the day will you actually do it?</p>
+    <div class="chips" id="anchorChips" role="group" aria-label="When in the day will you do it?"></div>
+    <div class="pickrow">
+      <p>No idea what to pick? Let the planner deal you a hand. Every combination is a
+      real plan.</p>
+      <button type="button" class="btn-random" id="randomBtn">Deal a random plan</button>
+    </div>
+  </div>
+
+  <div id="plan"></div>
+
+  <section class="receipts">
+    <details>
+    <summary>Why the planner works the way it does</summary>
+    <ul>
+      <li><b>It asks when, not just what.</b> People who wrote down a date and a time for
+      a task followed through at meaningfully higher rates than people who just intended
+      to do it; date alone was not enough (Milkman and colleagues, 2011; Gollwitzer and
+      Sheeran, 2006).</li>
+      <li><b>Your progress bar never starts at zero.</b> In a classic field test, people
+      handed a card with two stamps already on it finished at 34 percent versus 19 percent
+      for an empty card with the same real work left (Nunes and Dreze, 2006).</li>
+      <li><b>The five and seven day runs include one emergency skip.</b> A hard goal with
+      explicit slack built in beats both an easier goal and a rigid one, and a slip stops
+      being a reason to quit (Sharif and Shu, 2017).</li>
+      <li><b>A missed day is never shown as failure.</b> Research on streaks finds that
+      showing people a broken streak suppresses the behavior itself, while repairable
+      misses do not (Silverman and Barasch, 2023). One missed day also does not damage
+      an emerging routine (Lally and colleagues, 2010).</li>
+      <li><b>Wins are recognized after you do the work, never dangled before it.</b>
+      Expected do-this-get-that rewards measurably undermine interest in the task itself;
+      recognition of demonstrated skill strengthens it (Deci, Koestner and Ryan, 1999).</li>
+      <li><b>Every day after day one starts by retyping from memory.</b> Pulling
+      yesterday's query back out of your head is retrieval practice, the most reliable
+      finding in learning science.</li>
+    </ul>
+    </details>
+  </section>
+
+  <footer>Part of the <a href="../../">Analyst Prep Kit</a>. Your picks, checked-off steps
+  and wins save in this browser, so the plan is waiting when you come back.</footer>
+</main>
+
+<div id="nextwrap" hidden>
+  <button type="button" id="nextbar">
+    <span class="k" id="nbK">Next up</span>
+    <span class="v" id="nbV"></span>
+  </button>
+  <button type="button" id="nbClose" aria-label="Hide the next-step bar" title="Hide this bar">&#10005;</button>
+</div>
+
+<div id="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="popTitle">
+  <div class="popup" id="popup">
+    <h2 id="popTitle"></h2>
+    <p id="popBody"></p>
+    <div class="sayline" id="popSay"></div>
+    <p id="popNext"></p>
+    <div class="row">
+      <a class="btn primary" id="popCert" href="certificate/">Get your certificate</a>
+      <button type="button" class="btn ghost" id="popCopy">Copy your win</button>
+      <button type="button" class="btn ghost" id="popClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" hidden></div>
+
+<noscript><p style="max-width:860px;margin:20px auto;padding:0 20px">This planner needs
+JavaScript. Without it, start with the <a href="../">Excel kit</a> or the
+<a href="../../guides/">how-to guides</a>.</p></noscript>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const KEY = 'apk-plan-excel-v1';
+
+/* ── answers ─────────────────────────────────────────────────────────────── */
+
+const LEVELS = {
+  brandnew: { chip:'Brand new. Never written a formula.',
+              said:'you are brand new to Excel' },
+  rusty:    { chip:'I knew this once. It is rusty now.',
+              said:'your Excel is coming back from a break' },
+  basics:   { chip:'I can total a column and sort it. Then it gets shaky.',
+              said:'you know the opening moves and it gets shaky after that' },
+  interview:{ chip:'An interview or an Excel test is coming.',
+              said:'you have an interview or a skills test coming' },
+  onthejob: { chip:'I use it at work. I want the analyst layer.',
+              said:'you already use Excel at work and want the analyst layer' }
+};
+
+const ROLES = {
+  data:      { chip:'Data analyst, general',    said:'general data analyst work',  noun:'a data analyst' },
+  marketing: { chip:'Marketing or product',     said:'marketing or product work',  noun:'a marketing or product analyst' },
+  finance:   { chip:'Finance or revenue',       said:'finance or revenue work',    noun:'a finance analyst' },
+  ops:       { chip:'Operations or business',   said:'operations or business work',noun:'an operations analyst' },
+  bi:        { chip:'Reporting and dashboards', said:'reporting and dashboard work',noun:'a reporting analyst' },
+  unsure:    { chip:'Not sure yet',             said:'work you have not picked yet, which is fine', noun:'an analyst' }
+};
+
+const DAYS_OPTS = {
+  3: { chip:'3 days. The sprint.',
+       note:'Three days is a sprint toward one concrete win. Short enough that quitting is harder than finishing.' },
+  5: { chip:'5 days. A work week, one skip included.',
+       note:'Five days is a work week. One emergency skip is included, because life happens and a slip is not a failure.' },
+  7: { chip:'7 days. The full run, one skip included.',
+       note:'Seven days is the full run, with one emergency skip included. A hard goal with slack beats a soft goal, and it beats a rigid one too.' }
+};
+
+const ANCHORS = {
+  morning: { chip:'With my morning coffee', phrase:'with your morning coffee' },
+  lunch:   { chip:'On my lunch break',      phrase:'on your lunch break' },
+  evening: { chip:'After dinner',           phrase:'after dinner' },
+  varies:  { chip:'It depends on the day',  phrase:'whenever the day allows' }
+};
+
+/* Role twists: the question that role actually gets asked of a spreadsheet, and
+   the two guides that teach the pattern behind it. Unsure borrows the general
+   pair and adds an orientation read on day one. */
+const TWISTS = {
+  data: {
+    q: 'Which segment performs best, and is the gap real or noise?',
+    fork: 'If the gap survives a duplicate check, it is real. If it shrinks, the sheet was counting some rows twice.',
+    g1: { href:'../../guides/excel-pivot-tables/#excel-pivot-table-question', label:'Ask a PivotTable a real question',
+          why:'The pivot is the fastest way to turn rows into an answer, and most people never learn to aim it.' },
+    g2: { href:'../../guides/excel-remove-duplicates/', label:'Remove duplicates in Excel',
+          why:'The first question a good analyst asks of any sheet: is anything counted twice?' }
+  },
+  marketing: {
+    q: 'Which month or channel actually moved, and by how much?',
+    fork: 'If the change holds when you switch from raw counts to percentages, it is real growth. If it flips, you were watching the audience get bigger, not better.',
+    g1: { href:'../../guides/excel-month-over-month/', label:'Month-over-month change in Excel',
+          why:'Versus last month is the marketing question, and it has a standard formula shape.' },
+    g2: { href:'../../guides/excel-pivot-percentages/', label:'Percentages in a PivotTable',
+          why:'Share of total is what turns a pivot from a count into a finding.' }
+  },
+  finance: {
+    q: 'Where did we come in against plan, and what explains the gap?',
+    fork: 'If the variance sits in one line item, you have the explanation. If it is spread evenly, the plan was wrong, not the month.',
+    g1: { href:'../../guides/budget-vs-actual-variance/#excel-variance-percent-traps', label:'Variance percentages and their traps',
+          why:'Percent variance is the most reported and most miscalculated number in finance.' },
+    g2: { href:'../../guides/excel-month-over-month/', label:'Year over year in Excel',
+          why:'Comparing to the same period last year is the check that stops seasonality reading as growth.' }
+  },
+  ops: {
+    q: 'Which records do not match between the two exports?',
+    fork: 'If the mismatches cluster in one date range or one source, you have found the break. If they are scattered, look for a formatting problem in the key.',
+    g1: { href:'../../guides/excel-clean-messy-data/', label:'Clean messy data in Excel',
+          why:'Operations work arrives as someone else’s export. Cleaning it is the job before the job.' },
+    g2: { href:'../../guides/excel-remove-duplicates/', label:'Remove duplicates in Excel',
+          why:'Duplicate rows are the usual culprit behind two systems that will not tie out.' }
+  },
+  bi: {
+    q: 'Which numbers belong on the dashboard, and can you defend each one?',
+    fork: 'If two reasonable definitions give the same number, ship either. If they diverge, the definition is the finding, and it goes in the notes.',
+    g1: { href:'../../guides/excel-dashboard-build-order/', label:'The order to build a dashboard in',
+          why:'Most dashboards fail at the layout stage because they were built in the wrong order.' },
+    g2: { href:'../../guides/excel-kpi-row/', label:'Build a KPI row',
+          why:'The row of big numbers at the top is what most people actually read. It deserves real work.' }
+  }
+};
+TWISTS.unsure = TWISTS.data;
+
+/* ── plan content ─────────────────────────────────────────
+   buildPlan(level, role, days) returns {logic, days:[...], win:{say,next}}.
+   Base content is authored as 7 days per level; 3 and 5 day runs slice it.
+   Day 3 is always a milestone day so a 3-day run ends on a win and a longer
+   run crosses a visible halfway marker.
+
+   Excel has no separate drill page, so the reps live in two places: the kit's
+   own guided practice inside each lesson, and a your-own-file step that puts
+   the move into a real workbook. That second one is deliberate. A formula you
+   have only ever seen inside a lesson is a formula you cannot use at work. */
+function lesson(id, title){ return '<a href="../?from=plan#lesson-'+id+'-restart">'+title+'</a>'; }
+/* Guides get the return token too: they have no completion event, so on the
+   guide the pill itself is the stop and the box-check. */
+function guide(g){ return '<a href="'+g.href+'?from=plan">'+g.label+'</a>'; }
+/* A your-own-file rep. No link, on purpose: the point is that you leave the
+   site, open a workbook, and do it where the mess is. */
+function own(text){ return text; }
+
+function warmup(){
+  return { what:'Warm-up: retype yesterday’s formula from memory, then run it and peek.',
+    time:'3 min', gen:true,
+    why:'Pulling it out of your head is what locks it in. Peeking after is allowed and expected.' };
+}
+
+const UNSURE_STEP = {
+  what:'Bonus read: <a href="../../guides/what-is-data-analysis/?from=plan">What is data analysis?</a>',
+  time:'8 min',
+  why:'You said you are not sure where to point this yet. This is the job, described plainly, so the rest of the plan has a direction.'
+};
+
+function sevenDays(lv, rk){
+  const role = ROLES[rk], tw = TWISTS[rk];
+
+  if (lv === 'brandnew') return {
+    logic:'The plan gets your hands on a real formula on day one and keeps every session '+
+      'inside an hour. Explanations come right after you have typed something, not before. '+
+      'That order is deliberate: doing first is what makes the explanation land.',
+    days:[
+      { title:'Type your first formula',
+        goal:'Put a formula in a cell and watch the sheet do the arithmetic for you.',
+        steps:[
+          { what: lesson(101,'How a Spreadsheet Is Built'), time:'10 min',
+            why:'Ten minutes of orientation so the words in the next step mean something.' },
+          { what: lesson(1,'Your First Formula'), time:'15 min',
+            why:'Before you open it, guess: when you type =2+2, does the cell store the sum or the instruction? The lesson settles it.' },
+          { what: own('Open a blank sheet, type five numbers down a column, and total them yourself.'), time:'8 min', gen:true,
+            why:'Typing it in your own file is what makes it stick. Reading alone will not.' }
+        ].concat(rk==='unsure' ? [UNSURE_STEP] : []),
+        thinking:'Most Excel courses start with a tour of the ribbon. Yours starts in a cell, '+
+          'because the fastest way to believe you can do this is to watch the sheet answer '+
+          'something you typed.' },
+      { title:'Point at cells, not numbers',
+        goal:'Write formulas that update themselves when the data changes.',
+        steps:[ warmup(),
+          { what: lesson(102,'Cell References &amp; the A1 Grid'), time:'15 min',
+            why:'Before you open it: if you copy =A1+B1 one row down, what happens to the letters and numbers? The lesson settles it.' },
+          { what: lesson(103,'Text vs Number (&amp; Dates)'), time:'12 min',
+            why:'Half of all broken spreadsheets are a number Excel decided was text. This is where you learn to spot it.' },
+          { what: own('Change one of yesterday’s five numbers and watch the total move on its own.'), time:'5 min', gen:true,
+            why:'That moment, where the total updates without you touching it, is the whole reason spreadsheets exist.' }
+        ],
+        thinking:'Day one proved you can get an answer. Day two makes the answer live, so the '+
+          'sheet keeps being right after the data changes. Everything fancier is built on this.' },
+      { title:'Ask the sheet a question',
+        goal:'Total and count only the rows that meet a condition, then say what you found.',
+        steps:[ warmup(),
+          { what: lesson(2,'Make Decisions with IF'), time:'15 min',
+            why:'IF is how a spreadsheet stops being a calculator and starts making a decision per row.' },
+          { what: lesson(5,'Count and Sum with Conditions'), time:'18 min',
+            why:'SUMIFS and COUNTIFS answer how many, per what. That is most analyst questions in two functions.' },
+          { what:'Write one plain sentence: what did your last formula find?', time:'5 min', gen:true,
+            why:'Saying the result in words is the analyst half of the job. The formula is only the tool.' }
+        ],
+        thinking:'A finished condition is worth ten started tutorials. The win is true the '+
+          'moment you check the last box, and it makes the next step feel obvious '+
+          'instead of scary.' },
+      { title:'Look things up',
+        goal:'Pull a value from one table into another without scrolling and squinting.',
+        steps:[ warmup(),
+          { what: lesson(3,'Lookup Magic: VLOOKUP'), time:'15 min',
+            why:'You will meet VLOOKUP in every inherited workbook, so you need to read it even if you never write it again.' },
+          { what: lesson(4,'Lookup Evolved: XLOOKUP'), time:'15 min',
+            why:'XLOOKUP is what you should actually write. It fixes the two things that make VLOOKUP break silently.' },
+          { what: own('In your own file, make a small second table and pull one value across with XLOOKUP.'), time:'10 min', gen:true,
+            why:'Joining two tables by hand is the moment a spreadsheet becomes a data tool.' }
+        ],
+        thinking:'Lookups are the single most asked-about Excel skill, and the single most '+
+          'common place a sheet goes quietly wrong. Learning both versions is not busywork; '+
+          'it is how you survive a file someone else built.' },
+      { title:'Summarise without formulas',
+        goal:'Build a PivotTable and get an answer in about thirty seconds.',
+        steps:[ warmup(),
+          { what: lesson(6,'What Is a PivotTable?'), time:'12 min',
+            why:'A pivot is a question shape, not a feature. Ten minutes here saves hours of dragging.' },
+          { what: lesson(7,'Build Your First Pivot'), time:'18 min',
+            why:'This is the step where a thousand rows become five you can read.' },
+          { what:'Look ahead: '+guide(tw.g1), time:'8 min',
+            why:'A skim, not a study session. This is the kind of question '+role.noun+
+                ' answers with a spreadsheet, so you can see where the road goes.' }
+        ],
+        thinking:'Everything before today was formula work, one cell at a time. The pivot '+
+          'answers the same questions in a fraction of the clicks, which is why it is the '+
+          'first thing an interviewer reaches for.' },
+      { title:'Clean what you were given',
+        goal:'Take a messy column and make it trustworthy.',
+        steps:[ warmup(),
+          { what: lesson(9,'Spot and Fix Dirty Data'), time:'15 min',
+            why:'Real data arrives dirty. Noticing it before you total it is the difference between an analyst and a calculator.' },
+          { what: guide(tw.g2), time:'10 min',
+            why:tw.g2.why },
+          { what: own('Run the same check on a real file of your own: a bank export, a class list, anything.'), time:'10 min', gen:true,
+            why:'Your own messy file is the best dataset you own, because you already know what the answer should be.' }
+        ],
+        thinking:'Cleaning is unglamorous and it is most of the job. Doing it on purpose, '+
+          'with a named method, is what separates a tidy sheet from a lucky one.' },
+      { title:'Show it',
+        goal:'Turn the week into one chart and three sentences.',
+        steps:[ warmup(),
+          { what: lesson(17,'Your First Chart'), time:'15 min',
+            why:'A chart is not decoration. It is the fastest way to make someone else see what you found.' },
+          { what:'Read: <a href="../../guides/choose-the-right-chart/#excel-pick-the-chart?from=plan">Pick the right chart</a>', time:'8 min',
+            why:'Most bad charts are the wrong chart, not a badly formatted one. This is the two-minute decision that fixes it.' },
+          { what:'Write three sentences about your chart, framed on '+tw.q, time:'10 min', gen:true,
+            why:'The sentences are the deliverable. The chart is the evidence behind them.' }
+        ],
+        thinking:'A week of practice that nobody can see does not travel. The last day turns '+
+          'it into something you can send, which is the difference between having practiced '+
+          'and having produced.' }
+    ],
+    winBy:{
+      3:'I can write a conditional total in Excel and say in plain words what it found.',
+      5:'I can join two tables with a lookup and summarise a thousand rows into an answer with a PivotTable.',
+      7:'I can take a messy sheet, clean it, summarise it, chart it, and say what it means in three sentences.'
+    },
+    next:'The <a href="../">Excel kit</a> keeps going into tables, text functions and Power Query, '+
+      'and the <a href="../../guides/">how-to guides</a> cover whatever your own files throw at you.'
+  };
+
+  if (lv === 'rusty') return {
+    logic:'You are not starting over. The plan front-loads the moves you almost certainly '+
+      'still have, then spends its time on the ones that faded. Every day opens by pulling '+
+      'yesterday back out of memory, which is the fastest known way to make something stay.',
+    days:[
+      { title:'Shake off the rust',
+        goal:'Prove the basics are still in there, then repair the one that is not.',
+        steps:[
+          { what: lesson(102,'Cell References &amp; the A1 Grid'), time:'12 min',
+            why:'Absolute and relative references are the first thing to fade and the first thing to break a copied formula.' },
+          { what: lesson(2,'Make Decisions with IF'), time:'15 min',
+            why:'Before you open it, guess: what does IF return when the test is false and you left the last argument out? The lesson settles it.' },
+          { what: own('Rebuild one formula you used to write, from memory, in a blank sheet.'), time:'10 min', gen:true,
+            why:'Failing to recall it and then seeing the answer is worth more than reading it cold.' }
+        ].concat(rk==='unsure' ? [UNSURE_STEP] : []),
+        thinking:'Rusty is not the same as new, and being taught like a beginner is why most '+
+          'refreshers get abandoned. Day one deliberately starts at the level you left off.' },
+      { title:'Conditions at scale',
+        goal:'Total and count by category without writing one formula per category.',
+        steps:[ warmup(),
+          { what: lesson(5,'Count and Sum with Conditions'), time:'15 min',
+            why:'SUMIFS with two or three criteria is the workhorse. If one thing comes back this week, make it this.' },
+          { what: lesson(14,'Nested IF and IFS'), time:'15 min',
+            why:'IFS is the fix for the nested-IF pile you probably wrote last time and could not read a month later.' },
+          { what: own('Rewrite one nested IF you have seen in the wild as a single IFS.'), time:'10 min', gen:true,
+            why:'Translating an old pattern into the modern one is how the new habit sticks.' }
+        ],
+        thinking:'The gap between rusty and working is rarely new functions. It is doing the '+
+          'familiar ones with criteria, at scale, without hand-editing.' },
+      { title:'One real answer, end to end',
+        goal:'Take a table to a finding, then say what the finding means.',
+        steps:[ warmup(),
+          { what: lesson(7,'Build Your First Pivot'), time:'18 min',
+            why:'A pivot gets you from rows to an answer faster than any formula you could write today.' },
+          { what:'Write one plain sentence: what did the pivot find?', time:'5 min', gen:true,
+            why:'Saying the result in words is the analyst half of the job. The pivot is only the tool.' },
+          { what:'Look ahead: '+guide(tw.g1), time:'8 min',
+            why:'A skim, not a study session. This is the kind of question '+role.noun+
+                ' answers with a spreadsheet, so you can see where the road goes.' }
+        ],
+        thinking:'Three days in, you have an answer you produced, not a tutorial you '+
+          'watched. That is the point at which the rust stops being the story.' },
+      { title:'Lookups, the modern way',
+        goal:'Replace the lookup you used to write with the one that does not break.',
+        steps:[ warmup(),
+          { what: lesson(4,'Lookup Evolved: XLOOKUP'), time:'15 min',
+            why:'If your Excel is from a few years ago, this function may be new to you, and it removes two whole classes of silent error.' },
+          { what: lesson(15,'INDEX + MATCH'), time:'15 min',
+            why:'Still the answer when the file has to open in an older Excel, and still worth being able to read.' },
+          { what: own('Take an old lookup from a file you kept and rewrite it as XLOOKUP.'), time:'10 min', gen:true,
+            why:'Upgrading real work beats practising on made-up data, because you can check the new answer against the old one.' }
+        ],
+        thinking:'Coming back after a break has one advantage: the tools improved while you '+
+          'were away. Today is you collecting that.' },
+      { title:'Stop the sheet breaking',
+        goal:'Make the workbook survive new rows and bad input.',
+        steps:[ warmup(),
+          { what: lesson(12,'Defensive Formulas: IFERROR'), time:'12 min',
+            why:'A sheet full of #N/A gets ignored. Handling the error on purpose is what makes it usable by someone else.' },
+          { what: lesson(13,'Excel Tables (Ctrl+T)'), time:'15 min',
+            why:'A real Table makes formulas and pivots extend themselves. It is the single highest-leverage habit in Excel.' },
+          { what: guide(tw.g2), time:'10 min',
+            why:tw.g2.why }
+        ],
+        thinking:'Most spreadsheets do not fail on the day they are built. They fail the '+
+          'first time someone pastes new rows underneath. Today is insurance against that.' },
+      { title:'From answer to metric',
+        goal:'Define the number before you compute it, then compute it.',
+        steps:[ warmup(),
+          { what: lesson(601,'Define the Metric Before You Compute It'), time:'15 min',
+            why:'The definition is where analysts disagree, and where a number quietly becomes the wrong one.' },
+          { what: lesson(603,'Month-over-Month Growth'), time:'15 min',
+            why:'Versus last period is the comparison every stakeholder asks for, and it has a standard shape worth owning.' },
+          { what:'Self-challenge: '+tw.fork, time:'8 min', gen:true,
+            why:'Naming the fork before you run it is what stops you reporting noise as a finding.' }
+        ],
+        thinking:'This is the day the plan stops being an Excel refresher and starts being '+
+          'analyst work. The functions were never the hard part.' },
+      { title:'Ship it',
+        goal:'Turn the week into something you can show.',
+        steps:[ warmup(),
+          { what:'<a href="../../projects/?from=plan">Project Studio</a>: scope a small project around this week’s metric', time:'20 min',
+            why:'A scoped project outlives the plan. This is where the week compounds instead of evaporating.' },
+          { what:'Write the final memo: three sentences, framed on '+tw.q, time:'10 min', gen:true,
+            why:'The memo is the deliverable. Everything else this week was the supply chain behind it.' }
+        ],
+        thinking:'Plans end; portfolios accumulate. The last day converts the week '+
+          'into something you can show, which is the difference between having '+
+          'practiced and having shipped.' }
+    ],
+    winBy:{
+      3:'My Excel is back, and I proved it by taking a table to a finding I can explain.',
+      5:'I write conditional totals and modern lookups, in Tables that do not break when the data grows.',
+      7:'I can define a metric, build it defensively, and hand over a memo that survives questions.'
+    },
+    next:'The <a href="../">Excel kit’s</a> later units go deeper on Power Query and financial analysis, '+
+      'and <a href="../../projects/">Project Studio</a> carries the shipping habit forward.'
+  };
+
+  if (lv === 'basics') return {
+    logic:'You can already get a total on the screen. The plan spends its whole time on '+
+      'the layer above that: conditions, lookups, pivots and clean input, which is where '+
+      'most self-taught Excel stalls. Each day is one named move and one file of your own.',
+    days:[
+      { title:'Name the shaky part',
+        goal:'Put the data in a real Table and total it by condition.',
+        steps:[
+          { what: lesson(13,'Excel Tables (Ctrl+T)'), time:'15 min',
+            why:'Almost everything that feels shaky about Excel is a range that should have been a Table.' },
+          { what: lesson(5,'Count and Sum with Conditions'), time:'18 min',
+            why:'Before you open it, guess: how many criteria can one SUMIFS take? The lesson settles it.' },
+          { what: own('Convert one of your own sheets to a Table and add a SUMIFS above it.'), time:'12 min', gen:true,
+            why:'Doing it in your own file is what makes it a habit instead of a fact.' }
+        ].concat(rk==='unsure' ? [UNSURE_STEP] : []),
+        thinking:'The self-taught wall is almost always the same wall: formulas that work '+
+          'once, on the exact rows they were written for. Tables and criteria are the way through.' },
+      { title:'Lookups without fear',
+        goal:'Pull values across tables, and know why the old way breaks.',
+        steps:[ warmup(),
+          { what: lesson(4,'Lookup Evolved: XLOOKUP'), time:'15 min',
+            why:'One function, no column counting, no silent wrong answer when someone inserts a column.' },
+          { what: lesson(15,'INDEX + MATCH'), time:'15 min',
+            why:'Reading it matters even if you never write it. Half the workbooks you inherit are built on it.' },
+          { what:'Read: <a href="../../guides/excel-two-way-lookup/?from=plan">Two-way lookup</a>', time:'10 min',
+            why:'Looking up a row and a column at once is the version interviewers use to separate confident from memorised.' }
+        ],
+        thinking:'Lookups are where a spreadsheet becomes a database with a friendlier face. '+
+          'They are also the number one source of numbers that are wrong but not obviously wrong.' },
+      { title:'Pivot to an answer',
+        goal:'Get from a thousand rows to a finding you can defend.',
+        steps:[ warmup(),
+          { what: lesson(8,'Slicers, Sorting &amp; Grouping'), time:'15 min',
+            why:'A pivot nobody can steer is a screenshot. Slicers make it a tool someone else can use.' },
+          { what:'Write one plain sentence: what did the pivot find, and what would change your mind?', time:'8 min', gen:true,
+            why:'The second half of that sentence is what makes it analysis rather than a number.' },
+          { what:'Look ahead: '+guide(tw.g1), time:'8 min',
+            why:'This is the kind of question '+role.noun+' answers with a spreadsheet, so you can see where the road goes.' }
+        ],
+        thinking:'Three days in you have a defensible finding. That is a real unit of '+
+          'analyst work, and it is the deliverable a 3-day run ends on.' },
+      { title:'Clean input, trusted output',
+        goal:'Make an ugly column usable without hand-editing rows.',
+        steps:[ warmup(),
+          { what: lesson(10,'Text Functions'), time:'15 min',
+            why:'TRIM, LEFT and TEXTSPLIT turn an unusable export into a joinable key. This is most of real cleaning.' },
+          { what: lesson(11,'Dates and Numbers'), time:'15 min',
+            why:'Dates stored as text are the single most common reason a total is quietly wrong.' },
+          { what: guide(tw.g2), time:'10 min',
+            why:tw.g2.why }
+        ],
+        thinking:'Everyone wants the analysis day. The cleaning day is the one that decides '+
+          'whether the analysis is true.' },
+      { title:'Defensive sheets',
+        goal:'Build so the next person, including future you, cannot break it.',
+        steps:[ warmup(),
+          { what: lesson(12,'Defensive Formulas: IFERROR'), time:'12 min',
+            why:'Handling the error on purpose is the difference between a working file and a file people stop opening.' },
+          { what: lesson(19,'Data Validation'), time:'15 min',
+            why:'Stopping bad input at the door beats cleaning it later, every time.' },
+          { what: own('Add one validation rule and one IFERROR to a file you actually use.'), time:'10 min', gen:true,
+            why:'A defence you only built in a lesson protects nothing.' }
+        ],
+        thinking:'Shaky is a feeling, and it usually comes from a file you do not trust. '+
+          'Today is the day you make one you do.' },
+      { title:'The metric layer',
+        goal:'Define a number, segment it, and check whether the gap is real.',
+        steps:[ warmup(),
+          { what: lesson(601,'Define the Metric Before You Compute It'), time:'15 min',
+            why:'Two reasonable people compute the same metric differently. Writing the definition down is the fix.' },
+          { what: lesson(602,'Segment with IFS'), time:'15 min',
+            why:'Splitting rows into named buckets is the most reused move in analyst spreadsheet work.' },
+          { what:'Self-challenge: '+tw.fork, time:'8 min', gen:true,
+            why:'Naming the fork before you run it is what stops you reporting noise as a finding.' }
+        ],
+        thinking:'This is where formula skill turns into judgement. The formulas were the '+
+          'easy half and you already have them.' },
+      { title:'Ship it',
+        goal:'Turn the week into a portfolio piece with a scope and a memo.',
+        steps:[ warmup(),
+          { what:'<a href="../../projects/?from=plan">Project Studio</a>: scope a small project around this week’s metric', time:'20 min',
+            why:'A scoped project outlives the plan. This is where the week compounds instead of evaporating.' },
+          { what:'Write the final memo: three sentences, framed on '+tw.q, time:'10 min', gen:true,
+            why:'The memo is the deliverable. Everything else this week was the supply chain behind it.' }
+        ],
+        thinking:'Plans end; portfolios accumulate. The last day converts the week '+
+          'into something you can show, which is the difference between having '+
+          'practiced and having shipped.' }
+    ],
+    winBy:{
+      3:'I can take a thousand rows to a defensible finding, and say what would change my mind.',
+      5:'I clean the input, join the tables, and build sheets that do not break when the data grows.',
+      7:'I define the metric, segment it, test whether the gap is real, and hand over a memo.'
+    },
+    next:'The <a href="../">Excel kit’s</a> later units cover Power Query, dashboards and financial '+
+      'analysis, and <a href="../../projects/">Project Studio</a> turns any of them into a portfolio piece.'
+  };
+
+  if (lv === 'interview') return {
+    logic:'An Excel test is a timed exercise with a watcher, not an exam about trivia. The '+
+      'plan drills the four things those tests actually contain, adds the traps that catch '+
+      'people who only ever practised on clean data, and makes you say your answer out loud.',
+    days:[
+      { title:'The two they always ask',
+        goal:'Lookups and conditional totals, fast and without hesitating.',
+        steps:[
+          { what: lesson(4,'Lookup Evolved: XLOOKUP'), time:'15 min',
+            why:'Every spreadsheet screen has a lookup in it. Being fluent here buys you time for the rest.' },
+          { what: lesson(5,'Count and Sum with Conditions'), time:'15 min',
+            why:'Before you open it, guess: does SUMIFS put the sum range first or the criteria first? Getting this wrong on the clock is a classic.' },
+          { what: own('Set a ten minute timer. Rebuild both, from memory, in a blank sheet.'), time:'10 min', gen:true,
+            why:'A timer changes what you practise. Under time you find out which parts you actually know.' }
+        ].concat(rk==='unsure' ? [UNSURE_STEP] : []),
+        thinking:'Interview Excel is a small, predictable set of moves done quickly. Day one '+
+          'takes the two that appear most often and makes them automatic.' },
+      { title:'Pivot under time',
+        goal:'Build a pivot and steer it while someone is watching.',
+        steps:[ warmup(),
+          { what: lesson(7,'Build Your First Pivot'), time:'15 min',
+            why:'The pivot is the fastest visible progress you can make in a live exercise.' },
+          { what: lesson(8,'Slicers, Sorting &amp; Grouping'), time:'15 min',
+            why:'Sorting the pivot before you speak is what makes the answer obvious to the person watching.' },
+          { what: own('Timed: five minutes, raw rows to a sorted pivot, out loud as you go.'), time:'10 min', gen:true,
+            why:'Narrating while you build is the skill being assessed. Silence reads as guessing.' }
+        ],
+        thinking:'They are not testing whether you can find the Insert menu. They are '+
+          'watching whether you stay calm and keep talking while your hands work.' },
+      { title:'Say the answer out loud',
+        goal:'Turn a result into a sentence a hiring manager repeats to someone else.',
+        steps:[ warmup(),
+          { what:'Write one plain sentence: what did your pivot find, and what would change your mind?', time:'8 min', gen:true,
+            why:'The second half is the part that sounds senior, and almost nobody says it.' },
+          { what:'<a href="../../interview/?from=plan">Interview practice</a>: run the Excel questions', time:'20 min',
+            why:'Answering out loud is a different skill from knowing the answer, and it is the one being scored.' },
+          { what:'Look ahead: '+guide(tw.g1), time:'8 min',
+            why:'This is the kind of question '+role.noun+' gets asked in the follow-up round.' }
+        ],
+        thinking:'Most candidates lose the Excel round after the formula is correct, in the '+
+          'ten seconds where they are asked what it means.' },
+      { title:'The traps',
+        goal:'Learn the wrong answers that look right.',
+        steps:[ warmup(),
+          { what:'Read: <a href="../../guides/excel-sum-of-id-trap/?from=plan">The sum-of-IDs trap</a>', time:'8 min',
+            why:'Totalling a column of ID numbers produces a number, and a number is what gets pasted into a slide.' },
+          { what:'Read: <a href="../../guides/excel-approximate-match-lookup/?from=plan">Approximate match lookups</a>', time:'10 min',
+            why:'The default match type is the reason a lookup returns a confident wrong answer instead of an error.' },
+          { what: own('Plant one of these traps in a test file and see whether you catch it cold.'), time:'10 min', gen:true,
+            why:'Building the trap teaches it better than reading about it, because you have to know how it hides.' }
+        ],
+        thinking:'A test with dirty data is testing your suspicion, not your typing. These '+
+          'are the two traps most often planted on purpose.' },
+      { title:'Clean data under pressure',
+        goal:'Take a deliberately messy file to a usable one inside fifteen minutes.',
+        steps:[ warmup(),
+          { what: lesson(9,'Spot and Fix Dirty Data'), time:'15 min',
+            why:'The screen exercise is nearly always messy on purpose. Noticing it first is half the score.' },
+          { what: lesson(10,'Text Functions'), time:'15 min',
+            why:'TRIM and TEXTSPLIT are what turn an unjoinable key into a joinable one, quickly.' },
+          { what: guide(tw.g2), time:'10 min',
+            why:tw.g2.why }
+        ],
+        thinking:'Given a clean file, most candidates look the same. Given a dirty one, the '+
+          'ranking sorts itself out in the first three minutes.' },
+      { title:'Check your own work',
+        goal:'Catch your mistake before the interviewer does.',
+        steps:[ warmup(),
+          { what:'Read: <a href="../../guides/excel-check-your-work/?from=plan">Check your work in Excel</a>', time:'10 min',
+            why:'Saying how you verified the number is the single most senior-sounding thing you can do in the room.' },
+          { what: lesson(806,'Sanity-Check &amp; Reconcile'), time:'15 min',
+            why:'Two routes to the same number, agreeing, is proof. One route is a hope.' },
+          { what:'Self-challenge: '+tw.fork, time:'8 min', gen:true,
+            why:'The interview will ask it anyway. You want to have answered it already.' }
+        ],
+        thinking:'Nobody expects a candidate to be error-free. They are checking whether '+
+          'you would have found it, and whether you would have said so.' },
+      { title:'Dry run',
+        goal:'One full timed exercise, start to memo, no help.',
+        steps:[ warmup(),
+          { what: own('Set thirty minutes. Take a messy file to one chart and one finding, alone.'), time:'30 min', gen:true,
+            why:'A rehearsal under real conditions is worth more than three more lessons at this point.' },
+          { what:'Write the final memo: three sentences, framed on '+tw.q, time:'10 min', gen:true,
+            why:'The memo is what you will be asked to produce, and it is what they keep.' }
+        ],
+        thinking:'The last day is a rehearsal, not new material. Walking in having already '+
+          'done the thing once is most of what confidence actually is.' }
+    ],
+    winBy:{
+      3:'I can build a pivot under time and say what it found and what would change my mind.',
+      5:'I spot planted traps in a dirty file and still deliver a clean answer on the clock.',
+      7:'I ran a full timed Excel exercise end to end, checked my own work, and wrote the memo.'
+    },
+    next:'<a href="../../interview/">Interview practice</a> has more questions, and the '+
+      '<a href="../">Excel kit</a> keeps going into dashboards and financial analysis for the second round.'
+  };
+
+  return {
+    logic:'You already use Excel to get work done. The plan skips the function tour and '+
+      'spends its whole time on the layer that gets people promoted: defining the number, '+
+      'checking the grain, structuring the file so it survives, and defending the result.',
+    days:[
+      { title:'Define before you compute',
+        goal:'Write the metric definition down before a single formula.',
+        steps:[
+          { what: lesson(601,'Define the Metric Before You Compute It'), time:'15 min',
+            why:'Most disagreements about a number are disagreements about its definition, discovered too late.' },
+          { what: lesson(802,'Validate the Grain'), time:'15 min',
+            why:'One row means what, exactly? Getting this wrong is how a total doubles without anyone noticing.' },
+          { what: own('Write the definition of one metric you already report. One sentence, no formula.'), time:'10 min', gen:true,
+            why:'If you cannot write it in a sentence, the sheet is holding an assumption nobody has read.' }
+        ].concat(rk==='unsure' ? [UNSURE_STEP] : []),
+        thinking:'At your level the failure mode is not a missing function. It is a correct '+
+          'formula answering a slightly different question than the one that was asked.' },
+      { title:'Segment and compare',
+        goal:'Split the metric and put it against a previous period.',
+        steps:[ warmup(),
+          { what: lesson(602,'Segment with IFS'), time:'15 min',
+            why:'Named buckets are what turn one number into a finding about who or what.' },
+          { what: lesson(603,'Month-over-Month Growth'), time:'15 min',
+            why:'Versus last period is what a stakeholder means by is it good, and it has traps in the percentage.' },
+          { what: guide(tw.g1), time:'10 min',
+            why:tw.g1.why }
+        ],
+        thinking:'A number with no comparison is not information. Segmentation and a time '+
+          'comparison are the two cheapest ways to turn one into the other.' },
+      { title:'One defensible metric',
+        goal:'Profile the source, build the number, and state what it does not cover.',
+        steps:[ warmup(),
+          { what: lesson(801,'Profile the Data First'), time:'15 min',
+            why:'Row counts, date ranges and null rates in the first five minutes save you a retraction later.' },
+          { what:'Write one plain sentence: what did you find, and what would change your mind?', time:'8 min', gen:true,
+            why:'Stating the disconfirming condition is what makes it analysis instead of advocacy.' },
+          { what:'Look ahead: '+guide(tw.g2), time:'8 min',
+            why:tw.g2.why }
+        ],
+        thinking:'Three days in, you have a number you could defend in a meeting. That is '+
+          'the real unit of analyst work, and a 3-day run ends there on purpose.' },
+      { title:'Structure that scales',
+        goal:'Rebuild the file so next month costs you minutes, not hours.',
+        steps:[ warmup(),
+          { what: lesson(13,'Excel Tables (Ctrl+T)'), time:'12 min',
+            why:'A Table is the cheapest structural upgrade in Excel, and most working files still do not have one.' },
+          { what: lesson(21,'Power Query Basics'), time:'20 min',
+            why:'The monthly copy-paste-clean ritual is a Power Query step you write once. This is where hours come back.' },
+          { what:'Read: <a href="../../guides/excel-file-too-slow/?from=plan">When the file is too slow</a>', time:'8 min',
+            why:'Slow files get abandoned, and abandoned analysis has no effect on anything.' }
+        ],
+        thinking:'The analyst layer is not only sharper questions. It is building the thing '+
+          'so that asking the question again next month is nearly free.' },
+      { title:'Time and cohorts',
+        goal:'Handle running totals and retention, the two shapes stakeholders ask for by name.',
+        steps:[ warmup(),
+          { what: lesson(604,'Running Totals with an Expanding Range'), time:'15 min',
+            why:'Cumulative against a target is the chart leadership actually looks at.' },
+          { what: lesson(606,'Cohort Retention'), time:'20 min',
+            why:'Grouping by when someone joined, then tracking them, answers questions a snapshot cannot.' },
+          { what: own('Build one of the two on your own data, not the sample.'), time:'15 min', gen:true,
+            why:'Your own data has the messy edges that the sample was cleaned of.' }
+        ],
+        thinking:'These two shapes cover a surprising share of what gets requested. Owning '+
+          'them means fewer requests that need a new idea.' },
+      { title:'Defend it',
+        goal:'Reconcile the number two ways and write down what could still be wrong.',
+        steps:[ warmup(),
+          { what: lesson(806,'Sanity-Check &amp; Reconcile'), time:'15 min',
+            why:'Two independent routes agreeing is the only cheap proof available in a spreadsheet.' },
+          { what:'Self-challenge: '+tw.fork, time:'10 min', gen:true,
+            why:'The meeting will ask it anyway, and you want to have answered it already.' },
+          { what: own('Add a notes tab: definition, source, date range, known gaps.'), time:'10 min', gen:true,
+            why:'The notes tab is what makes the file survive you being on holiday.' }
+        ],
+        thinking:'Trust is the currency at this level. It is built by being the person whose '+
+          'numbers have never had to be walked back.' },
+      { title:'Ship it',
+        goal:'Turn the week into a portfolio piece with a scope and a memo.',
+        steps:[ warmup(),
+          { what:'<a href="../../projects/?from=plan">Project Studio</a>: scope a small project around this week’s metric', time:'20 min',
+            why:'A scoped project outlives the plan. This is where the week compounds instead of evaporating.' },
+          { what:'Write the final memo: three sentences, framed on '+tw.q, time:'10 min', gen:true,
+            why:'The memo is the deliverable. Everything else this week was the supply chain behind it.' }
+        ],
+        thinking:'Plans end; portfolios accumulate. The last day converts the week '+
+          'into something you can show, which is the difference between having '+
+          'practiced and having shipped.' }
+    ],
+    winBy:{
+      3:'I built a metric from raw rows and can defend every step of it, including what it does not cover.',
+      5:'I build metrics on a structure that survives next month, with the refresh already automated.',
+      7:'I defined, built, reconciled and documented a metric, and shipped the week as a scoped portfolio piece.'
+    },
+    next:'The <a href="../">Excel kit’s</a> later units go deeper on Power Query, financial analysis '+
+      'and the advanced analyst toolkit, and <a href="../../projects/">Project Studio</a> carries the '+
+      'shipping habit forward.'
+  };
+}
+
+function buildPlan(lv, rk, nDays){
+  const base = sevenDays(lv, rk);
+  return {
+    logic: base.logic + ' ' + DAYS_OPTS[nDays].note,
+    days: base.days.slice(0, nDays),
+    win: { say: base.winBy[nDays], next: base.next }
+  };
+}
+
+/* ── state ───────────────────────────────────────────────────────────────── */
+
+let S = { level:null, role:null, days:null, anchor:null,
+          done:{}, skips:{}, celebrated:{}, badges:{}, lastCheckDate:null,
+          stats:{}, best:{} };
+try { S = Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch(e){}
+/* Carried over from the SQL planner: harmless here, and it keeps the three
+   planners byte-identical below the content block. */
+(function(){
+  let moved = false;
+  Object.keys(S.done || {}).forEach(k => {
+    if (k.split(':').length === 2){ S.done[k + ':3'] = S.done[k]; delete S.done[k]; moved = true; }
+  });
+  if (S.level && S.role && !S.days) S.days = 3;
+  if (moved) save();
+})();
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+function comboKey(){ return S.level + ':' + S.role + ':' + S.days; }
+function doneMap(){ return S.done[comboKey()] || {}; }
+function todayStr(){ return new Date().toISOString().slice(0, 10); }
+
+/* Permalinks: ?level=&role=&days= prefills; the URL is kept current so the
+   address bar is always a shareable link to this exact plan. */
+(function(){
+  try {
+    const q = new URLSearchParams(location.search);
+    const lv = q.get('level'), rk = q.get('role'), nd = parseInt(q.get('days'), 10);
+    let applied = false;
+    if (lv && LEVELS[lv]){ S.level = lv; applied = true; }
+    if (rk && ROLES[rk]){ S.role  = rk; applied = true; }
+    if (nd && DAYS_OPTS[nd]){ S.days = nd; applied = true; }
+    const wh = q.get('when');
+    if (wh && ANCHORS[wh]){ S.anchor = wh; applied = true; }
+    /* Persist immediately. A permalink used to set the plan in memory only, so the
+       first tool hop (guide or lesson) came back to ?ckd= with nothing saved:
+       the plan vanished and the box never checked. localStorage is the source of
+       truth for the round trip, so a shared link has to write to it on arrival. */
+    if (applied) save();
+  } catch(e){}
+})();
+function syncUrl(){
+  if (!S.level || !S.role || !S.days) return;
+  try {
+    const q = new URLSearchParams(location.search);
+    q.set('level', S.level); q.set('role', S.role); q.set('days', S.days);
+    if (S.anchor) q.set('when', S.anchor); else q.delete('when');
+    history.replaceState(null, '', location.pathname + '?' + q.toString());
+  } catch(e){}
+}
+
+/* ── wins (badges): competence-worded, awarded after the fact ────────────── */
+
+const BADGES = {
+  first:   { name:'First move',
+             line:'You checked off a real step. Most plans die before this point. Yours did not.' },
+  dayone:  { name:'A full day, done',
+             line:'One complete day of deliberate practice. That is a real unit of progress.' },
+  comeback:{ name:'The return',
+             line:'You came back on another day and kept going. Coming back is the actual skill.' },
+  saidit:  { name:'Said it in words',
+             line:'You turned a result on the sheet into a plain sentence. That is the analyst half of the job.' },
+  fin3:    { name:'Three-day finisher',
+             line:'A finished three-day run. Finished beats started, every time.' },
+  fin5:    { name:'Five-day finisher',
+             line:'A full work week of practice, done.' },
+  fin7:    { name:'Seven-day finisher',
+             line:'The full run. Seven days, one skill, no shortcuts.' },
+  range:   { name:'Range',
+             line:'Finished plans from two different starting points. That is range, and it shows.' }
+};
+let toastTimer = null;
+function showToast(html){
+  const t = $('toast');
+  t.innerHTML = html;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, 6000);
+}
+function award(id){
+  if (S.badges[id]) return;
+  S.badges[id] = todayStr();
+  save();
+  renderShelf();
+  showToast('<b>Win: ' + BADGES[id].name + '.</b> ' + BADGES[id].line);
+  if (window.gtag) gtag('event', 'plan_badge', { badge:id });
+}
+function renderShelf(){
+  const ids = Object.keys(S.badges);
+  const shelf = $('shelf');
+  shelf.className = 'card shelf' + (ids.length ? ' has' : '');
+  $('shelfChips').innerHTML = ids.map(id =>
+    '<span class="winchip">' + BADGES[id].name + ' <small>' + S.badges[id] + '</small></span>'
+  ).join('');
+}
+function finishedLevels(){
+  const lvls = {};
+  Object.keys(S.celebrated || {}).forEach(k => { lvls[k.split(':')[0]] = true; });
+  return Object.keys(lvls).length;
+}
+
+/* ── render ──────────────────────────────────────────────────────────────── */
+
+/* The questionnaire folds to one line once a plan exists. Not persisted: a fresh
+   visit with a saved plan starts folded; Change reopens it for this visit. */
+let pickerOpen = !(S.level && S.role && S.days && S.anchor);
+
+function chipRow(el, defs, sel, onPick){
+  el.innerHTML = '';
+  Object.keys(defs).forEach(k => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.textContent = defs[k].chip;
+    b.setAttribute('aria-pressed', String(String(k) === String(sel)));
+    b.addEventListener('click', () => onPick(k));
+    el.appendChild(b);
+  });
+}
+function picked(){
+  if (S.level && S.role && S.days && S.anchor) pickerOpen = false;
+  save();
+  renderAll('picked');
+}
+function renderChips(){
+  chipRow($('levelChips'), LEVELS, S.level, k => { S.level = k; picked(); });
+  chipRow($('roleChips'),  ROLES,  S.role,  k => { S.role  = k; picked(); });
+  chipRow($('daysChips'),  DAYS_OPTS, S.days, k => { S.days = parseInt(k,10); picked(); });
+  chipRow($('anchorChips'), ANCHORS, S.anchor, k => { S.anchor = k; picked(); });
+  const havePlan = !!(S.level && S.role && S.days);
+  const allFour = havePlan && !!S.anchor;
+  $('picker').classList.toggle('collapsed', allFour && !pickerOpen);
+  const sub = document.querySelector('#picker > .sub');
+  if (sub) sub.textContent = (havePlan && !S.anchor)
+    ? 'One question left: when in the day will you actually do it? Your plan is already built below.'
+    : 'Pick one answer in each row. The plan builds itself below.';
+  if (allFour){
+    $('picksum').innerHTML = '<p>Your picks: <b>' + LEVELS[S.level].chip.split('.')[0] +
+      '</b> &middot; <b>' + ROLES[S.role].chip + '</b> &middot; <b>' + S.days + ' days</b>' +
+      (S.anchor ? ' &middot; <b>' + ANCHORS[S.anchor].chip.toLowerCase() + '</b>' : '') + '</p>' +
+      '<button type="button" class="btn-change" id="changeBtn">Change answers</button>';
+    $('changeBtn').addEventListener('click', () => {
+      pickerOpen = true;
+      renderChips();
+      $('picker').scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+  } else {
+    $('picksum').innerHTML = '';
+  }
+}
+
+function stepId(d, s){ return 'd' + d + 's' + s; }
+function fmtT(secs){ return secs < 60 ? secs + 's' : Math.max(1, Math.round(secs / 60)) + 'm'; }
+function skippedDay(){ const v = S.skips[comboKey()]; return (v === 0 || v) ? v : null; }
+function hasSkipToken(){ return S.days > 3; }
+
+function renderPlan(how){
+  const box = $('plan');
+  if (!S.level || !S.role || !S.days){
+    box.innerHTML = '';
+    updateNextBar(null);
+    return;
+  }
+  syncUrl();
+  const p = buildPlan(S.level, S.role, S.days);
+  const dm = doneMap();
+  const skp = skippedDay();
+  const anchorPhrase = S.anchor ? ANCHORS[S.anchor].phrase : null;
+  const anchorNote = S.anchor === 'varies'
+    ? 'You said it depends on the day. One honest note: days without a named time slot get '+
+      'skipped more often than days with one. If a slot does exist, claim it.'
+    : (anchorPhrase ? 'You named a time. People who decide when, not just what, follow through '+
+      'at measurably higher rates. It is why the planner asked.' : null);
+
+  let total = 0, checked = 0, nextAssigned = false;
+  const dayDone = [];
+  p.days.forEach((day, di) => {
+    if (di === skp){ dayDone.push(true); return; }
+    let all = true;
+    day.steps.forEach((st, si) => {
+      total++;
+      if (dm[stepId(di, si)]) checked++; else all = false;
+    });
+    dayDone.push(all);
+  });
+  const allDone = dayDone.every(Boolean);
+  /* Endowed progress, honestly: the two setup picks count, and the copy says why. */
+  /* Real Test rt012b: this used to credit 2 setup steps and say "naming your rhythm ...
+     they are done" even when no rhythm had been named. Endowed progress only works if
+     the stamps are real, so an unanswered question four is not counted. */
+  const setupDone = 1 + (S.anchor ? 1 : 0);
+  const eTotal = total + setupDone, eChecked = checked + setupDone;
+  const pct = Math.round(100 * eChecked / eTotal);
+
+  let html = '<div class="card planhead">' +
+    '<h2>Your ' + S.days + ' days</h2>' +
+    '<p class="said">You said: <b>' + LEVELS[S.level].said + '</b>, for <b>' +
+      ROLES[S.role].said + '</b>' +
+      (anchorPhrase ? ', working <b>' + anchorPhrase + '</b>' : '') + '.</p>' +
+    '<p class="logic"><b>How this plan was thought through:</b> ' + p.logic + '</p>' +
+    '<p class="howlinks"><b>How the links work:</b> every linked step opens at its own top, '+
+      'separate from any other progress in the kit. Do the step, and the tool itself calls '+
+      'the stop, brings you back here, and checks the box for you.</p>' +
+    (anchorNote ? '<details class="finer"><summary>Why the planner asked when you would do it</summary><p>' +
+      anchorNote + '</p></details>' : '') +
+    '<div class="pbar" role="img" aria-label="' + pct + ' percent complete"><span style="width:' + pct + '%"></span></div>' +
+    '<p class="progressline" id="progressline"></p>' +
+    '<div class="headrow">' +
+      (hasSkipToken()
+        ? (skp === null
+          ? '<span class="token">Emergency skip: 1 available</span>'
+          : '<span class="token spent">Emergency skip: used on Day ' + (skp + 1) + '</span>')
+        : '') +
+      '<button type="button" class="resetlink" id="resetBtn"></button>' +
+    '</div></div>';
+
+  p.days.forEach((day, di) => {
+    const isSkipped = di === skp;
+    const dtagWhen = anchorPhrase ? ' &middot; ' + anchorPhrase : '';
+    if (isSkipped){
+      html += '<div class="card day skipped"><p class="dtag">Day ' + (di + 1) + '</p>' +
+        '<h3>' + day.title + '</h3>' +
+        '<p class="skipnote"><b>Skipped, on purpose.</b> Your progress is intact; the plan '+
+        'simply runs without this day. That was the deal.</p>' +
+        '<p class="skiprow"><button type="button" data-unskip="1">Give the skip back and do this day after all</button></p>' +
+        '</div>';
+      return;
+    }
+    let stepsHtml = '';
+    let dCnt = 0;
+    day.steps.forEach((st, si) => {
+      const id = stepId(di, si);
+      const on = !!dm[id];
+      if (on) dCnt++;
+      /* Tool links carry the step id back and forth: out via &ret=, home via ?ckd=,
+         so the tool can check this exact box on return. */
+      const what = st.what.replace(/from=plan/g, 'from=plan&amp;ret=' + id);
+      /* The race-yourself chip: last sitting's time, and the standing best when it
+         beats it. Recorded invisibly by the tool, shown only after the work. */
+      const rec = (S.stats[comboKey()] || {})[id];
+      const bs = S.best[comboKey() + ':' + id];
+      let actChip = '';
+      if (rec && rec.s){
+        actChip = '<span class="time act">yours: ' + fmtT(rec.s) +
+          (rec.miss === 0 ? ' · clean' : '') +
+          (bs && bs < rec.s ? ' · best ' + fmtT(bs) : '') + '</span>';
+      }
+      const isNext = !on && !nextAssigned;
+      if (isNext) nextAssigned = true;
+      const plainLabel = st.what.replace(/<[^>]*>/g, '').replace(/"/g, '&quot;');
+      stepsHtml +=
+        '<li class="step' + (on ? ' checked' : '') + (isNext ? ' next' : '') + '" id="row-' + id + '">' +
+        '<input type="checkbox" id="cb-' + id + '" data-sid="' + id + '" data-day="' + di + '"' +
+          (st.gen ? ' data-gen="1"' : '') + (on ? ' checked' : '') +
+          ' aria-label="Mark done: ' + plainLabel + '">' +
+        '<div class="body"><div class="what">' + (isNext ? '<span class="nexttag">Next</span>' : '') +
+        '<label for="cb-' + id + '">' + what +
+        '</label><span class="time">' + st.time + '</span>' + actChip + '</div>' +
+        '<p class="why">' + st.why + '</p></div></li>';
+    });
+    html += '<div class="card day' + (dayDone[di] ? ' done' : '') + '">' +
+      '<p class="dtag">Day ' + (di + 1) + dtagWhen + ' &middot; ' + dCnt + ' of ' +
+        day.steps.length + '</p>' +
+      '<h3>' + day.title + '</h3>' +
+      '<p class="goal">' + day.goal + '</p>' +
+      '<ul class="steps">' + stepsHtml + '</ul>' +
+      '<details class="thinking"><summary class="t">The thinking behind Day ' + (di + 1) +
+        '</summary><p>' + day.thinking + '</p></details>' +
+      (hasSkipToken() && skp === null && !dayDone[di]
+        ? '<p class="skiprow">Life happening today? <button type="button" data-skip="' + di + '">Use the emergency skip on this day</button></p>'
+        : '') +
+      '</div>';
+    if (di === 2 && S.days > 3){
+      const mid = buildPlan(S.level, S.role, 3).win.say;
+      html += '<div class="milestone"><p class="t">Milestone: three days in</p>' +
+        '<p>The three-day win is already yours: &ldquo;' + mid + '&rdquo; ' +
+        'The remaining days turn a win into range. Keep going; you are past halfway' +
+        (S.days === 5 ? '.' : ' by Day 4.') + '</p></div>';
+    }
+  });
+
+  html += '<div class="card win"><h3>The final-day win</h3>' +
+    '<p class="pre">Before you read ours: say, out loud, what you can do now that you '+
+    'could not on Day 1. Then compare.</p>' +
+    '<button type="button" class="btn-reveal" id="revealBtn">I said mine. Show me the card.</button>' +
+    '<p class="say hidden" id="winSay">&ldquo;' + p.win.say + '&rdquo;</p>' +
+    '<p class="next">' + p.win.next + '</p>' +
+    (S.celebrated[comboKey()]
+      ? '<p class="next" style="margin-top:8px"><b>Your certificate is ready.</b> '+
+        '<a href="' + certHref(S.celebrated[comboKey()]) + '">Open it and put your name on it.</a> '+
+        'It lives at a link you can keep, print, or add to LinkedIn.</p>'
+      : '') +
+    '</div>';
+
+  box.innerHTML = html;
+
+  /* checkbox wiring */
+  box.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const k = comboKey();
+      if (!S.done[k]) S.done[k] = {};
+      if (cb.checked) S.done[k][cb.dataset.sid] = true;
+      else delete S.done[k][cb.dataset.sid];
+
+      if (cb.checked){
+        award('first');
+        if (cb.dataset.gen) award('saidit');
+        if (S.lastCheckDate && S.lastCheckDate !== todayStr()) award('comeback');
+        S.lastCheckDate = todayStr();
+      }
+      save();
+      renderPlan('recheck');
+      if (window.gtag) gtag('event', 'plan_step',
+        { level:S.level, role:S.role, days:S.days, step:cb.dataset.sid, on:cb.checked ? 1 : 0 });
+    });
+  });
+
+  /* skip wiring */
+  box.querySelectorAll('[data-skip]').forEach(b => {
+    b.addEventListener('click', () => {
+      S.skips[comboKey()] = parseInt(b.dataset.skip, 10);
+      save();
+      renderPlan('recheck');
+      if (window.gtag) gtag('event', 'plan_skip', { level:S.level, role:S.role, days:S.days, day:b.dataset.skip });
+    });
+  });
+  box.querySelectorAll('[data-unskip]').forEach(b => {
+    b.addEventListener('click', () => {
+      delete S.skips[comboKey()];
+      save();
+      renderPlan('recheck');
+    });
+  });
+
+  /* reset: names exactly what it clears, clears all of it, keeps the rest */
+  const rb = $('resetBtn');
+  const comboName = S.days + '-day ' + LEVELS[S.level].chip.split('.')[0].toLowerCase() +
+    ' + ' + ROLES[S.role].chip.toLowerCase() + ' plan';
+  let armed = false;
+  rb.textContent = 'Start this plan over';
+  rb.addEventListener('click', () => {
+    if (!armed){
+      armed = true;
+      rb.textContent = 'This clears the ' + checked + ' checked steps and the skip for the ' +
+        comboName + '. Other plans, your wins and your times stay, so a fresh run races '+
+        'this one. Click again to clear.';
+      return;
+    }
+    delete S.done[comboKey()];
+    delete S.skips[comboKey()];
+    delete S.celebrated[comboKey()];
+    save();
+    renderPlan('recheck');
+    if (window.gtag) gtag('event', 'plan_reset', { level:S.level, role:S.role, days:S.days });
+  });
+
+  /* win reveal (generate before you see the answer) */
+  $('revealBtn').addEventListener('click', () => {
+    $('winSay').className = 'say';
+    $('revealBtn').style.display = 'none';
+  });
+
+  $('progressline').innerHTML = checked === 0
+    ? 'You start at <b>' + setupDone + ' of ' + eTotal + '</b>: ' +
+      (setupDone === 2
+        ? 'picking the plan and naming your rhythm were real steps, and they are done.'
+        : 'picking the plan was a real step, and it is done. Name a time above and that is two.') +
+      ' A bar already moving is easier to keep moving.'
+    : (allDone
+      ? '<b>All ' + eTotal + ' steps done.</b> The final-day win is yours to say out loud.'
+      : 'You are at <b>' + eChecked + ' of ' + eTotal + '</b> steps, setup included. The plan '+
+        'remembers, so leaving and coming back is part of the design.');
+  /* Pace, measured against the plan's own estimates, timed steps only. */
+  (function(){
+    const sk = S.stats[comboKey()] || {};
+    let actS = 0, estMin = 0;
+    p.days.forEach((day, di) => {
+      if (di === skp) return;
+      day.steps.forEach((st, si) => {
+        const rec = sk[stepId(di, si)];
+        if (rec && rec.s){ actS += rec.s; estMin += parseInt(st.time, 10) || 0; }
+      });
+    });
+    if (actS > 0){
+      $('progressline').innerHTML += ' Timed steps so far: <b>' + fmtT(actS) +
+        '</b> of work against the plan&rsquo;s ' + estMin + ' min estimate for them.';
+    }
+  })();
+
+  updateNextBar(p);
+
+  /* completion: popup + wins, once per combo */
+  if (allDone && total > 0 && !S.celebrated[comboKey()]){
+    S.celebrated[comboKey()] = todayStr();
+    save();
+    award('fin' + S.days);
+    if (finishedLevels() >= 2) award('range');
+    openPopup(p, eTotal);
+    if (window.gtag) gtag('event', 'plan_complete', { level:S.level, role:S.role, days:S.days });
+  }
+
+  if (how === 'picked' || how === 'random'){
+    if (window.gtag) gtag('event', 'plan_built', { level:S.level, role:S.role, days:S.days, how:how });
+  }
+  /* Real Test rt010f + rt010l: the press that builds the plan must show the plan,
+     and a returning learner lands on their checklist, not the questionnaire. */
+  if (how === 'picked' || how === 'resume'){
+    const head = document.querySelector('.planhead');
+    if (head) head.scrollIntoView({ behavior: how === 'picked' ? 'smooth' : 'auto', block:'start' });
+  }
+}
+
+const NEXT_PLAN = {
+  brandnew:'basics', rusty:'onthejob', basics:'interview', interview:'onthejob', onthejob:'basics'
+};
+function certHref(dateStr){
+  return 'certificate/?level=' + S.level + '&role=' + S.role + '&days=' + S.days +
+    '&d=' + (dateStr || todayStr());
+}
+function openPopup(p, eTotal){
+  $('popTitle').textContent = 'All ' + eTotal + ' steps. Done.';
+  $('popBody').textContent = 'That is a finished plan, which puts you in rare company. '+
+    'Your certificate is ready to carry your name. Your win, verbatim:';
+  $('popCert').href = certHref(S.celebrated[comboKey()]);
+  $('popSay').textContent = '“' + p.win.say + '”';
+  const nl = NEXT_PLAN[S.level];
+  $('popNext').innerHTML = 'The motivation dip after finishing a goal is real and well '+
+    'documented, so decide the next move now: the <b>' + S.days + '-day ' +
+    LEVELS[nl].chip.split('.')[0].toLowerCase() + '</b> plan is one tap on the picker, '+
+    'or deal a random hand. Finishing a second starting point earns Range.';
+  $('overlay').hidden = false;
+  /* small, quiet confetti; skipped entirely under prefers-reduced-motion via CSS */
+  const pop = $('popup');
+  pop.querySelectorAll('.confetti').forEach(n => n.remove());
+  const colors = ['#15803D','#15803D','#B45309','#7DD3E8','#BBE3C8'];
+  for (let i = 0; i < 34; i++){
+    const c = document.createElement('span');
+    c.className = 'confetti';
+    c.style.left = (3 + Math.random() * 94) + '%';
+    c.style.background = colors[i % colors.length];
+    c.style.animationDelay = (Math.random() * 0.5) + 's';
+    pop.appendChild(c);
+  }
+}
+$('popClose').addEventListener('click', () => { $('overlay').hidden = true; });
+$('overlay').addEventListener('click', e => { if (e.target === $('overlay')) $('overlay').hidden = true; });
+$('popCopy').addEventListener('click', () => {
+  const p = buildPlan(S.level, S.role, S.days);
+  const text = 'I finished a ' + S.days + '-day Excel plan for ' + ROLES[S.role].said +
+    '. ' + p.win.say + ' Built with the free Excel Plan Builder: ' +
+    'https://michaelnocito.github.io/analyst-prep-kit/excel/plan/?' +
+    'level=' + S.level + '&role=' + S.role + '&days=' + S.days;
+  const done = () => {
+    $('popCopy').textContent = 'Copied. Paste it anywhere.';
+    if (window.gtag) gtag('event', 'plan_share_copy', { level:S.level, role:S.role, days:S.days });
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, done);
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch(e){}
+    document.body.removeChild(ta); done();
+  }
+});
+
+let nbTargetId = null, nbDismissed = false, nbTick = false;
+function nbWrap(){ return $('nextwrap'); }
+function hideNextBar(){ nbWrap().hidden = true; }
+function showNextBar(){ if (!nbDismissed) nbWrap().hidden = false; }
+/* If the step the bar points at is already on screen, the step IS the directive and
+   the bar is just something covering the page. Hide it until it is needed again. */
+function nbSyncVisibility(){
+  if (nbDismissed || !nbTargetId) return;
+  const row = $(nbTargetId);
+  if (!row) return;
+  const r = row.getBoundingClientRect();
+  nbWrap().hidden = r.top >= 0 && r.bottom <= window.innerHeight - 76;
+}
+window.addEventListener('scroll', function(){
+  if (nbTick) return;
+  nbTick = true;
+  requestAnimationFrame(function(){ nbTick = false; nbSyncVisibility(); });
+}, { passive:true });
+
+function updateNextBar(p){
+  const bar = $('nextbar');
+  if (!p){ nbTargetId = null; hideNextBar(); return; }
+  const dm = doneMap();
+  const skp = skippedDay();
+  let found = null;
+  p.days.some((day, di) => {
+    if (di === skp) return false;
+    return day.steps.some((st, si) => {
+      if (!dm[stepId(di, si)]){ found = { di:di, si:si, st:st }; return true; }
+      return false;
+    });
+  });
+  showNextBar();
+  if (!found){
+    nbTargetId = null;
+    bar.className = 'complete';
+    $('nbK').textContent = 'Plan complete';
+    $('nbV').textContent = 'Pick the next plan, or deal a random hand';
+    bar.onclick = () => { window.scrollTo({ top:0, behavior:'smooth' }); };
+    return;
+  }
+  bar.className = '';
+  $('nbK').textContent = 'Next up · Day ' + (found.di + 1);
+  const tmp = document.createElement('div');
+  tmp.innerHTML = found.st.what;
+  $('nbV').textContent = tmp.textContent;
+  const id = 'row-' + stepId(found.di, found.si);
+  nbTargetId = id;
+  bar.onclick = () => {
+    const row = $(id);
+    if (row) row.scrollIntoView({ behavior:'smooth', block:'center' });
+  };
+  nbSyncVisibility();
+}
+$('nbClose').addEventListener('click', () => {
+  nbDismissed = true;
+  hideNextBar();
+});
+
+function renderAll(how){
+  renderChips();
+  renderShelf();
+  renderPlan(how);
+}
+
+$('randomBtn').addEventListener('click', () => {
+  const lks = Object.keys(LEVELS), rks = Object.keys(ROLES), dks = Object.keys(DAYS_OPTS);
+  let lv = lks[Math.floor(Math.random() * lks.length)];
+  let rk = rks[Math.floor(Math.random() * rks.length)];
+  const nd = parseInt(dks[Math.floor(Math.random() * dks.length)], 10);
+  /* A re-deal should always feel like a re-deal: never hand back the same trio. */
+  if (lv === S.level && rk === S.role && nd === S.days){
+    lv = lks[(lks.indexOf(lv) + 1) % lks.length];
+  }
+  S.level = lv; S.role = rk; S.days = nd;
+  if (!S.anchor) S.anchor = 'varies';
+  pickerOpen = false;
+  save();
+  renderAll('random');
+  const head = document.querySelector('.planhead');
+  if (head) head.scrollIntoView({ behavior:'smooth', block:'start' });
+});
+
+renderAll(S.level && S.role && S.days ? 'resume' : 'first');
+
+/* A tool finished a plan step and sent the learner home with ?ckd=<stepId>:
+   check that exact box, thank them, and light up the next step. This is the
+   click -> do the thing -> back to the checklist -> repeat loop; the manual
+   checkbox stays for the read-and-write steps that have no tool to confirm them. */
+(function(){
+  try {
+    const q = new URLSearchParams(location.search);
+    const ckd = q.get('ckd');
+    if (!ckd) return;
+    const secs = Math.max(0, parseInt(q.get('s'), 10) || 0);
+    const missRaw = q.get('miss'), rungsRaw = q.get('n');
+    q.delete('ckd'); q.delete('s'); q.delete('miss'); q.delete('n');
+    history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q.toString() : ''));
+    if (!S.level || !S.role || !S.days || !/^d\d+s\d+$/.test(ckd)) return;
+    const m = ckd.match(/^d(\d+)s(\d+)$/);
+    const p = buildPlan(S.level, S.role, S.days);
+    const day = p.days[+m[1]];
+    const st = day && day.steps[+m[2]];
+    if (!st) return;
+    const k = comboKey();
+    if (!S.done[k]) S.done[k] = {};
+    const already = !!S.done[k][ckd];
+    S.done[k][ckd] = true;
+    /* Save the sitting: time, misses (lessons), rungs (drill). Kept through resets,
+       so a fresh run of the same plan races this one. */
+    let pbLine = '';
+    if (secs > 0){
+      if (!S.stats[k]) S.stats[k] = {};
+      const rec = { s: secs, at: todayStr() };
+      if (missRaw !== null && missRaw !== '') rec.miss = Math.max(0, parseInt(missRaw, 10) || 0);
+      if (rungsRaw !== null && rungsRaw !== '') rec.n = Math.max(0, parseInt(rungsRaw, 10) || 0);
+      S.stats[k][ckd] = rec;
+      const bk = k + ':' + ckd;
+      const prev = S.best[bk];
+      if (!prev || secs < prev){
+        S.best[bk] = secs;
+        if (prev) pbLine = ' <b>Personal best</b>, ' + fmtT(prev - secs) + ' faster than your last run.';
+      }
+    }
+    if (!already){
+      award('first');
+      if (st.gen) award('saidit');
+      if (S.lastCheckDate && S.lastCheckDate !== todayStr()) award('comeback');
+      S.lastCheckDate = todayStr();
+    }
+    save();
+    renderPlan('recheck');
+    if (!already || pbLine){
+      const tmp = document.createElement('div');
+      tmp.innerHTML = st.what;
+      showToast('<b>&#10003; Checked off:</b> ' + tmp.textContent +
+        (secs > 0 ? ' &middot; ' + fmtT(secs) : '') + '.' + pbLine +
+        (pbLine ? '' : ' Your next step is marked Next.'));
+      if (window.gtag) gtag('event', 'plan_autocheck', { level:S.level, role:S.role, days:S.days,
+        step:ckd, s:secs || undefined, miss:(missRaw!==null&&missRaw!=='')?parseInt(missRaw,10):undefined,
+        rungs:(rungsRaw!==null&&rungsRaw!=='')?parseInt(rungsRaw,10):undefined, pb:pbLine?1:0 });
+    }
+    setTimeout(() => {
+      const bar = $('nextbar');
+      if (typeof bar.onclick === 'function') bar.onclick();
+    }, 250);
+  } catch(e){}
+})();
+</script>
+</body>
+</html>
