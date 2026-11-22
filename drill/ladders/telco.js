@@ -14,7 +14,7 @@ const LADDER = {
     telco_customers: 'one row = one customer',
     personas: 'one row = one tenure bucket'
   },
-  footnote: 'The chart half of this practice is <a href="../viz/?track=telco">Viz Drill, Telco Churn track</a>: same 7,043 customers, same questions, built with shelves instead of clauses. The finished dashboard is <a href="https://public.tableau.com/app/profile/michael.nocito8651/viz/TelcoCustomerChurnRiskPersonas/Story1" target="_blank" rel="noopener">on Tableau Public</a>.',
+  footnote: 'The chart half of this practice is <a href="../tableau/viz-drill/?track=telco">Viz Drill, Telco Churn track</a>: same 7,043 customers, same questions, built with shelves instead of clauses. The finished dashboard is <a href="https://public.tableau.com/app/profile/michael.nocito8651/viz/TelcoCustomerChurnRiskPersonas/Story1" target="_blank" rel="noopener">on Tableau Public</a>.',
   drills: [
 
   { adds: 'List the customers who can leave any month',
