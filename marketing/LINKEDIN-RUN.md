@@ -18,9 +18,9 @@ is the one place where traffic and the job hunt pull in the same direction.
 
 ## The order of the week
 
-Days 1, 3 and 5 point at the cheat sheet. Days 2 and 4 point at a guide on the
-site. Never two selling posts in a row: the ratio is what keeps the account
-worth following.
+Days 2 and 4 point at a guide on the site. Days 1, 3 and 5 teach with no link.
+Never two link posts in a row: the ratio is what keeps the account worth
+following.
 
 ---
 
@@ -50,13 +50,6 @@ arguing about it.
 The rule generalises. Every threshold, floor, cutoff or magic value in a query
 you hand to somebody else gets one line saying where it came from. Everything
 else stays bare. A comment on every obvious line is its own problem.
-
-I put this and five other checks on a two-page sheet you can print. Link in
-the comments.
-
-> **First comment:** Two printable pages: comment syntax across five databases,
-> the rules that differ between them, and the six-point check.
-> https://michaelnocito.gumroad.com/l/sql-comment-cheat-sheet?utm_source=linkedin&utm_medium=social&utm_campaign=cheat-sheet-d1
 
 ---
 
@@ -109,11 +102,6 @@ The strongest move in a portfolio project is to carry both. Teaching-mode query
 files as the lesson, one handoff-mode file to show you know the difference. The
 contrast is the signal.
 
-Both templates are on the sheet. Link in the comments.
-
-> **First comment:**
-> https://michaelnocito.gumroad.com/l/sql-comment-cheat-sheet?utm_source=linkedin&utm_medium=social&utm_campaign=cheat-sheet-d3
-
 ---
 
 ## Day 4 · the header that saves a meeting
@@ -162,7 +150,3 @@ The four things worth scoring:
 Most first drafts fail on 1 and 2. Almost all of them pass on the second pass,
 without you writing anything.
 
-Both the prompt and the check are on the sheet. Link in the comments.
-
-> **First comment:**
-> https://michaelnocito.gumroad.com/l/sql-comment-cheat-sheet?utm_source=linkedin&utm_medium=social&utm_campaign=cheat-sheet-d5
