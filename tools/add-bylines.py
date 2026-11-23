@@ -78,7 +78,7 @@ def build_byline(pub, mod, depth):
     return (
         f'<p class="byline" style="color:#52525B;font-size:14px;margin:-2px 0 18px">'
         f'By <a href="{up}about.html" rel="author" '
-        f'style="color:#0E7490">Michael Nocito</a>, data analyst{when}</p>'
+        f'style="color:#0E7490">Michael Nocito</a>, implementation analyst{when}</p>'
     )
 
 
