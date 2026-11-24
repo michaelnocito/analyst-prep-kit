@@ -253,7 +253,7 @@
 
   b.querySelector('.apk-book-link').addEventListener('click', function () {
     if (window.gtag) {
-      gtag('event', 'hub_book_click', { kit: kit, book: book.slug });
+      gtag('event', 'guide_book_click', { kit: kit, book: book.slug, placement: 'kit-hub' });
     }
   });
 })();
