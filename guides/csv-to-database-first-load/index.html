@@ -172,6 +172,11 @@ pre{margin:0;padding:12px;overflow-x:auto;clear:both}pre code{padding:0;backgrou
 footer{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:8px;text-align:center}
 .dock{position:sticky;bottom:0;z-index:5;display:flex;background:var(--card);border-radius:26px 26px 0 0;box-shadow:0 -6px 18px rgba(20,50,80,.1);padding:12px 16px calc(16px + env(safe-area-inset-bottom))}
 .go{flex:1;min-height:54px;border:0;border-radius:999px;background:linear-gradient(160deg,var(--fa),var(--fb) 60%,var(--fc));color:var(--fink);font-weight:800;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none;padding:6px 18px;text-align:center}
+/* candy color tip v1: first-visit callout under the open palette strip */
+.palhint{position:relative;display:flex;align-items:center;gap:10px;margin:8px 16px 6px;padding:8px 8px 8px 12px;border-radius:14px;background:var(--warm);color:var(--warm-ink);font-size:13px;font-weight:700;line-height:1.35}
+.palhint::before{content:"";position:absolute;top:-5px;left:24px;width:12px;height:12px;background:var(--warm);transform:rotate(45deg);border-radius:2px}
+.palhint>span{flex:1;min-width:0;position:relative}
+.palhint button{flex:none;min-height:36px;padding:0 14px;border:0;border-radius:999px;background:var(--card);color:var(--ink);font:inherit;font-weight:800;cursor:pointer;box-shadow:0 1px 3px rgba(20,50,80,.12);position:relative}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}[hidden]{display:none!important}
 :root{--accent:var(--tdeep)}.top{padding-top:calc(14px + env(safe-area-inset-top))}
 td code{white-space:nowrap;overflow-wrap:normal;font-size:12.5px;padding:0;background:none}
@@ -182,8 +187,9 @@ table{font-size:13px}th,td{padding:7px 4px;overflow-wrap:anywhere}
 </style>
 </head>
 <body><div class="app">
-<header class="top"><a class="pill" href="../">‹ Guides</a><span class="brand">Prep Kit</span><button class="xbtn" id="pal" aria-label="Colors" aria-expanded="false" aria-controls="palette"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.200 0 1.800-.8 1.800-1.700 0-1.200-1-1.600-1-2.600 0-1 .800-1.700 1.900-1.700H17a4 4 0 0 0 4-4C21 6.600 17 3 12 3z"/><circle cx="7.500" cy="11" r="1.200"/><circle cx="10.500" cy="7" r="1.200"/><circle cx="15" cy="7.500" r="1.200"/></svg></button></header>
-<div class="palette" id="palette" role="group" aria-label="Colors and light mode" hidden></div>
+<header class="top"><a class="pill" href="../">‹ Guides</a><span class="brand">Prep Kit</span><button class="xbtn" id="pal" aria-label="Colors" aria-expanded="true" aria-controls="palette"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.200 0 1.800-.8 1.800-1.700 0-1.200-1-1.600-1-2.600 0-1 .800-1.700 1.900-1.700H17a4 4 0 0 0 4-4C21 6.600 17 3 12 3z"/><circle cx="7.500" cy="11" r="1.200"/><circle cx="10.500" cy="7" r="1.200"/><circle cx="15" cy="7.500" r="1.200"/></svg></button></header>
+<div class="palette" id="palette" role="group" aria-label="Colors and light mode"></div>
+<div class="palhint" id="palhint" data-for="palette" role="note" hidden><span><b>New here?</b> Tap a color to make it yours. It follows you to every page.</span><button type="button" aria-label="Got it, hide the color tip">Got it</button></div>
 <main>
 <div class="intro"><div><span class="eyebrow">Guide · Load data safely</span><h1>Load a CSV Into a Database Safely</h1><p class="meta">By <a href="../../about.html" rel="author">Michael Nocito</a>, implementation analyst · Updated <time datetime="2026-11-27">November 27, 2026</time></p></div><span class="spot" aria-hidden="true"><svg width="52" height="52" viewBox="0 0 64 64"><path d="M10 22a22 8 0 0 1 44 0v30a22 8 0 0 1-44 0z" fill="var(--fb)"/><ellipse cx="32" cy="22" rx="22" ry="8" fill="var(--fa)"/><path d="M32 4v16M25 14l7 8 7-8" stroke="var(--tdeep)" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M10 38a22 8 0 0 0 44 0" stroke="var(--fink)" stroke-width="2.5" fill="none"/></svg></span></div>
 <p>Load every column as <b>text</b> into a staging table, find the bad values, then copy into a typed table. The raw rows stay available if a conversion goes wrong.</p><div class="card pad" id="practice-data"><span class="eyebrow">Practice file</span><p><b>A made-up export with problems on purpose:</b> IDs with leading zeros, mixed formats, an impossible date and a total row.</p><p><a href="orders.csv" download>Download orders.csv</a></p><div class="codebox"><button class="copy" type="button">Copy</button><pre><code>order_id,customer,order_date,amount,status
@@ -289,6 +295,20 @@ go.onclick=()=>{if(at>=steps.length-1){$('#kit').click();return}if(at>=0)steps[a
 steps.forEach((s,i)=>s.querySelector('summary').addEventListener('click',()=>{if(!s.open){at=i;label()}}));
 function hash(){const d=$$('details[id]').find(x=>'#'+x.id===location.hash);if(!d)return;d.open=true;const i=steps.indexOf(d);if(i>=0){at=i;label()}d.scrollIntoView()}
 addEventListener('hashchange',hash);$$('a[href^="#"]').forEach(a=>a.addEventListener('click',()=>{if(a.hash===location.hash)hash()}));hash();label();
+})();
+</script>
+<script>
+/* candy color tip v1: shown under the open palette until the visitor taps Got it or picks a color/mode. Shared key candy.hint.v1 = "1". */
+(function(){
+  var K='candy.hint.v1',h=document.getElementById('palhint');if(!h)return;
+  var pid=h.getAttribute('data-for')||'palette',seen=false;
+  try{seen=localStorage.getItem(K)==='1'}catch(e){}
+  function sync(){var p=document.getElementById(pid),show=!seen&&!!p&&!p.hidden&&p.offsetParent!==null;
+    if(p&&p.nextElementSibling!==h)p.after(h);if(h.hidden===show)h.hidden=!show}
+  function done(){if(seen)return;seen=true;try{localStorage.setItem(K,'1')}catch(e){}sync()}
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('button');if(b&&(h.contains(b)||b.closest('#'+pid)))done()},true);
+  if(window.MutationObserver)new MutationObserver(sync).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','class']});
+  sync();
 })();
 </script>
 </body></html>
