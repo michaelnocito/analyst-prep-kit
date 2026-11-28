@@ -9,6 +9,16 @@ conventions; semver where it makes sense for a static-site product:
 
 ---
 
+## [3.22.0] — 2026-11-28 — Color picker open by default
+
+On the home page and the 18 guides in the Candy design, the color strip (9
+flavors + light/dark) now starts open instead of hiding behind the palette
+button. First-time visitors see a one-time "New here?" tip under it; it goes
+away after Got it or the first color or mode pick, and stays away across the
+site (shared key `candy.hint.v1`).
+
+---
+
 ## [3.21.0] — 2026-08-22 — Eight new certification prep kits
 
 A sweep for certifications worth preparing for, then a kit for each one that

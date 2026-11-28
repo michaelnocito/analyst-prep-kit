@@ -303,6 +303,11 @@ a.go{text-align:center}
 #authModal .auth-button-primary{background:linear-gradient(160deg,var(--fa),var(--fb) 60%,var(--fc));color:var(--fink);border-radius:999px}
 #authModal .auth-button-secondary{color:#333;border-radius:999px}
 #authModal .auth-toggle button{color:#2a5fc0}
+/* candy color tip v1: first-visit callout under the open palette strip */
+.palhint{position:relative;display:flex;align-items:center;gap:10px;margin:8px 16px 6px;padding:8px 8px 8px 12px;border-radius:14px;background:var(--warm);color:var(--warm-ink);font-size:13px;font-weight:700;line-height:1.35}
+.palhint::before{content:"";position:absolute;top:-5px;left:24px;width:12px;height:12px;background:var(--warm);transform:rotate(45deg);border-radius:2px}
+.palhint>span{flex:1;min-width:0;position:relative}
+.palhint button{flex:none;min-height:36px;padding:0 14px;border:0;border-radius:999px;background:var(--card);color:var(--ink);font:inherit;font-weight:800;cursor:pointer;box-shadow:0 1px 3px rgba(20,50,80,.12);position:relative}
 [hidden]{display:none!important}
 </style>
   <script>
@@ -327,12 +332,13 @@ a.go{text-align:center}
 <div class="app">
 <header class="top">
 <div class="brand">Grain — Analyst Prep Kit<small>Break into data analytics</small></div>
-<button type="button" class="xbtn" id="pb" aria-label="Colors" aria-expanded="false" aria-controls="colors"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.2-1-1.6-1-2.6 0-1 .8-1.7 1.9-1.7H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10.5" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg></button>
+<button type="button" class="xbtn" id="pb" aria-label="Colors" aria-expanded="true" aria-controls="colors"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.2-1-1.6-1-2.6 0-1 .8-1.7 1.9-1.7H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10.5" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg></button>
 <button type="button" class="pill" id="loginBtn" onclick="openAuthModal()" style="display:none">Sign in</button>
 <button type="button" class="pill" id="logoutBtn" onclick="handleLogout()" style="display:none">Log out</button>
 </header>
 <span class="user-email" id="userEmail" style="display:none"></span>
-<div class="palette" id="colors" role="group" aria-label="Colors and light mode" hidden></div>
+<div class="palette" id="colors" role="group" aria-label="Colors and light mode"></div>
+<div class="palhint" id="palhint" data-for="colors" role="note" hidden><span><b>New here?</b> Tap a color to make it yours. It follows you to every page.</span><button type="button" aria-label="Got it, hide the color tip">Got it</button></div>
 <main>
 <section class="card hero">
 <span class="eyebrow">Free to start · No install · Sign in to sync across devices</span>
@@ -737,6 +743,20 @@ window.addEventListener('pageshow', () => { renderKitProgress(); renderDock(); }
   }
   document.addEventListener('click',send,true);
   document.addEventListener('auxclick',send,true);
+})();
+</script>
+<script>
+/* candy color tip v1: shown under the open palette until the visitor taps Got it or picks a color/mode. Shared key candy.hint.v1 = "1". */
+(function(){
+  var K='candy.hint.v1',h=document.getElementById('palhint');if(!h)return;
+  var pid=h.getAttribute('data-for')||'palette',seen=false;
+  try{seen=localStorage.getItem(K)==='1'}catch(e){}
+  function sync(){var p=document.getElementById(pid),show=!seen&&!!p&&!p.hidden&&p.offsetParent!==null;
+    if(p&&p.nextElementSibling!==h)p.after(h);if(h.hidden===show)h.hidden=!show}
+  function done(){if(seen)return;seen=true;try{localStorage.setItem(K,'1')}catch(e){}sync()}
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('button');if(b&&(h.contains(b)||b.closest('#'+pid)))done()},true);
+  if(window.MutationObserver)new MutationObserver(sync).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','class']});
+  sync();
 })();
 </script>
 </body>
